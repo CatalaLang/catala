@@ -41,7 +41,7 @@ let from_info
       Lexing.pos_bol = 1;
     }
   in
-  { code_pos = (spos, epos); law_pos = [] }
+  { code_pos = spos, epos; law_pos = [] }
 
 let overwrite_law_info (pos : t) (law_pos : string list) : t =
   { pos with law_pos }
@@ -92,7 +92,7 @@ let indent_number (s : string) : int =
 let retrieve_loc_text (pos : t) : string =
   try
     let filename = get_file pos in
-    let blue_style = [ ANSITerminal.Bold; ANSITerminal.blue ] in
+    let blue_style = [ANSITerminal.Bold; ANSITerminal.blue] in
     if filename = "" then "No position information"
     else
       let sline = get_start_line pos in
@@ -108,17 +108,17 @@ let retrieve_loc_text (pos : t) : string =
               Some l
             | None -> None
           in
-          (None, input_line_opt)
+          None, input_line_opt
         else
           let oc = open_in filename in
           let input_line_opt () : string option =
             try Some (input_line oc) with End_of_file -> None
           in
-          (Some oc, input_line_opt)
+          Some oc, input_line_opt
       in
       let print_matched_line (line : string) (line_no : int) : string =
         let line_indent = indent_number line in
-        let error_indicator_style = [ ANSITerminal.red; ANSITerminal.Bold ] in
+        let error_indicator_style = [ANSITerminal.red; ANSITerminal.Bold] in
         line
         ^
         if line_no >= sline && line_no <= eline then
@@ -214,13 +214,13 @@ let no_pos : t =
       Lexing.pos_bol = 0;
     }
   in
-  { code_pos = (zero_pos, zero_pos); law_pos = [] }
+  { code_pos = zero_pos, zero_pos; law_pos = [] }
 
-let mark pos e : 'a marked = (e, pos)
+let mark pos e : 'a marked = e, pos
 let unmark ((x, _) : 'a marked) : 'a = x
 let get_position ((_, x) : 'a marked) : t = x
-let map_under_mark (f : 'a -> 'b) ((x, y) : 'a marked) : 'b marked = (f x, y)
-let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = (x, y)
+let map_under_mark (f : 'a -> 'b) ((x, y) : 'a marked) : 'b marked = f x, y
+let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = x, y
 
 let unmark_option (x : 'a marked option) : 'a option =
   match x with Some x -> Some (unmark x) | None -> None

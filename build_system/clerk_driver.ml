@@ -34,12 +34,12 @@ let command =
     & info [] ~docv:"COMMAND" ~doc:"Command selection among: test, run")
 
 let debug =
-  Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
+  Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information")
 
 let reset_test_outputs =
   Arg.(
     value & flag
-    & info [ "r"; "reset" ]
+    & info ["r"; "reset"]
         ~doc:
           "Used with the `test` command, resets the test output to whatever is \
            output by the Catala compiler.")
@@ -48,14 +48,14 @@ let catalac =
   Arg.(
     value
     & opt (some string) None
-    & info [ "e"; "exe" ] ~docv:"EXE"
+    & info ["e"; "exe"] ~docv:"EXE"
         ~doc:"Catala compiler executable, defaults to `catala`")
 
 let ninja_output =
   Arg.(
     value
     & opt (some string) None
-    & info [ "o"; "output" ] ~docv:"OUTPUT"
+    & info ["o"; "output"] ~docv:"OUTPUT"
         ~doc:
           "$(i, OUTPUT) is the file that will contain the build.ninja file \
            output. If not specified, the build.ninja file will be outputed in \
@@ -65,7 +65,7 @@ let scope =
   Arg.(
     value
     & opt (some string) None
-    & info [ "s"; "scope" ] ~docv:"SCOPE"
+    & info ["s"; "scope"] ~docv:"SCOPE"
         ~doc:
           "Used with the `run` command, selects which scope of a given Catala \
            file to run.")
@@ -74,7 +74,7 @@ let makeflags =
   Arg.(
     value
     & opt (some string) None
-    & info [ "makeflags" ] ~docv:"LANG"
+    & info ["makeflags"] ~docv:"LANG"
         ~doc:
           "Provides the contents of a $(i, MAKEFLAGS) variable to pass on to \
            Ninja. Currently recognizes the -i and -j options.")
@@ -83,7 +83,7 @@ let catala_opts =
   Arg.(
     value
     & opt (some string) None
-    & info [ "c"; "catala-opts" ] ~docv:"LANG"
+    & info ["c"; "catala-opts"] ~docv:"LANG"
         ~doc:"Options to pass to the Catala compiler")
 
 let clerk_t f =
@@ -134,7 +134,7 @@ let info =
         "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
-  let exits = Cmd.Exit.defaults @ [ Cmd.Exit.info ~doc:"on error." 1 ] in
+  let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "clerk" ~version ~doc ~exits ~man
 
 (**{1 Testing}*)
@@ -176,13 +176,13 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string)
     let second_extension = Filename.extension filename in
     let base_filename, scope =
       if Re.Pcre.pmatch ~rex:catala_suffix_regex second_extension then
-        (filename, None)
+        filename, None
       else
         let scope_name_regex = Re.Pcre.regexp "\\.(.+)" in
         let scope_name =
           (Re.Pcre.extract ~rex:scope_name_regex second_extension).(1)
         in
-        (Filename.remove_extension filename, Some scope_name)
+        Filename.remove_extension filename, Some scope_name
     in
     Some { output_dir; complete_filename; base_filename; backend; scope }
 
@@ -234,7 +234,7 @@ let add_reset_rules_aux
       ~command:
         Nj.Expr.(
           Seq
-            ([ Lit catala_exe_opts; Lit "-s"; Var "scope" ]
+            ([Lit catala_exe_opts; Lit "-s"; Var "scope"]
             @ reset_common_cmd_exprs))
       ~description:
         Nj.Expr.(
@@ -280,7 +280,7 @@ let add_test_rules_aux
       ~command:
         Nj.Expr.(
           Seq
-            ([ Lit catala_exe_opts; Lit "-s"; Var "scope" ]
+            ([Lit catala_exe_opts; Lit "-s"; Var "scope"]
             @ test_common_cmd_exprs))
       ~description:
         Nj.Expr.(
@@ -381,10 +381,10 @@ let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
   let catala_exe_opts = catala_exe ^ " " ^ catala_opts in
   let run_and_display_final_message =
     Nj.Rule.make "run_and_display_final_message"
-      ~command:Nj.Expr.(Seq [ Lit ":" ])
+      ~command:Nj.Expr.(Seq [Lit ":"])
       ~description:
         Nj.Expr.(
-          Seq [ Lit "All tests"; Var "test_file_or_folder"; Lit "passed!" ])
+          Seq [Lit "All tests"; Var "test_file_or_folder"; Lit "passed!"])
   in
   {
     rules =
@@ -420,7 +420,7 @@ let collect_all_ninja_build
                 Nj.Expr.Lit
                   (Cli.catala_backend_option_to_string expected_output.backend)
               );
-              ("tested_file", Nj.Expr.Lit tested_file);
+              "tested_file", Nj.Expr.Lit tested_file;
               ( "expected_output",
                 Nj.Expr.Lit
                   (expected_output.output_dir
@@ -457,8 +457,7 @@ let collect_all_ninja_build
               ninja with
               builds =
                 Nj.BuildMap.add rule_output
-                  (Nj.Build.make_with_vars
-                     ~outputs:[ Nj.Expr.Lit rule_output ]
+                  (Nj.Build.make_with_vars ~outputs:[Nj.Expr.Lit rule_output]
                      ~rule ~vars)
                   ninja.builds;
             }
@@ -505,8 +504,8 @@ let collect_all_ninja_build
           ninja with
           builds =
             Nj.BuildMap.add test_name
-              (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit test_name ]
-                 ~rule:"phony" ~inputs:[ Nj.Expr.Lit test_names ])
+              (Nj.Build.make_with_inputs ~outputs:[Nj.Expr.Lit test_name]
+                 ~rule:"phony" ~inputs:[Nj.Expr.Lit test_names])
               ninja.builds;
         } )
 
@@ -527,9 +526,9 @@ let add_root_test_build
     ninja with
     builds =
       Nj.BuildMap.add "test"
-        (Nj.Build.make_with_vars_and_inputs ~outputs:[ Nj.Expr.Lit "test" ]
+        (Nj.Build.make_with_vars_and_inputs ~outputs:[Nj.Expr.Lit "test"]
            ~rule:"run_and_display_final_message"
-           ~inputs:[ Nj.Expr.Lit all_test_builds ]
+           ~inputs:[Nj.Expr.Lit all_test_builds]
            ~vars:
              [
                ( "test_file_or_folder",
@@ -549,7 +548,7 @@ let run_file
     String.concat " "
       (List.filter
          (fun s -> s <> "")
-         [ catala_exe; catala_opts; "-s " ^ scope; "Interpret"; file ])
+         [catala_exe; catala_opts; "-s " ^ scope; "Interpret"; file])
   in
   Cli.debug_print "Running: %s" command;
   Sys.command command
@@ -572,7 +571,7 @@ let get_catala_files_in_folder (dir : string) : string list =
       else loop (f :: result) fs
     | [] -> result
   in
-  let all_files_in_folder = loop [] [ dir ] in
+  let all_files_in_folder = loop [] [dir] in
   List.filter (Re.Pcre.pmatch ~rex:catala_suffix_regex) all_files_in_folder
 
 type ninja_building_context = {
@@ -611,9 +610,9 @@ let collect_in_folder
         match collect_all_ninja_build ninja file reset_test_outputs with
         | None ->
           (* Skips none Catala file. *)
-          (ninja, test_file_names)
+          ninja, test_file_names
         | Some (test_file_name, ninja) ->
-          (ninja, test_file_names ^ " $\n  " ^ test_file_name))
+          ninja, test_file_names ^ " $\n  " ^ test_file_name)
       (ninja_start, "")
       (get_catala_files_in_folder folder)
   in
@@ -629,9 +628,9 @@ let collect_in_folder
           builds =
             Nj.BuildMap.add test_dir_name
               (Nj.Build.make_with_vars_and_inputs
-                 ~outputs:[ Nj.Expr.Lit test_dir_name ]
+                 ~outputs:[Nj.Expr.Lit test_dir_name]
                  ~rule:"run_and_display_final_message"
-                 ~inputs:[ Nj.Expr.Lit test_file_names ]
+                 ~inputs:[Nj.Expr.Lit test_file_names]
                  ~vars:
                    [
                      ( "test_file_or_folder",
@@ -714,15 +713,13 @@ let makeflags_to_ninja_flags (makeflags : string option) =
   | Some makeflags ->
     let ignore_rex = Re.(compile @@ word (char 'i')) in
     let has_ignore = Re.execp ignore_rex makeflags in
-    let jobs_rex = Re.(compile @@ seq [ str "-j"; group (rep digit) ]) in
+    let jobs_rex = Re.(compile @@ seq [str "-j"; group (rep digit)]) in
     let number_of_jobs =
       try int_of_string (Re.Group.get (Re.exec jobs_rex makeflags) 1)
       with _ -> 0
     in
     String.concat " "
-      [
-        (if has_ignore then "-k0" else ""); "-j" ^ string_of_int number_of_jobs;
-      ]
+      [(if has_ignore then "-k0" else ""); "-j" ^ string_of_int number_of_jobs]
 
 let driver
     (files_or_folders : string list)
@@ -762,7 +759,7 @@ let driver
       List.iter
         (fun f ->
           f
-          |> Cli.with_style [ ANSITerminal.magenta ] "%s"
+          |> Cli.with_style [ANSITerminal.magenta] "%s"
           |> Cli.warning_print "No test case found for %s")
         ctx.all_failed_names;
     if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then

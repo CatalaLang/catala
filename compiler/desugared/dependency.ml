@@ -46,7 +46,7 @@ module Vertex = struct
   let compare = compare
 
   let equal x y =
-    match (x, y) with
+    match x, y with
     | Var (x, None), Var (y, None) -> Ast.ScopeVar.compare x y = 0
     | Var (x, Some sx), Var (y, Some sy) ->
       Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
@@ -170,7 +170,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
         let fv = Ast.free_variables def in
         Ast.ScopeDefMap.fold
           (fun fv_def fv_def_pos g ->
-            match (def_key, fv_def) with
+            match def_key, fv_def with
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
                 Ast.ScopeDef.Var (v_used, s_used) ) ->
               (* simple case *)

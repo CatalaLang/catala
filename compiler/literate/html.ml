@@ -180,7 +180,7 @@ let rec law_structure_to_html
     let h_number = heading.law_heading_precedence + 1 in
     Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n"
       h_number
-      (match (heading.law_heading_id, language) with
+      (match heading.law_heading_id, language with
       | Some id, Fr ->
         let ltime = Unix.localtime (Unix.time ()) in
         P.sprintf "https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id

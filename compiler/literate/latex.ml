@@ -32,12 +32,12 @@ let pre_latexify (s : string) : string =
     R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s
   in
   [
-    ("\\$", "\\$");
-    ("%", "\\%");
-    ("\\_", "\\_");
-    ("\\#", "\\#");
-    ("1er", "1\\textsuperscript{er}");
-    ("\\^", "\\textasciicircum");
+    "\\$", "\\$";
+    "%", "\\%";
+    "\\_", "\\_";
+    "\\#", "\\#";
+    "1er", "1\\textsuperscript{er}";
+    "\\^", "\\textasciicircum";
   ]
   |> List.fold_left substitute s
 

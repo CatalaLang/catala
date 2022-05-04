@@ -123,14 +123,14 @@ module TVertex = struct
     | Enum x -> Ast.EnumName.hash x
 
   let compare x y =
-    match (x, y) with
+    match x, y with
     | Struct x, Struct y -> Ast.StructName.compare x y
     | Enum x, Enum y -> Ast.EnumName.compare x y
     | Struct _, Enum _ -> 1
     | Enum _, Struct _ -> -1
 
   let equal x y =
-    match (x, y) with
+    match x, y with
     | Struct x, Struct y -> Ast.StructName.compare x y = 0
     | Enum x, Enum y -> Ast.EnumName.compare x y = 0
     | _ -> false
@@ -242,7 +242,7 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
        (List.map
           (fun v ->
             let var_str, var_info =
-              (Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v)
+              Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v
             in
             let succs = TDependencies.succ_e g v in
             let _, edge_pos, succ =

@@ -60,7 +60,7 @@ Set.Make (struct
   type t = location Pos.marked
 
   let compare x y =
-    match (Pos.unmark x, Pos.unmark y) with
+    match Pos.unmark x, Pos.unmark y with
     | ScopeVar (vx, _), ScopeVar (vy, _) -> ScopeVar.compare vx vy
     | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
         SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
@@ -168,7 +168,7 @@ end
 type vars = expr Bindlib.mvar
 
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
+  Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var x)
 
 let make_abs
     (xs : vars)
@@ -177,14 +177,14 @@ let make_abs
     (taus : typ Pos.marked list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply
-    (fun b -> (EAbs ((b, pos_binder), taus), pos))
+    (fun b -> EAbs ((b, pos_binder), taus), pos)
     (Bindlib.bind_mvar xs e)
 
 let make_app
     (e : expr Pos.marked Bindlib.box)
     (u : expr Pos.marked Bindlib.box list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
+  Bindlib.box_apply2 (fun e u -> EApp (e, u), pos) e (Bindlib.box_list u)
 
 let make_let_in
     (x : Var.t)
@@ -192,11 +192,11 @@ let make_let_in
     (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs (Array.of_list [ x ]) e2
+    (fun e u -> EApp (e, u), Pos.get_position (Bindlib.unbox e2))
+    (make_abs (Array.of_list [x]) e2
        (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
+       [tau]
        (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
+    (Bindlib.box_list [e1])
 
 module VarMap = Map.Make (Var)

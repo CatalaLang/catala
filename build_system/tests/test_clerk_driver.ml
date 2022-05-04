@@ -25,7 +25,7 @@ let test_ninja_start () =
 let test_add_test_builds_for_folder () =
   let ctx = D.ninja_building_context_init ninja_start in
   let nj_building_ctx =
-    To_test.add_test_builds ctx [ test_files_dir ^ "folder" ] false
+    To_test.add_test_builds ctx [test_files_dir ^ "folder"] false
   in
   al_assert "a test case should be found"
     (Option.is_some nj_building_ctx.curr_ninja);
@@ -47,7 +47,7 @@ let test_add_test_builds_for_folder () =
 let test_add_test_builds_for_untested_file () =
   let untested_file = test_files_dir ^ "untested_file.catala_en" in
   let ctx = D.ninja_building_context_init Nj.empty in
-  let nj_building_ctx = To_test.add_test_builds ctx [ untested_file ] false in
+  let nj_building_ctx = To_test.add_test_builds ctx [untested_file] false in
 
   al_assert "no test cases should be found"
     (Option.is_none nj_building_ctx.curr_ninja);
@@ -61,7 +61,7 @@ let test_add_test_builds_for_simple_interpret_scope_file () =
   in
   let ctx = D.ninja_building_context_init ninja_start in
   let nj_building_ctx =
-    To_test.add_test_builds ctx [ simple_interpret_scope_file ] false
+    To_test.add_test_builds ctx [simple_interpret_scope_file] false
   in
   al_assert "a test case should be found"
     (Option.is_some nj_building_ctx.curr_ninja);
@@ -76,13 +76,13 @@ let test_add_test_builds_for_simple_interpret_scope_file () =
     in
     let test_A_file =
       Build.make_with_vars
-        ~outputs:[ Expr.Lit test_A_file_output ]
+        ~outputs:[Expr.Lit test_A_file_output]
         ~rule:"test_with_scope"
         ~vars:
           [
-            ("scope", Lit "A");
-            ("catala_cmd", Lit "Interpret");
-            ("tested_file", Lit simple_interpret_scope_file);
+            "scope", Lit "A";
+            "catala_cmd", Lit "Interpret";
+            "tested_file", Lit simple_interpret_scope_file;
             ( "expected_output",
               Lit
                 (test_files_dir
@@ -91,9 +91,9 @@ let test_add_test_builds_for_simple_interpret_scope_file () =
     in
     let test_file =
       Build.make_with_inputs
-        ~outputs:[ Expr.Lit test_file_output ]
+        ~outputs:[Expr.Lit test_file_output]
         ~rule:"phony"
-        ~inputs:[ Expr.Lit (" $\n  " ^ test_A_file_output) ]
+        ~inputs:[Expr.Lit (" $\n  " ^ test_A_file_output)]
     in
     BuildMap.empty
     |> BuildMap.add test_file_output test_file

@@ -20,12 +20,11 @@ module Errors = Utils.Errors
 module Pos = Utils.Pos
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
-let languages = [ ("en", Cli.En); ("fr", Cli.Fr); ("pl", Cli.Pl) ]
+let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]
 
 (** Associates a file extension with its corresponding {!type: Cli.backend_lang}
     string representation. *)
-let extensions =
-  [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl") ]
+let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage: [driver source_file options]*)
@@ -74,7 +73,7 @@ let driver source_file (options : Cli.options) : int =
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
     match backend with
     | Cli.Makefile ->
-      let backend_extensions_list = [ ".tex" ] in
+      let backend_extensions_list = [".tex"] in
       let source_file =
         match source_file with
         | FileName f -> f
@@ -150,7 +149,7 @@ let driver source_file (options : Cli.options) : int =
       Cli.debug_print "Name resolution...";
       let ctxt = Surface.Name_resolution.form_context prgm in
       let scope_uid =
-        match (options.ex_scope, backend) with
+        match options.ex_scope, backend with
         | None, Cli.Interpret ->
           Errors.raise_error "No scope was provided for execution."
         | None, _ ->
@@ -174,8 +173,8 @@ let driver source_file (options : Cli.options) : int =
           match options.output_file with
           | Some f ->
             let oc = open_out f in
-            (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
-          | None -> (Format.std_formatter, fun _ -> ())
+            Format.formatter_of_out_channel oc, fun _ -> close_out oc
+          | None -> Format.std_formatter, fun _ -> ()
         in
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
@@ -208,8 +207,8 @@ let driver source_file (options : Cli.options) : int =
           match options.output_file with
           | Some f ->
             let oc = open_out f in
-            (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
-          | None -> (Format.std_formatter, fun _ -> ())
+            Format.formatter_of_out_channel oc, fun _ -> close_out oc
+          | None -> Format.std_formatter, fun _ -> ()
         in
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
@@ -262,7 +261,7 @@ let driver source_file (options : Cli.options) : int =
               let v1 =
                 Re.Pcre.substitute ~rex:out_regex ~subst:(fun _ -> "") v1
               in
-              ((v1, v1_pos), e1))
+              (v1, v1_pos), e1)
             results
         in
         let results =
@@ -307,8 +306,8 @@ let driver source_file (options : Cli.options) : int =
             match options.output_file with
             | Some f ->
               let oc = open_out f in
-              (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
-            | None -> (Format.std_formatter, fun _ -> ())
+              Format.formatter_of_out_channel oc, fun _ -> close_out oc
+            | None -> Format.std_formatter, fun _ -> ()
           in
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
@@ -365,8 +364,8 @@ let driver source_file (options : Cli.options) : int =
               match options.output_file with
               | Some f ->
                 let oc = open_out f in
-                (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
-              | None -> (Format.std_formatter, fun _ -> ())
+                Format.formatter_of_out_channel oc, fun _ -> close_out oc
+              | None -> Format.std_formatter, fun _ -> ()
             in
             if Option.is_some options.ex_scope then
               Format.fprintf fmt "%a\n"

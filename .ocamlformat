@@ -6,3 +6,6 @@ wrap-comments
 parse-docstrings
 version=0.21.0
 cases-exp-indent=2
+indicate-multiline-delimiters=no
+parens-tuple=multi-line-only
+space-around-lists=false

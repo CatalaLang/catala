@@ -13,17 +13,17 @@ type prise_en_charge =
 
 let embed_prise_en_charge (x : prise_en_charge) : runtime_value =
   Enum
-    ( [ "PriseEnCharge" ],
+    ( ["PriseEnCharge"],
       match x with
       | GardeAlterneePartageAllocations x ->
-        ("GardeAlternéePartageAllocations", embed_unit x)
+        "GardeAlternéePartageAllocations", embed_unit x
       | GardeAlterneeAllocataireUnique x ->
-        ("GardeAlternéeAllocataireUnique", embed_unit x)
-      | EffectiveEtPermanente x -> ("EffectiveEtPermanente", embed_unit x)
+        "GardeAlternéeAllocataireUnique", embed_unit x
+      | EffectiveEtPermanente x -> "EffectiveEtPermanente", embed_unit x
       | ServicesSociauxAllocationVerseeALaFamille x ->
-        ("ServicesSociauxAllocationVerséeÀLaFamille", embed_unit x)
+        "ServicesSociauxAllocationVerséeÀLaFamille", embed_unit x
       | ServicesSociauxAllocationVerseeAuxServicesSociaux x ->
-        ("ServicesSociauxAllocationVerséeAuxServicesSociaux", embed_unit x) )
+        "ServicesSociauxAllocationVerséeAuxServicesSociaux", embed_unit x )
 
 type situation_obligation_scolaire =
   | Avant of unit
@@ -33,11 +33,11 @@ type situation_obligation_scolaire =
 let embed_situation_obligation_scolaire (x : situation_obligation_scolaire) :
     runtime_value =
   Enum
-    ( [ "SituationObligationScolaire" ],
+    ( ["SituationObligationScolaire"],
       match x with
-      | Avant x -> ("Avant", embed_unit x)
-      | Pendant x -> ("Pendant", embed_unit x)
-      | Apres x -> ("Après", embed_unit x) )
+      | Avant x -> "Avant", embed_unit x
+      | Pendant x -> "Pendant", embed_unit x
+      | Apres x -> "Après", embed_unit x )
 
 type collectivite =
   | Guadeloupe of unit
@@ -52,27 +52,27 @@ type collectivite =
 
 let embed_collectivite (x : collectivite) : runtime_value =
   Enum
-    ( [ "Collectivité" ],
+    ( ["Collectivité"],
       match x with
-      | Guadeloupe x -> ("Guadeloupe", embed_unit x)
-      | Guyane x -> ("Guyane", embed_unit x)
-      | Martinique x -> ("Martinique", embed_unit x)
-      | LaReunion x -> ("LaRéunion", embed_unit x)
-      | SaintBarthelemy x -> ("SaintBarthélemy", embed_unit x)
-      | SaintMartin x -> ("SaintMartin", embed_unit x)
-      | Metropole x -> ("Métropole", embed_unit x)
-      | SaintPierreEtMiquelon x -> ("SaintPierreEtMiquelon", embed_unit x)
-      | Mayotte x -> ("Mayotte", embed_unit x) )
+      | Guadeloupe x -> "Guadeloupe", embed_unit x
+      | Guyane x -> "Guyane", embed_unit x
+      | Martinique x -> "Martinique", embed_unit x
+      | LaReunion x -> "LaRéunion", embed_unit x
+      | SaintBarthelemy x -> "SaintBarthélemy", embed_unit x
+      | SaintMartin x -> "SaintMartin", embed_unit x
+      | Metropole x -> "Métropole", embed_unit x
+      | SaintPierreEtMiquelon x -> "SaintPierreEtMiquelon", embed_unit x
+      | Mayotte x -> "Mayotte", embed_unit x )
 
 type prise_en_compte = Complete of unit | Partagee of unit | Zero of unit
 
 let embed_prise_en_compte (x : prise_en_compte) : runtime_value =
   Enum
-    ( [ "PriseEnCompte" ],
+    ( ["PriseEnCompte"],
       match x with
-      | Complete x -> ("Complète", embed_unit x)
-      | Partagee x -> ("Partagée", embed_unit x)
-      | Zero x -> ("Zéro", embed_unit x) )
+      | Complete x -> "Complète", embed_unit x
+      | Partagee x -> "Partagée", embed_unit x
+      | Zero x -> "Zéro", embed_unit x )
 
 type versement_allocations =
   | Normal of unit
@@ -80,11 +80,11 @@ type versement_allocations =
 
 let embed_versement_allocations (x : versement_allocations) : runtime_value =
   Enum
-    ( [ "VersementAllocations" ],
+    ( ["VersementAllocations"],
       match x with
-      | Normal x -> ("Normal", embed_unit x)
+      | Normal x -> "Normal", embed_unit x
       | AllocationVerseeAuxServicesSociaux x ->
-        ("AllocationVerséeAuxServicesSociaux", embed_unit x) )
+        "AllocationVerséeAuxServicesSociaux", embed_unit x )
 
 type element_prestations_familiales =
   | PrestationAccueilJeuneEnfant of unit
@@ -99,21 +99,19 @@ type element_prestations_familiales =
 let embed_element_prestations_familiales (x : element_prestations_familiales) :
     runtime_value =
   Enum
-    ( [ "ÉlémentPrestationsFamiliales" ],
+    ( ["ÉlémentPrestationsFamiliales"],
       match x with
       | PrestationAccueilJeuneEnfant x ->
-        ("PrestationAccueilJeuneEnfant", embed_unit x)
-      | AllocationsFamiliales x -> ("AllocationsFamiliales", embed_unit x)
-      | ComplementFamilial x -> ("ComplémentFamilial", embed_unit x)
-      | AllocationLogement x -> ("AllocationLogement", embed_unit x)
+        "PrestationAccueilJeuneEnfant", embed_unit x
+      | AllocationsFamiliales x -> "AllocationsFamiliales", embed_unit x
+      | ComplementFamilial x -> "ComplémentFamilial", embed_unit x
+      | AllocationLogement x -> "AllocationLogement", embed_unit x
       | AllocationEducationEnfantHandicape x ->
-        ("AllocationÉducationEnfantHandicapé", embed_unit x)
-      | AllocationSoutienFamilial x ->
-        ("AllocationSoutienFamilial", embed_unit x)
-      | AllocationRentreeScolaire x ->
-        ("AllocationRentréeScolaire", embed_unit x)
+        "AllocationÉducationEnfantHandicapé", embed_unit x
+      | AllocationSoutienFamilial x -> "AllocationSoutienFamilial", embed_unit x
+      | AllocationRentreeScolaire x -> "AllocationRentréeScolaire", embed_unit x
       | AllocationJournalierePresenceParentale x ->
-        ("AllocationJournalièrePresenceParentale", embed_unit x) )
+        "AllocationJournalièrePresenceParentale", embed_unit x )
 
 type enfant_entree = {
   d_identifiant : integer;
@@ -125,12 +123,12 @@ type enfant_entree = {
 
 let embed_enfant_entree (x : enfant_entree) : runtime_value =
   Struct
-    ( [ "EnfantEntrée" ],
+    ( ["EnfantEntrée"],
       [
-        ("d_identifiant", embed_integer x.d_identifiant);
-        ("d_rémuneration_mensuelle", embed_money x.d_remuneration_mensuelle);
-        ("d_date_de_naissance", embed_date x.d_date_de_naissance);
-        ("d_prise_en_charge", embed_prise_en_charge x.d_prise_en_charge);
+        "d_identifiant", embed_integer x.d_identifiant;
+        "d_rémuneration_mensuelle", embed_money x.d_remuneration_mensuelle;
+        "d_date_de_naissance", embed_date x.d_date_de_naissance;
+        "d_prise_en_charge", embed_prise_en_charge x.d_prise_en_charge;
         ( "d_a_déjà_ouvert_droit_aux_allocations_familiales",
           embed_bool x.d_a_deja_ouvert_droit_aux_allocations_familiales );
       ] )
@@ -147,15 +145,15 @@ type enfant = {
 
 let embed_enfant (x : enfant) : runtime_value =
   Struct
-    ( [ "Enfant" ],
+    ( ["Enfant"],
       [
-        ("identifiant", embed_integer x.identifiant);
+        "identifiant", embed_integer x.identifiant;
         ( "obligation_scolaire",
           embed_situation_obligation_scolaire x.obligation_scolaire );
-        ("rémuneration_mensuelle", embed_money x.remuneration_mensuelle);
-        ("date_de_naissance", embed_date x.date_de_naissance);
-        ("âge", embed_integer x.age);
-        ("prise_en_charge", embed_prise_en_charge x.prise_en_charge);
+        "rémuneration_mensuelle", embed_money x.remuneration_mensuelle;
+        "date_de_naissance", embed_date x.date_de_naissance;
+        "âge", embed_integer x.age;
+        "prise_en_charge", embed_prise_en_charge x.prise_en_charge;
         ( "a_déjà_ouvert_droit_aux_allocations_familiales",
           embed_bool x.a_deja_ouvert_droit_aux_allocations_familiales );
       ] )
@@ -163,17 +161,16 @@ let embed_enfant (x : enfant) : runtime_value =
 type smic_out = { brut_horaire_out : money }
 
 let embed_smic_out (x : smic_out) : runtime_value =
-  Struct
-    ([ "Smic_out" ], [ ("brut_horaire_out", embed_money x.brut_horaire_out) ])
+  Struct (["Smic_out"], ["brut_horaire_out", embed_money x.brut_horaire_out])
 
 type smic_in = { date_courante_in : date; residence_in : collectivite }
 
 let embed_smic_in (x : smic_in) : runtime_value =
   Struct
-    ( [ "Smic_in" ],
+    ( ["Smic_in"],
       [
-        ("date_courante_in", embed_date x.date_courante_in);
-        ("résidence_in", embed_collectivite x.residence_in);
+        "date_courante_in", embed_date x.date_courante_in;
+        "résidence_in", embed_collectivite x.residence_in;
       ] )
 
 type prestations_familiales_out = {
@@ -187,13 +184,13 @@ type prestations_familiales_out = {
 let embed_prestations_familiales_out (x : prestations_familiales_out) :
     runtime_value =
   Struct
-    ( [ "PrestationsFamiliales_out" ],
+    ( ["PrestationsFamiliales_out"],
       [
-        ("droit_ouvert_out", unembeddable x.droit_ouvert_out);
-        ("conditions_hors_âge_out", unembeddable x.conditions_hors_age_out);
-        ("âge_l512_3_2_out", embed_integer x.age_l512_3_2_out);
-        ("régime_outre_mer_l751_1_out", embed_bool x.regime_outre_mer_l751_1_out);
-        ("base_mensuelle_out", embed_money x.base_mensuelle_out);
+        "droit_ouvert_out", unembeddable x.droit_ouvert_out;
+        "conditions_hors_âge_out", unembeddable x.conditions_hors_age_out;
+        "âge_l512_3_2_out", embed_integer x.age_l512_3_2_out;
+        "régime_outre_mer_l751_1_out", embed_bool x.regime_outre_mer_l751_1_out;
+        "base_mensuelle_out", embed_money x.base_mensuelle_out;
       ] )
 
 type prestations_familiales_in = {
@@ -205,12 +202,12 @@ type prestations_familiales_in = {
 let embed_prestations_familiales_in (x : prestations_familiales_in) :
     runtime_value =
   Struct
-    ( [ "PrestationsFamiliales_in" ],
+    ( ["PrestationsFamiliales_in"],
       [
-        ("date_courante_in", embed_date x.date_courante_in);
+        "date_courante_in", embed_date x.date_courante_in;
         ( "prestation_courante_in",
           embed_element_prestations_familiales x.prestation_courante_in );
-        ("résidence_in", embed_collectivite x.residence_in);
+        "résidence_in", embed_collectivite x.residence_in;
       ] )
 
 type allocation_familiales_avril2008_out = {
@@ -220,7 +217,7 @@ type allocation_familiales_avril2008_out = {
 let embed_allocation_familiales_avril2008_out
     (x : allocation_familiales_avril2008_out) : runtime_value =
   Struct
-    ( [ "AllocationFamilialesAvril2008_out" ],
+    ( ["AllocationFamilialesAvril2008_out"],
       [
         ( "âge_minimum_alinéa_1_l521_3_out",
           embed_integer x.age_minimum_alinea_1_l521_3_out );
@@ -236,23 +233,23 @@ type enfant_le_plus_age_out = { le_plus_age_out : enfant }
 
 let embed_enfant_le_plus_age_out (x : enfant_le_plus_age_out) : runtime_value =
   Struct
-    ( [ "EnfantLePlusÂgé_out" ],
-      [ ("le_plus_âgé_out", embed_enfant x.le_plus_age_out) ] )
+    ( ["EnfantLePlusÂgé_out"],
+      ["le_plus_âgé_out", embed_enfant x.le_plus_age_out] )
 
 type enfant_le_plus_age_in = { enfants_in : enfant array }
 
 let embed_enfant_le_plus_age_in (x : enfant_le_plus_age_in) : runtime_value =
   Struct
-    ( [ "EnfantLePlusÂgé_in" ],
-      [ ("enfants_in", embed_array embed_enfant x.enfants_in) ] )
+    ( ["EnfantLePlusÂgé_in"],
+      ["enfants_in", embed_array embed_enfant x.enfants_in] )
 
 type allocations_familiales_out = { montant_verse_out : money }
 
 let embed_allocations_familiales_out (x : allocations_familiales_out) :
     runtime_value =
   Struct
-    ( [ "AllocationsFamiliales_out" ],
-      [ ("montant_versé_out", embed_money x.montant_verse_out) ] )
+    ( ["AllocationsFamiliales_out"],
+      ["montant_versé_out", embed_money x.montant_verse_out] )
 
 type allocations_familiales_in = {
   personne_charge_effective_permanente_est_parent_in : bool;
@@ -267,17 +264,16 @@ type allocations_familiales_in = {
 let embed_allocations_familiales_in (x : allocations_familiales_in) :
     runtime_value =
   Struct
-    ( [ "AllocationsFamiliales_in" ],
+    ( ["AllocationsFamiliales_in"],
       [
         ( "personne_charge_effective_permanente_est_parent_in",
           embed_bool x.personne_charge_effective_permanente_est_parent_in );
         ( "personne_charge_effective_permanente_remplit_titre_I_in",
-          embed_bool x.personne_charge_effective_permanente_remplit_titre_I_in
-        );
-        ("ressources_ménage_in", embed_money x.ressources_menage_in);
-        ("résidence_in", embed_collectivite x.residence_in);
-        ("date_courante_in", embed_date x.date_courante_in);
-        ("enfants_à_charge_in", embed_array embed_enfant x.enfants_a_charge_in);
+          embed_bool x.personne_charge_effective_permanente_remplit_titre_I_in );
+        "ressources_ménage_in", embed_money x.ressources_menage_in;
+        "résidence_in", embed_collectivite x.residence_in;
+        "date_courante_in", embed_date x.date_courante_in;
+        "enfants_à_charge_in", embed_array embed_enfant x.enfants_a_charge_in;
         ( "avait_enfant_à_charge_avant_1er_janvier_2012_in",
           embed_bool x.avait_enfant_a_charge_avant_1er_janvier_2012_in );
       ] )
@@ -287,8 +283,8 @@ type interface_allocations_familiales_out = { i_montant_verse_out : money }
 let embed_interface_allocations_familiales_out
     (x : interface_allocations_familiales_out) : runtime_value =
   Struct
-    ( [ "InterfaceAllocationsFamiliales_out" ],
-      [ ("i_montant_versé_out", embed_money x.i_montant_verse_out) ] )
+    ( ["InterfaceAllocationsFamiliales_out"],
+      ["i_montant_versé_out", embed_money x.i_montant_verse_out] )
 
 type interface_allocations_familiales_in = {
   i_date_courante_in : date;
@@ -303,12 +299,12 @@ type interface_allocations_familiales_in = {
 let embed_interface_allocations_familiales_in
     (x : interface_allocations_familiales_in) : runtime_value =
   Struct
-    ( [ "InterfaceAllocationsFamiliales_in" ],
+    ( ["InterfaceAllocationsFamiliales_in"],
       [
-        ("i_date_courante_in", embed_date x.i_date_courante_in);
-        ("i_enfants_in", embed_array embed_enfant_entree x.i_enfants_in);
-        ("i_ressources_ménage_in", embed_money x.i_ressources_menage_in);
-        ("i_résidence_in", embed_collectivite x.i_residence_in);
+        "i_date_courante_in", embed_date x.i_date_courante_in;
+        "i_enfants_in", embed_array embed_enfant_entree x.i_enfants_in;
+        "i_ressources_ménage_in", embed_money x.i_ressources_menage_in;
+        "i_résidence_in", embed_collectivite x.i_residence_in;
         ( "i_personne_charge_effective_permanente_est_parent_in",
           embed_bool x.i_personne_charge_effective_permanente_est_parent_in );
         ( "i_personne_charge_effective_permanente_remplit_titre_I_in",
@@ -322,7 +318,7 @@ let smic (smic_in : smic_in) : smic_out =
   let date_courante_ : date = smic_in.date_courante_in in
   let residence_ : collectivite = smic_in.residence_in in
   let brut_horaire_ : money =
-    log_variable_definition [ "Smic"; "brut_horaire" ] embed_money
+    log_variable_definition ["Smic"; "brut_horaire"] embed_money
       (try
          handle_default
            [|
@@ -491,7 +487,7 @@ let smic (smic_in : smic_in) : smic_out =
                 start_column = 10;
                 end_line = 43;
                 end_column = 22;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   { brut_horaire_out = brut_horaire_ }
@@ -501,7 +497,7 @@ let allocation_familiales_avril2008
     allocation_familiales_avril2008_out =
   let age_minimum_alinea_1_l521_3_ : integer =
     log_variable_definition
-      [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3" ]
+      ["AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3"]
       embed_integer
       (try integer_of_string "16"
        with EmptyError ->
@@ -513,7 +509,7 @@ let allocation_familiales_avril2008
                 start_column = 10;
                 end_line = 81;
                 end_column = 37;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
@@ -523,7 +519,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) :
   let enfants_ : enfant array = enfant_le_plus_age_in.enfants_in in
   let le_plus_age_ : enfant =
     log_variable_definition
-      [ "EnfantLePlusÂgé"; "le_plus_âgé" ]
+      ["EnfantLePlusÂgé"; "le_plus_âgé"]
       embed_enfant
       (try
          Array.fold_left
@@ -548,7 +544,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) :
                 start_column = 10;
                 end_line = 85;
                 end_column = 21;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   { le_plus_age_out = le_plus_age_ }
@@ -563,7 +559,7 @@ let prestations_familiales
   let residence_ : collectivite = prestations_familiales_in.residence_in in
   let age_l512_3_2_ : integer =
     log_variable_definition
-      [ "PrestationsFamiliales"; "âge_l512_3_2" ]
+      ["PrestationsFamiliales"; "âge_l512_3_2"]
       embed_integer
       (try integer_of_string "20"
        with EmptyError ->
@@ -575,12 +571,12 @@ let prestations_familiales
                 start_column = 10;
                 end_line = 68;
                 end_column = 22;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let base_mensuelle_ : money =
     log_variable_definition
-      [ "PrestationsFamiliales"; "base_mensuelle" ]
+      ["PrestationsFamiliales"; "base_mensuelle"]
       embed_money
       (try
          handle_default
@@ -672,13 +668,13 @@ let prestations_familiales
                 start_column = 10;
                 end_line = 74;
                 end_column = 24;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let smic_dot_date_courante_ : date =
     try
       log_variable_definition
-        [ "PrestationsFamiliales"; "smic.date_courante" ]
+        ["PrestationsFamiliales"; "smic.date_courante"]
         embed_date date_courante_
     with EmptyError ->
       raise
@@ -689,13 +685,13 @@ let prestations_familiales
              start_column = 10;
              end_line = 41;
              end_column = 23;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let smic_dot_residence_ : collectivite =
     try
       log_variable_definition
-        [ "PrestationsFamiliales"; "smic.résidence" ]
+        ["PrestationsFamiliales"; "smic.résidence"]
         embed_collectivite residence_
     with EmptyError ->
       raise
@@ -706,14 +702,14 @@ let prestations_familiales
              start_column = 10;
              end_line = 42;
              end_column = 19;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let result_ : smic_out =
     log_end_call
-      [ "PrestationsFamiliales"; "smic"; "Smic" ]
+      ["PrestationsFamiliales"; "smic"; "Smic"]
       (log_begin_call
-         [ "PrestationsFamiliales"; "smic"; "Smic" ]
+         ["PrestationsFamiliales"; "smic"; "Smic"]
          smic
          {
            date_courante_in = smic_dot_date_courante_;
@@ -723,7 +719,7 @@ let prestations_familiales
   let smic_dot_brut_horaire_ : money = result_.brut_horaire_out in
   let regime_outre_mer_l751_1_ : bool =
     log_variable_definition
-      [ "PrestationsFamiliales"; "régime_outre_mer_l751_1" ]
+      ["PrestationsFamiliales"; "régime_outre_mer_l751_1"]
       embed_bool
       (try
          try
@@ -763,12 +759,12 @@ let prestations_familiales
                 start_column = 10;
                 end_line = 69;
                 end_column = 33;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let plafond_l512_3_2_ : money =
     log_variable_definition
-      [ "PrestationsFamiliales"; "plafond_l512_3_2" ]
+      ["PrestationsFamiliales"; "plafond_l512_3_2"]
       embed_money
       (try
          try
@@ -808,12 +804,12 @@ let prestations_familiales
                 start_column = 11;
                 end_line = 67;
                 end_column = 27;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let conditions_hors_age_ : enfant -> bool =
     log_variable_definition
-      [ "PrestationsFamiliales"; "conditions_hors_âge" ]
+      ["PrestationsFamiliales"; "conditions_hors_âge"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -864,7 +860,7 @@ let prestations_familiales
                     start_column = 10;
                     end_line = 66;
                     end_column = 29;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -875,12 +871,12 @@ let prestations_familiales
                 start_column = 10;
                 end_line = 66;
                 end_column = 29;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let droit_ouvert_ : enfant -> bool =
     log_variable_definition
-      [ "PrestationsFamiliales"; "droit_ouvert" ]
+      ["PrestationsFamiliales"; "droit_ouvert"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -958,7 +954,7 @@ let prestations_familiales
                     start_column = 10;
                     end_line = 65;
                     end_column = 22;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -969,7 +965,7 @@ let prestations_familiales
                 start_column = 10;
                 end_line = 65;
                 end_column = 22;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   {
@@ -1003,7 +999,7 @@ let allocations_familiales
   in
   let prise_en_compte_ : enfant -> prise_en_compte =
     log_variable_definition
-      [ "AllocationsFamiliales"; "prise_en_compte" ]
+      ["AllocationsFamiliales"; "prise_en_compte"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -1167,7 +1163,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 102;
                     end_column = 26;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -1178,12 +1174,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 102;
                 end_column = 26;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let versement_ : enfant -> versement_allocations =
     log_variable_definition
-      [ "AllocationsFamiliales"; "versement" ]
+      ["AllocationsFamiliales"; "versement"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -1347,7 +1343,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 103;
                     end_column = 20;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -1358,12 +1354,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 103;
                 end_column = 20;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let nombre_enfants_l521_1_ : integer =
     log_variable_definition
-      [ "AllocationsFamiliales"; "nombre_enfants_l521_1" ]
+      ["AllocationsFamiliales"; "nombre_enfants_l521_1"]
       embed_integer
       (try integer_of_string "3"
        with EmptyError ->
@@ -1375,12 +1371,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 151;
                 end_column = 32;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let nombre_enfants_alinea_2_l521_3_ : integer =
     log_variable_definition
-      [ "AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3" ]
+      ["AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3"]
       embed_integer
       (try integer_of_string "3"
        with EmptyError ->
@@ -1392,7 +1388,7 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 153;
                 end_column = 41;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let result_ : allocation_familiales_avril2008_out =
@@ -1416,7 +1412,7 @@ let allocations_familiales
   let prestations_familiales_dot_date_courante_ : date =
     try
       log_variable_definition
-        [ "AllocationsFamiliales"; "prestations_familiales.date_courante" ]
+        ["AllocationsFamiliales"; "prestations_familiales.date_courante"]
         embed_date date_courante_
     with EmptyError ->
       raise
@@ -1427,16 +1423,14 @@ let allocations_familiales
              start_column = 10;
              end_line = 70;
              end_column = 23;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let prestations_familiales_dot_prestation_courante_ :
       element_prestations_familiales =
     try
       log_variable_definition
-        [
-          "AllocationsFamiliales"; "prestations_familiales.prestation_courante";
-        ]
+        ["AllocationsFamiliales"; "prestations_familiales.prestation_courante"]
         embed_element_prestations_familiales (AllocationsFamiliales ())
     with EmptyError ->
       raise
@@ -1447,13 +1441,13 @@ let allocations_familiales
              start_column = 10;
              end_line = 71;
              end_column = 29;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let prestations_familiales_dot_residence_ : collectivite =
     try
       log_variable_definition
-        [ "AllocationsFamiliales"; "prestations_familiales.résidence" ]
+        ["AllocationsFamiliales"; "prestations_familiales.résidence"]
         embed_collectivite residence_
     with EmptyError ->
       raise
@@ -1464,7 +1458,7 @@ let allocations_familiales
              start_column = 10;
              end_line = 72;
              end_column = 19;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let result_ : prestations_familiales_out =
@@ -1506,7 +1500,7 @@ let allocations_familiales
   let enfant_le_plus_age_dot_enfants_ : enfant array =
     try
       log_variable_definition
-        [ "AllocationsFamiliales"; "enfant_le_plus_âgé.enfants" ]
+        ["AllocationsFamiliales"; "enfant_le_plus_âgé.enfants"]
         (embed_array embed_enfant) enfants_a_charge_
     with EmptyError ->
       raise
@@ -1517,21 +1511,21 @@ let allocations_familiales
              start_column = 10;
              end_line = 84;
              end_column = 17;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let result_ : enfant_le_plus_age_out =
     log_end_call
-      [ "AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé" ]
+      ["AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé"]
       (log_begin_call
-         [ "AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé" ]
+         ["AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé"]
          enfant_le_plus_age
          { enfants_in = enfant_le_plus_age_dot_enfants_ })
   in
   let enfant_le_plus_age_dot_le_plus_age_ : enfant = result_.le_plus_age_out in
   let age_minimum_alinea_1_l521_3_ : enfant -> integer =
     log_variable_definition
-      [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
+      ["AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -1570,7 +1564,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 152;
                     end_column = 38;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -1581,7 +1575,7 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 152;
                 end_column = 38;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array =
@@ -1595,15 +1589,15 @@ let allocations_familiales
          array_filter
            (fun (enfant_ : _) ->
              log_end_call
-               [ "PrestationsFamiliales"; "droit_ouvert" ]
+               ["PrestationsFamiliales"; "droit_ouvert"]
                (log_variable_definition
-                  [ "PrestationsFamiliales"; "droit_ouvert"; "output" ]
+                  ["PrestationsFamiliales"; "droit_ouvert"; "output"]
                   unembeddable
                   (log_begin_call
-                     [ "PrestationsFamiliales"; "droit_ouvert" ]
+                     ["PrestationsFamiliales"; "droit_ouvert"]
                      prestations_familiales_dot_droit_ouvert_
                      (log_variable_definition
-                        [ "PrestationsFamiliales"; "droit_ouvert"; "input" ]
+                        ["PrestationsFamiliales"; "droit_ouvert"; "input"]
                         unembeddable enfant_))))
            enfants_a_charge_
        with EmptyError ->
@@ -1615,12 +1609,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 100;
                 end_column = 61;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let est_enfant_le_plus_age_ : enfant -> bool =
     log_variable_definition
-      [ "AllocationsFamiliales"; "est_enfant_le_plus_âgé" ]
+      ["AllocationsFamiliales"; "est_enfant_le_plus_âgé"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -1634,7 +1628,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 154;
                     end_column = 33;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -1645,12 +1639,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 154;
                 end_column = 33;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let plafond__i_i_d521_3_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "plafond_II_d521_3" ]
+      ["AllocationsFamiliales"; "plafond_II_d521_3"]
       embed_money
       (try
          handle_default
@@ -1795,12 +1789,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 156;
                 end_column = 28;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let plafond__i_d521_3_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "plafond_I_d521_3" ]
+      ["AllocationsFamiliales"; "plafond_I_d521_3"]
       embed_money
       (try
          handle_default
@@ -1945,12 +1939,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 155;
                 end_column = 27;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let droit_ouvert_complement_ : bool =
     log_variable_definition
-      [ "AllocationsFamiliales"; "droit_ouvert_complément" ]
+      ["AllocationsFamiliales"; "droit_ouvert_complément"]
       embed_bool
       (try
          try
@@ -1993,12 +1987,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 139;
                 end_column = 34;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let droit_ouvert_forfaitaire_ : enfant -> bool =
     log_variable_definition
-      [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
+      ["AllocationsFamiliales"; "droit_ouvert_forfaitaire"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -2057,7 +2051,7 @@ let allocations_familiales
                      && param_.age = prestations_familiales_dot_age_l512_3_2_
                      && param_.a_deja_ouvert_droit_aux_allocations_familiales
                      && log_end_call
-                          [ "PrestationsFamiliales"; "conditions_hors_âge" ]
+                          ["PrestationsFamiliales"; "conditions_hors_âge"]
                           (log_variable_definition
                              [
                                "PrestationsFamiliales";
@@ -2066,9 +2060,7 @@ let allocations_familiales
                              ]
                              unembeddable
                              (log_begin_call
-                                [
-                                  "PrestationsFamiliales"; "conditions_hors_âge";
-                                ]
+                                ["PrestationsFamiliales"; "conditions_hors_âge"]
                                 prestations_familiales_dot_conditions_hors_age_
                                 (log_variable_definition
                                    [
@@ -2089,7 +2081,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 127;
                     end_column = 35;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -2100,7 +2092,7 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 127;
                 end_column = 35;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_quatrieme_enfant_et_plus_mayotte_ : money =
@@ -2131,14 +2123,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 124;
                 end_column = 64;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_troisieme_enfant_mayotte_ : money =
     log_variable_definition
-      [
-        "AllocationsFamiliales"; "montant_initial_base_troisième_enfant_mayotte";
-      ]
+      ["AllocationsFamiliales"; "montant_initial_base_troisième_enfant_mayotte"]
       embed_money
       (try
          handle_default
@@ -2462,14 +2452,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 123;
                 end_column = 56;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_deuxieme_enfant_mayotte_ : money =
     log_variable_definition
-      [
-        "AllocationsFamiliales"; "montant_initial_base_deuxième_enfant_mayotte";
-      ]
+      ["AllocationsFamiliales"; "montant_initial_base_deuxième_enfant_mayotte"]
       embed_money
       (try
          handle_default
@@ -2793,12 +2781,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 122;
                 end_column = 55;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_premier_enfant_mayotte_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant_mayotte" ]
+      ["AllocationsFamiliales"; "montant_initial_base_premier_enfant_mayotte"]
       embed_money
       (try
          handle_default
@@ -3159,12 +3147,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 121;
                 end_column = 54;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let nombre_total_enfants_ : decimal =
     log_variable_definition
-      [ "AllocationsFamiliales"; "nombre_total_enfants" ]
+      ["AllocationsFamiliales"; "nombre_total_enfants"]
       embed_decimal
       (try
          decimal_of_integer
@@ -3178,12 +3166,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 115;
                 end_column = 31;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let nombre_moyen_enfants_ : decimal =
     log_variable_definition
-      [ "AllocationsFamiliales"; "nombre_moyen_enfants" ]
+      ["AllocationsFamiliales"; "nombre_moyen_enfants"]
       embed_decimal
       (try
          Array.fold_left
@@ -3192,17 +3180,15 @@ let allocations_familiales
              +&
              match
                log_end_call
-                 [ "AllocationsFamiliales"; "prise_en_compte" ]
+                 ["AllocationsFamiliales"; "prise_en_compte"]
                  (log_variable_definition
-                    [ "AllocationsFamiliales"; "prise_en_compte"; "output" ]
+                    ["AllocationsFamiliales"; "prise_en_compte"; "output"]
                     unembeddable
                     (log_begin_call
-                       [ "AllocationsFamiliales"; "prise_en_compte" ]
+                       ["AllocationsFamiliales"; "prise_en_compte"]
                        prise_en_compte_
                        (log_variable_definition
-                          [
-                            "AllocationsFamiliales"; "prise_en_compte"; "input";
-                          ]
+                          ["AllocationsFamiliales"; "prise_en_compte"; "input"]
                           unembeddable enfant_)))
              with
              | Complete _ -> decimal_of_string "1."
@@ -3219,12 +3205,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 114;
                 end_column = 31;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_premier_enfant_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant" ]
+      ["AllocationsFamiliales"; "montant_initial_base_premier_enfant"]
       embed_money
       (try
          try
@@ -3265,12 +3251,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 110;
                 end_column = 46;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let droit_ouvert_base_ : bool =
     log_variable_definition
-      [ "AllocationsFamiliales"; "droit_ouvert_base" ]
+      ["AllocationsFamiliales"; "droit_ouvert_base"]
       embed_bool
       (try
          try
@@ -3365,12 +3351,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 108;
                 end_column = 28;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let droit_ouvert_majoration_ : enfant -> bool =
     log_variable_definition
-      [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+      ["AllocationsFamiliales"; "droit_ouvert_majoration"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -3449,9 +3435,7 @@ let allocations_familiales
                      }
                      ((not
                          (log_end_call
-                            [
-                              "AllocationsFamiliales"; "est_enfant_le_plus_âgé";
-                            ]
+                            ["AllocationsFamiliales"; "est_enfant_le_plus_âgé"]
                             (log_variable_definition
                                [
                                  "AllocationsFamiliales";
@@ -3510,7 +3494,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 132;
                     end_column = 34;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -3521,12 +3505,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 132;
                 end_column = 34;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let complement_degressif_ : money -> money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "complément_dégressif" ]
+      ["AllocationsFamiliales"; "complément_dégressif"]
       unembeddable
       (try
          fun (param_ : money) ->
@@ -3605,7 +3589,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 141;
                     end_column = 31;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -3616,12 +3600,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 141;
                 end_column = 31;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_forfaitaire_par_enfant_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_forfaitaire_par_enfant" ]
+      ["AllocationsFamiliales"; "montant_versé_forfaitaire_par_enfant"]
       embed_money
       (try
          handle_default
@@ -3714,14 +3698,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 128;
                 end_column = 47;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_troisieme_enfant_et_plus_ : money =
     log_variable_definition
-      [
-        "AllocationsFamiliales"; "montant_initial_base_troisième_enfant_et_plus";
-      ]
+      ["AllocationsFamiliales"; "montant_initial_base_troisième_enfant_et_plus"]
       embed_money
       (try
          handle_default
@@ -3844,12 +3826,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 112;
                 end_column = 56;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_deuxieme_enfant_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_base_deuxième_enfant" ]
+      ["AllocationsFamiliales"; "montant_initial_base_deuxième_enfant"]
       embed_money
       (try
          handle_default
@@ -3960,12 +3942,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 111;
                 end_column = 47;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let rapport_enfants_total_moyen_ : decimal =
     log_variable_definition
-      [ "AllocationsFamiliales"; "rapport_enfants_total_moyen" ]
+      ["AllocationsFamiliales"; "rapport_enfants_total_moyen"]
       embed_decimal
       (try
          if nombre_total_enfants_ = decimal_of_string "0." then
@@ -3980,12 +3962,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 113;
                 end_column = 38;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_metropole_majoration_ : enfant -> money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
+      ["AllocationsFamiliales"; "montant_initial_métropole_majoration"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -4002,13 +3984,12 @@ let allocations_familiales
                          end_line = 27;
                          end_column = 44;
                          law_headings =
-                           [ "Règles diverses"; "Épilogue"; "Décrets divers" ];
+                           ["Règles diverses"; "Épilogue"; "Décrets divers"];
                        }
                        (not
                           (log_end_call
                              [
-                               "AllocationsFamiliales";
-                               "droit_ouvert_majoration";
+                               "AllocationsFamiliales"; "droit_ouvert_majoration";
                              ]
                              (log_variable_definition
                                 [
@@ -4054,9 +4035,7 @@ let allocations_familiales
                        }
                        (ressources_menage_ >$ plafond__i_i_d521_3_
                        && log_end_call
-                            [
-                              "AllocationsFamiliales"; "droit_ouvert_majoration";
-                            ]
+                            ["AllocationsFamiliales"; "droit_ouvert_majoration"]
                             (log_variable_definition
                                [
                                  "AllocationsFamiliales";
@@ -4104,9 +4083,7 @@ let allocations_familiales
                        ((ressources_menage_ >$ plafond__i_d521_3_
                         && ressources_menage_ <=$ plafond__i_i_d521_3_)
                        && log_end_call
-                            [
-                              "AllocationsFamiliales"; "droit_ouvert_majoration";
-                            ]
+                            ["AllocationsFamiliales"; "droit_ouvert_majoration"]
                             (log_variable_definition
                                [
                                  "AllocationsFamiliales";
@@ -4153,9 +4130,7 @@ let allocations_familiales
                        }
                        (ressources_menage_ <=$ plafond__i_d521_3_
                        && log_end_call
-                            [
-                              "AllocationsFamiliales"; "droit_ouvert_majoration";
-                            ]
+                            ["AllocationsFamiliales"; "droit_ouvert_majoration"]
                             (log_variable_definition
                                [
                                  "AllocationsFamiliales";
@@ -4192,7 +4167,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 133;
                     end_column = 47;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -4203,12 +4178,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 133;
                 end_column = 47;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_forfaitaire_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_forfaitaire" ]
+      ["AllocationsFamiliales"; "montant_versé_forfaitaire"]
       embed_money
       (try
          montant_verse_forfaitaire_par_enfant_
@@ -4217,7 +4192,7 @@ let allocations_familiales
                  (fun (acc_ : integer) (enfant_ : _) ->
                    if
                      log_end_call
-                       [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
+                       ["AllocationsFamiliales"; "droit_ouvert_forfaitaire"]
                        (log_variable_definition
                           [
                             "AllocationsFamiliales";
@@ -4250,12 +4225,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 129;
                 end_column = 36;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_base_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_base" ]
+      ["AllocationsFamiliales"; "montant_initial_base"]
       embed_money
       (try
          handle_default
@@ -4326,12 +4301,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 109;
                 end_column = 31;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_initial_majoration_ : enfant -> money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_majoration" ]
+      ["AllocationsFamiliales"; "montant_initial_majoration"]
       unembeddable
       (try
          fun (param_ : enfant) ->
@@ -4359,7 +4334,7 @@ let allocations_familiales
                            ];
                        }
                        (log_end_call
-                          [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                          ["AllocationsFamiliales"; "droit_ouvert_majoration"]
                           (log_variable_definition
                              [
                                "AllocationsFamiliales";
@@ -4410,7 +4385,7 @@ let allocations_familiales
                            ];
                        }
                        (log_end_call
-                          [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                          ["AllocationsFamiliales"; "droit_ouvert_majoration"]
                           (log_variable_definition
                              [
                                "AllocationsFamiliales";
@@ -4478,7 +4453,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 134;
                     end_column = 37;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -4489,12 +4464,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 134;
                 end_column = 37;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_complement_pour_forfaitaire_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_complément_pour_forfaitaire" ]
+      ["AllocationsFamiliales"; "montant_versé_complément_pour_forfaitaire"]
       embed_money
       (try
          handle_default
@@ -4573,12 +4548,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 143;
                 end_column = 52;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_avec_garde_alternee_base_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_avec_garde_alternée_base" ]
+      ["AllocationsFamiliales"; "montant_avec_garde_alternée_base"]
       embed_money
       (try montant_initial_base_ *$ rapport_enfants_total_moyen_
        with EmptyError ->
@@ -4590,18 +4565,18 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 116;
                 end_column = 43;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_avec_garde_alternee_majoration_ : enfant -> money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
+      ["AllocationsFamiliales"; "montant_avec_garde_alternée_majoration"]
       unembeddable
       (try
          fun (param_ : enfant) ->
            try
              log_end_call
-               [ "AllocationsFamiliales"; "montant_initial_majoration" ]
+               ["AllocationsFamiliales"; "montant_initial_majoration"]
                (log_variable_definition
                   [
                     "AllocationsFamiliales";
@@ -4610,7 +4585,7 @@ let allocations_familiales
                   ]
                   unembeddable
                   (log_begin_call
-                     [ "AllocationsFamiliales"; "montant_initial_majoration" ]
+                     ["AllocationsFamiliales"; "montant_initial_majoration"]
                      montant_initial_majoration_
                      (log_variable_definition
                         [
@@ -4622,17 +4597,15 @@ let allocations_familiales
              *$
              match
                log_end_call
-                 [ "AllocationsFamiliales"; "prise_en_compte" ]
+                 ["AllocationsFamiliales"; "prise_en_compte"]
                  (log_variable_definition
-                    [ "AllocationsFamiliales"; "prise_en_compte"; "output" ]
+                    ["AllocationsFamiliales"; "prise_en_compte"; "output"]
                     unembeddable
                     (log_begin_call
-                       [ "AllocationsFamiliales"; "prise_en_compte" ]
+                       ["AllocationsFamiliales"; "prise_en_compte"]
                        prise_en_compte_
                        (log_variable_definition
-                          [
-                            "AllocationsFamiliales"; "prise_en_compte"; "input";
-                          ]
+                          ["AllocationsFamiliales"; "prise_en_compte"; "input"]
                           unembeddable param_)))
              with
              | Complete _ -> decimal_of_string "1."
@@ -4647,7 +4620,7 @@ let allocations_familiales
                     start_column = 11;
                     end_line = 135;
                     end_column = 49;
-                    law_headings = [ "Prologue" ];
+                    law_headings = ["Prologue"];
                   })
        with EmptyError ->
          raise
@@ -4658,12 +4631,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 135;
                 end_column = 49;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_base_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_base" ]
+      ["AllocationsFamiliales"; "montant_versé_base"]
       embed_money
       (try
          if droit_ouvert_base_ then montant_avec_garde_alternee_base_
@@ -4677,12 +4650,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 117;
                 end_column = 29;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_majoration_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_majoration" ]
+      ["AllocationsFamiliales"; "montant_versé_majoration"]
       embed_money
       (try
          if droit_ouvert_base_ then
@@ -4726,7 +4699,7 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 136;
                 end_column = 35;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_base_complement_pour_base_et_majoration_ : money =
@@ -4746,7 +4719,7 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 140;
                 end_column = 58;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_complement_pour_base_et_majoration_ : money =
@@ -4759,17 +4732,15 @@ let allocations_familiales
       (try
          if droit_ouvert_complement_ then
            log_end_call
-             [ "AllocationsFamiliales"; "complément_dégressif" ]
+             ["AllocationsFamiliales"; "complément_dégressif"]
              (log_variable_definition
-                [ "AllocationsFamiliales"; "complément_dégressif"; "output" ]
+                ["AllocationsFamiliales"; "complément_dégressif"; "output"]
                 unembeddable
                 (log_begin_call
-                   [ "AllocationsFamiliales"; "complément_dégressif" ]
+                   ["AllocationsFamiliales"; "complément_dégressif"]
                    complement_degressif_
                    (log_variable_definition
-                      [
-                        "AllocationsFamiliales"; "complément_dégressif"; "input";
-                      ]
+                      ["AllocationsFamiliales"; "complément_dégressif"; "input"]
                       unembeddable
                       montant_base_complement_pour_base_et_majoration_)))
          else money_of_cents_string "0"
@@ -4782,12 +4753,12 @@ let allocations_familiales
                 start_column = 11;
                 end_line = 142;
                 end_column = 59;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let montant_verse_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé" ]
+      ["AllocationsFamiliales"; "montant_versé"]
       embed_money
       (try
          if droit_ouvert_base_ then
@@ -4806,7 +4777,7 @@ let allocations_familiales
                 start_column = 10;
                 end_line = 105;
                 end_column = 23;
-                law_headings = [ "Prologue" ];
+                law_headings = ["Prologue"];
               }))
   in
   let (_ : unit) =
@@ -4868,7 +4839,7 @@ let interface_allocations_familiales
   in
   let enfants_a_charge_ : enfant array =
     log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "enfants_à_charge" ]
+      ["InterfaceAllocationsFamiliales"; "enfants_à_charge"]
       (embed_array embed_enfant)
       (try
          Array.map
@@ -4906,7 +4877,7 @@ let interface_allocations_familiales
                 end_line = 74;
                 end_column = 27;
                 law_headings =
-                  [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+                  ["Interface du programme"; "Épilogue"; "Décrets divers"];
               }))
   in
   let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_
@@ -4928,7 +4899,7 @@ let interface_allocations_familiales
                  end_line = 90;
                  end_column = 69;
                  law_headings =
-                   [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+                   ["Interface du programme"; "Épilogue"; "Décrets divers"];
                }
                i_personne_charge_effective_permanente_est_parent_
            then true
@@ -4943,7 +4914,7 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 90;
              end_column = 57;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_
@@ -4965,7 +4936,7 @@ let interface_allocations_familiales
                  end_line = 93;
                  end_column = 74;
                  law_headings =
-                   [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+                   ["Interface du programme"; "Épilogue"; "Décrets divers"];
                }
                i_personne_charge_effective_permanente_remplit_titre__i_
            then true
@@ -4980,7 +4951,7 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 91;
              end_column = 62;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let allocations_familiales_dot_ressources_menage_ : money =
@@ -5000,13 +4971,13 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 92;
              end_column = 27;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let allocations_familiales_dot_residence_ : collectivite =
     try
       log_variable_definition
-        [ "InterfaceAllocationsFamiliales"; "allocations_familiales.résidence" ]
+        ["InterfaceAllocationsFamiliales"; "allocations_familiales.résidence"]
         embed_collectivite i_residence_
     with EmptyError ->
       raise
@@ -5017,7 +4988,7 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 93;
              end_column = 19;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let allocations_familiales_dot_date_courante_ : date =
@@ -5037,7 +5008,7 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 96;
              end_column = 23;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let allocations_familiales_dot_enfants_a_charge_ : enfant array =
@@ -5057,7 +5028,7 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 99;
              end_column = 26;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_ :
@@ -5079,7 +5050,7 @@ let interface_allocations_familiales
                  end_line = 96;
                  end_column = 66;
                  law_headings =
-                   [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+                   ["Interface du programme"; "Épilogue"; "Décrets divers"];
                }
                i_avait_enfant_a_charge_avant_1er_janvier_2012_
            then true
@@ -5094,7 +5065,7 @@ let interface_allocations_familiales
              start_column = 10;
              end_line = 120;
              end_column = 54;
-             law_headings = [ "Prologue" ];
+             law_headings = ["Prologue"];
            })
   in
   let result_ : allocations_familiales_out =
@@ -5129,7 +5100,7 @@ let interface_allocations_familiales
   in
   let i_montant_verse_ : money =
     log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_montant_versé" ]
+      ["InterfaceAllocationsFamiliales"; "i_montant_versé"]
       embed_money
       (try allocations_familiales_dot_montant_verse_
        with EmptyError ->
@@ -5142,7 +5113,7 @@ let interface_allocations_familiales
                 end_line = 78;
                 end_column = 25;
                 law_headings =
-                  [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+                  ["Interface du programme"; "Épilogue"; "Décrets divers"];
               }))
   in
   { i_montant_verse_out = i_montant_verse_ }

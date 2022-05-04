@@ -99,10 +99,8 @@ let rec format_expr
       (Ast.EnumConstructorMap.bindings cases)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-    let xs_tau_arg =
-      List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args
-    in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "@[%a%a@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
@@ -115,7 +113,7 @@ let rec format_expr
       xs_tau_arg format_expr body
   | EAbs ((binder, _), taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]"
       Dcalc.Print.format_punctuation "λ"
       (Format.pp_print_list
@@ -125,12 +123,12 @@ let rec format_expr
              "(" format_var x Dcalc.Print.format_punctuation ":" format_typ tau
              Dcalc.Print.format_punctuation ")"))
       xs_tau Dcalc.Print.format_punctuation "→" format_expr body
-  | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[%a@ %a@ %a@]" format_with_parens arg1
       Dcalc.Print.format_binop (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not debug ->
+  | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     format_expr fmt arg1
-  | EApp ((EOp (Unop op), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[%a@ %a@]" Dcalc.Print.format_unop (op, Pos.no_pos)
       format_with_parens arg1
   | EApp (f, args) ->

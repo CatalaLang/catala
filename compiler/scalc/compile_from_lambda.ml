@@ -37,18 +37,18 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
       try A.EVar (L.VarMap.find (Pos.unmark v) ctxt.var_dict)
       with Not_found -> A.EFunc (L.VarMap.find (Pos.unmark v) ctxt.func_dict)
     in
-    ([], (local_var, Pos.get_position v))
+    [], (local_var, Pos.get_position v)
   | L.ETuple (args, Some s_name) ->
     let args_stmts, new_args =
       List.fold_left
         (fun (args_stmts, new_args) arg ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          (arg_stmts @ args_stmts, new_arg :: new_args))
+          arg_stmts @ args_stmts, new_arg :: new_args)
         ([], []) args
     in
     let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
-    (args_stmts, (A.EStruct (new_args, s_name), Pos.get_position expr))
+    args_stmts, (A.EStruct (new_args, s_name), Pos.get_position expr)
   | L.ETuple (_, None) ->
     failwith "Non-struct tuples cannot be compiled to scalc"
   | L.ETupleAccess (e1, num_field, Some s_name, _) ->
@@ -67,30 +67,30 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
     let cons_name =
       fst (List.nth (D.EnumMap.find e_name ctxt.decl_ctx.ctx_enums) num_cons)
     in
-    (e1_stmts, (A.EInj (new_e1, cons_name, e_name), Pos.get_position expr))
+    e1_stmts, (A.EInj (new_e1, cons_name, e_name), Pos.get_position expr)
   | L.EApp (f, args) ->
     let f_stmts, new_f = translate_expr ctxt f in
     let args_stmts, new_args =
       List.fold_left
         (fun (args_stmts, new_args) arg ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          (arg_stmts @ args_stmts, new_arg :: new_args))
+          arg_stmts @ args_stmts, new_arg :: new_args)
         ([], []) args
     in
     let new_args = List.rev new_args in
-    (f_stmts @ args_stmts, (A.EApp (new_f, new_args), Pos.get_position expr))
+    f_stmts @ args_stmts, (A.EApp (new_f, new_args), Pos.get_position expr)
   | L.EArray args ->
     let args_stmts, new_args =
       List.fold_left
         (fun (args_stmts, new_args) arg ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          (arg_stmts @ args_stmts, new_arg :: new_args))
+          arg_stmts @ args_stmts, new_arg :: new_args)
         ([], []) args
     in
     let new_args = List.rev new_args in
-    (args_stmts, (A.EArray new_args, Pos.get_position expr))
-  | L.EOp op -> ([], (A.EOp op, Pos.get_position expr))
-  | L.ELit l -> ([], (A.ELit l, Pos.get_position expr))
+    args_stmts, (A.EArray new_args, Pos.get_position expr)
+  | L.EOp op -> [], (A.EOp op, Pos.get_position expr)
+  | L.ELit l -> [], (A.ELit l, Pos.get_position expr)
   | _ ->
     let tmp_var =
       A.LocalName.fresh
@@ -125,13 +125,11 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
   | L.EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
-    e_stmts @ [ (A.SAssert (Pos.unmark new_e), Pos.get_position block_expr) ]
+    e_stmts @ [A.SAssert (Pos.unmark new_e), Pos.get_position block_expr]
   | L.EApp ((L.EAbs ((binder, binder_pos), taus), eabs_pos), args) ->
     (* This defines multiple local variables at the time *)
     let vars, body = Bindlib.unmbind binder in
-    let vars_tau =
-      List.map2 (fun x tau -> (x, tau)) (Array.to_list vars) taus
-    in
+    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
     let ctxt =
       {
         ctxt with
@@ -154,7 +152,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     let vars_args =
       List.map2
         (fun (x, tau) arg ->
-          ((L.VarMap.find x ctxt.var_dict, binder_pos), tau, arg))
+          (L.VarMap.find x ctxt.var_dict, binder_pos), tau, arg)
         vars_tau args
     in
     let def_blocks =
@@ -168,16 +166,14 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ [ (A.SLocalDef (x, new_arg), binder_pos) ])
+          arg_stmts @ [A.SLocalDef (x, new_arg), binder_pos])
         vars_args
     in
     let rest_of_block = translate_statements ctxt body in
     local_decls @ List.flatten def_blocks @ rest_of_block
   | L.EAbs ((binder, binder_pos), taus) ->
     let vars, body = Bindlib.unmbind binder in
-    let vars_tau =
-      List.map2 (fun x tau -> (x, tau)) (Array.to_list vars) taus
-    in
+    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
     let closure_name =
       match ctxt.inside_definition_of with
       | None ->
@@ -205,7 +201,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
               func_params =
                 List.map
                   (fun (var, tau) ->
-                    ((L.VarMap.find var ctxt.var_dict, binder_pos), tau))
+                    (L.VarMap.find var ctxt.var_dict, binder_pos), tau)
                   vars_tau;
               func_body = new_body;
             } ),
@@ -235,21 +231,18 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     in
     let new_args = List.rev new_args in
     e1_stmts
-    @ [ (A.SSwitch (new_e1, e_name, new_args), Pos.get_position block_expr) ]
+    @ [A.SSwitch (new_e1, e_name, new_args), Pos.get_position block_expr]
   | L.EIfThenElse (cond, e_true, e_false) ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt e_true in
     let s_e_false = translate_statements ctxt e_false in
     cond_stmts
-    @ [
-        ( A.SIfThenElse (s_cond, s_e_true, s_e_false),
-          Pos.get_position block_expr );
-      ]
+    @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Pos.get_position block_expr]
   | L.ECatch (e_try, except, e_catch) ->
     let s_e_try = translate_statements ctxt e_try in
     let s_e_catch = translate_statements ctxt e_catch in
-    [ (A.STryExcept (s_e_try, except, s_e_catch), Pos.get_position block_expr) ]
-  | L.ERaise except -> [ (A.SRaise except, Pos.get_position block_expr) ]
+    [A.STryExcept (s_e_try, except, s_e_catch), Pos.get_position block_expr]
+  | L.ERaise except -> [A.SRaise except, Pos.get_position block_expr]
   | _ -> (
     let e_stmts, new_e = translate_expr ctxt block_expr in
     e_stmts
@@ -287,7 +280,7 @@ let rec translate_scope_body_expr
         }
         e
     in
-    block @ [ (A.SReturn (Pos.unmark new_e), Pos.get_position new_e) ]
+    block @ [A.SReturn (Pos.unmark new_e), Pos.get_position new_e]
   | ScopeLet scope_let ->
     let let_var, scope_let_next = Bindlib.unbind scope_let.scope_let_next in
     let let_var_id =

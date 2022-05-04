@@ -63,10 +63,10 @@ let format_exception (fmt : Format.formatter) (exn : except) : unit =
     | NoValueProvided -> "NoValueProvided")
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.red ]) s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.red]) s
 
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.cyan ]) s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.cyan]) s
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
@@ -139,10 +139,8 @@ let rec format_expr
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-    let xs_tau_arg =
-      List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args
-    in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "%a%a"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
@@ -154,7 +152,7 @@ let rec format_expr
       xs_tau_arg format_expr body
   | EAbs ((binder, _), taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_punctuation "λ"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -165,16 +163,16 @@ let rec format_expr
              tau format_punctuation ")"))
       xs_tau format_punctuation "→" format_expr body
   | EApp
-      ( (EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _),
-        [ arg1; arg2 ] ) ->
+      ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
+    ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop
       (op, Pos.no_pos) format_with_parens arg1 format_with_parens arg2
-  | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       Dcalc.Print.format_binop (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not debug ->
+  | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp ((EOp (Unop op), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop
       (op, Pos.no_pos) format_with_parens arg1
   | EApp (f, args) ->

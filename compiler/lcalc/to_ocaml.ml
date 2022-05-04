@@ -207,7 +207,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
          format_typ_with_parens)
       ts
   | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
-  | TEnum ([ t ], e) when D.EnumName.compare e Ast.option_enum = 0 ->
+  | TEnum ([t], e) when D.EnumName.compare e Ast.option_enum = 0 ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
       format_enum_name e
   | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
@@ -230,7 +230,7 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   in
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
   if
-    List.mem lowercase_name [ "handle_default"; "handle_default_opt" ]
+    List.mem lowercase_name ["handle_default"; "handle_default_opt"]
     || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
   then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
@@ -329,10 +329,8 @@ let rec format_expr
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-    let xs_tau_arg =
-      List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args
-    in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "(%a%a)"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
@@ -342,7 +340,7 @@ let rec format_expr
       xs_tau_arg format_with_parens body
   | EAbs ((binder, _), taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -350,23 +348,22 @@ let rec format_expr
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
   | EApp
-      ( (EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _),
-        [ arg1; arg2 ] ) ->
+      ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
+    ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos)
       format_with_parens arg1 format_with_parens arg2
-  | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       format_binop (op, Pos.no_pos) format_with_parens arg2
-  | EApp
-      ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [ f ]), _), [ arg ])
+  | EApp ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [f]), _), [arg])
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a@ %a)" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [ arg1 ])
+  | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
-  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [ arg1 ])
+  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt
       "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
@@ -374,13 +371,13 @@ let rec format_expr
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [ arg1 ])
+  | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
-  | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop (D.Log _)), _), [arg1]) ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp ((EOp (Unop op), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
       format_with_parens arg1
   | EApp (f, args) ->

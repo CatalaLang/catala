@@ -104,7 +104,7 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
 let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
   Errors.raise_spanned_error (Pos.get_position ident)
     "\"%s\": unknown identifier %s"
-    (Utils.Cli.with_style [ ANSITerminal.yellow ] "%s" (Pos.unmark ident))
+    (Utils.Cli.with_style [ANSITerminal.yellow] "%s" (Pos.unmark ident))
     msg
 
 (** Gets the type associated to an uid *)
@@ -209,10 +209,10 @@ let process_subscope_decl
       [
         ( Some "first use",
           Pos.get_position (Scopelang.Ast.SubScopeName.get_info use) );
-        (Some "second use", s_pos);
+        Some "second use", s_pos;
       ]
       "Subscope name \"%a\" already used"
-      (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+      (Utils.Cli.format_with_style [ANSITerminal.yellow])
       subscope
   | None ->
     let sub_scope_uid = Scopelang.Ast.SubScopeName.fresh (name, name_pos) in
@@ -249,7 +249,7 @@ let rec process_base_typ
     (ctxt : context)
     ((typ, typ_pos) : Ast.base_typ Pos.marked) : Scopelang.Ast.typ Pos.marked =
   match typ with
-  | Ast.Condition -> (Scopelang.Ast.TLit TBool, typ_pos)
+  | Ast.Condition -> Scopelang.Ast.TLit TBool, typ_pos
   | Ast.Data (Ast.Collection t) ->
     ( Scopelang.Ast.TArray
         (Pos.unmark
@@ -257,23 +257,23 @@ let rec process_base_typ
       typ_pos )
   | Ast.Data (Ast.Primitive prim) -> (
     match prim with
-    | Ast.Integer -> (Scopelang.Ast.TLit TInt, typ_pos)
-    | Ast.Decimal -> (Scopelang.Ast.TLit TRat, typ_pos)
-    | Ast.Money -> (Scopelang.Ast.TLit TMoney, typ_pos)
-    | Ast.Duration -> (Scopelang.Ast.TLit TDuration, typ_pos)
-    | Ast.Date -> (Scopelang.Ast.TLit TDate, typ_pos)
-    | Ast.Boolean -> (Scopelang.Ast.TLit TBool, typ_pos)
+    | Ast.Integer -> Scopelang.Ast.TLit TInt, typ_pos
+    | Ast.Decimal -> Scopelang.Ast.TLit TRat, typ_pos
+    | Ast.Money -> Scopelang.Ast.TLit TMoney, typ_pos
+    | Ast.Duration -> Scopelang.Ast.TLit TDuration, typ_pos
+    | Ast.Date -> Scopelang.Ast.TLit TDate, typ_pos
+    | Ast.Boolean -> Scopelang.Ast.TLit TBool, typ_pos
     | Ast.Text -> raise_unsupported_feature "text type" typ_pos
     | Ast.Named ident -> (
       match Desugared.Ast.IdentMap.find_opt ident ctxt.struct_idmap with
-      | Some s_uid -> (Scopelang.Ast.TStruct s_uid, typ_pos)
+      | Some s_uid -> Scopelang.Ast.TStruct s_uid, typ_pos
       | None -> (
         match Desugared.Ast.IdentMap.find_opt ident ctxt.enum_idmap with
-        | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
+        | Some e_uid -> Scopelang.Ast.TEnum e_uid, typ_pos
         | None ->
           Errors.raise_spanned_error typ_pos
             "Unknown type \"%a\", not a struct or enum previously declared"
-            (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+            (Utils.Cli.format_with_style [ANSITerminal.yellow])
             ident)))
 
 (** Process a type (function or not) *)
@@ -300,12 +300,11 @@ let process_data_decl
   | Some use ->
     Errors.raise_multispanned_error
       [
-        ( Some "first use",
-          Pos.get_position (Desugared.Ast.ScopeVar.get_info use) );
-        (Some "second use", pos);
+        Some "first use", Pos.get_position (Desugared.Ast.ScopeVar.get_info use);
+        Some "second use", pos;
       ]
       "var name \"%a\" already used"
-      (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+      (Utils.Cli.format_with_style [ANSITerminal.yellow])
       name
   | None ->
     let uid = Desugared.Ast.ScopeVar.fresh (name, pos) in
@@ -361,7 +360,7 @@ let add_def_local_var (ctxt : context) (name : ident Pos.marked) :
           ctxt.local_var_idmap;
     }
   in
-  (ctxt, local_var_uid)
+  ctxt, local_var_uid
 
 (** Process a scope declaration *)
 let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
@@ -456,7 +455,7 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
             (fun cases ->
               let typ =
                 match cdecl.Ast.enum_decl_case_typ with
-                | None -> (Scopelang.Ast.TLit TUnit, cdecl_pos)
+                | None -> Scopelang.Ast.TLit TUnit, cdecl_pos
                 | Some typ -> process_type ctxt typ
               in
               match cases with
@@ -474,11 +473,11 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) :
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Errors.raise_multispanned_error
       [
-        (Some "First definition:", Pos.get_position use);
-        (Some "Second definition:", pos);
+        Some "First definition:", Pos.get_position use;
+        Some "Second definition:", pos;
       ]
       "%s name \"%a\" already defined" msg
-      (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+      (Utils.Cli.format_with_style [ANSITerminal.yellow])
       name
   in
   match Pos.unmark item with
@@ -579,7 +578,7 @@ let get_def_key
     (default_pos : Pos.t) : Desugared.Ast.ScopeDef.t =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match name with
-  | [ x ] ->
+  | [x] ->
     let x_uid = get_var_uid scope_uid ctxt x in
     let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
     Desugared.Ast.ScopeDef.Var
@@ -593,7 +592,7 @@ let get_def_key
           with Not_found ->
             Errors.raise_multispanned_error
               [
-                (None, Pos.get_position state);
+                None, Pos.get_position state;
                 ( Some "Variable declaration:",
                   Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
               ]
@@ -604,7 +603,7 @@ let get_def_key
           then
             Errors.raise_multispanned_error
               [
-                (None, Pos.get_position x);
+                None, Pos.get_position x;
                 ( Some "Variable declaration:",
                   Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
               ]
@@ -612,7 +611,7 @@ let get_def_key
                considered for variable %a."
               Desugared.Ast.ScopeVar.format_t x_uid
           else None )
-  | [ y; x ] ->
+  | [y; x] ->
     let subscope_uid : Scopelang.Ast.SubScopeName.t =
       get_subscope_uid scope_uid ctxt y
     in
@@ -717,11 +716,11 @@ let process_definition
                               default_exception_rulename =
                                 Some
                                   (Ambiguous
-                                     ([ Pos.get_position d.definition_name ]
+                                     ([Pos.get_position d.definition_name]
                                      @
                                      match old with
                                      | Ambiguous old -> old
-                                     | Unique (_, pos) -> [ pos ]));
+                                     | Unique (_, pos) -> [pos]));
                             }
                           (* No definition has been set yet for this key *)
                           | None -> (
@@ -734,7 +733,7 @@ let process_definition
                                 default_exception_rulename =
                                   Some
                                     (Ambiguous
-                                       [ Pos.get_position d.definition_name ]);
+                                       [Pos.get_position d.definition_name]);
                               }
                             (* This is a possible default definition for this
                                key. We create and store a fresh rulename *)
@@ -773,7 +772,7 @@ let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
       Errors.raise_spanned_error
         (Pos.get_position suse.Ast.scope_use_name)
         "\"%a\": this scope has not been declared anywhere, is it a typo?"
-        (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+        (Utils.Cli.format_with_style [ANSITerminal.yellow])
         (Pos.unmark suse.Ast.scope_use_name)
   in
   List.fold_left (process_scope_use_item s_name) ctxt suse.Ast.scope_use_items

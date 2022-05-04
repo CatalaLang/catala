@@ -178,9 +178,7 @@ let duration_of_numbers (year : int) (month : int) (day : int) : duration =
 let duration_to_string (d : duration) : string =
   let x, y, z = CalendarLib.Date.Period.ymd d in
   let to_print =
-    List.filter
-      (fun (a, _) -> a <> 0)
-      [ (x, "years"); (y, "months"); (z, "days") ]
+    List.filter (fun (a, _) -> a <> 0) [x, "years"; y, "months"; z, "days"]
   in
   match to_print with
   | [] -> "empty duration"
@@ -201,7 +199,7 @@ let handle_default :
     Array.fold_left
       (fun acc except ->
         let new_val = try Some (except ()) with EmptyError -> None in
-        match (acc, new_val) with
+        match acc, new_val with
         | None, _ -> new_val
         | Some _, None -> acc
         | Some _, Some _ -> raise ConflictError)
@@ -218,7 +216,7 @@ let handle_default_opt
   let except =
     Array.fold_left
       (fun acc except ->
-        match (acc, except) with
+        match acc, except with
         | ENone _, _ -> except
         | ESome _, ENone _ -> acc
         | ESome _, ESome _ -> raise ConflictError)

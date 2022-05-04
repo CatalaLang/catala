@@ -42,29 +42,25 @@ let format_uid_list
          Format.fprintf fmt "%a"
            (Utils.Cli.format_with_style
               (if begins_with_uppercase (Pos.unmark info) then
-               [ ANSITerminal.red ]
+               [ANSITerminal.red]
               else []))
            (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
     infos
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.red ]) s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.red]) s
 
 let format_base_type (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a"
-    (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-    s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.yellow]) s
 
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.cyan ]) s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.cyan]) s
 
 let format_operator (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.green ]) s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.green]) s
 
 let format_lit_style (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%a"
-    (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-    s
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.yellow]) s
 
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   format_base_type fmt
@@ -80,7 +76,7 @@ let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
 let format_enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) :
     unit =
   Format.fprintf fmt "%a"
-    (Utils.Cli.format_with_style [ ANSITerminal.magenta ])
+    (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
 let rec format_typ
@@ -188,10 +184,10 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "@<2>%s"
     (match entry with
-    | VarDef _ -> Utils.Cli.with_style [ ANSITerminal.blue ] "≔ "
-    | BeginCall -> Utils.Cli.with_style [ ANSITerminal.yellow ] "→ "
-    | EndCall -> Utils.Cli.with_style [ ANSITerminal.yellow ] "← "
-    | PosRecordIfTrueBool -> Utils.Cli.with_style [ ANSITerminal.green ] "☛ ")
+    | VarDef _ -> Utils.Cli.with_style [ANSITerminal.blue] "≔ "
+    | BeginCall -> Utils.Cli.with_style [ANSITerminal.yellow] "→ "
+    | EndCall -> Utils.Cli.with_style [ANSITerminal.yellow] "← "
+    | PosRecordIfTrueBool -> Utils.Cli.with_style [ANSITerminal.green] "☛ ")
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
@@ -281,10 +277,8 @@ let rec format_expr
   | ELit l -> format_lit fmt (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-    let xs_tau_arg =
-      List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args
-    in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "%a%a"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
@@ -296,7 +290,7 @@ let rec format_expr
       xs_tau_arg format_expr body
   | EAbs ((binder, _), taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" format_punctuation
       "λ"
       (Format.pp_print_list
@@ -305,15 +299,15 @@ let rec format_expr
            Format.fprintf fmt "%a%a%a %a%a" format_punctuation "(" format_var x
              format_punctuation ":" (format_typ ctx) tau format_punctuation ")"))
       xs_tau format_punctuation "→" format_expr body
-  | EApp ((EOp (Binop ((Ast.Map | Ast.Filter) as op)), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop ((Ast.Map | Ast.Filter) as op)), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos)
       format_with_parens arg1 format_with_parens arg2
-  | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       format_binop (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not debug ->
+  | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     format_expr fmt arg1
-  | EApp ((EOp (Unop op), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
       format_with_parens arg1
   | EApp (f, args) ->

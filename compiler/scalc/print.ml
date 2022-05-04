@@ -77,16 +77,16 @@ let rec format_expr
   | ELit l ->
     Format.fprintf fmt "%a" Lcalc.Print.format_lit (Pos.same_pos_as l e)
   | EApp
-      ( (EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _),
-        [ arg1; arg2 ] ) ->
+      ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
+    ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop
       (op, Pos.no_pos) format_with_parens arg1 format_with_parens arg2
-  | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       Dcalc.Print.format_binop (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not debug ->
+  | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp ((EOp (Unop op), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop
       (op, Pos.no_pos) format_with_parens arg1
   | EApp (f, args) ->

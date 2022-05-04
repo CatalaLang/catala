@@ -53,15 +53,13 @@ type expr =
 type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
 
 let evar (v : expr Bindlib.var) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun v' -> (v', pos)) (Bindlib.box_var v)
+  Bindlib.box_apply (fun v' -> v', pos) (Bindlib.box_var v)
 
 let etuple
     (args : expr Pos.marked Bindlib.box list)
     (s : Dcalc.Ast.StructName.t option)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply
-    (fun args -> (ETuple (args, s), pos))
-    (Bindlib.box_list args)
+  Bindlib.box_apply (fun args -> ETuple (args, s), pos) (Bindlib.box_list args)
 
 let etupleaccess
     (e1 : expr Pos.marked Bindlib.box)
@@ -69,7 +67,7 @@ let etupleaccess
     (s : Dcalc.Ast.StructName.t option)
     (typs : Dcalc.Ast.typ Pos.marked list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun e1 -> (ETupleAccess (e1, i, s, typs), pos)) e1
+  Bindlib.box_apply (fun e1 -> ETupleAccess (e1, i, s, typs), pos) e1
 
 let einj
     (e1 : expr Pos.marked Bindlib.box)
@@ -77,7 +75,7 @@ let einj
     (e_name : Dcalc.Ast.EnumName.t)
     (typs : Dcalc.Ast.typ Pos.marked list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun e1 -> (EInj (e1, i, e_name, typs), pos)) e1
+  Bindlib.box_apply (fun e1 -> EInj (e1, i, e_name, typs), pos) e1
 
 let ematch
     (arg : expr Pos.marked Bindlib.box)
@@ -85,12 +83,12 @@ let ematch
     (e_name : Dcalc.Ast.EnumName.t)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
-    (fun arg arms -> (EMatch (arg, arms, e_name), pos))
+    (fun arg arms -> EMatch (arg, arms, e_name), pos)
     arg (Bindlib.box_list arms)
 
 let earray (args : expr Pos.marked Bindlib.box list) (pos : Pos.t) :
     expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun args -> (EArray args, pos)) (Bindlib.box_list args)
+  Bindlib.box_apply (fun args -> EArray args, pos) (Bindlib.box_list args)
 
 let elit (l : lit) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box (ELit l, pos)
@@ -101,7 +99,7 @@ let eabs
     (typs : Dcalc.Ast.typ Pos.marked list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply
-    (fun binder -> (EAbs ((binder, pos_binder), typs), pos))
+    (fun binder -> EAbs ((binder, pos_binder), typs), pos)
     binder
 
 let eapp
@@ -109,12 +107,12 @@ let eapp
     (args : expr Pos.marked Bindlib.box list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
-    (fun e1 args -> (EApp (e1, args), pos))
+    (fun e1 args -> EApp (e1, args), pos)
     e1 (Bindlib.box_list args)
 
 let eassert (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
     expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun e1 -> (EAssert e1, pos)) e1
+  Bindlib.box_apply (fun e1 -> EAssert e1, pos) e1
 
 let eop (op : Dcalc.Ast.operator) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box (EOp op, pos)
@@ -127,14 +125,14 @@ let ecatch
     (exn : except)
     (e2 : expr Pos.marked Bindlib.box)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e1 e2 -> (ECatch (e1, exn, e2), pos)) e1 e2
+  Bindlib.box_apply2 (fun e1 e2 -> ECatch (e1, exn, e2), pos) e1 e2
 
 let eifthenelse
     (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box)
     (e3 : expr Pos.marked Bindlib.box)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply3 (fun e1 e2 e3 -> (EIfThenElse (e1, e2, e3), pos)) e1 e2 e3
+  Bindlib.box_apply3 (fun e1 e2 e3 -> EIfThenElse (e1, e2, e3), pos) e1 e2 e3
 
 module Var = struct
   type t = expr Bindlib.var
@@ -187,7 +185,7 @@ let box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   id_t () e
 
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
+  Bindlib.box_apply (fun x -> x, pos) (Bindlib.box_var x)
 
 let make_abs
     (xs : vars)
@@ -196,14 +194,14 @@ let make_abs
     (taus : D.typ Pos.marked list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply
-    (fun b -> (EAbs ((b, pos_binder), taus), pos))
+    (fun b -> EAbs ((b, pos_binder), taus), pos)
     (Bindlib.bind_mvar xs e)
 
 let make_app
     (e : expr Pos.marked Bindlib.box)
     (u : expr Pos.marked Bindlib.box list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
+  Bindlib.box_apply2 (fun e u -> EApp (e, u), pos) e (Bindlib.box_list u)
 
 let make_let_in
     (x : Var.t)
@@ -211,7 +209,7 @@ let make_let_in
     (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
+  make_app (make_abs (Array.of_list [x]) e2 pos [tau] pos) [e1] pos
 
 let make_multiple_let_in
     (xs : Var.t array)
@@ -232,19 +230,13 @@ let some_constr : D.EnumConstructor.t =
   D.EnumConstructor.fresh ("ESome", Pos.no_pos)
 
 let option_enum_config : (D.EnumConstructor.t * D.typ Pos.marked) list =
-  [
-    (none_constr, (D.TLit D.TUnit, Pos.no_pos));
-    (some_constr, (D.TAny, Pos.no_pos));
-  ]
+  [none_constr, (D.TLit D.TUnit, Pos.no_pos); some_constr, (D.TAny, Pos.no_pos)]
 
 let make_none (pos : Pos.t) : expr Pos.marked Bindlib.box =
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
   Bindlib.box @@ mark
   @@ EInj
-       ( mark @@ ELit LUnit,
-         0,
-         option_enum,
-         [ (D.TLit D.TUnit, pos); (D.TAny, pos) ] )
+       (mark @@ ELit LUnit, 0, option_enum, [D.TLit D.TUnit, pos; D.TAny, pos])
 
 let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox e in
@@ -284,8 +276,8 @@ let make_matchopt
   let x = Var.make ("_", pos) in
 
   make_matchopt_with_abs_arms arg
-    (make_abs (Array.of_list [ x ]) e_none pos [ (D.TLit D.TUnit, pos) ] pos)
-    (make_abs (Array.of_list [ v ]) e_some pos [ tau ] pos)
+    (make_abs (Array.of_list [x]) e_none pos [D.TLit D.TUnit, pos] pos)
+    (make_abs (Array.of_list [v]) e_some pos [tau] pos)
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 let handle_default_opt = Var.make ("handle_default_opt", Pos.no_pos)

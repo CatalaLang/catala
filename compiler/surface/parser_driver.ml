@@ -65,7 +65,7 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
     Ast.law_structure list =
   match f with
   | [] -> []
-  | [ item ] -> [ item ]
+  | [item] -> [item]
   | first_item :: rest -> (
     let rest_tree = law_struct_list_to_tree rest in
     match rest_tree with
@@ -83,22 +83,22 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
         let rec split_rest_tree (rest_tree : Ast.law_structure list) :
             Ast.law_structure list * Ast.law_structure list =
           match rest_tree with
-          | [] -> ([], [])
+          | [] -> [], []
           | LawHeading (new_heading, _) :: _
             when new_heading.law_heading_precedence
                  <= heading.law_heading_precedence ->
             (* we stop gobbling *)
-            ([], rest_tree)
+            [], rest_tree
           | first :: after ->
             (* we continue gobbling *)
             let after_gobbled, after_out = split_rest_tree after in
-            (first :: after_gobbled, after_out)
+            first :: after_gobbled, after_out
         in
         let gobbled, rest_out = split_rest_tree rest_tree in
         LawHeading (heading, gobbled) :: rest_out))
 
 (** Style with which to display syntax hints in the terminal output *)
-let syntax_hints_style = [ ANSITerminal.yellow ]
+let syntax_hints_style = [ANSITerminal.yellow]
 
 (** Usage: [raise_parser_error error_loc last_good_loc token msg]
 
@@ -116,7 +116,7 @@ let raise_parser_error
     ::
     (match last_good_loc with
     | None -> []
-    | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
+    | Some last_good_loc -> [Some "Last good token:", last_good_loc]))
     "Syntax error at token %a\n%s"
     (Cli.format_with_style syntax_hints_style)
     (Printf.sprintf "\"%s\"" token)
@@ -158,7 +158,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
                 (fst (lexing_positions lexbuf)))
             token_list,
           Some (I.positions last_input_needed) )
-      | None -> (token_list, None)
+      | None -> token_list, None
     in
     let similar_acceptable_tokens =
       List.sort
@@ -277,9 +277,9 @@ let rec parse_source_file
     | FileName source_file -> (
       try
         let input = open_in source_file in
-        (Sedlexing.Utf8.from_channel input, Some input)
+        Sedlexing.Utf8.from_channel input, Some input
       with Sys_error msg -> Errors.raise_error "%s" msg)
-    | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
+    | Contents contents -> Sedlexing.Utf8.from_string contents, None
   in
   let source_file_name =
     match source_file with FileName s -> s | Contents _ -> "stdin"
@@ -323,9 +323,9 @@ and expand_includes
         {
           Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
           Ast.program_items =
-            acc.Ast.program_items @ [ Ast.LawHeading (heading, commands') ];
+            acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
         }
-      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [ i ] })
+      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
     { Ast.program_source_files = []; Ast.program_items = [] }
     commands
 

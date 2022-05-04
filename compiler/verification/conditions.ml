@@ -35,37 +35,35 @@ type ctx = {
 let conjunction (args : vc_return list) (pos : Pos.t) : vc_return =
   let acc, list =
     match args with
-    | hd :: tl -> (hd, tl)
-    | [] -> (((ELit (LBool true), pos), VarMap.empty), [])
+    | hd :: tl -> hd, tl
+    | [] -> ((ELit (LBool true), pos), VarMap.empty), []
   in
   List.fold_left
     (fun (acc, acc_ty) (arg, arg_ty) ->
-      ( (EApp ((EOp (Binop And), pos), [ arg; acc ]), pos),
-        VarMap.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty
-      ))
+      ( (EApp ((EOp (Binop And), pos), [arg; acc]), pos),
+        VarMap.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty ))
     acc list
 
 let negation ((arg, arg_ty) : vc_return) (pos : Pos.t) : vc_return =
-  ((EApp ((EOp (Unop Not), pos), [ arg ]), pos), arg_ty)
+  (EApp ((EOp (Unop Not), pos), [arg]), pos), arg_ty
 
 let disjunction (args : vc_return list) (pos : Pos.t) : vc_return =
   let acc, list =
     match args with
-    | hd :: tl -> (hd, tl)
-    | [] -> (((ELit (LBool false), pos), VarMap.empty), [])
+    | hd :: tl -> hd, tl
+    | [] -> ((ELit (LBool false), pos), VarMap.empty), []
   in
   List.fold_left
     (fun ((acc, acc_ty) : vc_return) (arg, arg_ty) ->
-      ( (EApp ((EOp (Binop Or), pos), [ arg; acc ]), pos),
-        VarMap.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty
-      ))
+      ( (EApp ((EOp (Binop Or), pos), [arg; acc]), pos),
+        VarMap.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty ))
     acc list
 
 (** [half_product \[a1,...,an\] \[b1,...,bm\] returns \[(a1,b1),...(a1,bn),...(an,b1),...(an,bm)\]] *)
 let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
   l1
   |> List.mapi (fun i ei ->
-         List.filteri (fun j _ -> i < j) l2 |> List.map (fun ej -> (ei, ej)))
+         List.filteri (fun j _ -> i < j) l2 |> List.map (fun ej -> ei, ej))
   |> List.concat
 
 (** This code skims through the topmost layers of the terms like this:
@@ -78,14 +76,14 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
   match Pos.unmark e with
   | ErrorOnEmpty
       ( EDefault
-          ( [ (EApp ((EVar (x, _), _), [ (ELit LUnit, _) ]), _) ],
+          ( [(EApp ((EVar (x, _), _), [(ELit LUnit, _)]), _)],
             (ELit (LBool true), _),
             cons ),
         _ )
     when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
     (* scope variables*)
     cons
-  | EAbs ((binder, _), [ (TLit TUnit, _) ]) ->
+  | EAbs ((binder, _), [(TLit TUnit, _)]) ->
     (* context sub-scope variables *)
     let _, body = Bindlib.unmbind binder in
     body
@@ -134,7 +132,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
         List.fold_left
           (fun acc (var, ty) -> VarMap.add var ty acc)
           vc_body_ty
-          (List.map2 (fun x y -> (x, y)) (Array.to_list vars) typs) )
+          (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
     | EApp (f, args) ->
       (* We assume here that function calls never return empty error, which implies
          all functions have been checked never to return empty errors. *)
@@ -147,19 +145,19 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
       let e3_vc, vc_typ3 = generate_vc_must_not_return_empty ctx e3 in
       conjunction
         [
-          (e1_vc, vc_typ1);
+          e1_vc, vc_typ1;
           ( (EIfThenElse (e1, e2_vc, e3_vc), Pos.get_position e),
             VarMap.union
               (fun _ _ _ -> failwith "should not happen")
               vc_typ2 vc_typ3 );
         ]
         (Pos.get_position e)
-    | ELit LEmptyError -> (Pos.same_pos_as (ELit (LBool false)) e, VarMap.empty)
+    | ELit LEmptyError -> Pos.same_pos_as (ELit (LBool false)) e, VarMap.empty
     | EVar _
     (* Per default calculus semantics, you cannot call a function with an argument
        that evaluates to the empty error. Thus, all variable evaluate to non-empty-error terms. *)
     | ELit _ | EOp _ ->
-      (Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty)
+      Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty
     | EDefault (exceptions, just, cons) ->
       (* <e1 ... en | ejust :- econs > never returns empty if and only if:
          - first we look if e1 .. en ejust can return empty;
@@ -226,7 +224,7 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
         List.fold_left
           (fun acc (var, ty) -> VarMap.add var ty acc)
           vc_body_ty
-          (List.map2 (fun x y -> (x, y)) (Array.to_list vars) typs) )
+          (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
     | EApp (f, args) ->
       conjunction
         (List.map (generate_vs_must_not_return_confict ctx) (f :: args))
@@ -237,7 +235,7 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
       let e3_vc, vc_typ3 = generate_vs_must_not_return_confict ctx e3 in
       conjunction
         [
-          (e1_vc, vc_typ1);
+          e1_vc, vc_typ1;
           ( (EIfThenElse (e1, e2_vc, e3_vc), Pos.get_position e),
             VarMap.union
               (fun _ _ _ -> failwith "should not happen")
@@ -245,7 +243,7 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
         ]
         (Pos.get_position e)
     | EVar _ | ELit _ | EOp _ ->
-      (Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty)
+      Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty
     | EDefault (exceptions, just, cons) ->
       (* <e1 ... en | ejust :- econs > never returns conflict if and only if:
          - neither e1 nor ... nor en nor ejust nor econs return conflict
@@ -294,7 +292,7 @@ let rec generate_verification_conditions_scope_body_expr
     (scope_body_expr : expr scope_body_expr) : ctx * verification_condition list
     =
   match scope_body_expr with
-  | Result _ -> (ctx, [])
+  | Result _ -> ctx, []
   | ScopeLet scope_let ->
     let scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
@@ -302,7 +300,7 @@ let rec generate_verification_conditions_scope_body_expr
     let new_ctx, vc_list =
       match scope_let.scope_let_kind with
       | DestructuringInputStruct ->
-        ({ ctx with input_vars = scope_let_var :: ctx.input_vars }, [])
+        { ctx with input_vars = scope_let_var :: ctx.input_vars }, []
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. But for subscope variable definitions,
@@ -329,7 +327,7 @@ let rec generate_verification_conditions_scope_body_expr
                   (fun _ _ -> failwith "should not happen")
                   ctx.scope_variables_typs vc_confl_typs;
               vc_scope = ctx.current_scope_name;
-              vc_variable = (scope_let_var, scope_let.scope_let_pos);
+              vc_variable = scope_let_var, scope_let.scope_let_pos;
             };
           ]
         in
@@ -352,13 +350,13 @@ let rec generate_verification_conditions_scope_body_expr
                   (fun _ _ -> failwith "should not happen")
                   ctx.scope_variables_typs vc_empty_typs;
               vc_scope = ctx.current_scope_name;
-              vc_variable = (scope_let_var, scope_let.scope_let_pos);
+              vc_variable = scope_let_var, scope_let.scope_let_pos;
             }
             :: vc_list
           | _ -> vc_list
         in
-        (ctx, vc_list)
-      | _ -> (ctx, [])
+        ctx, vc_list
+      | _ -> ctx, []
     in
     let new_ctx, new_vcs =
       generate_verification_conditions_scope_body_expr
@@ -370,7 +368,7 @@ let rec generate_verification_conditions_scope_body_expr
         }
         scope_let_next
     in
-    (new_ctx, vc_list @ new_vcs)
+    new_ctx, vc_list @ new_vcs
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)

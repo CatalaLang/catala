@@ -174,7 +174,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
          (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
       ts
   | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
-  | TEnum ([ _; some_typ ], e) when D.EnumName.compare e L.option_enum = 0 ->
+  | TEnum ([_; some_typ], e) when D.EnumName.compare e L.option_enum = 0 ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
   | TEnum (_, e) -> Format.fprintf fmt "%a" format_enum_name e
@@ -301,23 +301,22 @@ let rec format_expression
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp
-      ( (EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _),
-        [ arg1; arg2 ] ) ->
+      ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
+    ->
     Format.fprintf fmt "%a(%a,@ %a)" format_binop (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
-  | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
+  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_binop
       (op, Pos.no_pos) (format_expression ctx) arg2
-  | EApp
-      ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [ f ]), _), [ arg ])
+  | EApp ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [f]), _), [arg])
     when !Cli.trace_flag ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
-  | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [ arg1 ])
+  | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt "log_variable_definition(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
-  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [ arg1 ])
+  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt
       "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
@@ -325,16 +324,16 @@ let rec format_expression
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [ arg1 ])
+  | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
-  | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop (D.Log _)), _), [arg1]) ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
-  | EApp ((EOp (Unop ((Minus _ | Not) as op)), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop ((Minus _ | Not) as op)), _), [arg1]) ->
     Format.fprintf fmt "%a %a" format_unop (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp ((EOp (Unop op), _), [ arg1 ]) ->
+  | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "%a(%a)" format_unop (op, Pos.no_pos)
       (format_expression ctx) arg1
   | EApp (f, args) ->
@@ -375,7 +374,7 @@ let rec format_statement
   | SIfThenElse (cond, b1, b2) ->
     Format.fprintf fmt "@[<hov 4>if %a:@\n%a@]@\n@[<hov 4>else:@\n%a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
-  | SSwitch (e1, e_name, [ (case_none, _); (case_some, case_some_var) ])
+  | SSwitch (e1, e_name, [(case_none, _); (case_some, case_some_var)])
     when D.EnumName.compare e_name L.option_enum = 0 ->
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = LocalName.fresh ("perhaps_none_arg", Pos.no_pos) in
@@ -392,7 +391,7 @@ let rec format_statement
   | SSwitch (e1, e_name, cases) ->
     let cases =
       List.map2
-        (fun (x, y) (cons, _) -> (x, y, cons))
+        (fun (x, y) (cons, _) -> x, y, cons)
         cases
         (D.EnumMap.find e_name ctx.ctx_enums)
     in
@@ -509,7 +508,7 @@ let format_ctx
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun _fmt (i, enum_cons, enum_cons_type) ->
              Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
-        (List.mapi (fun i (x, y) -> (i, x, y)) enum_cons)
+        (List.mapi (fun i (x, y) -> i, x, y) enum_cons)
         format_enum_name enum_name format_enum_name enum_name format_enum_name
         enum_name
   in

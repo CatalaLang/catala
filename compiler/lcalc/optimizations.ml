@@ -74,7 +74,7 @@ let rec iota_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
     when Dcalc.Ast.EnumName.compare n n' = 0 ->
     let+ e1 = visitor_map iota_expr () e1
     and+ case = visitor_map iota_expr () (List.nth cases i) in
-    default_mark @@ EApp (case, [ e1 ])
+    default_mark @@ EApp (case, [e1])
   | EMatch (e', cases, n)
     when cases
          |> List.mapi (fun i (case, _pos) ->
@@ -123,15 +123,15 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
     and+ e3 = peephole_expr () e3 in
     match Pos.unmark e1 with
     | ELit (LBool true)
-    | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]) ->
+    | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]) ->
       e2
     | ELit (LBool false)
-    | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) ->
+    | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ->
       e3
     | _ -> default_mark @@ EIfThenElse (e1, e2, e3))
   | ECatch (e1, except, e2) -> (
     let+ e1 = peephole_expr () e1 and+ e2 = peephole_expr () e2 in
-    match (Pos.unmark e1, Pos.unmark e2) with
+    match Pos.unmark e1, Pos.unmark e2 with
     | ERaise except', ERaise except'' when except' = except && except = except''
       ->
       default_mark @@ ERaise except

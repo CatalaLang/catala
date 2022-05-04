@@ -89,22 +89,21 @@ let file =
     & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled.")
 
 let debug =
-  Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information.")
+  Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information.")
 
 let unstyled =
   Arg.(
     value & flag
-    & info [ "unstyled"; "u" ]
+    & info ["unstyled"; "u"]
         ~doc:"Removes styling (colors, etc.) from terminal output.")
 
 let optimize =
-  Arg.(
-    value & flag & info [ "optimize"; "O" ] ~doc:"Run compiler optimizations.")
+  Arg.(value & flag & info ["optimize"; "O"] ~doc:"Run compiler optimizations.")
 
 let trace_opt =
   Arg.(
     value & flag
-    & info [ "trace"; "t" ]
+    & info ["trace"; "t"]
         ~doc:
           "Displays a trace of the interpreter's computation or generates \
            logging instructions in translate programs.")
@@ -112,19 +111,19 @@ let trace_opt =
 let avoid_exceptions =
   Arg.(
     value & flag
-    & info [ "avoid_exceptions" ]
+    & info ["avoid_exceptions"]
         ~doc:"Compiles the default calculus without exceptions")
 
 let closure_conversion =
   Arg.(
     value & flag
-    & info [ "closure_conversion" ]
+    & info ["closure_conversion"]
         ~doc:"Performs closure conversion on the lambda calculus")
 
 let wrap_weaved_output =
   Arg.(
     value & flag
-    & info [ "wrap"; "w" ]
+    & info ["wrap"; "w"]
         ~doc:"Wraps literate programming output with a minimal preamble.")
 
 let backend =
@@ -139,7 +138,7 @@ let language =
   Arg.(
     value
     & opt (some string) None
-    & info [ "l"; "language" ] ~docv:"LANG"
+    & info ["l"; "language"] ~docv:"LANG"
         ~doc:"Input language among: en, fr, pl.")
 
 let max_prec_digits_opt =
@@ -147,7 +146,7 @@ let max_prec_digits_opt =
     value
     & opt (some int) None
     & info
-        [ "p"; "max_digits_printed" ]
+        ["p"; "max_digits_printed"]
         ~docv:"DIGITS"
         ~doc:
           "Maximum number of significant digits printed for decimal results \
@@ -157,7 +156,7 @@ let disable_counterexamples_opt =
   Arg.(
     value & flag
     & info
-        [ "disable_counterexamples" ]
+        ["disable_counterexamples"]
         ~doc:
           "Disables the search for counterexamples in proof mode. Useful when \
            you want a deterministic output from the Catala compiler, since \
@@ -167,13 +166,13 @@ let ex_scope =
   Arg.(
     value
     & opt (some string) None
-    & info [ "s"; "scope" ] ~docv:"SCOPE" ~doc:"Scope to be focused on.")
+    & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on.")
 
 let output =
   Arg.(
     value
     & opt (some string) None
-    & info [ "output"; "o" ] ~docv:"OUTPUT"
+    & info ["output"; "o"] ~docv:"OUTPUT"
         ~doc:
           "$(i, OUTPUT) is the file that will contain the output of the \
            compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
@@ -315,7 +314,7 @@ let info =
         "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
-  let exits = Cmd.Exit.defaults @ [ Cmd.Exit.info ~doc:"on error." 1 ] in
+  let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "catala" ~version ~doc ~exits ~man
 
 (**{1 Terminal formatting}*)
@@ -343,29 +342,28 @@ let time_marker () =
   if delta > 50. then
     Printf.printf "%s"
       (with_style
-         [ ANSITerminal.Bold; ANSITerminal.black ]
+         [ANSITerminal.Bold; ANSITerminal.black]
          "[TIME] %.0f ms\n" delta)
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
 let debug_marker () =
   time_marker ();
-  with_style [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
+  with_style [ANSITerminal.Bold; ANSITerminal.magenta] "[DEBUG] "
 
 (** Prints [\[ERROR\]] in red on the terminal error output *)
 let error_marker () =
-  with_style [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
+  with_style [ANSITerminal.Bold; ANSITerminal.red] "[ERROR] "
 
 (** Prints [\[WARNING\]] in yellow on the terminal standard output *)
 let warning_marker () =
-  with_style [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
+  with_style [ANSITerminal.Bold; ANSITerminal.yellow] "[WARNING] "
 
 (** Prints [\[RESULT\]] in green on the terminal standard output *)
 let result_marker () =
-  with_style [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
+  with_style [ANSITerminal.Bold; ANSITerminal.green] "[RESULT] "
 
 (** Prints [\[LOG\]] in red on the terminal error output *)
-let log_marker () =
-  with_style [ ANSITerminal.Bold; ANSITerminal.black ] "[LOG] "
+let log_marker () = with_style [ANSITerminal.Bold; ANSITerminal.black] "[LOG] "
 
 (**{2 Printers}*)
 

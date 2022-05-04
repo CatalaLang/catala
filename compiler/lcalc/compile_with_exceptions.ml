@@ -36,7 +36,7 @@ let translate_lit (l : D.lit) : A.expr =
 let thunk_expr (e : A.expr Pos.marked Bindlib.box) (pos : Pos.t) :
     A.expr Pos.marked Bindlib.box =
   let dummy_var = A.Var.make ("_", pos) in
-  A.make_abs [| dummy_var |] e pos [ (D.TAny, pos) ] pos
+  A.make_abs [| dummy_var |] e pos [D.TAny, pos] pos
 
 let rec translate_default
     (ctx : ctx)
@@ -97,7 +97,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
       Array.fold_right
         (fun var (ctx, lc_vars) ->
           let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
-          (D.VarMap.add var lc_var ctx, lc_var :: lc_vars))
+          D.VarMap.add var lc_var ctx, lc_var :: lc_vars)
         vars (ctx, [])
     in
     let lc_vars = Array.of_list lc_vars in
@@ -107,7 +107,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
       (fun new_binder ->
         Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
       new_binder
-  | D.EDefault ([ exn ], just, cons) when !Cli.optimize_flag ->
+  | D.EDefault ([exn], just, cons) when !Cli.optimize_flag ->
     A.ecatch (translate_expr ctx exn) A.EmptyError
       (A.eifthenelse (translate_expr ctx just) (translate_expr ctx cons)
          (Bindlib.box (Pos.same_pos_as (A.ERaise A.EmptyError) e))

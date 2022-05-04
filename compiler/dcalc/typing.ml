@@ -88,30 +88,30 @@ let rec unify
     (* TODO: if we get weird error messages, then it means that we should use
        the persistent version of the union-find data structure. *)
     let t1_s =
-      Cli.with_style [ ANSITerminal.yellow ] "%s"
+      Cli.with_style [ANSITerminal.yellow] "%s"
         (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
            ~subst:(fun _ -> " ")
            (Format.asprintf "%a" (format_typ ctx) t1))
     in
     let t2_s =
-      Cli.with_style [ ANSITerminal.yellow ] "%s"
+      Cli.with_style [ANSITerminal.yellow] "%s"
         (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
            ~subst:(fun _ -> " ")
            (Format.asprintf "%a" (format_typ ctx) t2))
     in
     Errors.raise_multispanned_error
       [
-        (Some (Format.asprintf "Type %s coming from expression:" t1_s), t1_pos);
-        (Some (Format.asprintf "Type %s coming from expression:" t2_s), t2_pos);
+        Some (Format.asprintf "Type %s coming from expression:" t1_s), t1_pos;
+        Some (Format.asprintf "Type %s coming from expression:" t2_s), t2_pos;
       ]
       "Error during typechecking, incompatible types:\n%a %s\n%a %s"
-      (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ])
+      (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
       "-->" t1_s
-      (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ])
+      (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
       "-->" t2_s
   in
   let repr =
-    match (t1_repr, t2_repr) with
+    match t1_repr, t2_repr with
     | (TLit tl1, _), (TLit tl2, _) when tl1 = tl2 -> None
     | (TArrow (t11, t12), _), (TArrow (t21, t22), _) ->
       unify t11 t21;
@@ -493,7 +493,7 @@ and typecheck_expr_top_down
         let xstaus =
           List.map2
             (fun x t_arg ->
-              (x, UnionFind.make (Pos.map_under_mark ast_to_typ t_arg)))
+              x, UnionFind.make (Pos.map_under_mark ast_to_typ t_arg))
             (Array.to_list xs) t_args
         in
         let env =
