@@ -59,10 +59,7 @@ let wrap_latex
     while true do
       let new_author = input_line git_channel in
       let groups = Re.Pcre.exec ~rex:authors_rex new_author in
-      try
-        authors :=
-          (Re.Pcre.get_substring groups 1, Re.Pcre.get_substring groups 2)
-          :: !authors
+      try authors := Re.Pcre.get_substring groups 2 :: !authors
       with Not_found -> ()
     done
   with End_of_file ->
@@ -160,6 +157,7 @@ let wrap_latex
        %s}\n\
        \\begin{document}\n\
        \\maketitle\n\n\
+       %s\n\n\
        %s : \n\
        \\begin{itemize}%s\\end{itemize}\n\n\
        \\clearpage\n\
@@ -172,9 +170,9 @@ let wrap_latex
       Utils.Cli.version
       (String.concat " \\and "
          (List.map
-            (fun (commits, author) ->
-              Format.asprintf "%s (%s commits)" author commits)
+            (fun authors -> Format.asprintf "%s" authors)
             (List.rev !authors)))
+      (literal_disclaimer_and_link language)
       (literal_source_files language)
       (String.concat
          (match language with Fr -> " ;" | En -> ";" | Pl -> ";")

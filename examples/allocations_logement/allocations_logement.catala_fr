@@ -1,5 +1,3 @@
-> Inclusion: ../base_mensuelle_allocations_familiales/bmaf.catala_fr
-
 > Inclusion: prologue.catala_fr
 
 # Code de la construction et de l'habitation
@@ -13,3 +11,5 @@
 > Inclusion: arrete_2019-09-27.catala_fr
 
 > Inclusion: autres_sources.catala_fr
+
+> Inclusion: ../base_mensuelle_allocations_familiales/bmaf.catala_fr
