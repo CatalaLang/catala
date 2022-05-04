@@ -3,7 +3,7 @@
 from datetime import date
 from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code
 from src.api import allocations_familiales, Enfant
-from src.catala import LogEvent, LogEventCode, reset_log, retrieve_log
+from catala.runtime import LogEvent, LogEventCode, reset_log, retrieve_log
 import timeit
 import argparse
 from typing import List, Any

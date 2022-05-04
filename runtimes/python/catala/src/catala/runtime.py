@@ -71,6 +71,9 @@ class Integer:
     def __str__(self) -> str:
         return self.value.__str__()
 
+    def __repr__(self) -> str:
+        return f"Integer({self.value.__repr__()})"
+
 
 class Decimal:
     def __init__(self, value: Union[str, int, float]) -> None:
@@ -117,6 +120,9 @@ class Decimal:
 
     def __str__(self) -> str:
         return "{}".format(mpfr(self.value))
+
+    def __repr__(self) -> str:
+        return f"Decimal({self.value.__repr__()})"
 
 
 class Money:
@@ -173,6 +179,9 @@ class Money:
     def __str__(self) -> str:
         return "${:.2}".format(self.value.value / 100)
 
+    def __repr__(self) -> str:
+        return f"Money({self.value.__repr__()})"
+
 
 class Date:
     def __init__(self, value: datetime.date) -> None:
@@ -210,6 +219,9 @@ class Date:
 
     def __str__(self) -> str:
         return self.value.__str__()
+
+    def __repr__(self) -> str:
+        return f"Date({self.value.__repr__()})"
 
 
 class Duration:
@@ -272,6 +284,9 @@ class Duration:
     def __str__(self) -> str:
         return self.value.__str__()
 
+    def __repr__(self) -> str:
+        return f"Duration({self.value.__repr__()})"
+
 
 class Unit:
     def __init__(self) -> None:
@@ -291,6 +306,9 @@ class Unit:
 
     def __str__(self) -> str:
         return "()"
+
+    def __repr__(self) -> str:
+        return "Unit()"
 
 
 class SourcePosition:
