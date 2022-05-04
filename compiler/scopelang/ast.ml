@@ -64,8 +64,8 @@ Set.Make (struct
     | ScopeVar (vx, _), ScopeVar (vy, _) -> ScopeVar.compare vx vy
     | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
         SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
-        let c = SubScopeName.compare xsubindex ysubindex in
-        if c = 0 then ScopeVar.compare xsubvar ysubvar else c
+      let c = SubScopeName.compare xsubindex ysubindex in
+      if c = 0 then ScopeVar.compare xsubvar ysubvar else c
     | ScopeVar _, SubScopeVar _ -> -1
     | SubScopeVar _, ScopeVar _ -> 1
 end)
@@ -101,34 +101,34 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   | ELocation l -> LocationSet.singleton (l, Pos.get_position e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
   | EAbs ((binder, _), _) ->
-      let _, body = Bindlib.unmbind binder in
-      locations_used body
+    let _, body = Bindlib.unmbind binder in
+    locations_used body
   | EStruct (_, es) ->
-      StructFieldMap.fold
-        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-        es LocationSet.empty
+    StructFieldMap.fold
+      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+      es LocationSet.empty
   | EStructAccess (e1, _, _) -> locations_used e1
   | EEnumInj (e1, _, _) -> locations_used e1
   | EMatch (e1, _, es) ->
-      EnumConstructorMap.fold
-        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-        es (locations_used e1)
+    EnumConstructorMap.fold
+      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+      es (locations_used e1)
   | EApp (e1, args) ->
-      List.fold_left
-        (fun acc arg -> LocationSet.union (locations_used arg) acc)
-        (locations_used e1) args
+    List.fold_left
+      (fun acc arg -> LocationSet.union (locations_used arg) acc)
+      (locations_used e1) args
   | EIfThenElse (e1, e2, e3) ->
-      LocationSet.union (locations_used e1)
-        (LocationSet.union (locations_used e2) (locations_used e3))
+    LocationSet.union (locations_used e1)
+      (LocationSet.union (locations_used e2) (locations_used e3))
   | EDefault (excepts, just, cons) ->
-      List.fold_left
-        (fun acc except -> LocationSet.union (locations_used except) acc)
-        (LocationSet.union (locations_used just) (locations_used cons))
-        excepts
+    List.fold_left
+      (fun acc except -> LocationSet.union (locations_used except) acc)
+      (LocationSet.union (locations_used just) (locations_used cons))
+      excepts
   | EArray es ->
-      List.fold_left
-        (fun acc e' -> LocationSet.union acc (locations_used e'))
-        LocationSet.empty es
+    List.fold_left
+      (fun acc e' -> LocationSet.union acc (locations_used e'))
+      LocationSet.empty es
   | ErrorOnEmpty e' -> locations_used e'
 
 type io_input = NoInput | OnlyInput | Reentrant

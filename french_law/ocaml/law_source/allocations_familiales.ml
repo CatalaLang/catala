@@ -16,14 +16,14 @@ let embed_prise_en_charge (x : prise_en_charge) : runtime_value =
     ( [ "PriseEnCharge" ],
       match x with
       | GardeAlterneePartageAllocations x ->
-          ("GardeAlternéePartageAllocations", embed_unit x)
+        ("GardeAlternéePartageAllocations", embed_unit x)
       | GardeAlterneeAllocataireUnique x ->
-          ("GardeAlternéeAllocataireUnique", embed_unit x)
+        ("GardeAlternéeAllocataireUnique", embed_unit x)
       | EffectiveEtPermanente x -> ("EffectiveEtPermanente", embed_unit x)
       | ServicesSociauxAllocationVerseeALaFamille x ->
-          ("ServicesSociauxAllocationVerséeÀLaFamille", embed_unit x)
+        ("ServicesSociauxAllocationVerséeÀLaFamille", embed_unit x)
       | ServicesSociauxAllocationVerseeAuxServicesSociaux x ->
-          ("ServicesSociauxAllocationVerséeAuxServicesSociaux", embed_unit x) )
+        ("ServicesSociauxAllocationVerséeAuxServicesSociaux", embed_unit x) )
 
 type situation_obligation_scolaire =
   | Avant of unit
@@ -84,7 +84,7 @@ let embed_versement_allocations (x : versement_allocations) : runtime_value =
       match x with
       | Normal x -> ("Normal", embed_unit x)
       | AllocationVerseeAuxServicesSociaux x ->
-          ("AllocationVerséeAuxServicesSociaux", embed_unit x) )
+        ("AllocationVerséeAuxServicesSociaux", embed_unit x) )
 
 type element_prestations_familiales =
   | PrestationAccueilJeuneEnfant of unit
@@ -102,18 +102,18 @@ let embed_element_prestations_familiales (x : element_prestations_familiales) :
     ( [ "ÉlémentPrestationsFamiliales" ],
       match x with
       | PrestationAccueilJeuneEnfant x ->
-          ("PrestationAccueilJeuneEnfant", embed_unit x)
+        ("PrestationAccueilJeuneEnfant", embed_unit x)
       | AllocationsFamiliales x -> ("AllocationsFamiliales", embed_unit x)
       | ComplementFamilial x -> ("ComplémentFamilial", embed_unit x)
       | AllocationLogement x -> ("AllocationLogement", embed_unit x)
       | AllocationEducationEnfantHandicape x ->
-          ("AllocationÉducationEnfantHandicapé", embed_unit x)
+        ("AllocationÉducationEnfantHandicapé", embed_unit x)
       | AllocationSoutienFamilial x ->
-          ("AllocationSoutienFamilial", embed_unit x)
+        ("AllocationSoutienFamilial", embed_unit x)
       | AllocationRentreeScolaire x ->
-          ("AllocationRentréeScolaire", embed_unit x)
+        ("AllocationRentréeScolaire", embed_unit x)
       | AllocationJournalierePresenceParentale x ->
-          ("AllocationJournalièrePresenceParentale", embed_unit x) )
+        ("AllocationJournalièrePresenceParentale", embed_unit x) )
 
 type enfant_entree = {
   d_identifiant : integer;
@@ -1036,7 +1036,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> true
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Complete ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1065,7 +1065,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           true)
+                         true)
                    then Zero ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1094,7 +1094,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Partagee ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1123,7 +1123,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Complete ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1152,7 +1152,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> true
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Complete ()
                    else raise EmptyError);
                |]
@@ -1216,7 +1216,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> true
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Normal ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1245,7 +1245,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           true)
+                         true)
                    then AllocationVerseeAuxServicesSociaux ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1274,7 +1274,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Normal ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1303,7 +1303,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> false
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Normal ()
                    else raise EmptyError);
                  (fun (_ : _) ->
@@ -1332,7 +1332,7 @@ let allocations_familiales
                        | EffectiveEtPermanente _ -> true
                        | ServicesSociauxAllocationVerseeALaFamille _ -> false
                        | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-                           false)
+                         false)
                    then Normal ()
                    else raise EmptyError);
                |]

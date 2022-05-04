@@ -185,11 +185,11 @@ let duration_to_string (d : duration) : string =
   match to_print with
   | [] -> "empty duration"
   | _ ->
-      Format.asprintf "%a"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
-        to_print
+    Format.asprintf "%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
+      to_print
 
 let duration_to_years_months_days (d : duration) : int * int * int =
   CalendarLib.Date.Period.ymd d
@@ -227,9 +227,9 @@ let handle_default_opt
   match except with
   | ESome _ -> except
   | ENone _ -> (
-      match just with
-      | ESome b -> if b then cons else ENone ()
-      | ENone _ -> ENone ())
+    match just with
+    | ESome b -> if b then cons else ENone ()
+    | ENone _ -> ENone ())
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 

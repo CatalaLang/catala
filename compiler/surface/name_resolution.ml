@@ -127,10 +127,10 @@ let get_var_uid
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
   | None ->
-      raise_unknown_identifier
-        (Format.asprintf "for a variable of scope %a"
-           Scopelang.Ast.ScopeName.format_t scope_uid)
-        (x, pos)
+    raise_unknown_identifier
+      (Format.asprintf "for a variable of scope %a"
+         Scopelang.Ast.ScopeName.format_t scope_uid)
+      (x, pos)
   | Some uid -> uid
 
 (** Get the subscope uid inside the scope given in argument *)
@@ -170,7 +170,7 @@ let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) :
   (* we don't need to look at the subscope prefix because [x] is already the uid
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
-      get_var_typ ctxt x
+    get_var_typ ctxt x
 
 let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   match def with
@@ -178,7 +178,7 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   (* we don't need to look at the subscope prefix because [x] is already the uid
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
-      is_var_cond ctxt x
+    is_var_cond ctxt x
 
 let label_groups
     (ctxt : context)
@@ -205,43 +205,43 @@ let process_subscope_decl
     Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap
   with
   | Some use ->
-      Errors.raise_multispanned_error
-        [
-          ( Some "first use",
-            Pos.get_position (Scopelang.Ast.SubScopeName.get_info use) );
-          (Some "second use", s_pos);
-        ]
-        "Subscope name \"%a\" already used"
-        (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-        subscope
+    Errors.raise_multispanned_error
+      [
+        ( Some "first use",
+          Pos.get_position (Scopelang.Ast.SubScopeName.get_info use) );
+        (Some "second use", s_pos);
+      ]
+      "Subscope name \"%a\" already used"
+      (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+      subscope
   | None ->
-      let sub_scope_uid = Scopelang.Ast.SubScopeName.fresh (name, name_pos) in
-      let original_subscope_uid =
-        match Desugared.Ast.IdentMap.find_opt subscope ctxt.scope_idmap with
-        | None -> raise_unknown_identifier "for a scope" (subscope, s_pos)
-        | Some id -> id
-      in
-      let scope_ctxt =
-        {
-          scope_ctxt with
-          sub_scopes_idmap =
-            Desugared.Ast.IdentMap.add name sub_scope_uid
-              scope_ctxt.sub_scopes_idmap;
-          sub_scopes =
-            Scopelang.Ast.SubScopeMap.add sub_scope_uid original_subscope_uid
-              scope_ctxt.sub_scopes;
-        }
-      in
+    let sub_scope_uid = Scopelang.Ast.SubScopeName.fresh (name, name_pos) in
+    let original_subscope_uid =
+      match Desugared.Ast.IdentMap.find_opt subscope ctxt.scope_idmap with
+      | None -> raise_unknown_identifier "for a scope" (subscope, s_pos)
+      | Some id -> id
+    in
+    let scope_ctxt =
       {
-        ctxt with
-        scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
+        scope_ctxt with
+        sub_scopes_idmap =
+          Desugared.Ast.IdentMap.add name sub_scope_uid
+            scope_ctxt.sub_scopes_idmap;
+        sub_scopes =
+          Scopelang.Ast.SubScopeMap.add sub_scope_uid original_subscope_uid
+            scope_ctxt.sub_scopes;
       }
+    in
+    {
+      ctxt with
+      scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
+    }
 
 let is_type_cond ((typ, _) : Ast.typ Pos.marked) =
   match typ with
   | Ast.Base Ast.Condition
   | Ast.Func { arg_typ = _; return_typ = Ast.Condition, _ } ->
-      true
+    true
   | _ -> false
 
 (** Process a basic type (all types except function types) *)
@@ -251,32 +251,30 @@ let rec process_base_typ
   match typ with
   | Ast.Condition -> (Scopelang.Ast.TLit TBool, typ_pos)
   | Ast.Data (Ast.Collection t) ->
-      ( Scopelang.Ast.TArray
-          (Pos.unmark
-             (process_base_typ ctxt
-                (Ast.Data (Pos.unmark t), Pos.get_position t))),
-        typ_pos )
+    ( Scopelang.Ast.TArray
+        (Pos.unmark
+           (process_base_typ ctxt (Ast.Data (Pos.unmark t), Pos.get_position t))),
+      typ_pos )
   | Ast.Data (Ast.Primitive prim) -> (
-      match prim with
-      | Ast.Integer -> (Scopelang.Ast.TLit TInt, typ_pos)
-      | Ast.Decimal -> (Scopelang.Ast.TLit TRat, typ_pos)
-      | Ast.Money -> (Scopelang.Ast.TLit TMoney, typ_pos)
-      | Ast.Duration -> (Scopelang.Ast.TLit TDuration, typ_pos)
-      | Ast.Date -> (Scopelang.Ast.TLit TDate, typ_pos)
-      | Ast.Boolean -> (Scopelang.Ast.TLit TBool, typ_pos)
-      | Ast.Text -> raise_unsupported_feature "text type" typ_pos
-      | Ast.Named ident -> (
-          match Desugared.Ast.IdentMap.find_opt ident ctxt.struct_idmap with
-          | Some s_uid -> (Scopelang.Ast.TStruct s_uid, typ_pos)
-          | None -> (
-              match Desugared.Ast.IdentMap.find_opt ident ctxt.enum_idmap with
-              | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
-              | None ->
-                  Errors.raise_spanned_error typ_pos
-                    "Unknown type \"%a\", not a struct or enum previously \
-                     declared"
-                    (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-                    ident)))
+    match prim with
+    | Ast.Integer -> (Scopelang.Ast.TLit TInt, typ_pos)
+    | Ast.Decimal -> (Scopelang.Ast.TLit TRat, typ_pos)
+    | Ast.Money -> (Scopelang.Ast.TLit TMoney, typ_pos)
+    | Ast.Duration -> (Scopelang.Ast.TLit TDuration, typ_pos)
+    | Ast.Date -> (Scopelang.Ast.TLit TDate, typ_pos)
+    | Ast.Boolean -> (Scopelang.Ast.TLit TBool, typ_pos)
+    | Ast.Text -> raise_unsupported_feature "text type" typ_pos
+    | Ast.Named ident -> (
+      match Desugared.Ast.IdentMap.find_opt ident ctxt.struct_idmap with
+      | Some s_uid -> (Scopelang.Ast.TStruct s_uid, typ_pos)
+      | None -> (
+        match Desugared.Ast.IdentMap.find_opt ident ctxt.enum_idmap with
+        | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
+        | None ->
+          Errors.raise_spanned_error typ_pos
+            "Unknown type \"%a\", not a struct or enum previously declared"
+            (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+            ident)))
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
@@ -284,9 +282,9 @@ let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
   match typ with
   | Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Ast.Func { arg_typ; return_typ } ->
-      ( Scopelang.Ast.TArrow
-          (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),
-        typ_pos )
+    ( Scopelang.Ast.TArrow
+        (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),
+      typ_pos )
 
 (** Process data declaration *)
 let process_data_decl
@@ -300,47 +298,47 @@ let process_data_decl
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
-      Errors.raise_multispanned_error
-        [
-          ( Some "first use",
-            Pos.get_position (Desugared.Ast.ScopeVar.get_info use) );
-          (Some "second use", pos);
-        ]
-        "var name \"%a\" already used"
-        (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-        name
+    Errors.raise_multispanned_error
+      [
+        ( Some "first use",
+          Pos.get_position (Desugared.Ast.ScopeVar.get_info use) );
+        (Some "second use", pos);
+      ]
+      "var name \"%a\" already used"
+      (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+      name
   | None ->
-      let uid = Desugared.Ast.ScopeVar.fresh (name, pos) in
-      let scope_ctxt =
-        {
-          scope_ctxt with
-          var_idmap = Desugared.Ast.IdentMap.add name uid scope_ctxt.var_idmap;
-        }
-      in
-      let states_idmap, states_list =
-        List.fold_right
-          (fun state_id (states_idmap, states_list) ->
-            let state_uid = Desugared.Ast.StateName.fresh state_id in
-            ( Desugared.Ast.IdentMap.add (Pos.unmark state_id) state_uid
-                states_idmap,
-              state_uid :: states_list ))
-          decl.scope_decl_context_item_states
-          (Desugared.Ast.IdentMap.empty, [])
-      in
+    let uid = Desugared.Ast.ScopeVar.fresh (name, pos) in
+    let scope_ctxt =
       {
-        ctxt with
-        scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs =
-          Desugared.Ast.ScopeVarMap.add uid
-            {
-              var_sig_typ = data_typ;
-              var_sig_is_condition = is_cond;
-              var_sig_io = decl.scope_decl_context_item_attribute;
-              var_sig_states_idmap = states_idmap;
-              var_sig_states_list = states_list;
-            }
-            ctxt.var_typs;
+        scope_ctxt with
+        var_idmap = Desugared.Ast.IdentMap.add name uid scope_ctxt.var_idmap;
       }
+    in
+    let states_idmap, states_list =
+      List.fold_right
+        (fun state_id (states_idmap, states_list) ->
+          let state_uid = Desugared.Ast.StateName.fresh state_id in
+          ( Desugared.Ast.IdentMap.add (Pos.unmark state_id) state_uid
+              states_idmap,
+            state_uid :: states_list ))
+        decl.scope_decl_context_item_states
+        (Desugared.Ast.IdentMap.empty, [])
+    in
+    {
+      ctxt with
+      scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
+      var_typs =
+        Desugared.Ast.ScopeVarMap.add uid
+          {
+            var_sig_typ = data_typ;
+            var_sig_is_condition = is_cond;
+            var_sig_io = decl.scope_decl_context_item_attribute;
+            var_sig_states_idmap = states_idmap;
+            var_sig_states_list = states_list;
+          }
+          ctxt.var_typs;
+    }
 
 (** Process an item declaration *)
 let process_item_decl
@@ -399,7 +397,7 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
                 match uids with
                 | None -> Some (Scopelang.Ast.StructMap.singleton s_uid f_uid)
                 | Some uids ->
-                    Some (Scopelang.Ast.StructMap.add s_uid f_uid uids))
+                  Some (Scopelang.Ast.StructMap.add s_uid f_uid uids))
               ctxt.field_idmap;
         }
       in
@@ -410,14 +408,14 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
             (fun fields ->
               match fields with
               | None ->
-                  Some
-                    (Scopelang.Ast.StructFieldMap.singleton f_uid
-                       (process_type ctxt fdecl.Ast.struct_decl_field_typ))
+                Some
+                  (Scopelang.Ast.StructFieldMap.singleton f_uid
+                     (process_type ctxt fdecl.Ast.struct_decl_field_typ))
               | Some fields ->
-                  Some
-                    (Scopelang.Ast.StructFieldMap.add f_uid
-                       (process_type ctxt fdecl.Ast.struct_decl_field_typ)
-                       fields))
+                Some
+                  (Scopelang.Ast.StructFieldMap.add f_uid
+                     (process_type ctxt fdecl.Ast.struct_decl_field_typ)
+                     fields))
             ctxt.structs;
       })
     ctxt sdecl.struct_decl_fields
@@ -463,9 +461,9 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
               in
               match cases with
               | None ->
-                  Some (Scopelang.Ast.EnumConstructorMap.singleton c_uid typ)
+                Some (Scopelang.Ast.EnumConstructorMap.singleton c_uid typ)
               | Some fields ->
-                  Some (Scopelang.Ast.EnumConstructorMap.add c_uid typ fields))
+                Some (Scopelang.Ast.EnumConstructorMap.add c_uid typ fields))
             ctxt.enums;
       })
     ctxt edecl.enum_decl_cases
@@ -485,62 +483,61 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) :
   in
   match Pos.unmark item with
   | ScopeDecl decl -> (
-      let name, pos = decl.scope_decl_name in
-      (* Checks if the name is already used *)
-      match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-      | Some use ->
-          raise_already_defined_error
-            (Scopelang.Ast.ScopeName.get_info use)
-            name pos "scope"
-      | None ->
-          let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
-          {
-            ctxt with
-            scope_idmap =
-              Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
-            scopes =
-              Scopelang.Ast.ScopeMap.add scope_uid
-                {
-                  var_idmap = Desugared.Ast.IdentMap.empty;
-                  scope_defs_contexts = Desugared.Ast.ScopeDefMap.empty;
-                  sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
-                  sub_scopes = Scopelang.Ast.SubScopeMap.empty;
-                }
-                ctxt.scopes;
-          })
+    let name, pos = decl.scope_decl_name in
+    (* Checks if the name is already used *)
+    match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
+    | Some use ->
+      raise_already_defined_error
+        (Scopelang.Ast.ScopeName.get_info use)
+        name pos "scope"
+    | None ->
+      let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
+      {
+        ctxt with
+        scope_idmap = Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
+        scopes =
+          Scopelang.Ast.ScopeMap.add scope_uid
+            {
+              var_idmap = Desugared.Ast.IdentMap.empty;
+              scope_defs_contexts = Desugared.Ast.ScopeDefMap.empty;
+              sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
+              sub_scopes = Scopelang.Ast.SubScopeMap.empty;
+            }
+            ctxt.scopes;
+      })
   | StructDecl sdecl -> (
-      let name, pos = sdecl.struct_decl_name in
-      match Desugared.Ast.IdentMap.find_opt name ctxt.struct_idmap with
-      | Some use ->
-          raise_already_defined_error
-            (Scopelang.Ast.StructName.get_info use)
-            name pos "struct"
-      | None ->
-          let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
-          {
-            ctxt with
-            struct_idmap =
-              Desugared.Ast.IdentMap.add
-                (Pos.unmark sdecl.struct_decl_name)
-                s_uid ctxt.struct_idmap;
-          })
+    let name, pos = sdecl.struct_decl_name in
+    match Desugared.Ast.IdentMap.find_opt name ctxt.struct_idmap with
+    | Some use ->
+      raise_already_defined_error
+        (Scopelang.Ast.StructName.get_info use)
+        name pos "struct"
+    | None ->
+      let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
+      {
+        ctxt with
+        struct_idmap =
+          Desugared.Ast.IdentMap.add
+            (Pos.unmark sdecl.struct_decl_name)
+            s_uid ctxt.struct_idmap;
+      })
   | EnumDecl edecl -> (
-      let name, pos = edecl.enum_decl_name in
-      match Desugared.Ast.IdentMap.find_opt name ctxt.enum_idmap with
-      | Some use ->
-          raise_already_defined_error
-            (Scopelang.Ast.EnumName.get_info use)
-            name pos "enum"
-      | None ->
-          let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
+    let name, pos = edecl.enum_decl_name in
+    match Desugared.Ast.IdentMap.find_opt name ctxt.enum_idmap with
+    | Some use ->
+      raise_already_defined_error
+        (Scopelang.Ast.EnumName.get_info use)
+        name pos "enum"
+    | None ->
+      let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
 
-          {
-            ctxt with
-            enum_idmap =
-              Desugared.Ast.IdentMap.add
-                (Pos.unmark edecl.enum_decl_name)
-                e_uid ctxt.enum_idmap;
-          })
+      {
+        ctxt with
+        enum_idmap =
+          Desugared.Ast.IdentMap.add
+            (Pos.unmark edecl.enum_decl_name)
+            e_uid ctxt.enum_idmap;
+      })
   | ScopeUse _ -> ctxt
 
 (** Process a code item that is a declaration *)
@@ -566,9 +563,9 @@ let rec process_law_structure
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match s with
   | Ast.LawHeading (_, children) ->
-      List.fold_left
-        (fun ctxt child -> process_law_structure ctxt child process_item)
-        ctxt children
+    List.fold_left
+      (fun ctxt child -> process_law_structure ctxt child process_item)
+      ctxt children
   | Ast.CodeBlock (block, _, _) -> process_code_block ctxt block process_item
   | Ast.LawInclude _ | Ast.LawText _ -> ctxt
 
@@ -583,51 +580,47 @@ let get_def_key
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match name with
   | [ x ] ->
-      let x_uid = get_var_uid scope_uid ctxt x in
-      let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
-      Desugared.Ast.ScopeDef.Var
-        ( x_uid,
-          match state with
-          | Some state -> (
-              try
-                Some
-                  (Desugared.Ast.IdentMap.find (Pos.unmark state)
-                     var_sig.var_sig_states_idmap)
-              with Not_found ->
-                Errors.raise_multispanned_error
-                  [
-                    (None, Pos.get_position state);
-                    ( Some "Variable declaration:",
-                      Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid)
-                    );
-                  ]
-                  "This identifier is not a state declared for variable %a."
-                  Desugared.Ast.ScopeVar.format_t x_uid)
-          | None ->
-              if
-                not
-                  (Desugared.Ast.IdentMap.is_empty var_sig.var_sig_states_idmap)
-              then
-                Errors.raise_multispanned_error
-                  [
-                    (None, Pos.get_position x);
-                    ( Some "Variable declaration:",
-                      Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid)
-                    );
-                  ]
-                  "This definition does not indicate which state has to be \
-                   considered for variable %a."
-                  Desugared.Ast.ScopeVar.format_t x_uid
-              else None )
+    let x_uid = get_var_uid scope_uid ctxt x in
+    let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
+    Desugared.Ast.ScopeDef.Var
+      ( x_uid,
+        match state with
+        | Some state -> (
+          try
+            Some
+              (Desugared.Ast.IdentMap.find (Pos.unmark state)
+                 var_sig.var_sig_states_idmap)
+          with Not_found ->
+            Errors.raise_multispanned_error
+              [
+                (None, Pos.get_position state);
+                ( Some "Variable declaration:",
+                  Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
+              ]
+              "This identifier is not a state declared for variable %a."
+              Desugared.Ast.ScopeVar.format_t x_uid)
+        | None ->
+          if not (Desugared.Ast.IdentMap.is_empty var_sig.var_sig_states_idmap)
+          then
+            Errors.raise_multispanned_error
+              [
+                (None, Pos.get_position x);
+                ( Some "Variable declaration:",
+                  Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
+              ]
+              "This definition does not indicate which state has to be \
+               considered for variable %a."
+              Desugared.Ast.ScopeVar.format_t x_uid
+          else None )
   | [ y; x ] ->
-      let subscope_uid : Scopelang.Ast.SubScopeName.t =
-        get_subscope_uid scope_uid ctxt y
-      in
-      let subscope_real_uid : Scopelang.Ast.ScopeName.t =
-        Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
-      in
-      let x_uid = get_var_uid subscope_real_uid ctxt x in
-      Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
+    let subscope_uid : Scopelang.Ast.SubScopeName.t =
+      get_subscope_uid scope_uid ctxt y
+    in
+    let subscope_real_uid : Scopelang.Ast.ScopeName.t =
+      Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
+    in
+    let x_uid = get_var_uid subscope_real_uid ctxt x in
+    Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
   | _ -> Errors.raise_spanned_error default_pos "Structs are not handled yet"
 
 let process_definition
@@ -649,124 +642,115 @@ let process_definition
           match s_ctxt with
           | None -> assert false (* should not happen *)
           | Some s_ctxt ->
-              Some
-                {
-                  s_ctxt with
-                  scope_defs_contexts =
-                    Desugared.Ast.ScopeDefMap.update def_key
-                      (fun def_key_ctx ->
-                        let def_key_ctx : scope_def_context =
-                          Option.fold
-                            ~none:
-                              {
-                                (* Here, this is the first time we encounter a
-                                   definition for this definition key *)
-                                default_exception_rulename = None;
-                                label_idmap = Desugared.Ast.IdentMap.empty;
-                                label_groups = Desugared.Ast.LabelMap.empty;
-                              }
-                            ~some:(fun x -> x)
-                            def_key_ctx
-                        in
-                        (* First, we update the def key context with information
-                           about the definition's label*)
-                        let def_key_ctx =
-                          match d.Ast.definition_label with
-                          | None -> def_key_ctx
-                          | Some label ->
-                              let new_label_idmap =
-                                Desugared.Ast.IdentMap.update (Pos.unmark label)
-                                  (fun existing_label ->
-                                    match existing_label with
-                                    | Some existing_label -> Some existing_label
-                                    | None ->
-                                        Some
-                                          (Desugared.Ast.LabelName.fresh label))
-                                  def_key_ctx.label_idmap
-                              in
-                              let label_id =
-                                Desugared.Ast.IdentMap.find (Pos.unmark label)
-                                  new_label_idmap
-                              in
+            Some
+              {
+                s_ctxt with
+                scope_defs_contexts =
+                  Desugared.Ast.ScopeDefMap.update def_key
+                    (fun def_key_ctx ->
+                      let def_key_ctx : scope_def_context =
+                        Option.fold
+                          ~none:
+                            {
+                              (* Here, this is the first time we encounter a
+                                 definition for this definition key *)
+                              default_exception_rulename = None;
+                              label_idmap = Desugared.Ast.IdentMap.empty;
+                              label_groups = Desugared.Ast.LabelMap.empty;
+                            }
+                          ~some:(fun x -> x)
+                          def_key_ctx
+                      in
+                      (* First, we update the def key context with information
+                         about the definition's label*)
+                      let def_key_ctx =
+                        match d.Ast.definition_label with
+                        | None -> def_key_ctx
+                        | Some label ->
+                          let new_label_idmap =
+                            Desugared.Ast.IdentMap.update (Pos.unmark label)
+                              (fun existing_label ->
+                                match existing_label with
+                                | Some existing_label -> Some existing_label
+                                | None ->
+                                  Some (Desugared.Ast.LabelName.fresh label))
+                              def_key_ctx.label_idmap
+                          in
+                          let label_id =
+                            Desugared.Ast.IdentMap.find (Pos.unmark label)
+                              new_label_idmap
+                          in
+                          {
+                            def_key_ctx with
+                            label_idmap = new_label_idmap;
+                            label_groups =
+                              Desugared.Ast.LabelMap.update label_id
+                                (fun group ->
+                                  match group with
+                                  | None ->
+                                    Some
+                                      (Desugared.Ast.RuleSet.singleton
+                                         d.definition_id)
+                                  | Some existing_group ->
+                                    Some
+                                      (Desugared.Ast.RuleSet.add d.definition_id
+                                         existing_group))
+                                def_key_ctx.label_groups;
+                          }
+                      in
+                      (* And second, we update the map of default rulenames for
+                         unlabeled exceptions *)
+                      let def_key_ctx =
+                        match d.Ast.definition_exception_to with
+                        (* If this definition is an exception, it cannot be a
+                           default definition *)
+                        | UnlabeledException | ExceptionToLabel _ -> def_key_ctx
+                        (* If it is not an exception, we need to distinguish
+                           between several cases *)
+                        | NotAnException -> (
+                          match def_key_ctx.default_exception_rulename with
+                          (* There was already a default definition for this
+                             key. If we need it, it is ambiguous *)
+                          | Some old ->
+                            {
+                              def_key_ctx with
+                              default_exception_rulename =
+                                Some
+                                  (Ambiguous
+                                     ([ Pos.get_position d.definition_name ]
+                                     @
+                                     match old with
+                                     | Ambiguous old -> old
+                                     | Unique (_, pos) -> [ pos ]));
+                            }
+                          (* No definition has been set yet for this key *)
+                          | None -> (
+                            match d.Ast.definition_label with
+                            (* This default definition has a label. This is not
+                               allowed for unlabeled exceptions *)
+                            | Some _ ->
                               {
                                 def_key_ctx with
-                                label_idmap = new_label_idmap;
-                                label_groups =
-                                  Desugared.Ast.LabelMap.update label_id
-                                    (fun group ->
-                                      match group with
-                                      | None ->
-                                          Some
-                                            (Desugared.Ast.RuleSet.singleton
-                                               d.definition_id)
-                                      | Some existing_group ->
-                                          Some
-                                            (Desugared.Ast.RuleSet.add
-                                               d.definition_id existing_group))
-                                    def_key_ctx.label_groups;
+                                default_exception_rulename =
+                                  Some
+                                    (Ambiguous
+                                       [ Pos.get_position d.definition_name ]);
                               }
-                        in
-                        (* And second, we update the map of default rulenames
-                           for unlabeled exceptions *)
-                        let def_key_ctx =
-                          match d.Ast.definition_exception_to with
-                          (* If this definition is an exception, it cannot be a
-                             default definition *)
-                          | UnlabeledException | ExceptionToLabel _ ->
-                              def_key_ctx
-                          (* If it is not an exception, we need to distinguish
-                             between several cases *)
-                          | NotAnException -> (
-                              match def_key_ctx.default_exception_rulename with
-                              (* There was already a default definition for this
-                                 key. If we need it, it is ambiguous *)
-                              | Some old ->
-                                  {
-                                    def_key_ctx with
-                                    default_exception_rulename =
-                                      Some
-                                        (Ambiguous
-                                           ([
-                                              Pos.get_position d.definition_name;
-                                            ]
-                                           @
-                                           match old with
-                                           | Ambiguous old -> old
-                                           | Unique (_, pos) -> [ pos ]));
-                                  }
-                              (* No definition has been set yet for this key *)
-                              | None -> (
-                                  match d.Ast.definition_label with
-                                  (* This default definition has a label. This
-                                     is not allowed for unlabeled exceptions *)
-                                  | Some _ ->
-                                      {
-                                        def_key_ctx with
-                                        default_exception_rulename =
-                                          Some
-                                            (Ambiguous
-                                               [
-                                                 Pos.get_position
-                                                   d.definition_name;
-                                               ]);
-                                      }
-                                  (* This is a possible default definition for
-                                     this key. We create and store a fresh
-                                     rulename *)
-                                  | None ->
-                                      {
-                                        def_key_ctx with
-                                        default_exception_rulename =
-                                          Some
-                                            (Unique
-                                               ( d.definition_id,
-                                                 Pos.get_position
-                                                   d.definition_name ));
-                                      }))
-                        in
-                        Some def_key_ctx)
-                      s_ctxt.scope_defs_contexts;
-                })
+                            (* This is a possible default definition for this
+                               key. We create and store a fresh rulename *)
+                            | None ->
+                              {
+                                def_key_ctx with
+                                default_exception_rulename =
+                                  Some
+                                    (Unique
+                                       ( d.definition_id,
+                                         Pos.get_position d.definition_name ));
+                              }))
+                      in
+                      Some def_key_ctx)
+                    s_ctxt.scope_defs_contexts;
+              })
         ctxt.scopes;
   }
 

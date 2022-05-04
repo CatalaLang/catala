@@ -40,7 +40,7 @@ module Vertex = struct
     match x with
     | Var (x, None) -> Ast.ScopeVar.hash x
     | Var (x, Some sx) ->
-        Int.logxor (Ast.ScopeVar.hash x) (Ast.StateName.hash sx)
+      Int.logxor (Ast.ScopeVar.hash x) (Ast.StateName.hash sx)
     | SubScope x -> Scopelang.Ast.SubScopeName.hash x
 
   let compare = compare
@@ -49,7 +49,7 @@ module Vertex = struct
     match (x, y) with
     | Var (x, None), Var (y, None) -> Ast.ScopeVar.compare x y = 0
     | Var (x, Some sx), Var (y, Some sy) ->
-        Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
+      Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
     | SubScope x, SubScope y -> Scopelang.Ast.SubScopeName.compare x y = 0
     | _ -> false
 
@@ -57,8 +57,8 @@ module Vertex = struct
     match x with
     | Var (v, None) -> Ast.ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
-        Format.fprintf fmt "%a.%a" Ast.ScopeVar.format_t v
-          Ast.StateName.format_t sv
+      Format.fprintf fmt "%a.%a" Ast.ScopeVar.format_t v Ast.StateName.format_t
+        sv
     | SubScope v -> Scopelang.Ast.SubScopeName.format_t fmt v
 end
 
@@ -103,15 +103,15 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              let var_str, var_info =
                match v with
                | Vertex.Var (v, None) ->
-                   ( Format.asprintf "%a" Ast.ScopeVar.format_t v,
-                     Ast.ScopeVar.get_info v )
+                 ( Format.asprintf "%a" Ast.ScopeVar.format_t v,
+                   Ast.ScopeVar.get_info v )
                | Vertex.Var (v, Some sv) ->
-                   ( Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
-                       Ast.StateName.format_t sv,
-                     Ast.StateName.get_info sv )
+                 ( Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
+                     Ast.StateName.format_t sv,
+                   Ast.StateName.get_info sv )
                | Vertex.SubScope v ->
-                   ( Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v,
-                     Scopelang.Ast.SubScopeName.get_info v )
+                 ( Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v,
+                   Scopelang.Ast.SubScopeName.get_info v )
              in
              let succs = ScopeDependencies.succ_e g v in
              let _, edge_pos, succ =
@@ -120,12 +120,12 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              let succ_str =
                match succ with
                | Vertex.Var (v, None) ->
-                   Format.asprintf "%a" Ast.ScopeVar.format_t v
+                 Format.asprintf "%a" Ast.ScopeVar.format_t v
                | Vertex.Var (v, Some sv) ->
-                   Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
-                     Ast.StateName.format_t sv
+                 Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
+                   Ast.StateName.format_t sv
                | Vertex.SubScope v ->
-                   Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
+                 Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
              in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
@@ -151,10 +151,10 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
         match var_or_state with
         | Ast.WholeVar -> ScopeDependencies.add_vertex g (Vertex.Var (v, None))
         | Ast.States states ->
-            List.fold_left
-              (fun g state ->
-                ScopeDependencies.add_vertex g (Vertex.Var (v, Some state)))
-              g states)
+          List.fold_left
+            (fun g state ->
+              ScopeDependencies.add_vertex g (Vertex.Var (v, Some state)))
+            g states)
       scope.scope_vars g
   in
   let g =
@@ -173,56 +173,55 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
             match (def_key, fv_def) with
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
                 Ast.ScopeDef.Var (v_used, s_used) ) ->
-                (* simple case *)
-                if v_used = v_defined && s_used = s_defined then
-                  (* variable definitions cannot be recursive *)
-                  Errors.raise_spanned_error fv_def_pos
-                    "The variable %a is used in one of its definitions, but \
-                     recursion is forbidden in Catala"
-                    Ast.ScopeDef.format_t def_key
-                else
-                  let edge =
-                    ScopeDependencies.E.create
-                      (Vertex.Var (v_used, s_used))
-                      fv_def_pos
-                      (Vertex.Var (v_defined, s_defined))
-                  in
-                  ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.SubScopeVar (defined, _),
-                Ast.ScopeDef.Var (v_used, s_used) ) ->
-                (* here we are defining the input of a subscope using a var of
-                   the scope *)
+              (* simple case *)
+              if v_used = v_defined && s_used = s_defined then
+                (* variable definitions cannot be recursive *)
+                Errors.raise_spanned_error fv_def_pos
+                  "The variable %a is used in one of its definitions, but \
+                   recursion is forbidden in Catala"
+                  Ast.ScopeDef.format_t def_key
+              else
                 let edge =
                   ScopeDependencies.E.create
                     (Vertex.Var (v_used, s_used))
-                    fv_def_pos (Vertex.SubScope defined)
+                    fv_def_pos
+                    (Vertex.Var (v_defined, s_defined))
                 in
                 ScopeDependencies.add_edge_e g edge
             | ( Ast.ScopeDef.SubScopeVar (defined, _),
+                Ast.ScopeDef.Var (v_used, s_used) ) ->
+              (* here we are defining the input of a subscope using a var of the
+                 scope *)
+              let edge =
+                ScopeDependencies.E.create
+                  (Vertex.Var (v_used, s_used))
+                  fv_def_pos (Vertex.SubScope defined)
+              in
+              ScopeDependencies.add_edge_e g edge
+            | ( Ast.ScopeDef.SubScopeVar (defined, _),
                 Ast.ScopeDef.SubScopeVar (used, _) ) ->
-                (* here we are defining the input of a scope with the output of
-                   another subscope *)
-                if used = defined then
-                  (* subscopes are not recursive functions *)
-                  Errors.raise_spanned_error fv_def_pos
-                    "The subscope %a is used when defining one of its inputs, \
-                     but recursion is forbidden in Catala"
-                    Scopelang.Ast.SubScopeName.format_t defined
-                else
-                  let edge =
-                    ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
-                      (Vertex.SubScope defined)
-                  in
-                  ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.Var (v_defined, s_defined),
-                Ast.ScopeDef.SubScopeVar (used, _) ) ->
-                (* finally we define a scope var with the output of a
-                   subscope *)
+              (* here we are defining the input of a scope with the output of
+                 another subscope *)
+              if used = defined then
+                (* subscopes are not recursive functions *)
+                Errors.raise_spanned_error fv_def_pos
+                  "The subscope %a is used when defining one of its inputs, \
+                   but recursion is forbidden in Catala"
+                  Scopelang.Ast.SubScopeName.format_t defined
+              else
                 let edge =
                   ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
-                    (Vertex.Var (v_defined, s_defined))
+                    (Vertex.SubScope defined)
                 in
-                ScopeDependencies.add_edge_e g edge)
+                ScopeDependencies.add_edge_e g edge
+            | ( Ast.ScopeDef.Var (v_defined, s_defined),
+                Ast.ScopeDef.SubScopeVar (used, _) ) ->
+              (* finally we define a scope var with the output of a subscope *)
+              let edge =
+                ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
+                  (Vertex.Var (v_defined, s_defined))
+              in
+              ScopeDependencies.add_edge_e g edge)
           fv g)
       scope.scope_defs g
   in

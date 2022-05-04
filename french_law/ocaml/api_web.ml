@@ -80,57 +80,56 @@ let rec embed_to_js (v : runtime_value) : Js.Unsafe.any =
   | Decimal d -> Js.Unsafe.inject (decimal_to_float d)
   | Money m -> Js.Unsafe.inject (money_to_float m)
   | Date d ->
-      let date = new%js Js.date_now in
-      ignore (date##setUTCFullYear (integer_to_int @@ year_of_date d));
-      ignore (date##setUTCMonth (integer_to_int @@ month_number_of_date d));
-      ignore (date##setUTCDate (integer_to_int @@ day_of_month_of_date d));
-      ignore (date##setUTCHours 0);
-      ignore (date##setUTCMinutes 0);
-      ignore (date##setUTCSeconds 0);
-      ignore (date##setUTCMilliseconds 0);
-      Js.Unsafe.inject date
+    let date = new%js Js.date_now in
+    ignore (date##setUTCFullYear (integer_to_int @@ year_of_date d));
+    ignore (date##setUTCMonth (integer_to_int @@ month_number_of_date d));
+    ignore (date##setUTCDate (integer_to_int @@ day_of_month_of_date d));
+    ignore (date##setUTCHours 0);
+    ignore (date##setUTCMinutes 0);
+    ignore (date##setUTCSeconds 0);
+    ignore (date##setUTCMilliseconds 0);
+    Js.Unsafe.inject date
   | Duration d ->
-      let days, months, years = duration_to_years_months_days d in
-      Js.Unsafe.inject
-        (Js.string (Printf.sprintf "%dD%dM%dY" days months years))
+    let days, months, years = duration_to_years_months_days d in
+    Js.Unsafe.inject (Js.string (Printf.sprintf "%dD%dM%dY" days months years))
   | Struct (name, fields) ->
-      Js.Unsafe.inject
-        (object%js
-           val mutable structName =
-             if List.length name = 1 then
-               Js.Unsafe.inject (Js.string (List.hd name))
-             else
-               Js.Unsafe.inject
-                 (Js.array (Array.of_list (List.map Js.string name)))
-
-           val mutable structFields =
+    Js.Unsafe.inject
+      (object%js
+         val mutable structName =
+           if List.length name = 1 then
+             Js.Unsafe.inject (Js.string (List.hd name))
+           else
              Js.Unsafe.inject
-               (Js.array
-                  (Array.of_list
-                     (List.map
-                        (fun (name, v) ->
-                          object%js
-                            val mutable fieldName =
-                              Js.Unsafe.inject (Js.string name)
+               (Js.array (Array.of_list (List.map Js.string name)))
 
-                            val mutable fieldValue =
-                              Js.Unsafe.inject (embed_to_js v)
-                          end)
-                        fields)))
-        end)
+         val mutable structFields =
+           Js.Unsafe.inject
+             (Js.array
+                (Array.of_list
+                   (List.map
+                      (fun (name, v) ->
+                        object%js
+                          val mutable fieldName =
+                            Js.Unsafe.inject (Js.string name)
+
+                          val mutable fieldValue =
+                            Js.Unsafe.inject (embed_to_js v)
+                        end)
+                      fields)))
+      end)
   | Enum (name, (case, v)) ->
-      Js.Unsafe.inject
-        (object%js
-           val mutable enumName =
-             if List.length name = 1 then
-               Js.Unsafe.inject (Js.string (List.hd name))
-             else
-               Js.Unsafe.inject
-                 (Js.array (Array.of_list (List.map Js.string name)))
+    Js.Unsafe.inject
+      (object%js
+         val mutable enumName =
+           if List.length name = 1 then
+             Js.Unsafe.inject (Js.string (List.hd name))
+           else
+             Js.Unsafe.inject
+               (Js.array (Array.of_list (List.map Js.string name)))
 
-           val mutable enumCase = Js.Unsafe.inject (Js.string case)
-           val mutable enumPayload = Js.Unsafe.inject (embed_to_js v)
-        end)
+         val mutable enumCase = Js.Unsafe.inject (Js.string case)
+         val mutable enumPayload = Js.Unsafe.inject (embed_to_js v)
+      end)
   | Array vs -> Js.Unsafe.inject (Js.array (Array.map embed_to_js vs))
   | Unembeddable -> Js.Unsafe.inject Js.null
 
@@ -162,33 +161,31 @@ let _ =
                                 | BeginCall info
                                 | EndCall info
                                 | VariableDefinition (info, _) ->
-                                    List.map Js.string info
+                                  List.map Js.string info
                                 | DecisionTaken _ -> []))
 
                          val mutable loggedValue =
                            match evt with
                            | VariableDefinition (_, v) -> embed_to_js v
                            | EndCall _ | BeginCall _ | DecisionTaken _ ->
-                               Js.Unsafe.inject Js.undefined
+                             Js.Unsafe.inject Js.undefined
 
                          val mutable sourcePosition =
                            match evt with
                            | DecisionTaken pos ->
-                               Js.def
-                                 (object%js
-                                    val mutable fileName =
-                                      Js.string pos.filename
+                             Js.def
+                               (object%js
+                                  val mutable fileName = Js.string pos.filename
+                                  val mutable startLine = pos.start_line
+                                  val mutable endLine = pos.end_line
+                                  val mutable startColumn = pos.start_column
+                                  val mutable endColumn = pos.end_column
 
-                                    val mutable startLine = pos.start_line
-                                    val mutable endLine = pos.end_line
-                                    val mutable startColumn = pos.start_column
-                                    val mutable endColumn = pos.end_column
-
-                                    val mutable lawHeadings =
-                                      Js.array
-                                        (Array.of_list
-                                           (List.map Js.string pos.law_headings))
-                                 end)
+                                  val mutable lawHeadings =
+                                    Js.array
+                                      (Array.of_list
+                                         (List.map Js.string pos.law_headings))
+                               end)
                            | _ -> Js.undefined
                        end)
                      (retrieve_log ()))))
@@ -226,18 +223,18 @@ let _ =
                            AF.d_prise_en_charge =
                              (match Js.to_string child##.priseEnCharge with
                              | "Effective et permanente" ->
-                                 EffectiveEtPermanente ()
+                               EffectiveEtPermanente ()
                              | "Garde alternée, allocataire unique" ->
-                                 GardeAlterneeAllocataireUnique ()
+                               GardeAlterneeAllocataireUnique ()
                              | "Garde alternée, partage des allocations" ->
-                                 GardeAlterneePartageAllocations ()
+                               GardeAlterneePartageAllocations ()
                              | "Confié aux service sociaux, allocation versée \
                                 à la famille" ->
-                                 ServicesSociauxAllocationVerseeALaFamille ()
+                               ServicesSociauxAllocationVerseeALaFamille ()
                              | "Confié aux service sociaux, allocation versée \
                                 aux services sociaux" ->
-                                 ServicesSociauxAllocationVerseeAuxServicesSociaux
-                                   ()
+                               ServicesSociauxAllocationVerseeAuxServicesSociaux
+                                 ()
                              | _ -> failwith "Unknown prise en charge");
                            AF.d_remuneration_mensuelle =
                              money_of_units_int child##.remunerationMensuelle;

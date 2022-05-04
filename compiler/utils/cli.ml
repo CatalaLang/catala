@@ -377,16 +377,16 @@ let concat_with_line_depending_prefix_and_suffix
     (ss : string list) =
   match ss with
   | hd :: rest ->
-      let out, _ =
-        List.fold_left
-          (fun (acc, i) s ->
-            ( (acc ^ prefix i ^ s
-              ^ if i = List.length ss - 1 then "" else suffix i),
-              i + 1 ))
-          ((prefix 0 ^ hd ^ if 0 = List.length ss - 1 then "" else suffix 0), 1)
-          rest
-      in
-      out
+    let out, _ =
+      List.fold_left
+        (fun (acc, i) s ->
+          ( (acc ^ prefix i ^ s
+            ^ if i = List.length ss - 1 then "" else suffix i),
+            i + 1 ))
+        ((prefix 0 ^ hd ^ if 0 = List.length ss - 1 then "" else suffix 0), 1)
+        rest
+    in
+    out
   | [] -> prefix 0
 
 (** The int argument of the prefix corresponds to the line number, starting at 0 *)

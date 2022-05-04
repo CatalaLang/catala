@@ -5,3 +5,4 @@ break-fun-decl = fit-or-vertical
 wrap-comments
 parse-docstrings
 version=0.21.0
+cases-exp-indent=2

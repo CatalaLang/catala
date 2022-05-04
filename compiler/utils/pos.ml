@@ -104,8 +104,8 @@ let retrieve_loc_text (pos : t) : string =
           let input_line_opt () : string option =
             match List.nth_opt lines !line_index with
             | Some l ->
-                line_index := !line_index + 1;
-                Some l
+              line_index := !line_index + 1;
+              Some l
             | None -> None
           in
           (None, input_line_opt)
@@ -150,12 +150,11 @@ let retrieve_loc_text (pos : t) : string =
       let rec get_lines (n : int) : string list =
         match input_line_opt () with
         | Some line ->
-            if n < sline - include_extra_count then get_lines (n + 1)
-            else if
-              n >= sline - include_extra_count
-              && n <= eline + include_extra_count
-            then print_matched_line line n :: get_lines (n + 1)
-            else []
+          if n < sline - include_extra_count then get_lines (n + 1)
+          else if
+            n >= sline - include_extra_count && n <= eline + include_extra_count
+          then print_matched_line line n :: get_lines (n + 1)
+          else []
         | None -> []
       in
       let pos_lines = get_lines 1 in

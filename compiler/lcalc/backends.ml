@@ -36,8 +36,8 @@ let to_ascii (s : string) : string =
         | c when c >= 0xd9 && c <= 0xdc -> "U"
         | c when c >= 0xf9 && c <= 0xfc -> "u"
         | _ ->
-            if code > 128 then "_"
-            else String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c))
+          if code > 128 then "_"
+          else String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c))
     s;
   !out
 

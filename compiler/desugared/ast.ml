@@ -59,36 +59,36 @@ module ScopeDef = struct
     | Var (x, None), Var (y, Some _)
     | Var (x, _), SubScopeVar (_, y)
     | SubScopeVar (_, x), Var (y, _) ->
-        ScopeVar.compare x y
+      ScopeVar.compare x y
     | Var (x, Some sx), Var (y, Some sy) ->
-        let cmp = ScopeVar.compare x y in
-        if cmp = 0 then StateName.compare sx sy else cmp
+      let cmp = ScopeVar.compare x y in
+      if cmp = 0 then StateName.compare sx sy else cmp
     | SubScopeVar (x', x), SubScopeVar (y', y) ->
-        let cmp = Scopelang.Ast.SubScopeName.compare x' y' in
-        if cmp = 0 then ScopeVar.compare x y else cmp
+      let cmp = Scopelang.Ast.SubScopeName.compare x' y' in
+      if cmp = 0 then ScopeVar.compare x y else cmp
 
   let get_position x =
     match x with
     | Var (x, None) -> Pos.get_position (ScopeVar.get_info x)
     | Var (_, Some sx) -> Pos.get_position (StateName.get_info sx)
     | SubScopeVar (x, _) ->
-        Pos.get_position (Scopelang.Ast.SubScopeName.get_info x)
+      Pos.get_position (Scopelang.Ast.SubScopeName.get_info x)
 
   let format_t fmt x =
     match x with
     | Var (v, None) -> ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
-        Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+      Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
     | SubScopeVar (s, v) ->
-        Format.fprintf fmt "%a.%a" Scopelang.Ast.SubScopeName.format_t s
-          ScopeVar.format_t v
+      Format.fprintf fmt "%a.%a" Scopelang.Ast.SubScopeName.format_t s
+        ScopeVar.format_t v
 
   let hash x =
     match x with
     | Var (v, None) -> ScopeVar.hash v
     | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
     | SubScopeVar (w, v) ->
-        Int.logxor (Scopelang.Ast.SubScopeName.hash w) (ScopeVar.hash v)
+      Int.logxor (Scopelang.Ast.SubScopeName.hash w) (ScopeVar.hash v)
 end
 
 module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
@@ -112,14 +112,14 @@ Set.Make (struct
     | ScopeVar (vx, None), ScopeVar (vy, None)
     | ScopeVar (vx, Some _), ScopeVar (vy, None)
     | ScopeVar (vx, None), ScopeVar (vy, Some _) ->
-        ScopeVar.compare (Pos.unmark vx) (Pos.unmark vy)
+      ScopeVar.compare (Pos.unmark vx) (Pos.unmark vy)
     | ScopeVar ((x, _), Some sx), ScopeVar ((y, _), Some sy) ->
-        let cmp = ScopeVar.compare x y in
-        if cmp = 0 then StateName.compare sx sy else cmp
+      let cmp = ScopeVar.compare x y in
+      if cmp = 0 then StateName.compare sx sy else cmp
     | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
         SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
-        let c = Scopelang.Ast.SubScopeName.compare xsubindex ysubindex in
-        if c = 0 then ScopeVar.compare xsubvar ysubvar else c
+      let c = Scopelang.Ast.SubScopeName.compare xsubindex ysubindex in
+      if c = 0 then ScopeVar.compare xsubvar ysubvar else c
     | ScopeVar _, SubScopeVar _ -> -1
     | SubScopeVar _, ScopeVar _ -> 1
 end)
@@ -242,34 +242,34 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   | ELocation l -> LocationSet.singleton (l, Pos.get_position e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
   | EAbs ((binder, _), _) ->
-      let _, body = Bindlib.unmbind binder in
-      locations_used body
+    let _, body = Bindlib.unmbind binder in
+    locations_used body
   | EStruct (_, es) ->
-      Scopelang.Ast.StructFieldMap.fold
-        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-        es LocationSet.empty
+    Scopelang.Ast.StructFieldMap.fold
+      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+      es LocationSet.empty
   | EStructAccess (e1, _, _) -> locations_used e1
   | EEnumInj (e1, _, _) -> locations_used e1
   | EMatch (e1, _, es) ->
-      Scopelang.Ast.EnumConstructorMap.fold
-        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-        es (locations_used e1)
+    Scopelang.Ast.EnumConstructorMap.fold
+      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+      es (locations_used e1)
   | EApp (e1, args) ->
-      List.fold_left
-        (fun acc arg -> LocationSet.union (locations_used arg) acc)
-        (locations_used e1) args
+    List.fold_left
+      (fun acc arg -> LocationSet.union (locations_used arg) acc)
+      (locations_used e1) args
   | EIfThenElse (e1, e2, e3) ->
-      LocationSet.union (locations_used e1)
-        (LocationSet.union (locations_used e2) (locations_used e3))
+    LocationSet.union (locations_used e1)
+      (LocationSet.union (locations_used e2) (locations_used e3))
   | EDefault (excepts, just, cons) ->
-      List.fold_left
-        (fun acc except -> LocationSet.union (locations_used except) acc)
-        (LocationSet.union (locations_used just) (locations_used cons))
-        excepts
+    List.fold_left
+      (fun acc except -> LocationSet.union (locations_used except) acc)
+      (LocationSet.union (locations_used just) (locations_used cons))
+      excepts
   | EArray es ->
-      List.fold_left
-        (fun acc e' -> LocationSet.union acc (locations_used e'))
-        LocationSet.empty es
+    List.fold_left
+      (fun acc e' -> LocationSet.union acc (locations_used e'))
+      LocationSet.empty es
   | ErrorOnEmpty e' -> locations_used e'
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
@@ -281,7 +281,7 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
           (match loc with
           | ScopeVar (v, st) -> ScopeDef.Var (Pos.unmark v, st)
           | SubScopeVar (_, sub_index, sub_var) ->
-              ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var))
+            ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var))
           loc_pos acc)
       locs acc
   in

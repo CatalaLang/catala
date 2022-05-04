@@ -159,27 +159,27 @@ let map_expr
   match Pos.unmark e with
   | EVar (v, _pos) -> evar v (Pos.get_position e)
   | EApp (e1, args) ->
-      eapp (f ctx e1) (List.map (f ctx) args) (Pos.get_position e)
+    eapp (f ctx e1) (List.map (f ctx) args) (Pos.get_position e)
   | EAbs ((binder, binder_pos), typs) ->
-      eabs
-        (Bindlib.box_mbinder (f ctx) binder)
-        binder_pos typs (Pos.get_position e)
+    eabs
+      (Bindlib.box_mbinder (f ctx) binder)
+      binder_pos typs (Pos.get_position e)
   | ETuple (args, s) -> etuple (List.map (f ctx) args) s (Pos.get_position e)
   | ETupleAccess (e1, n, s_name, typs) ->
-      etupleaccess ((f ctx) e1) n s_name typs (Pos.get_position e)
+    etupleaccess ((f ctx) e1) n s_name typs (Pos.get_position e)
   | EInj (e1, i, e_name, typs) ->
-      einj ((f ctx) e1) i e_name typs (Pos.get_position e)
+    einj ((f ctx) e1) i e_name typs (Pos.get_position e)
   | EMatch (arg, arms, e_name) ->
-      ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Pos.get_position e)
+    ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Pos.get_position e)
   | EArray args -> earray (List.map (f ctx) args) (Pos.get_position e)
   | ELit l -> elit l (Pos.get_position e)
   | EAssert e1 -> eassert ((f ctx) e1) (Pos.get_position e)
   | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
   | ERaise exn -> eraise exn (Pos.get_position e)
   | EIfThenElse (e1, e2, e3) ->
-      eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Pos.get_position e)
+    eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Pos.get_position e)
   | ECatch (e1, exn, e2) ->
-      ecatch (f ctx e1) exn (f ctx e2) (Pos.get_position e)
+    ecatch (f ctx e1) exn (f ctx e2) (Pos.get_position e)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
 let box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
