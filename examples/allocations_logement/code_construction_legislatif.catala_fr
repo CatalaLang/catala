@@ -16,9 +16,13 @@ aux bénéficiaires de ces aides afin qu'ils déménagent pour s'assurer
 des conditions de logement plus adaptées sont régies par le présent livre.
 
 Les aides personnelles au logement comprennent :
+
 1° L'aide personnalisée au logement ;
+
 2° Les allocations de logement :
+
 a) L'allocation de logement familiale ;
+
 b) L'allocation de logement sociale.
 
 ```catala-metadata
@@ -277,6 +281,7 @@ l'action sociale et des familles.
 # donne le même résultat, on ne devrait pas avoir à les prioriser les unes par
 # rapport aux autres. On pourrait rajouter un sucre syntaxique pour activer
 # ça en vérifiant que les conséquences sont syntaxiquement les mêmes.
+# Voir https://github.com/CatalaLang/catala/issues/208
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception l822_5_2 définition patrimoine_pris_en_compte
   sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
@@ -327,7 +332,7 @@ logement. Cette condition est appréciée pour chacun des membres du ménage.
 
 
 ```catala
-# todo juridique: la condition, si elle est vérifiée par un membre du ménage
+# TODO juridique: la condition, si elle est vérifiée par un membre du ménage
 # enlève-t-elle le droit aux APL pour l'ensemble des membres du ménage ?
 
 # Pour l'instant l'interpretation est que aucun membre du ménage ne doit être
@@ -346,8 +351,6 @@ l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rap
 locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
 
 ```catala
-# TODO informatique: structure inverse de la structure avec des conditions
-# chainées
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_non_ouverture_l822_9_decence_logement
   sous condition non ménage.logement.logement_decent_l89_462
@@ -371,8 +374,6 @@ L'attribution d'une aide personnelle au logement est subordonnée au
 respect de conditions de peuplement des logements.
 
 ```catala
-# TODO informatique: structure inverse de la structure avec des conditions
-# chainées
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_non_ouverture_l822_10_peuplement_logement
   sous condition condition_peuplement_logement_l822_10
@@ -631,7 +632,8 @@ par le chapitre III du titre V du livre III ;
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  # TODO: citer cet exemple intéréssant d'un point de vue computationel.
+  # TODO recherche: citer cet exemple intéréssant d'un point de vue
+  # computationel.
   # Ici attention à la structure d'exception! Le 2°) est le cas de base, le
   # 4°) est une exception au 2°) plus permissive que le cas de base, tandis
   # que le 3°) est une exception plus stricte que le cas de base. Si 3°) et
@@ -709,8 +711,6 @@ mentionné au 1° ou au 6° de l'article L. 831-1 signé après le 31 décembre 
 n'ouvrent pas droit à l'aide personnalisée au logement.
 
 ```catala
-# TODO informatique: vérifier que cette exception a un groupe lui même
-# exception a un groupe est bien encodé dans le calcul par défaut.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette l831_2_base règle condition_logement_prêt rempli
   # Cas de base implicite
@@ -1016,6 +1016,4 @@ La transmission de cette convention à l'organisme payeur vaut constat de mise e
 logement pour l'application des articles L. 843-1 à L. 843-4.
 
 
-
-#### Titre VI : Dispositions particulières à l'outre-mer
 

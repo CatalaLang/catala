@@ -1,5 +1,11 @@
 # Prologue
 
+Avant de présenter les textes réglementaires qui régissent le calcul des
+allocations logement, il est nécessaire de définir les structures de données
+informatiques qui modélisent la situation dont parlent ces textes législatifs.
+Vous pouvez passer cette section pour aller directement au textes législatifs
+dans les sections suivantes.
+
 ## Types de données manipulées par le programme
 
 ### Calcul et éligibilité de l'aide personnelle au logement

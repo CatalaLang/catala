@@ -68,7 +68,7 @@ Lorsque les conditions d'ouverture du droit à l'aide personnalisée au logement
 sont remplies au titre d'un logement, seule cette aide est attribuée pour ce logement.
 
 ```catala
-# TODO: quelles autres aides aux logements pourraient concurrencer les APL?
+# TODO juridique: quelles autres aides aux logements pourraient concurrencer les APL?
 ```
 
 ####### Article R821-6 | LEGIARTI000038879011
@@ -514,7 +514,8 @@ il est opéré sur ses ressources un abattement de :
 champ d'application RessourcesAidePersonnelleLogement:
   définition abattement_r_822_10 égal à
     selon situation_familiale sous forme
-    # TODO: améliorer avec https://github.com/CatalaLang/catala/issues/203 ou
+    # TODO informatique: améliorer avec
+    # https://github.com/CatalaLang/catala/issues/203 ou
     # https://github.com/CatalaLang/catala/issues/199
     -- Célibataire:
       (si nombre de personnes_à_charge = 0 alors 0 €
@@ -851,7 +852,7 @@ champ d'application RessourcesAidePersonnelleLogement:
      demandeur_poursuit_des_études
   conséquence égal à ressources_forfaitaires_r822_20
 
-# Le montant minoré sera défini plus tard, et donc constituera une définition
+# Le montant minoré sera défini plus tard, et donc constituera une exception
 # au cas de base de ressources_forfaitaires_r822_20
 ```
 
@@ -1025,7 +1026,7 @@ plus.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  # TODO : remplacer par variables locales
+  # TODO informatique : remplacer par variables locales
   définition nombre_personnes_logement égal à
     (selon ménage.situation_familiale sous forme
       -- Célibataire: 1
@@ -1802,7 +1803,7 @@ La participation personnelle du ménage, mentionnée au 4° de l'article D. 823-
 la somme d'une participation minimale et d'une participation au titre des ressources
 du ménage, calculée selon la formule suivante :
 
-" Pp = P0 + Tp* (R-R0) "
+$$\text{Pp} = \text{P0} + \text{Tp}* (\text{R}-\text{R0})$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif:
@@ -1845,7 +1846,7 @@ champ d'application CalculAidePersonnelleLogementLocatif:
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition ressources_ménage état avec_arrondi égal à
-    # Cette formule arrondit à la centaine d'euros supérieure. Essayer quelques
+    # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
     arrondi_argent de ((ressources_ménage +€ 49,99€) *€ 1%) *€ 100,0
 ```
@@ -3111,13 +3112,15 @@ II du présent livre et arrondies à la centaine d'euros supérieure ;
 
 4° " N " représente le nombre de parts déterminé selon le barème suivant :
 
-bénéficiaire isolé                                             |     1,4    |
-ménage sans personne à charge                                  |     1,8    |
-bénéficiaire isolé ou ménage ayant une personne à charge       |     2,5    |
-bénéficiaire isolé ou ménage ayant deux personnes à charge     |     3,0    |
-bénéficiaire isolé ou ménage ayant trois personnes à charge    |     3,7    |
-bénéficiaire isolé ou ménage ayant quatre personnes à charge   |     4,3    |
-majoration par personne à charge supplémentaire                |     0,5    |
+------------------------------------------------------------ ---
+bénéficiaire isolé                                           1,4
+ménage sans personne à charge                                1,8
+bénéficiaire isolé ou ménage ayant une personne à charge     2,5
+bénéficiaire isolé ou ménage ayant deux personnes à charge   3,0
+bénéficiaire isolé ou ménage ayant trois personnes à charge  3,7
+bénéficiaire isolé ou ménage ayant quatre personnes à charge 4,3
+majoration par personne à charge supplémentaire              0,5
+------------------------------------------------------------ ---
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -3297,6 +3300,8 @@ champ d'application CalculAidePersonnelleLogement:
     catégorie_calcul_apl sous forme AccessionPropriété
   conséquence égal à faux
 
+  # TODO recherche: citer cette structure de calcul comme un bon cas d'usage
+  # de la fonctionnalité "contexte" de Catala.
   définition accession_propriété.équivalence_minimale_loyer égal à
     logement_foyer.équivalence_minimale_loyer
 

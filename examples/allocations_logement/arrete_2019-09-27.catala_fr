@@ -58,6 +58,11 @@ Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, 
 pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala-metadata
+# Dans la suite de l'arrêté, il n'est pas fait référence à la situation
+# familiale dans toute sa complexité (voir énumération SituationFamiliale)
+# mais uniquement à la distinction entre une personne seule, un couple et
+# un nombre de personnes à charge. Pour ne pas avoir à répéter du code
+# nous définissons donc cette situation familiale simplifiée ici.
 déclaration énumération SituationFamilialeCalculAPL:
   -- PersonneSeule
   -- Couple
@@ -441,7 +446,7 @@ Personne seule ou couple ayant :
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif
-  sous condition date_courante >=@ |2021-10-01|:
+  sous condition date_courante >=@ |2022-01-01|:
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -2609,7 +2614,9 @@ Le coefficient relatif au calcul de la dépense nette minimale prévu par l'arti
 1° 0,0172 dans le cas des logements améliorés par leur propriétaire occupant ;
 
 2° Dans les autres cas :
+
 a) 0,0226 pour les prêts souscrits avant le 1er octobre 1998 ;
+
 b) 0,0234 pour les prêts souscrits à compter de cette dernière date.
 
 ```catala
