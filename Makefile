@@ -41,7 +41,7 @@ COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
 
 format:
-	dune build @fmt --auto-promote
+	dune build @fmt --auto-promote >/dev/null
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev:

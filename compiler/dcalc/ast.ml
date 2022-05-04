@@ -481,8 +481,7 @@ let make_let_in
 let empty_thunked_term : expr Pos.marked =
   let silent = Var.make ("_", Pos.no_pos) in
   Bindlib.unbox
-    (make_abs
-       (Array.of_list [ silent ])
+    (make_abs (Array.of_list [ silent ])
        (Bindlib.box (ELit LEmptyError, Pos.no_pos))
        Pos.no_pos
        [ (TLit TUnit, Pos.no_pos) ]
@@ -611,9 +610,7 @@ let build_whole_scope_expr
     (pos_scope : Pos.t) : 'expr Pos.marked Bindlib.box =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_scope_body_expr ~box_expr ~make_let_in ctx body_expr in
-  make_abs
-    (Array.of_list [ var ])
-    body_expr pos_scope
+  make_abs (Array.of_list [ var ]) body_expr pos_scope
     [
       ( TTuple
           ( List.map snd

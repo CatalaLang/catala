@@ -193,9 +193,7 @@ let make_let_in
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
     (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
+    (make_abs (Array.of_list [ x ]) e2
        (Pos.get_position (Bindlib.unbox e2))
        [ tau ]
        (Pos.get_position (Bindlib.unbox e2)))

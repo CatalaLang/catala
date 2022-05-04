@@ -4,4 +4,4 @@ exp-grouping = preserve
 break-fun-decl = smart
 wrap-comments
 parse-docstrings
-version=0.20.1
+version=0.21.0

@@ -89,7 +89,7 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
-Please note that the `ocamlformat` version this project uses is `0.20.1`.
+Please note that the `ocamlformat` version this project uses is `0.21.0`.
 Using another version may cause spurious diffs to appear in your pull requests.
 
 ### Example: adding a builtin function
