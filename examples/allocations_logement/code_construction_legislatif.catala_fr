@@ -87,7 +87,7 @@ au partenaire lié par un pacte civil de solidarité ou au concubin.
 ```catala-metadata
 déclaration énumération SituationFamiliale:
   -- Célibataire
-  -- Mariés
+  -- Mariés contenu date # Date du mariage, utilisée par L841-1
   -- Pacsés
   -- Concubins
   -- CélibataireSéparéDeFait # Voir R821-3
@@ -838,13 +838,76 @@ c) Soit l'allocation d'éducation de l'enfant handicapé mentionnée au 5° du m
 
 d) Soit l'allocation de soutien familial mentionnée au 6° du même article ;
 
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  étiquette l841_1_1 règle éligibilité_allocation_logement_familiale
+  sous condition
+    existe prestation dans ménage.prestations_reçues tel que
+      prestation = AllocationsFamiliales ou
+      prestation = ComplémentFamilial ou
+      prestation = AllocationSoutienFamilial ou
+      prestation = AllocationSoutienEnfantHandicapé
+  conséquence rempli
+```
+
 2° Aux ménages ou personnes qui, n'ayant pas droit à l'une des prestations énumérées au 1°,
 ont un enfant à charge au sens de l'article L. 512-3 du code de la sécurité sociale ;
 
+```catala
+# TODO juridique: "un enfant à charge" => au moins un ou exactement un ?
+# Hypothèse: comme les allocations familiales sont ouvertes à partir du
+# deuxième enfant ça semble dire "exactement un".
+champ d'application ÉligibilitéAllocationLogement:
+  étiquette l841_1_2 exception l841_1_1
+  règle éligibilité_allocation_logement_familiale
+  sous condition
+    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+      (selon personne_à_charge sous forme
+      -- ParentÀCharge: faux
+      -- EnfantÀCharge de enfant: vrai
+      # TODO informatique: factoriser le filtrage des personnes à charge
+      # au sens de L512-3 dans un
+      # champ d'application à part puisqu'utilisé ici.
+    )) = 1
+  conséquence rempli
+```
+
 3° Aux ménages qui n'ont pas d'enfant à charge, pendant une durée déterminée à compter du mariage ;
+
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  étiquette l841_1_3 exception l841_1_2
+  règle éligibilité_allocation_logement_familiale
+  sous condition
+    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+      (selon personne_à_charge sous forme
+      -- ParentÀCharge: faux
+      -- EnfantÀCharge de enfant: faux
+      # TODO informatique: factoriser le filtrage des personnes à charge
+      # au sens de L512-3 dans un
+      # champ d'application à part puisqu'utilisé ici.
+    )) = 0 et
+    (selon ménage.situation_familiale sous forme
+    -- Mariés de date_mariage : date_courante <=@ date_mariage +@ durée_l841_1_3
+    -- n'importe quel: faux)
+  conséquence rempli
+```
 
 4° Aux ménages ou aux personnes qui ont à leur charge un ascendant vivant au foyer ayant dépassé
 un âge déterminé ;
+
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  étiquette l841_1_4 exception l841_1_3
+  règle éligibilité_allocation_logement_familiale
+  sous condition
+    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+      (selon personne_à_charge sous forme
+      -- ParentÀCharge de parent: parent.ParentÀCharge.âge >=^ âge_l841_1_4
+      -- EnfantÀCharge de enfant: faux
+    )) >= 1
+  conséquence rempli
+```
 
 5° Aux ménages ou personnes qui ont à leur charge un ascendant ou un descendant ou un collatéral
 au deuxième ou au troisième degré vivant au foyer, dont l'incapacité permanente est au moins égale
@@ -853,28 +916,86 @@ restriction substantielle et durable dans l'accès à l'emploi au sens de l'arti
 de la sécurité sociale reconnue par la commission des droits et de l'autonomie des personnes handicapées
 prévue par l'article L. 146-9 du code de l'action sociale et des familles ;
 
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  étiquette l841_1_4 exception l841_1_3
+  règle éligibilité_allocation_logement_familiale
+  sous condition
+    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+      (selon personne_à_charge sous forme
+      -- ParentÀCharge de parent:
+        # Cela a l'air similaire au 3° du R823-4 code construction mais
+        # ici le pourcentage est "fixé par voie réglementaire" au lieu d'être
+        # fixé à 80%.
+        # TODO juridique: vérifier si ce pourcentage fixé par voie réglementaire
+        # est bien égal à 80%.
+        parent.ascendant_descendant_collatéral_deuxième_troisième_degré et
+        parent.incapacité_80_pourcent_ou_restriction_emploi
+      -- EnfantÀCharge de enfant: faux
+    )) >= 1
+  conséquence rempli
+```
+
 6° A la personne seule sans personne à charge à compter du premier jour du mois civil suivant le
 quatrième mois de la grossesse et jusqu'au mois civil de la naissance de l'enfant.
 
+
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  exception l841_1_4 règle éligibilité_allocation_logement_familiale
+  sous condition
+    selon ménage.situation_familiale sous forme
+    -- Célibataire :
+      nombre de ménage.personnes_à_charge = 0 et
+      ménage.enfant_à_naître_après_quatrième_mois_grossesse
+      # TODO informatique: faire la manip avec le premier jour du mois civil
+    -- n'importe quel : faux
+  conséquence rempli
+```
 
 ###### Article L841-2 | LEGIARTI000038814862
 
 Les personnes ne bénéficiant pas de l'allocation de logement familiale ou de l'aide personnalisée au
 logement peuvent prétendre au bénéfice de l'allocation de logement sociale.
 
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  définition éligibilité égal à
+    si bénéficie_aide_personnelle_logement alors
+      PasÉligible
+    sinon (si éligibilité_allocation_logement_familiale alors
+     ÉligibilitéAllocationLogement.AllocationLogementFamiliale
+    sinon (si éligibilité_allocation_logement_sociale alors
+     ÉligibilitéAllocationLogement.AllocationLogementSociale
+    sinon PasÉligible))
+```
 
 ###### Article L841-3 | LEGIARTI000038814860
 
 L'allocation de logement sociale est versée aux personnes hébergées dans les unités ou centres de
 soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la sécurité sociale.
 
-
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  règle éligibilité_allocation_logement_sociale sous condition
+    personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
+  conséquence rempli
+```
 
 ###### Article L841-4 | LEGIARTI000038814858
 
 Aucune allocation de logement n'est due pour les prêts permettant d'accéder à la propriété de
 l'habitation signés après le 31 décembre 2017.
 
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  exception définition éligibilité sous condition
+    selon mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.prêt.date_signature >@ |2017-12-31|
+    -- n'importe quel: faux
+  conséquence égal à PasÉligible
+```
 
 ###### Article L841-5 | LEGIARTI000038814856
 
@@ -884,6 +1005,11 @@ ayant le même objet et due, sur le fondement d'une autre réglementation, à la
 Toutefois, lorsque le montant ainsi dû est inférieur à celui de l'allocation de logement sociale à
 laquelle les dispositions du présent livre ouvriraient droit, la différence est versée par l'organisme payeur.
 
+```catala
+# Par pertinent pour l'égibilité ou le calcul, plutôt un détail d'application
+# d'une règle de non-cumul par la CAF qui dit qu'en cas de conflit entre l'ALS
+# et une autre aide, il faut prendre l'aide de montant maximal.
+```
 
 ##### Chapitre II : Modalités de liquidation et de versement des allocations de logement
 
@@ -901,14 +1027,20 @@ L. 822-9 et L. 822-10.
 
 En cas de mandat de gérance de logements, l'allocation de logement peut être versée au mandataire.
 
-
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L842-2 | LEGIARTI000038814849
 
 Dans le cas prévu à l'article L. 824-3, le versement reprend au profit du bailleur, sauf dans le cas prévu
 au troisième alinéa de l'article L. 842-1 ou en cas de refus de ce dernier.
 
-
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ##### Chapitre III : Procédure de conservation et de versement des allocations de logement en cas de non-décence constatée des logements
 
@@ -926,6 +1058,10 @@ Durant ce délai, le locataire s'acquitte du montant du loyer et des charges ré
 allocations de logement, dont il a été informé par l'organisme payeur, sans que cette diminution puisse fonder
 une action du propriétaire à son encontre pour obtenir la résiliation du bail.
 
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L843-2 | LEGIARTI000042342772
 
@@ -944,6 +1080,10 @@ NOTA :
 Conformément à l’article 19 de l’ordonnance n° 2020-1144 du 16 septembre 2020, ces dispositions entrent
 en vigueur le 1er janvier 2021 et ne sont applicables qu'aux arrêtés notifiés à compter de cette date.
 
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L843-3 | LEGIARTI000038814835
 
@@ -966,6 +1106,10 @@ l'allocation de logement conservé par l'organisme payeur au titre de la périod
 été fait application du présent article n'est pas versé. Le propriétaire ne peut demander au locataire
 le paiement de la part de loyer non perçue correspondant au montant de l'allocation conservé.
 
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L843-4 | LEGIARTI000038814833
 
@@ -984,6 +1128,10 @@ de l'avant dernier alinéa de l'article L. 843-3. Si, à l'issue de ce délai, l
 pas aux caractéristiques de décence, il est fait application des dispositions du dernier alinéa de
 l'article L. 843-3.
 
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L843-5 | LEGIARTI000038814831
 
@@ -992,12 +1140,20 @@ L. 843-1 à L. 843-4 est versé au propriétaire après que le constat de mise e
 établi, le propriétaire verse, le cas échéant, au locataire la part de l'allocation de logement conservée
 qui excède le montant du loyer et des charges récupérables.
 
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L843-6 | LEGIARTI000038814829
 
 Outre les cas mentionnés aux articles L. 843-1 à L. 843-4, l'allocation de logement peut être accordée,
 à titre dérogatoire et pendant une durée déterminée, dans des conditions fixées par voie réglementaire.
 
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```
 
 ###### Article L843-7 | LEGIARTI000038814827
 
@@ -1015,5 +1171,7 @@ Le bailleur adresse une copie de la convention aux organismes payeurs de l'alloc
 La transmission de cette convention à l'organisme payeur vaut constat de mise en conformité du
 logement pour l'application des articles L. 843-1 à L. 843-4.
 
-
-
+```catala
+# Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
+# l'instant.
+```

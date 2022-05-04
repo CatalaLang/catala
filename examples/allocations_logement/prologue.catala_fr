@@ -196,6 +196,8 @@ déclaration structure Ménage:
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
   donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
     contenu entier
+  donnée enfant_à_naître_après_quatrième_mois_grossesse
+    contenu booléen
   donnée date_naissance_troisième_enfant_ou_dernier_si_plus contenu
     DateNaissanceTroisièmeOuDernierPlusEnfant
 
@@ -319,6 +321,30 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
     condition_logement_mode_occupation et
     éligibilité_logement
   conséquence rempli
+```
+
+### Éligibilité aux allocations de logement
+
+```catala-metadata
+déclaration énumération ÉligibilitéAllocationLogement:
+  -- PasÉligible
+  -- AllocationLogementFamiliale
+  -- AllocationLogementSociale
+
+déclaration champ d'application ÉligibilitéAllocationLogement:
+  entrée date_courante contenu date
+  entrée ménage contenu Ménage
+  entrée bénéficie_aide_personnelle_logement contenu booléen
+  entrée mode_occupation contenu ModeOccupation
+  entrée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
+    contenu booléen
+
+  interne éligibilité_allocation_logement_familiale condition
+  interne éligibilité_allocation_logement_sociale condition
+  interne âge_l841_1_4 contenu durée
+  interne durée_l841_1_3 contenu durée
+
+  sortie éligibilité contenu ÉligibilitéAllocationLogement
 ```
 
 ### Éligibilité à la prime de déménagement

@@ -270,8 +270,8 @@ champ d'application CalculAidePersonnelleLogementLocatif:
   définition montant_minimal_aide_d823_16 égal à
     selon type_aide sous forme
     -- AidePersonnaliséeLogement: 0 €
-    -- AllocationLogementFamiliale: 10 €
-    -- AllocationLogementSociale: 10 €
+    -- TypeAidePersonnelleLogement.AllocationLogementFamiliale: 10 €
+    -- TypeAidePersonnelleLogement.AllocationLogementSociale: 10 €
 ```
 
 ### Article 13 | LEGIARTI000044137423
