@@ -146,8 +146,9 @@ let get_subscope_uid
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
 let is_subscope_uid
-    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (y : ident) : bool
-    =
+    (scope_uid : Scopelang.Ast.ScopeName.t)
+    (ctxt : context)
+    (y : ident) : bool =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
 
@@ -245,8 +246,8 @@ let is_type_cond ((typ, _) : Ast.typ Pos.marked) =
 
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ
-    (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
-    Scopelang.Ast.typ Pos.marked =
+    (ctxt : context)
+    ((typ, typ_pos) : Ast.base_typ Pos.marked) : Scopelang.Ast.typ Pos.marked =
   match typ with
   | Ast.Condition -> (Scopelang.Ast.TLit TBool, typ_pos)
   | Ast.Data (Ast.Collection t) ->
@@ -630,8 +631,9 @@ let get_def_key
   | _ -> Errors.raise_spanned_error default_pos "Structs are not handled yet"
 
 let process_definition
-    (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d : Ast.definition) :
-    context =
+    (ctxt : context)
+    (s_name : Scopelang.Ast.ScopeName.t)
+    (d : Ast.definition) : context =
   (* We update the definition context inside the big context *)
   {
     ctxt with

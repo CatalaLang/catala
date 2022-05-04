@@ -284,7 +284,8 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor
-      (ctx : context) (c : EnumConstructor.t * typ Pos.marked) :
+      (ctx : context)
+      (c : EnumConstructor.t * typ Pos.marked) :
       context * Datatype.Constructor.constructor =
     let name, ty = c in
     let name = Pos.unmark (EnumConstructor.get_info name) in
@@ -416,8 +417,9 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) :
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
 let rec translate_op
-    (ctx : context) (op : operator) (args : expr Pos.marked list) :
-    context * Expr.expr =
+    (ctx : context)
+    (op : operator)
+    (args : expr Pos.marked list) : context * Expr.expr =
   match op with
   | Ternop _top ->
       let _e1, _e2, _e3 =
@@ -790,8 +792,8 @@ module Backend = struct
     Cli.debug_print "Running Z3 version %s" Version.to_string
 
   let make_context
-      (decl_ctx : decl_ctx) (free_vars_typ : typ Pos.marked VarMap.t) :
-      backend_context =
+      (decl_ctx : decl_ctx)
+      (free_vars_typ : typ Pos.marked VarMap.t) : backend_context =
     let cfg =
       (if !Cli.disable_counterexamples then [] else [ ("model", "true") ])
       @ [ ("proof", "false") ]

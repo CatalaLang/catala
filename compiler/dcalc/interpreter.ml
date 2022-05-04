@@ -55,7 +55,8 @@ let rec evaluate_operator
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
      use [args] to raise multispanned errors. *)
   let apply_cmp_or_raise_err
-      (cmp : unit -> A.expr) (args : (A.expr * Pos.t) list) : A.expr =
+      (cmp : unit -> A.expr)
+      (args : (A.expr * Pos.t) list) : A.expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
       Errors.raise_multispanned_error (get_binop_args_pos args)

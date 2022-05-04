@@ -212,8 +212,9 @@ let handle_default :
   | None -> if just () then cons () else raise EmptyError
 
 let handle_default_opt
-    (exceptions : 'a eoption array) (just : bool eoption) (cons : 'a eoption) :
-    'a eoption =
+    (exceptions : 'a eoption array)
+    (just : bool eoption)
+    (cons : 'a eoption) : 'a eoption =
   let except =
     Array.fold_left
       (fun acc except ->
@@ -304,7 +305,8 @@ let ( <@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 < 0
 let ( =@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 = 0
 
 let compare_periods
-    (p1 : CalendarLib.Date.Period.t) (p2 : CalendarLib.Date.Period.t) : int =
+    (p1 : CalendarLib.Date.Period.t)
+    (p2 : CalendarLib.Date.Period.t) : int =
   try
     let p1_days = CalendarLib.Date.Period.nb_days p1 in
     let p2_days = CalendarLib.Date.Period.nb_days p2 in

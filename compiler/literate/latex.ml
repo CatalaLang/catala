@@ -117,8 +117,9 @@ let wrap_latex
 (** {1 Weaving} *)
 
 let rec law_structure_to_latex
-    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
   match i with
   | A.LawHeading (heading, children) ->
       Format.fprintf fmt "\\%s*{%s}\n\n"
@@ -184,8 +185,9 @@ let rec law_structure_to_latex
 (** {1 API} *)
 
 let ast_to_latex
-    (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_latex language)

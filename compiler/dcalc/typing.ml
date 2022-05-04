@@ -52,7 +52,8 @@ let rec format_typ
     (typ : typ Pos.marked UnionFind.elem) : unit =
   let format_typ = format_typ ctx in
   let format_typ_with_parens
-      (fmt : Format.formatter) (t : typ Pos.marked UnionFind.elem) =
+      (fmt : Format.formatter)
+      (t : typ Pos.marked UnionFind.elem) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
@@ -238,8 +239,9 @@ type env = typ Pos.marked UnionFind.elem A.VarMap.t
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up
-    (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.marked) :
-    typ Pos.marked UnionFind.elem =
+    (ctx : Ast.decl_ctx)
+    (env : env)
+    (e : A.expr Pos.marked) : typ Pos.marked UnionFind.elem =
   (* Cli.debug_print (Format.asprintf "Looking for type of %a"
      (Print.format_expr ctx) e); *)
   try
@@ -575,6 +577,8 @@ let infer_type (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.typ Pos.marked =
 
 (** Typechecks an expression given an expected type *)
 let check_type
-    (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) (tau : A.typ Pos.marked) =
+    (ctx : Ast.decl_ctx)
+    (e : A.expr Pos.marked)
+    (tau : A.typ Pos.marked) =
   typecheck_expr_top_down ctx A.VarMap.empty e
     (UnionFind.make (Pos.map_under_mark ast_to_typ tau))

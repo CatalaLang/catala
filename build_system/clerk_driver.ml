@@ -345,8 +345,8 @@ let add_test_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
 (** [add_reset_with_ouput_rules catala_exe_opts rules] adds ninja rules used to
     reset test files using an output flag into [rules] and returns it.*)
 let add_reset_with_output_rules
-    (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
-    Rule.t Nj.RuleMap.t =
+    (catala_exe_opts : string)
+    (rules : Rule.t Nj.RuleMap.t) : Rule.t Nj.RuleMap.t =
   add_reset_rules_aux ~with_scope_output_rule:"reset_with_scope_and_output"
     ~without_scope_output_rule:"reset_without_scope_and_output" ~redirect:"-o"
     catala_exe_opts rules
@@ -354,8 +354,8 @@ let add_reset_with_output_rules
 (** [add_test_with_output_rules catala_exe_opts rules] adds ninja rules used to
     test files using an output flag into [rules] and returns it.*)
 let add_test_with_output_rules
-    (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
-    Rule.t Nj.RuleMap.t =
+    (catala_exe_opts : string)
+    (rules : Rule.t Nj.RuleMap.t) : Rule.t Nj.RuleMap.t =
   let test_common_cmd_exprs =
     Nj.Expr.
       [
@@ -402,8 +402,9 @@ let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
     creates and returns all ninja build statements needed to test the
     [tested_file]. *)
 let collect_all_ninja_build
-    (ninja : ninja) (tested_file : string) (reset_test_outputs : bool) :
-    (string * ninja) option =
+    (ninja : ninja)
+    (tested_file : string)
+    (reset_test_outputs : bool) : (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
   if List.length expected_outputs = 0 then (
     Cli.debug_print "No expected outputs were found for test file %s"
@@ -516,8 +517,9 @@ let collect_all_ninja_build
     ninja build declaration calling the rule 'run_and_display_final_message' for
     [all_test_builds] which correspond to [all_file_names]. *)
 let add_root_test_build
-    (ninja : ninja) (all_file_names : string list) (all_test_builds : string) :
-    ninja =
+    (ninja : ninja)
+    (all_file_names : string list)
+    (all_test_builds : string) : ninja =
   let file_names_str =
     List.hd all_file_names ^ ""
     ^ List.fold_left

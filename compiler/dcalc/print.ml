@@ -33,7 +33,8 @@ let begins_with_uppercase (s : string) : bool =
   is_uppercase first_letter
 
 let format_uid_list
-    (fmt : Format.formatter) (infos : Uid.MarkedString.info list) : unit =
+    (fmt : Format.formatter)
+    (infos : Uid.MarkedString.info list) : unit =
   Format.fprintf fmt "%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
@@ -83,8 +84,9 @@ let format_enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) :
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
 let rec format_typ
-    (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.marked) : unit
-    =
+    (ctx : Ast.decl_ctx)
+    (fmt : Format.formatter)
+    (typ : typ Pos.marked) : unit =
   let format_typ = format_typ ctx in
   let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t

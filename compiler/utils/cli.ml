@@ -325,7 +325,8 @@ let info =
 let time : float ref = ref (Unix.gettimeofday ())
 
 let with_style
-    (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
+    (styles : ANSITerminal.style list)
+    (str : ('a, unit, string) format) =
   if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
 
 let format_with_style (styles : ANSITerminal.style list) fmt (str : string) =
@@ -371,7 +372,9 @@ let log_marker () =
 (** All the printers below print their argument after the correct marker *)
 
 let concat_with_line_depending_prefix_and_suffix
-    (prefix : int -> string) (suffix : int -> string) (ss : string list) =
+    (prefix : int -> string)
+    (suffix : int -> string)
+    (ss : string list) =
   match ss with
   | hd :: rest ->
       let out, _ =

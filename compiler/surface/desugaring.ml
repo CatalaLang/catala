@@ -712,7 +712,8 @@ let rec translate_expr
             acc
         in
         let make_extr_body
-            (cmp_op : Dcalc.Ast.binop) (t : Scopelang.Ast.typ Pos.marked) =
+            (cmp_op : Dcalc.Ast.binop)
+            (t : Scopelang.Ast.typ Pos.marked) =
           let tmp_var =
             Desugared.Ast.Var.make ("tmp", Pos.get_position param')
           in
@@ -1498,8 +1499,8 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
     }
   in
   let rec processer_structure
-      (prgm : Desugared.Ast.program) (item : Ast.law_structure) :
-      Desugared.Ast.program =
+      (prgm : Desugared.Ast.program)
+      (item : Ast.law_structure) : Desugared.Ast.program =
     match item with
     | LawHeading (_, children) ->
         List.fold_left

@@ -290,8 +290,9 @@ type verification_condition = {
 }
 
 let rec generate_verification_conditions_scope_body_expr
-    (ctx : ctx) (scope_body_expr : expr scope_body_expr) :
-    ctx * verification_condition list =
+    (ctx : ctx)
+    (scope_body_expr : expr scope_body_expr) : ctx * verification_condition list
+    =
   match scope_body_expr with
   | Result _ -> (ctx, [])
   | ScopeLet scope_let ->
@@ -375,8 +376,9 @@ let rec generate_verification_conditions_scope_body_expr
       (new_ctx, vc_list @ new_vcs)
 
 let rec generate_verification_conditions_scopes
-    (decl_ctx : decl_ctx) (scopes : expr scopes) (s : ScopeName.t option) :
-    verification_condition list =
+    (decl_ctx : decl_ctx)
+    (scopes : expr scopes)
+    (s : ScopeName.t option) : verification_condition list =
   match scopes with
   | Nil -> []
   | ScopeDef scope_def ->
@@ -415,8 +417,8 @@ let rec generate_verification_conditions_scopes
       generate_verification_conditions_scopes decl_ctx next s @ vcs
 
 let generate_verification_conditions
-    (p : program) (s : Dcalc.Ast.ScopeName.t option) :
-    verification_condition list =
+    (p : program)
+    (s : Dcalc.Ast.ScopeName.t option) : verification_condition list =
   let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
   (* We sort this list by scope name and then variable name to ensure consistent
      output for testing*)

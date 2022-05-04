@@ -53,8 +53,9 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   | TAny -> Format.fprintf fmt "any"
 
 let rec format_expr
-    ?(debug : bool = false) (fmt : Format.formatter) (e : expr Pos.marked) :
-    unit =
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
+    (e : expr Pos.marked) : unit =
   let format_expr = format_expr ~debug in
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
@@ -262,7 +263,9 @@ let format_scope
     decl.scope_decl_rules
 
 let format_program
-    ?(debug : bool = false) (fmt : Format.formatter) (p : program) : unit =
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
+    (p : program) : unit =
   Format.fprintf fmt "%a%a%a%a%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")

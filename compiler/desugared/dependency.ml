@@ -252,8 +252,8 @@ module ExceptionsSCC = Graph.Components.Make (ExceptionsDependencies)
 (** {2 Graph computations} *)
 
 let build_exceptions_graph
-    (def : Ast.rule Ast.RuleMap.t) (def_info : Ast.ScopeDef.t) :
-    ExceptionsDependencies.t =
+    (def : Ast.rule Ast.RuleMap.t)
+    (def_info : Ast.ScopeDef.t) : ExceptionsDependencies.t =
   (* first we collect all the rule sets referred by exceptions *)
   let all_rule_sets_pointed_to_by_exceptions : Ast.RuleSet.t list =
     Ast.RuleMap.fold

@@ -20,7 +20,11 @@ let from_lpos (p : Lexing.position * Lexing.position) : t =
   { code_pos = p; law_pos = [] }
 
 let from_info
-    (file : string) (sline : int) (scol : int) (eline : int) (ecol : int) : t =
+    (file : string)
+    (sline : int)
+    (scol : int)
+    (eline : int)
+    (ecol : int) : t =
   let spos =
     {
       Lexing.pos_fname = file;

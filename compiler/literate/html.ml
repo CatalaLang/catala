@@ -161,8 +161,9 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
 (** {1 Weaving} *)
 
 let rec law_structure_to_html
-    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
   match i with
   | A.LawText t ->
       let t = pre_html t in
@@ -200,8 +201,9 @@ let rec law_structure_to_html
 (** {1 API} *)
 
 let ast_to_html
-    (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_html language)

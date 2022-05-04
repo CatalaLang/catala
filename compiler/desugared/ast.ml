@@ -177,8 +177,8 @@ type rule = {
 }
 
 let empty_rule
-    (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule
-    =
+    (pos : Pos.t)
+    (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
   {
     rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
     rule_cons = Bindlib.box (ELit Dcalc.Ast.LEmptyError, pos);
@@ -191,8 +191,8 @@ let empty_rule
   }
 
 let always_false_rule
-    (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule
-    =
+    (pos : Pos.t)
+    (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
   {
     rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool true), pos);
     rule_cons = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);

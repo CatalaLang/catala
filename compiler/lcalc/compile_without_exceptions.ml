@@ -496,8 +496,9 @@ let rec translate_scope_let (ctx : ctx) (lets : D.expr D.scope_body_expr) :
         (Bindlib.bind_var new_var (translate_scope_let ctx' next))
 
 let translate_scope_body
-    (scope_pos : Pos.t) (ctx : ctx) (body : D.expr D.scope_body) :
-    A.expr D.scope_body Bindlib.box =
+    (scope_pos : Pos.t)
+    (ctx : ctx)
+    (body : D.expr D.scope_body) : A.expr D.scope_body Bindlib.box =
   match body with
   | {
    scope_body_expr = result;

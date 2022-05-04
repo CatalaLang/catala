@@ -269,7 +269,8 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
 
 (** Parses a single source file *)
 let rec parse_source_file
-    (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program =
+    (source_file : Pos.input_file)
+    (language : Cli.backend_lang) : Ast.program =
   Cli.debug_print "Parsing %s"
     (match source_file with FileName s | Contents s -> s);
   let lexbuf, input =
@@ -335,7 +336,8 @@ and expand_includes
 (** {1 API} *)
 
 let parse_top_level_file
-    (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program =
+    (source_file : Pos.input_file)
+    (language : Cli.backend_lang) : Ast.program =
   let program = parse_source_file source_file language in
   {
     program with

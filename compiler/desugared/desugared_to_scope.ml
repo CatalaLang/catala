@@ -213,8 +213,8 @@ let rec rule_tree_to_expr
      whole rule tree into a function, we need to perform some alpha-renaming of
      all the expressions *)
   let substitute_parameter
-      (e : Ast.expr Pos.marked Bindlib.box) (rule : Ast.rule) :
-      Ast.expr Pos.marked Bindlib.box =
+      (e : Ast.expr Pos.marked Bindlib.box)
+      (rule : Ast.rule) : Ast.expr Pos.marked Bindlib.box =
     match (is_func, rule.Ast.rule_parameter) with
     | Some new_param, Some (old_param, _) ->
         let binder = Bindlib.bind_var old_param e in
