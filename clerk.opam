@@ -12,7 +12,7 @@ bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "dune" {>= "2.8"}
   "ocaml" {>= "4.11.0"}
-  "cmdliner" {= "1.0.4"}
+  "cmdliner" {>= "1.1.0"}
   "re" {>= "1.9.0"}
   "ANSITerminal" {>= "0.8.2"}
   "alcotest" {with-test & >= "1.5.0"}

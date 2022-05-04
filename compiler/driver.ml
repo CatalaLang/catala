@@ -412,8 +412,7 @@ let driver source_file (options : Cli.options) : int =
 
 let main () =
   let return_code =
-    Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info)
+    Cmdliner.Cmd.eval'
+      (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))
   in
-  match return_code with
-  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
-  | _ -> Cmdliner.Term.exit (`Error `Term)
+  exit return_code

@@ -25,7 +25,7 @@ depends: [
   "menhirLib" {>= "20200211"}
   "unionFind" {>= "20200320"}
   "bindlib" {>= "5.0.1"}
-  "cmdliner" {= "1.0.4"}
+  "cmdliner" {>= "1.1.0"}
   "re" {>= "1.9.0"}
   "zarith" {>= "1.12"}
   "zarith_stubs_js" {>= "v0.14.1"}
