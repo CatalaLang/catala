@@ -635,7 +635,7 @@ let prestations_familiales
                    }
                    (date_courante_ >=@ date_of_numbers 2020 4 1
                    && date_courante_ <@ date_of_numbers 2021 4 1)
-               then money_of_cents_string "41404"
+               then money_of_cents_string "41440"
                else raise EmptyError);
              (fun (_ : _) ->
                if
@@ -2380,7 +2380,7 @@ let allocations_familiales
                    >! integer_of_string "2"
                  then
                    prestations_familiales_dot_base_mensuelle_
-                   *$ decimal_of_string "0.075"
+                   *$ decimal_of_string "0.0615"
                  else money_of_cents_string "0"
                else raise EmptyError);
              (fun (_ : _) ->
@@ -2561,7 +2561,7 @@ let allocations_familiales
                    >! integer_of_string "1"
                  then
                    prestations_familiales_dot_base_mensuelle_
-                   *$ decimal_of_string "0.284"
+                   *$ decimal_of_string "0.2804"
                  else money_of_cents_string "0"
                else raise EmptyError);
              (fun (_ : _) ->
@@ -2621,7 +2621,7 @@ let allocations_familiales
                    >! integer_of_string "1"
                  then
                    prestations_familiales_dot_base_mensuelle_
-                   *$ decimal_of_string "0.273"
+                   *$ decimal_of_string "0.2613"
                  else money_of_cents_string "0"
                else raise EmptyError);
              (fun (_ : _) ->
@@ -2951,7 +2951,7 @@ let allocations_familiales
                    >! integer_of_string "0"
                  then
                    prestations_familiales_dot_base_mensuelle_
-                   *$ decimal_of_string "0.115"
+                   *$ decimal_of_string "0.1105"
                  else money_of_cents_string "0"
                else raise EmptyError);
              (fun (_ : _) ->
@@ -3649,7 +3649,7 @@ let allocations_familiales
                    (ressources_menage_ >$ plafond__i_i_d521_3_)
                then
                  prestations_familiales_dot_base_mensuelle_
-                 *$ decimal_of_string "0.0559"
+                 *$ decimal_of_string "0.05059"
                else raise EmptyError);
              (fun (_ : _) ->
                if
@@ -3675,7 +3675,7 @@ let allocations_familiales
                    && ressources_menage_ <=$ plafond__i_i_d521_3_)
                then
                  prestations_familiales_dot_base_mensuelle_
-                 *$ decimal_of_string "0.1117"
+                 *$ decimal_of_string "0.10117"
                else raise EmptyError);
              (fun (_ : _) ->
                if
