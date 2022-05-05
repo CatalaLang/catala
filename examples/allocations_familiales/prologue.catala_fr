@@ -4,6 +4,8 @@ Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations familiales, il est nécessaire de définir les structures de données
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
+## Types de données manipulées par le programme
+
 ```catala-metadata
 déclaration énumération PriseEnCharge :
   -- GardeAlternéePartageAllocations
@@ -45,7 +47,13 @@ déclaration énumération ÉlémentPrestationsFamiliales:
   -- AllocationSoutienFamilial
   -- AllocationRentréeScolaire
   -- AllocationJournalièrePresenceParentale
+```
 
+## Champs d'applications
+
+### Prestations familiales
+
+```catala-metadata
 déclaration champ d'application PrestationsFamiliales:
   sortie droit_ouvert condition dépend de Enfant
   sortie conditions_hors_âge condition dépend de Enfant
@@ -60,7 +68,11 @@ déclaration champ d'application PrestationsFamiliales:
 champ d'application PrestationsFamiliales:
   définition smic.résidence égal à résidence
   définition smic.date_courante égal à date_courante
+```
 
+### Allocations familiales
+
+```catala-metadata
 déclaration champ d'application AllocationFamilialesAvril2008:
   sortie âge_minimum_alinéa_1_l521_3 contenu entier
 

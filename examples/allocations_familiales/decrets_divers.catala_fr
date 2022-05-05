@@ -1,8 +1,6 @@
-# Décrets divers
+# Montant des plafonds de ressources
 
-## Montant des plafonds de ressources
-
-### Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
+## Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
 
 Plafonds de ressources applicables pour l’attribution du montant modulé
 des allocations familiales, de la majoration pour âge et de l’allocation
@@ -35,7 +33,7 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-### Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
+## Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
 
 Plafonds de ressources applicables pour l’attribution du montant
 modulé des allocations familiales, de la majoration pour âge et
@@ -68,7 +66,7 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-### Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
+## Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
 
 Plafonds de ressources applicables pour l’attribution du montant modulé des
 allocations familiales, de la majoration pour âge et de l’allocation forfaitaire,
@@ -101,9 +99,9 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-### Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations
+## Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations
 
-#### Article 1|JORFARTI000042694985
+### Article 1|JORFARTI000042694985
 
 I. - Le plafond de ressources prévu au 1° du I des articles D. 521-1 et D. 521-2
 du code de la sécurité sociale relatif aux allocations familiales, à la majoration
@@ -137,11 +135,11 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-## Dispositions spéciales relatives à Mayotte
+# Dispositions spéciales relatives à Mayotte
 
-### Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte
+## Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte
 
-#### Article 7|LEGIARTI000036330048
+### Article 7|LEGIARTI000036330048
 
 Les taux servant au calcul des allocations familiales sont fixés, en
 pourcentage de la base mensuelle de calcul des allocations familiales
@@ -202,7 +200,7 @@ champ d'application AllocationsFamiliales :
     ) sinon 0 €
 ```
 
-#### Annexe|LEGIARTI000036326574
+### Annexe|LEGIARTI000036326574
 
 TABLEAU D'ÉVOLUTION DES TAUX SERVANT AU CALCUL DES ALLOCATIONS FAMILIALES
 APPLICABLES DANS LE DÉPARTEMENT DE MAYOTTE POUR LA PÉRIODE DU 1ER JANVIER

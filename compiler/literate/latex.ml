@@ -28,14 +28,6 @@ module C = Cli
 
 (** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) : string =
-  (* first we substitute the annoying characters *)
-  let substitute s (old_s, new_s) =
-    R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s
-  in
-  let s =
-    [ ("1er", "1\\textsuperscript{er}"); ("\\^", "\\textasciicircum") ]
-    |> List.fold_left substitute s
-  in
   (* Then we send to pandoc, to ensure the markdown features used in the
      original document are correctly printed! *)
   run_pandoc s Cli.Latex
@@ -54,146 +46,144 @@ let wrap_latex
          (String.concat " " source_files))
   in
   let authors = ref [] in
-  try
-    let authors_rex = Re.Pcre.regexp "^\\s*(\\d+)\\s*(\\w.*)$" in
-    while true do
-      let new_author = input_line git_channel in
-      let groups = Re.Pcre.exec ~rex:authors_rex new_author in
-      try authors := Re.Pcre.get_substring groups 2 :: !authors
-      with Not_found -> ()
-    done
-  with End_of_file ->
-    ();
-    Format.fprintf fmt
-      "\\documentclass[%s, 11pt, a4paper]{article}\n\n\
-       \\usepackage[T1]{fontenc}\n\
-       \\usepackage[utf8]{inputenc}\n\
-       \\usepackage{amssymb}\n\
-       \\usepackage{babel}\n\
-       \\usepackage{fontspec}\n\
-       \\usepackage[hidelinks]{hyperref}\n\
-       \\setmainfont{Marianne}\n\
-       \\usepackage{minted}\n\
-       \\usepackage{longtable}\n\
-       \\usepackage{booktabs}\n\
-       \\usepackage{newunicodechar}\n\
-       \\usepackage{textcomp}\n\
-       \\usepackage[hidelinks]{hyperref}\n\
-       \\usepackage[dvipsnames]{xcolor}\n\
-       \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}\n\
-       \\usepackage[many]{tcolorbox}\n\n\
-       \\usepackage{fancyhdr}\n\
-       \\pagestyle{fancy}\n\
-       \\fancyhf{}\n\
-       \\fancyhead[C]{\\leftmark}\n\
-       \\fancyfoot[C]{\\thepage}\n\
-       \\renewcommand{\\headrulewidth}{0.5pt}\n\
-       \\renewcommand{\\footrulewidth}{0.5pt}\n\
-       \\usepackage{titlesec}\n\
-       \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
-       \\newcounter{subsubsubsection}[subsubsection]\n\
-       \\renewcommand\\thesubsubsubsection{\\thesubsubsection.\\arabic{subsubsubsection}}\n\
-       \\titleformat{\\subsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsection}{1em}{}\n\
-       \\titlespacing*{\\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
-       .2ex}{1.5ex plus .2ex}\n\
-       \\titleclass{\\subsubsubsubsection}{straight}[\\subsubsection]\n\
-       \\newcounter{subsubsubsubsection}[subsubsubsection]\n\
-       \\renewcommand\\thesubsubsubsubsection{\\thesubsubsubsection.\\arabic{subsubsubsubsection}}\n\
-       \\titleformat{\\subsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsection}{0.75em}{}\n\
-       \\titlespacing*{\\subsubsubsubsection}{0pt}{2.75ex plus 1ex minus \
-       .2ex}{1.25ex plus .2ex}\n\
-       \\titleclass{\\subsubsubsubsubsection}{straight}[\\subsubsubsection]\n\
-       \\newcounter{subsubsubsubsubsection}[subsubsubsubsection]\n\
-       \\renewcommand\\thesubsubsubsubsubsection{\\thesubsubsubsubsection.\\arabic{subsubsubsubsubsection}}\n\
-       \\titleformat{\\subsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsection}{0.7em}{}\n\
-       \\titlespacing*{\\subsubsubsubsubsection}{0pt}{2.5ex plus 1ex minus \
-       .2ex}{1.1ex plus .2ex}\n\
-       \\titleclass{\\subsubsubsubsubsubsection}{straight}[\\subsubsubsubsection]\n\
-       \\newcounter{subsubsubsubsubsubsection}[subsubsubsubsubsection]\n\
-       \\renewcommand\\thesubsubsubsubsubsubsection{\\thesubsubsubsubsubsection.\\arabic{subsubsubsubsubsubsection}}\n\
-       \\titleformat{\\subsubsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsubsection}{0.6em}{}\n\
-       \\titlespacing*{\\subsubsubsubsubsubsection}{0pt}{2.25ex plus 1ex minus \
-       .2ex}{1ex plus .2ex}\n\
-       \\makeatletter\n\
-       \\def\\toclevel@subsubsubsection{4}\n\
-       \\def\\toclevel@subsubsubsubsection{5}\n\
-       \\def\\toclevel@subsubsubsubsubsection{6}\n\
-       \\def\\toclevel@subsubsubsubsubsubsection{7}\n\
-       \\def\\toclevel@paragraph{8}\n\
-       \\def\\toclevel@subparagraph{9}\n\
-       \\def\\l@subsection{\\@dottedtocline{1}{1em}{0.5em}}\n\
-       \\def\\l@subsubsection{\\@dottedtocline{2}{2em}{1em}}\n\
-       \\def\\l@subsubsubsection{\\@dottedtocline{3}{3em}{1.5em}}\n\
-       \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{4em}{2em}}\n\
-       \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{5em}{2.5em}}\n\
-       \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{6em}{3em}}\n\
-       \\def\\l@paragraph{\\@dottedtocline{8}{7em}{3.5em}}\n\
-       \\def\\l@subparagraph{\\@dottedtocline{9}{8em}{4em}}\n\
-       \\makeatother\n\
-       \\setcounter{secnumdepth}{0}\n\
-       \\setcounter{tocdepth}{9}\n\
-       \\newunicodechar{÷}{$\\div$}\n\
-       \\newunicodechar{×}{$\\times$}\n\
-       \\newunicodechar{≤}{$\\leqslant$}\n\
-       \\newunicodechar{≥}{$\\geqslant$}\n\
-       \\newunicodechar{→}{$\\rightarrow$}\n\
-       \\newunicodechar{≠}{$\\neq$}\n\n\
-       \\newcommand*\\FancyVerbStartString{```catala}\n\
-       \\newcommand*\\FancyVerbStopString{```}\n\n\
-       \\fvset{\n\
-       numbers=left,\n\
-       frame=lines,\n\
-       framesep=3mm,\n\
-       rulecolor=\\color{gray!70},\n\
-       firstnumber=last,\n\
-       codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
-       }\n\
-       \\newcommand{\\tightlist}{\\setlength{\\itemsep}{0pt}\\setlength{\\parskip}{0pt}}\n\n\
-       \\title{\n\
-       %s\\\\\n\
-       %s Catala version %s\n\
-       }\n\
-       \\author{\n\
-       %s}\n\
-       \\begin{document}\n\
-       \\maketitle\n\n\
-       %s\n\n\
-       %s : \n\
-       \\begin{itemize}%s\\end{itemize}\n\n\
-       \\clearpage\n\
-       \\tableofcontents\n\n\
-       \\[\\star\\star\\star\\]\n\
-       \\clearpage"
-      (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
-      (literal_title language)
-      (literal_generated_by language)
-      Utils.Cli.version
-      (String.concat " \\and "
-         (List.map
-            (fun authors -> Format.asprintf "%s" authors)
-            (List.rev !authors)))
-      (literal_disclaimer_and_link language)
-      (literal_source_files language)
-      (String.concat
-         (match language with Fr -> " ;" | En -> ";" | Pl -> ";")
-         (List.map
-            (fun filename ->
-              let mtime = (Unix.stat filename).Unix.st_mtime in
-              let ltime = Unix.localtime mtime in
-              let ftime =
-                Printf.sprintf "%d-%02d-%02d %d:%02d"
-                  (1900 + ltime.Unix.tm_year)
-                  (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday ltime.Unix.tm_hour
-                  ltime.Unix.tm_min
-              in
-              Printf.sprintf "\\item\\texttt{%s}, %s %s"
-                (pre_latexify (Filename.basename filename))
-                (literal_last_modification language)
-                ftime)
-            source_files)
-      ^ ".");
-    wrapped fmt;
-    Format.fprintf fmt "\n\n\\end{document}"
+  (try
+     let authors_rex = Re.Pcre.regexp "^\\s*(\\d+)\\s*(\\w.*)$" in
+     while true do
+       let new_author = input_line git_channel in
+       let groups = Re.Pcre.exec ~rex:authors_rex new_author in
+       try authors := Re.Pcre.get_substring groups 2 :: !authors
+       with Not_found -> ()
+     done
+   with End_of_file -> ());
+  authors := List.sort_uniq String.compare !authors;
+  Format.fprintf fmt
+    "\\documentclass[%s, 11pt, a4paper]{article}\n\n\
+     \\usepackage[T1]{fontenc}\n\
+     \\usepackage[utf8]{inputenc}\n\
+     \\usepackage{amssymb}\n\
+     \\usepackage{babel}\n\
+     \\usepackage{fontspec}\n\
+     \\usepackage[hidelinks]{hyperref}\n\
+     \\setmainfont{Marianne}\n\
+     \\usepackage{minted}\n\
+     \\usepackage{longtable}\n\
+     \\usepackage{booktabs}\n\
+     \\usepackage{newunicodechar}\n\
+     \\usepackage{textcomp}\n\
+     \\usepackage[hidelinks]{hyperref}\n\
+     \\usepackage[dvipsnames]{xcolor}\n\
+     \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}\n\
+     \\usepackage[many]{tcolorbox}\n\n\
+     \\usepackage{fancyhdr}\n\
+     \\pagestyle{fancy}\n\
+     \\fancyhf{}\n\
+     \\fancyhead[C]{\\leftmark}\n\
+     \\fancyfoot[C]{\\thepage}\n\
+     \\renewcommand{\\headrulewidth}{0.5pt}\n\
+     \\renewcommand{\\footrulewidth}{0.5pt}\n\
+     \\usepackage{titlesec}\n\
+     \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
+     \\newcounter{subsubsubsection}[subsubsection]\n\
+     \\renewcommand\\thesubsubsubsection{\\thesubsubsection.\\arabic{subsubsubsection}}\n\
+     \\titleformat{\\subsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsection}{1em}{}\n\
+     \\titlespacing*{\\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
+     .2ex}{1.5ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsection}{straight}[\\subsubsection]\n\
+     \\newcounter{subsubsubsubsection}[subsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsection{\\thesubsubsubsection.\\arabic{subsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsection}{0.75em}{}\n\
+     \\titlespacing*{\\subsubsubsubsection}{0pt}{2.75ex plus 1ex minus \
+     .2ex}{1.25ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsubsection}{straight}[\\subsubsubsection]\n\
+     \\newcounter{subsubsubsubsubsection}[subsubsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsubsection{\\thesubsubsubsubsection.\\arabic{subsubsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsection}{0.7em}{}\n\
+     \\titlespacing*{\\subsubsubsubsubsection}{0pt}{2.5ex plus 1ex minus \
+     .2ex}{1.1ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsubsubsection}{straight}[\\subsubsubsubsection]\n\
+     \\newcounter{subsubsubsubsubsubsection}[subsubsubsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsubsubsection{\\thesubsubsubsubsubsection.\\arabic{subsubsubsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsubsection}{0.6em}{}\n\
+     \\titlespacing*{\\subsubsubsubsubsubsection}{0pt}{2.25ex plus 1ex minus \
+     .2ex}{1ex plus .2ex}\n\
+     \\makeatletter\n\
+     \\def\\toclevel@subsubsubsection{4}\n\
+     \\def\\toclevel@subsubsubsubsection{5}\n\
+     \\def\\toclevel@subsubsubsubsubsection{6}\n\
+     \\def\\toclevel@subsubsubsubsubsubsection{7}\n\
+     \\def\\toclevel@paragraph{8}\n\
+     \\def\\toclevel@subparagraph{9}\n\
+     \\def\\l@subsection{\\@dottedtocline{1}{1em}{0.5em}}\n\
+     \\def\\l@subsubsection{\\@dottedtocline{2}{2em}{1em}}\n\
+     \\def\\l@subsubsubsection{\\@dottedtocline{3}{3em}{1.5em}}\n\
+     \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{4em}{2em}}\n\
+     \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{5em}{2.5em}}\n\
+     \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{6em}{3em}}\n\
+     \\def\\l@paragraph{\\@dottedtocline{8}{7em}{3.5em}}\n\
+     \\def\\l@subparagraph{\\@dottedtocline{9}{8em}{4em}}\n\
+     \\makeatother\n\
+     \\setcounter{secnumdepth}{0}\n\
+     \\setcounter{tocdepth}{9}\n\
+     \\newunicodechar{÷}{$\\div$}\n\
+     \\newunicodechar{×}{$\\times$}\n\
+     \\newunicodechar{≤}{$\\leqslant$}\n\
+     \\newunicodechar{≥}{$\\geqslant$}\n\
+     \\newunicodechar{→}{$\\rightarrow$}\n\
+     \\newunicodechar{≠}{$\\neq$}\n\n\
+     \\newcommand*\\FancyVerbStartString{```catala}\n\
+     \\newcommand*\\FancyVerbStopString{```}\n\n\
+     \\fvset{\n\
+     numbers=left,\n\
+     frame=lines,\n\
+     framesep=3mm,\n\
+     rulecolor=\\color{gray!70},\n\
+     firstnumber=last,\n\
+     codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
+     }\n\
+     \\newcommand{\\tightlist}{\\setlength{\\itemsep}{0pt}\\setlength{\\parskip}{0pt}}\n\n\
+     \\title{\n\
+     %s\\\\\n\
+     %s Catala version %s\n\
+     }\n\
+     \\author{\n\
+     %s}\n\
+     \\begin{document}\n\
+     \\maketitle\n\n\
+     %s\n\n\
+     %s : \n\
+     \\begin{itemize}%s\\end{itemize}\n\n\
+     \\clearpage\n\
+     \\tableofcontents\n\n\
+     \\[\\star\\star\\star\\]\n\
+     \\clearpage"
+    (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
+    (literal_title language)
+    (literal_generated_by language)
+    Utils.Cli.version
+    (String.concat " \\and "
+       (List.map (fun authors -> Format.asprintf "%s" authors) !authors))
+    (literal_disclaimer_and_link language)
+    (literal_source_files language)
+    (String.concat
+       (match language with Fr -> " ;" | En -> ";" | Pl -> ";")
+       (List.map
+          (fun filename ->
+            let mtime = (Unix.stat filename).Unix.st_mtime in
+            let ltime = Unix.localtime mtime in
+            let ftime =
+              Printf.sprintf "%d-%02d-%02d %d:%02d"
+                (1900 + ltime.Unix.tm_year)
+                (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday ltime.Unix.tm_hour
+                ltime.Unix.tm_min
+            in
+            Printf.sprintf "\\item\\texttt{%s}, %s %s"
+              (pre_latexify (Filename.basename filename))
+              (literal_last_modification language)
+              ftime)
+          source_files)
+    ^ ".");
+  wrapped fmt;
+  Format.fprintf fmt "\n\n\\end{document}"
 
 (** {1 Weaving} *)
 

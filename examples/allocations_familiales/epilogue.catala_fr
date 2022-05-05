@@ -88,15 +88,18 @@ champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.ressources_ménage égal à i_ressources_ménage
   définition allocations_familiales.résidence égal à i_résidence
   définition i_montant_versé égal à allocations_familiales.montant_versé
-  règle allocations_familiales.personne_charge_effective_permanente_est_parent
-    sous condition i_personne_charge_effective_permanente_est_parent conséquence
-    rempli
-  règle allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
-    sous condition i_personne_charge_effective_permanente_remplit_titre_I conséquence
-    rempli
-  règle allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
-    sous condition i_avait_enfant_à_charge_avant_1er_janvier_2012 conséquence
-    rempli
+  règle
+    allocations_familiales.personne_charge_effective_permanente_est_parent
+  sous condition i_personne_charge_effective_permanente_est_parent
+  conséquence rempli
+  règle
+    allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
+  sous condition i_personne_charge_effective_permanente_remplit_titre_I
+  conséquence rempli
+  règle
+    allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
+  sous condition i_avait_enfant_à_charge_avant_1er_janvier_2012
+  conséquence rempli
 ```
 
 #### Code de l'éducation
