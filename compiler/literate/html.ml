@@ -28,11 +28,7 @@ module C = Cli
 (** {1 Helpers} *)
 
 (** Converts double lines into HTML newlines. *)
-let pre_html (s : string) =
-  let s = String.trim s in
-  let doublenewline = R.regexp "\n\n" in
-  let s = R.substitute ~rex:doublenewline ~subst:(fun _ -> "<br/>\n") s in
-  s
+let pre_html (s : string) = run_pandoc s Cli.Html
 
 (** Raise an error if pygments cannot be found *)
 let raise_failed_pygments (command : string) (error_code : int) : 'a =
