@@ -40,22 +40,7 @@ let wrap_latex
     (language : C.backend_lang)
     (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) =
-  let git_channel =
-    Unix.open_process_in
-      (Format.asprintf "git shortlog -sn -- %s"
-         (String.concat " " source_files))
-  in
-  let authors = ref [] in
-  (try
-     let authors_rex = Re.Pcre.regexp "^\\s*(\\d+)\\s*(\\w.*)$" in
-     while true do
-       let new_author = input_line git_channel in
-       let groups = Re.Pcre.exec ~rex:authors_rex new_author in
-       try authors := Re.Pcre.get_substring groups 2 :: !authors
-       with Not_found -> ()
-     done
-   with End_of_file -> ());
-  authors := List.sort_uniq String.compare !authors;
+  let authors = get_code_authors source_files in
   Format.fprintf fmt
     "\\documentclass[%s, 11pt, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
@@ -64,7 +49,7 @@ let wrap_latex
      \\usepackage{babel}\n\
      \\usepackage{fontspec}\n\
      \\usepackage[hidelinks]{hyperref}\n\
-     \\setmainfont{Marianne}\n\
+     %s\n\
      \\usepackage{minted}\n\
      \\usepackage{longtable}\n\
      \\usepackage{booktabs}\n\
@@ -157,12 +142,15 @@ let wrap_latex
      \\[\\star\\star\\star\\]\n\
      \\clearpage"
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
+    (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
+    (* for France, we use the official font of the French state design system
+       https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography *)
     (literal_title language)
     (literal_generated_by language)
     Utils.Cli.version
     (String.concat " \\and "
-       (List.map (fun authors -> Format.asprintf "%s" authors) !authors))
-    (literal_disclaimer_and_link language)
+       (List.map (fun authors -> Format.asprintf "%s" authors) authors))
+    (pre_latexify (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat
        (match language with Fr -> " ;" | En -> ";" | Pl -> ";")
@@ -268,7 +256,7 @@ let rec law_structure_to_latex
          title=\\textcolor{black}{\\texttt{%s}},title after \
          break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after \
          skip=1em]\n\
-         \\begin{minted}[breaklines, numbersep=9mm, firstnumber=%d, \
+         \\begin{minted}[numbersep=9mm, firstnumber=%d, \
          label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          ```catala\n\
          %s```\n\

@@ -38,19 +38,20 @@ let literal_disclaimer_and_link = function
        Catala programming language, mixing together the legislative text and \
        the computer code that translates it. For more information about the \
        methodology and how to read the code, please visit \
-       \\url{https://catala-lang.org}."
+       [https://catala-lang.org](https://catala-lang.org)."
   | Fr ->
       "Ce document a été produit à partir d'un ensemble de fichiers sources \
        écrits dans le langage de programmation Catala, mêlant le texte \
        législatif et le code informatique qui le traduit. Pour plus \
        d'informations sur la méthodologie et sur la façon de lire le code, \
-       veuillez consulter le site \\url{https://catala-lang.org}."
+       veuillez consulter le site \
+       [https://catala-lang.org](https://catala-lang.org)."
   | Pl ->
       "Niniejszy dokument został opracowany na podstawie zestawu plików \
        źródłowych napisanych w języku programowania Catala, łączących tekst \
        legislacyjny z kodem komputerowym, który go tłumaczy. Więcej informacji \
        na temat metodologii i sposobu odczytywania kodu można znaleźć na \
-       stronie \\url{https://catala-lang.org}"
+       stronie [https://catala-lang.org](https://catala-lang.org)"
 
 let literal_last_modification = function
   | En -> "last modification"
@@ -98,3 +99,21 @@ let run_pandoc (s : string) (backend : Utils.Cli.backend_option) : string =
   let tmp_file_as_string = really_input_string oc (in_channel_length oc) in
   close_in oc;
   tmp_file_as_string
+
+let get_code_authors (source_files : string list) : string list =
+  let git_channel =
+    Unix.open_process_in
+      (Format.asprintf "git shortlog -sn -- %s"
+         (String.concat " " source_files))
+  in
+  let authors = ref [] in
+  (try
+     let authors_rex = Re.Pcre.regexp "^\\s*(\\d+)\\s*(\\w.*)$" in
+     while true do
+       let new_author = input_line git_channel in
+       let groups = Re.Pcre.exec ~rex:authors_rex new_author in
+       try authors := Re.Pcre.get_substring groups 2 :: !authors
+       with Not_found -> ()
+     done
+   with End_of_file -> ());
+  List.sort_uniq String.compare !authors

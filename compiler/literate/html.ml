@@ -82,8 +82,10 @@ let wrap_html
      <h1>%s<br />\n\
      <small>%s Catala version %s</small>\n\
      </h1>\n\
-     <p>\n\
+     <h3>%s</h3>\n\
      %s\n\
+     <p>\n\
+     %s:\n\
      </p>\n\
      <ul>\n\
      %s\n\
@@ -91,6 +93,12 @@ let wrap_html
     css_as_string (literal_title language)
     (literal_generated_by language)
     Utils.Cli.version
+    ((match language with
+     | En -> "Authors: "
+     | Fr -> "Auteurs : "
+     | Pl -> "Autors: ")
+    ^ String.concat ", " (get_code_authors source_files))
+    (pre_html (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat "\n"
        (List.map
@@ -104,7 +112,7 @@ let wrap_html
                 ltime.Unix.tm_min
             in
             Printf.sprintf "<li><tt>%s</tt>, %s %s</li>"
-              (pre_html (Filename.basename filename))
+              (Filename.basename filename)
               (literal_last_modification language)
               ftime)
           source_files));
@@ -162,7 +170,8 @@ let rec law_structure_to_html
   match i with
   | A.LawText t ->
       let t = pre_html t in
-      if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
+      if t = "" then ()
+      else Format.fprintf fmt "<div class='law-text'>%s</div>" t
   | A.CodeBlock (_, c, metadata) ->
       Format.fprintf fmt
         "<div class='code-wrapper%s'>\n\
