@@ -713,13 +713,13 @@ let makeflags_to_ninja_flags (makeflags : string option) =
   match makeflags with
   | None -> ""
   | Some makeflags ->
-      let ignore_rex = Re.Pcre.regexp "\\bi\\b" in
-      let has_ignore = Re.Pcre.pmatch ~rex:ignore_rex makeflags in
-      let jobs_rex = Re.Pcre.regexp "-j(\\d)" in
+      let ignore_rex = Re.(compile @@ word (char 'i')) in
+      let has_ignore = Re.execp ignore_rex makeflags in
+      let jobs_rex = Re.(compile @@ seq [str "-j"; group (rep digit)]) in
       let number_of_jobs =
         try
           int_of_string
-            (Re.Pcre.get_substring (Re.Pcre.exec ~rex:jobs_rex makeflags) 1)
+            (Re.get (Re.exec jobs_rex makeflags) 1)
         with _ -> 0
       in
       String.concat " "
