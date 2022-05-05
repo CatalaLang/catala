@@ -40,7 +40,7 @@ déclaration champ d'application Exemple2 :
 champ d'application Exemple2:
   définition montant égal à calcul.aide_finale
   définition calcul.loyer_principal égal à 425 €
-  définition calcul.date_courante égal à |2021-10-3|
+  définition calcul.date_courante égal à |2022-04-03|
   définition calcul.logement_est_chambre égal à faux
   définition calcul.zone égal à Zone2
   définition calcul.situation_familiale_calcul_apl égal à Couple

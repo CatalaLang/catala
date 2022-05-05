@@ -469,6 +469,19 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) :
       | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'
       | ELit (LBool false) -> (
           match Pos.unmark e' with
+          | Ast.ErrorOnEmpty
+              ( EApp
+                  ( (Ast.EOp (Binop op), pos_op),
+                    [ ((ELit _, _) as e1); ((ELit _, _) as e2) ] ),
+                _ )
+          | EApp
+              ( (Ast.EOp (Ast.Unop (Ast.Log _)), _),
+                [
+                  ( Ast.EApp
+                      ( (Ast.EOp (Binop op), pos_op),
+                        [ ((ELit _, _) as e1); ((ELit _, _) as e2) ] ),
+                    _ );
+                ] )
           | EApp
               ( (Ast.EOp (Binop op), pos_op),
                 [ ((ELit _, _) as e1); ((ELit _, _) as e2) ] ) ->
@@ -479,6 +492,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) :
                 (Print.format_expr ctx ~debug:false)
                 e2
           | _ ->
+              Cli.debug_format "%a" (Print.format_expr ctx) e';
               Errors.raise_spanned_error (Pos.get_position e')
                 "Assertion failed")
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
