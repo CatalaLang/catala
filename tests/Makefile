@@ -3,7 +3,7 @@
 ############################################
 
 CATALA_OPTS?=
-CLERK_OPTS?=
+CLERK_OPTS?=--makeflags="$(MAKEFLAGS)"
 
 CLERK=_build/default/build_system/clerk.exe --exe "_build/default/compiler/catala.exe" \
 	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),) test

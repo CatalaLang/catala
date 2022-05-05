@@ -217,8 +217,8 @@ let driver source_file (options : Cli.options) : int =
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
-                  (Dcalc.Ast.fold_scope_defs ~init:None
-                     ~f:(fun acc scope_def ->
+                  (Dcalc.Ast.fold_left_scope_defs ~init:None
+                     ~f:(fun acc scope_def _ ->
                        if
                          Dcalc.Ast.ScopeName.compare scope_def.scope_name
                            scope_uid
@@ -298,17 +298,8 @@ let driver source_file (options : Cli.options) : int =
             let prgm =
               if options.closure_conversion then (
                 Cli.debug_print "Performing closure conversion...";
-                let prgm, closures =
-                  Lcalc.Closure_conversion.closure_conversion prgm
-                in
+                let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
-                List.iter
-                  (fun closure ->
-                    Cli.debug_format "Closure found:\n%a"
-                      (Lcalc.Print.format_expr ~debug:options.debug
-                         prgm.decl_ctx)
-                      (Bindlib.unbox closure.Lcalc.Closure_conversion.expr))
-                  closures;
                 prgm)
               else prgm
             in
@@ -323,19 +314,27 @@ let driver source_file (options : Cli.options) : int =
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
                   (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
-                  (let body =
-                     List.find
-                       (fun body -> body.Lcalc.Ast.scope_body_name = scope_uid)
-                       prgm.scopes
-                   in
-                   body)
+                  ( scope_uid,
+                    Option.get
+                      (Dcalc.Ast.fold_left_scope_defs ~init:None
+                         ~f:(fun acc scope_def _ ->
+                           if
+                             Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                               scope_uid
+                             = 0
+                           then Some scope_def.scope_body
+                           else acc)
+                         prgm.scopes) )
               else
-                Format.fprintf fmt "%a\n"
-                  (Format.pp_print_list
-                     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-                     (fun fmt scope ->
-                       (Lcalc.Print.format_scope prgm.decl_ctx) fmt scope))
-                  prgm.scopes;
+                ignore
+                  (Dcalc.Ast.fold_left_scope_defs ~init:0
+                     ~f:(fun i scope_def _ ->
+                       Format.fprintf fmt "%s%a"
+                         (if i = 0 then "" else "\n")
+                         (Lcalc.Print.format_scope prgm.decl_ctx)
+                         (scope_uid, scope_def.scope_body);
+                       i + 1)
+                     prgm.scopes);
               at_end ();
               exit 0
             end;

@@ -125,15 +125,10 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
 and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     A.block =
   match Pos.unmark block_expr with
-  | L.EApp
-      ((L.EAbs ((binder, _), [ (D.TLit D.TUnit, _) ]), _), [ (L.EAssert e, _) ])
-    ->
+  | L.EAssert e ->
       (* Assertions are always encapsulated in a unit-typed let binding *)
-      let _, body = Bindlib.unmbind binder in
       let e_stmts, new_e = translate_expr ctxt e in
-      e_stmts
-      @ (A.SAssert (Pos.unmark new_e), Pos.get_position block_expr)
-        :: translate_statements ctxt body
+      e_stmts @ [ (A.SAssert (Pos.unmark new_e), Pos.get_position block_expr) ]
   | L.EApp ((L.EAbs ((binder, binder_pos), taus), eabs_pos), args) ->
       (* This defines multiple local variables at the time *)
       let vars, body = Bindlib.unmbind binder in
@@ -281,30 +276,16 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
               Pos.get_position block_expr );
           ])
 
-let translate_scope
+let rec translate_scope_body_expr
     (scope_name : D.ScopeName.t)
     (decl_ctx : D.decl_ctx)
+    (var_dict : A.LocalName.t L.VarMap.t)
     (func_dict : A.TopLevelName.t L.VarMap.t)
-    (scope_expr : L.expr Pos.marked) :
-    (A.LocalName.t Pos.marked * D.typ Pos.marked) list * A.block =
-  match Pos.unmark scope_expr with
-  | L.EAbs ((binder, binder_pos), typs) ->
-      let vars, body = Bindlib.unmbind binder in
-      let var_dict =
-        Array.fold_left
-          (fun var_dict var ->
-            L.VarMap.add var
-              (A.LocalName.fresh (Bindlib.name_of var, binder_pos))
-              var_dict)
-          L.VarMap.empty vars
-      in
-      let param_list =
-        List.map2
-          (fun var typ -> ((L.VarMap.find var var_dict, binder_pos), typ))
-          (Array.to_list vars) typs
-      in
-      let new_body =
-        translate_statements
+    (scope_expr : L.expr D.scope_body_expr) : A.block =
+  match scope_expr with
+  | Result e ->
+      let block, new_e =
+        translate_expr
           {
             decl_ctx;
             func_dict;
@@ -312,48 +293,109 @@ let translate_scope
             inside_definition_of = None;
             context_name = Pos.unmark (D.ScopeName.get_info scope_name);
           }
-          body
+          e
       in
-      (param_list, new_body)
-  | _ -> assert false
-(* should not happen *)
+      block @ [ (A.SReturn (Pos.unmark new_e), Pos.get_position new_e) ]
+  | ScopeLet scope_let ->
+      let let_var, scope_let_next = Bindlib.unbind scope_let.scope_let_next in
+      let let_var_id =
+        A.LocalName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
+      in
+      let new_var_dict = L.VarMap.add let_var let_var_id var_dict in
+      (match scope_let.scope_let_kind with
+      | D.Assertion ->
+          translate_statements
+            {
+              decl_ctx;
+              func_dict;
+              var_dict;
+              inside_definition_of = Some let_var_id;
+              context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+            }
+            scope_let.scope_let_expr
+      | _ ->
+          let let_expr_stmts, new_let_expr =
+            translate_expr
+              {
+                decl_ctx;
+                func_dict;
+                var_dict;
+                inside_definition_of = Some let_var_id;
+                context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+              }
+              scope_let.scope_let_expr
+          in
+          let_expr_stmts
+          @ [
+              ( A.SLocalDecl
+                  ( (let_var_id, scope_let.scope_let_pos),
+                    scope_let.scope_let_typ ),
+                scope_let.scope_let_pos );
+              ( A.SLocalDef ((let_var_id, scope_let.scope_let_pos), new_let_expr),
+                scope_let.scope_let_pos );
+            ])
+      @ translate_scope_body_expr scope_name decl_ctx new_var_dict func_dict
+          scope_let_next
 
 let translate_program (p : L.program) : A.program =
   {
     decl_ctx = p.L.decl_ctx;
     scopes =
       (let _, new_scopes =
-         List.fold_left
-           (fun (func_dict, new_scopes) body ->
-             let new_scope_params, new_scope_body =
-               translate_scope body.L.scope_body_name p.decl_ctx func_dict
-                 body.L.scope_body_expr
+         D.fold_left_scope_defs
+           ~f:(fun (func_dict, new_scopes) scope_def scope_var ->
+             let scope_input_var, scope_body_expr =
+               Bindlib.unbind scope_def.scope_body.scope_body_expr
+             in
+             let input_pos =
+               Pos.get_position (D.ScopeName.get_info scope_def.scope_name)
+             in
+             let scope_input_var_id =
+               A.LocalName.fresh (Bindlib.name_of scope_input_var, input_pos)
+             in
+             let var_dict =
+               L.VarMap.singleton scope_input_var scope_input_var_id
+             in
+             let new_scope_body =
+               translate_scope_body_expr scope_def.D.scope_name p.decl_ctx
+                 var_dict func_dict scope_body_expr
              in
              let func_id =
-               A.TopLevelName.fresh
-                 (Bindlib.name_of body.Lcalc.Ast.scope_body_var, Pos.no_pos)
+               A.TopLevelName.fresh (Bindlib.name_of scope_var, Pos.no_pos)
              in
-             let func_dict =
-               L.VarMap.add body.Lcalc.Ast.scope_body_var func_id func_dict
-             in
+             let func_dict = L.VarMap.add scope_var func_id func_dict in
              ( func_dict,
                {
-                 Ast.scope_body_name = body.Lcalc.Ast.scope_body_name;
+                 Ast.scope_body_name = scope_def.D.scope_name;
                  Ast.scope_body_var = func_id;
                  scope_body_func =
                    {
-                     A.func_params = new_scope_params;
+                     A.func_params =
+                       [
+                         ( (scope_input_var_id, input_pos),
+                           ( D.TTuple
+                               ( List.map snd
+                                   (D.StructMap.find
+                                      scope_def.D.scope_body
+                                        .D.scope_body_input_struct
+                                      p.L.decl_ctx.ctx_structs),
+                                 Some
+                                   scope_def.D.scope_body
+                                     .D.scope_body_input_struct ),
+                             input_pos ) );
+                       ];
                      A.func_body = new_scope_body;
                    };
                }
                :: new_scopes ))
-           ( (if !Cli.avoid_exceptions_flag then
-              L.VarMap.singleton L.handle_default_opt
-                (A.TopLevelName.fresh ("handle_default_opt", Pos.no_pos))
-             else
-               L.VarMap.singleton L.handle_default
-                 (A.TopLevelName.fresh ("handle_default", Pos.no_pos))),
-             [] )
+           ~init:
+             ( (if !Cli.avoid_exceptions_flag then
+                L.VarMap.singleton L.handle_default_opt
+                  (A.TopLevelName.fresh ("handle_default_opt", Pos.no_pos))
+               else
+                 L.VarMap.singleton L.handle_default
+                   (A.TopLevelName.fresh ("handle_default", Pos.no_pos))),
+               [] )
            p.L.scopes
        in
        List.rev new_scopes);

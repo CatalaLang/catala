@@ -243,7 +243,7 @@ run_french_law_library_benchmark_python: type_french_law_library_python
 ##########################################
 
 CATALA_OPTS?=
-CLERK_OPTS?=
+CLERK_OPTS?=--makeflags="$(MAKEFLAGS)"
 
 CATALA_BIN=_build/default/compiler/catala.exe
 CLERK_BIN=_build/default/build_system/clerk.exe
@@ -255,10 +255,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 .FORCE:
 
 test_suite: .FORCE
-	@$(CLERK) test tests
+	$(CLERK) test tests
 
 test_examples: .FORCE
-	@$(CLERK) test examples
+	$(CLERK) test examples
 
 test_clerk: .FORCE
 	cd $(BUILD_SYSTEM_DIR) && dune test

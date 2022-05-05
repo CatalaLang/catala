@@ -27,9 +27,9 @@ let visitor_map
      syntax tree modified. Used in other transformations. *)
   let default_mark e' = Pos.same_pos_as e' e in
   match Pos.unmark e with
-  | EVar (v, pos) ->
+  | EVar (v, _pos) ->
       let+ v = Bindlib.box_var v in
-      (v, pos)
+      default_mark @@ v
   | ETuple (args, n) ->
       let+ args = args |> List.map (t ctx) |> Bindlib.box_list in
       default_mark @@ ETuple (args, n)
@@ -101,36 +101,16 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
   | _ -> visitor_map beta_expr () e
 
 let iota_optimizations (p : program) : program =
-  {
-    p with
-    scopes =
-      List.map
-        (fun scope_body ->
-          {
-            scope_body with
-            scope_body_expr =
-              Bindlib.unbox (iota_expr () scope_body.scope_body_expr);
-          })
-        p.scopes;
-  }
+  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) p.scopes in
+  { p with scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
    of beta-optimization as future work since its produce code that is harder to
    read, and can produce exponential blowup of the size of the generated
    program. *)
 let _beta_optimizations (p : program) : program =
-  {
-    p with
-    scopes =
-      List.map
-        (fun scope_body ->
-          {
-            scope_body with
-            scope_body_expr =
-              Bindlib.unbox (beta_expr () scope_body.scope_body_expr);
-          })
-        p.scopes;
-  }
+  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) p.scopes in
+  { p with scopes = Bindlib.unbox new_scopes }
 
 let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
     expr Pos.marked Bindlib.box =
@@ -161,18 +141,10 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
   | _ -> visitor_map peephole_expr () e
 
 let peephole_optimizations (p : program) : program =
-  {
-    p with
-    scopes =
-      List.map
-        (fun scope_body ->
-          {
-            scope_body with
-            scope_body_expr =
-              Bindlib.unbox (peephole_expr () scope_body.scope_body_expr);
-          })
-        p.scopes;
-  }
+  let new_scopes =
+    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ()) p.scopes
+  in
+  { p with scopes = Bindlib.unbox new_scopes }
 
 let optimize_program (p : program) : program =
   p |> iota_optimizations |> peephole_optimizations

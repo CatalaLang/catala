@@ -356,9 +356,10 @@ let format_scope
     ?(debug : bool = false)
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    ((n, s) : Ast.ScopeName.t * scope_body) =
+    ((n, s) : Ast.ScopeName.t * Ast.expr scope_body) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
     Ast.ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox
-       (Ast.build_whole_scope_expr ctx s
+       (Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
+          ~make_let_in:Ast.make_let_in ~box_expr:Ast.box_expr ctx s
           (Pos.get_position (Ast.ScopeName.get_info n))))
