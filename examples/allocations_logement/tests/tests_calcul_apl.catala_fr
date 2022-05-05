@@ -1,0 +1,207 @@
+> Inclusion: ../allocations_logement.catala_fr
+
+# Tests
+
+```catala
+déclaration champ d'application Exemple1 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple1:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 700 €
+  définition calcul.date_courante égal à |2022-02-03|
+  définition calcul.logement_est_chambre égal à faux
+  définition calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    égal à faux
+  définition calcul.zone égal à Zone1
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.nombre_personnes_à_charge égal à 3
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  # TODO juridique: trouver articles loi qui calculent le type d'aide
+  # à partir des caractéristiques du ménage et l'implémenter.
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 36 000 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
+  assertion calcul.plafond_loyer_d823_16_2 = 524,20 €
+  assertion calcul.participation_minimale = 44,56 €
+  assertion calcul.taux_composition_familiale = 2,01%
+  assertion calcul.participation_personnelle = 705,51 €
+```
+
+```catala
+déclaration champ d'application Exemple2 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple2:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 425 €
+  définition calcul.date_courante égal à |2022-04-03|
+  définition calcul.logement_est_chambre égal à faux
+  définition calcul.zone égal à Zone2
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.nombre_personnes_à_charge égal à 2
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 11500 €
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 78,8 €
+  assertion calcul.plafond_loyer_d823_16_2 = 409,88 €
+  assertion calcul.participation_minimale = 35,39 €
+  assertion calcul.taux_composition_familiale = 2,38%
+  assertion calcul.participation_personnelle = 124,48 €
+```
+
+```catala
+déclaration champ d'application Exemple3 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple3:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 408 €
+  définition calcul.date_courante égal à |2022-01-18|
+  définition calcul.logement_est_chambre égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.zone égal à Zone3
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.nombre_personnes_à_charge égal à 3
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 14300 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
+  assertion calcul.plafond_loyer_d823_16_2 = 378,37 €
+  assertion calcul.participation_minimale = 35,39 €
+  assertion calcul.taux_composition_familiale = 2,01%
+  assertion calcul.participation_personnelle = 170,11 €
+```
+
+```catala
+déclaration champ d'application Exemple4 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple4:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 680 €
+  définition calcul.date_courante égal à |2021-12-19|
+  définition calcul.logement_est_chambre égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.zone égal à Zone1
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.nombre_personnes_à_charge égal à 1
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 39500 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 66,51 €
+  assertion calcul.plafond_loyer_d823_16_2 = 406,30 €
+  assertion calcul.participation_minimale = 35,39 €
+  assertion calcul.taux_composition_familiale = 2,70%
+  assertion calcul.participation_personnelle = 979,70 €
+```
+
+```catala
+déclaration champ d'application Exemple5 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple5:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 610 €
+  définition calcul.date_courante égal à |2022-04-05|
+  définition calcul.logement_est_chambre égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.zone égal à Zone1
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 2700 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
+  assertion calcul.plafond_loyer_d823_16_2 = 298,07 €
+  assertion calcul.participation_minimale = 35,39 €
+  assertion calcul.taux_composition_familiale = 2,83%
+  assertion calcul.participation_personnelle = 0€ -€ 28,80 €
+```
+
+```catala
+déclaration champ d'application Exemple6 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple6:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 436 €
+  définition calcul.date_courante égal à |2022-05-02|
+  définition calcul.logement_est_chambre égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.zone égal à Zone2
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 19500 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
+  assertion calcul.plafond_loyer_d823_16_2 = 317,97 €
+  assertion calcul.participation_minimale = 35,39 €
+  assertion calcul.taux_composition_familiale = 2,15%
+  assertion calcul.participation_personnelle = 475,59 €
+```
+
+```catala
+déclaration champ d'application Exemple7 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple7:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 527 €
+  définition calcul.date_courante égal à |2022-02-13|
+  définition calcul.logement_est_chambre égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.zone égal à Zone2
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.nombre_personnes_à_charge égal à 6
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 32125 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 0 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 127,96 €
+  assertion calcul.plafond_loyer_d823_16_2 = 618,2 €
+  assertion calcul.participation_minimale = 44,8 €
+  assertion calcul.taux_composition_familiale = 1,73%
+  assertion calcul.participation_personnelle = 483,32 €
+```
