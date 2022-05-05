@@ -151,7 +151,8 @@ scope Section121TwoPasses:
     gain_from_sale_or_exchange_of_property
 
   definition first_pass.date_of_sale_or_exchange equals date_of_sale_or_exchange
-  definition second_pass.date_of_sale_or_exchange equals date_of_sale_or_exchange
+  definition second_pass.date_of_sale_or_exchange equals
+    date_of_sale_or_exchange
 
   definition income_excluded_from_gross_income equals
     second_pass.income_excluded_from_gross_income

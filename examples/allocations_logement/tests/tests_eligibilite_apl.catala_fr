@@ -13,7 +13,7 @@ assertion éligible
  définition éligibilité.date_ouverture_droits égal à |2020-03-10|
  définition éligibilité.ménage égal à Ménage {
   -- prestations_reçues: [AllocationSoutienEnfantHandicapé; ComplémentFamilial; AllocationsFamiliales]
-  -- situation_familiale: Mariés
+  -- situation_familiale: Mariés contenu |2010-11-26|
   -- personnes_à_charge: [
     EnfantÀCharge contenu (EnfantÀCharge {
       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
@@ -53,6 +53,7 @@ assertion éligible
   -- nombre_autres_occupants_logement: 1
   -- condition_rattaché_foyer_fiscal_parent_ifi: faux
   -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
+  -- enfant_à_naître_après_quatrième_mois_grossesse: faux
   -- date_naissance_troisième_enfant_ou_dernier_si_plus :
     Date contenu (DateDeNaissance contenu |2014-09-23|)
  }
