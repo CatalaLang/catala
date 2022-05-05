@@ -715,11 +715,9 @@ let makeflags_to_ninja_flags (makeflags : string option) =
   | Some makeflags ->
       let ignore_rex = Re.(compile @@ word (char 'i')) in
       let has_ignore = Re.execp ignore_rex makeflags in
-      let jobs_rex = Re.(compile @@ seq [str "-j"; group (rep digit)]) in
+      let jobs_rex = Re.(compile @@ seq [ str "-j"; group (rep digit) ]) in
       let number_of_jobs =
-        try
-          int_of_string
-            (Re.get (Re.exec jobs_rex makeflags) 1)
+        try int_of_string (Re.Group.get (Re.exec jobs_rex makeflags) 1)
         with _ -> 0
       in
       String.concat " "
