@@ -629,15 +629,10 @@ def allocation_familiales_avril2008(allocation_familiales_avril2008_in: Allocati
     try:
         temp_age_minimum_alinea_1_l521_3 = integer_of_string("16")
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./securite_sociale_R.catala_fr",
-                                             start_line=78, start_column=49,
-                                             end_line=78, end_column=51,
-                                             law_headings=["Article R521-1",
-                                                           "Chapitre 1er : Allocations familiales",
-                                                           "Titre 2 : Prestations générales d'entretien",
-                                                           "Livre 5 : Prestations familiales et prestations assimilées",
-                                                           "Partie réglementaire - Décrets en Conseil d'Etat",
-                                                           "Code de la sécurité sociale"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=81, start_column=10,
+                                             end_line=81, end_column=37,
+                                             law_headings=["Prologue"]))
     age_minimum_alinea_1_l521_3 = log_variable_definition(["AllocationFamilialesAvril2008",
                                                            "âge_minimum_alinéa_1_l521_3"], temp_age_minimum_alinea_1_l521_3)
     return AllocationFamilialesAvril2008Out(age_minimum_alinea_1_l521_3_out=age_minimum_alinea_1_l521_3)
@@ -681,15 +676,10 @@ def prestations_familiales(prestations_familiales_in: PrestationsFamilialesIn):
     try:
         temp_age_l512_3_2 = integer_of_string("20")
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./securite_sociale_R.catala_fr",
-                                             start_line=21, start_column=34,
-                                             end_line=21, end_column=36,
-                                             law_headings=["Article R512-2",
-                                                           "Chapitre 2 : Champ d'application.",
-                                                           "Titre 1 : Champ d'application - Généralités",
-                                                           "Livre 5 : Prestations familiales et prestations assimilées",
-                                                           "Partie réglementaire - Décrets en Conseil d'Etat",
-                                                           "Code de la sécurité sociale"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=68, start_column=10,
+                                             end_line=68, end_column=22,
+                                             law_headings=["Prologue"]))
     age_l512_3_2 = log_variable_definition(["PrestationsFamiliales",
                                             "âge_l512_3_2"], temp_age_l512_3_2)
     try:
@@ -751,8 +741,8 @@ def prestations_familiales(prestations_familiales_in: PrestationsFamilialesIn):
                                                                "smic.date_courante"], date_courante_1)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=73, start_column=3,
-                                             end_line=73, end_column=7,
+                                             start_line=41, start_column=10,
+                                             end_line=41, end_column=23,
                                              law_headings=["Prologue"]))
     smic_dot_date_courante = temp_smic_dot_date_courante
     try:
@@ -760,8 +750,8 @@ def prestations_familiales(prestations_familiales_in: PrestationsFamilialesIn):
                                                            "smic.résidence"], residence_1)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=73, start_column=3,
-                                             end_line=73, end_column=7,
+                                             start_line=42, start_column=10,
+                                             end_line=42, end_column=19,
                                              law_headings=["Prologue"]))
     smic_dot_residence = temp_smic_dot_residence
     result = log_end_call(["PrestationsFamiliales", "smic", "Smic"],
@@ -1360,29 +1350,19 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
     try:
         temp_nombre_enfants_l521_1 = integer_of_string("3")
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./securite_sociale_D.catala_fr",
-                                             start_line=288, start_column=43,
-                                             end_line=288, end_column=44,
-                                             law_headings=["Article D521-2",
-                                                           "Chapitre 1er : Allocations familiales",
-                                                           "Titre 2 : Prestations générales d'entretien",
-                                                           "Livre 5 : Prestations familiales et prestations assimilées",
-                                                           "Partie réglementaire - Décrets simples",
-                                                           "Code de la sécurité sociale"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=151, start_column=11,
+                                             end_line=151, end_column=32,
+                                             law_headings=["Prologue"]))
     nombre_enfants_l521_1 = log_variable_definition(["AllocationsFamiliales",
                                                      "nombre_enfants_l521_1"], temp_nombre_enfants_l521_1)
     try:
         temp_nombre_enfants_alinea_2_l521_3 = integer_of_string("3")
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./securite_sociale_R.catala_fr",
-                                             start_line=64, start_column=52,
-                                             end_line=64, end_column=53,
-                                             law_headings=["Article R521-1",
-                                                           "Chapitre 1er : Allocations familiales",
-                                                           "Titre 2 : Prestations générales d'entretien",
-                                                           "Livre 5 : Prestations familiales et prestations assimilées",
-                                                           "Partie réglementaire - Décrets en Conseil d'Etat",
-                                                           "Code de la sécurité sociale"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=153, start_column=11,
+                                             end_line=153, end_column=41,
+                                             law_headings=["Prologue"]))
     nombre_enfants_alinea_2_l521_3 = log_variable_definition(["AllocationsFamiliales",
                                                               "nombre_enfants_alinéa_2_l521_3"],
                                                              temp_nombre_enfants_alinea_2_l521_3)
@@ -1397,8 +1377,8 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                                                  "prestations_familiales.date_courante"], date_courante_2)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=146, start_column=3,
-                                             end_line=146, end_column=25,
+                                             start_line=70, start_column=10,
+                                             end_line=70, end_column=23,
                                              law_headings=["Prologue"]))
     prestations_familiales_dot_date_courante = temp_prestations_familiales_dot_date_courante
     try:
@@ -1408,8 +1388,8 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                                                                                    Unit()))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=146, start_column=3,
-                                             end_line=146, end_column=25,
+                                             start_line=71, start_column=10,
+                                             end_line=71, end_column=29,
                                              law_headings=["Prologue"]))
     prestations_familiales_dot_prestation_courante = temp_prestations_familiales_dot_prestation_courante
     try:
@@ -1417,8 +1397,8 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                                              "prestations_familiales.résidence"], residence_2)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=146, start_column=3,
-                                             end_line=146, end_column=25,
+                                             start_line=72, start_column=10,
+                                             end_line=72, end_column=19,
                                              law_headings=["Prologue"]))
     prestations_familiales_dot_residence = temp_prestations_familiales_dot_residence
     result_2 = log_end_call(["AllocationsFamiliales",
@@ -1438,8 +1418,8 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                                        "enfant_le_plus_âgé.enfants"], enfants_a_charge)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=148, start_column=3,
-                                             end_line=148, end_column=21,
+                                             start_line=84, start_column=10,
+                                             end_line=84, end_column=17,
                                              law_headings=["Prologue"]))
     enfant_le_plus_age_dot_enfants = temp_enfant_le_plus_age_dot_enfants
     result_3 = log_end_call(["AllocationsFamiliales", "enfant_le_plus_âgé",
@@ -3447,9 +3427,9 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
     montant_verse = log_variable_definition(["AllocationsFamiliales",
                                              "montant_versé"], temp_montant_verse)
     try:
-        allocations_familiales = (personne_charge_effective_permanente_est_parent or
-                                  (not personne_charge_effective_permanente_est_parent and
-                                   personne_charge_effective_permanente_remplit_titre__i))
+        temp__ = (personne_charge_effective_permanente_est_parent or
+                  (not personne_charge_effective_permanente_est_parent and
+                   personne_charge_effective_permanente_remplit_titre__i))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                              start_line=230, start_column=5,
@@ -3460,7 +3440,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                            "Partie législative",
                                                            "Code de la sécurité sociale"]))
-    assert allocations_familiales
+    assert temp__
     return AllocationsFamilialesOut(montant_verse_out=montant_verse)
 
 
@@ -3520,11 +3500,10 @@ def interface_allocations_familiales(interface_allocations_familiales_in: Interf
                                                                                                                      "allocations_familiales.personne_charge_effective_permanente_est_parent"],
                                                                                                                     temp_allocations_familiales_dot_personne_charge_effective_permanente_est_parent)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=90, start_column=10,
+                                             end_line=90, end_column=57,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_personne_charge_effective_permanente_est_parent = temp_allocations_familiales_dot_personne_charge_effective_permanente_est_parent_1
     try:
         try:
@@ -3541,52 +3520,47 @@ def interface_allocations_familiales(interface_allocations_familiales_in: Interf
                                                                                                                            "allocations_familiales.personne_charge_effective_permanente_remplit_titre_I"],
                                                                                                                           temp_allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=91, start_column=10,
+                                             end_line=91, end_column=62,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i = temp_allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_1
     try:
         temp_allocations_familiales_dot_ressources_menage = log_variable_definition(["InterfaceAllocationsFamiliales",
                                                                                      "allocations_familiales.ressources_ménage"],
                                                                                     i_ressources_menage)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=92, start_column=10,
+                                             end_line=92, end_column=27,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_ressources_menage = temp_allocations_familiales_dot_ressources_menage
     try:
         temp_allocations_familiales_dot_residence = log_variable_definition(["InterfaceAllocationsFamiliales",
                                                                              "allocations_familiales.résidence"], i_residence)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=93, start_column=10,
+                                             end_line=93, end_column=19,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_residence = temp_allocations_familiales_dot_residence
     try:
         temp_allocations_familiales_dot_date_courante = log_variable_definition(["InterfaceAllocationsFamiliales",
                                                                                  "allocations_familiales.date_courante"], i_date_courante)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=96, start_column=10,
+                                             end_line=96, end_column=23,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_date_courante = temp_allocations_familiales_dot_date_courante
     try:
         temp_allocations_familiales_dot_enfants_a_charge = log_variable_definition(["InterfaceAllocationsFamiliales",
                                                                                     "allocations_familiales.enfants_à_charge"], enfants_a_charge_1)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=99, start_column=10,
+                                             end_line=99, end_column=26,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_enfants_a_charge = temp_allocations_familiales_dot_enfants_a_charge
     try:
         try:
@@ -3603,11 +3577,10 @@ def interface_allocations_familiales(interface_allocations_familiales_in: Interf
                                                                                                                   "allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012"],
                                                                                                                  temp_allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=3,
-                                             end_line=75, end_column=25,
-                                             law_headings=["Interface du programme",
-                                                           "Épilogue", "Décrets divers"]))
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=120, start_column=10,
+                                             end_line=120, end_column=54,
+                                             law_headings=["Prologue"]))
     allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012 = temp_allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_1
     result_4 = log_end_call(["InterfaceAllocationsFamiliales",
                              "allocations_familiales", "AllocationsFamiliales"],

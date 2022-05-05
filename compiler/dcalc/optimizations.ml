@@ -193,7 +193,8 @@ let optimize_expr (decl_ctx : decl_ctx) (e : expr Pos.marked) =
 let rec scope_lets_map
     (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
     (ctx : 'a)
-    (scope_body_expr : scope_body_expr) : scope_body_expr Bindlib.box =
+    (scope_body_expr : expr scope_body_expr) : expr scope_body_expr Bindlib.box
+    =
   match scope_body_expr with
   | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
   | ScopeLet scope_let ->
@@ -214,7 +215,7 @@ let rec scope_lets_map
 let rec scopes_map
     (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
     (ctx : 'a)
-    (scopes : scopes) : scopes Bindlib.box =
+    (scopes : expr scopes) : expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
@@ -255,60 +256,3 @@ let optimize_program (p : program) : program =
     (program_map partial_evaluation
        { var_values = VarMap.empty; decl_ctx = p.decl_ctx }
        p)
-
-let rec remove_all_logs (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
-  let pos = Pos.get_position e in
-  let rec_helper = remove_all_logs in
-  match Pos.unmark e with
-  | EVar (x, _) -> Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
-  | ETuple (args, s_name) ->
-      Bindlib.box_apply
-        (fun args -> (ETuple (args, s_name), pos))
-        (List.map rec_helper args |> Bindlib.box_list)
-  | ETupleAccess (arg, i, s_name, typs) ->
-      Bindlib.box_apply
-        (fun arg -> (ETupleAccess (arg, i, s_name, typs), pos))
-        (rec_helper arg)
-  | EInj (arg, i, e_name, typs) ->
-      Bindlib.box_apply
-        (fun arg -> (EInj (arg, i, e_name, typs), pos))
-        (rec_helper arg)
-  | EMatch (arg, arms, e_name) ->
-      Bindlib.box_apply2
-        (fun arg arms -> (EMatch (arg, arms, e_name), pos))
-        (rec_helper arg)
-        (List.map rec_helper arms |> Bindlib.box_list)
-  | EArray args ->
-      Bindlib.box_apply
-        (fun args -> (EArray args, pos))
-        (List.map rec_helper args |> Bindlib.box_list)
-  | ELit l -> Bindlib.box (ELit l, pos)
-  | EAbs ((binder, binder_pos), typs) ->
-      let vars, body = Bindlib.unmbind binder in
-      let new_body = rec_helper body in
-      let new_binder = Bindlib.bind_mvar vars new_body in
-      Bindlib.box_apply
-        (fun binder -> (EAbs ((binder, binder_pos), typs), pos))
-        new_binder
-  | EApp (f, args) ->
-      Bindlib.box_apply2
-        (fun f args ->
-          match (Pos.unmark f, args) with
-          | EOp (Unop (Log _)), [ arg ] -> arg
-          | _ -> (EApp (f, args), pos))
-        (rec_helper f)
-        (List.map rec_helper args |> Bindlib.box_list)
-  | EAssert e1 ->
-      Bindlib.box_apply (fun e1 -> (EAssert e1, pos)) (rec_helper e1)
-  | EOp op -> Bindlib.box (EOp op, pos)
-  | EDefault (exceptions, just, cons) ->
-      Bindlib.box_apply3
-        (fun exceptions just cons -> (EDefault (exceptions, just, cons), pos))
-        (List.map rec_helper exceptions |> Bindlib.box_list)
-        (rec_helper just) (rec_helper cons)
-  | EIfThenElse (e1, e2, e3) ->
-      Bindlib.box_apply3
-        (fun e1 e2 e3 -> (EIfThenElse (e1, e2, e3), pos))
-        (rec_helper e1) (rec_helper e2) (rec_helper e3)
-  | ErrorOnEmpty e1 ->
-      Bindlib.box_apply (fun e1 -> (ErrorOnEmpty e1, pos)) (rec_helper e1)

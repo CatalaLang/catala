@@ -36,8 +36,8 @@ val catala_backend_option_to_string : backend_option -> string
     given [backend].*)
 
 val catala_backend_option_of_string : string -> backend_option option
-(** [catala_backend_option_of_string backend] returns the {!type:
-    backend_option} corresponding to the [backend] string. *)
+(** [catala_backend_option_of_string backend] returns the {!type:backend_option}
+    corresponding to the [backend] string. *)
 
 (** {2 Configuration globals} *)
 

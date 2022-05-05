@@ -56,5 +56,5 @@ val format_scope :
   ?debug:bool (** [true] for debug printing *) ->
   Ast.decl_ctx ->
   Format.formatter ->
-  Ast.ScopeName.t * Ast.scope_body ->
+  Ast.ScopeName.t * Ast.expr Ast.scope_body ->
   unit

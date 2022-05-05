@@ -342,8 +342,8 @@ let translate_rule
     (ctx : ctx)
     (rule : Ast.rule)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
-    (Dcalc.Ast.scope_body_expr Bindlib.box ->
-    Dcalc.Ast.scope_body_expr Bindlib.box)
+    (Dcalc.Ast.expr Dcalc.Ast.scope_body_expr Bindlib.box ->
+    Dcalc.Ast.expr Dcalc.Ast.scope_body_expr Bindlib.box)
     * ctx =
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, a_io, e) ->
@@ -555,7 +555,8 @@ let translate_rule
               Some called_scope_return_struct ),
           pos_sigma )
       in
-      let call_scope_let (next : Dcalc.Ast.scope_body_expr Bindlib.box) =
+      let call_scope_let
+          (next : Dcalc.Ast.expr Dcalc.Ast.scope_body_expr Bindlib.box) =
         Bindlib.box_apply2
           (fun next call_expr ->
             Dcalc.Ast.ScopeLet
@@ -569,7 +570,8 @@ let translate_rule
           (Bindlib.bind_var result_tuple_var next)
           call_expr
       in
-      let result_bindings_lets (next : Dcalc.Ast.scope_body_expr Bindlib.box) =
+      let result_bindings_lets
+          (next : Dcalc.Ast.expr Dcalc.Ast.scope_body_expr Bindlib.box) =
         List.fold_right
           (fun (var_ctx, v) (next, i) ->
             ( Bindlib.box_apply2
@@ -643,7 +645,7 @@ let translate_rules
     (rules : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
     (sigma_return_struct_name : Ast.StructName.t) :
-    Dcalc.Ast.scope_body_expr Bindlib.box * ctx =
+    Dcalc.Ast.expr Dcalc.Ast.scope_body_expr Bindlib.box * ctx =
   let scope_lets, new_ctx =
     List.fold_left
       (fun (scope_lets, ctx) rule ->
@@ -682,7 +684,7 @@ let translate_scope_decl
     (sctx : scope_sigs_ctx)
     (scope_name : Ast.ScopeName.t)
     (sigma : Ast.scope_decl) :
-    Dcalc.Ast.scope_body Bindlib.box * Dcalc.Ast.struct_ctx =
+    Dcalc.Ast.expr Dcalc.Ast.scope_body Bindlib.box * Dcalc.Ast.struct_ctx =
   let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
@@ -751,7 +753,8 @@ let translate_scope_decl
           pos_sigma )
     | NoInput -> failwith "should not happen"
   in
-  let input_destructurings (next : Dcalc.Ast.scope_body_expr Bindlib.box) =
+  let input_destructurings
+      (next : Dcalc.Ast.expr Dcalc.Ast.scope_body_expr Bindlib.box) =
     fst
       (List.fold_right
          (fun (var_ctx, v) (next, i) ->
@@ -888,7 +891,7 @@ let translate_program (prgm : Ast.program) :
   in
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. *)
-  let (scopes, decl_ctx) : Dcalc.Ast.scopes Bindlib.box * _ =
+  let (scopes, decl_ctx) : Dcalc.Ast.expr Dcalc.Ast.scopes Bindlib.box * _ =
     List.fold_right
       (fun scope_name (scopes, decl_ctx) ->
         let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in

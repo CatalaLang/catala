@@ -16,6 +16,7 @@
 
 open Ast
 open Utils
+module D = Dcalc.Ast
 
 (** TODO: This version is not yet debugged and ought to be specialized when
     Lcalc has more structure. *)
@@ -181,7 +182,8 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
              (Bindlib.box_list
                 (List.map
                    (fun extra_var -> Bindlib.box_var extra_var)
-                   extra_vars_list))),
+                   extra_vars_list)))
+          (Pos.get_position e),
         extra_vars )
   | EApp ((EOp op, pos_op), args) ->
       (* This corresponds to an operator call, which we don't want to
@@ -241,8 +243,11 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
                  Pos.get_position e ))
              (Bindlib.box_var code_var) (Bindlib.box_var env_var)
              (Bindlib.box_list new_args))
+          (Pos.get_position e)
       in
-      ( make_let_in env_var (Dcalc.Ast.TAny, Pos.get_position e) new_e1 call_expr,
+      ( make_let_in env_var
+          (Dcalc.Ast.TAny, Pos.get_position e)
+          new_e1 call_expr (Pos.get_position e),
         free_vars )
   | EAssert e1 ->
       let new_e1, free_vars = closure_conversion_expr ctx e1 in
@@ -271,48 +276,54 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
           new_e1 new_e2,
         VarSet.union free_vars1 free_vars2 )
 
-let closure_conversion (p : program) : program Bindlib.box * closure list =
-  let all_scope_variables =
-    List.fold_left
-      (fun acc scope -> VarSet.add scope.scope_body_var acc)
-      VarSet.empty p.scopes
+let closure_conversion (p : program) : program Bindlib.box =
+  let new_scopes, _ =
+    D.fold_left_scope_defs
+      ~f:
+        (fun ((acc_new_scopes, global_vars) :
+               (expr D.scopes Bindlib.box -> expr D.scopes Bindlib.box)
+               * VarSet.t) (scope : expr D.scope_def) (scope_var : Var.t) ->
+        (* [acc_new_scopes] represents what has been translated in the past, it
+           needs a continuation to attach the rest of the translated scopes. *)
+        let scope_input_var, scope_body_expr =
+          Bindlib.unbind scope.scope_body.scope_body_expr
+        in
+        let global_vars = VarSet.add scope_var global_vars in
+        let ctx =
+          {
+            name_context =
+              Pos.unmark (Dcalc.Ast.ScopeName.get_info scope.scope_name);
+            globally_bound_vars = global_vars;
+          }
+        in
+        let new_scope_lets =
+          D.map_exprs_in_scope_lets
+            ~f:(fun e -> fst (closure_conversion_expr ctx e))
+            scope_body_expr
+        in
+        let new_scope_body_expr =
+          Bindlib.bind_var scope_input_var new_scope_lets
+        in
+        ( (fun next ->
+            acc_new_scopes
+              (Bindlib.box_apply2
+                 (fun new_scope_body_expr next ->
+                   D.ScopeDef
+                     {
+                       scope with
+                       scope_body =
+                         {
+                           scope.scope_body with
+                           scope_body_expr = new_scope_body_expr;
+                         };
+                       scope_next = next;
+                     })
+                 new_scope_body_expr
+                 (Bindlib.bind_var scope_var next))),
+          global_vars ))
+      ~init:(Fun.id, VarSet.of_list [ handle_default; handle_default_opt ])
+      p.scopes
   in
-  let new_scopes, closures =
-    List.fold_left
-      (fun ((acc_new_scopes, acc_closures) :
-             scope_body Bindlib.box list * closure list) (scope : scope_body) ->
-        match Pos.unmark scope.scope_body_expr with
-        | EAbs ((binder, binder_pos), typs) ->
-            (* We do not hoist the outer-most EAbs which is the scope function
-               itself *)
-            let vars, body = Bindlib.unmbind binder in
-            let ctx =
-              {
-                name_context =
-                  Pos.unmark
-                    (Dcalc.Ast.ScopeName.get_info scope.scope_body_name);
-                globally_bound_vars =
-                  VarSet.union all_scope_variables
-                    (VarSet.of_list [ handle_default; handle_default_opt ]);
-              }
-            in
-            let new_body_expr, _ = closure_conversion_expr ctx body in
-            let new_binder = Bindlib.bind_mvar vars new_body_expr in
-            ( Bindlib.box_apply
-                (fun new_binder ->
-                  {
-                    scope with
-                    scope_body_expr =
-                      ( EAbs ((new_binder, binder_pos), typs),
-                        Pos.get_position scope.scope_body_expr );
-                  })
-                new_binder
-              :: acc_new_scopes,
-              [] @ acc_closures )
-        | _ -> failwith "should not happen")
-      ([], []) p.scopes
-  in
-  ( Bindlib.box_apply
-      (fun new_scopes -> { p with scopes = List.rev new_scopes })
-      (Bindlib.box_list new_scopes),
-    closures )
+  Bindlib.box_apply
+    (fun new_scopes -> { p with scopes = new_scopes })
+    (new_scopes (Bindlib.box D.Nil))

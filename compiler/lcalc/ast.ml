@@ -50,6 +50,92 @@ type expr =
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
 
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
+
+let evar (v : expr Bindlib.var) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun v' -> (v', pos)) (Bindlib.box_var v)
+
+let etuple
+    (args : expr Pos.marked Bindlib.box list)
+    (s : Dcalc.Ast.StructName.t option)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply
+    (fun args -> (ETuple (args, s), pos))
+    (Bindlib.box_list args)
+
+let etupleaccess
+    (e1 : expr Pos.marked Bindlib.box)
+    (i : int)
+    (s : Dcalc.Ast.StructName.t option)
+    (typs : Dcalc.Ast.typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (ETupleAccess (e1, i, s, typs), pos)) e1
+
+let einj
+    (e1 : expr Pos.marked Bindlib.box)
+    (i : int)
+    (e_name : Dcalc.Ast.EnumName.t)
+    (typs : Dcalc.Ast.typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (EInj (e1, i, e_name, typs), pos)) e1
+
+let ematch
+    (arg : expr Pos.marked Bindlib.box)
+    (arms : expr Pos.marked Bindlib.box list)
+    (e_name : Dcalc.Ast.EnumName.t)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun arg arms -> (EMatch (arg, arms, e_name), pos))
+    arg (Bindlib.box_list arms)
+
+let earray (args : expr Pos.marked Bindlib.box list) (pos : Pos.t) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun args -> (EArray args, pos)) (Bindlib.box_list args)
+
+let elit (l : lit) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box (ELit l, pos)
+
+let eabs
+    (binder : (expr, expr Pos.marked) Bindlib.mbinder Bindlib.box)
+    (pos_binder : Pos.t)
+    (typs : Dcalc.Ast.typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply
+    (fun binder -> (EAbs ((binder, pos_binder), typs), pos))
+    binder
+
+let eapp
+    (e1 : expr Pos.marked Bindlib.box)
+    (args : expr Pos.marked Bindlib.box list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun e1 args -> (EApp (e1, args), pos))
+    e1 (Bindlib.box_list args)
+
+let eassert (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (EAssert e1, pos)) e1
+
+let eop (op : Dcalc.Ast.operator) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box (EOp op, pos)
+
+let eraise (e1 : except) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box (ERaise e1, pos)
+
+let ecatch
+    (e1 : expr Pos.marked Bindlib.box)
+    (exn : except)
+    (e2 : expr Pos.marked Bindlib.box)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2 (fun e1 e2 -> (ECatch (e1, exn, e2), pos)) e1 e2
+
+let eifthenelse
+    (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box)
+    (e3 : expr Pos.marked Bindlib.box)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply3 (fun e1 e2 e3 -> (EIfThenElse (e1, e2, e3), pos)) e1 e2 e3
+
 module Var = struct
   type t = expr Bindlib.var
 
@@ -65,6 +151,40 @@ module VarMap = Map.Make (Var)
 module VarSet = Set.Make (Var)
 
 type vars = expr Bindlib.mvar
+
+let map_expr
+    (ctx : 'a)
+    ~(f : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+  match Pos.unmark e with
+  | EVar (v, _pos) -> evar v (Pos.get_position e)
+  | EApp (e1, args) ->
+      eapp (f ctx e1) (List.map (f ctx) args) (Pos.get_position e)
+  | EAbs ((binder, binder_pos), typs) ->
+      eabs
+        (Bindlib.box_mbinder (f ctx) binder)
+        binder_pos typs (Pos.get_position e)
+  | ETuple (args, s) -> etuple (List.map (f ctx) args) s (Pos.get_position e)
+  | ETupleAccess (e1, n, s_name, typs) ->
+      etupleaccess ((f ctx) e1) n s_name typs (Pos.get_position e)
+  | EInj (e1, i, e_name, typs) ->
+      einj ((f ctx) e1) i e_name typs (Pos.get_position e)
+  | EMatch (arg, arms, e_name) ->
+      ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Pos.get_position e)
+  | EArray args -> earray (List.map (f ctx) args) (Pos.get_position e)
+  | ELit l -> elit l (Pos.get_position e)
+  | EAssert e1 -> eassert ((f ctx) e1) (Pos.get_position e)
+  | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
+  | ERaise exn -> eraise exn (Pos.get_position e)
+  | EIfThenElse (e1, e2, e3) ->
+      eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Pos.get_position e)
+  | ECatch (e1, exn, e2) ->
+      ecatch (f ctx e1) exn (f ctx e2) (Pos.get_position e)
+
+(** See [Bindlib.box_term] documentation for why we are doing that. *)
+let box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+  let rec id_t () e = map_expr () ~f:id_t e in
+  id_t () e
 
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
@@ -89,8 +209,8 @@ let make_let_in
     (x : Var.t)
     (tau : D.typ Pos.marked)
     (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  let pos = Pos.get_position (Bindlib.unbox e2) in
+    (e2 : expr Pos.marked Bindlib.box)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
 let make_multiple_let_in
@@ -169,11 +289,3 @@ let handle_default = Var.make ("handle_default", Pos.no_pos)
 let handle_default_opt = Var.make ("handle_default_opt", Pos.no_pos)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
-
-type scope_body = {
-  scope_body_name : Dcalc.Ast.ScopeName.t;
-  scope_body_var : Var.t;
-  scope_body_expr : expr Pos.marked;
-}
-
-type program = { decl_ctx : D.decl_ctx; scopes : scope_body list }
