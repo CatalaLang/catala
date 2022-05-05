@@ -1,0 +1,16 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content money
+  output y content money
+  output z content money
+
+
+scope A:
+  definition x equals $0.15 *$ 2.0
+  definition y equals $0.3
+  definition z equals round_money of ($357.67 -$ $0.5)
+  assertion x = y
+  assertion z = $357
+```
