@@ -81,14 +81,15 @@ champ d'application Exemple3:
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage_arrondies égal à 14300 €
+  définition calcul.ressources_ménage_arrondies égal à 14250 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
-  assertion montant = 0 €
+  assertion montant = 329,65 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
-  assertion calcul.plafond_loyer_d823_16_2 = 378,37 €
+  assertion calcul.plafond_loyer_d823_16_2 = 425,80 €
   assertion calcul.participation_minimale = 35,39 €
   assertion calcul.taux_composition_familiale = 2,01%
-  assertion calcul.participation_personnelle = 170,11 €
+  assertion calcul.participation_personnelle = 163,90€
+ #Il y a une différence de 1€ dans le montant qui doit être due à l'arrondi
 ```
 
 ```catala
