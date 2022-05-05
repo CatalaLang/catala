@@ -68,7 +68,7 @@ Lorsque les conditions d'ouverture du droit à l'aide personnalisée au logement
 sont remplies au titre d'un logement, seule cette aide est attribuée pour ce logement.
 
 ```catala
-# TODO juridique: quelles autres aides aux logements pourraient concurrencer les APL?
+# Attention, Les APL ne sont pas cumulables avec les allocations de logement. 
 ```
 
 ####### Article R821-6 | LEGIARTI000038879011
@@ -1766,11 +1766,11 @@ champ d'application CalculAidePersonnelleLogementLocatif:
   définition aide_finale état contributions_sociales_arrondi égal à
     si
       arrondi_argent de (aide_finale -€
-        contributions_sociales.montant de aide_finale -€ 0,5€) +€
+        contributions_sociales.montant de aide_finale -€ 0,50€) +€
       contributions_sociales.montant de aide_finale >=€ 0€
     alors
       arrondi_argent de (aide_finale -€
-        contributions_sociales.montant de aide_finale -€ 0,5€) +€
+        contributions_sociales.montant de aide_finale -€ 0,50€) +€
       contributions_sociales.montant de aide_finale
     sinon 0€
 ```
@@ -3040,12 +3040,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
     si
       arrondi_argent de (aide_finale -€
         contributions_sociales.montant de aide_finale -€
-        0,5€) +€
+        0,50€) +€
       contributions_sociales.montant de aide_finale >=€ 0€
     alors
       arrondi_argent de (aide_finale -€
         contributions_sociales.montant de aide_finale -€
-        0,5€) +€
+        0,50€) +€
       contributions_sociales.montant de aide_finale
     sinon 0€
 ```
@@ -3604,12 +3604,12 @@ champ d'application CalculAidePersonnelleLogementFoyer:
     si
       arrondi_argent de (aide_finale -€
         contributions_sociales.montant de aide_finale -€
-        0,5€) +€
+        0,50€) +€
       contributions_sociales.montant de aide_finale >=€ 0€
     alors
       arrondi_argent de (aide_finale -€
         contributions_sociales.montant de aide_finale -€
-        0,5€) +€
+        0,50€) +€
       contributions_sociales.montant de aide_finale
     sinon 0€
 ```
