@@ -197,21 +197,13 @@ let rec translate_expr
                    decimal_of_string (i ^ "." ^ f) /& decimal_of_string "100"))
         | LBool b -> Desugared.Ast.ELit (Dcalc.Ast.LBool b)
         | LMoneyAmount i ->
-            (* If the user has written $0.3 it means 30 cents so we have to pad
-               with a 0 *)
-            let reg = Re.compile (Re.seq [ Re.start; Re.digit; Re.stop ]) in
-            let cents_correct =
-              Re.replace reg
-                ~f:(fun group -> Re.Group.get group 0 ^ "0")
-                i.money_amount_cents
-            in
             Desugared.Ast.ELit
               (Dcalc.Ast.LMoney
                  Runtime.(
                    money_of_cents_integer
                      (integer_of_string i.money_amount_units
                       *! integer_of_int 100
-                     +! integer_of_string cents_correct)))
+                     +! integer_of_string i.money_amount_cents)))
         | LNumber ((Int i, _), Some (Year, _)) ->
             Desugared.Ast.ELit
               (Dcalc.Ast.LDuration
