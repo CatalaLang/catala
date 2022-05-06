@@ -233,12 +233,16 @@ let handle_default_opt
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 
 let ( *$ ) (i1 : money) (i2 : decimal) : money =
-  let rat_result = Q.mul (Q.of_bigint i1) i2 in
+  let i1_abs = Z.abs i1 in
+  let i2_abs = Q.abs i2 in
+  let sign_int = Z.sign i1 * Q.sign i2 in
+  let rat_result = Q.mul (Q.of_bigint i1_abs) i2_abs in
   let res, remainder = Z.div_rem (Q.num rat_result) (Q.den rat_result) in
   (* we perform nearest rounding when multiplying an amount of money by a
      decimal !*)
-  if Z.(of_int 2 * remainder >= Q.den rat_result) then Z.add res (Z.of_int 1)
-  else res
+  if Z.(of_int 2 * remainder >= Q.den rat_result) then
+    Z.(add res (of_int 1) * of_int sign_int)
+  else Z.(res * of_int sign_int)
 
 let ( /$ ) (m1 : money) (m2 : money) : decimal =
   if Z.zero = m2 then raise Division_by_zero
