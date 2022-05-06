@@ -142,12 +142,14 @@ champ d'application Exemple5:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 2700 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
-  assertion montant = 0 €
+  assertion montant = 375,88 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 298,07 €
   assertion calcul.participation_minimale = 35,39 €
   assertion calcul.taux_composition_familiale = 2,83%
   assertion calcul.participation_personnelle = 0€ -€ 28,80 €
+  # Légère différence pour la particpation personnelle de 0,01 en raison d'un arrondi
+  # Mais le résultat obtenu pour le montant de l'aide finale est le même. 
 ```
 
 ```catala
@@ -169,13 +171,13 @@ champ d'application Exemple6:
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage_arrondies égal à 19500 €
+  définition calcul.ressources_ménage_arrondies égal à 19450  €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 317,97 €
   assertion calcul.participation_minimale = 35,39 €
-  assertion calcul.taux_composition_familiale = 2,15%
+  assertion calcul.taux_composition_familiale = 3,15%
   assertion calcul.participation_personnelle = 475,59 €
 ```
 
@@ -200,10 +202,10 @@ champ d'application Exemple7:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 32125 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
-  assertion montant = 0 €
+  assertion montant = 165,83 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 127,96 €
-  assertion calcul.plafond_loyer_d823_16_2 = 618,2 €
-  assertion calcul.participation_minimale = 44,8 €
+  assertion calcul.plafond_loyer_d823_16_2 = 618,20 €
+  assertion calcul.participation_minimale = 44,80 €
   assertion calcul.taux_composition_familiale = 1,73%
   assertion calcul.participation_personnelle = 483,32 €
 ```
