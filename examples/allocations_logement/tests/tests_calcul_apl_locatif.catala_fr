@@ -208,3 +208,32 @@ champ d'application Exemple7:
   assertion calcul.taux_composition_familiale = 1,73%
   assertion calcul.participation_personnelle = 483,32 €
 ```
+
+```catala
+déclaration champ d'application Exemple8 :
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  sortie montant contenu argent
+
+champ d'application Exemple8:
+  définition montant égal à calcul.aide_finale
+  définition calcul.loyer_principal égal à 310 €
+  définition calcul.date_courante égal à |2022-04-02|
+  définition calcul.logement_est_chambre égal à vrai
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.zone égal à Zone1
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.type_aide égal à AidePersonnaliséeLogement
+  définition calcul.colocation égal à faux
+  définition calcul.réduction_loyer_solidarité égal à 0 €
+  définition calcul.ressources_ménage_arrondies égal à 14730 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  assertion montant = 13,07 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
+  assertion calcul.plafond_loyer_d823_16_2 = 268,26 €
+  assertion calcul.participation_minimale = 35,39 €
+  assertion calcul.taux_composition_familiale = 3,15%
+  assertion calcul.participation_personnelle = 303,77 €
+```
