@@ -843,9 +843,9 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_1 règle éligibilité_allocation_logement_familiale
   sous condition
     existe prestation dans ménage.prestations_reçues tel que
-      prestation = AllocationsFamiliales ou
-      prestation = ComplémentFamilial ou
-      prestation = AllocationSoutienFamilial ou
+      prestation = PrestationReçue.AllocationsFamiliales ou
+      prestation = PrestationReçue.ComplémentFamilial ou
+      prestation = PrestationReçue.AllocationSoutienFamilial ou
       prestation = AllocationSoutienEnfantHandicapé
   conséquence rempli
 ```
@@ -864,10 +864,27 @@ champ d'application ÉligibilitéAllocationLogement:
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
       -- ParentÀCharge: faux
-      -- EnfantÀCharge de enfant: vrai
-      # TODO informatique: factoriser le filtrage des personnes à charge
-      # au sens de L512-3 dans un
-      # champ d'application à part puisqu'utilisé ici.
+      -- EnfantÀCharge de enfant: (prestations_familiales.droit_ouvert de
+        EnfantPrestationsFamiliales {
+        -- identifiant: enfant.EnfantÀCharge.identifiant
+        -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
+        -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
+        -- âge: enfant.EnfantÀCharge.âge
+        -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
+          -- PriseEnCharge.EffectiveEtPermanente:
+            PriseEnChargeEnfant.EffectiveEtPermanente
+          -- PriseEnCharge.RésidenceAlternéeAllocataireUnique:
+            PriseEnChargeEnfant.GardeAlternéeAllocataireUnique
+          -- PriseEnCharge.RésidenceAlternéeAllocationsPartagée:
+            PriseEnChargeEnfant.GardeAlternéePartageAllocations
+        )
+        -- a_déjà_ouvert_droit_aux_allocations_familiales:
+          enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
+        -- bénéficie_titre_personnel_aide_personnelle_logement:
+          enfant.EnfantÀCharge.bénéficie_titre_personnel_aide_personnelle_logement
+      }
+      )
     )) = 1
   conséquence rempli
 ```
@@ -882,10 +899,27 @@ champ d'application ÉligibilitéAllocationLogement:
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
       -- ParentÀCharge: faux
-      -- EnfantÀCharge de enfant: faux
-      # TODO informatique: factoriser le filtrage des personnes à charge
-      # au sens de L512-3 dans un
-      # champ d'application à part puisqu'utilisé ici.
+      -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
+        EnfantPrestationsFamiliales {
+        -- identifiant: enfant.EnfantÀCharge.identifiant
+        -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
+        -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
+        -- âge: enfant.EnfantÀCharge.âge
+        -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
+          -- PriseEnCharge.EffectiveEtPermanente:
+            PriseEnChargeEnfant.EffectiveEtPermanente
+          -- PriseEnCharge.RésidenceAlternéeAllocataireUnique:
+            PriseEnChargeEnfant.GardeAlternéeAllocataireUnique
+          -- PriseEnCharge.RésidenceAlternéeAllocationsPartagée:
+            PriseEnChargeEnfant.GardeAlternéePartageAllocations
+        )
+        -- a_déjà_ouvert_droit_aux_allocations_familiales:
+          enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
+        -- bénéficie_titre_personnel_aide_personnelle_logement:
+          enfant.EnfantÀCharge.bénéficie_titre_personnel_aide_personnelle_logement
+      }
+      )
     )) = 0 et
     (selon ménage.situation_familiale sous forme
     -- Mariés de date_mariage : date_courante <=@ date_mariage +@ durée_l841_1_3

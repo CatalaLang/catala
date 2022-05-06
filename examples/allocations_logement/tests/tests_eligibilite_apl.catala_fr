@@ -12,21 +12,40 @@ définition éligible égal à éligibilité.éligibilité
 assertion éligible
  définition éligibilité.date_ouverture_droits égal à |2020-03-10|
  définition éligibilité.ménage égal à Ménage {
-  -- prestations_reçues: [AllocationSoutienEnfantHandicapé; ComplémentFamilial; AllocationsFamiliales]
+  -- prestations_reçues: [
+    PrestationReçue.AllocationSoutienEnfantHandicapé;
+    PrestationReçue.ComplémentFamilial;
+    PrestationReçue.AllocationsFamiliales
+  ]
   -- situation_familiale: Mariés contenu |2010-11-26|
   -- personnes_à_charge: [
     EnfantÀCharge contenu (EnfantÀCharge {
       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-      -- prise_en_charge : EffectiveEtPermanente
+      -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
       -- âge : 19
+      -- identifiant: 0
+      -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+      -- date_de_naissance: |2001-01-01|
+      -- rémuneration_mensuelle: 0€
+      -- obligation_scolaire: Après
     }); EnfantÀCharge contenu (EnfantÀCharge {
       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-      -- prise_en_charge : EffectiveEtPermanente
+      -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
       -- âge : 11
+      -- identifiant: 1
+      -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+      -- date_de_naissance: |2009-01-01|
+      -- rémuneration_mensuelle: 0€
+      -- obligation_scolaire: Pendant
     }); EnfantÀCharge contenu (EnfantÀCharge {
       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-      -- prise_en_charge : EffectiveEtPermanente
+      -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
       -- âge : 8
+      -- identifiant: 2
+      -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+      -- date_de_naissance: |2012-01-01|
+      -- rémuneration_mensuelle: 0€
+      -- obligation_scolaire: Pendant
     })]
   -- logement: Logement {
     -- résidence_principale : vrai

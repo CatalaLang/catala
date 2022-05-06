@@ -44,8 +44,8 @@ ouvre droit aux prestations familiales :
 ```catala
 champ d'application ÉligibilitéPrestationsFamiliales :
   étiquette cas_base règle droit_ouvert de enfant sous condition
-    enfant.obligation_scolaire sous forme Avant ou
-    enfant.obligation_scolaire sous forme Pendant
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Avant ou
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Pendant
   conséquence rempli
 ```
 
@@ -55,18 +55,18 @@ tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 ```catala
 champ d'application ÉligibilitéPrestationsFamiliales :
   étiquette cas_base règle droit_ouvert de enfant sous condition
-    enfant.obligation_scolaire sous forme Après et
-    (enfant.rémuneration_mensuelle <=€ plafond_l512_3_2) et
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Après et
+    (enfant.EnfantPrestationsFamiliales.rémuneration_mensuelle <=€ plafond_l512_3_2) et
     (enfant.EnfantPrestationsFamiliales.âge < âge_l512_3_2)
   conséquence rempli
 
   # On définit les conditions hors âge d'abord car elles
   # sont référencées plus tard dans l'article L521-1
   règle conditions_hors_âge de enfant sous condition
-    enfant.obligation_scolaire sous forme Avant ou
-    enfant.obligation_scolaire sous forme Pendant ou
-    enfant.obligation_scolaire sous forme Après et
-    (enfant.rémuneration_mensuelle <=€ plafond_l512_3_2)
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Avant ou
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Pendant ou
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Après et
+    (enfant.EnfantPrestationsFamiliales.rémuneration_mensuelle <=€ plafond_l512_3_2)
   conséquence rempli
 ```
 

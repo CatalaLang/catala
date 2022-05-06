@@ -53,7 +53,6 @@ champ d'application Exemple2:
     calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à faux
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
-  # TODO informatique: bug dans l'arrondi!
   assertion montant = 358,80 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 78,80 €
   assertion calcul.plafond_loyer_d823_16_2 = 409,88 €

@@ -1,4 +1,4 @@
-# Prologue
+# Prologue : allocations logement
 
 Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations logement, il est nécessaire de définir les structures de données
@@ -155,8 +155,13 @@ déclaration structure Logement:
   donnée situé_commune_déséquilibre_l831_2 contenu booléen
 
 déclaration structure EnfantÀCharge:
+  donnée identifiant contenu entier
   donnée bénéficie_titre_personnel_aide_personnelle_logement
     contenu booléen
+  donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
+  donnée date_de_naissance contenu date
+  donnée rémuneration_mensuelle contenu argent
+  donnée obligation_scolaire contenu SituationObligationScolaire
   donnée prise_en_charge contenu PriseEnCharge
   donnée âge contenu entier
 
@@ -312,10 +317,11 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne plafond_individuel_l815_9_sécu contenu argent
 
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
-
   sortie éligibilité condition
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
+  # TODO informatique et juridique: trouver une meilleur place pour mettre
+  # cette conjonction.
   règle éligibilité sous condition
     condition_nationalité et
     condition_logement_mode_occupation et
@@ -344,7 +350,20 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   interne âge_l841_1_4 contenu durée
   interne durée_l841_1_3 contenu durée
 
+ prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
+
+
   sortie éligibilité contenu ÉligibilitéAllocationLogement
+
+champ d'application ÉligibilitéAllocationLogement:
+  # Ici nous instancions le champ d'application d'éligibilité aux prestations
+  # familiales pour les besoins de L841-1.
+  définition prestations_familiales.date_courante égal à date_courante
+  définition prestations_familiales.prestation_courante égal à
+    ÉlémentPrestationsFamiliales.AllocationsFamiliales
+  # TODO juridique et informatique : adapter quand le code gèrera les outre-
+  # mer.
+  définition prestations_familiales.résidence égal à Métropole
 ```
 
 ### Éligibilité à la prime de déménagement
