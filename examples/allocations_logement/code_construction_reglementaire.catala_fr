@@ -3900,10 +3900,19 @@ Le zonage géographique est fixé par arrêté des ministres chargés du logemen
 Pour l'application du 3° de l'article L. 841-1, la durée pendant laquelle l'allocation est
 due est fixée à cinq ans.
 
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  définition durée_l841_1_3 égal à 5 an
+```
+
 ####### Article R841-2 |
 
 Les allocataires sans personne à charge mentionnés au 6° de l'article L. 841-1 sont assimilés
 aux ménages sans enfant, pour le calcul de leur allocation de logement familiale.
+
+```catala
+# Confirme qu'une femme enceinte est considérée comme une personne seule.
+```
 
 ##### Chapitre 2 : Modalités de liquidation et de versement des allocations de logement
 
@@ -3915,26 +3924,56 @@ Les dispositions de la section 1 du chapitre III du titre II du présent livre s
 au calcul de l'allocation de logement versée en secteur locatif, sous réserve des dispositions
 des articles D. 842-2 et D. 842-4.
 
+```catala
+# Rien à formaliser ici, voir le prologue sur la déclaration du champ d'application
+# de calcul des allocations logement qui appelle directement le champ d'application
+# de calcul de l'APL en secteur locatif.
+```
+
 ####### Article D842-2 |
 
 En cas de logement en hôtel meublé ou en établissement assimilé, ou lorsque l'allocataire occupe
 un logement loué en meublé, le prix du loyer est remplacé par les deux tiers du prix effectivement
 payé dans la limite du loyer-plafond.
 
+```catala
+champ d'application CalculAllocationLogementLocatif:
+  exception définition calcul_apl_locatif.loyer_principal sous condition
+    logement_meublé_d842_2
+  conséquence égal à
+    loyer_principal *€ (2,0/.3,0)
+```
+
 Dans le cas d'un local à usage mixte d'habitation et professionnel, il n'est pas tenu compte
-desmajorations de loyers résultant de l'affectation d'une partie des lieux à l'exercice d'une
+des majorations de loyers résultant de l'affectation d'une partie des lieux à l'exercice d'une
 profession.
+
+```catala
+# Pas pertinent de le formaliser ici puisqu'il s'agit surtout d'une indication
+# sur la manière de remplir la variable "loyer_principal" dans le formulaire.
+```
 
 Lorsque le logement est compris dans les locaux relevant du statut du fermage, lorsque le
 logement est à usage mixte d'habitation et commercial ou lorsqu'il est loué à titre d'accessoire
 du contrat de travail, l'évaluation du loyer est faite, en tant que de besoin, par référence
 à celui de logements similaires dans la même commune ou dans des communes avoisinantes.
 
+
+```catala
+# Pas pertinent de le formaliser ici puisqu'il s'agit surtout d'une indication
+# sur la manière de remplir la variable "loyer_principal" dans le formulaire.
+```
+
 ####### Article D842-3 |
 
 En cas de colocation telle que définie à l'article R. 821-4, le loyer principal retenu est le
 résultat du quotient du loyer effectivement payé par le nombre de cotitulaires du bail ou de
 l'engagement de location.
+
+```catala
+# Pas pertinent de le formaliser ici puisqu'il s'agit surtout d'une indication
+# sur la manière de remplir la variable "loyer_principal" dans le formulaire.
+```
 
 ####### Article D842-4 |
 
@@ -3952,6 +3991,21 @@ calculée de façon à couvrir la différence entre le loyer principal acquitté
 logement, déduction faite, le cas échéant, de l'allocation qui leur était octroyée et le
 nouveau loyer principal qui leur est réclamé, dans la limite du plafond fixé en application
 du 3° de l'article L. 823-1.
+
+```catala
+champ d'application CalculAidePersonnelleLogementLocatif:
+  exception définition aide_finale sous condition
+    selon changement_logement_d842_4 sous forme
+    -- Changement de infos:
+      loyer_principal >=€ infos.ancien_loyer_principal
+    -- PasDeChangement: faux
+  conséquence égal à
+    selon changement_logement_d842_4 sous forme
+    -- Changement de infos:
+        loyer_principal -€
+          (infos.ancien_loyer_principal -€ infos.ancienne_allocation_logement)
+    -- n'importe quel: 0 € # N'arrive pas
+```
 
 ###### Section 2 : Accession à la propriété
 

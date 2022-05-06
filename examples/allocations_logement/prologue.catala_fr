@@ -621,6 +621,79 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   sortie aide_finale contenu argent
 ```
 
+## Calcul du montant de l'allocation logement
+
+### Secteur locatif
+
+```catala-metadata
+déclaration structure InfosChangementLogementD842_4:
+  donnée ancien_loyer_principal contenu argent
+  donnée ancienne_allocation_logement contenu argent
+
+déclaration énumération ChangementLogementD842_4
+  -- Changement contenu InfosChangementLogementD842_4
+  -- PasDeChangement
+
+
+déclaration champ d'application CalculAllocationLogementLocatif:
+  # Entrée du sous-champ
+  entrée loyer_principal contenu argent
+  entrée ressources_ménage_arrondies contenu argent
+  entrée bénéficiaire_aide_adulte_ou_enfant_handicapés
+    contenu booléen
+  entrée date_courante contenu date
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée zone contenu ZoneDHabitation
+  entrée logement_est_chambre contenu booléen
+  entrée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    contenu booléen
+  entrée type_aide contenu TypeAidePersonnelleLogement
+  entrée colocation contenu booléen
+  entrée réduction_loyer_solidarité contenu argent
+
+  # Entrées spécifiques
+  entrée logement_meublé_d842_2 contenu booléen
+  entrée changement_logement_d842_3 contenu ChangementLogementD842_4
+
+  calcul_apl_locatif champ d'application CalculAidePersonnelleLogementLocatif
+
+  sortie aide_finale contenu argent
+
+champ d'application CalculAllocationLogementLocatif:
+  définition calcul_apl_locatif.loyer_principal égal à
+    loyer_principal
+  définition calcul_apl_locatif.ressources_ménage_arrondies égal à
+    ressources_ménage_arrondies
+  définition calcul_apl_locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés
+  égal à
+    bénéficiaire_aide_adulte_ou_enfant_handicapés
+  définition calcul_apl_locatif.date_courante égal à
+    date_courante
+  définition calcul_apl_locatif.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_apl_locatif.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_apl_locatif.zone égal à
+    zone
+  définition calcul_apl_locatif.logement_est_chambre égal à
+    logement_est_chambre
+  définition
+    calcul_apl_locatif.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à
+    personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  définition calcul_apl_locatif.type_aide égal à
+    type_aide
+  définition calcul_apl_locatif.colocation égal à
+    colocation
+  définition calcul_apl_locatif.réduction_loyer_solidarité égal à
+    réduction_loyer_solidarité
+
+
+  définition aide_finale égal à calcul_apl_locatif.aide_finale
+```
+
+
 ### Date d'ouverture des droits à la retraite
 
 ```catala-metadata
