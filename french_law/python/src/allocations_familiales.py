@@ -709,7 +709,7 @@ def prestations_familiales(prestations_familiales_in: PrestationsFamilialesIn):
                                                                "Décrets divers"]), ((date_courante_1 >=
                                                                                      date_of_numbers(2020, 4, 1)) and (date_courante_1 <
                                                                                                                        date_of_numbers(2021, 4, 1)))):
-                return money_of_cents_string("41404")
+                return money_of_cents_string("41440")
             else:
                 raise EmptyError
 
@@ -1822,7 +1822,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                 if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
                     return (prestations_familiales_dot_base_mensuelle *
-                            decimal_of_string("0.075"))
+                            decimal_of_string("0.0615"))
                 else:
                     return money_of_cents_string("0")
             else:
@@ -2088,7 +2088,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                 if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("1")):
                     return (prestations_familiales_dot_base_mensuelle *
-                            decimal_of_string("0.273"))
+                            decimal_of_string("0.2613"))
                 else:
                     return money_of_cents_string("0")
             else:
@@ -2124,7 +2124,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                 if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("1")):
                     return (prestations_familiales_dot_base_mensuelle *
-                            decimal_of_string("0.284"))
+                            decimal_of_string("0.2804"))
                 else:
                     return money_of_cents_string("0")
             else:
@@ -2325,7 +2325,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                 if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("0")):
                     return (prestations_familiales_dot_base_mensuelle *
-                            decimal_of_string("0.115"))
+                            decimal_of_string("0.1105"))
                 else:
                     return money_of_cents_string("0")
             else:
@@ -2731,7 +2731,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                                                                   plafond__i_d521_3) and (ressources_menage <=
                                                                                                                           plafond__i_i_d521_3))):
                 return (prestations_familiales_dot_base_mensuelle *
-                        decimal_of_string("0.1117"))
+                        decimal_of_string("0.10117"))
             else:
                 raise EmptyError
 
@@ -2746,7 +2746,7 @@ def allocations_familiales(allocations_familiales_in: AllocationsFamilialesIn):
                                                                "Code de la sécurité sociale"]), (ressources_menage >
                                                                                                  plafond__i_i_d521_3)):
                 return (prestations_familiales_dot_base_mensuelle *
-                        decimal_of_string("0.0559"))
+                        decimal_of_string("0.05059"))
             else:
                 raise EmptyError
         temp_montant_verse_forfaitaire_par_enfant_5 = handle_default(
