@@ -80,7 +80,7 @@ champ d'application Exemple3:
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage_arrondies égal à 14250 €
+  définition calcul.ressources_ménage_arrondies égal à 14300 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 329,65 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
@@ -99,7 +99,7 @@ déclaration champ d'application Exemple4 :
 champ d'application Exemple4:
   définition montant égal à calcul.aide_finale
   définition calcul.loyer_principal égal à 680 €
-  définition calcul.date_courante égal à |2021-12-19|
+  définition calcul.date_courante égal à |2022-02-19|
   définition calcul.logement_est_chambre égal à faux
   définition
     calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
@@ -147,8 +147,6 @@ champ d'application Exemple5:
   assertion calcul.participation_minimale = 35,39 €
   assertion calcul.taux_composition_familiale = 2,83%
   assertion calcul.participation_personnelle = 0€ -€ 28,80 €
-  # Légère différence pour la particpation personnelle de 0,01 en raison d'un arrondi
-  # Mais le résultat obtenu pour le montant de l'aide finale est le même. 
 ```
 
 ```catala
@@ -170,7 +168,7 @@ champ d'application Exemple6:
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage_arrondies égal à 19450  €
+  définition calcul.ressources_ménage_arrondies égal à 19500  €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
@@ -199,7 +197,7 @@ champ d'application Exemple7:
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage_arrondies égal à 32125 €
+  définition calcul.ressources_ménage_arrondies égal à 32200 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 165,83 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 127,96 €
@@ -228,7 +226,7 @@ champ d'application Exemple8:
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage_arrondies égal à 14730 €
+  définition calcul.ressources_ménage_arrondies égal à 14800 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 13,07 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
