@@ -734,7 +734,7 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
                                                                "Montant de la base mensuelle des allocations familiales"]), ((date_courante_1 >=
                                                                                                                               date_of_numbers(2020, 4, 1)) and (date_courante_1 <
                                                                                                                                                                 date_of_numbers(2021, 4, 1)))):
-                return money_of_cents_string("41404")
+                return money_of_cents_string("41440")
             else:
                 raise EmptyError
 

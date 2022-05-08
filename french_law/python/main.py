@@ -35,12 +35,12 @@ def call_allocations_familiales() -> float:
 
 def benchmark_iteration():
     money_given = call_allocations_familiales()
-    assert (money_given == 99.37)
+    assert (money_given == 99.46)
 
 
 def run_with_log() -> List[LogEvent]:
     money_given = call_allocations_familiales()
-    assert (money_given == 99.37)
+    assert (money_given == 99.46)
     log = retrieve_log()
     reset_log()
     return log

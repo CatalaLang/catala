@@ -630,7 +630,7 @@ déclaration structure InfosChangementLogementD842_4:
   donnée ancien_loyer_principal contenu argent
   donnée ancienne_allocation_logement contenu argent
 
-déclaration énumération ChangementLogementD842_4
+déclaration énumération ChangementLogementD842_4:
   -- Changement contenu InfosChangementLogementD842_4
   -- PasDeChangement
 
@@ -654,7 +654,7 @@ déclaration champ d'application CalculAllocationLogementLocatif:
 
   # Entrées spécifiques
   entrée logement_meublé_d842_2 contenu booléen
-  entrée changement_logement_d842_3 contenu ChangementLogementD842_4
+  entrée changement_logement_d842_4 contenu ChangementLogementD842_4
 
   calcul_apl_locatif champ d'application CalculAidePersonnelleLogementLocatif
 

@@ -669,7 +669,7 @@ let base_mensuelle_allocations_familiales
                    }
                    (date_courante_ >=@ date_of_numbers 2020 4 1
                    && date_courante_ <@ date_of_numbers 2021 4 1)
-               then money_of_cents_string "41404"
+               then money_of_cents_string "41440"
                else raise EmptyError);
              (fun (_ : _) ->
                if

@@ -567,6 +567,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
         | MC_DECIMAL_SEPARATOR -> buf := cents
         | _ -> ()
       done;
+      (* If the user has written $0.3 it means 30 cents so we have to pad
+           with a 0 *)
+      Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
       L.update_acc lexbuf;
       MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
   | Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
