@@ -4192,7 +4192,7 @@ d'un logement-foyer défini à l'article L. 633-1 pour lesquels le montant mensu
 de l'aide est calculé selon les modalités précisées au 1° de l'article D. 823-9,
 le montant mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
-" Af = K × (L + C-L0) "
+$$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
 
 où :
 
