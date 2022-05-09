@@ -4,7 +4,7 @@
 
 (version 0.6.0)
 
-(generate_opam_files true)
+(generate_opam_files false)
 
 (formatting)
 
@@ -26,114 +26,5 @@
 (maintainers "contact@catala-lang.org")
 
 (license Apache-2.0)
-
-(package
- (name catala)
- (synopsis
-  "Compiler and library for the literate programming language for tax code specification")
- (description
-  "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information")
- (depends
-  (ocaml
-   (>= 4.11.0))
-  (ANSITerminal
-   (>= 0.8.2))
-  (sedlex
-   (>= 2.4))
-  (menhir
-   (>= 20200211))
-  (menhirLib
-   (>= 20200211))
-  (unionFind
-   (>= 20200320))
-  (bindlib
-   (>= 5.0.1))
-  (cmdliner
-   (= 1.0.4))
-  (re
-   (>= 1.9.0))
-  (zarith
-   (>= 1.12))
-  (zarith_stubs_js
-   (>= v0.14.1))
-  (ocamlgraph
-   (>= 1.8.8))
-  (calendar
-   (>= 2.04))
-  (visitors
-   (>= 20200210))
-  (benchmark
-   (>= 1.6))
-  (js_of_ocaml-ppx
-   (>= 3.8.0))
-  (camomile
-   (>= 1.0.2))
-  (cppo
-   (>= 1))
-  (obelisk :dev)
-  (alcotest
-   (and
-    :with-test
-    (>= 1.5.0)))
-  (ocamlformat
-   (and
-    :dev
-    (= 0.20.1))))
- (depopts
-  z3)
- (conflicts
-  (z3 (< 4.8.11))))
-
-(package
- (name french_law)
- (authors "Denis Merigoux")
- (synopsis
-  "A collection of algorithms and computations defined by French law")
- (description
-  "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org")
- (depends
-  (ocaml
-   (>= 4.11.0))
-  (catala
-   (= :version))
-  (conf-npm :dev)))
-
-(package
- (name clerk)
- (authors "Emile Rolley" "Denis Merigoux")
- (synopsis
-  "Build system for Catala, a specification language for tax and social benefits computation rules")
- (description
-  "Clerk is a build system for Catala, a specification language for tax and social benefits computation rules, see https://catala-lang.org")
- (depends
-  (ocaml
-   (>= 4.11.0))
-  (cmdliner
-   (= 1.0.4))
-  (re
-   (>= 1.9.0))
-  (ANSITerminal
-   (>= 0.8.2))
-  (alcotest
-   (and
-    :with-test
-    (>= 1.5.0)))
-  (catala
-   (= :version))
-  (ninja_utils
-   (= :version))))
-
-(package
- (name ninja_utils)
- (authors "Emile Rolley")
- (synopsis
-  "A collection of utility functions used to generate Ninja build files")
- (description
-  "This library contains the implementations of utility functions used to generate Ninja build files -- see https://ninja-build.org. It's currently used by the Catala build system (see https://github.com/CatalaLang/catala/tree/master/build_system)")
- (depends
-  (ocaml
-   (>= 4.11.0))
-  (re
-   (>= 1.10.3))))
 
 (using menhir 2.1)
