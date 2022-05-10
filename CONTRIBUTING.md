@@ -89,9 +89,6 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
-Please note that the `ocamlformat` version this project uses is `0.21.0`.
-Using another version may cause spurious diffs to appear in your pull requests.
-
 ### Example: adding a builtin function
 
 The language provides a limited number of builtin functions, which are sometimes
@@ -160,3 +157,12 @@ To add support for a new language:
 
 Feel free to open a pull request for discussion even if you couldn't go through
 all these steps, the `lexer_xx.cppo.ml` file is the important part.
+
+### Automatic formatting
+
+Please ensure to submit commits formatted using the included `ocamlformat`
+configuration. The `make build` target should ensure that.
+
+In case the formatting rules or ocamlformat version changed remotely, you can
+use [this script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
+reformat your branch patch by patch before rebasing.
