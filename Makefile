@@ -16,10 +16,10 @@ K := $(foreach exec,$(EXECUTABLES),\
 				Please install this executable for everything to work smoothly)))
 
 dependencies-ocaml:
-	opam install . --deps-only --with-doc --with-test --yes
+	opam install . ./doc/catala-dev-dependencies.opam --deps-only --with-doc --with-test --yes
 
 dependencies-ocaml-with-z3:
-	opam install . z3 --deps-only --with-doc --with-test --yes
+	opam install . ./doc/catala-dev-dependencies.opam z3 --deps-only --with-doc --with-test --yes
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
