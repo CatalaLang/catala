@@ -73,27 +73,27 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
     (English, French, etc.) *)
 let token_list_language_agnostic : (string * token) list =
   [
-    (".", DOT);
-    ("<=", LESSER_EQUAL);
-    (">=", GREATER_EQUAL);
-    (">", GREATER);
-    ("!=", NOT_EQUAL);
-    ("=", EQUAL);
-    ("(", LPAREN);
-    (")", RPAREN);
-    ("{", LBRACKET);
-    ("}", RBRACKET);
-    ("{", LSQUARE);
-    ("}", RSQUARE);
-    ("+", PLUS);
-    ("-", MINUS);
-    ("*", MULT);
-    ("/", DIV);
-    ("|", VERTICAL);
-    (":", COLON);
-    (";", SEMICOLON);
-    ("--", ALT);
-    ("++", PLUSPLUS);
+    ".", DOT;
+    "<=", LESSER_EQUAL;
+    ">=", GREATER_EQUAL;
+    ">", GREATER;
+    "!=", NOT_EQUAL;
+    "=", EQUAL;
+    "(", LPAREN;
+    ")", RPAREN;
+    "{", LBRACKET;
+    "}", RBRACKET;
+    "{", LSQUARE;
+    "}", RSQUARE;
+    "+", PLUS;
+    "-", MINUS;
+    "*", MULT;
+    "/", DIV;
+    "|", VERTICAL;
+    ":", COLON;
+    ";", SEMICOLON;
+    "--", ALT;
+    "++", PLUSPLUS;
   ]
 
 module type LocalisedLexer = sig

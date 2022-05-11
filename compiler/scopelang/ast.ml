@@ -60,12 +60,12 @@ Set.Make (struct
   type t = location Pos.marked
 
   let compare x y =
-    match (Pos.unmark x, Pos.unmark y) with
+    match Pos.unmark x, Pos.unmark y with
     | ScopeVar (vx, _), ScopeVar (vy, _) -> ScopeVar.compare vx vy
     | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
         SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
-        let c = SubScopeName.compare xsubindex ysubindex in
-        if c = 0 then ScopeVar.compare xsubvar ysubvar else c
+      let c = SubScopeName.compare xsubindex ysubindex in
+      if c = 0 then ScopeVar.compare xsubvar ysubvar else c
     | ScopeVar _, SubScopeVar _ -> -1
     | SubScopeVar _, ScopeVar _ -> 1
 end)
@@ -101,34 +101,34 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   | ELocation l -> LocationSet.singleton (l, Pos.get_position e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
   | EAbs ((binder, _), _) ->
-      let _, body = Bindlib.unmbind binder in
-      locations_used body
+    let _, body = Bindlib.unmbind binder in
+    locations_used body
   | EStruct (_, es) ->
-      StructFieldMap.fold
-        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-        es LocationSet.empty
+    StructFieldMap.fold
+      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+      es LocationSet.empty
   | EStructAccess (e1, _, _) -> locations_used e1
   | EEnumInj (e1, _, _) -> locations_used e1
   | EMatch (e1, _, es) ->
-      EnumConstructorMap.fold
-        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-        es (locations_used e1)
+    EnumConstructorMap.fold
+      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+      es (locations_used e1)
   | EApp (e1, args) ->
-      List.fold_left
-        (fun acc arg -> LocationSet.union (locations_used arg) acc)
-        (locations_used e1) args
+    List.fold_left
+      (fun acc arg -> LocationSet.union (locations_used arg) acc)
+      (locations_used e1) args
   | EIfThenElse (e1, e2, e3) ->
-      LocationSet.union (locations_used e1)
-        (LocationSet.union (locations_used e2) (locations_used e3))
+    LocationSet.union (locations_used e1)
+      (LocationSet.union (locations_used e2) (locations_used e3))
   | EDefault (excepts, just, cons) ->
-      List.fold_left
-        (fun acc except -> LocationSet.union (locations_used except) acc)
-        (LocationSet.union (locations_used just) (locations_used cons))
-        excepts
+    List.fold_left
+      (fun acc except -> LocationSet.union (locations_used except) acc)
+      (LocationSet.union (locations_used just) (locations_used cons))
+      excepts
   | EArray es ->
-      List.fold_left
-        (fun acc e' -> LocationSet.union acc (locations_used e'))
-        LocationSet.empty es
+    List.fold_left
+      (fun acc e' -> LocationSet.union acc (locations_used e'))
+      LocationSet.empty es
   | ErrorOnEmpty e' -> locations_used e'
 
 type io_input = NoInput | OnlyInput | Reentrant
@@ -168,7 +168,7 @@ end
 type vars = expr Bindlib.mvar
 
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
+  Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var x)
 
 let make_abs
     (xs : vars)
@@ -177,14 +177,14 @@ let make_abs
     (taus : typ Pos.marked list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply
-    (fun b -> (EAbs ((b, pos_binder), taus), pos))
+    (fun b -> EAbs ((b, pos_binder), taus), pos)
     (Bindlib.bind_mvar xs e)
 
 let make_app
     (e : expr Pos.marked Bindlib.box)
     (u : expr Pos.marked Bindlib.box list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
+  Bindlib.box_apply2 (fun e u -> EApp (e, u), pos) e (Bindlib.box_list u)
 
 let make_let_in
     (x : Var.t)
@@ -192,13 +192,11 @@ let make_let_in
     (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
+    (fun e u -> EApp (e, u), Pos.get_position (Bindlib.unbox e2))
+    (make_abs (Array.of_list [x]) e2
        (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
+       [tau]
        (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
+    (Bindlib.box_list [e1])
 
 module VarMap = Map.Make (Var)

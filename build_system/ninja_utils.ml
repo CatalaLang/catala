@@ -24,10 +24,10 @@ module Expr = struct
 
   and format_list fmt = function
     | hd :: tl ->
-        Format.fprintf fmt "%a%a" format hd
-          (fun fmt tl ->
-            tl |> List.iter (fun s -> Format.fprintf fmt " %a" format s))
-          tl
+      Format.fprintf fmt "%a%a" format hd
+        (fun fmt tl ->
+          tl |> List.iter (fun s -> Format.fprintf fmt " %a" format s))
+        tl
     | [] -> ()
 end
 
@@ -65,7 +65,7 @@ module Build = struct
   let make_with_vars_and_inputs ~outputs ~rule ~inputs ~vars =
     { outputs; rule; inputs = Option.some inputs; vars }
 
-  let empty = make ~outputs:[ Expr.Lit "empty" ] ~rule:"phony"
+  let empty = make ~outputs:[Expr.Lit "empty"] ~rule:"phony"
 
   let unpath ?(sep = "-") path =
     Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> sep)) path

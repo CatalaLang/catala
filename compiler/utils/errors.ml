@@ -39,7 +39,7 @@ let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
 
 let raise_spanned_error ?(span_msg : string option) (span : Pos.t) format =
   Format.kasprintf
-    (fun msg -> raise (StructuredError (msg, [ (span_msg, span) ])))
+    (fun msg -> raise (StructuredError (msg, [span_msg, span])))
     format
 
 let raise_multispanned_error (spans : (string option * Pos.t) list) format =
@@ -56,6 +56,6 @@ let format_multispanned_warning (pos : (string option * Pos.t) list) format =
     format
 
 let format_spanned_warning ?(span_msg : string option) (span : Pos.t) format =
-  format_multispanned_warning [ (span_msg, span) ] format
+  format_multispanned_warning [span_msg, span] format
 
 let format_warning format = format_multispanned_warning [] format

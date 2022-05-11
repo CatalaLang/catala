@@ -20,7 +20,11 @@ let from_lpos (p : Lexing.position * Lexing.position) : t =
   { code_pos = p; law_pos = [] }
 
 let from_info
-    (file : string) (sline : int) (scol : int) (eline : int) (ecol : int) : t =
+    (file : string)
+    (sline : int)
+    (scol : int)
+    (eline : int)
+    (ecol : int) : t =
   let spos =
     {
       Lexing.pos_fname = file;
@@ -37,7 +41,7 @@ let from_info
       Lexing.pos_bol = 1;
     }
   in
-  { code_pos = (spos, epos); law_pos = [] }
+  { code_pos = spos, epos; law_pos = [] }
 
 let overwrite_law_info (pos : t) (law_pos : string list) : t =
   { pos with law_pos }
@@ -88,7 +92,7 @@ let indent_number (s : string) : int =
 let retrieve_loc_text (pos : t) : string =
   try
     let filename = get_file pos in
-    let blue_style = [ ANSITerminal.Bold; ANSITerminal.blue ] in
+    let blue_style = [ANSITerminal.Bold; ANSITerminal.blue] in
     if filename = "" then "No position information"
     else
       let sline = get_start_line pos in
@@ -100,21 +104,21 @@ let retrieve_loc_text (pos : t) : string =
           let input_line_opt () : string option =
             match List.nth_opt lines !line_index with
             | Some l ->
-                line_index := !line_index + 1;
-                Some l
+              line_index := !line_index + 1;
+              Some l
             | None -> None
           in
-          (None, input_line_opt)
+          None, input_line_opt
         else
           let oc = open_in filename in
           let input_line_opt () : string option =
             try Some (input_line oc) with End_of_file -> None
           in
-          (Some oc, input_line_opt)
+          Some oc, input_line_opt
       in
       let print_matched_line (line : string) (line_no : int) : string =
         let line_indent = indent_number line in
-        let error_indicator_style = [ ANSITerminal.red; ANSITerminal.Bold ] in
+        let error_indicator_style = [ANSITerminal.red; ANSITerminal.Bold] in
         line
         ^
         if line_no >= sline && line_no <= eline then
@@ -146,12 +150,11 @@ let retrieve_loc_text (pos : t) : string =
       let rec get_lines (n : int) : string list =
         match input_line_opt () with
         | Some line ->
-            if n < sline - include_extra_count then get_lines (n + 1)
-            else if
-              n >= sline - include_extra_count
-              && n <= eline + include_extra_count
-            then print_matched_line line n :: get_lines (n + 1)
-            else []
+          if n < sline - include_extra_count then get_lines (n + 1)
+          else if
+            n >= sline - include_extra_count && n <= eline + include_extra_count
+          then print_matched_line line n :: get_lines (n + 1)
+          else []
         | None -> []
       in
       let pos_lines = get_lines 1 in
@@ -211,13 +214,13 @@ let no_pos : t =
       Lexing.pos_bol = 0;
     }
   in
-  { code_pos = (zero_pos, zero_pos); law_pos = [] }
+  { code_pos = zero_pos, zero_pos; law_pos = [] }
 
-let mark pos e : 'a marked = (e, pos)
+let mark pos e : 'a marked = e, pos
 let unmark ((x, _) : 'a marked) : 'a = x
 let get_position ((_, x) : 'a marked) : t = x
-let map_under_mark (f : 'a -> 'b) ((x, y) : 'a marked) : 'b marked = (f x, y)
-let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = (x, y)
+let map_under_mark (f : 'a -> 'b) ((x, y) : 'a marked) : 'b marked = f x, y
+let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = x, y
 
 let unmark_option (x : 'a marked option) : 'a option =
   match x with Some x -> Some (unmark x) | None -> None
