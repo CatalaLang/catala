@@ -32,12 +32,12 @@ let pre_latexify (s : string) : string =
     R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s
   in
   [
-    ("\\$", "\\$");
-    ("%", "\\%");
-    ("\\_", "\\_");
-    ("\\#", "\\#");
-    ("1er", "1\\textsuperscript{er}");
-    ("\\^", "\\textasciicircum");
+    "\\$", "\\$";
+    "%", "\\%";
+    "\\_", "\\_";
+    "\\#", "\\#";
+    "1er", "1\\textsuperscript{er}";
+    "\\^", "\\textasciicircum";
   ]
   |> List.fold_left substitute s
 
@@ -117,75 +117,76 @@ let wrap_latex
 (** {1 Weaving} *)
 
 let rec law_structure_to_latex
-    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
   match i with
   | A.LawHeading (heading, children) ->
-      Format.fprintf fmt "\\%s*{%s}\n\n"
-        (match heading.law_heading_precedence with
-        | 0 -> "section"
-        | 1 -> "subsection"
-        | 2 -> "subsubsection"
-        | 3 -> "paragraph"
-        | _ -> "subparagraph")
-        (pre_latexify (Pos.unmark heading.law_heading_name));
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-        (law_structure_to_latex language)
-        fmt children
+    Format.fprintf fmt "\\%s*{%s}\n\n"
+      (match heading.law_heading_precedence with
+      | 0 -> "section"
+      | 1 -> "subsection"
+      | 2 -> "subsubsection"
+      | 3 -> "paragraph"
+      | _ -> "subparagraph")
+      (pre_latexify (Pos.unmark heading.law_heading_name));
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+      (law_structure_to_latex language)
+      fmt children
   | A.LawInclude (A.PdfFile ((file, _), page)) ->
-      let label =
-        file
-        ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p
-      in
-      Format.fprintf fmt
-        "\\begin{center}\\textit{Annexe incluse, retranscrite page \
-         \\pageref{%s}}\\end{center} \
-         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
-        label
-        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
-        file label
+    let label =
+      file
+      ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p
+    in
+    Format.fprintf fmt
+      "\\begin{center}\\textit{Annexe incluse, retranscrite page \
+       \\pageref{%s}}\\end{center} \
+       \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
+      label
+      (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
+      file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) ->
-      Format.fprintf fmt
-        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
-         ```catala\n\
-         %s```\n\
-         \\end{minted}"
-        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c) - 1)
-        (get_language_extension language)
-        (Pos.unmark c)
+    Format.fprintf fmt
+      "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
+       ```catala\n\
+       %s```\n\
+       \\end{minted}"
+      (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
+      (Pos.get_start_line (Pos.get_position c) - 1)
+      (get_language_extension language)
+      (Pos.unmark c)
   | A.CodeBlock (_, c, true) ->
-      let metadata_title =
-        match language with
-        | Fr -> "Métadonnées"
-        | En -> "Metadata"
-        | Pl -> "Metadane"
-      in
-      Format.fprintf fmt
-        "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
-         title=\\textcolor{black}{\\texttt{%s}},title after \
-         break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after \
-         skip=1em]\n\
-         \\begin{minted}[numbersep=9mm, firstnumber=%d, \
-         label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
-         ```catala\n\
-         %s```\n\
-         \\end{minted}\n\
-         \\end{tcolorbox}"
-        metadata_title metadata_title
-        (Pos.get_start_line (Pos.get_position c) - 1)
-        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (get_language_extension language)
-        (Pos.unmark c)
+    let metadata_title =
+      match language with
+      | Fr -> "Métadonnées"
+      | En -> "Metadata"
+      | Pl -> "Metadane"
+    in
+    Format.fprintf fmt
+      "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
+       title=\\textcolor{black}{\\texttt{%s}},title after \
+       break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
+       \\begin{minted}[numbersep=9mm, firstnumber=%d, \
+       label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
+       ```catala\n\
+       %s```\n\
+       \\end{minted}\n\
+       \\end{tcolorbox}"
+      metadata_title metadata_title
+      (Pos.get_start_line (Pos.get_position c) - 1)
+      (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
+      (get_language_extension language)
+      (Pos.unmark c)
 
 (** {1 API} *)
 
 let ast_to_latex
-    (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_latex language)

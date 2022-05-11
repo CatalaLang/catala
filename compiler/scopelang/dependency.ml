@@ -59,17 +59,17 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
             match r with
             | Ast.Definition _ | Ast.Assertion _ -> acc
             | Ast.Call (subscope, subindex) ->
-                if subscope = scope_name then
-                  Errors.raise_spanned_error
-                    (Pos.get_position
-                       (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
-                    "The scope %a is calling into itself as a subscope, which \
-                     is forbidden since Catala does not provide recursion"
-                    Ast.ScopeName.format_t scope.Ast.scope_decl_name
-                else
-                  Ast.ScopeMap.add subscope
-                    (Pos.get_position (Ast.SubScopeName.get_info subindex))
-                    acc)
+              if subscope = scope_name then
+                Errors.raise_spanned_error
+                  (Pos.get_position
+                     (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
+                  "The scope %a is calling into itself as a subscope, which is \
+                   forbidden since Catala does not provide recursion"
+                  Ast.ScopeName.format_t scope.Ast.scope_decl_name
+              else
+                Ast.ScopeMap.add subscope
+                  (Pos.get_position (Ast.SubScopeName.get_info subindex))
+                  acc)
           Ast.ScopeMap.empty scope.Ast.scope_decl_rules
       in
       Ast.ScopeMap.fold
@@ -123,14 +123,14 @@ module TVertex = struct
     | Enum x -> Ast.EnumName.hash x
 
   let compare x y =
-    match (x, y) with
+    match x, y with
     | Struct x, Struct y -> Ast.StructName.compare x y
     | Enum x, Enum y -> Ast.EnumName.compare x y
     | Struct _, Enum _ -> 1
     | Enum _, Struct _ -> -1
 
   let equal x y =
-    match (x, y) with
+    match x, y with
     | Struct x, Struct y -> Ast.StructName.compare x y = 0
     | Enum x, Enum y -> Ast.EnumName.compare x y = 0
     | _ -> false
@@ -170,9 +170,9 @@ let rec get_structs_or_enums_in_type (t : Ast.typ Pos.marked) : TVertexSet.t =
   | Ast.TStruct s -> TVertexSet.singleton (TVertex.Struct s)
   | Ast.TEnum e -> TVertexSet.singleton (TVertex.Enum e)
   | Ast.TArrow (t1, t2) ->
-      TVertexSet.union
-        (get_structs_or_enums_in_type t1)
-        (get_structs_or_enums_in_type t2)
+    TVertexSet.union
+      (get_structs_or_enums_in_type t1)
+      (get_structs_or_enums_in_type t2)
   | Ast.TLit _ | Ast.TAny -> TVertexSet.empty
   | Ast.TArray t1 -> get_structs_or_enums_in_type (Pos.same_pos_as t1 t)
 
@@ -242,7 +242,7 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
        (List.map
           (fun v ->
             let var_str, var_info =
-              (Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v)
+              Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v
             in
             let succs = TDependencies.succ_e g v in
             let _, edge_pos, succ =

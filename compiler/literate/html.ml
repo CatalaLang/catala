@@ -161,47 +161,46 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
 (** {1 Weaving} *)
 
 let rec law_structure_to_html
-    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
   match i with
   | A.LawText t ->
-      let t = pre_html t in
-      if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
+    let t = pre_html t in
+    if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
   | A.CodeBlock (_, c, metadata) ->
-      Format.fprintf fmt
-        "<div class='code-wrapper%s'>\n\
-         <div class='filename'>%s</div>\n\
-         %s\n\
-         </div>"
-        (if metadata then " code-metadata" else "")
-        (Pos.get_file (Pos.get_position c))
-        (pygmentize_code
-           (Pos.same_pos_as ("```catala\n" ^ Pos.unmark c ^ "```") c)
-           language)
+    Format.fprintf fmt
+      "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
+      (if metadata then " code-metadata" else "")
+      (Pos.get_file (Pos.get_position c))
+      (pygmentize_code
+         (Pos.same_pos_as ("```catala\n" ^ Pos.unmark c ^ "```") c)
+         language)
   | A.LawHeading (heading, children) ->
-      let h_number = heading.law_heading_precedence + 1 in
-      Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n"
-        h_number
-        (match (heading.law_heading_id, language) with
-        | Some id, Fr ->
-            let ltime = Unix.localtime (Unix.time ()) in
-            P.sprintf "https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
-              (1900 + ltime.Unix.tm_year)
-              (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
-        | _ -> "#")
-        (pre_html (Pos.unmark heading.law_heading_name))
-        h_number;
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-        (law_structure_to_html language)
-        fmt children
+    let h_number = heading.law_heading_precedence + 1 in
+    Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n"
+      h_number
+      (match heading.law_heading_id, language with
+      | Some id, Fr ->
+        let ltime = Unix.localtime (Unix.time ()) in
+        P.sprintf "https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
+          (1900 + ltime.Unix.tm_year)
+          (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
+      | _ -> "#")
+      (pre_html (Pos.unmark heading.law_heading_name))
+      h_number;
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+      (law_structure_to_html language)
+      fmt children
   | A.LawInclude _ -> ()
 
 (** {1 API} *)
 
 let ast_to_html
-    (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_html language)

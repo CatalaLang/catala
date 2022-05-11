@@ -4,13 +4,13 @@ let try_test msg test =
   try
     test ();
     Format.printf "%s %s\n"
-      (ANSITerminal.sprintf [ ANSITerminal.green ] "PASS")
-      (ANSITerminal.sprintf [ ANSITerminal.magenta ] msg)
+      (ANSITerminal.sprintf [ANSITerminal.green] "PASS")
+      (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
   with Runtime.AssertionFailed ->
     failure := true;
     Format.printf "%s %s\n"
-      (ANSITerminal.sprintf [ ANSITerminal.red ] "FAIL")
-      (ANSITerminal.sprintf [ ANSITerminal.magenta ] msg)
+      (ANSITerminal.sprintf [ANSITerminal.red] "FAIL")
+      (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
 
 let _ =
   try_test "Allocations familiales #1" Tests_allocations_familiales.test1;
