@@ -14,5 +14,5 @@ scope RCW_46_61_5055_Info:
 
 scope RCW_46_61_5055_1_b:
 
-  assertion penalties = []
+  assertion info.penalties = []
 ```
