@@ -40,21 +40,13 @@ dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js init-submodules
 COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
 
-format:
-	dune build @fmt --auto-promote >/dev/null
-
 #> build_dev				: Builds the Catala compiler, without formatting code
-build_dev:
-	dune build @update-parser-messages --auto-promote | true
-	dune build $(COMPILER_DIR)/catala.exe
-	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
+build_dev: parser-messages
+	dune build $(COMPILER_DIR)/catala.exe $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> build					: Builds the Catala compiler
-build:
-	dune build @update-parser-messages --auto-promote | true
-	@$(MAKE) --no-print-directory format
-	dune build $(COMPILER_DIR)/catala.exe
-	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
+build: parser-messages format
+	dune build $(COMPILER_DIR)/catala.exe $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
@@ -68,6 +60,20 @@ doc:
 
 install:
 	dune build @install
+
+##########################################
+# Rules related to promoted files
+##########################################
+
+check-promoted:
+	dune build @update-parser-messages @fmt
+
+compiler/surface/parser.messages: compiler/surface/tokens.mly compiler/surface/parser.mly
+	dune build @update-parser-messages --auto-promote || true
+parser-messages: compiler/surface/parser.messages
+
+format:
+	dune build @fmt --auto-promote >/dev/null || true
 
 ##########################################
 # Syntax highlighting rules
@@ -334,4 +340,4 @@ help_catala:
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build_dev build doc format dependencies dependencies-ocaml \
-	catala.html help
+	catala.html help parser-messages
