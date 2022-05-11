@@ -211,6 +211,17 @@ base_expression:
   (MemCollection (e1, e2), Pos.from_lpos $sloc)
 }
 
+unop:
+| NOT { (Not, Pos.from_lpos $sloc) }
+| MINUS { (Minus KInt, Pos.from_lpos $sloc) }
+| MINUSDEC { (Minus KDec, Pos.from_lpos $sloc) }
+| MINUSMONEY { (Minus KMoney, Pos.from_lpos $sloc) }
+| MINUSDURATION { (Minus KDuration, Pos.from_lpos $sloc) }
+
+unop_expression:
+| e = base_expression { e }
+| op = unop e = unop_expression { (Unop (op, e), Pos.from_lpos $sloc) }
+
 mult_op:
 | MULT { (Mult KInt, Pos.from_lpos $sloc) }
 | DIV { (Div KInt, Pos.from_lpos $sloc) }
@@ -221,8 +232,8 @@ mult_op:
 | DIVDURATION { (Div KDuration, Pos.from_lpos $sloc) }
 
 mult_expression:
-| e =  base_expression { e }
-| e1 = base_expression binop = mult_op e2  = mult_expression {
+| e =  unop_expression { e }
+| e1 = mult_expression binop = mult_op e2  = unop_expression {
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
 
@@ -239,18 +250,11 @@ sum_op:
 | MINUS { (Sub KInt, Pos.from_lpos $sloc) }
 | PLUSPLUS { (Concat, Pos.from_lpos $sloc) }
 
-sum_unop:
-| MINUS { (Minus KInt, Pos.from_lpos $sloc) }
-| MINUSDEC { (Minus KDec, Pos.from_lpos $sloc) }
-| MINUSMONEY { (Minus KMoney, Pos.from_lpos $sloc) }
-| MINUSDURATION { (Minus KDuration, Pos.from_lpos $sloc) }
-
 sum_expression:
 | e = mult_expression { e }
-| e1 = mult_expression binop = sum_op e2 = sum_expression {
+| e1 = sum_expression binop = sum_op e2 = mult_expression {
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
-| unop = sum_unop e = sum_expression { (Unop (unop, e), Pos.from_lpos $sloc) }
 
 logical_and_op:
 | AND { (And, Pos.from_lpos $sloc) }
@@ -258,9 +262,6 @@ logical_and_op:
 logical_or_op:
 | OR { (Or, Pos.from_lpos $sloc) }
 | XOR { (Xor, Pos.from_lpos $sloc) }
-
-logical_unop:
-| NOT { (Not, Pos.from_lpos $sloc) }
 
 compare_expression:
 | e = sum_expression { e }
@@ -270,7 +271,6 @@ compare_expression:
 
 logical_atom:
 | e = compare_expression { e }
-| unop = logical_unop e = logical_atom { (Unop (unop, e), Pos.from_lpos $sloc) }
 
 logical_or_expression:
 | e = logical_atom { e }
