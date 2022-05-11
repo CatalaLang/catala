@@ -350,7 +350,7 @@ let (pos, i,e1) = i_in_e1 in
 | MATCH e = primitive_expression WITH arms = match_arms {
   (MatchWith (e, arms), Pos.from_lpos $sloc)
 }
-| IF e1 = expression THEN e2 = expression ELSE e3 = base_expression {
+| IF e1 = expression THEN e2 = expression ELSE e3 = expression {
   (IfThenElse (e1, e2, e3), Pos.from_lpos $sloc)
 }
 | e = logical_expression { e }
