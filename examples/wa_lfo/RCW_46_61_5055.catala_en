@@ -51,25 +51,20 @@ declaration enumeration WhatsUpWithTheTest:
   -- NotThereBecauseRefused
   -- NotThereBecauseSomethingElse
 
-declaration scope RCW_46_61_5055:
-
-  # Inputs:
-
-  context priors content integer
-  context alcohol_less_than_15_percent content boolean
-  context test content WhatsUpWithTheTest
-  context minor_passenger content boolean
-  context indigent content boolean
-
-  # Outcomes:
-
-  context output penalties content collection Penalty
+declaration scope RCW_46_61_5055_Info:
+  output priors content integer
+  output alcohol_less_than_15_percent content boolean
+  output test content WhatsUpWithTheTest
+  output minor_passenger content boolean
+  output indigent content boolean
 
 declaration scope RCW_46_61_5055_1_a:
-  parent scope RCW_46_61_5055
+  info scope RCW_46_61_5055_Info
+  output penalties content collection Penalty
 
 declaration scope RCW_46_61_5055_1_b:
-  parent scope RCW_46_61_5055
+  info scope RCW_46_61_5055_Info
+  output penalties content collection Penalty
 ```
 
 ## RCW 46.61.5055 Alcohol and drug violators—Penalty schedule. (Effective until January 1, 2022.)
@@ -106,30 +101,30 @@ declaration scope RCW_46_61_5055_1_b:
 
 ```catala
 scope RCW_46_61_5055_1_a under condition
-  parent.priors = 0 and (parent.alcohol_less_than_15_percent or parent.test = NotThereBecauseSomethingElse):
+  info.priors = 0 and (info.alcohol_less_than_15_percent or info.test = NotThereBecauseSomethingElse):
 
-  definition parent.penalties
+  definition penalties
   equals
-    [ One content (Imprisonment {
-      -- min_days: 1
-      -- max_days: 364
-    });
-      One content (Fine {
+    [ One content (Imprisonment content (Imprisonment {
+      -- min_days: 1 day
+      -- max_days: 364 day
+    }));
+      One content (Fine content (Fine {
         -- min_fine: $350
         -- max_fine: $5000
-      })]
+      }))]
 
-  exception definition parent.penalties
-  under condition parent.indigent
+  exception definition penalties
+  under condition info.indigent
   consequence equals
-    [ One content (Imprisonment {
-      -- min_days: 1
-      -- max_days: 364
-    });
-      One content (Fine {
+    [ One content (Imprisonment content (Imprisonment {
+      -- min_days: 1 day
+      -- max_days: 364 day
+    }));
+      One content (Fine content (Fine {
         -- min_fine: $0
         -- max_fine: $5000
-      })]
+      }))]
 ```
 
   (b) Penalty for alcohol concentration at least 0.15. In the case of a person
@@ -160,30 +155,30 @@ scope RCW_46_61_5055_1_a under condition
 
 ```catala
 scope RCW_46_61_5055_1_b under condition
-  parent.priors = 0 and (not parent.alcohol_less_than_15_percent or parent.test = NotThereBecauseRefused):
+  info.priors = 0 and (not info.alcohol_less_than_15_percent or info.test = NotThereBecauseRefused):
 
-  definition parent.penalties
+  definition penalties
   equals
-    [ One content (Imprisonment {
-      -- min_days: 2
-      -- max_days: 364
-    });
-      One content (Fine {
+    [ One content (Imprisonment content (Imprisonment {
+      -- min_days: 2 day
+      -- max_days: 364 day
+    }));
+      One content (Fine content (Fine {
         -- min_fine: $500
         -- max_fine: $5000
-      })]
+      }))]
 
-  exception definition parent.penalties
-  under condition parent.indigent
+  exception definition penalties
+  under condition info.indigent
   consequence equals
-    [ One content (Imprisonment {
-      -- min_days: 2
-      -- max_days: 364
-    });
-      One content (Fine {
+    [ One content (Imprisonment content (Imprisonment {
+      -- min_days: 2 day
+      -- max_days: 364 day
+    }));
+      One content (Fine content (Fine {
         -- min_fine: $0
         -- max_fine: $5000
-      })]
+      }))]
 
 ```
 
