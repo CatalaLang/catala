@@ -1,0 +1,499 @@
+## RCW_46_61_5055
+
+```catala-metadata
+# TODO: Generic stuff that should move to a separate file
+#declaration enumeration Waivability:
+#  -- Whole
+#  -- IfIndigent
+#  -- ExceptMoney content money
+#  -- ExceptDays content duration
+
+declaration structure Fine:
+  data min_fine content money
+  data max_fine content money
+
+declaration structure Fee:
+  data min_fee content money
+  data max_fee content money
+
+declaration structure Cost:
+  data min_cost content money
+  data max_cost content money
+
+declaration structure Imprisonment:
+  data min_days content duration
+  data max_days content duration
+
+declaration enumeration Penalty_:
+  -- Imprisonment content Imprisonment
+  -- Fine content Fine
+  -- Fee content Fee
+  -- Cost content Cost
+
+declaration enumeration Penalty:
+  -- One content Penalty_
+  -- Either content collection Penalty_
+
+declaration enumeration Class:
+  -- SimpleMisdemeanor
+  -- GrossMisdemeanor
+  -- FelonyA
+  -- FelonyB
+  -- FelonyC
+
+declaration enumeration Charge:
+  -- RCW_46_61_502
+  -- RCW_46_61_504
+
+# Definitions specifically for this statute
+declaration enumeration WhatsUpWithTheTest:
+  -- ItsThere
+  -- NotThereBecauseRefused
+  -- NotThereBecauseSomethingElse
+
+declaration scope RCW_46_61_5055:
+
+  # Inputs:
+
+  input priors content integer
+  input alcohol_less_than_15_percent content boolean
+  input test content WhatsUpWithTheTest
+  input minor_passenger content boolean
+  input indigent content boolean
+
+  # Outcomes:
+
+  output penalties content collection Penalty
+
+declaration scope RCW_46_61_5055_1_a:
+  parent scope RCW_46_61_5055
+
+declaration scope RCW_46_61_5055_1_b:
+  parent scope RCW_46_61_5055
+```
+
+## RCW 46.61.5055 Alcohol and drug violators—Penalty schedule. (Effective until January 1, 2022.)
+
+(1) No prior offenses in seven years. Except as provided in RCW 46.61.502(6) or
+  46.61.504(6), a person who is convicted of a violation of RCW 46.61.502 or
+  46.61.504 and who has no prior offense within seven years shall be punished as
+  follows:
+  (a) Penalty for alcohol concentration less than 0.15. In the case of a person
+  whose alcohol concentration was less than 0.15, or for whom for reasons other
+  than the person's refusal to take a test offered pursuant to RCW 46.20.308 there
+  is no test result indicating the person's alcohol concentration:
+    (i) By imprisonment for not less than one day nor more than three hundred
+    sixty-four days. Twenty-four consecutive hours of the imprisonment may not be
+    suspended unless the court finds that the imposition of this mandatory minimum
+    sentence would impose a substantial risk to the offender's physical or mental
+    well-being. Whenever the mandatory minimum sentence is suspended, the court
+    shall state in writing the reason for granting the suspension and the facts upon
+    which the suspension is based. In lieu of the mandatory minimum term of
+    imprisonment required under this subsection (1)(a)(i), the court may order not
+    less than fifteen days of electronic home monitoring or a ninety-day period of
+    24/7 sobriety program monitoring. The court may consider the offender's pretrial
+    24/7 sobriety program monitoring as fulfilling a portion of posttrial
+    sentencing. The offender shall pay the cost of electronic home monitoring. The
+    county or municipality in which the penalty is being imposed shall determine the
+    cost. The court may also require the offender's electronic home monitoring
+    device or other separate alcohol monitoring device to include an alcohol
+    detection breathalyzer, and the court may restrict the amount of alcohol the
+    offender may consume during the time the offender is on electronic home
+    monitoring; and
+    (ii) By a fine of not less than three hundred fifty dollars nor more than
+    five thousand dollars. Three hundred fifty dollars of the fine may not be
+    suspended unless the court finds the offender to be indigent; or
+
+```catala
+scope RCW_46_61_5055_1_a under condition
+  parent.priors = 0 and (parent.alcohol_less_than_15_percent or parent.test = NotThereBecauseSomethingElse):
+
+  definition parent.penalties
+  equals
+    [ One content (Imprisonment {
+      -- min_days: 1
+      -- max_days: 364
+    });
+      One content (Fine {
+        -- min_fine: $350
+        -- max_fine: $5000
+      })]
+
+  exception definition parent.penalties
+  under condition parent.indigent
+  consequence equals
+    [ One content (Imprisonment {
+      -- min_days: 1
+      -- max_days: 364
+    });
+      One content (Fine {
+        -- min_fine: $0
+        -- max_fine: $5000
+      })]
+```
+
+  (b) Penalty for alcohol concentration at least 0.15. In the case of a person
+  whose alcohol concentration was at least 0.15, or for whom by reason of the
+  person's refusal to take a test offered pursuant to RCW 46.20.308 there is no
+  test result indicating the person's alcohol concentration:
+    (i) By imprisonment for not less than two days nor more than three hundred
+    sixty-four days. Forty-eight consecutive hours of the imprisonment may not
+    be suspended unless the court finds that the imposition of this mandatory
+    minimum sentence would impose a substantial risk to the offender's physical
+    or mental well-being. Whenever the mandatory minimum sentence is suspended,
+    the court shall state in writing the reason for granting the suspension and
+    the facts upon which the suspension is based. In lieu of the mandatory
+    minimum term of imprisonment required under this subsection (1)(b)(i), the
+    court may order not less than thirty days of electronic home monitoring or a
+    one hundred twenty day period of 24/7 sobriety program monitoring. The court
+    may consider the offender's pretrial 24/7 sobriety program testing as
+    fulfilling a portion of posttrial sentencing. The offender shall pay the
+    cost of electronic home monitoring. The county or municipality in which the
+    penalty is being imposed shall determine the cost. The court may also
+    require the offender's electronic home monitoring device to include an
+    alcohol detection breathalyzer or other separate alcohol monitoring device,
+    and the court may restrict the amount of alcohol the offender may consume
+    during the time the offender is on electronic home monitoring; and
+    (ii) By a fine of not less than five hundred dollars nor more than five
+    thousand dollars. Five hundred dollars of the fine may not be suspended
+    unless the court finds the offender to be indigent.
+
+```catala
+scope RCW_46_61_5055_1_b under condition
+  parent.priors = 0 and (not parent.alcohol_less_than_15_percent or parent.test = NotThereBecauseRefused):
+
+  definition parent.penalties
+  equals
+    [ One content (Imprisonment {
+      -- min_days: 2
+      -- max_days: 364
+    });
+      One content (Fine {
+        -- min_fine: $500
+        -- max_fine: $5000
+      })]
+
+  exception definition parent.penalties
+  under condition parent.indigent
+  consequence equals
+    [ One content (Imprisonment {
+      -- min_days: 2
+      -- max_days: 364
+    });
+      One content (Fine {
+        -- min_fine: $0
+        -- max_fine: $5000
+      })]
+
+```
+
+(2) One prior offense in seven years. Except as provided in RCW 46.61.502(6) or
+46.61.504(6), a person who is convicted of a violation of RCW 46.61.502 or
+46.61.504 and who has one prior offense within seven years shall be punished as
+follows:
+  (a) Penalty for alcohol concentration less than 0.15. In the case of a person
+  whose alcohol concentration was less than 0.15, or for whom for reasons other
+  than the person's refusal to take a test offered pursuant to RCW 46.20.308
+  there is no test result indicating the person's alcohol concentration:
+    (i) By imprisonment for not less than thirty days nor more than three
+    hundred sixty-four days and sixty days of electronic home monitoring. In
+    lieu of the mandatory term of imprisonment and electronic home monitoring
+    under this subsection (2)(a)(i), the court may order a minimum of four days
+    in jail and either one hundred eighty days of electronic home monitoring or
+    a one hundred twenty-day period of 24/7 sobriety program monitoring pursuant
+    to RCW 36.28A.300 through 36.28A.390. The court may consider the offender's
+    pretrial 24/7 sobriety program monitoring as fulfilling a portion of
+    posttrial sentencing. The court shall order an expanded alcohol assessment
+    and treatment, if deemed appropriate by the assessment. The offender shall
+    pay for the cost of the electronic monitoring. The county or municipality
+    where the penalty is being imposed shall determine the cost. The court may
+    also require the offender's electronic home monitoring device include an
+    alcohol detection breathalyzer or other separate alcohol monitoring device,
+    and may restrict the amount of alcohol the offender may consume during the
+    time the offender is on electronic home monitoring. Thirty days of
+    imprisonment and sixty days of electronic home monitoring may not be
+    suspended unless the court finds that the imposition of this mandatory
+    minimum sentence would impose a substantial risk to the offender's physical
+    or mental well-being. Whenever the mandatory minimum sentence is suspended,
+    the court shall state in writing the reason for granting the suspension and
+    the facts upon which the suspension is based; and
+    (ii) By a fine of not less than five hundred dollars nor more than five
+    thousand dollars. Five hundred dollars of the fine may not be suspended
+    unless the court finds the offender to be indigent; or
+  (b) Penalty for alcohol concentration at least 0.15. In the case of a person
+  whose alcohol concentration was at least 0.15, or for whom by reason of the
+  person's refusal to take a test offered pursuant to RCW 46.20.308 there is no
+  test result indicating the person's alcohol concentration:
+    (i) By imprisonment for not less than forty-five days nor more than three
+    hundred sixty-four days and ninety days of electronic home monitoring. In
+    lieu of the mandatory minimum term of imprisonment and electronic home
+    monitoring under this subsection (2)(b)(i), the court may order a minimum of
+    six days in jail and either six months of electronic home monitoring or a
+    one hundred twenty-day period of 24/7 sobriety program monitoring pursuant
+    to RCW 36.28A.300 through 36.28A.390. The court may consider the offender's
+    pretrial 24/7 sobriety program monitoring as fulfilling a portion of
+    posttrial sentencing. The court shall order an expanded alcohol assessment
+    and treatment, if deemed appropriate by the assessment. The offender shall
+    pay for the cost of the electronic monitoring. The county or municipality
+    where the penalty is being imposed shall determine the cost. The court may
+    also require the offender's electronic home monitoring device include an
+    alcohol detection breathalyzer or other separate alcohol monitoring device,
+    and may restrict the amount of alcohol the offender may consume during the
+    time the offender is on electronic home monitoring. Forty-five days of
+    imprisonment and ninety days of electronic home monitoring may not be
+    suspended unless the court finds that the imposition of this mandatory
+    minimum sentence would impose a substantial risk to the offender's physical
+    or mental well-being. Whenever the mandatory minimum sentence is suspended,
+    the court shall state in writing the reason for granting the suspension and
+    the facts upon which the suspension is based; and
+    (ii) By a fine of not less than seven hundred fifty dollars nor more than
+    five thousand dollars. Seven hundred fifty dollars of the fine may not be
+    suspended unless the court finds the offender to be indigent.
+(3) Two prior offenses in seven years. Except as provided in RCW 46.61.502(6) or 46.61.504(6), a person who is convicted of a violation of RCW 46.61.502 or 46.61.504 and who has two prior offenses within seven years shall be punished as follows:
+  (a) Penalty for alcohol concentration less than 0.15. In the case of a person
+  whose alcohol concentration was less than 0.15, or for whom for reasons other
+  than the person's refusal to take a test offered pursuant to RCW 46.20.308
+  there is no test result indicating the person's alcohol concentration:
+    (i) By imprisonment for not less than ninety days nor more than three
+    hundred sixty-four days, if available in that county or city, a six-month
+    period of 24/7 sobriety program monitoring pursuant to RCW 36.28A.300
+    through 36.28A.390, and one hundred twenty days of electronic home
+    monitoring. In lieu of the mandatory minimum term of one hundred twenty days
+    of electronic home monitoring, the court may order at least an additional
+    eight days in jail. The court shall order an expanded alcohol assessment and
+    treatment, if deemed appropriate by the assessment. The offender shall pay
+    for the cost of the electronic monitoring. The county or municipality where
+      the penalty is being imposed shall determine the cost. The court may also
+      require the offender's electronic home monitoring device include an
+      alcohol detection breathalyzer or other separate alcohol monitoring
+      device, and may restrict the amount of alcohol the offender may consume
+      during the time the offender is on electronic home monitoring. Ninety days
+      of imprisonment and one hundred twenty days of electronic home monitoring
+      may not be suspended unless the court finds that the imposition of this
+      mandatory minimum sentence would impose a substantial risk to the
+      offender's physical or mental well-being. Whenever the mandatory minimum
+      sentence is suspended, the court shall state in writing the reason for
+      granting the suspension and the facts upon which the suspension is based;
+      and
+    (ii) By a fine of not less than one thousand dollars nor more than five
+    thousand dollars. One thousand dollars of the fine may not be suspended
+    unless the court finds the offender to be indigent; or
+  (b) Penalty for alcohol concentration at least 0.15. In the case of a person
+  whose alcohol concentration was at least 0.15, or for whom by reason of the
+  person's refusal to take a test offered pursuant to RCW 46.20.308 there is no
+  test result indicating the person's alcohol concentration:
+    (i) By imprisonment for not less than one hundred twenty days nor more than
+    three hundred sixty-four days, if available in that county or city, a
+    six-month period of 24/7 sobriety program monitoring pursuant to RCW
+    36.28A.300 through 36.28A.390, and one hundred fifty days of electronic home
+    monitoring. In lieu of the mandatory minimum term of one hundred fifty days
+    of electronic home monitoring, the court may order at least an additional
+    ten days in jail. The offender shall pay for the cost of the electronic
+    monitoring. The court shall order an expanded alcohol assessment and
+    treatment, if deemed appropriate by the assessment. The county or
+    municipality where the penalty is being imposed shall determine the cost.
+    The court may also require the offender's electronic home monitoring device
+    include an alcohol detection breathalyzer or other separate alcohol
+    monitoring device, and may restrict the amount of alcohol the offender may
+    consume during the time the offender is on electronic home monitoring. One
+    hundred twenty days of imprisonment and one hundred fifty days of electronic
+    home monitoring may not be suspended unless the court finds that the
+    imposition of this mandatory minimum sentence would impose a substantial
+    risk to the offender's physical or mental well-being. Whenever the mandatory
+    minimum sentence is suspended, the court shall state in writing the reason
+    for granting the suspension and the facts upon which the suspension is
+      based; and
+    (ii) By a fine of not less than one thousand five hundred dollars nor more
+    than five thousand dollars. One thousand five hundred dollars of the fine
+    may not be suspended unless the court finds the offender to be indigent.
+(4) Three or more prior offenses in ten years. A person who is convicted of a violation of RCW 46.61.502 or 46.61.504 shall be punished under chapter 9.94A RCW if:
+  (a) The person has three or more prior offenses within ten years; or
+  (b) The person has ever previously been convicted of:
+    (i) A violation of RCW 46.61.520 committed while under the influence of
+    intoxicating liquor or any drug;
+    (ii) A violation of RCW 46.61.522 committed while under the influence of
+    intoxicating liquor or any drug;
+    (iii) An out-of-state offense comparable to the offense specified in (b)(i)
+    or (ii) of this subsection; or
+    (iv) A violation of RCW 46.61.502(6) or 46.61.504(6).
+(5) Monitoring. (a) Ignition interlock device. The court shall require any person convicted of a violation of RCW 46.61.502 or 46.61.504 or an equivalent local ordinance to comply with the rules and requirements of the department regarding the installation and use of a functioning ignition interlock device installed on all motor vehicles operated by the person.
+  (b) Monitoring devices. If the court orders that a person refrain from
+  consuming any alcohol, the court may order the person to submit to alcohol
+  monitoring through an alcohol detection breathalyzer device, transdermal
+  sensor device, or other technology designed to detect alcohol in a person's
+  system. The person shall pay for the cost of the monitoring, unless the court
+  specifies that the cost of monitoring will be paid with funds that are
+  available from an alternative source identified by the court. The county or
+  municipality where the penalty is being imposed shall determine the cost.
+  (c) 24/7 sobriety program monitoring. In any county or city where a 24/7
+  sobriety program is available and verified by the Washington association of
+  sheriffs and police chiefs, the court shall:
+    (i) Order the person to install and use a functioning ignition interlock or
+    other device in lieu of such period of 24/7 sobriety program monitoring;
+    (ii) Order the person to a period of 24/7 sobriety program monitoring
+    pursuant to subsections (1) through (3) of this section; or
+    (iii) Order the person to install and use a functioning ignition interlock
+    or other device in addition to a period of 24/7 sobriety program monitoring
+    pursuant to subsections (1) through (3) of this section.
+(6) Penalty for having a minor passenger in vehicle. If a person who is convicted of a violation of RCW 46.61.502 or 46.61.504 committed the offense while a passenger under the age of sixteen was in the vehicle, the court shall:
+  (a) Order the use of an ignition interlock or other device for an additional
+  six months;
+  (b) In any case in which the person has no prior offenses within seven years,
+  and except as provided in RCW 46.61.502(6) or 46.61.504(6), order an
+  additional twenty-four hours of imprisonment and a fine of not less than one
+  thousand dollars and not more than five thousand dollars. One thousand dollars
+  of the fine may not be suspended unless the court finds the offender to be
+  indigent;
+(c) In any case in which the person has one prior offense within seven years, and except as provided in RCW 46.61.502(6) or 46.61.504(6), order an additional five days of imprisonment and a fine of not less than two thousand dollars and not more than five thousand dollars. One thousand dollars of the fine may not be suspended unless the court finds the offender to be indigent;
+(d) In any case in which the person has two prior offenses within seven years, and except as provided in RCW 46.61.502(6) or 46.61.504(6), order an additional ten days of imprisonment and a fine of not less than three thousand dollars and not more than ten thousand dollars. One thousand dollars of the fine may not be suspended unless the court finds the offender to be indigent.
+(7) Other items courts must consider while setting penalties. In exercising its discretion in setting penalties within the limits allowed by this section, the court shall particularly consider the following:
+  (a) Whether the person's driving at the time of the offense was responsible
+  for injury or damage to another or another's property;
+  (b) Whether at the time of the offense the person was driving or in physical
+  control of a vehicle with one or more passengers;
+  (c) Whether the driver was driving in the opposite direction of the normal
+  flow of traffic on a multiple lane highway, as defined by RCW 46.04.350, with
+  a posted speed limit of forty-five miles per hour or greater; and
+  (d) Whether a child passenger under the age of sixteen was an occupant in the
+  driver's vehicle.
+(8) Treatment and information school. An offender punishable under this section is subject to the alcohol assessment and treatment provisions of RCW 46.61.5056.
+(9) Driver's license privileges of the defendant. The license, permit, or nonresident privilege of a person convicted of driving or being in physical control of a motor vehicle while under the influence of intoxicating liquor or drugs must:
+  (a) Penalty for alcohol concentration less than 0.15. If the person's alcohol
+  concentration was less than 0.15, or if for reasons other than the person's
+  refusal to take a test offered under RCW 46.20.308 there is no test result
+  indicating the person's alcohol concentration:
+    (i) Where there has been no prior offense within seven years, be suspended
+    or denied by the department for ninety days or until the person is evaluated
+    by an alcoholism agency or probation department pursuant to RCW 46.20.311
+    and the person completes or is enrolled in a ninety-day period of 24/7
+    sobriety program monitoring. In no circumstances shall the license
+    suspension be for fewer than two days;
+    (ii) Where there has been one prior offense within seven years, be revoked
+    or denied by the department for two years or until the person is evaluated
+    by an alcoholism agency or probation department pursuant to RCW 46.20.311
+    and the person completes or is enrolled in a six-month period of 24/7
+    sobriety program monitoring. In no circumstances shall the license
+    suspension be for less than one year; or
+    (iii) Where there have been two or more prior offenses within seven years,
+    be revoked or denied by the department for three years;
+  (b) Penalty for alcohol concentration at least 0.15. If the person's alcohol
+  concentration was at least 0.15:
+    (i) Where there has been no prior offense within seven years, be revoked or
+    denied by the department for one year or until the person is evaluated by an
+    alcoholism agency or probation department pursuant to RCW 46.20.311 and the
+    person completes or is enrolled in a one hundred twenty day period of 24/7
+    sobriety program monitoring. In no circumstances shall the license
+    revocation be for fewer than four days;
+    (ii) Where there has been one prior offense within seven years, be revoked
+    or denied by the department for nine hundred days; or
+    (iii) Where there have been two or more prior offenses within seven years,
+    be revoked or denied by the department for four years; or
+  (c) Penalty for refusing to take test. If by reason of the person's refusal to
+  take a test offered under RCW 46.20.308, there is no test result indicating
+  the person's alcohol concentration:
+    (i) Where there have been no prior offenses within seven years, be revoked
+    or denied by the department for two years;
+    (ii) Where there has been one prior offense within seven years, be revoked
+    or denied by the department for three years; or
+    (iii) Where there have been two or more previous offenses within seven
+    years, be revoked or denied by the department for four years.
+The department shall grant credit on a day-for-day basis for any portion of a suspension, revocation, or denial already served under this subsection for a suspension, revocation, or denial imposed under RCW 46.20.3101 arising out of the same incident.
+Upon receipt of a notice from the court under RCW 36.28A.390 that a participant has been removed from a 24/7 sobriety program, the department must resume any suspension, revocation, or denial that had been terminated early under this subsection due to participation in the program, granting credit on a day-for-day basis for any portion of a suspension, revocation, or denial already served under RCW 46.20.3101 or this section arising out of the same incident.
+Upon its own motion or upon motion by a person, a court may find, on the record, that notice to the department under RCW 46.20.270 has been delayed for three years or more as a result of a clerical or court error. If so, the court may order that the person's license, permit, or nonresident privilege shall not be revoked, suspended, or denied for that offense. The court shall send notice of the finding and order to the department and to the person. Upon receipt of the notice from the court, the department shall not revoke, suspend, or deny the license, permit, or nonresident privilege of the person for that offense.
+For purposes of this subsection (9), the department shall refer to the driver's record maintained under RCW 46.52.120 when determining the existence of prior offenses.
+(10) Probation of driving privilege. After expiration of any period of suspension, revocation, or denial of the offender's license, permit, or privilege to drive required by this section, the department shall place the offender's driving privilege in probationary status pursuant to RCW 46.20.355.
+(11) Conditions of probation. (a) In addition to any nonsuspendable and nondeferrable jail sentence required by this section, whenever the court imposes up to three hundred sixty-four days in jail, the court shall also suspend but shall not defer a period of confinement for a period not exceeding five years. The court shall impose conditions of probation that include: (i) Not driving a motor vehicle within this state without a valid license to drive; (ii) not driving a motor vehicle within this state without proof of liability insurance or other financial responsibility for the future pursuant to RCW 46.30.020; (iii) not driving or being in physical control of a motor vehicle within this state while having an alcohol concentration of 0.08 or more or a THC concentration of 5.00 nanograms per milliliter of whole blood or higher, within two hours after driving; (iv) not refusing to submit to a test of his or her breath or blood to determine alcohol or drug concentration upon request of a law enforcement officer who has reasonable grounds to believe the person was driving or was in actual physical control of a motor vehicle within this state while under the influence of intoxicating liquor or drug; and (v) not driving a motor vehicle in this state without a functioning ignition interlock device as required by the department under RCW 46.20.720. The court may impose conditions of probation that include nonrepetition, installation of an ignition interlock device on the probationer's motor vehicle, alcohol or drug treatment, supervised probation, or other conditions that may be appropriate. The sentence may be imposed in whole or in part upon violation of a condition of probation during the suspension period.
+  (b) For each violation of mandatory conditions of probation under (a)(i),
+  (ii), (iii), (iv), or (v) of this subsection, the court shall order the
+  convicted person to be confined for thirty days, which shall not be suspended
+  or deferred.
+  (c) For each incident involving a violation of a mandatory condition of
+  probation imposed under this subsection, the license, permit, or privilege to
+  drive of the person shall be suspended by the court for thirty days or, if
+  such license, permit, or privilege to drive already is suspended, revoked, or
+  denied at the time the finding of probation violation is made, the suspension,
+  revocation, or denial then in effect shall be extended by thirty days. The
+  court shall notify the department of any suspension, revocation, or denial or
+  any extension of a suspension, revocation, or denial imposed under this
+  subsection.
+(12) Waiver of electronic home monitoring. A court may waive the electronic home monitoring requirements of this chapter when:
+  (a) The offender does not have a dwelling, telephone service, or any other
+  necessity to operate an electronic home monitoring system. However, if a court
+  determines that an alcohol monitoring device utilizing wireless reporting
+  technology is reasonably available, the court may require the person to obtain
+  such a device during the period of required electronic home monitoring;
+  (b) The offender does not reside in the state of Washington; or
+  (c) The court determines that there is reason to believe that the offender
+  would violate the conditions of the electronic home monitoring penalty.
+Whenever the mandatory minimum term of electronic home monitoring is waived, the court shall state in writing the reason for granting the waiver and the facts upon which the waiver is based, and shall impose an alternative sentence with similar punitive consequences. The alternative sentence may include, but is not limited to, use of an ignition interlock device, the 24/7 sobriety program monitoring, additional jail time, work crew, or work camp.
+Whenever the combination of jail time and electronic home monitoring or alternative sentence would exceed three hundred sixty-four days, the offender shall serve the jail portion of the sentence first, and the electronic home monitoring or alternative portion of the sentence shall be reduced so that the combination does not exceed three hundred sixty-four days.
+(13) Extraordinary medical placement. An offender serving a sentence under this section, whether or not a mandatory minimum term has expired, may be granted an extraordinary medical placement by the jail administrator subject to the standards and limitations set forth in RCW 9.94A.728(1)(c).
+(14) Definitions. For purposes of this section and RCW 46.61.502 and 46.61.504:
+  (a) A "prior offense" means any of the following:
+    (i) A conviction for a violation of RCW 46.61.502 or an equivalent local
+    ordinance;
+    (ii) A conviction for a violation of RCW 46.61.504 or an equivalent local
+    ordinance;
+    (iii) A conviction for a violation of RCW 46.25.110 or an equivalent local
+    ordinance;
+    (iv) A conviction for a violation of RCW 79A.60.040(2) or an equivalent
+    local ordinance;
+    (v) A conviction for a violation of RCW 79A.60.040(1) or an equivalent local
+    ordinance committed in a reckless manner if the conviction is the result of
+    a charge that was originally filed as a violation of RCW 79A.60.040(2) or an
+    equivalent local ordinance;
+    (vi) A conviction for a violation of RCW 47.68.220 or an equivalent local
+    ordinance committed while under the influence of intoxicating liquor or any
+    drug;
+    (vii) A conviction for a violation of RCW 47.68.220 or an equivalent local
+    ordinance committed in a careless or reckless manner if the conviction is
+    the result of a charge that was originally filed as a violation of RCW
+    47.68.220 or an equivalent local ordinance while under the influence of
+    intoxicating liquor or any drug;
+    (viii) A conviction for a violation of RCW 46.09.470(2) or an equivalent
+    local ordinance;
+    (ix) A conviction for a violation of RCW 46.10.490(2) or an equivalent local
+    ordinance;
+    (x) A conviction for a violation of RCW 46.61.520 committed while under the
+    influence of intoxicating liquor or any drug, or a conviction for a
+    violation of RCW 46.61.520 committed in a reckless manner or with the
+    disregard for the safety of others if the conviction is the result of a
+    charge that was originally filed as a violation of RCW 46.61.520 committed
+    while under the influence of intoxicating liquor or any drug;
+    (xi) A conviction for a violation of RCW 46.61.522 committed while under the
+    influence of intoxicating liquor or any drug, or a conviction for a
+    violation of RCW 46.61.522 committed in a reckless manner or with the
+    disregard for the safety of others if the conviction is the result of a
+    charge that was originally filed as a violation of RCW 46.61.522 committed
+    while under the influence of intoxicating liquor or any drug;
+    (xii) A conviction for a violation of RCW 46.61.5249, 46.61.500, or
+    9A.36.050 or an equivalent local ordinance, if the conviction is the result
+    of a charge that was originally filed as a violation of RCW 46.61.502 or
+    46.61.504, or an equivalent local ordinance, or of RCW 46.61.520 or
+    46.61.522;
+    (xiii) An out-of-state conviction for a violation that would have been a
+    violation of (a)(i), (ii), (x), (xi), or (xii) of this subsection if
+    committed in this state;
+    (xiv) A deferred prosecution under chapter 10.05 RCW granted in a
+    prosecution for a violation of RCW 46.61.502, 46.61.504, or an equivalent
+    local ordinance;
+    (xv) A deferred prosecution under chapter 10.05 RCW granted in a prosecution
+    for a violation of RCW 46.61.5249, or an equivalent local ordinance, if the
+      charge under which the deferred prosecution was granted was originally
+      filed as a violation of RCW 46.61.502 or 46.61.504, or an equivalent local
+      ordinance, or of RCW 46.61.520 or 46.61.522;
+    (xvi) A deferred prosecution granted in another state for a violation of
+    driving or having physical control of a vehicle while under the influence of
+    intoxicating liquor or any drug if the out-of-state deferred prosecution is
+    equivalent to the deferred prosecution under chapter 10.05 RCW, including a
+    requirement that the defendant participate in a chemical dependency
+    treatment program; or
+    (xvii) A deferred sentence imposed in a prosecution for a violation of RCW 46.61.5249, 46.61.500, or 9A.36.050, or an equivalent local ordinance, if the charge under which the deferred sentence was imposed was originally filed as a violation of RCW 46.61.502 or 46.61.504, or an equivalent local ordinance, or a violation of RCW 46.61.520 or 46.61.522;
+If a deferred prosecution is revoked based on a subsequent conviction for an offense listed in this subsection (14)(a), the subsequent conviction shall not be treated as a prior offense of the revoked deferred prosecution for the purposes of sentencing;
+  (b) "Treatment" means substance use disorder treatment licensed or certified
+  by the department of health;
+  (c) "Within seven years" means that the arrest for a prior offense occurred
+  within seven years before or after the arrest for the current offense; and
+  (d) "Within ten years" means that the arrest for a prior offense occurred
+  within ten years before or after the arrest for the current offense.
+(15) All fines imposed by this section apply to adult offenders only.

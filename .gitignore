@@ -9,5 +9,6 @@ legifrance_oauth*
 *.html
 .vscode/
 .ninja_*
+*.d
 
 build.ninja

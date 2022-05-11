@@ -202,7 +202,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Ast.ScopeDef.SubScopeVar (used, _) ) ->
                 (* here we are defining the input of a scope with the output of
                    another subscope *)
-                if used = defined then
+                if false && used = defined then
                   (* subscopes are not recursive functions *)
                   Errors.raise_spanned_error fv_def_pos
                     "The subscope %a is used when defining one of its inputs, \
