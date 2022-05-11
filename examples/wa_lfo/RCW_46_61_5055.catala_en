@@ -55,15 +55,15 @@ declaration scope RCW_46_61_5055:
 
   # Inputs:
 
-  input priors content integer
-  input alcohol_less_than_15_percent content boolean
-  input test content WhatsUpWithTheTest
-  input minor_passenger content boolean
-  input indigent content boolean
+  context priors content integer
+  context alcohol_less_than_15_percent content boolean
+  context test content WhatsUpWithTheTest
+  context minor_passenger content boolean
+  context indigent content boolean
 
   # Outcomes:
 
-  output penalties content collection Penalty
+  context output penalties content collection Penalty
 
 declaration scope RCW_46_61_5055_1_a:
   parent scope RCW_46_61_5055
