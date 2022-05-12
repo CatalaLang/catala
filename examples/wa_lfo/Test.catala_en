@@ -7,16 +7,24 @@
 scope RCW_46_61_5055_Info:
 
   definition priors equals 0
-  definition alcohol_less_than_15_percent equals false
-  definition test equals NotThereBecauseRefused
+  definition test equals ThereGreaterOrEqualTo15
   definition minor_passenger equals false
   definition indigent equals true
 
-scope RCW_46_61_5055_1_a:
+scope RCW_46_61_5055_Outcome:
 
-  assertion outcome.penalties = []
-
-scope RCW_46_61_5055_1_b:
-
-  assertion outcome.penalties = []
+  assertion penalties = [
+    One content (
+      Imprisonment content (
+        Imprisonment {
+          -- min_days: 2 day
+          -- max_days: 364 day
+        }));
+    One content (
+      Fine content (
+        Fine {
+          -- min_fine: $0
+          -- max_fine: $5000.00
+        }))
+  ]
 ```

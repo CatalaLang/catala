@@ -1,13 +1,6 @@
 ## RCW_46_61_5055
 
 ```catala-metadata
-# TODO: Generic stuff that should move to a separate file
-#declaration enumeration Waivability:
-#  -- Whole
-#  -- IfIndigent
-#  -- ExceptMoney content money
-#  -- ExceptDays content duration
-
 declaration structure Fine:
   data min_fine content money
   data max_fine content money
@@ -47,13 +40,13 @@ declaration enumeration Charge:
 
 # Definitions specifically for this statute
 declaration enumeration WhatsUpWithTheTest:
-  -- ItsThere
+  -- ThereLessThan15
+  -- ThereGreaterOrEqualTo15
   -- NotThereBecauseRefused
   -- NotThereBecauseSomethingElse
 
 declaration scope RCW_46_61_5055_Info:
   output priors content integer
-  output alcohol_less_than_15_percent content boolean
   output test content WhatsUpWithTheTest
   output minor_passenger content boolean
   output indigent content boolean
@@ -104,7 +97,7 @@ declaration scope RCW_46_61_5055_1_b:
 
 ```catala
 scope RCW_46_61_5055_1_a under condition
-  info.priors = 0 and (info.alcohol_less_than_15_percent or info.test = NotThereBecauseSomethingElse):
+  info.priors = 0 and (info.test = ThereLessThan15 or info.test = NotThereBecauseSomethingElse):
 
   definition outcome.penalties
   equals
@@ -158,7 +151,7 @@ scope RCW_46_61_5055_1_a under condition
 
 ```catala
 scope RCW_46_61_5055_1_b under condition
-  info.priors = 0 and (not info.alcohol_less_than_15_percent or info.test = NotThereBecauseRefused):
+  info.priors = 0 and (info.test = ThereGreaterOrEqualTo15 or info.test = NotThereBecauseRefused):
 
   definition outcome.penalties
   equals
