@@ -61,7 +61,7 @@ doc:
 install:
 	dune build @install
 
-#> demo plugins
+#> plugins				: Builds the demonstration plugins
 plugins:
 	dune build compiler/plugins/
 	@echo "define CATALA_PLUGINS=_build/default/compiler/plugins to test the plugins"
