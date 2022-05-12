@@ -90,15 +90,15 @@ SYNTAX_HIGHLIGHTING_PL=${CURDIR}/syntax_highlighting/pl
 
 pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
 	chmod +x $<
-	sudo $<
+	$<
 
 pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
 	chmod +x $<
-	sudo $<
+	$<
 
 pygmentize_pl: $(SYNTAX_HIGHLIGHTING_PL)/set_up_pygments.sh
 	chmod +x $<
-	sudo $<
+	$<
 
 #> pygments				: Extends your pygmentize executable with Catala lexers
 pygments: pygmentize_fr pygmentize_en pygmentize_pl
