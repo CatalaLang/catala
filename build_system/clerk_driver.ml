@@ -134,8 +134,8 @@ let info =
         "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
-  let exits = Term.default_exits @ [Term.exit_info ~doc:"on error." 1] in
-  Term.info "clerk" ~version ~doc ~exits ~man
+  let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
+  Cmd.info "clerk" ~version ~doc ~exits ~man
 
 (**{1 Testing}*)
 
@@ -795,7 +795,4 @@ let driver
     Cli.error_print "The command \"%s\" is unknown to clerk." command;
     1
 
-let main () =
-  match Cmdliner.Term.eval (clerk_t driver, info) with
-  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
-  | _ -> Cmdliner.Term.exit (`Error `Term)
+let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))

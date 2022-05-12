@@ -101,7 +101,7 @@ val catala_t : (string -> options -> 'a) -> 'a Cmdliner.Term.t
 
 val set_option_globals : options -> unit
 val version : string
-val info : Cmdliner.Term.info
+val info : Cmdliner.Cmd.info
 
 (**{1 Terminal formatting}*)
 
