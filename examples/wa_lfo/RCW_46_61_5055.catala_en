@@ -52,19 +52,22 @@ declaration enumeration WhatsUpWithTheTest:
   -- NotThereBecauseSomethingElse
 
 declaration scope RCW_46_61_5055_Info:
-  context priors content integer
-  context alcohol_less_than_15_percent content boolean
-  context test content WhatsUpWithTheTest
-  context minor_passenger content boolean
-  context indigent content boolean
+  output priors content integer
+  output alcohol_less_than_15_percent content boolean
+  output test content WhatsUpWithTheTest
+  output minor_passenger content boolean
+  output indigent content boolean
 
+declaration scope RCW_46_61_5055_Outcome:
   context output penalties content collection Penalty
 
 declaration scope RCW_46_61_5055_1_a:
   info scope RCW_46_61_5055_Info
+  outcome scope RCW_46_61_5055_Outcome
 
 declaration scope RCW_46_61_5055_1_b:
   info scope RCW_46_61_5055_Info
+  outcome scope RCW_46_61_5055_Outcome
 ```
 
 ## RCW 46.61.5055 Alcohol and drug violators—Penalty schedule. (Effective until January 1, 2022.)
@@ -103,7 +106,7 @@ declaration scope RCW_46_61_5055_1_b:
 scope RCW_46_61_5055_1_a under condition
   info.priors = 0 and (info.alcohol_less_than_15_percent or info.test = NotThereBecauseSomethingElse):
 
-  definition info.penalties
+  definition outcome.penalties
   equals
     [ One content (Imprisonment content (Imprisonment {
       -- min_days: 1 day
@@ -114,7 +117,7 @@ scope RCW_46_61_5055_1_a under condition
         -- max_fine: $5000
       }))]
 
-  exception definition info.penalties
+  exception definition outcome.penalties
   under condition info.indigent
   consequence equals
     [ One content (Imprisonment content (Imprisonment {
@@ -157,7 +160,7 @@ scope RCW_46_61_5055_1_a under condition
 scope RCW_46_61_5055_1_b under condition
   info.priors = 0 and (not info.alcohol_less_than_15_percent or info.test = NotThereBecauseRefused):
 
-  definition info.penalties
+  definition outcome.penalties
   equals
     [ One content (Imprisonment content (Imprisonment {
       -- min_days: 2 day
@@ -168,7 +171,7 @@ scope RCW_46_61_5055_1_b under condition
         -- max_fine: $5000
       }))]
 
-  exception definition info.penalties
+  exception definition outcome.penalties
   under condition info.indigent
   consequence equals
     [ One content (Imprisonment content (Imprisonment {

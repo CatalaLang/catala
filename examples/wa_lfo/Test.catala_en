@@ -12,7 +12,11 @@ scope RCW_46_61_5055_Info:
   definition minor_passenger equals false
   definition indigent equals true
 
+scope RCW_46_61_5055_1_a:
+
+  assertion outcome.penalties = []
+
 scope RCW_46_61_5055_1_b:
 
-  assertion info.penalties = []
+  assertion outcome.penalties = []
 ```
