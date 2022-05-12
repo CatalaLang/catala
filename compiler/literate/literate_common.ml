@@ -34,24 +34,24 @@ let literal_source_files = function
 
 let literal_disclaimer_and_link = function
   | En ->
-      "This document was produced from a set of source files written in the \
-       Catala programming language, mixing together the legislative text and \
-       the computer code that translates it. For more information about the \
-       methodology and how to read the code, please visit \
-       [https://catala-lang.org](https://catala-lang.org)."
+    "This document was produced from a set of source files written in the \
+     Catala programming language, mixing together the legislative text and the \
+     computer code that translates it. For more information about the \
+     methodology and how to read the code, please visit \
+     [https://catala-lang.org](https://catala-lang.org)."
   | Fr ->
-      "Ce document a été produit à partir d'un ensemble de fichiers sources \
-       écrits dans le langage de programmation Catala, mêlant le texte \
-       législatif et le code informatique qui le traduit. Pour plus \
-       d'informations sur la méthodologie et sur la façon de lire le code, \
-       veuillez consulter le site \
-       [https://catala-lang.org](https://catala-lang.org)."
+    "Ce document a été produit à partir d'un ensemble de fichiers sources \
+     écrits dans le langage de programmation Catala, mêlant le texte \
+     législatif et le code informatique qui le traduit. Pour plus \
+     d'informations sur la méthodologie et sur la façon de lire le code, \
+     veuillez consulter le site \
+     [https://catala-lang.org](https://catala-lang.org)."
   | Pl ->
-      "Niniejszy dokument został opracowany na podstawie zestawu plików \
-       źródłowych napisanych w języku programowania Catala, łączących tekst \
-       legislacyjny z kodem komputerowym, który go tłumaczy. Więcej informacji \
-       na temat metodologii i sposobu odczytywania kodu można znaleźć na \
-       stronie [https://catala-lang.org](https://catala-lang.org)"
+    "Niniejszy dokument został opracowany na podstawie zestawu plików \
+     źródłowych napisanych w języku programowania Catala, łączących tekst \
+     legislacyjny z kodem komputerowym, który go tłumaczy. Więcej informacji \
+     na temat metodologii i sposobu odczytywania kodu można znaleźć na stronie \
+     [https://catala-lang.org](https://catala-lang.org)"
 
 let literal_last_modification = function
   | En -> "last modification"

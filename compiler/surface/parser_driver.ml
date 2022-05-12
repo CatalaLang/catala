@@ -65,40 +65,40 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
     Ast.law_structure list =
   match f with
   | [] -> []
-  | [ item ] -> [ item ]
+  | [item] -> [item]
   | first_item :: rest -> (
-      let rest_tree = law_struct_list_to_tree rest in
-      match rest_tree with
-      | [] -> assert false (* there should be at least one rest element *)
-      | rest_head :: rest_tail -> (
-          match first_item with
-          | CodeBlock _ | LawText _ | LawInclude _ ->
-              (* if an article or an include is just before a new heading , then
-                 we don't merge it with what comes next *)
-              first_item :: rest_head :: rest_tail
-          | LawHeading (heading, _) ->
-              (* here we have encountered a heading, which is going to "gobble"
-                 everything in the [rest_tree] until it finds a heading of at
-                 least the same precedence *)
-              let rec split_rest_tree (rest_tree : Ast.law_structure list) :
-                  Ast.law_structure list * Ast.law_structure list =
-                match rest_tree with
-                | [] -> ([], [])
-                | LawHeading (new_heading, _) :: _
-                  when new_heading.law_heading_precedence
-                       <= heading.law_heading_precedence ->
-                    (* we stop gobbling *)
-                    ([], rest_tree)
-                | first :: after ->
-                    (* we continue gobbling *)
-                    let after_gobbled, after_out = split_rest_tree after in
-                    (first :: after_gobbled, after_out)
-              in
-              let gobbled, rest_out = split_rest_tree rest_tree in
-              LawHeading (heading, gobbled) :: rest_out))
+    let rest_tree = law_struct_list_to_tree rest in
+    match rest_tree with
+    | [] -> assert false (* there should be at least one rest element *)
+    | rest_head :: rest_tail -> (
+      match first_item with
+      | CodeBlock _ | LawText _ | LawInclude _ ->
+        (* if an article or an include is just before a new heading , then we
+           don't merge it with what comes next *)
+        first_item :: rest_head :: rest_tail
+      | LawHeading (heading, _) ->
+        (* here we have encountered a heading, which is going to "gobble"
+           everything in the [rest_tree] until it finds a heading of at least
+           the same precedence *)
+        let rec split_rest_tree (rest_tree : Ast.law_structure list) :
+            Ast.law_structure list * Ast.law_structure list =
+          match rest_tree with
+          | [] -> [], []
+          | LawHeading (new_heading, _) :: _
+            when new_heading.law_heading_precedence
+                 <= heading.law_heading_precedence ->
+            (* we stop gobbling *)
+            [], rest_tree
+          | first :: after ->
+            (* we continue gobbling *)
+            let after_gobbled, after_out = split_rest_tree after in
+            first :: after_gobbled, after_out
+        in
+        let gobbled, rest_out = split_rest_tree rest_tree in
+        LawHeading (heading, gobbled) :: rest_out))
 
 (** Style with which to display syntax hints in the terminal output *)
-let syntax_hints_style = [ ANSITerminal.yellow ]
+let syntax_hints_style = [ANSITerminal.yellow]
 
 (** Usage: [raise_parser_error error_loc last_good_loc token msg]
 
@@ -116,7 +116,7 @@ let raise_parser_error
     ::
     (match last_good_loc with
     | None -> []
-    | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
+    | Some last_good_loc -> [Some "Last good token:", last_good_loc]))
     "Syntax error at token %a\n%s"
     (Cli.format_with_style syntax_hints_style)
     (Printf.sprintf "\"%s\"" token)
@@ -150,15 +150,15 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     let acceptable_tokens, last_positions =
       match last_input_needed with
       | Some last_input_needed ->
-          ( List.filter
-              (fun (_, t) ->
-                I.acceptable
-                  (I.input_needed last_input_needed)
-                  t
-                  (fst (lexing_positions lexbuf)))
-              token_list,
-            Some (I.positions last_input_needed) )
-      | None -> (token_list, None)
+        ( List.filter
+            (fun (_, t) ->
+              I.acceptable
+                (I.input_needed last_input_needed)
+                t
+                (fst (lexing_positions lexbuf)))
+            token_list,
+          Some (I.positions last_input_needed) )
+      | None -> token_list, None
     in
     let similar_acceptable_tokens =
       List.sort
@@ -193,19 +193,18 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     let custom_menhir_message =
       match Parser_errors.message (state env) with
       | exception Not_found ->
-          "Message: "
-          ^ Cli.with_style syntax_hints_style "%s" "unexpected token"
+        "Message: " ^ Cli.with_style syntax_hints_style "%s" "unexpected token"
       | msg ->
-          "Message: "
-          ^ Cli.with_style syntax_hints_style "%s"
-              (String.trim (String.uncapitalize_ascii msg))
+        "Message: "
+        ^ Cli.with_style syntax_hints_style "%s"
+            (String.trim (String.uncapitalize_ascii msg))
     in
     let msg =
       match similar_token_msg with
       | None -> custom_menhir_message
       | Some similar_token_msg ->
-          Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message
-            similar_token_msg
+        Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message
+          similar_token_msg
     in
     raise_parser_error
       (Pos.from_lpos (lexing_positions lexbuf))
@@ -221,17 +220,17 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
     match checkpoint with
     | I.InputNeeded env ->
-        let token = next_token () in
-        let checkpoint = I.offer checkpoint token in
-        loop next_token token_list lexbuf (Some env) checkpoint
+      let token = next_token () in
+      let checkpoint = I.offer checkpoint token in
+      loop next_token token_list lexbuf (Some env) checkpoint
     | I.Shifting _ | I.AboutToReduce _ ->
-        let checkpoint = I.resume checkpoint in
-        loop next_token token_list lexbuf last_input_needed checkpoint
+      let checkpoint = I.resume checkpoint in
+      loop next_token token_list lexbuf last_input_needed checkpoint
     | I.HandlingError env -> fail lexbuf env token_list last_input_needed
     | I.Accepted v -> v
     | I.Rejected ->
-        (* Cannot happen as we stop at syntax error immediatly *)
-        assert false
+      (* Cannot happen as we stop at syntax error immediatly *)
+      assert false
 
   (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type
       difference for [lexbuf]. *)
@@ -269,17 +268,18 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
 
 (** Parses a single source file *)
 let rec parse_source_file
-    (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program =
+    (source_file : Pos.input_file)
+    (language : Cli.backend_lang) : Ast.program =
   Cli.debug_print "Parsing %s"
     (match source_file with FileName s | Contents s -> s);
   let lexbuf, input =
     match source_file with
     | FileName source_file -> (
-        try
-          let input = open_in source_file in
-          (Sedlexing.Utf8.from_channel input, Some input)
-        with Sys_error msg -> Errors.raise_error "System error: %s" msg)
-    | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
+      try
+        let input = open_in source_file in
+        Sedlexing.Utf8.from_channel input, Some input
+      with Sys_error msg -> Errors.raise_error "System error: %s" msg)
+    | Contents contents -> Sedlexing.Utf8.from_string contents, None
   in
   let source_file_name =
     match source_file with FileName s -> s | Contents _ -> "stdin"
@@ -304,38 +304,36 @@ and expand_includes
     (fun acc command ->
       match command with
       | Ast.LawInclude (Ast.CatalaFile sub_source) ->
-          let source_dir = Filename.dirname source_file in
-          let sub_source = Filename.concat source_dir (Pos.unmark sub_source) in
-          let includ_program =
-            parse_source_file (FileName sub_source) language
-          in
-          {
-            Ast.program_source_files =
-              acc.Ast.program_source_files @ includ_program.program_source_files;
-            Ast.program_items =
-              acc.Ast.program_items @ includ_program.program_items;
-          }
+        let source_dir = Filename.dirname source_file in
+        let sub_source = Filename.concat source_dir (Pos.unmark sub_source) in
+        let includ_program = parse_source_file (FileName sub_source) language in
+        {
+          Ast.program_source_files =
+            acc.Ast.program_source_files @ includ_program.program_source_files;
+          Ast.program_items =
+            acc.Ast.program_items @ includ_program.program_items;
+        }
       | Ast.LawHeading (heading, commands') ->
-          let {
-            Ast.program_items = commands';
-            Ast.program_source_files = new_sources;
-          } =
-            expand_includes source_file commands' language
-          in
-          {
-            Ast.program_source_files =
-              acc.Ast.program_source_files @ new_sources;
-            Ast.program_items =
-              acc.Ast.program_items @ [ Ast.LawHeading (heading, commands') ];
-          }
-      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [ i ] })
+        let {
+          Ast.program_items = commands';
+          Ast.program_source_files = new_sources;
+        } =
+          expand_includes source_file commands' language
+        in
+        {
+          Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
+          Ast.program_items =
+            acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
+        }
+      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
     { Ast.program_source_files = []; Ast.program_items = [] }
     commands
 
 (** {1 API} *)
 
 let parse_top_level_file
-    (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program =
+    (source_file : Pos.input_file)
+    (language : Cli.backend_lang) : Ast.program =
   let program = parse_source_file source_file language in
   {
     program with

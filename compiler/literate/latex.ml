@@ -178,99 +178,103 @@ let wrap_latex
 (** [check_exceeding_lines max_len start_line filename content] prints a warning
     message for each lines of [content] exceeding [max_len] characters. *)
 let check_exceeding_lines
-    ?(max_len = 80) (start_line : int) (filename : string) (content : string) =
+    ?(max_len = 80)
+    (start_line : int)
+    (filename : string)
+    (content : string) =
   content |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
          if CamomileLibrary.UTF8.length s > max_len then (
            Cli.warning_print "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
-                ANSITerminal.[ Bold; yellow ]
+                ANSITerminal.[Bold; yellow]
                 "%d"
                 (start_line + i + 1))
-             (Cli.with_style ANSITerminal.[ Bold; magenta ] "%s" filename)
-             (Cli.with_style ANSITerminal.[ Bold; red ] "%d" max_len);
+             (Cli.with_style ANSITerminal.[Bold; magenta] "%s" filename)
+             (Cli.with_style ANSITerminal.[Bold; red] "%d" max_len);
            Cli.warning_print "%s%s" (String.sub s 0 max_len)
              (Cli.with_style
-                ANSITerminal.[ red ]
+                ANSITerminal.[red]
                 "%s"
                 String.(sub s max_len (length s - max_len)))))
 
 let rec law_structure_to_latex
-    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
   match i with
   | A.LawHeading (heading, children) ->
-      Format.fprintf fmt "\\%s{%s}\n\n"
-        (match heading.law_heading_precedence with
-        | 0 -> "section"
-        | 1 -> "subsection"
-        | 2 -> "subsubsection"
-        | 3 -> "subsubsubsection"
-        | 4 -> "subsubsubsubsection"
-        | 5 -> "subsubsubsubsubsection"
-        | 6 -> "subsubsubsubsubsubsection"
-        | 7 -> "paragraph"
-        | _ -> "subparagraph")
-        (pre_latexify (Pos.unmark heading.law_heading_name));
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-        (law_structure_to_latex language)
-        fmt children
+    Format.fprintf fmt "\\%s{%s}\n\n"
+      (match heading.law_heading_precedence with
+      | 0 -> "section"
+      | 1 -> "subsection"
+      | 2 -> "subsubsection"
+      | 3 -> "subsubsubsection"
+      | 4 -> "subsubsubsubsection"
+      | 5 -> "subsubsubsubsubsection"
+      | 6 -> "subsubsubsubsubsubsection"
+      | 7 -> "paragraph"
+      | _ -> "subparagraph")
+      (pre_latexify (Pos.unmark heading.law_heading_name));
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+      (law_structure_to_latex language)
+      fmt children
   | A.LawInclude (A.PdfFile ((file, _), page)) ->
-      let label =
-        file
-        ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p
-      in
-      Format.fprintf fmt
-        "\\begin{center}\\textit{Annexe incluse, retranscrite page \
-         \\pageref{%s}}\\end{center} \
-         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
-        label
-        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
-        file label
+    let label =
+      file
+      ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p
+    in
+    Format.fprintf fmt
+      "\\begin{center}\\textit{Annexe incluse, retranscrite page \
+       \\pageref{%s}}\\end{center} \
+       \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
+      label
+      (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
+      file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) ->
-      Format.fprintf fmt
-        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
-         ```catala\n\
-         %s```\n\
-         \\end{minted}"
-        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c) - 1)
-        (get_language_extension language)
-        (Pos.unmark c)
+    Format.fprintf fmt
+      "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
+       ```catala\n\
+       %s```\n\
+       \\end{minted}"
+      (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
+      (Pos.get_start_line (Pos.get_position c) - 1)
+      (get_language_extension language)
+      (Pos.unmark c)
   | A.CodeBlock (_, c, true) ->
-      let metadata_title =
-        match language with
-        | Fr -> "Métadonnées"
-        | En -> "Metadata"
-        | Pl -> "Metadane"
-      in
-      let start_line = Pos.get_start_line (Pos.get_position c) - 1 in
-      let filename = Filename.basename (Pos.get_file (Pos.get_position c)) in
-      let block_content = Pos.unmark c in
-      check_exceeding_lines start_line filename block_content;
-      Format.fprintf fmt
-        "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
-         title=\\textcolor{black}{\\texttt{%s}},title after \
-         break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after \
-         skip=1em]\n\
-         \\begin{minted}[numbersep=9mm, firstnumber=%d, \
-         label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
-         ```catala\n\
-         %s```\n\
-         \\end{minted}\n\
-         \\end{tcolorbox}"
-        metadata_title metadata_title start_line (pre_latexify filename)
-        (get_language_extension language)
-        block_content
+    let metadata_title =
+      match language with
+      | Fr -> "Métadonnées"
+      | En -> "Metadata"
+      | Pl -> "Metadane"
+    in
+    let start_line = Pos.get_start_line (Pos.get_position c) - 1 in
+    let filename = Filename.basename (Pos.get_file (Pos.get_position c)) in
+    let block_content = Pos.unmark c in
+    check_exceeding_lines start_line filename block_content;
+    Format.fprintf fmt
+      "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
+       title=\\textcolor{black}{\\texttt{%s}},title after \
+       break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
+       \\begin{minted}[numbersep=9mm, firstnumber=%d, \
+       label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
+       ```catala\n\
+       %s```\n\
+       \\end{minted}\n\
+       \\end{tcolorbox}"
+      metadata_title metadata_title start_line (pre_latexify filename)
+      (get_language_extension language)
+      block_content
 
 (** {1 API} *)
 
 let ast_to_latex
-    (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) :
-    unit =
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
+    (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_latex language)

@@ -56,13 +56,13 @@ let format_prise_en_charge (fmt : Format.formatter) (g : AF.prise_en_charge) :
     (match g with
     | AF.EffectiveEtPermanente _ -> "Effective et permanente"
     | AF.GardeAlterneePartageAllocations _ ->
-        "Garde alternée, allocations partagée"
+      "Garde alternée, allocations partagée"
     | AF.GardeAlterneeAllocataireUnique _ ->
-        "Garde alternée, allocataire unique"
+      "Garde alternée, allocataire unique"
     | AF.ServicesSociauxAllocationVerseeALaFamille _ ->
-        "Oui, allocations versée à la famille"
+      "Oui, allocations versée à la famille"
     | AF.ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-        "Oui, allocations versée aux services sociaux")
+      "Oui, allocations versée aux services sociaux")
 
 let num_successful = ref 0
 let total_amount = ref 0.
@@ -89,25 +89,25 @@ let run_test () =
     total_amount := Float.add !total_amount amount
   with
   | (NoValueProvided _ | ConflictError) as err ->
-      Format.printf "%s\n%a\nincome: %d\ncurrent_date: %s\nresidence: %a\n"
-        (match err with
-        | NoValueProvided _ -> "No value provided somewhere!"
-        | ConflictError -> "Conflict error!"
-        | _ -> failwith "impossible")
-        (Format.pp_print_list (fun fmt child ->
-             Format.fprintf fmt
-               "Child %d:\n\
-               \  income: %.2f\n\
-               \  birth date: %s\n\
-               \  prise en charge: %a"
-               (integer_to_int child.AF.d_identifiant)
-               (money_to_float child.AF.d_remuneration_mensuelle)
-               (Runtime.date_to_string child.AF.d_date_de_naissance)
-               format_prise_en_charge child.AF.d_prise_en_charge))
-        (Array.to_list children) income
-        (Runtime.date_to_string current_date)
-        format_residence residence;
-      exit (-1)
+    Format.printf "%s\n%a\nincome: %d\ncurrent_date: %s\nresidence: %a\n"
+      (match err with
+      | NoValueProvided _ -> "No value provided somewhere!"
+      | ConflictError -> "Conflict error!"
+      | _ -> failwith "impossible")
+      (Format.pp_print_list (fun fmt child ->
+           Format.fprintf fmt
+             "Child %d:\n\
+             \  income: %.2f\n\
+             \  birth date: %s\n\
+             \  prise en charge: %a"
+             (integer_to_int child.AF.d_identifiant)
+             (money_to_float child.AF.d_remuneration_mensuelle)
+             (Runtime.date_to_string child.AF.d_date_de_naissance)
+             format_prise_en_charge child.AF.d_prise_en_charge))
+      (Array.to_list children) income
+      (Runtime.date_to_string current_date)
+      format_residence residence;
+    exit (-1)
   | AssertionFailed -> ()
 
 let bench =

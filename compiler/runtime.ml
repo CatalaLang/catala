@@ -178,18 +178,16 @@ let duration_of_numbers (year : int) (month : int) (day : int) : duration =
 let duration_to_string (d : duration) : string =
   let x, y, z = CalendarLib.Date.Period.ymd d in
   let to_print =
-    List.filter
-      (fun (a, _) -> a <> 0)
-      [ (x, "years"); (y, "months"); (z, "days") ]
+    List.filter (fun (a, _) -> a <> 0) [x, "years"; y, "months"; z, "days"]
   in
   match to_print with
   | [] -> "empty duration"
   | _ ->
-      Format.asprintf "%a"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
-        to_print
+    Format.asprintf "%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
+      to_print
 
 let duration_to_years_months_days (d : duration) : int * int * int =
   CalendarLib.Date.Period.ymd d
@@ -201,7 +199,7 @@ let handle_default :
     Array.fold_left
       (fun acc except ->
         let new_val = try Some (except ()) with EmptyError -> None in
-        match (acc, new_val) with
+        match acc, new_val with
         | None, _ -> new_val
         | Some _, None -> acc
         | Some _, Some _ -> raise ConflictError)
@@ -212,12 +210,13 @@ let handle_default :
   | None -> if just () then cons () else raise EmptyError
 
 let handle_default_opt
-    (exceptions : 'a eoption array) (just : bool eoption) (cons : 'a eoption) :
-    'a eoption =
+    (exceptions : 'a eoption array)
+    (just : bool eoption)
+    (cons : 'a eoption) : 'a eoption =
   let except =
     Array.fold_left
       (fun acc except ->
-        match (acc, except) with
+        match acc, except with
         | ENone _, _ -> except
         | ESome _, ENone _ -> acc
         | ESome _, ESome _ -> raise ConflictError)
@@ -226,9 +225,9 @@ let handle_default_opt
   match except with
   | ESome _ -> except
   | ENone _ -> (
-      match just with
-      | ESome b -> if b then cons else ENone ()
-      | ENone _ -> ENone ())
+    match just with
+    | ESome b -> if b then cons else ENone ()
+    | ENone _ -> ENone ())
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 
@@ -308,7 +307,8 @@ let ( <@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 < 0
 let ( =@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 = 0
 
 let compare_periods
-    (p1 : CalendarLib.Date.Period.t) (p2 : CalendarLib.Date.Period.t) : int =
+    (p1 : CalendarLib.Date.Period.t)
+    (p2 : CalendarLib.Date.Period.t) : int =
   try
     let p1_days = CalendarLib.Date.Period.nb_days p1 in
     let p2_days = CalendarLib.Date.Period.nb_days p2 in

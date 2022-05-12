@@ -22,7 +22,7 @@ let fill_pos_with_legislative_info (p : Ast.program) : Ast.program =
       inherit [_] Ast.program_map as super
 
       method! visit_marked f env x =
-        (f env (Pos.unmark x), Pos.overwrite_law_info (Pos.get_position x) env)
+        f env (Pos.unmark x), Pos.overwrite_law_info (Pos.get_position x) env
 
       method! visit_LawHeading
           (env : string list)
