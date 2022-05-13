@@ -1,0 +1,7 @@
+(dirs emacs)
+
+(install
+ (files
+  (emacs/catala-mode.el as emacs/site-lisp/catala-mode.el))
+ (section share_root)
+ (package catala))

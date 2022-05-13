@@ -218,7 +218,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b([0-9]+(,[0.9]*|))\b</string>
+          <string>\b([0-9]+(,[0-9]*|))\b</string>
           <key>name</key>
           <string>constant.numeric.catala_en</string>
         </dict>

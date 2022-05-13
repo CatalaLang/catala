@@ -29,7 +29,7 @@ class CatalaPlLexer(RegexLexer):
             (u'\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|wej\u015bcie|wyj\u015bcie|wewn\u0119trzny|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|stan|etykieta|wyj\u0105tek|cokolwiek)\\b', bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(prawda|falsz)\\b', bygroups(Keyword.Constant)),
-            (u'\\b([0-9]+(,[0.9]*|))\\b', bygroups(Number.Integer)),
+            (u'\\b([0-9]+(,[0-9]*|))\\b', bygroups(Number.Integer)),
             (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})', bygroups(Operator)),
             (u'(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\$|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\$|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\$|\\*|/\\.|/\\@|/\\^|/\\$|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\$|>=\\$|<=\\$|<\\$|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|nie|lub|xor|i|\\$|%|rok|miesiac|dzien)', bygroups(Operator)),
             (u'\\b(calkowita|zerojedynkowy|czas|czas trwania|pieniądze|warunek|tekst|dziesi\u0119tny|suma)\\b', bygroups(Keyword.Type)),
