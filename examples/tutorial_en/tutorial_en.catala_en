@@ -187,7 +187,7 @@ for dates and the "^" symbol for durations. If you forget the suffix, the Catala
 checker will display an error message that will help you put it where it
 belongs.
 
-Coming back to article 1, one question remains unknown: what is the value of
+Coming back to article 1, one question remains unknown: what is the value
 of the fixed percentage? Often, precise values are defined elsewhere in the
 legislative source. Here, let's suppose we have:
 
@@ -366,7 +366,7 @@ scope NewIncomeTaxComputation :
   # Catala compiler will warn you.
 ```
 
-Now that we've successfuly defined our income tax computation, the legislator
+Now that we've successfully defined our income tax computation, the legislator
 inevitably comes to disturb our beautiful and regular formulas to add a special
 case! The article below is a really common pattern in statutes, and let's
 see how Catala handles it.
@@ -591,8 +591,8 @@ scope BasisForFineDetermination :
 ## One variable, multiple states
 
 When a quantity is mentioned it the law, it does not always maps exactly to
-an unique Catala variable. More precisely, it often happens that the law defines
-an unique quantity with multiple computation steps, each new one building on the
+a unique Catala variable. More precisely, it often happens that the law defines
+a unique quantity with multiple computation steps, each new one building on the
 previous one. Here is an example of such a setup and how to deal with it thanks
 to a dedicated Catala feature.
 
