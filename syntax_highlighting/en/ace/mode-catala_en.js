@@ -87,7 +87,7 @@ ace.define(
           },
           {
             token: "constant.numeric",
-            regex: "\\b([0-9]+(,[0.9]*|))\\b",
+            regex: "\\b([0-9]+(,[0-9]*|))\\b",
           },
           {
             token: "punctuation",
