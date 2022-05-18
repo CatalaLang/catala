@@ -73,7 +73,7 @@ let run_pandoc (s : string) (backend : Utils.Cli.backend_option) : string =
   let tmp_file_in = Filename.temp_file "catala_pandoc" "in" in
   let tmp_file_out = Filename.temp_file "catala_pandoc" "out" in
   let oc = open_out tmp_file_in in
-  Printf.fprintf oc "%s" s;
+  output_string oc s;
   close_out oc;
   let pandoc_args =
     [|
