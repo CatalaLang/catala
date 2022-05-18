@@ -1733,8 +1733,8 @@ champ d'application CalculAidePersonnelleLogementLocatif:
       0€
     sinon (si loyer_principal >€ plafond_dégressivité_d823_16 alors
         aide_finale -€ (aide_finale *€
-          (loyer_principal -€ plafond_dégressivité_d823_16) /€
-          (plafond_suppression_d823_16 -€ plafond_dégressivité_d823_16)
+          ((loyer_principal -€ plafond_dégressivité_d823_16) /€
+           (plafond_suppression_d823_16 -€ plafond_dégressivité_d823_16))
         )
         # Faire un graphique pour se convaincre que la pente proportionnelle
         # a bien cette expression.
