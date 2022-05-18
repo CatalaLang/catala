@@ -16,6 +16,7 @@
    the License. *)
 
 module Cli = Utils.Cli
+module File = Utils.File
 module Errors = Utils.Errors
 module Pos = Utils.Pos
 
@@ -123,28 +124,26 @@ let driver source_file (options : Cli.options) : int =
           | _ -> assert false
           (* should not happen *))
       in
-      let oc = open_out output_file in
-      let weave_output =
-        match backend with
-        | Cli.Latex -> Literate.Latex.ast_to_latex language
-        | Cli.Html -> Literate.Html.ast_to_html language
-        | _ -> assert false
-        (* should not happen *)
-      in
-      Cli.debug_print "Writing to %s" output_file;
-      let fmt = Format.formatter_of_out_channel oc in
-      if options.wrap_weaved_output then
-        match backend with
-        | Cli.Latex ->
-          Literate.Latex.wrap_latex prgm.Surface.Ast.program_source_files
-            language fmt (fun fmt -> weave_output fmt prgm)
-        | Cli.Html ->
-          Literate.Html.wrap_html prgm.Surface.Ast.program_source_files language
-            fmt (fun fmt -> weave_output fmt prgm)
-        | _ -> assert false (* should not happen *)
-      else weave_output fmt prgm;
-      close_out oc;
-      0
+      File.with_formatter_of_file output_file (fun fmt ->
+          let weave_output =
+            match backend with
+            | Cli.Latex -> Literate.Latex.ast_to_latex language
+            | Cli.Html -> Literate.Html.ast_to_html language
+            | _ -> assert false
+            (* should not happen *)
+          in
+          Cli.debug_print "Writing to %s" output_file;
+          if options.wrap_weaved_output then
+            match backend with
+            | Cli.Latex ->
+              Literate.Latex.wrap_latex prgm.Surface.Ast.program_source_files
+                language fmt (fun fmt -> weave_output fmt prgm)
+            | Cli.Html ->
+              Literate.Html.wrap_html prgm.Surface.Ast.program_source_files
+                language fmt (fun fmt -> weave_output fmt prgm)
+            | _ -> assert false (* should not happen *)
+          else weave_output fmt prgm;
+          0)
     | _ -> (
       Cli.debug_print "Name resolution...";
       let ctxt = Surface.Name_resolution.form_context prgm in
@@ -168,26 +167,18 @@ let driver source_file (options : Cli.options) : int =
       let prgm = Surface.Desugaring.desugar_program ctxt prgm in
       Cli.debug_print "Collecting rules...";
       let prgm = Desugared.Desugared_to_scope.translate_program prgm in
-      if backend = Cli.Scopelang then begin
-        let fmt, at_end =
-          match options.output_file with
-          | Some f ->
-            let oc = open_out f in
-            Format.formatter_of_out_channel oc, fun _ -> close_out oc
-          | None -> Format.std_formatter, fun _ -> ()
-        in
-        if Option.is_some options.ex_scope then
-          Format.fprintf fmt "%a\n"
-            (Scopelang.Print.format_scope ~debug:options.debug)
-            ( scope_uid,
-              Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
-        else
-          Format.fprintf fmt "%a\n"
-            (Scopelang.Print.format_program ~debug:options.debug)
-            prgm;
-        at_end ();
-        exit 0
-      end;
+      if backend = Cli.Scopelang then
+        File.with_formatter_of_opt_file options.output_file (fun fmt ->
+            if Option.is_some options.ex_scope then
+              Format.fprintf fmt "%a\n"
+                (Scopelang.Print.format_scope ~debug:options.debug)
+                ( scope_uid,
+                  Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
+            else
+              Format.fprintf fmt "%a\n"
+                (Scopelang.Print.format_program ~debug:options.debug)
+                prgm;
+            exit 0);
       Cli.debug_print "Translating to default calculus...";
       let prgm, type_ordering =
         Scopelang.Scope_to_dcalc.translate_program prgm
@@ -202,35 +193,27 @@ let driver source_file (options : Cli.options) : int =
       let prgrm_dcalc_expr =
         Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
       in
-      if backend = Cli.Dcalc then begin
-        let fmt, at_end =
-          match options.output_file with
-          | Some f ->
-            let oc = open_out f in
-            Format.formatter_of_out_channel oc, fun _ -> close_out oc
-          | None -> Format.std_formatter, fun _ -> ()
-        in
-        if Option.is_some options.ex_scope then
-          Format.fprintf fmt "%a\n"
-            (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
-            ( scope_uid,
-              Option.get
-                (Dcalc.Ast.fold_left_scope_defs ~init:None
-                   ~f:(fun acc scope_def _ ->
-                     if
-                       Dcalc.Ast.ScopeName.compare scope_def.scope_name
-                         scope_uid
-                       = 0
-                     then Some scope_def.scope_body
-                     else acc)
-                   prgm.scopes) )
-        else
-          Format.fprintf fmt "%a\n"
-            (Dcalc.Print.format_expr prgm.decl_ctx)
-            prgrm_dcalc_expr;
-        at_end ();
-        exit 0
-      end;
+      if backend = Cli.Dcalc then
+        File.with_formatter_of_opt_file options.output_file (fun fmt ->
+            if Option.is_some options.ex_scope then
+              Format.fprintf fmt "%a\n"
+                (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+                ( scope_uid,
+                  Option.get
+                    (Dcalc.Ast.fold_left_scope_defs ~init:None
+                       ~f:(fun acc scope_def _ ->
+                         if
+                           Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                             scope_uid
+                           = 0
+                         then Some scope_def.scope_body
+                         else acc)
+                       prgm.scopes) )
+            else
+              Format.fprintf fmt "%a\n"
+                (Dcalc.Print.format_expr prgm.decl_ctx)
+                prgrm_dcalc_expr;
+            exit 0);
       Cli.debug_print "Typechecking...";
       let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
       (* Cli.debug_format "Typechecking results :@\n%a" (Dcalc.Print.format_typ
@@ -301,41 +284,33 @@ let driver source_file (options : Cli.options) : int =
             prgm)
           else prgm
         in
-        if backend = Cli.Lcalc then begin
-          let fmt, at_end =
-            match options.output_file with
-            | Some f ->
-              let oc = open_out f in
-              Format.formatter_of_out_channel oc, fun _ -> close_out oc
-            | None -> Format.std_formatter, fun _ -> ()
-          in
-          if Option.is_some options.ex_scope then
-            Format.fprintf fmt "%a\n"
-              (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
-              ( scope_uid,
-                Option.get
-                  (Dcalc.Ast.fold_left_scope_defs ~init:None
-                     ~f:(fun acc scope_def _ ->
-                       if
-                         Dcalc.Ast.ScopeName.compare scope_def.scope_name
-                           scope_uid
-                         = 0
-                       then Some scope_def.scope_body
-                       else acc)
-                     prgm.scopes) )
-          else
-            ignore
-              (Dcalc.Ast.fold_left_scope_defs ~init:0
-                 ~f:(fun i scope_def _ ->
-                   Format.fprintf fmt "%s%a"
-                     (if i = 0 then "" else "\n")
-                     (Lcalc.Print.format_scope prgm.decl_ctx)
-                     (scope_uid, scope_def.scope_body);
-                   i + 1)
-                 prgm.scopes);
-          at_end ();
-          exit 0
-        end;
+        if backend = Cli.Lcalc then
+          File.with_formatter_of_opt_file options.output_file (fun fmt ->
+              if Option.is_some options.ex_scope then
+                Format.fprintf fmt "%a\n"
+                  (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+                  ( scope_uid,
+                    Option.get
+                      (Dcalc.Ast.fold_left_scope_defs ~init:None
+                         ~f:(fun acc scope_def _ ->
+                           if
+                             Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                               scope_uid
+                             = 0
+                           then Some scope_def.scope_body
+                           else acc)
+                         prgm.scopes) )
+              else
+                ignore
+                  (Dcalc.Ast.fold_left_scope_defs ~init:0
+                     ~f:(fun i scope_def _ ->
+                       Format.fprintf fmt "%s%a"
+                         (if i = 0 then "" else "\n")
+                         (Lcalc.Print.format_scope prgm.decl_ctx)
+                         (scope_uid, scope_def.scope_body);
+                       i + 1)
+                     prgm.scopes);
+              exit 0);
         let source_file =
           match source_file with
           | FileName f -> f
@@ -352,47 +327,36 @@ let driver source_file (options : Cli.options) : int =
         | Cli.OCaml ->
           let output_file = new_output_file ".ml" in
           Cli.debug_print "Writing to %s..." output_file;
-          let oc = open_out output_file in
-          let fmt = Format.formatter_of_out_channel oc in
-          Cli.debug_print "Compiling program into OCaml...";
-          Lcalc.To_ocaml.format_program fmt prgm type_ordering;
-          close_out oc
+          File.with_formatter_of_file output_file (fun fmt ->
+              Cli.debug_print "Compiling program into OCaml...";
+              Lcalc.To_ocaml.format_program fmt prgm type_ordering)
         | Cli.Python | Cli.Scalc ->
           let prgm = Scalc.Compile_from_lambda.translate_program prgm in
-          if backend = Cli.Scalc then begin
-            let fmt, at_end =
-              match options.output_file with
-              | Some f ->
-                let oc = open_out f in
-                Format.formatter_of_out_channel oc, fun _ -> close_out oc
-              | None -> Format.std_formatter, fun _ -> ()
-            in
-            if Option.is_some options.ex_scope then
-              Format.fprintf fmt "%a\n"
-                (Scalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
-                (let body =
-                   List.find
-                     (fun body -> body.Scalc.Ast.scope_body_name = scope_uid)
-                     prgm.scopes
-                 in
-                 body)
-            else
-              Format.fprintf fmt "%a\n"
-                (Format.pp_print_list
-                   ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-                   (fun fmt scope ->
-                     (Scalc.Print.format_scope prgm.decl_ctx) fmt scope))
-                prgm.scopes;
-            at_end ();
-            exit 0
-          end;
+          if backend = Cli.Scalc then
+            File.with_formatter_of_opt_file options.output_file (fun fmt ->
+                if Option.is_some options.ex_scope then
+                  Format.fprintf fmt "%a\n"
+                    (Scalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+                    (let body =
+                       List.find
+                         (fun body ->
+                           body.Scalc.Ast.scope_body_name = scope_uid)
+                         prgm.scopes
+                     in
+                     body)
+                else
+                  Format.fprintf fmt "%a\n"
+                    (Format.pp_print_list
+                       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+                       (fun fmt scope ->
+                         (Scalc.Print.format_scope prgm.decl_ctx) fmt scope))
+                    prgm.scopes;
+                exit 0);
           let output_file = new_output_file ".py" in
           Cli.debug_print "Compiling program into Python...";
           Cli.debug_print "Writing to %s..." output_file;
-          let oc = open_out output_file in
-          let fmt = Format.formatter_of_out_channel oc in
-          Scalc.To_python.format_program fmt prgm type_ordering;
-          close_out oc
+          File.with_formatter_of_file output_file (fun fmt ->
+              Scalc.To_python.format_program fmt prgm type_ordering)
         | _ -> assert false (* should not happen *));
         0
       | _ -> assert false

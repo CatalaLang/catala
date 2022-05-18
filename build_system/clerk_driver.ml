@@ -767,12 +767,10 @@ let driver
       return_ok
     else
       try
-        let out = open_out ninja_output in
-        Cli.debug_print "writing %s..." ninja_output;
-        Nj.format
-          (Format.formatter_of_out_channel out)
-          (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
-        close_out out;
+        File.with_formatter_of_file ninja_output (fun fmt ->
+            Cli.debug_print "writing %s..." ninja_output;
+            Nj.format fmt
+              (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds));
         let ninja_cmd = "ninja " ^ ninja_flags ^ " test -f " ^ ninja_output in
         Cli.debug_print "executing '%s'..." ninja_cmd;
         Sys.command ninja_cmd
@@ -790,9 +788,9 @@ let driver
       if 0 <> res then return_err else return_ok
     | None ->
       Cli.error_print "Please provide a scope to run with the -s option";
-      1)
+      return_err)
   | _ ->
     Cli.error_print "The command \"%s\" is unknown to clerk." command;
-    1
+    return_err
 
 let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))

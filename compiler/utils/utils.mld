@@ -24,9 +24,7 @@ Related modules:
 
 {!modules: Utils.Pos}
 
-
 {1 Error messages}
-
 
 Error handling is critical in a compiler. The Catala compiler uses an architecture
 of error messages inspired by the Rust compiler, where error messages all
@@ -38,3 +36,9 @@ Hence, all error thrown by the compiler should use {!module: Utils.Errors}
 Related modules:
 
 {!modules: Utils.Errors}
+
+{1 File utilities}
+
+Related modules:
+
+{!modules: Utils.File}
