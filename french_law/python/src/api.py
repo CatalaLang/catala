@@ -9,13 +9,15 @@ class Enfant:
         remuneration_mensuelle: int,
         date_de_naissance: datetime.date,
         prise_en_charge: PriseEnCharge_Code,
-        a_deja_ouvert_droit_aux_allocations_familiales: bool
+        a_deja_ouvert_droit_aux_allocations_familiales: bool,
+        beneficie_titre_personnel_aide_personnelle_logement: bool
     ) -> None:
         self.id = id
         self.remuneration_mensuelle = remuneration_mensuelle
         self.date_de_naissance = date_de_naissance
         self.prise_en_charge = prise_en_charge
         self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
+        self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
 
     def to_allocations_familiales(self) -> EnfantEntree:
         return EnfantEntree(
@@ -23,6 +25,7 @@ class Enfant:
             d_remuneration_mensuelle=money_of_units_int(
                 self.remuneration_mensuelle),
             d_a_deja_ouvert_droit_aux_allocations_familiales=self.a_deja_ouvert_droit_aux_allocations_familiales,
+            d_beneficie_titre_personnel_aide_personnelle_logement=self.beneficie_titre_personnel_aide_personnelle_logement,
             d_date_de_naissance=date_of_datetime(self.date_de_naissance),
             d_prise_en_charge=PriseEnCharge(self.prise_en_charge, Unit())
         )

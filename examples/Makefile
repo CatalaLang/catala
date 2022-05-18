@@ -14,7 +14,7 @@ CLERK=_build/default/build_system/clerk.exe --exe "_build/default/compiler/catal
 	# displayed in error messages start with `examples/` uniformly.
 	@cd ..;$(CLERK) examples/$@
 
-TEST_FILES?=$(wildcard */tests/*.catala*)
+TEST_FILES?=$(wildcard */*.catala*)
 
 pass_tests: $(TEST_FILES)
 reset_tests: CLERK_OPTS+=--reset

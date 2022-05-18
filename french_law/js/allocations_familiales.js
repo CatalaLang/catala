@@ -13,6 +13,7 @@ function run_computation(log) {
         dateNaissance: new Date(Date.UTC(2003, 02, 02)),
         priseEnCharge: "Effective et permanente",
         aDejaOuvertDroitAuxAllocationsFamiliales: true,
+        beneficieATitrePersonnelAidePersonnelleAuLogement: false,
       },
       {
         id: 1,
@@ -20,6 +21,7 @@ function run_computation(log) {
         dateNaissance: new Date(Date.UTC(2013, 09, 30)),
         priseEnCharge: "Garde alternée, partage des allocations",
         aDejaOuvertDroitAuxAllocationsFamiliales: true,
+        beneficieATitrePersonnelAidePersonnelleAuLogement: false,
       },
     ],
     income: 30000,

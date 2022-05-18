@@ -1,70 +1,6 @@
-# Décrets divers
+# Montant des plafonds de ressources
 
-## Montant de la base mensuelle des allocations familiales
-
-### Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole
-
-Conformément à l’article L. 551-1 du code de la sécurité sociale, le montant
-des prestations familiales est déterminé d'après des bases mensuelles
-de calcul revalorisées au 1er avril de chaque année, par application
-du coefficient mentionnée à l’article L. 161-25 du code de la
-sécurité sociale. Au titre de l’année 2019, l’article 68 de la loi du 22
-décembre 2018 de financement de la sécurité sociale a prévu, par dérogation
-aux dispositions de l’article L. 161-25, une revalorisation de 0,3 % du montant
-des prestations relevant de cet article.
-
-Le montant précité de la base mensuelle de calcul des allocations
-familiales (BMAF), en pourcentage duquel sont fixés les montants des prestations
-familiales, est ainsi porté de 411,92 € à 413,16 € au 1er avril 2019.
-
-```catala
-champ d'application PrestationsFamiliales :
-  définition base_mensuelle
-  sous condition
-    date_courante >=@ |2019-04-01| et
-    date_courante <@ |2020-04-01|
-  conséquence égal à 413,16 €
-```
-
-### Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte
-
-Au titre de l’année 2020, l’article 81 de la loi du 24 décembre 2019 de
-financement de la sécurité sociale a prévu, par dérogation aux dispositions
-de l’article L. 161-25, une revalorisation de 0,3 % du montant des prestations
-relevant de cet article.
-
-Le montant précité de la base mensuelle de calcul des allocations familiales
-(BMAF), en pourcentage duquel sont fxés les montants des prestations familiales,
-est ainsi porté de 413,16 € à 414,4 € au 1er avril 2020.
-
-```catala
-champ d'application PrestationsFamiliales :
-  définition base_mensuelle
-  sous condition
-    date_courante >=@ |2020-04-01| et
-    date_courante <@ |2021-04-01|
-  conséquence égal à 414,4 €
-```
-
-### Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte
-
-Au 1er avril 2021, le coefficient de revalorisation de la BMAF est ainsi fixé à
-1,001 soit un taux de revalorisation de la BMAF de 0,1 %. Le montant de cette
-base mensuelle, en pourcentage duquel sont fixées les prestations familiales,
-est donc porté de 414,4 € au 1er avril 2020 à 414,81 € au 1er avril 2021.
-
-```catala
-champ d'application PrestationsFamiliales :
-  définition base_mensuelle
-  sous condition
-    date_courante >=@ |2021-04-01| et
-    date_courante <@ |2022-04-01|
-  conséquence égal à 414,81 €
-```
-
-## Montant des plafonds de ressources
-
-### Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
+## Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
 
 Plafonds de ressources applicables pour l’attribution du montant modulé
 des allocations familiales, de la majoration pour âge et de l’allocation
@@ -97,7 +33,7 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-### Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
+## Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
 
 Plafonds de ressources applicables pour l’attribution du montant
 modulé des allocations familiales, de la majoration pour âge et
@@ -130,7 +66,7 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-### Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
+## Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte
 
 Plafonds de ressources applicables pour l’attribution du montant modulé des
 allocations familiales, de la majoration pour âge et de l’allocation forfaitaire,
@@ -163,9 +99,9 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-### Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations
+## Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations
 
-#### Article 1|JORFARTI000042694985
+### Article 1|JORFARTI000042694985
 
 I. - Le plafond de ressources prévu au 1° du I des articles D. 521-1 et D. 521-2
 du code de la sécurité sociale relatif aux allocations familiales, à la majoration
@@ -199,174 +135,48 @@ champ d'application AllocationsFamiliales :
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
-## Montant du salaire minimum de croissance
+# Dispositions spéciales relatives à Mayotte
 
-### Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance
+## Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte
 
-#### Article 1|JORFARTI000037833214
-
-A compter du 1er janvier 2019, pour les catégories de travailleurs mentionnés à
-l'article L. 2211-1 du code du travail, le montant du salaire minimum de
-croissance est relevé dans les conditions ci-après :
-
-1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
-à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon,
-son montant est porté à 10,03 € l'heure.
-
-```catala
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et (
-      (résidence = Métropole) ou
-      (résidence = Guadeloupe) ou
-      (résidence = Guyane) ou
-      (résidence = Martinique) ou
-      (résidence = LaRéunion) ou
-      (résidence = SaintBarthélemy) ou
-      (résidence = SaintMartin) ou
-      (résidence = SaintPierreEtMiquelon)
-    )
-  conséquence égal à 10,03 €
-```
-
-2° A Mayotte, son montant est fixé à 7,57 € l'heure.
-
-```catala
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et (
-      (résidence = Mayotte)
-    )
-  conséquence égal à 7,57 €
-```
-
-### Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance
-
-#### Article 1|LEGIARTI000039640195
-
-A compter du 1er janvier 2020, pour les catégories de travailleurs mentionnés à
-l' article L. 2211-1 du code du travail , le montant du salaire minimum de
-croissance est relevé dans les conditions ci-après :
-
-1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
-à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon,
-son montant est porté à 10,15 € l'heure ;
-
-```catala
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et (
-      (résidence = Métropole) ou
-      (résidence = Guadeloupe) ou
-      (résidence = Guyane) ou
-      (résidence = Martinique) ou
-      (résidence = LaRéunion) ou
-      (résidence = SaintBarthélemy) ou
-      (résidence = SaintMartin) ou
-      (résidence = SaintPierreEtMiquelon)
-    )
-  conséquence égal à 10,15 €
-```
-
-2° A Mayotte, son montant est fixé à 7,66 € l'heure.
-
-```catala
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et (
-      (résidence = Mayotte)
-    )
-  conséquence égal à 7,66 €
-```
-
-### Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance
-
-#### Article 1|JORFARTI000042677367
-
-A compter du 1er janvier 2021, pour les catégories de travailleurs mentionnés à
-l'article L. 2211-1 du code du travail, le montant du salaire minimum de
-croissance est relevé dans les conditions ci-après :
-
-1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
-à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon,
-son montant est porté à 10,25 € l'heure ;
-
-```catala
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31| et (
-      (résidence = Métropole) ou
-      (résidence = Guadeloupe) ou
-      (résidence = Guyane) ou
-      (résidence = Martinique) ou
-      (résidence = LaRéunion) ou
-      (résidence = SaintBarthélemy) ou
-      (résidence = SaintMartin) ou
-      (résidence = SaintPierreEtMiquelon)
-    )
-  conséquence égal à 10,25 €
-```
-
-2° A Mayotte, son montant est fixé à 7,74 € l'heure.
-
-```catala
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31| et (
-      (résidence = Mayotte)
-    )
-  conséquence égal à 7,74 €
-```
-
-## Dispositions spéciales relatives à Mayotte
-
-### Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte
-
-#### Article 7|LEGIARTI000036330048
+### Article 7|LEGIARTI000036330048
 
 Les taux servant au calcul des allocations familiales sont fixés, en
 pourcentage de la base mensuelle de calcul des allocations familiales
 prévue à l'article L. 551-1 du code de la sécurité sociale, ainsi qu'il suit :
 
 ```catala
-champ d'application AllocationsFamiliales :
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
   # La formule change à Mayotte par rapport au cas général.
-  exception définition montant_initial_base sous condition
-    résidence = Mayotte
-  conséquence égal à
-    montant_initial_base_premier_enfant_mayotte +€
-    montant_initial_base_deuxième_enfant_mayotte +€
+  exception définition montant_initial_base égal à
+    montant_initial_base_premier_enfant +€
+    montant_initial_base_deuxième_enfant +€
     montant_initial_base_troisième_enfant_mayotte +€
     montant_initial_base_quatrième_enfant_et_plus_mayotte
 
   exception
   règle droit_ouvert_base sous condition
-    résidence = Mayotte et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 1)
   conséquence rempli
-
-  # TODO: ici l'on voudrait pouvoir définir montant_initial_base_deuxième_enfant
-  # comme une exception (sous condition de résidence Mayotte) au groupe
-  # de trois définitions sous conditions de l'article D521-1.
-  # Le langage de surface Catala ne permet pas de faire ça pour l'instant,
-  # mais il faudrait rajouter cette feature.
 ```
 
 1° 5,88 % pour un seul enfant à charge ;
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_premier_enfant_mayotte égal à
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte :
+  étiquette mayotte exception base
+  définition montant_initial_base_premier_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 5,88 %
+    alors bmaf.montant *€ 5,88 %
     sinon 0 €
 ```
 
 2° 32 % pour deux enfants à charge ;
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_deuxième_enfant_mayotte égal à
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
+  étiquette mayotte exception base
+  définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 32 %
+    alors bmaf.montant *€ 32 %
     sinon 0 €
 ```
 
@@ -375,7 +185,7 @@ champ d'application AllocationsFamiliales :
 champ d'application AllocationsFamiliales :
   définition montant_initial_base_troisième_enfant_mayotte égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 16 %
+    alors bmaf.montant *€ 16 %
     sinon 0 €
 ```
 
@@ -384,13 +194,13 @@ champ d'application AllocationsFamiliales :
 champ d'application AllocationsFamiliales :
   définition montant_initial_base_quatrième_enfant_et_plus_mayotte égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 3
-    alors (prestations_familiales.base_mensuelle *€ 4,63 %) *€ (
+    alors (bmaf.montant *€ 4,63 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 3)
     ) sinon 0 €
 ```
 
-#### Annexe|LEGIARTI000036326574
+### Annexe|LEGIARTI000036326574
 
 TABLEAU D'ÉVOLUTION DES TAUX SERVANT AU CALCUL DES ALLOCATIONS FAMILIALES
 APPLICABLES DANS LE DÉPARTEMENT DE MAYOTTE POUR LA PÉRIODE DU 1ER JANVIER
@@ -403,105 +213,120 @@ tableau ci-après, au 1er janvier de chaque année, en pourcentage de la base
 mensuelle de calcul des allocations familiales (BMAF) prévue à l'article L.
 551-1 du code de la sécurité sociale.
 
-| Année             | Montant AF pour les familles ayant un enfant à charge avant le 1er janvier 2012 | Taux BMAF pour les familles ayant un enfant à charge à compter du 1er janvier 2012 | Taux BMAF pour les familles ayant deux enfants à charge | Taux BMAF pour les familles ayant trois enfants à charge | Taux BMAF pour le 3e enfant à charge | Taux BMAF par enfant supplémentaire à partir du 4e enfant à charge |
-|-------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------|---------------------------------------------------------|----------------------------------------------------------|--------------------------------------|--------------------------------------------------------------------|
-| 2011              | 57,28 €                                                                         | 14,50 %                                                                            | 23,2 %                                                  | 27,83 %                                                  | 4,63 %                               | 4,63 %                                                             |
-| 2012              | 57,28 €                                                                         | 13,93 %                                                                            | 23,79 %                                                 | 29,18 %                                                  | 5,39 %                               | 4,63 %                                                             |
-| 2013              | 57,28 €                                                                         | 13,35 %                                                                            | 24,37 %                                                 | 30,52 %                                                  | 6,15 %                               | 4,63 %                                                             |
-| 2014              | 57,28 €                                                                         | 12,78 %                                                                            | 24,96 %                                                 | 31,86 %                                                  | 6,90 %                               | 4,63 %                                                             |
-| 2015              | 57,28 €                                                                         | 12,20 %                                                                            | 25,55 %                                                 | 33,21 %                                                  | 7,66 %                               | 4,63 %                                                             |
-| 2016              | 57,28 €                                                                         | 11,63 %                                                                            | 26,13 %                                                 | 34,55 %                                                  | 8,42 %                               | 4,63 %                                                             |
-| 2017              | 57,28 €                                                                         | 11,05 %                                                                            | 26,72 %                                                 | 35,90 %                                                  | 9,18 %                               | 4,63 %                                                             |
-| 2018              | 57,28 €                                                                         | 9,76 %                                                                             | 28,04 %                                                 | 38,93 %                                                  | 10,89 %                              | 4,63 %                                                             |
-| 2019              | 57,28 €                                                                         | 8,47 %                                                                             | 29,36 %                                                 | 41,95 %                                                  | 12,59 %                              | 4,63 %                                                             |
-| 2020              | 57,28 €                                                                         | 7,17 %                                                                             | 30,68 %                                                 | 44,98 %                                                  | 14,30 %                              | 4,63 %                                                             |
-| A compter de 2021 | 57,28 €                                                                         | 5,88 %                                                                             | 32 %                                                    | 48 %                                                     | 16 %                                 | 4,63 %                                                             |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Année            Montant AF pour les      Taux BMAF pour les        Taux BMAF pour les familles Taux BMAF pour les familles  Taux BMAF pour le  Taux BMAF par enfant
+                  familles ayant un enfant familles ayant un         ayant deux enfants à charge ayant trois enfants à charge 3e enfant à charge supplémentaire à partir
+                  à charge avant le 1er    enfant à charge à compter                                                                             du 4e enfant à charge
+                  janvier 2012             du 1er janvier 2012
+----------------- ------------------------ ------------------------- --------------------------- ---------------------------- ------------------ -----------------------
+2011              57,28 €                  14,50 %                   23,2 %                      27,83 %                      4,63 %             4,63 %
+
+2012              57,28 €                  13,93 %                   23,79 %                     29,18 %                      5,39 %             4,63 %
+
+2013              57,28 €                  13,35 %                   24,37 %                     30,52 %                      6,15 %             4,63 %
+
+2014              57,28 €                  12,78 %                   24,96 %                     31,86 %                      6,90 %             4,63 %
+
+2015              57,28 €                  12,20 %                   25,55 %                     33,21 %                      7,66 %             4,63 %
+
+2016              57,28 €                  11,63 %                   26,13 %                     34,55 %                      8,42 %             4,63 %
+
+2017              57,28 €                  11,05 %                   26,72 %                     35,90 %                      9,18 %             4,63 %
+
+2018              57,28 €                  9,76 %                    28,04 %                     38,93 %                      10,89 %            4,63 %
+
+2019              57,28 €                  8,47 %                    29,36 %                     41,95 %                      12,59 %            4,63 %
+
+2020              57,28 €                  7,17 %                    30,68 %                     44,98 %                      14,30 %            4,63 %
+
+A compter de 2021 57,28 €                  5,88 %                    32 %                        48 %                         16 %               4,63 %
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ```catala
-champ d'application AllocationsFamiliales :
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
 
   # Premier enfant
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 14,50 %
+    alors bmaf.montant *€ 14,50 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 13,93 %
+    alors bmaf.montant *€ 13,93 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 13,35 %
+    alors bmaf.montant *€ 13,35 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 12,78 %
+    alors bmaf.montant *€ 12,78 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 12,20 %
+    alors bmaf.montant *€ 12,20 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 11,63 %
+    alors bmaf.montant *€ 11,63 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 11,05 %
+    alors bmaf.montant *€ 11,05 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 9,76 %
+    alors bmaf.montant *€ 9,76 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 8,47 %
+    alors bmaf.montant *€ 8,47 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
-    alors prestations_familiales.base_mensuelle *€ 7,17%
+    alors bmaf.montant *€ 7,17%
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
@@ -509,74 +334,74 @@ champ d'application AllocationsFamiliales :
     sinon 0 €
 
   # Deuxième enfant
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 23,2 %
+    alors bmaf.montant *€ 23,2 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 23,79 %
+    alors bmaf.montant *€ 23,79 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 24,37 %
+    alors bmaf.montant *€ 24,37 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 24,96 %
+    alors bmaf.montant *€ 24,96 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 25,55 %
+    alors bmaf.montant *€ 25,55 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 26,13 %
+    alors bmaf.montant *€ 26,13 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 26,72 %
+    alors bmaf.montant *€ 26,72 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 28,04 %
+    alors bmaf.montant *€ 28,04 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 29,36 %
+    alors bmaf.montant *€ 29,36 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 30,68 %
+    alors bmaf.montant *€ 30,68 %
     sinon 0 €
 
   # Troisième enfant
@@ -584,69 +409,69 @@ champ d'application AllocationsFamiliales :
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 4,63 %
+    alors bmaf.montant *€ 4,63 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 5,39 %
+    alors bmaf.montant *€ 5,39 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 6,15 %
+    alors bmaf.montant *€ 6,15 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 6,90 %
+    alors bmaf.montant *€ 6,90 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 7,66 %
+    alors bmaf.montant *€ 7,66 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 8,42 %
+    alors bmaf.montant *€ 8,42 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 9,18 %
+    alors bmaf.montant *€ 9,18 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 10,89 %
+    alors bmaf.montant *€ 10,89 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 12,59 %
+    alors bmaf.montant *€ 12,59 %
     sinon 0 €
 
   exception définition montant_initial_base_troisième_enfant_mayotte sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors prestations_familiales.base_mensuelle *€ 14,30 %
+    alors bmaf.montant *€ 14,30 %
     sinon 0 €
 ```

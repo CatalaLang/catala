@@ -138,6 +138,8 @@ class Money:
     def __mul__(self, other: Decimal) -> 'Money':
         cents = self.value.value
         coeff = other.value
+        # TODO: change, does not work with negative values. Must divide the
+        # absolute values and then multiply by the resulting sign.
         rat_result = self.value.value * other.value
         out = Money(Integer(rat_result))
         res, remainder = t_divmod(rat_result.numerator, rat_result.denominator)

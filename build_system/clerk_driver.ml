@@ -180,7 +180,8 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string)
       else
         let scope_name_regex = Re.Pcre.regexp "\\.(.+)" in
         let scope_name =
-          (Re.Pcre.extract ~rex:scope_name_regex second_extension).(1)
+          try (Re.Pcre.extract ~rex:scope_name_regex second_extension).(1)
+          with Not_found -> ""
         in
         Filename.remove_extension filename, Some scope_name
     in

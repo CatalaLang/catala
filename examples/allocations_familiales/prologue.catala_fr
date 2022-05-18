@@ -4,6 +4,8 @@ Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations familiales, il est nécessaire de définir les structures de données
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
+## Types de données manipulées par le programme
+
 ```catala-metadata
 déclaration énumération PriseEnCharge :
   -- GardeAlternéePartageAllocations
@@ -25,22 +27,7 @@ déclaration structure Enfant :
   donnée âge contenu entier
   donnée prise_en_charge contenu PriseEnCharge
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
-
-déclaration énumération Collectivité :
-  -- Guadeloupe
-  -- Guyane
-  -- Martinique
-  -- LaRéunion
-  -- SaintBarthélemy
-  -- SaintMartin
-  -- Métropole
-  -- SaintPierreEtMiquelon
-  -- Mayotte
-
-déclaration champ d'application Smic :
-  entrée date_courante contenu date
-  entrée résidence contenu Collectivité
-  sortie brut_horaire contenu argent
+  donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
 déclaration énumération PriseEnCompte:
   -- Complète
@@ -60,7 +47,13 @@ déclaration énumération ÉlémentPrestationsFamiliales:
   -- AllocationSoutienFamilial
   -- AllocationRentréeScolaire
   -- AllocationJournalièrePresenceParentale
+```
 
+## Champs d'applications
+
+### Prestations familiales
+
+```catala-metadata
 déclaration champ d'application PrestationsFamiliales:
   sortie droit_ouvert condition dépend de Enfant
   sortie conditions_hors_âge condition dépend de Enfant
@@ -71,12 +64,15 @@ déclaration champ d'application PrestationsFamiliales:
   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
   entrée résidence contenu Collectivité
   smic champ d'application Smic
-  sortie base_mensuelle contenu argent
 
 champ d'application PrestationsFamiliales:
   définition smic.résidence égal à résidence
   définition smic.date_courante égal à date_courante
+```
 
+### Allocations familiales
+
+```catala-metadata
 déclaration champ d'application AllocationFamilialesAvril2008:
   sortie âge_minimum_alinéa_1_l521_3 contenu entier
 
@@ -118,8 +114,6 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Variables liées à Mayotte
   entrée avait_enfant_à_charge_avant_1er_janvier_2012 condition
-  interne montant_initial_base_premier_enfant_mayotte contenu argent
-  interne montant_initial_base_deuxième_enfant_mayotte contenu argent
   interne montant_initial_base_troisième_enfant_mayotte contenu argent
   interne montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
 
@@ -146,6 +140,7 @@ déclaration champ d'application AllocationsFamiliales:
   prestations_familiales champ d'application PrestationsFamiliales
   version_avril_2008 champ d'application AllocationFamilialesAvril2008
   enfant_le_plus_âgé champ d'application EnfantLePlusÂgé
+  bmaf champ d'application BaseMensuelleAllocationsFamiliales
 
   # Plafonds, âges limites et autres constantes
   interne nombre_enfants_l521_1 contenu entier
@@ -162,5 +157,5 @@ champ d'application AllocationsFamiliales:
     date_courante
   définition prestations_familiales.résidence égal à
     résidence
-
+  définition bmaf.date_courante égal à date_courante
 ```

@@ -28,6 +28,11 @@ val literal_source_files : Cli.backend_lang -> string
 (** Return the 'source files weaved' traduction according the given
     {!type:Utils.Cli.backend_lang}. *)
 
+val literal_disclaimer_and_link : Cli.backend_lang -> string
+(** Return the traduction of a paragraph giving a basic disclaimer about Catala
+    and a link to the website according the given {!type:
+    Utils.Cli.backend_lang}. *)
+
 val literal_last_modification : Cli.backend_lang -> string
 (** Return the 'last modification' traduction according the given
     {!type:Utils.Cli.backend_lang}. *)
@@ -35,3 +40,11 @@ val literal_last_modification : Cli.backend_lang -> string
 val get_language_extension : Cli.backend_lang -> string
 (** Return the file extension corresponding to the given
     {!type:Utils.Cli.backend_lang}. *)
+
+val run_pandoc : string -> Cli.backend_option -> string
+(** Runs the [pandoc] on a string to pretty-print markdown features into the
+    desired format. *)
+
+val get_code_authors : string list -> string list
+(** Usage: [get_code_authors source_files] calls [git log] to retrieve the names
+    of the authors of the source files. *)

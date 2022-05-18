@@ -37,6 +37,9 @@ class type enfant_entree =
         - "Confié aux service sociaux, allocation versée aux services sociaux" *)
 
     method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
+
+    method beneficieTitrePersonnelAidePersonnelleAuLogement :
+      bool Js.t Js.readonly_prop
   end
 
 class type allocations_familiales_input =
@@ -238,6 +241,10 @@ let _ =
                              | _ -> failwith "Unknown prise en charge");
                            AF.d_remuneration_mensuelle =
                              money_of_units_int child##.remunerationMensuelle;
+                           AF
+                           .d_beneficie_titre_personnel_aide_personnelle_logement =
+                             Js.to_bool
+                               child##.beneficieTitrePersonnelAidePersonnelleAuLogement;
                          })
                        (Js.to_array input##.children);
                    AF.i_ressources_menage_in = money_of_units_int input##.income;

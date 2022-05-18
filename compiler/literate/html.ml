@@ -28,11 +28,7 @@ module C = Cli
 (** {1 Helpers} *)
 
 (** Converts double lines into HTML newlines. *)
-let pre_html (s : string) =
-  let s = String.trim s in
-  let doublenewline = R.regexp "\n\n" in
-  let s = R.substitute ~rex:doublenewline ~subst:(fun _ -> "<br/>\n") s in
-  s
+let pre_html (s : string) = run_pandoc s Cli.Html
 
 (** Raise an error if pygments cannot be found *)
 let raise_failed_pygments (command : string) (error_code : int) : 'a =
@@ -86,8 +82,10 @@ let wrap_html
      <h1>%s<br />\n\
      <small>%s Catala version %s</small>\n\
      </h1>\n\
-     <p>\n\
+     <h3>%s</h3>\n\
      %s\n\
+     <p>\n\
+     %s:\n\
      </p>\n\
      <ul>\n\
      %s\n\
@@ -95,6 +93,12 @@ let wrap_html
     css_as_string (literal_title language)
     (literal_generated_by language)
     Utils.Cli.version
+    ((match language with
+     | En -> "Authors: "
+     | Fr -> "Auteurs : "
+     | Pl -> "Autors: ")
+    ^ String.concat ", " (get_code_authors source_files))
+    (pre_html (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat "\n"
        (List.map
@@ -108,7 +112,7 @@ let wrap_html
                 ltime.Unix.tm_min
             in
             Printf.sprintf "<li><tt>%s</tt>, %s %s</li>"
-              (pre_html (Filename.basename filename))
+              (Filename.basename filename)
               (literal_last_modification language)
               ftime)
           source_files));
@@ -167,7 +171,7 @@ let rec law_structure_to_html
   match i with
   | A.LawText t ->
     let t = pre_html t in
-    if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
+    if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
   | A.CodeBlock (_, c, metadata) ->
     Format.fprintf fmt
       "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"

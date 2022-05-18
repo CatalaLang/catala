@@ -18,6 +18,7 @@ champ d'application EnfantLePlusÂgé:
       -- âge: 0
       -- prise_en_charge: EffectiveEtPermanente
       -- a_déjà_ouvert_droit_aux_allocations_familiales: faux
+      -- bénéficie_titre_personnel_aide_personnelle_logement: faux
     }
     pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.âge
 
@@ -67,6 +68,7 @@ déclaration structure EnfantEntrée:
   donnée d_date_de_naissance contenu date
   donnée d_prise_en_charge contenu PriseEnCharge
   donnée d_a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
+  donnée d_bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
   entrée i_date_courante contenu date
@@ -86,15 +88,18 @@ champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.ressources_ménage égal à i_ressources_ménage
   définition allocations_familiales.résidence égal à i_résidence
   définition i_montant_versé égal à allocations_familiales.montant_versé
-  règle allocations_familiales.personne_charge_effective_permanente_est_parent
-    sous condition i_personne_charge_effective_permanente_est_parent conséquence
-    rempli
-  règle allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
-    sous condition i_personne_charge_effective_permanente_remplit_titre_I conséquence
-    rempli
-  règle allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
-    sous condition i_avait_enfant_à_charge_avant_1er_janvier_2012 conséquence
-    rempli
+  règle
+    allocations_familiales.personne_charge_effective_permanente_est_parent
+  sous condition i_personne_charge_effective_permanente_est_parent
+  conséquence rempli
+  règle
+    allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
+  sous condition i_personne_charge_effective_permanente_remplit_titre_I
+  conséquence rempli
+  règle
+    allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
+  sous condition i_avait_enfant_à_charge_avant_1er_janvier_2012
+  conséquence rempli
 ```
 
 #### Code de l'éducation
@@ -125,5 +130,7 @@ champ d'application InterfaceAllocationsFamiliales:
         sinon Après))
       -- a_déjà_ouvert_droit_aux_allocations_familiales:
         enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
+      -- bénéficie_titre_personnel_aide_personnelle_logement:
+        enfant.d_bénéficie_titre_personnel_aide_personnelle_logement
     }
 ```

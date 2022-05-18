@@ -1,0 +1,54 @@
+# Prologue : prestations familiales
+
+Avant de présenter les textes réglementaires qui régissent le calcul des
+allocations familiales, il est nécessaire de définir les structures de données
+informatiques qui modélisent la situation dont parlent ces textes législatifs.
+
+```catala-metadata
+déclaration énumération PriseEnChargeEnfant :
+  -- GardeAlternéePartageAllocations
+  -- GardeAlternéeAllocataireUnique
+  -- EffectiveEtPermanente
+  -- ServicesSociauxAllocationVerséeÀLaFamille
+  -- ServicesSociauxAllocationVerséeAuxServicesSociaux
+
+déclaration énumération SituationObligationScolaire:
+  -- Avant
+  -- Pendant
+  -- Après
+
+déclaration structure EnfantPrestationsFamiliales :
+  donnée identifiant contenu entier
+  donnée obligation_scolaire contenu SituationObligationScolaire
+  donnée rémuneration_mensuelle contenu argent
+  donnée date_de_naissance contenu date
+  donnée âge contenu entier
+  donnée prise_en_charge contenu PriseEnChargeEnfant
+  donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
+  donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
+
+déclaration énumération ÉlémentPrestationsFamiliales:
+  -- PrestationAccueilJeuneEnfant
+  -- AllocationsFamiliales
+  -- ComplémentFamilial
+  -- AllocationLogement
+  -- AllocationÉducationEnfantHandicapé
+  -- AllocationSoutienFamilial
+  -- AllocationRentréeScolaire
+  -- AllocationJournalièrePresenceParentale
+
+déclaration champ d'application ÉligibilitéPrestationsFamiliales:
+  sortie droit_ouvert condition dépend de EnfantPrestationsFamiliales
+  sortie conditions_hors_âge condition dépend de EnfantPrestationsFamiliales
+  interne plafond_l512_3_2 contenu argent
+  sortie âge_l512_3_2 contenu entier
+  sortie régime_outre_mer_l751_1 condition
+  entrée date_courante contenu date
+  entrée prestation_courante contenu ÉlémentPrestationsFamiliales
+  entrée résidence contenu Collectivité
+  smic champ d'application Smic
+
+champ d'application ÉligibilitéPrestationsFamiliales:
+  définition smic.résidence égal à résidence
+  définition smic.date_courante égal à date_courante
+```
