@@ -296,7 +296,7 @@ catala.html: $(COMPILER_DIR)/utils/cli.ml
 	| tac | sed "1,20d" | tac > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
-website-assets: doc literate_examples grammar.html catala.html build_french_law_library_js
+website-assets: doc js_build literate_examples grammar.html catala.html build_french_law_library_js
 
 ##########################################
 # Misceallenous
