@@ -98,6 +98,8 @@ let run_pandoc (s : string) (backend : Utils.Cli.backend_option) : string =
   let oc = open_in tmp_file_out in
   let tmp_file_as_string = really_input_string oc (in_channel_length oc) in
   close_in oc;
+  Sys.remove tmp_file_in;
+  Sys.remove tmp_file_out;
   tmp_file_as_string
 
 let get_code_authors (source_files : string list) : string list =

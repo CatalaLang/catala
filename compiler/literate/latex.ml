@@ -42,105 +42,115 @@ let wrap_latex
     (wrapped : Format.formatter -> unit) =
   let authors = get_code_authors source_files in
   Format.fprintf fmt
-    "\\documentclass[%s, 11pt, a4paper]{article}\n\n\
-     \\usepackage[T1]{fontenc}\n\
-     \\usepackage[utf8]{inputenc}\n\
-     \\usepackage{amssymb}\n\
-     \\usepackage{babel}\n\
-     \\usepackage{fontspec}\n\
-     \\usepackage[hidelinks]{hyperref}\n\
-     %s\n\
-     \\usepackage{minted}\n\
-     \\usepackage{longtable}\n\
-     \\usepackage{booktabs}\n\
-     \\usepackage{newunicodechar}\n\
-     \\usepackage{textcomp}\n\
-     \\usepackage[hidelinks]{hyperref}\n\
-     \\usepackage[dvipsnames]{xcolor}\n\
-     \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}\n\
-     \\usepackage[many]{tcolorbox}\n\n\
-     \\usepackage{fancyhdr}\n\
-     \\pagestyle{fancy}\n\
-     \\fancyhf{}\n\
-     \\fancyhead[C]{\\leftmark}\n\
-     \\fancyfoot[C]{\\thepage}\n\
-     \\renewcommand{\\headrulewidth}{0.5pt}\n\
-     \\renewcommand{\\footrulewidth}{0.5pt}\n\
-     \\usepackage{titlesec}\n\
-     \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
-     \\newcounter{subsubsubsection}[subsubsection]\n\
-     \\renewcommand\\thesubsubsubsection{\\thesubsubsection.\\arabic{subsubsubsection}}\n\
-     \\titleformat{\\subsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsection}{1em}{}\n\
-     \\titlespacing*{\\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
-     .2ex}{1.5ex plus .2ex}\n\
-     \\titleclass{\\subsubsubsubsection}{straight}[\\subsubsection]\n\
-     \\newcounter{subsubsubsubsection}[subsubsubsection]\n\
-     \\renewcommand\\thesubsubsubsubsection{\\thesubsubsubsection.\\arabic{subsubsubsubsection}}\n\
-     \\titleformat{\\subsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsection}{0.75em}{}\n\
-     \\titlespacing*{\\subsubsubsubsection}{0pt}{2.75ex plus 1ex minus \
-     .2ex}{1.25ex plus .2ex}\n\
-     \\titleclass{\\subsubsubsubsubsection}{straight}[\\subsubsubsection]\n\
-     \\newcounter{subsubsubsubsubsection}[subsubsubsubsection]\n\
-     \\renewcommand\\thesubsubsubsubsubsection{\\thesubsubsubsubsection.\\arabic{subsubsubsubsubsection}}\n\
-     \\titleformat{\\subsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsection}{0.7em}{}\n\
-     \\titlespacing*{\\subsubsubsubsubsection}{0pt}{2.5ex plus 1ex minus \
-     .2ex}{1.1ex plus .2ex}\n\
-     \\titleclass{\\subsubsubsubsubsubsection}{straight}[\\subsubsubsubsection]\n\
-     \\newcounter{subsubsubsubsubsubsection}[subsubsubsubsubsection]\n\
-     \\renewcommand\\thesubsubsubsubsubsubsection{\\thesubsubsubsubsubsection.\\arabic{subsubsubsubsubsubsection}}\n\
-     \\titleformat{\\subsubsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsubsection}{0.6em}{}\n\
-     \\titlespacing*{\\subsubsubsubsubsubsection}{0pt}{2.25ex plus 1ex minus \
-     .2ex}{1ex plus .2ex}\n\
-     \\makeatletter\n\
-     \\def\\toclevel@subsubsubsection{4}\n\
-     \\def\\toclevel@subsubsubsubsection{5}\n\
-     \\def\\toclevel@subsubsubsubsubsection{6}\n\
-     \\def\\toclevel@subsubsubsubsubsubsection{7}\n\
-     \\def\\toclevel@paragraph{8}\n\
-     \\def\\toclevel@subparagraph{9}\n\
-     \\def\\l@subsection{\\@dottedtocline{1}{1em}{0.5em}}\n\
-     \\def\\l@subsubsection{\\@dottedtocline{2}{2em}{1em}}\n\
-     \\def\\l@subsubsubsection{\\@dottedtocline{3}{3em}{1.5em}}\n\
-     \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{4em}{2em}}\n\
-     \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{5em}{2.5em}}\n\
-     \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{6em}{3em}}\n\
-     \\def\\l@paragraph{\\@dottedtocline{8}{7em}{3.5em}}\n\
-     \\def\\l@subparagraph{\\@dottedtocline{9}{8em}{4em}}\n\
-     \\makeatother\n\
-     \\setcounter{secnumdepth}{0}\n\
-     \\setcounter{tocdepth}{9}\n\
-     \\newunicodechar{÷}{$\\div$}\n\
-     \\newunicodechar{×}{$\\times$}\n\
-     \\newunicodechar{≤}{$\\leqslant$}\n\
-     \\newunicodechar{≥}{$\\geqslant$}\n\
-     \\newunicodechar{→}{$\\rightarrow$}\n\
-     \\newunicodechar{≠}{$\\neq$}\n\n\
-     \\newcommand*\\FancyVerbStartString{```catala}\n\
-     \\newcommand*\\FancyVerbStopString{```}\n\n\
-     \\fvset{\n\
-     numbers=left,\n\
-     frame=lines,\n\
-     framesep=3mm,\n\
-     rulecolor=\\color{gray!70},\n\
-     firstnumber=last,\n\
-     codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
-     }\n\
-     \\newcommand{\\tightlist}{\\setlength{\\itemsep}{0pt}\\setlength{\\parskip}{0pt}}\n\n\
-     \\title{\n\
-     %s\\\\\n\
-     %s Catala version %s\n\
-     }\n\
-     \\author{\n\
-     %s}\n\
-     \\begin{document}\n\
-     \\maketitle\n\n\
-     %s\n\n\
-     %s : \n\
-     \\begin{itemize}%s\\end{itemize}\n\n\
-     \\clearpage\n\
-     \\tableofcontents\n\n\
-     \\[\\star\\star\\star\\]\n\
-     \\clearpage"
+    {latex|\documentclass[%s, 11pt, a4paper]{article}
+
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{amssymb}
+  \usepackage{babel}
+  \usepackage{fontspec}
+  \usepackage[hidelinks]{hyperref}
+  %s
+  \usepackage{minted}
+  \usepackage{longtable}
+  \usepackage{booktabs}
+  \usepackage{newunicodechar}
+  \usepackage{textcomp}
+  \usepackage[hidelinks]{hyperref}
+  \usepackage[dvipsnames]{xcolor}
+  \usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}
+  \usepackage[many]{tcolorbox}
+
+  \usepackage{fancyhdr}
+  \pagestyle{fancy}
+  \fancyhf{}
+  \fancyhead[C]{\leftmark}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0.5pt}
+  \renewcommand{\footrulewidth}{0.5pt}
+  \usepackage{titlesec}
+  \titleclass{\subsubsubsection}{straight}[\subsection]
+  \newcounter{subsubsubsection}[subsubsection]
+  \renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+  \titleformat{\subsubsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+  \titlespacing*{\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
+  .2ex}{1.5ex plus .2ex}
+  \titleclass{\subsubsubsubsection}{straight}[\subsubsection]
+  \newcounter{subsubsubsubsection}[subsubsubsection]
+  \renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+  \titleformat{\subsubsubsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsubsubsection}{0.75em}{}
+  \titlespacing*{\subsubsubsubsection}{0pt}{2.75ex plus 1ex minus \
+  .2ex}{1.25ex plus .2ex}
+  \titleclass{\subsubsubsubsubsection}{straight}[\subsubsubsection]
+  \newcounter{subsubsubsubsubsection}[subsubsubsubsection]
+  \renewcommand\thesubsubsubsubsubsection{\thesubsubsubsubsection.\arabic{subsubsubsubsubsection}}
+  \titleformat{\subsubsubsubsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsubsubsubsection}{0.7em}{}
+  \titlespacing*{\subsubsubsubsubsection}{0pt}{2.5ex plus 1ex minus \
+  .2ex}{1.1ex plus .2ex}
+  \titleclass{\subsubsubsubsubsubsection}{straight}[\subsubsubsubsection]
+  \newcounter{subsubsubsubsubsubsection}[subsubsubsubsubsection]
+  \renewcommand\thesubsubsubsubsubsubsection{\thesubsubsubsubsubsection.\arabic{subsubsubsubsubsubsection}}
+  \titleformat{\subsubsubsubsubsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsubsubsubsubsection}{0.6em}{}
+  \titlespacing*{\subsubsubsubsubsubsection}{0pt}{2.25ex plus 1ex minus \
+  .2ex}{1ex plus .2ex}
+  \makeatletter
+  \def\toclevel@subsubsubsection{4}
+  \def\toclevel@subsubsubsubsection{5}
+  \def\toclevel@subsubsubsubsubsection{6}
+  \def\toclevel@subsubsubsubsubsubsection{7}
+  \def\toclevel@paragraph{8}
+  \def\toclevel@subparagraph{9}
+  \def\l@subsection{\@dottedtocline{1}{1em}{0.5em}}
+  \def\l@subsubsection{\@dottedtocline{2}{2em}{1em}}
+  \def\l@subsubsubsection{\@dottedtocline{3}{3em}{1.5em}}
+  \def\l@subsubsubsubsection{\@dottedtocline{5}{4em}{2em}}
+  \def\l@subsubsubsubsubsection{\@dottedtocline{6}{5em}{2.5em}}
+  \def\l@subsubsubsubsubsubsection{\@dottedtocline{7}{6em}{3em}}
+  \def\l@paragraph{\@dottedtocline{8}{7em}{3.5em}}
+  \def\l@subparagraph{\@dottedtocline{9}{8em}{4em}}
+  \makeatother
+  \setcounter{secnumdepth}{0}
+  \setcounter{tocdepth}{9}
+  \newunicodechar{÷}{$\div$}
+  \newunicodechar{×}{$\times$}
+  \newunicodechar{≤}{$\leqslant$}
+  \newunicodechar{≥}{$\geqslant$}
+  \newunicodechar{→}{$\rightarrow$}
+  \newunicodechar{≠}{$\neq$}
+
+  \newcommand*\FancyVerbStartString{```catala}
+  \newcommand*\FancyVerbStopString{```}
+
+  \fvset{
+  numbers=left,
+  frame=lines,
+  framesep=3mm,
+  rulecolor=\color{gray!70},
+  firstnumber=last,
+  codes={\catcode`\$=3\catcode`\^=7}
+  }
+  \newcommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+  \title{
+  %s\\
+  %s Catala version %s
+  }
+  \author{
+  %s}
+  \begin{document}
+  \maketitle
+
+  %s
+
+  %s :
+  \begin{itemize}%s\end{itemize}
+
+  \clearpage
+  \tableofcontents
+
+  \[\star\star\star\]
+  \clearpage
+  |latex}
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system
