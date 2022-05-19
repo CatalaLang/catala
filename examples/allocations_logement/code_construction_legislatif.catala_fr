@@ -994,7 +994,7 @@ logement peuvent prétendre au bénéfice de l'allocation de logement sociale.
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  définition éligibilité égal à
+  définition éligibilité état l841_2 égal à
     si bénéficie_aide_personnelle_logement alors
       PasÉligible
     sinon (si éligibilité_allocation_logement_familiale alors
@@ -1023,7 +1023,7 @@ l'habitation signés après le 31 décembre 2017.
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  exception définition éligibilité sous condition
+  exception définition éligibilité état l841_2 sous condition
     selon mode_occupation sous forme
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       propriétaire.prêt.date_signature >@ |2017-12-31|

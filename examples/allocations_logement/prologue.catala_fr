@@ -47,6 +47,7 @@ déclaration énumération TypePrêt:
   -- D331_63_64
   -- D331_59_8
   -- D331_76_1
+  -- Autre
 
 déclaration énumération TitulairePrêt:
   -- Demandeur
@@ -60,9 +61,15 @@ déclaration structure Prêt:
 déclaration structure Propriétaire:
   donnée prêt contenu Prêt
 
-déclaration énumération TypeTravauxLogement:
+déclaration énumération TypeTravauxLogementD832_15:
   -- SurLocauxNonHabitation
   -- SurLogementExistant
+  -- PasDeTravaux
+
+déclaration énumération TypeTravauxLogementR842_5:
+  -- ObjectifDécenceLogement
+  -- PrévuDansListeR321_15
+  -- AgrandirOuRendreHabitableD331_63
   -- PasDeTravaux
 
 déclaration énumération AmélioréParOccupant:
@@ -77,7 +84,7 @@ déclaration structure InformationsCalculAPLAccessionPropriété:
   donnée mensualité_principale contenu argent
   donnée date_signature_prêt contenu date
   donnée date_entrée_logement contenu date
-  donnée type_travaux_logement contenu TypeTravauxLogement
+  donnée type_travaux_logement contenu TypeTravauxLogementD832_15
   donnée local_habité_première_fois_bénéficiaire contenu booléen
   donnée copropriété contenu booléen
   donnée situation_r822_11_13_17 contenu booléen
@@ -345,15 +352,20 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   entrée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
     contenu booléen
 
+  interne condition_logement condition
+
+  interne type_travaux_logement contenu TypeTravauxLogementR842_5
   interne éligibilité_allocation_logement_familiale condition
   interne éligibilité_allocation_logement_sociale condition
   interne âge_l841_1_4 contenu durée
   interne durée_l841_1_3 contenu durée
 
- prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
+  prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
 
 
   sortie éligibilité contenu ÉligibilitéAllocationLogement
+    état l841_2
+    état avec_condition_logement
 
 champ d'application ÉligibilitéAllocationLogement:
   # Ici nous instancions le champ d'application d'éligibilité aux prestations
@@ -364,6 +376,12 @@ champ d'application ÉligibilitéAllocationLogement:
   # TODO juridique et informatique : adapter quand le code gèrera les outre-
   # mer.
   définition prestations_familiales.résidence égal à Métropole
+
+  définition éligibilité état avec_condition_logement égal à
+    si non condition_logement alors
+      PasÉligible
+    sinon
+      éligibilité
 ```
 
 ### Éligibilité à la prime de déménagement
@@ -509,10 +527,6 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
 
   contexte condition_2_du_832_25 contenu booléen
 
-  interne coefficient_prise_en_charge_d832_25 contenu décimal
-    état formule
-    état arrondi
-    état seuil
   interne coefficient_multiplicateur_d832_25 contenu argent
   interne coefficient_r_d832_25 contenu argent
   interne n_nombre_parts_d832_25 contenu décimal
@@ -529,6 +543,10 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   contributions_sociales champ d'application
     ContributionsSocialesAidePersonnelleLogement
 
+  sortie coefficient_prise_en_charge_d832_25 contenu décimal
+    état formule
+    état arrondi
+    état seuil
   sortie équivalence_minimale_loyer contenu argent
   sortie aide_finale contenu argent
     état formule
@@ -547,7 +565,7 @@ déclaration champ d'application
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
-  entrée type_travaux_logement contenu TypeTravauxLogement
+  entrée type_travaux_logement contenu TypeTravauxLogementD832_15
   entrée date_signature_prêt contenu date
   entrée local_habité_première_fois_bénéficiaire contenu booléen
   entrée date_entrée_logement contenu date
@@ -693,6 +711,70 @@ champ d'application CalculAllocationLogementLocatif:
   définition aide_finale égal à calcul_apl_locatif.aide_finale
 ```
 
+### Secteur accession à la propriété
+
+```catala-metadata
+déclaration champ d'application CalculAllocationLogementAccessionPropriété:
+  entrée ressources_ménage_arrondies contenu argent
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée zone contenu ZoneDHabitation
+  entrée date_courante contenu date
+  entrée mensualité_principale contenu argent
+
+  interne mensualité_éligible contenu argent
+  interne montant_forfaitaire_charges contenu argent
+  interne mensualité_minimale contenu argent
+  interne coefficient_prise_en_charge contenu décimal
+  interne plafond_mensualité_d842_6 contenu argent
+  interne montant_forfaitaire_d842_6 contenu argent
+  interne dépense_nette_minimale contenu argent
+  interne montant_minimal_aide_d823_24 contenu argent
+
+  calcul_apl_logement_foyer champ d'application
+    CalculAidePersonnelleLogementFoyer
+  contributions_sociales champ d'application
+    ContributionsSocialesAidePersonnelleLogement
+
+  sortie allocation_mensuelle contenu argent
+    état formule
+    état minoration_forfaitaire
+    état dépense_nette_minimale
+    état contributions_sociales_arrondi
+    état montant_minimal
+
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition calcul_apl_logement_foyer.mode_occupation égal à
+    # Ici la valeur du mode d'occupation n'a pas de sens puisque l'on est
+    # dans le cas d'une accession à la propriété mais on nous demande de
+    # calculer des quantités comme si on était en logement foyer. Or il nous
+    # faut donner un argument au sous-champ d'application donc on met ici une
+    # valeur bidon.
+    RésidentLogementFoyer contenu (LogementFoyer {
+      -- type: RésidenceSociale
+      -- date_conventionnement: |2022-01-01|
+      -- location: Location {
+        -- bailleur: Bailleur {
+          -- type_bailleur: BailleurSocial
+          -- respecte_convention_titre_V: vrai
+          -- respecte_convention_titre_II: vrai
+          -- construit_amélioré_conditions_l831_1_4: vrai
+          -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+        }
+      }
+      -- remplit_conditions_r832_21: faux
+    })
+  définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
+    ressources_ménage_arrondies
+  définition calcul_apl_logement_foyer.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_apl_logement_foyer.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_apl_logement_foyer.zone égal à
+    zone
+  définition calcul_apl_logement_foyer.date_courante égal à
+    date_courante
+```
 
 ### Date d'ouverture des droits à la retraite
 

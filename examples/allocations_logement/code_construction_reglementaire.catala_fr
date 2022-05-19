@@ -1507,8 +1507,9 @@ champ d'application CalculAidePersonnelleLogement:
     -- InfosAccessionPropriété de infos: infos.mensualité_principale
   définition accession_propriété.type_travaux_logement égal à
     selon informations_calcul sous forme
-    -- InfosLocatif: PasDeTravaux # Valeur par défaut
-    -- InfosLogementFoyer: PasDeTravaux # Valeur par défaut
+    -- InfosLocatif: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
+    -- InfosLogementFoyer: TypeTravauxLogementD832_15.PasDeTravaux
+    # Valeur par défaut
     -- InfosAccessionPropriété de infos: infos.type_travaux_logement
   définition accession_propriété.date_signature_prêt égal à
     selon informations_calcul sous forme
@@ -3307,7 +3308,15 @@ champ d'application CalculAidePersonnelleLogement:
 
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition mensualité_minimale sous condition
-    type_travaux_logement sous forme SurLogementExistant
+    type_travaux_logement sous forme SurLogementExistant ou
+    # TODO juridique: demander à la CAF comment interpetéter le R832-5 dans
+    # le cas d'un prêt conventionné D331-63 alinéa 3° où le prêt finance
+    # l'acquisition d'un logement existant sans travaux et donc sans
+    # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
+    # peut-on nous confirmer que le montant de la mensualité minimale est bien
+    # calculée selon l'alinéa 2° de D832-15 ? On prend l'hypothèse ici dans
+    # le code Catala que oui, d'où la ligne ci-dessous.
+    type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
   conséquence égal à
     équivalence_minimale_loyer
 ```
@@ -4018,20 +4027,69 @@ libèrent de la dette contractée pour accéder à la propriété de ce logement
 de celle contractée en même temps pour réaliser des travaux permettant de remplir les
 conditions de décence ;
 
+```catala
+# TODO juridique: "le cas échéant, de celle contractée en même temps pour
+# réaliser des travaux permettant de remplir les conditions de décence"
+# => Quel est le sens de cette précision, quel cas cela recouvre-t-il ?
+# Quand il y a deux prêts différents, un pour le logement et un pour les
+# travaux, donc les périodes de remboursement se chevauchent mais ne sont
+# pas égales ? Les deux prêts doivent-t-il commencer en même temps?
+champ d'application ÉligibilitéAllocationLogement:
+  règle condition_logement sous condition
+    selon mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+       (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
+         ou type_travaux_logement sous forme ObjectifDécenceLogement)
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
 2° Aux personnes qui se libèrent d'une dette contractée en vue de réaliser des travaux
 figurant sur la liste mentionnée à l'article R. 321-15 ;
+
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  règle condition_logement sous condition
+    selon mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+       type_travaux_logement sous forme PrévuDansListeR321_15
+    -- n'importe quel: faux
+  conséquence rempli
+```
 
 3° Aux personnes qui se libèrent d'une dette contractée en vue soit d'agrandir leur logement,
 soit d'aménager à usage de logements des locaux non destinés à l'habitation, lorsque ces
 travaux répondent aux normes techniques imposées pour le bénéfice des prêts conventionnés
 mentionnés à l'article D. 331-63.
 
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  règle condition_logement sous condition
+    selon mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+       type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
 ####### Article D842-6 | LEGIARTI000038878675
 
 Pour les ménages mentionnés à l'article R. 842-5, le montant mensuel de l'allocation est
 calculé selon la formule et les modalités suivantes :
 
-" Af = K × (L + C-L0) "
+$$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition allocation_mensuelle état formule égal à
+    (
+      mensualité_éligible +€ montant_forfaitaire_charges -€
+        mensualité_minimale
+    ) *€ coefficient_prise_en_charge
+```
 
 où :
 
@@ -4040,10 +4098,31 @@ où :
 2° " K " est le coefficient de prise en charge, calculé selon les dispositions du 2° de
 l'article D. 832-25 ;
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  # En définissant cette variable de contexte, on s'assure que le chemin de code
+  # pris dans le sous-champ d'application du calcul de l'APL en secteur logement
+  # foyer prenne bien le 2° du D832-25 et non pas le 1°.
+  définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à
+    vrai
+
+  définition coefficient_prise_en_charge égal à
+    calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
+```
+
 3° " L " est la mensualité éligible ; elle correspond à la mensualité principale,
 déterminée selon les dispositions articles D. 842-7 à D. 842-10, prise en compte dans la
 limite d'un plafond fixé par arrêté en fonction de la zone géographique et de la
 composition familiale ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition mensualité_éligible égal à
+    si mensualité_principale >€ plafond_mensualité_d842_6 alors
+      plafond_mensualité_d842_6
+    sinon
+      mensualité_principale
+```
 
 4° " C " est le montant forfaitaire au titre des charges, fixé par arrêté en fonction de la
 composition familiale ;
@@ -4051,16 +4130,61 @@ composition familiale ;
 5° " L0 " est la mensualité minimale, calculée selon les dispositions du deuxième alinéa de
 l'article D. 832-26, dans lesquelles elle se substitue à " E0 ".
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition mensualité_minimale égal à
+    calcul_apl_logement_foyer.équivalence_minimale_loyer
+```
+
 Ce résultat, ainsi calculé, est minoré d'un montant fixé forfaitairement par arrêté.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition allocation_mensuelle état minoration_forfaitaire égal à
+    si allocation_mensuelle -€ montant_forfaitaire_d842_6 <€ 0€ alors
+      0 €
+    sinon
+      allocation_mensuelle -€ montant_forfaitaire_d842_6
+```
 
 Le montant ainsi obtenu est minoré d'un abattement au titre de la dépense nette minimale,
 dont les modalités de calcul sont précisées par l'article D. 842-11.
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition allocation_mensuelle état dépense_nette_minimale égal à
+    si allocation_mensuelle -€ dépense_nette_minimale <€ 0€ alors
+      0 €
+    sinon
+      allocation_mensuelle -€ dépense_nette_minimale
+```
+
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
 s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant représentatif.
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition allocation_mensuelle état contributions_sociales_arrondi égal à
+    si
+      arrondi_argent de ((allocation_mensuelle -€
+        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
+      contributions_sociales.montant de allocation_mensuelle >=€ 0€
+    alors
+      arrondi_argent de ((allocation_mensuelle -€
+        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
+      contributions_sociales.montant de allocation_mensuelle
+    sinon 0€
+```
+
 Lorsque le montant mensuel de l'allocation, ainsi calculé, est inférieur à un montant fixé
 par arrêté, il n'est pas procédé à son versement.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition allocation_mensuelle état montant_minimal égal à
+    si allocation_mensuelle <€ montant_minimal_aide_d823_24
+    alors 0 € sinon allocation_mensuelle
+```
 
 ####### Article D842-7 | LEGIARTI000038878673
 
