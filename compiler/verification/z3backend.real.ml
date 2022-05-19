@@ -615,6 +615,7 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
 
       let body = Bindlib.msubst (Pos.unmark e) [| fresh_e |] in
       translate_expr ctx body
+
     (* Invariant: Catala match arms are always lambda*)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
   in
@@ -674,6 +675,19 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
     let ctr = List.nth ctrs idx in
     ctx, Expr.mk_app ctx.ctx_z3 ctr [z3_arg]
   | EMatch (arg, arms, enum) ->
+    (* We will encode a match as a new variable tmp_v, and add to the hypotheses that
+       this variable is equal to the conjunction of all A? arg ==> tmp_v = body, where
+       A? arg ==> body is an arm of the match *)
+
+    (* We use the Var module to ensure that all names for temporary variables will
+       be fresh, and thus will not clash in Z3 *)
+    let fresh_v = Var.make ("z3!match_tmp", Pos.no_pos) in
+    let name = unique_name fresh_v in
+    let match_ty = Typing.infer_type ctx.ctx_decl vc in
+    let ctx, z3_ty = translate_typ ctx (Pos.unmark match_ty) in
+    let z3_var = Expr.mk_const_s ctx.ctx_z3 name z3_ty in
+
+
     let ctx, z3_enum = find_or_create_enum ctx enum in
     let ctx, z3_arg = translate_expr ctx arg in
     let _ctx, z3_arms =
@@ -682,16 +696,23 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
         ctx
         (List.combine arms (Datatype.get_accessors z3_enum))
     in
+
     let z3_arms =
       List.map2
         (fun r arm ->
-          (* Encodes A? arg ==> body *)
+          (* Encodes A? arg ==> z3_var = body *)
           let is_r = Expr.mk_app ctx.ctx_z3 r [z3_arg] in
-          Boolean.mk_implies ctx.ctx_z3 is_r arm)
+          let eq = Boolean.mk_eq ctx.ctx_z3 z3_var arm in
+          Boolean.mk_implies ctx.ctx_z3 is_r eq
+        )
         (Datatype.get_recognizers z3_enum)
         z3_arms
     in
-    ctx, Boolean.mk_and ctx.ctx_z3 z3_arms
+
+    (* Add the definition of z3_var to the hypotheses *)
+    let ctx = add_z3constraint (Boolean.mk_and ctx.ctx_z3 z3_arms) ctx in
+    (* We finally return the temporary variable created for this match, z3_var *)
+    ctx, z3_var
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
