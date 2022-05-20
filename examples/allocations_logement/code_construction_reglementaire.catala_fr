@@ -4152,11 +4152,15 @@ dont les modalités de calcul sont précisées par l'article D. 842-11.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition allocation_mensuelle état dépense_nette_minimale égal à
-    si allocation_mensuelle -€ dépense_nette_minimale <€ 0€ alors
+  définition allocation_mensuelle état dépense_nette_minimale
+  égal à
+    si
+      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle <€
+        0€
+    alors
       0 €
     sinon
-      allocation_mensuelle -€ dépense_nette_minimale
+      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -4210,6 +4214,12 @@ garantie de l'exécution des engagements souscrits ;
 
 5° Les loyers payés en vertu d'un contrat de location-accession ou d'un bail à construction.
 
+```catala
+# Ceci donne des informations sur comment calculer à la main la variable
+# d'entrée "mensualité_principale" mais nous ne détaillerons pas le calcul
+# en Catala ici.
+```
+
 ####### Article D842-8 | LEGIARTI000038878671
 
 Ne sont, notamment, pas pris en considération :
@@ -4224,15 +4234,49 @@ ont été créés en vue d'une mobilisation éventuelle de la créance, dès lor
 contrat de prêt, le créancier et le débiteur sont expressément désignés et que les paiements
 sont effectifs.
 
+```catala
+# Ceci donne des informations sur comment calculer à la main la variable
+# d'entrée "mensualité_principale" mais nous ne détaillerons pas le calcul
+# en Catala ici.
+```
+
 ####### Article D842-9 | LEGIARTI000038878669
 
 Pour le calcul de la mensualité " L ", le plafond mensuel mentionné au 3° de l'article
 D. 842-6 est applicable pour la période au titre de laquelle le certificat prévu à
 l'article D. 842-7 a été établi.
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition plafond_mensualité_d842_6 égal à
+    calcul_plafond_mensualité_d842_6 de date_signature_prêt
+```
+
 Le plafond ainsi retenu ne pourra, en aucun cas, être inférieur à celui applicable au
 moment de l'entrée dans les lieux, sous la réserve qu'il s'agisse d'un local habité
 pour la première fois par l'allocataire.
+
+```catala
+# La manière dont nous interprétons le deuxième alinéa ci-dessus est la
+# suivante : puisque le plafond dépend d'une date (normalement de signature
+# du prêt), et qu'en fonction de la date ce plafond varie à la hausse ou à la
+# baisse, l'alinéa donne une petite faveur aux propriétaires puisqu'il leur
+# permet de choisir la date la plus avantageuse pour calculer le plafond
+# entre la date de signature du prêt et celle d'entrée dans le logement si
+# le local est habité pour la première fois par le bénéficiaire.
+champ d'application CalculAllocationLogementAccessionPropriété:
+  exception définition plafond_mensualité_d842_6 sous condition
+    local_habité_première_fois_bénéficiaire
+  conséquence égal à
+    # TODO informatique: refactorer avec des let-bindings locaux.
+    si
+      calcul_plafond_mensualité_d842_6 de date_signature_prêt <€
+      calcul_plafond_mensualité_d842_6 de date_entrée_logement
+    alors
+      calcul_plafond_mensualité_d842_6 de date_entrée_logement
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_signature_prêt
+```
 
 ####### Article D842-10 | LEGIARTI000038878667
 
@@ -4254,6 +4298,12 @@ Les arrêtés fixant les plafonds de mensualité mentionnés au 3° de l'article
 les montants forfaitaires au titre des charges mentionnées au 4° du même article peuvent
 fixer des montants spécifiques pour les ménages copropriétaires.
 
+```catala
+# Ceci donne des informations sur comment calculer à la main la variable
+# d'entrée "mensualité_principale" mais nous ne détaillerons pas le calcul
+# en Catala ici.
+```
+
 ####### Article D842-11 | LEGIARTI000038878665
 
 La dépense nette minimale mentionnée au dixième alinéa de l'article D. 842-6 est obtenue
@@ -4261,14 +4311,48 @@ en déduisant des charges mensuelles de prêts déclarés, majorées du montant 
 des charges, le montant mensuel de l'allocation calculé selon les dispositions des premier
 à neuvième alinéas du même article.
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+   définition dépense_nette_minimale de allocation_mensuelle état base égal à
+      charges_mensuelles_prêt +€ montant_forfaitaire_charges -€
+        allocation_mensuelle
+```
+
 Lorsque la dépense nette minimale est inférieure à un montant fixé par arrêté, il est
 procédé à un abattement sur le montant mensuel de l'allocation égal à la différence
 constatée.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition dépense_nette_minimale de allocation_mensuelle état abattement
+  égal à
+    si
+      dépense_nette_minimale de allocation_mensuelle <€
+        seuil_minimal_dépense_nette_minimale
+    alors
+      seuil_minimal_dépense_nette_minimale
+    sinon
+     dépense_nette_minimale de allocation_mensuelle
+
+  définition seuil_minimal_dépense_nette_minimale égal à
+     montant_forfaitaire_d842_11
+```
 
 Toutefois dans les cas mentionnés au 1° et 3° de l'article R. 842-5, lorsque le contrat
 de prêt a été signé après le 1er juillet 1999, la dépense nette minimale pour effectuer
 l'abattement doit être inférieure au produit des ressources par un coefficient fixé
 par arrêté.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+   exception définition seuil_minimal_dépense_nette_minimale sous condition
+      (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
+        ou type_travaux_logement sous forme ObjectifDécenceLogement ou
+        type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63) et
+        date_signature_prêt >=@ |1999-07-01|
+   conséquence égal à
+      ressources_ménage_arrondies *€ coefficient_d842_11
+```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre II
 du titre II du présent livre et de l'article D. 842-12 puis arrondies à la centaine
@@ -4284,12 +4368,52 @@ déclarée, s'agissant des prêts signés entre le 1er octobre 1992 et le 30 sep
 ou après le 30 septembre 1994, si l'allocation est accordée en application du 1° ou 3°
 de l'article R. 842-5 ;
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition seuil_minimal_ressources_ménage sous condition
+    ((date_signature_prêt >=@ |1992-09-30| et
+      date_signature_prêt >=@ |1994-09-30|) ou
+    (date_signature_prêt >=@ |1994-09-30| et
+      (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
+      ou type_travaux_logement sous forme ObjectifDécenceLogement ou
+      type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63)
+    ))
+  conséquence égal à
+    mensualité_principale *€ coefficient_d842_12
+```
+
 2° A un montant forfaitaire, fixé par arrêté, s'agissant des prêts signés après le
 30 septembre 1994 et lorsque l'allocation est accordée en application du 2° de
 l'article R. 842-5 ;
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition seuil_minimal_ressources_ménage sous condition
+    date_signature_prêt >=@ |1994-09-30| et
+    type_travaux_logement sous forme PrévuDansListeR321_15
+  conséquence égal à
+    montant_forfaitaire_d842_12
+```
+
 Ces ressources sont portées à ce montant sauf lorsque les intéressés se trouvent
 dans l'une des situations mentionnées aux articles R. 822-11 et R. 822-13 à R. 822-17.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition ressources_ménage_arrondies état seuil égal à
+    si ressources_ménage_arrondies <=€ seuil_minimal_ressources_ménage alors
+    # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
+    # exemples pour vous en convaincre, dont 100 et 150.
+      (arrondi_argent de ((seuil_minimal_ressources_ménage +€ 49,99€) *€ 1%)) *€
+        100,0
+    sinon
+      ressources_ménage_arrondies
+
+  exception définition ressources_ménage_arrondies état seuil sous condition
+    situation_r822_11_13_17
+  conséquence égal à
+    ressources_ménage_arrondies
+```
 
 ####### Article D842-13 | LEGIARTI000038878661
 
@@ -4297,6 +4421,10 @@ Les arrêtés prévus par la présente section sont pris par les ministres charg
 du logement, du budget, de la sécurité sociale et de l'agriculture.
 
 Le zonage géographique est fixé par arrêté des ministres chargés du logement et du budget.
+
+```catala
+# Pas pertinent ici
+```
 
 ###### Section 3 : Logements-foyers
 

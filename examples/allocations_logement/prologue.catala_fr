@@ -433,6 +433,9 @@ déclaration champ d'application RessourcesAidePersonnelleLogement:
   entrée date_demande_ou_reexamen_droit contenu date
   entrée paiement_logement_distinct_professionnel contenu
     PaiementLogementDistinctProfessionnel
+  entrée ressources_ménage_arrondies contenu argent
+    état base
+    état seuil
 
   interne ressources_personnes_vivant_habituellement_foyer contenu argent
   interne abattement_r_822_8 contenu argent
@@ -716,20 +719,37 @@ champ d'application CalculAllocationLogementLocatif:
 ```catala-metadata
 déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   entrée ressources_ménage_arrondies contenu argent
+    état base
+    état seuil
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
   entrée mensualité_principale contenu argent
+  entrée situation_r822_11_13_17 contenu booléen
+  entrée date_signature_prêt contenu date
+  entrée type_travaux_logement contenu TypeTravauxLogementR842_5
+  entrée local_habité_première_fois_bénéficiaire contenu booléen
+  entrée date_entrée_logement contenu date
+  entrée charges_mensuelles_prêt contenu argent
 
   interne mensualité_éligible contenu argent
   interne montant_forfaitaire_charges contenu argent
   interne mensualité_minimale contenu argent
   interne coefficient_prise_en_charge contenu décimal
   interne plafond_mensualité_d842_6 contenu argent
+  interne calcul_plafond_mensualité_d842_6 contenu argent dépend de date
   interne montant_forfaitaire_d842_6 contenu argent
-  interne dépense_nette_minimale contenu argent
+  interne seuil_minimal_dépense_nette_minimale contenu argent
+  interne seuil_minimal_ressources_ménage contenu argent
+  interne dépense_nette_minimale contenu argent dépend de argent
+    état base
+    état abattement
   interne montant_minimal_aide_d823_24 contenu argent
+  interne montant_forfaitaire_d842_11 contenu argent
+  interne montant_forfaitaire_d842_12 contenu argent
+  interne coefficient_d842_11 contenu décimal
+  interne coefficient_d842_12 contenu décimal
 
   calcul_apl_logement_foyer champ d'application
     CalculAidePersonnelleLogementFoyer
