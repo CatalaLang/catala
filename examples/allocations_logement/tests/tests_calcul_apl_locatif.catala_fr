@@ -88,7 +88,6 @@ champ d'application Exemple3:
   assertion calcul.participation_minimale = 35,39 €
   assertion calcul.taux_composition_familiale = 2,01%
   assertion calcul.participation_personnelle = 165,02 €
- #Il y a une différence de 1€ dans le montant qui doit être due à l'arrondi
 ```
 
 ```catala

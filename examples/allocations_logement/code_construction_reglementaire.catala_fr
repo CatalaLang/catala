@@ -4436,6 +4436,11 @@ bénéficiaire réside dans un logement-foyer de jeunes travailleurs construit e
 application du III de l'article 12 de la loi n° 57-908 du 7 août 1957 tendant
 à favoriser la construction de logements et les équipements collectifs.
 
+```catala
+# TODO informatique: dépend du refactoring pour dégager les règles communes
+# d'éligibilité aux aides personnelles au logement. Ceci est une exception.
+```
+
 ####### Article D842-15 | LEGIARTI000038878655
 
 Pour les bénéficiaires résidant dans un logement-foyer, ou assimilé, mentionné
@@ -4445,6 +4450,14 @@ de l'aide est calculé selon les modalités précisées au 1° de l'article D. 8
 le montant mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
 $$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition allocation_mensuelle état formule égal à
+    (équivalence_loyer +€
+      montant_forfaitaire_charges -€ loyer_minimal) *€
+    coefficient_prise_en_charge
+```
 
 où :
 
@@ -4462,23 +4475,87 @@ de la composition familiale ;
 5° " L0 " est le loyer minimal ; il est calculé selon les dispositions du deuxième
 alinéa de l'article D. 832-26, dans lequel il se substitue à " E0 ".
 
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  # En définissant comme vraie la condition du 2° de D832-25, on accède
+  # logiquement aux disposition du deuxième alinéa de D832-26 (voir le jeu
+  # des renvois).
+
+  définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à vrai
+  définition loyer_minimal égal à
+    calcul_apl_logement_foyer.équivalence_minimale_loyer
+```
+
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition allocation_mensuelle état minoration_forfaitaire égal à
+    si allocation_mensuelle -€ montant_forfaitaire_d842_6 <€ 0€ alors
+      0 €
+    sinon
+      allocation_mensuelle -€ montant_forfaitaire_d842_6
+```
 
 Ce résultat est minoré d'un abattement au titre de la dépense nette minimale. Les
 modalités de calcul de la dépense nette, de sa valeur minimale et de l'abattement
 sont fixées à l'article D. 842-17.
 
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition allocation_mensuelle état dépense_nette_minimale
+  égal à
+    si
+      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle <€
+        0€
+    alors
+      0 €
+    sinon
+      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle
+```
+
 Si le montant obtenu par application des dispositions des alinéas précédents est
 supérieur au montant de la redevance supportée par le résident, il est rapporté
 au montant de cette redevance.
+
+```catala
+# TODO juridique: qu'est-ce que la redevance supportée par le résident? Le loyer
+# du logement-foyer?
+champ d'application CalculAllocationLogementFoyer:
+  définition allocation_mensuelle état redevance
+  égal à si allocation_mensuelle >€ redevance
+  alors redevance
+  sinon allocation_mensuelle
+```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions
 sociales qui s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce
 montant représentatif.
 
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition allocation_mensuelle état contributions_sociales_arrondi égal à
+    si
+      arrondi_argent de ((allocation_mensuelle -€
+        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
+      contributions_sociales.montant de allocation_mensuelle >=€ 0€
+    alors
+      arrondi_argent de ((allocation_mensuelle -€
+        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
+      contributions_sociales.montant de allocation_mensuelle
+    sinon 0€
+```
+
 Lorsque le montant mensuel de l'aide calculé selon les dispositions des alinéas
 précédents est inférieur à un montant fixé par arrêté, il n'est pas procédé à
 son versement.
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition allocation_mensuelle état montant_minimal égal à
+    si allocation_mensuelle <€ montant_minimal_aide_d842_15
+    alors 0 € sinon allocation_mensuelle
+```
 
 ####### Article D842-16 | LEGIARTI000038878653
 
@@ -4499,6 +4576,14 @@ code de la sécurité sociale dont l'âge est au moins égal à soixante-cinq an
 que les personnes handicapées ;
 
 4° Les autres personnes.
+
+```catala-metadata
+déclaration énumération CatégorieÉquivalenceLoyerAllocationLogementFoyer:
+  -- ÉtudiantLogéEnChambre
+  -- ÉtudiantLogéEnChambreRéhabilitée
+  -- PersonnesÂgéesSelon3DeD842_16
+  -- AutresPersonnes
+```
 
 ####### Article D842-17 | LEGIARTI000038878651
 
