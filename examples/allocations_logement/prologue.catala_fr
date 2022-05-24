@@ -110,6 +110,7 @@ déclaration structure LogementFoyer:
   donnée date_conventionnement contenu date
   donnée location contenu Location
   donnée remplit_conditions_r832_21 contenu booléen
+  donnée pour_jeunes_travailleurs_III_12_loi_1957 contenu booléen
 
 ```
 
@@ -282,6 +283,13 @@ déclaration énumération ModeOccupationImpayé:
 ### Éligibilité à l'aide personnelle au logement
 
 ```catala-metadata
+# TODO informatique (URGENT): créer deux champs d'application différents:
+# * ÉligibilitéAidesPersonnellesLogement pour les disposition communes aux trois
+#   aides (APL, ALS, ALF)
+# * ÉligibilitéAidePersonnaliséeLogement pour les disposition qui concernent
+#   uniquement l'APL.
+
+
 déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
@@ -773,6 +781,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     RésidentLogementFoyer contenu (LogementFoyer {
       -- type: RésidenceSociale
       -- date_conventionnement: |2022-01-01|
+      -- pour_jeunes_travailleurs_III_12_loi_1957: faux
       -- location: Location {
         -- bailleur: Bailleur {
           -- type_bailleur: BailleurSocial
@@ -784,6 +793,56 @@ champ d'application CalculAllocationLogementAccessionPropriété:
       }
       -- remplit_conditions_r832_21: faux
     })
+  définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
+    ressources_ménage_arrondies
+  définition calcul_apl_logement_foyer.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_apl_logement_foyer.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_apl_logement_foyer.zone égal à
+    zone
+  définition calcul_apl_logement_foyer.date_courante égal à
+    date_courante
+```
+
+### Secteur logement-foyer
+
+```catala-metadata
+déclaration champ d'application CalculAllocationLogementFoyer:
+  entrée redevance contenu argent
+  entrée logement_foyer contenu LogementFoyer
+  entrée ressources_ménage_arrondies contenu argent
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée zone contenu ZoneDHabitation
+  entrée date_courante contenu date
+
+  interne dépense_nette_minimale contenu argent dépend de argent
+  interne montant_minimal_aide_d842_15 contenu argent
+  interne montant_forfaitaire_d842_6 contenu argent
+  interne coefficient_prise_en_charge contenu décimal
+  interne équivalence_loyer contenu argent
+  interne montant_forfaitaire_charges contenu argent
+  interne loyer_minimal contenu argent
+
+  calcul_apl_logement_foyer champ d'application
+    CalculAidePersonnelleLogementFoyer
+  contributions_sociales champ d'application
+    ContributionsSocialesAidePersonnelleLogement
+
+  sortie allocation_mensuelle contenu argent
+    état formule
+    état minoration_forfaitaire
+    état dépense_nette_minimale
+    état redevance
+    état contributions_sociales_arrondi
+    état montant_minimal
+
+champ d'application CalculAllocationLogementFoyer:
+  définition calcul_apl_logement_foyer.mode_occupation égal à
+    # TODO informatique: refactoriser calcul_apl_logement_foyer.mode_occupation
+    # pour ne garder que LogementFoyer
+    RésidentLogementFoyer contenu logement_foyer
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage_arrondies
   définition calcul_apl_logement_foyer.nombre_personnes_à_charge égal à
