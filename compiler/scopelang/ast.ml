@@ -328,4 +328,19 @@ let make_let_in
        (Pos.get_position (Bindlib.unbox e2)))
     (Bindlib.box_list [e1])
 
+let make_default ?(pos = Pos.no_pos) exceptions just cons =
+  let rec bool_value = function
+    | ELit (Dcalc.Ast.LBool b), _ -> Some b
+    | EApp ((EOp (Unop (Log _)), _), [e]), _ -> bool_value e
+    | _ -> None
+  in
+  match exceptions, bool_value just, cons with
+  | [], Some true, cons -> cons
+  | exceptions, Some true, (EDefault ([], just, cons), pos) ->
+    EDefault (exceptions, just, cons), pos
+  | [except], Some false, _ -> except
+  | exceptions, _, cons ->
+    let pos = if pos <> Pos.no_pos then pos else Pos.get_position just in
+    EDefault (exceptions, just, cons), pos
+
 module VarMap = Map.Make (Var)

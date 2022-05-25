@@ -169,3 +169,13 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
+
+val make_default :
+  ?pos:Pos.t ->
+  expr Pos.marked list ->
+  expr Pos.marked ->
+  expr Pos.marked ->
+  expr Pos.marked
+(** [make_default ?pos exceptions just cons] builds the equivalent to an
+    [EDefault] term, while avoiding redundant nested constructions. The position
+    is extracted from [just] by default. *)
