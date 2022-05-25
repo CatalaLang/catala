@@ -1,1 +1,1 @@
-(dirs compiler french_law build_system syntax_highlighting)
+(dirs compiler plugins french_law build_system syntax_highlighting)

@@ -1,0 +1,15 @@
+(executable
+ (name python)
+ (modes plugin)
+ (modules python)
+ (libraries catala.driver))
+
+(executable
+ (name jsoo)
+ (modes plugin)
+ (modules jsoo)
+ (libraries catala.driver catala.runtime))
+
+(documentation
+ (package catala)
+ (mld_files plugins))

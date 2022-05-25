@@ -16,6 +16,10 @@
 
 (** Utility functions used for file manipulation. *)
 
+val with_out_channel : string -> (out_channel -> 'a) -> 'a
+(** Runs the given function with the provided file opened, ensuring it is
+    properly closed afterwards. May raise just as [open_out]. *)
+
 (** {2 Formatter wrappers} *)
 
 val with_formatter_of_out_channel :

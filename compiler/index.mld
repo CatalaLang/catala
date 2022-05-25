@@ -99,9 +99,20 @@ verification condition for proof backends. More information can be found here:
 {li {{: verification.html} Verification}}
 }
 
-Last, two more modules contain additional features for the compiler:
+Two more modules contain additional features for the compiler:
 
 {ul
 {li {{: literate.html} Literate programming}}
 {li {{: utils.html} Compiler utilities}}
+}
+
+Last, it is possible to customize the backend to the compiler using a plugin
+mechanism. The API is defined inside the following module:
+
+{!modules: Driver.Plugin}
+
+See the examples in the [plugins/] subdirectory:
+
+{ul
+{li {{: plugins.html} Backend plugin examples}}
 }
