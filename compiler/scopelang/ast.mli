@@ -176,6 +176,15 @@ val make_default :
   expr Pos.marked ->
   expr Pos.marked ->
   expr Pos.marked
-(** [make_default ?pos exceptions just cons] builds the equivalent to an
-    [EDefault] term, while avoiding redundant nested constructions. The position
-    is extracted from [just] by default. *)
+(** [make_default ?pos exceptions just cons] builds a term semantically
+    equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
+    while avoiding redundant nested constructions. The position is extracted
+    from [just] by default.
+
+    Note that, due to the simplifications taking place, the result might not be
+    of the form [EDefault]:
+
+    - [<true :- x>] is rewritten as [x]
+    - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
+      exceptions, is collapsed into [<ex | def>]
+    - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
