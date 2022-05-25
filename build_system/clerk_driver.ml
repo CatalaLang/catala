@@ -147,7 +147,7 @@ type expected_output_descr = {
   scope : string option;
 }
 
-let catala_suffix_regex = Re.Pcre.regexp "\\.catala_(\\w){2}"
+let catala_suffix_regex = Re.Pcre.regexp "\\.catala_(\\w){2}$"
 
 let filename_to_expected_output_descr (output_dir : string) (filename : string)
     : expected_output_descr option =

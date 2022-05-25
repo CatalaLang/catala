@@ -78,7 +78,7 @@ compiler/surface/parser.messages: compiler/surface/tokens.mly compiler/surface/p
 parser-messages: compiler/surface/parser.messages
 
 format:
-	dune build @fmt --auto-promote >/dev/null || true
+	dune build @fmt --auto-promote 2>/dev/null || true
 
 ##########################################
 # Syntax highlighting rules
@@ -272,7 +272,7 @@ test_examples: .FORCE
 	$(CLERK) test examples
 
 test_clerk: .FORCE
-	cd $(BUILD_SYSTEM_DIR) && dune test
+	dune test $(BUILD_SYSTEM_DIR)
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples test_clerk
