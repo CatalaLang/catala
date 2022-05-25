@@ -1,0 +1,51 @@
+{0 Example backend plugins }
+
+This directory contains backend plugins that demonstrate how those can be
+written and used with Catala. They probably don't provide much value otherwise.
+
+Use [make plugins] from the root of the source tree to build them.
+
+A plugin is created by writing an OCaml module that calls
+[Driver.Plugin.register_lcalc] or [Driver.Plugin.register_scalc] and that links
+against [catala.driver]. Here is an example dune stanza to compile it:
+{v
+(executable
+ (name my-plugin)
+ (modes plugin)
+ (modules my_plugin_main_module)
+ (libraries catala.driver))
+v}
+
+See the following module for the registration interface:
+
+{!modules: Driver.Plugin}
+
+{1 Using plugins}
+
+Plugins are dynamically loaded. The Catala compiler will be looking for them at
+startup within [<prefix>/lib/catala/plugins] (assuming that the compiler is
+installed into [<prefix>/bin]), or any other directory specified through the
+`--plugin-dir` command-line flag or by setting the [CATALA_PLUGINS] environment
+variable.
+
+The plugin of your choice can then be called just like the built-in backends, using:
+{v
+$ catala MyPlugin <file> [options]
+v}
+
+{1 Examples}
+
+{2 python example}
+
+This trivial example registers a plugin that uses the [scalc] format as input.
+It simply calls the code of the built-in Python backend, and should be no
+different to using the normal Catala Python output mode.
+
+{2 jsoo example}
+
+This slightly more involved plugin reads the [lcalc] format, applies the code of
+the [OCaml] backend normally, but then calls the [ocamlc] and [js_of_ocaml]
+compiler successively on the output in order to give a Javascript output.
+
+Note that this output remains a library, it won't provide user-facing features,
+and no efforts are made to make it callable from normal JavaScript code.

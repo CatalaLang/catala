@@ -9,3 +9,7 @@
  (modes plugin)
  (modules jsoo)
  (libraries catala.driver catala.runtime))
+
+(documentation
+ (package catala)
+ (mld_files plugins))

@@ -158,6 +158,13 @@ To add support for a new language:
 Feel free to open a pull request for discussion even if you couldn't go through
 all these steps, the `lexer_xx.cppo.ml` file is the important part.
 
+### Example: writing custom backends as plugins
+
+Catala has support for dynamically-loaded plugins to use as alternative
+backends. See `compiler/plugins` for examples, and [the
+documentation](https://catala-lang.org/ocaml_docs/catala/plugins.html) for more
+detail.
+
 ### Automatic formatting
 
 Please ensure to submit commits formatted using the included `ocamlformat`
