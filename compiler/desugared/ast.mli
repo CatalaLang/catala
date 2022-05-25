@@ -91,6 +91,8 @@ type expr =
   | EArray of expr Pos.marked list
   | ErrorOnEmpty of expr Pos.marked
 
+module ExprMap : Map.S with type key = expr
+
 (** {2 Variable helpers} *)
 
 module Var : sig
@@ -136,6 +138,8 @@ type rule = {
   rule_parameter : (Var.t * Scopelang.Ast.typ Pos.marked) option;
   rule_exception_to_rules : RuleSet.t Pos.marked;
 }
+
+module Rule : Set.OrderedType with type t = rule
 
 val empty_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
 val always_false_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule

@@ -66,6 +66,8 @@ type typ =
   | TArray of typ
   | TAny
 
+module Typ : Set.OrderedType with type t = typ
+
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax*)
 type expr =
@@ -85,6 +87,9 @@ type expr =
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | EArray of expr Pos.marked list
   | ErrorOnEmpty of expr Pos.marked
+
+module Expr : Set.OrderedType with type t = expr
+module ExprMap : Map.S with type key = expr
 
 val locations_used : expr Pos.marked -> LocationSet.t
 
