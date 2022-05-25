@@ -10,7 +10,7 @@
  (modules api_web)
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries catala.runtime law_source js_of_ocaml))
+ (libraries catala.runtime law_source js_of_ocaml yojson))
 
 (library
  (name api)

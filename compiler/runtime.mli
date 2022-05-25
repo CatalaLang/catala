@@ -58,6 +58,7 @@ type runtime_value =
   | Struct of string list * (string * runtime_value) list
   | Array of runtime_value Array.t
   | Unembeddable
+[@@deriving yojson_of]
 
 val unembeddable : 'a -> runtime_value
 val embed_unit : unit -> runtime_value

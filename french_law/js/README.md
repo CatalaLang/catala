@@ -18,6 +18,71 @@ from the root of the repository:
 make build_french_law_library_js
 ```
 
+## API description
+
+<details>
+
+<summary>API content</summary>
+
+### Data types
+
+#### `source_position`
+
+Stores information about the log position.
+
+```javascript
+{
+  fileName : string
+  startLine : int
+  endLine : int
+  startColumn : int
+  endColumn : int
+  lawHeadings : [string]
+ }
+```
+
+#### `log_event`
+
+Stores information about one log event.
+
+```javascript
+{
+  eventType : string
+  information : [string]
+  sourcePosition : source_position?
+  loggedValueJson : string
+}
+```
+
+`loggedValueJson` is the resulting string representation of the
+`Runtime.runtime_value` serialization via `yojson` -- see
+`./src/compiler/runtime.mli`.
+
+### Functions
+
+#### `french_law.resetLog()`
+
+Clears the log array.
+
+Example of use:
+
+```javascript
+french_law.resetLog(0) // Note that you have to pass an arbitrary argument.
+```
+
+#### `french_law.retrieveLog()`
+
+Returns the array of [`log_event`](#log_event) resulting of the computation of the
+[algorithms](#available-algorithms).
+
+Example of use:
+
+```javascript
+let logs = french_law.retrieveLog(0) // Note that you have to pass an arbitrary argument.
+```
+
+</details>
+
 ## Available algorithms
 
 ### Allocations familiales
