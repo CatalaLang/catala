@@ -17,49 +17,52 @@
 
 type backend_lang = En | Fr | Pl
 
-type backend_option =
-  | Dcalc
-  | Html
-  | Interpret
-  | Latex
-  | Lcalc
-  | Makefile
-  | OCaml
-  | Proof
-  | Python
-  | Scalc
-  | Scopelang
-  | Typecheck
+type backend_option_builtin =
+  [ `Latex
+  | `Makefile
+  | `Html
+  | `Interpret
+  | `Typecheck
+  | `OCaml
+  | `Python
+  | `Scalc
+  | `Lcalc
+  | `Dcalc
+  | `Scopelang
+  | `Proof ]
 
-let catala_backend_option_to_string = function
-  | Dcalc -> "Dcalc"
-  | Html -> "Html"
-  | Interpret -> "Interpret"
-  | Latex -> "Latex"
-  | Lcalc -> "Lcalc"
-  | Makefile -> "Makefile"
-  | OCaml -> "OCaml"
-  | Proof -> "Proof"
-  | Python -> "Python"
-  | Scalc -> "Scalc"
-  | Scopelang -> "Scopelang"
-  | Typecheck -> "Typecheck"
+type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
-let catala_backend_option_of_string backend =
+let backend_option_to_string = function
+  | `Interpret -> "Interpret"
+  | `Makefile -> "Makefile"
+  | `OCaml -> "Ocaml"
+  | `Scopelang -> "Scopelang"
+  | `Dcalc -> "Dcalc"
+  | `Latex -> "Latex"
+  | `Proof -> "Proof"
+  | `Html -> "Html"
+  | `Python -> "Python"
+  | `Typecheck -> "Typecheck"
+  | `Scalc -> "Scalc"
+  | `Lcalc -> "Lcalc"
+  | `Plugin s -> s
+
+let backend_option_of_string backend =
   match String.lowercase_ascii backend with
-  | "dcalc" -> Some Dcalc
-  | "html" -> Some Html
-  | "interpret" -> Some Interpret
-  | "latex" -> Some Latex
-  | "lcalc" -> Some Lcalc
-  | "makefile" -> Some Makefile
-  | "ocaml" -> Some OCaml
-  | "proof" -> Some Proof
-  | "python" -> Some Python
-  | "scalc" -> Some Scalc
-  | "scopelang" -> Some Scopelang
-  | "typecheck" -> Some Typecheck
-  | _ -> None
+  | "interpret" -> `Interpret
+  | "makefile" -> `Makefile
+  | "ocaml" -> `OCaml
+  | "scopelang" -> `Scopelang
+  | "dcalc" -> `Dcalc
+  | "latex" -> `Latex
+  | "proof" -> `Proof
+  | "html" -> `Html
+  | "python" -> `Python
+  | "typecheck" -> `Typecheck
+  | "scalc" -> `Scalc
+  | "lcalc" -> `Lcalc
+  | s -> `Plugin s
 
 (** Source files to be compiled *)
 let source_files : string list ref = ref []
@@ -134,6 +137,15 @@ let backend =
         ~doc:
           "Backend selection (see the list of commands for available options).")
 
+let plugins_dirs =
+  let doc = "Set the given directory to be searched for backend plugins." in
+  let env = Cmd.Env.info "CATALA_PLUGINS" ~doc in
+  let default =
+    let ( / ) = Filename.concat in
+    [Sys.executable_name / ".." / "lib" / "catala" / "plugins"]
+  in
+  Arg.(value & opt_all dir default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc)
+
 let language =
   Arg.(
     value
@@ -184,6 +196,7 @@ type options = {
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;
+  plugins_dirs : string list;
   language : string option;
   max_prec_digits : int option;
   trace : bool;
@@ -202,6 +215,7 @@ let options =
       avoid_exceptions
       closure_conversion
       backend
+      plugins_dirs
       language
       max_prec_digits
       trace
@@ -215,6 +229,7 @@ let options =
       wrap_weaved_output;
       avoid_exceptions;
       backend;
+      plugins_dirs;
       language;
       max_prec_digits;
       trace;
@@ -227,8 +242,9 @@ let options =
   in
   Term.(
     const make $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
-    $ closure_conversion $ backend $ language $ max_prec_digits_opt $ trace_opt
-    $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
+    $ closure_conversion $ backend $ plugins_dirs $ language
+    $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize
+    $ ex_scope $ output)
 
 let catala_t f = Term.(const f $ file $ options)
 

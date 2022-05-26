@@ -17,6 +17,7 @@ let _ =
              wrap_weaved_output = false;
              avoid_exceptions = false;
              backend = "Interpret";
+             plugins_dirs = [];
              language = Some (Js.to_string language);
              max_prec_digits = None;
              closure_conversion = false;

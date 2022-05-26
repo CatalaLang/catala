@@ -30,7 +30,7 @@ module C = Cli
 let pre_latexify (s : string) : string =
   (* Then we send to pandoc, to ensure the markdown features used in the
      original document are correctly printed! *)
-  run_pandoc s Cli.Latex
+  run_pandoc s `Latex
 
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 

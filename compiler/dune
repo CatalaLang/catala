@@ -2,6 +2,7 @@
  (name driver)
  (public_name catala.driver)
  (libraries
+  dynlink
   utils
   surface
   desugared
@@ -11,11 +12,13 @@
   scalc
   runtime
   verification)
- (modules driver))
+ (modules plugin driver))
 
 (library
  (name runtime)
  (public_name catala.runtime)
+ (preprocess
+  (pps ppx_yojson_conv))
  (libraries calendar zarith zarith_stubs_js)
  (modules runtime))
 
