@@ -127,8 +127,12 @@ let driver source_file (options : Cli.options) : int =
       File.with_formatter_of_file output_file (fun fmt ->
           let weave_output =
             match backend with
-            | `Latex -> Literate.Latex.ast_to_latex language
-            | `Html -> Literate.Html.ast_to_html language
+            | `Latex ->
+              Literate.Latex.ast_to_latex language
+                ~print_only_law:options.print_only_law
+            | `Html ->
+              Literate.Html.ast_to_html language
+                ~print_only_law:options.print_only_law
           in
           Cli.debug_print "Writing to %s" output_file;
           if options.wrap_weaved_output then

@@ -34,4 +34,8 @@ val wrap_html :
 (** {1 API} *)
 
 val ast_to_html :
-  Cli.backend_lang -> Format.formatter -> Surface.Ast.program -> unit
+  Cli.backend_lang ->
+  print_only_law:bool ->
+  Format.formatter ->
+  Surface.Ast.program ->
+  unit

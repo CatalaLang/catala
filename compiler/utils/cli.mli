@@ -73,6 +73,7 @@ val debug : bool Cmdliner.Term.t
 val unstyled : bool Cmdliner.Term.t
 val trace_opt : bool Cmdliner.Term.t
 val wrap_weaved_output : bool Cmdliner.Term.t
+val print_only_law : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
 val plugins_dirs : string list Cmdliner.Term.t
 val language : string option Cmdliner.Term.t
@@ -95,6 +96,7 @@ type options = {
   ex_scope : string option;
   output_file : string option;
   closure_conversion : bool;
+  print_only_law : bool;
 }
 (** {2 Command-line application} *)
 
