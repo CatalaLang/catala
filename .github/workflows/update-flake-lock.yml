@@ -1,0 +1,18 @@
+name: update lock files
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install nix
+        uses: cachix/install-nix-action@v15
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: update flake.lock
+        run: |
+          nix flake update
