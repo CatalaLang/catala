@@ -31,6 +31,7 @@ index 3b8d660..0000000
 -             optimize = false;
 -             ex_scope = Some (Js.to_string scope);
 -             output_file = None;
+-             print_only_law = false;
 -           }
 -    end)
 diff --git a/compiler/dune b/compiler/dune

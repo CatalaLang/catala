@@ -4144,7 +4144,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     si allocation_mensuelle -€ montant_forfaitaire_d842_6 <€ 0€ alors
       0 €
     sinon
-      allocation_mensuelle -€ montant_forfaitaire_d842_6
+      (allocation_mensuelle -€ montant_forfaitaire_d842_6)
 ```
 
 Le montant ainsi obtenu est minoré d'un abattement au titre de la dépense nette minimale,
@@ -4160,7 +4160,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     alors
       0 €
     sinon
-      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle
+      (allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle)
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -4494,7 +4494,7 @@ champ d'application CalculAllocationLogementFoyer:
     si allocation_mensuelle -€ montant_forfaitaire_d842_6 <€ 0€ alors
       0 €
     sinon
-      allocation_mensuelle -€ montant_forfaitaire_d842_6
+      (allocation_mensuelle -€ montant_forfaitaire_d842_6)
 ```
 
 Ce résultat est minoré d'un abattement au titre de la dépense nette minimale. Les
@@ -4511,7 +4511,7 @@ champ d'application CalculAllocationLogementFoyer:
     alors
       0 €
     sinon
-      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle
+      (allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle)
 ```
 
 Si le montant obtenu par application des dispositions des alinéas précédents est

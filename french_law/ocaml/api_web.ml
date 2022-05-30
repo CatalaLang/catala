@@ -72,69 +72,8 @@ class type log_event =
     method eventType : Js.js_string Js.t Js.prop
     method information : Js.js_string Js.t Js.js_array Js.t Js.prop
     method sourcePosition : source_position Js.t Js.optdef Js.prop
-    method loggedValue : Js.Unsafe.any Js.prop
+    method loggedValueJson : Js.js_string Js.t Js.prop
   end
-
-let rec embed_to_js (v : runtime_value) : Js.Unsafe.any =
-  match v with
-  | Unit -> Js.Unsafe.inject Js.undefined
-  | Bool b -> Js.Unsafe.inject (Js.bool b)
-  | Integer i -> Js.Unsafe.inject (integer_to_int i)
-  | Decimal d -> Js.Unsafe.inject (decimal_to_float d)
-  | Money m -> Js.Unsafe.inject (money_to_float m)
-  | Date d ->
-    let date = new%js Js.date_now in
-    ignore (date##setUTCFullYear (integer_to_int @@ year_of_date d));
-    ignore (date##setUTCMonth (integer_to_int @@ month_number_of_date d));
-    ignore (date##setUTCDate (integer_to_int @@ day_of_month_of_date d));
-    ignore (date##setUTCHours 0);
-    ignore (date##setUTCMinutes 0);
-    ignore (date##setUTCSeconds 0);
-    ignore (date##setUTCMilliseconds 0);
-    Js.Unsafe.inject date
-  | Duration d ->
-    let days, months, years = duration_to_years_months_days d in
-    Js.Unsafe.inject (Js.string (Printf.sprintf "%dD%dM%dY" days months years))
-  | Struct (name, fields) ->
-    Js.Unsafe.inject
-      (object%js
-         val mutable structName =
-           if List.length name = 1 then
-             Js.Unsafe.inject (Js.string (List.hd name))
-           else
-             Js.Unsafe.inject
-               (Js.array (Array.of_list (List.map Js.string name)))
-
-         val mutable structFields =
-           Js.Unsafe.inject
-             (Js.array
-                (Array.of_list
-                   (List.map
-                      (fun (name, v) ->
-                        object%js
-                          val mutable fieldName =
-                            Js.Unsafe.inject (Js.string name)
-
-                          val mutable fieldValue =
-                            Js.Unsafe.inject (embed_to_js v)
-                        end)
-                      fields)))
-      end)
-  | Enum (name, (case, v)) ->
-    Js.Unsafe.inject
-      (object%js
-         val mutable enumName =
-           if List.length name = 1 then
-             Js.Unsafe.inject (Js.string (List.hd name))
-           else
-             Js.Unsafe.inject
-               (Js.array (Array.of_list (List.map Js.string name)))
-
-         val mutable enumCase = Js.Unsafe.inject (Js.string case)
-         val mutable enumPayload = Js.Unsafe.inject (embed_to_js v)
-      end)
-  | Array vs -> Js.Unsafe.inject (Js.array (Array.map embed_to_js vs))
-  | Unembeddable -> Js.Unsafe.inject Js.null
 
 let _ =
   Js.export_all
@@ -167,11 +106,13 @@ let _ =
                                   List.map Js.string info
                                 | DecisionTaken _ -> []))
 
-                         val mutable loggedValue =
-                           match evt with
-                           | VariableDefinition (_, v) -> embed_to_js v
+                         val mutable loggedValueJson =
+                           (match evt with
+                           | VariableDefinition (_, v) -> v
                            | EndCall _ | BeginCall _ | DecisionTaken _ ->
-                             Js.Unsafe.inject Js.undefined
+                             Runtime.unembeddable ())
+                           |> Runtime.yojson_of_runtime_value
+                           |> Yojson.Safe.to_string |> Js.string
 
                          val mutable sourcePosition =
                            match evt with

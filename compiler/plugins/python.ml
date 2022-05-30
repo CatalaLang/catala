@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   Louis Gesbert <louis.gesbert@inria.fr>.
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,28 +14,19 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This modules weaves the source code and the legislative text together into a
-    document that law professionals can understand. *)
+(** This file is only for demonstration purposes, showing a trivial use of
+    backend plugins for Catala.
 
-open Utils
+    The code for the Python backend already has first-class support, so there
+    would be no reason to use this plugin instead *)
 
-(** {1 Helpers} *)
+let name = "python-plugin"
+let extension = ".py"
 
-val wrap_latex :
-  string list ->
-  Cli.backend_lang ->
-  Format.formatter ->
-  (Format.formatter -> unit) ->
-  unit
-(** Usage: [wrap_latex source_files language fmt wrapped]
+let apply output_file prgm type_ordering =
+  let oc = open_out output_file in
+  let fmt = Format.formatter_of_out_channel oc in
+  Scalc.To_python.format_program fmt prgm type_ordering;
+  close_out oc
 
-    Prints an LaTeX complete documùent structure around the [wrapped] content. *)
-
-(** {1 API} *)
-
-val ast_to_latex :
-  Cli.backend_lang ->
-  print_only_law:bool ->
-  Format.formatter ->
-  Surface.Ast.program ->
-  unit
+let () = Driver.Plugin.register_scalc ~name ~extension apply

@@ -17,6 +17,7 @@ let _ =
              wrap_weaved_output = false;
              avoid_exceptions = false;
              backend = "Interpret";
+             plugins_dirs = [];
              language = Some (Js.to_string language);
              max_prec_digits = None;
              closure_conversion = false;
@@ -25,5 +26,6 @@ let _ =
              optimize = false;
              ex_scope = Some (Js.to_string scope);
              output_file = None;
+             print_only_law = false;
            }
     end)

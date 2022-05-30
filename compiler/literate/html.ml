@@ -28,7 +28,7 @@ module C = Cli
 (** {1 Helpers} *)
 
 (** Converts double lines into HTML newlines. *)
-let pre_html (s : string) = run_pandoc s Cli.Html
+let pre_html (s : string) = String.trim (run_pandoc s `Html)
 
 (** Raise an error if pygments cannot be found *)
 let raise_failed_pygments (command : string) (error_code : int) : 'a =
@@ -166,13 +166,14 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
 
 let rec law_structure_to_html
     (language : C.backend_lang)
+    (print_only_law : bool)
     (fmt : Format.formatter)
     (i : A.law_structure) : unit =
   match i with
   | A.LawText t ->
     let t = pre_html t in
     if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
-  | A.CodeBlock (_, c, metadata) ->
+  | A.CodeBlock (_, c, metadata) when not print_only_law ->
     Format.fprintf fmt
       "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
       (if metadata then " code-metadata" else "")
@@ -180,6 +181,7 @@ let rec law_structure_to_html
       (pygmentize_code
          (Pos.same_pos_as ("```catala\n" ^ Pos.unmark c ^ "```") c)
          language)
+  | A.CodeBlock _ -> ()
   | A.LawHeading (heading, children) ->
     let h_number = heading.law_heading_precedence + 1 in
     Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n"
@@ -195,7 +197,7 @@ let rec law_structure_to_html
       h_number;
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-      (law_structure_to_html language)
+      (law_structure_to_html language print_only_law)
       fmt children
   | A.LawInclude _ -> ()
 
@@ -203,9 +205,10 @@ let rec law_structure_to_html
 
 let ast_to_html
     (language : C.backend_lang)
+    ~(print_only_law : bool)
     (fmt : Format.formatter)
     (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (law_structure_to_html language)
+    (law_structure_to_html language print_only_law)
     fmt program.program_items

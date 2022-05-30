@@ -15,18 +15,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          clean: false
       - name: Re-initialize python dependencies
         run: |
-          rm -rf french_law/python/env
           ./french_law/python/setup_env.sh
       - name: Install dependencies
         run: |
-          opam exec -- make dependencies
+          opam exec -- make dependencies pygments
       - name: Check promoted files
         run: |
-          rm -f bad-promote
           opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
       - name: Make all
         run: |

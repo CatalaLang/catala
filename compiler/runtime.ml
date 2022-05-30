@@ -19,6 +19,7 @@ type integer = Z.t
 type decimal = Q.t
 type date = CalendarLib.Date.t
 type duration = CalendarLib.Date.Period.t
+type 'a eoption = ENone of unit | ESome of 'a
 
 type source_position = {
   filename : string;
@@ -29,8 +30,6 @@ type source_position = {
   law_headings : string list;
 }
 
-type 'a eoption = ENone of unit | ESome of 'a
-
 exception EmptyError
 exception AssertionFailed
 exception ConflictError
@@ -38,55 +37,6 @@ exception UncomparableDurations
 exception IndivisableDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
-
-type runtime_value =
-  | Unit
-  | Bool of bool
-  | Money of money
-  | Integer of integer
-  | Decimal of decimal
-  | Date of date
-  | Duration of duration
-  | Enum of string list * (string * runtime_value)
-  | Struct of string list * (string * runtime_value) list
-  | Array of runtime_value Array.t
-  | Unembeddable
-
-let unembeddable _ = Unembeddable
-let embed_unit () = Unit
-let embed_bool x = Bool x
-let embed_money x = Money x
-let embed_integer x = Integer x
-let embed_decimal x = Decimal x
-let embed_date x = Date x
-let embed_duration x = Duration x
-let embed_array f x = Array (Array.map f x)
-
-type event =
-  | BeginCall of string list
-  | EndCall of string list
-  | VariableDefinition of string list * runtime_value
-  | DecisionTaken of source_position
-
-let log_ref : event list ref = ref []
-let reset_log () = log_ref := []
-let retrieve_log () = List.rev !log_ref
-
-let log_begin_call info f x =
-  log_ref := BeginCall info :: !log_ref;
-  f x
-
-let log_end_call info x =
-  log_ref := EndCall info :: !log_ref;
-  x
-
-let log_variable_definition (info : string list) embed (x : 'a) =
-  log_ref := VariableDefinition (info, embed x) :: !log_ref;
-  x
-
-let log_decision_taken pos x =
-  if x then log_ref := DecisionTaken pos :: !log_ref;
-  x
 
 let money_of_cents_string (cents : string) : money = Z.of_string cents
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
@@ -191,6 +141,62 @@ let duration_to_string (d : duration) : string =
 
 let duration_to_years_months_days (d : duration) : int * int * int =
   CalendarLib.Date.Period.ymd d
+
+let yojson_of_money (m : money) = `Float (money_to_float m)
+let yojson_of_integer (i : integer) = `Int (integer_to_int i)
+let yojson_of_decimal (d : decimal) = `Float (decimal_to_float d)
+let yojson_of_date (d : date) = `String (date_to_string d)
+let yojson_of_duration (d : duration) = `String (duration_to_string d)
+
+type runtime_value =
+  | Unit
+  | Bool of bool
+  | Money of money
+  | Integer of integer
+  | Decimal of decimal
+  | Date of date
+  | Duration of duration
+  | Enum of string list * (string * runtime_value)
+  | Struct of string list * (string * runtime_value) list
+  | Array of runtime_value array
+  | Unembeddable
+[@@deriving yojson_of]
+
+let unembeddable _ = Unembeddable
+let embed_unit () = Unit
+let embed_bool x = Bool x
+let embed_money x = Money x
+let embed_integer x = Integer x
+let embed_decimal x = Decimal x
+let embed_date x = Date x
+let embed_duration x = Duration x
+let embed_array f x = Array (Array.map f x)
+
+type event =
+  | BeginCall of string list
+  | EndCall of string list
+  | VariableDefinition of string list * runtime_value
+  | DecisionTaken of source_position
+
+let log_ref : event list ref = ref []
+let reset_log () = log_ref := []
+let retrieve_log () = List.rev !log_ref
+
+let log_begin_call info f x =
+  log_ref := BeginCall info :: !log_ref;
+  f x
+
+let log_end_call info x =
+  log_ref := EndCall info :: !log_ref;
+  x
+
+let log_variable_definition (info : string list) embed (x : 'a) =
+  log_ref := VariableDefinition (info, embed x) :: !log_ref;
+  x
+
+let log_decision_taken pos x =
+  if x then log_ref := DecisionTaken pos :: !log_ref;
+  x
 
 let handle_default :
       'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =

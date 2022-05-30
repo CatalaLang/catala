@@ -17,26 +17,28 @@
 
 type backend_lang = En | Fr | Pl
 
-type backend_option =
-  | Dcalc
-  | Html
-  | Interpret
-  | Latex
-  | Lcalc
-  | Makefile
-  | OCaml
-  | Proof
-  | Python
-  | Scalc
-  | Scopelang
-  | Typecheck
+type backend_option_builtin =
+  [ `Latex
+  | `Makefile
+  | `Html
+  | `Interpret
+  | `Typecheck
+  | `OCaml
+  | `Python
+  | `Scalc
+  | `Lcalc
+  | `Dcalc
+  | `Scopelang
+  | `Proof ]
 
-val catala_backend_option_to_string : backend_option -> string
-(** [catala_backend_to_string backend] returns the string representation of the
+type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
+
+val backend_option_to_string : string backend_option -> string
+(** [backend_option_to_string backend] returns the string representation of the
     given [backend].*)
 
-val catala_backend_option_of_string : string -> backend_option option
-(** [catala_backend_option_of_string backend] returns the {!type:backend_option}
+val backend_option_of_string : string -> string backend_option
+(** [backend_option_of_string backend] returns the {!type:backend_option}
     corresponding to the [backend] string. *)
 
 (** {2 Configuration globals} *)
@@ -71,7 +73,9 @@ val debug : bool Cmdliner.Term.t
 val unstyled : bool Cmdliner.Term.t
 val trace_opt : bool Cmdliner.Term.t
 val wrap_weaved_output : bool Cmdliner.Term.t
+val print_only_law : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
+val plugins_dirs : string list Cmdliner.Term.t
 val language : string option Cmdliner.Term.t
 val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
@@ -83,6 +87,7 @@ type options = {
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;
+  plugins_dirs : string list;
   language : string option;
   max_prec_digits : int option;
   trace : bool;
@@ -91,6 +96,7 @@ type options = {
   ex_scope : string option;
   output_file : string option;
   closure_conversion : bool;
+  print_only_law : bool;
 }
 (** {2 Command-line application} *)
 

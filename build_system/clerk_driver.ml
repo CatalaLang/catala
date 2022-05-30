@@ -143,7 +143,7 @@ type expected_output_descr = {
   base_filename : string;
   output_dir : string;
   complete_filename : string;
-  backend : Cli.backend_option;
+  backend : string Cli.backend_option;
   scope : string option;
 }
 
@@ -156,18 +156,18 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string)
   let filename = Filename.remove_extension filename in
   let backend =
     match String.lowercase_ascii first_extension with
-    | ".dcalc" -> Some Cli.Dcalc
-    | ".d" -> Some Cli.Makefile
-    | ".html" -> Some Cli.Html
-    | ".interpret" -> Some Cli.Interpret
-    | ".lcalc" -> Some Cli.Lcalc
-    | ".ml" -> Some Cli.OCaml
-    | ".proof" -> Some Cli.Proof
-    | ".py" -> Some Cli.Python
-    | ".scalc" -> Some Cli.Scalc
-    | ".scopelang" -> Some Cli.Scopelang
-    | ".tex" -> Some Cli.Latex
-    | ".typecheck" -> Some Cli.Typecheck
+    | ".dcalc" -> Some `Dcalc
+    | ".d" -> Some `Makefile
+    | ".html" -> Some `Html
+    | ".interpret" -> Some `Interpret
+    | ".lcalc" -> Some `Lcalc
+    | ".ml" -> Some `OCaml
+    | ".proof" -> Some `Proof
+    | ".py" -> Some `Python
+    | ".scalc" -> Some `Scalc
+    | ".scopelang" -> Some `Scopelang
+    | ".tex" -> Some `Latex
+    | ".typecheck" -> Some `Typecheck
     | _ -> None
   in
   match backend with
@@ -419,8 +419,7 @@ let collect_all_ninja_build
             [
               ( "catala_cmd",
                 Nj.Expr.Lit
-                  (Cli.catala_backend_option_to_string expected_output.backend)
-              );
+                  (Cli.backend_option_to_string expected_output.backend) );
               "tested_file", Nj.Expr.Lit tested_file;
               ( "expected_output",
                 Nj.Expr.Lit
@@ -429,7 +428,7 @@ let collect_all_ninja_build
             ]
           and output_build_kind = if reset_test_outputs then "reset" else "test"
           and catala_backend =
-            Cli.catala_backend_option_to_string expected_output.backend
+            Cli.backend_option_to_string expected_output.backend
           in
 
           let get_rule_infos ?(rule_postfix = "") :
@@ -465,14 +464,14 @@ let collect_all_ninja_build
           in
 
           match expected_output.backend with
-          | Cli.Interpret | Cli.Proof | Cli.Typecheck | Cli.Dcalc
-          | Cli.Scopelang | Cli.Scalc | Cli.Lcalc ->
+          | `Interpret | `Proof | `Typecheck | `Dcalc | `Scopelang | `Scalc
+          | `Lcalc ->
             let rule_output, rule_name, rule_vars =
               get_rule_infos expected_output.scope
             in
             let rule_vars =
               match expected_output.backend with
-              | Cli.Proof ->
+              | `Proof ->
                 ("extra_flags", Nj.Expr.Lit "--disable_counterexamples")
                 :: rule_vars
                 (* Counterexamples can be different at each call because of the
@@ -483,7 +482,7 @@ let collect_all_ninja_build
             in
             ( ninja_add_new_rule rule_output rule_name rule_vars ninja,
               test_names ^ " $\n  " ^ rule_output )
-          | Cli.Python | Cli.OCaml | Cli.Latex | Cli.Html | Cli.Makefile ->
+          | `Python | `OCaml | `Latex | `Html | `Makefile | `Plugin _ ->
             let tmp_file = Filename.temp_file "clerk_" ("_" ^ catala_backend) in
             let rule_output, rule_name, rule_vars =
               get_rule_infos ~rule_postfix:"_and_output" expected_output.scope
