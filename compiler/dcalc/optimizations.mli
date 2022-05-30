@@ -20,5 +20,5 @@
 open Utils
 open Ast
 
-val optimize_expr : decl_ctx -> expr Pos.marked -> expr Pos.marked Bindlib.box
+val optimize_expr : decl_ctx -> expr Marked.pos -> expr Marked.pos Bindlib.box
 val optimize_program : program -> program

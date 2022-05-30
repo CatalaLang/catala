@@ -36,20 +36,20 @@ val format_lit_style : Format.formatter -> string -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val format_enum_constructor : Format.formatter -> Ast.EnumConstructor.t -> unit
 val format_tlit : Format.formatter -> Ast.typ_lit -> unit
-val format_typ : Ast.decl_ctx -> Format.formatter -> Ast.typ Pos.marked -> unit
-val format_lit : Format.formatter -> Ast.lit Pos.marked -> unit
+val format_typ : Ast.decl_ctx -> Format.formatter -> Ast.typ Marked.pos -> unit
+val format_lit : Format.formatter -> Ast.lit Marked.pos -> unit
 val format_op_kind : Format.formatter -> Ast.op_kind -> unit
-val format_binop : Format.formatter -> Ast.binop Pos.marked -> unit
-val format_ternop : Format.formatter -> Ast.ternop Pos.marked -> unit
+val format_binop : Format.formatter -> Ast.binop Marked.pos -> unit
+val format_ternop : Format.formatter -> Ast.ternop Marked.pos -> unit
 val format_log_entry : Format.formatter -> Ast.log_entry -> unit
-val format_unop : Format.formatter -> Ast.unop Pos.marked -> unit
+val format_unop : Format.formatter -> Ast.unop Marked.pos -> unit
 val format_var : Format.formatter -> Ast.Var.t -> unit
 
 val format_expr :
   ?debug:bool (** [true] for debug printing *) ->
   Ast.decl_ctx ->
   Format.formatter ->
-  Ast.expr Pos.marked ->
+  Ast.expr Marked.pos ->
   unit
 
 val format_scope :

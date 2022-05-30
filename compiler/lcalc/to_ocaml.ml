@@ -20,7 +20,7 @@ open Backends
 module D = Dcalc.Ast
 
 let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
-    (D.StructFieldName.t * D.typ Pos.marked) list =
+    (D.StructFieldName.t * D.typ Marked.pos) list =
   try D.StructMap.find s ctx.D.ctx_structs
   with Not_found ->
     let s_name, pos = D.StructName.get_info s in
@@ -29,7 +29,7 @@ let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
       s_name
 
 let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) :
-    (D.EnumConstructor.t * D.typ Pos.marked) list =
+    (D.EnumConstructor.t * D.typ Marked.pos) list =
   try D.EnumMap.find en ctx.D.ctx_enums
   with Not_found ->
     let en_name, pos = D.EnumName.get_info en in
@@ -37,16 +37,16 @@ let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) :
       "Internal Error: Enumeration %s was not found in the current environment."
       en_name
 
-let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
-  match Pos.unmark l with
+let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
+  match Marked.unmark l with
   | LBool b ->
-    Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LBool b) l)
+    Dcalc.Print.format_lit fmt (Marked.same_mark_as (Dcalc.Ast.LBool b) l)
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
-  | LUnit -> Dcalc.Print.format_lit fmt (Pos.same_pos_as Dcalc.Ast.LUnit l)
+  | LUnit -> Dcalc.Print.format_lit fmt (Marked.same_mark_as Dcalc.Ast.LUnit l)
   | LRat i ->
     Format.fprintf fmt "decimal_of_string \"%a\"" Dcalc.Print.format_lit
-      (Pos.same_pos_as (Dcalc.Ast.LRat i) l)
+      (Marked.same_mark_as (Dcalc.Ast.LRat i) l)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string@ \"%s\""
       (Runtime.integer_to_string (Runtime.money_to_cents e))
@@ -68,9 +68,9 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) :
+let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Marked.pos) :
     unit =
-  match Pos.unmark op with
+  match Marked.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
   | Sub k -> Format.fprintf fmt "-%a" format_op_kind k
   | Mult k -> Format.fprintf fmt "*%a" format_op_kind k
@@ -87,9 +87,9 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) :
   | Map -> Format.fprintf fmt "Array.map"
   | Filter -> Format.fprintf fmt "array_filter"
 
-let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Pos.marked) :
+let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Marked.pos) :
     unit =
-  match Pos.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
+  match Marked.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     : unit =
@@ -107,13 +107,13 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
        (fun fmt info -> Format.fprintf fmt "\"%s\"" info))
     uids
 
-let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
+let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Marked.pos) : unit
     =
-  match Pos.unmark op with
+  match Marked.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
   | Log (_entry, _infos) ->
-    Errors.raise_spanned_error (Pos.get_position op)
+    Errors.raise_spanned_error (Marked.get_mark op)
       "Internal error: a log operator has not been caught by the expression \
        match"
   | Length -> Format.fprintf fmt "%s" "array_length"
@@ -170,9 +170,9 @@ let format_enum_cons_name
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumConstructor.format_t v)))
 
-let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Pos.marked) :
+let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Marked.pos) :
     unit =
-  match Pos.unmark ty with
+  match Marked.unmark ty with
   | D.TLit D.TUnit -> Format.fprintf fmt "embed_unit"
   | D.TLit D.TBool -> Format.fprintf fmt "embed_bool"
   | D.TLit D.TInt -> Format.fprintf fmt "embed_integer"
@@ -186,19 +186,19 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Pos.marked) :
   | D.TArray ty -> Format.fprintf fmt "embed_array (%a)" typ_embedding_name ty
   | _ -> Format.fprintf fmt "unembeddable"
 
-let typ_needs_parens (e : Dcalc.Ast.typ Pos.marked) : bool =
-  match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
+let typ_needs_parens (e : Dcalc.Ast.typ Marked.pos) : bool =
+  match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
+let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
     unit =
   let format_typ = format_typ in
   let format_typ_with_parens
       (fmt : Format.formatter)
-      (t : Dcalc.Ast.typ Pos.marked) =
+      (t : Dcalc.Ast.typ Marked.pos) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
-  match Pos.unmark typ with
+  match Marked.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" Dcalc.Print.format_tlit l
   | TTuple (ts, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
@@ -211,7 +211,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
       format_enum_name e
   | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
-    Errors.raise_spanned_error (Pos.get_position typ)
+    Errors.raise_spanned_error (Marked.get_mark typ)
       "Internal Error: found an typing parameter for an eoption type of the \
        wrong lenght."
   | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
@@ -236,21 +236,21 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
 
-let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with
+let needs_parens (e : expr Marked.pos) : bool =
+  match Marked.unmark e with
   | EApp ((EAbs (_, _), _), _)
   | ELit (LBool _ | LUnit)
   | EVar _ | ETuple _ | EOp _ ->
     false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Pos.marked) : unit =
-  match Pos.unmark exc with
+let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
+  match Marked.unmark exc with
   | ConflictError -> Format.fprintf fmt "ConflictError"
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | Crash -> Format.fprintf fmt "Crash"
   | NoValueProvided ->
-    let pos = Pos.get_position exc in
+    let pos = Marked.get_mark exc in
     Format.fprintf fmt
       "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
@@ -261,14 +261,14 @@ let format_exception (fmt : Format.formatter) (exc : except Pos.marked) : unit =
 let rec format_expr
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Pos.marked) : unit =
+    (e : expr Marked.pos) : unit =
   let format_expr = format_expr ctx in
-  let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
+  let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Pos.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
+  match Marked.unmark e with
+  | EVar v -> Format.fprintf fmt "%a" format_var (Marked.unmark v)
   | ETuple (es, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -314,7 +314,7 @@ let rec format_expr
          (fun fmt (e, c) ->
            Format.fprintf fmt "%a %a" format_enum_cons_name c
              (fun fmt e ->
-               match Pos.unmark e with
+               match Marked.unmark e with
                | EAbs ((binder, _), _) ->
                  let xs, body = Bindlib.unmbind binder in
                  Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
@@ -326,7 +326,7 @@ let rec format_expr
                (* should not happen *))
              e))
       (List.combine es (List.map fst (find_enum e_name ctx)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
@@ -398,17 +398,17 @@ let rec format_expr
       "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
       format_with_parens e'
   | ERaise exc ->
-    Format.fprintf fmt "raise@ %a" format_exception (exc, Pos.get_position e)
+    Format.fprintf fmt "raise@ %a" format_exception (exc, Marked.get_mark e)
   | ECatch (e1, exc, e2) ->
     Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens
       e1 format_exception
-      (exc, Pos.get_position e)
+      (exc, Marked.get_mark e)
       format_with_parens e2
 
 let format_struct_embedding
     (fmt : Format.formatter)
     ((struct_name, struct_fields) :
-      D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list) =
+      D.StructName.t * (D.StructFieldName.t * D.typ Marked.pos) list) =
   if List.length struct_fields = 0 then
     Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n"
       format_struct_name struct_name format_struct_name struct_name
@@ -430,7 +430,7 @@ let format_struct_embedding
 let format_enum_embedding
     (fmt : Format.formatter)
     ((enum_name, enum_cases) :
-      D.EnumName.t * (D.EnumConstructor.t * D.typ Pos.marked) list) =
+      D.EnumName.t * (D.EnumConstructor.t * D.typ Marked.pos) list) =
   if List.length enum_cases = 0 then
     Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n"
       format_enum_name enum_name format_enum_name enum_name

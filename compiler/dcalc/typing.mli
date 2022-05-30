@@ -18,7 +18,7 @@
     inference using the classical W algorithm with union-find unification. *)
 
 val infer_type :
-  Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked
+  Ast.decl_ctx -> Ast.expr Utils.Marked.pos -> Ast.typ Utils.Marked.pos
 
 val check_type :
-  Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked -> unit
+  Ast.decl_ctx -> Ast.expr Utils.Marked.pos -> Ast.typ Utils.Marked.pos -> unit

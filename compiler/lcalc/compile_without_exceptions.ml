@@ -40,11 +40,11 @@ module A = Ast
     hoisted and later handled by the [translate_expr] function. Every other
     cases is found in the translate_and_hoist function. *)
 
-type hoists = D.expr Pos.marked A.VarMap.t
+type hoists = D.expr Marked.pos A.VarMap.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 
 type info = {
-  expr : A.expr Pos.marked Bindlib.box;
+  expr : A.expr Marked.pos Bindlib.box;
   var : A.expr Bindlib.var;
   is_pure : bool;
 }
@@ -112,10 +112,11 @@ let add_var (pos : Pos.t) (var : D.Var.t) (is_pure : bool) (ctx : ctx) : ctx =
     Since positions where there is thunked expressions is exactly where we will
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
     into ['a option] recursivly. There is no polymorphism inside catala. *)
-let rec translate_typ (tau : D.typ Pos.marked) : D.typ Pos.marked =
-  (Fun.flip Pos.same_pos_as) tau
+let rec translate_typ (tau : D.typ Marked.pos) : D.typ Marked.pos =
+  (Fun.flip Marked.same_mark_as)
+    tau
     begin
-      match Pos.unmark tau with
+      match Marked.unmark tau with
       | D.TLit l -> D.TLit l
       | D.TTuple (ts, s) -> D.TTuple (List.map translate_typ ts, s)
       | D.TEnum (ts, en) -> D.TEnum (List.map translate_typ ts, en)
@@ -160,10 +161,10 @@ let disjoint_union_maps (pos : Pos.t) (cs : 'a A.VarMap.t list) : 'a A.VarMap.t
     the equivalence between the execution of e and the execution of e' are
     equivalent in an environement where each variable v, where (v, e_v) is in
     hoists, has the non-empty value in e_v. *)
-let rec translate_and_hoist (ctx : ctx) (e : D.expr Pos.marked) :
-    A.expr Pos.marked Bindlib.box * hoists =
-  let pos = Pos.get_position e in
-  match Pos.unmark e with
+let rec translate_and_hoist (ctx : ctx) (e : D.expr Marked.pos) :
+    A.expr Marked.pos Bindlib.box * hoists =
+  let pos = Marked.get_mark e in
+  match Marked.unmark e with
   (* empty-producing/using terms. We hoist those. (D.EVar in some cases,
      EApp(D.EVar _, [ELit LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure
      about assert. *)
@@ -295,12 +296,12 @@ let rec translate_and_hoist (ctx : ctx) (e : D.expr Pos.marked) :
     A.earray es' pos, disjoint_union_maps pos hoists
   | EOp op -> Bindlib.box (A.EOp op, pos), A.VarMap.empty
 
-and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
-    A.expr Pos.marked Bindlib.box =
+and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Marked.pos) :
+    A.expr Marked.pos Bindlib.box =
   let e', hoists = translate_and_hoist ctx e in
   let hoists = A.VarMap.bindings hoists in
 
-  let _pos = Pos.get_position e in
+  let _pos = Marked.get_mark e in
 
   (* build the hoists *)
   (* Cli.debug_print @@ Format.asprintf "hoist for the expression: [%a]"
@@ -310,12 +311,12 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
     ~f:(fun acc (v, (hoist, pos_hoist)) ->
       (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.format_var
          v; *)
-      let c' : A.expr Pos.marked Bindlib.box =
+      let c' : A.expr Marked.pos Bindlib.box =
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)
         | D.EVar v ->
-          (find ~info:"should never happend" (Pos.unmark v) ctx).expr
+          (find ~info:"should never happend" (Marked.unmark v) ctx).expr
         | D.EDefault (excep, just, cons) ->
           let excep' = List.map (translate_expr ctx) excep in
           let just' = translate_expr ctx just in
@@ -459,7 +460,7 @@ let rec translate_scope_let (ctx : ctx) (lets : D.expr D.scope_body_expr) :
            can do so by looking at the typ of the destructuring: if it's
            thunked, then the variable is context. If it's not thunked, it's a
            regular input. *)
-        match Pos.unmark typ with
+        match Marked.unmark typ with
         | D.TArrow ((D.TLit D.TUnit, _), _) -> false
         | _ -> true)
       | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
@@ -517,7 +518,7 @@ let rec translate_scopes (ctx : ctx) (scopes : D.expr D.scopes) :
       (find ~info:"variable that was just created" scope_var new_ctx).var
     in
 
-    let scope_pos = Pos.get_position (D.ScopeName.get_info scope_name) in
+    let scope_pos = Marked.get_mark (D.ScopeName.get_info scope_name) in
 
     let new_body = translate_scope_body scope_pos ctx scope_body in
     let tail = translate_scopes new_ctx next in

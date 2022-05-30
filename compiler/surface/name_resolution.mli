@@ -27,7 +27,7 @@ type typ = Scopelang.Ast.typ
 
 type unique_rulename =
   | Ambiguous of Pos.t list
-  | Unique of Desugared.Ast.RuleName.t Pos.marked
+  | Unique of Desugared.Ast.RuleName.t Marked.pos
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
@@ -47,14 +47,14 @@ type scope_context = {
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ Pos.marked Scopelang.Ast.StructFieldMap.t
+type struct_context = typ Marked.pos Scopelang.Ast.StructFieldMap.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
+type enum_context = typ Marked.pos Scopelang.Ast.EnumConstructorMap.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
-  var_sig_typ : typ Pos.marked;
+  var_sig_typ : typ Marked.pos;
   var_sig_is_condition : bool;
   var_sig_io : Ast.scope_decl_context_io;
   var_sig_states_idmap : Desugared.Ast.StateName.t Desugared.Ast.IdentMap.t;
@@ -98,11 +98,11 @@ val raise_unsupported_feature : string -> Pos.t -> 'a
 (** Temporary function raising an error message saying that a feature is not
     supported yet *)
 
-val raise_unknown_identifier : string -> ident Pos.marked -> 'a
+val raise_unknown_identifier : string -> ident Marked.pos -> 'a
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
 
-val get_var_typ : context -> Desugared.Ast.ScopeVar.t -> typ Pos.marked
+val get_var_typ : context -> Desugared.Ast.ScopeVar.t -> typ Marked.pos
 (** Gets the type associated to an uid *)
 
 val is_var_cond : context -> Desugared.Ast.ScopeVar.t -> bool
@@ -113,14 +113,14 @@ val get_var_io :
 val get_var_uid :
   Scopelang.Ast.ScopeName.t ->
   context ->
-  ident Pos.marked ->
+  ident Marked.pos ->
   Desugared.Ast.ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
 val get_subscope_uid :
   Scopelang.Ast.ScopeName.t ->
   context ->
-  ident Pos.marked ->
+  ident Marked.pos ->
   Scopelang.Ast.SubScopeName.t
 (** Get the subscope uid inside the scope given in argument *)
 
@@ -132,7 +132,7 @@ val belongs_to :
   context -> Desugared.Ast.ScopeVar.t -> Scopelang.Ast.ScopeName.t -> bool
 (** Checks if the var_uid belongs to the scope scope_uid *)
 
-val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Pos.marked
+val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Marked.pos
 (** Retrieves the type of a scope definition from the context *)
 
 val is_def_cond : context -> Desugared.Ast.ScopeDef.t -> bool
@@ -143,15 +143,15 @@ val label_groups :
   Desugared.Ast.ScopeDef.t ->
   Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t
 
-val is_type_cond : Ast.typ Pos.marked -> bool
+val is_type_cond : Ast.typ Marked.pos -> bool
 
 val add_def_local_var :
-  context -> ident Pos.marked -> context * Desugared.Ast.Var.t
+  context -> ident Marked.pos -> context * Desugared.Ast.Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :
   Ast.qident ->
-  Ast.ident Pos.marked option ->
+  Ast.ident Marked.pos option ->
   Scopelang.Ast.ScopeName.t ->
   context ->
   Pos.t ->

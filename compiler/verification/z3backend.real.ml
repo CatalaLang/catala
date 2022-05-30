@@ -26,7 +26,7 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : typ Pos.marked VarMap.t;
+  ctx_var : typ Marked.pos VarMap.t;
   (* A map from Catala variables to their types, needed to create Z3 expressions
      of the right sort *)
   ctx_funcdecl : FuncDecl.func_decl VarMap.t;
@@ -125,7 +125,7 @@ let nb_days_to_date (nb : int) : string =
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
-let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
+let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
     : string =
   let print_lit (ty : typ_lit) =
     match ty with
@@ -156,12 +156,12 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
     | TDuration -> Format.asprintf "%s days" (Expr.to_string e)
   in
 
-  match Pos.unmark ty with
+  match Marked.unmark ty with
   | TLit ty -> print_lit ty
   | TTuple (_, Some name) ->
     let s = StructMap.find name ctx.ctx_decl.ctx_structs in
     let get_fieldname (fn : StructFieldName.t) : string =
-      Pos.unmark (StructFieldName.get_info fn)
+      Marked.unmark (StructFieldName.get_info fn)
     in
     let fields =
       List.map2
@@ -174,7 +174,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
     let fields_str = String.concat " " fields in
 
     Format.asprintf "%s { %s }"
-      (Pos.unmark (StructName.get_info name))
+      (Marked.unmark (StructName.get_info name))
       fields_str
   | TTuple (_, None) ->
     failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
@@ -188,7 +188,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
     let case =
       List.find
         (fun (ctr, _) ->
-          String.equal fd_name (Pos.unmark (EnumConstructor.get_info ctr)))
+          String.equal fd_name (Marked.unmark (EnumConstructor.get_info ctr)))
         enum_ctrs
     in
 
@@ -281,11 +281,11 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor
       (ctx : context)
-      (c : EnumConstructor.t * typ Pos.marked) :
+      (c : EnumConstructor.t * typ Marked.pos) :
       context * Datatype.Constructor.constructor =
     let name, ty = c in
-    let name = Pos.unmark (EnumConstructor.get_info name) in
-    let ctx, arg_z3_ty = translate_typ ctx (Pos.unmark ty) in
+    let name = Marked.unmark (EnumConstructor.get_info name) in
+    let ctx, arg_z3_ty = translate_typ ctx (Marked.unmark ty) in
 
     (* The mk_constructor_s Z3 function is not so well documented. From my
        understanding, its argument are: - a string corresponding to the name of
@@ -313,7 +313,7 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     let ctx, z3_ctrs = List.fold_left_map create_constructor ctx ctrs in
     let z3_enum =
       Datatype.mk_sort_s ctx.ctx_z3
-        (Pos.unmark (EnumName.get_info enum))
+        (Marked.unmark (EnumName.get_info enum))
         z3_ctrs
     in
     add_z3enum enum z3_enum ctx, z3_enum
@@ -327,18 +327,18 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
   match StructMap.find_opt s ctx.ctx_z3structs with
   | Some s -> ctx, s
   | None ->
-    let s_name = Pos.unmark (StructName.get_info s) in
+    let s_name = Marked.unmark (StructName.get_info s) in
     let fields = StructMap.find s ctx.ctx_decl.ctx_structs in
     let z3_fieldnames =
       List.map
         (fun f ->
-          Pos.unmark (StructFieldName.get_info (fst f))
+          Marked.unmark (StructFieldName.get_info (fst f))
           |> Symbol.mk_string ctx.ctx_z3)
         fields
     in
     let ctx, z3_fieldtypes =
       List.fold_left_map
-        (fun ctx f -> Pos.unmark (snd f) |> translate_typ ctx)
+        (fun ctx f -> Marked.unmark (snd f) |> translate_typ ctx)
         ctx fields
     in
     let z3_sortrefs = List.map Sort.get_id z3_fieldtypes in
@@ -392,10 +392,10 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) :
   | None -> (
     (* Retrieves the Catala type of the function [v] *)
     let f_ty = VarMap.find v ctx.ctx_var in
-    match Pos.unmark f_ty with
+    match Marked.unmark f_ty with
     | TArrow (t1, t2) ->
-      let ctx, z3_t1 = translate_typ ctx (Pos.unmark t1) in
-      let ctx, z3_t2 = translate_typ ctx (Pos.unmark t2) in
+      let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
+      let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
       let name = unique_name v in
       let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
       let ctx = add_funcdecl v fd ctx in
@@ -415,7 +415,7 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) :
 let rec translate_op
     (ctx : context)
     (op : operator)
-    (args : expr Pos.marked list) : context * Expr.expr =
+    (args : expr Marked.pos list) : context * Expr.expr =
   match op with
   | Ternop _top ->
     let _e1, _e2, _e3 =
@@ -593,14 +593,14 @@ let rec translate_op
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
+and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
     =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)
-      (e : expr Pos.marked * FuncDecl.func_decl list) : context * Expr.expr =
+      (e : expr Marked.pos * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
-    match Pos.unmark e with
+    match Marked.unmark e with
     | EAbs (e, _) ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
       let fresh_v = Var.make ("arm!tmp", Pos.no_pos) in
@@ -613,25 +613,25 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
          in the body, we add this to the context *)
       let ctx = add_z3matchsubst fresh_v proj ctx in
 
-      let body = Bindlib.msubst (Pos.unmark e) [| fresh_e |] in
+      let body = Bindlib.msubst (Marked.unmark e) [| fresh_e |] in
       translate_expr ctx body
     (* Invariant: Catala match arms are always lambda*)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
   in
 
-  match Pos.unmark vc with
+  match Marked.unmark vc with
   | EVar v -> (
-    match VarMap.find_opt (Pos.unmark v) ctx.ctx_z3matchsubsts with
+    match VarMap.find_opt (Marked.unmark v) ctx.ctx_z3matchsubsts with
     | None ->
       (* We are in the standard case, where this is a true Catala variable *)
-      let v = Pos.unmark v in
+      let v = Marked.unmark v in
       let t = VarMap.find v ctx.ctx_var in
       let name = unique_name v in
       let ctx = add_z3var name v ctx in
-      let ctx, ty = translate_typ ctx (Pos.unmark t) in
+      let ctx, ty = translate_typ ctx (Marked.unmark t) in
       let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
       let ctx =
-        match Pos.unmark t with
+        match Marked.unmark t with
         (* If we are creating a new array, we need to log that its length is
            greater than 0 *)
         | TArray _ ->
@@ -696,10 +696,10 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
   | EApp (head, args) -> (
-    match Pos.unmark head with
+    match Marked.unmark head with
     | EOp op -> translate_op ctx op args
     | EVar v ->
-      let ctx, fd = find_or_create_funcdecl ctx (Pos.unmark v) in
+      let ctx, fd = find_or_create_funcdecl ctx (Marked.unmark v) in
       (* Fold_right to preserve the order of the arguments: The head argument is
          appended at the head *)
       let ctx, z3_args =
@@ -769,7 +769,7 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
-  let translate_expr (ctx : backend_context) (e : Dcalc.Ast.expr Pos.marked) =
+  let translate_expr (ctx : backend_context) (e : Dcalc.Ast.expr Marked.pos) =
     translate_expr ctx e
 
   let init_backend () =
@@ -777,7 +777,7 @@ module Backend = struct
 
   let make_context
       (decl_ctx : decl_ctx)
-      (free_vars_typ : typ Pos.marked VarMap.t) : backend_context =
+      (free_vars_typ : typ Marked.pos VarMap.t) : backend_context =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])
       @ ["proof", "false"]

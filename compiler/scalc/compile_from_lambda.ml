@@ -29,15 +29,16 @@ type ctxt = {
 
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
-let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
-    A.block * A.expr Pos.marked =
-  match Pos.unmark expr with
+let rec translate_expr (ctxt : ctxt) (expr : L.expr Marked.pos) :
+    A.block * A.expr Marked.pos =
+  match Marked.unmark expr with
   | L.EVar v ->
     let local_var =
-      try A.EVar (L.VarMap.find (Pos.unmark v) ctxt.var_dict)
-      with Not_found -> A.EFunc (L.VarMap.find (Pos.unmark v) ctxt.func_dict)
+      try A.EVar (L.VarMap.find (Marked.unmark v) ctxt.var_dict)
+      with Not_found ->
+        A.EFunc (L.VarMap.find (Marked.unmark v) ctxt.func_dict)
     in
-    [], (local_var, Pos.get_position v)
+    [], (local_var, Marked.get_mark v)
   | L.ETuple (args, Some s_name) ->
     let args_stmts, new_args =
       List.fold_left
@@ -48,7 +49,7 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
     in
     let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
-    args_stmts, (A.EStruct (new_args, s_name), Pos.get_position expr)
+    args_stmts, (A.EStruct (new_args, s_name), Marked.get_mark expr)
   | L.ETuple (_, None) ->
     failwith "Non-struct tuples cannot be compiled to scalc"
   | L.ETupleAccess (e1, num_field, Some s_name, _) ->
@@ -58,7 +59,7 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
         (List.nth (D.StructMap.find s_name ctxt.decl_ctx.ctx_structs) num_field)
     in
     ( e1_stmts,
-      (A.EStructFieldAccess (new_e1, field_name, s_name), Pos.get_position expr)
+      (A.EStructFieldAccess (new_e1, field_name, s_name), Marked.get_mark expr)
     )
   | L.ETupleAccess (_, _, None, _) ->
     failwith "Non-struct tuples cannot be compiled to scalc"
@@ -67,7 +68,7 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
     let cons_name =
       fst (List.nth (D.EnumMap.find e_name ctxt.decl_ctx.ctx_enums) num_cons)
     in
-    e1_stmts, (A.EInj (new_e1, cons_name, e_name), Pos.get_position expr)
+    e1_stmts, (A.EInj (new_e1, cons_name, e_name), Marked.get_mark expr)
   | L.EApp (f, args) ->
     let f_stmts, new_f = translate_expr ctxt f in
     let args_stmts, new_args =
@@ -78,7 +79,7 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
         ([], []) args
     in
     let new_args = List.rev new_args in
-    f_stmts @ args_stmts, (A.EApp (new_f, new_args), Pos.get_position expr)
+    f_stmts @ args_stmts, (A.EApp (new_f, new_args), Marked.get_mark expr)
   | L.EArray args ->
     let args_stmts, new_args =
       List.fold_left
@@ -88,9 +89,9 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
         ([], []) args
     in
     let new_args = List.rev new_args in
-    args_stmts, (A.EArray new_args, Pos.get_position expr)
-  | L.EOp op -> [], (A.EOp op, Pos.get_position expr)
-  | L.ELit l -> [], (A.ELit l, Pos.get_position expr)
+    args_stmts, (A.EArray new_args, Marked.get_mark expr)
+  | L.EOp op -> [], (A.EOp op, Marked.get_mark expr)
+  | L.ELit l -> [], (A.ELit l, Marked.get_mark expr)
   | _ ->
     let tmp_var =
       A.LocalName.fresh
@@ -100,32 +101,32 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
           (match ctxt.inside_definition_of with
           | None -> ctxt.context_name
           | Some v ->
-            let v = Pos.unmark (A.LocalName.get_info v) in
+            let v = Marked.unmark (A.LocalName.get_info v) in
             let tmp_rex = Re.Pcre.regexp "^temp_" in
             if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
-          Pos.get_position expr )
+          Marked.get_mark expr )
     in
     let ctxt =
       {
         ctxt with
         inside_definition_of = Some tmp_var;
-        context_name = Pos.unmark (A.LocalName.get_info tmp_var);
+        context_name = Marked.unmark (A.LocalName.get_info tmp_var);
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
     ( ( A.SLocalDecl
-          ((tmp_var, Pos.get_position expr), (D.TAny, Pos.get_position expr)),
-        Pos.get_position expr )
+          ((tmp_var, Marked.get_mark expr), (D.TAny, Marked.get_mark expr)),
+        Marked.get_mark expr )
       :: tmp_stmts,
-      (A.EVar tmp_var, Pos.get_position expr) )
+      (A.EVar tmp_var, Marked.get_mark expr) )
 
-and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
+and translate_statements (ctxt : ctxt) (block_expr : L.expr Marked.pos) :
     A.block =
-  match Pos.unmark block_expr with
+  match Marked.unmark block_expr with
   | L.EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
-    e_stmts @ [A.SAssert (Pos.unmark new_e), Pos.get_position block_expr]
+    e_stmts @ [A.SAssert (Marked.unmark new_e), Marked.get_mark block_expr]
   | L.EApp ((L.EAbs ((binder, binder_pos), taus), eabs_pos), args) ->
     (* This defines multiple local variables at the time *)
     let vars, body = Bindlib.unmbind binder in
@@ -161,8 +162,9 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
           let ctxt =
             {
               ctxt with
-              inside_definition_of = Some (Pos.unmark x);
-              context_name = Pos.unmark (A.LocalName.get_info (Pos.unmark x));
+              inside_definition_of = Some (Marked.unmark x);
+              context_name =
+                Marked.unmark (A.LocalName.get_info (Marked.unmark x));
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
@@ -176,8 +178,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
     let closure_name =
       match ctxt.inside_definition_of with
-      | None ->
-        A.LocalName.fresh (ctxt.context_name, Pos.get_position block_expr)
+      | None -> A.LocalName.fresh (ctxt.context_name, Marked.get_mark block_expr)
       | Some x -> x
     in
     let ctxt =
@@ -212,7 +213,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     let new_args =
       List.fold_left
         (fun new_args arg ->
-          match Pos.unmark arg with
+          match Marked.unmark arg with
           | L.EAbs ((binder, pos_binder), _) ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
@@ -231,18 +232,18 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     in
     let new_args = List.rev new_args in
     e1_stmts
-    @ [A.SSwitch (new_e1, e_name, new_args), Pos.get_position block_expr]
+    @ [A.SSwitch (new_e1, e_name, new_args), Marked.get_mark block_expr]
   | L.EIfThenElse (cond, e_true, e_false) ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt e_true in
     let s_e_false = translate_statements ctxt e_false in
     cond_stmts
-    @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Pos.get_position block_expr]
+    @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Marked.get_mark block_expr]
   | L.ECatch (e_try, except, e_catch) ->
     let s_e_try = translate_statements ctxt e_try in
     let s_e_catch = translate_statements ctxt e_catch in
-    [A.STryExcept (s_e_try, except, s_e_catch), Pos.get_position block_expr]
-  | L.ERaise except -> [A.SRaise except, Pos.get_position block_expr]
+    [A.STryExcept (s_e_try, except, s_e_catch), Marked.get_mark block_expr]
+  | L.ERaise except -> [A.SRaise except, Marked.get_mark block_expr]
   | _ -> (
     let e_stmts, new_e = translate_expr ctxt block_expr in
     e_stmts
@@ -256,9 +257,9 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     | _ ->
       [
         ( (match ctxt.inside_definition_of with
-          | None -> A.SReturn (Pos.unmark new_e)
-          | Some x -> A.SLocalDef (Pos.same_pos_as x new_e, new_e)),
-          Pos.get_position block_expr );
+          | None -> A.SReturn (Marked.unmark new_e)
+          | Some x -> A.SLocalDef (Marked.same_mark_as x new_e, new_e)),
+          Marked.get_mark block_expr );
       ])
 
 let rec translate_scope_body_expr
@@ -276,11 +277,11 @@ let rec translate_scope_body_expr
           func_dict;
           var_dict;
           inside_definition_of = None;
-          context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+          context_name = Marked.unmark (D.ScopeName.get_info scope_name);
         }
         e
     in
-    block @ [A.SReturn (Pos.unmark new_e), Pos.get_position new_e]
+    block @ [A.SReturn (Marked.unmark new_e), Marked.get_mark new_e]
   | ScopeLet scope_let ->
     let let_var, scope_let_next = Bindlib.unbind scope_let.scope_let_next in
     let let_var_id =
@@ -295,7 +296,7 @@ let rec translate_scope_body_expr
           func_dict;
           var_dict;
           inside_definition_of = Some let_var_id;
-          context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+          context_name = Marked.unmark (D.ScopeName.get_info scope_name);
         }
         scope_let.scope_let_expr
     | _ ->
@@ -306,7 +307,7 @@ let rec translate_scope_body_expr
             func_dict;
             var_dict;
             inside_definition_of = Some let_var_id;
-            context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+            context_name = Marked.unmark (D.ScopeName.get_info scope_name);
           }
           scope_let.scope_let_expr
       in
@@ -332,7 +333,7 @@ let translate_program (p : L.program) : A.program =
                Bindlib.unbind scope_def.scope_body.scope_body_expr
              in
              let input_pos =
-               Pos.get_position (D.ScopeName.get_info scope_def.scope_name)
+               Marked.get_mark (D.ScopeName.get_info scope_def.scope_name)
              in
              let scope_input_var_id =
                A.LocalName.fresh (Bindlib.name_of scope_input_var, input_pos)

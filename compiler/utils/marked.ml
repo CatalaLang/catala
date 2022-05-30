@@ -27,6 +27,10 @@ let same_mark_as (x : 'a) ((_, y) : ('b, 'm) t) : ('a, 'm) t = x, y
 let unmark_option (x : ('a, 'm) t option) : 'a option =
   match x with Some x -> Some (unmark x) | None -> None
 
+let compare (cmp : 'a -> 'a -> int) ((x, _) : ('a, 'm) t) ((y, _) : ('a, 'm) t)
+    : int =
+  cmp x y
+
 class ['self] marked_map =
   object (_self : 'self)
     constraint

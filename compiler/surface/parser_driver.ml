@@ -305,7 +305,9 @@ and expand_includes
       match command with
       | Ast.LawInclude (Ast.CatalaFile sub_source) ->
         let source_dir = Filename.dirname source_file in
-        let sub_source = Filename.concat source_dir (Pos.unmark sub_source) in
+        let sub_source =
+          Filename.concat source_dir (Marked.unmark sub_source)
+        in
         let includ_program = parse_source_file (FileName sub_source) language in
         {
           Ast.program_source_files =

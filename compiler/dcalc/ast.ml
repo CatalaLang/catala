@@ -44,10 +44,10 @@ type enum_name = EnumName.t
 
 type typ =
   | TLit of typ_lit
-  | TTuple of typ Pos.marked list * struct_name option
-  | TEnum of typ Pos.marked list * enum_name
-  | TArrow of typ Pos.marked * typ Pos.marked
-  | TArray of typ Pos.marked
+  | TTuple of typ Marked.pos list * struct_name option
+  | TEnum of typ Marked.pos list * enum_name
+  | TArrow of typ Marked.pos * typ Marked.pos
+  | TArray of typ Marked.pos
   | TAny
 
 type date = Runtime.date
@@ -104,27 +104,27 @@ type unop =
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 type expr =
-  | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list * struct_name option
+  | EVar of expr Bindlib.var Marked.pos
+  | ETuple of expr Marked.pos list * struct_name option
   | ETupleAccess of
-      expr Pos.marked * int * struct_name option * typ Pos.marked list
-  | EInj of expr Pos.marked * int * enum_name * typ Pos.marked list
-  | EMatch of expr Pos.marked * expr Pos.marked list * enum_name
-  | EArray of expr Pos.marked list
+      expr Marked.pos * int * struct_name option * typ Marked.pos list
+  | EInj of expr Marked.pos * int * enum_name * typ Marked.pos list
+  | EMatch of expr Marked.pos * expr Marked.pos list * enum_name
+  | EArray of expr Marked.pos list
   | ELit of lit
   | EAbs of
-      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
-  | EApp of expr Pos.marked * expr Pos.marked list
-  | EAssert of expr Pos.marked
+      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos * typ Marked.pos list
+  | EApp of expr Marked.pos * expr Marked.pos list
+  | EAssert of expr Marked.pos
   | EOp of operator
-  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
-  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
-  | ErrorOnEmpty of expr Pos.marked
+  | EDefault of expr Marked.pos list * expr Marked.pos * expr Marked.pos
+  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
+  | ErrorOnEmpty of expr Marked.pos
 
-type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
-type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
+type struct_ctx = (StructFieldName.t * typ Marked.pos) list StructMap.t
+type enum_ctx = (EnumConstructor.t * typ Marked.pos) list EnumMap.t
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
-type binder = (expr, expr Pos.marked) Bindlib.binder
+type binder = (expr, expr Marked.pos) Bindlib.binder
 
 type scope_let_kind =
   | DestructuringInputStruct
@@ -136,14 +136,14 @@ type scope_let_kind =
 
 type 'expr scope_let = {
   scope_let_kind : scope_let_kind;
-  scope_let_typ : typ Utils.Pos.marked;
-  scope_let_expr : 'expr Utils.Pos.marked;
+  scope_let_typ : typ Utils.Marked.pos;
+  scope_let_expr : 'expr Utils.Marked.pos;
   scope_let_next : ('expr, 'expr scope_body_expr) Bindlib.binder;
   scope_let_pos : Utils.Pos.t;
 }
 
 and 'expr scope_body_expr =
-  | Result of 'expr Utils.Pos.marked
+  | Result of 'expr Utils.Marked.pos
   | ScopeLet of 'expr scope_let
 
 type 'expr scope_body = {
@@ -162,130 +162,130 @@ and 'expr scopes = Nil | ScopeDef of 'expr scope_def
 
 type program = { decl_ctx : decl_ctx; scopes : expr scopes }
 
-let evar (v : expr Bindlib.var) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let evar (v : expr Bindlib.var) (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun v' -> v', pos) (Bindlib.box_var v)
 
 let etuple
-    (args : expr Pos.marked Bindlib.box list)
+    (args : expr Marked.pos Bindlib.box list)
     (s : StructName.t option)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun args -> ETuple (args, s), pos) (Bindlib.box_list args)
 
 let etupleaccess
-    (e1 : expr Pos.marked Bindlib.box)
+    (e1 : expr Marked.pos Bindlib.box)
     (i : int)
     (s : StructName.t option)
-    (typs : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (typs : typ Marked.pos list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun e1 -> ETupleAccess (e1, i, s, typs), pos) e1
 
 let einj
-    (e1 : expr Pos.marked Bindlib.box)
+    (e1 : expr Marked.pos Bindlib.box)
     (i : int)
     (e_name : EnumName.t)
-    (typs : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (typs : typ Marked.pos list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun e1 -> EInj (e1, i, e_name, typs), pos) e1
 
 let ematch
-    (arg : expr Pos.marked Bindlib.box)
-    (arms : expr Pos.marked Bindlib.box list)
+    (arg : expr Marked.pos Bindlib.box)
+    (arms : expr Marked.pos Bindlib.box list)
     (e_name : EnumName.t)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2
     (fun arg arms -> EMatch (arg, arms, e_name), pos)
     arg (Bindlib.box_list arms)
 
-let earray (args : expr Pos.marked Bindlib.box list) (pos : Pos.t) :
-    expr Pos.marked Bindlib.box =
+let earray (args : expr Marked.pos Bindlib.box list) (pos : Pos.t) :
+    expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun args -> EArray args, pos) (Bindlib.box_list args)
 
-let elit (l : lit) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let elit (l : lit) (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box (ELit l, pos)
 
 let eabs
-    (binder : (expr, expr Pos.marked) Bindlib.mbinder Bindlib.box)
+    (binder : (expr, expr Marked.pos) Bindlib.mbinder Bindlib.box)
     (pos_binder : Pos.t)
-    (typs : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (typs : typ Marked.pos list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply
     (fun binder -> EAbs ((binder, pos_binder), typs), pos)
     binder
 
 let eapp
-    (e1 : expr Pos.marked Bindlib.box)
-    (args : expr Pos.marked Bindlib.box list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (e1 : expr Marked.pos Bindlib.box)
+    (args : expr Marked.pos Bindlib.box list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2
     (fun e1 args -> EApp (e1, args), pos)
     e1 (Bindlib.box_list args)
 
-let eassert (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
-    expr Pos.marked Bindlib.box =
+let eassert (e1 : expr Marked.pos Bindlib.box) (pos : Pos.t) :
+    expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun e1 -> EAssert e1, pos) e1
 
-let eop (op : operator) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let eop (op : operator) (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box (EOp op, pos)
 
 let edefault
-    (excepts : expr Pos.marked Bindlib.box list)
-    (just : expr Pos.marked Bindlib.box)
-    (cons : expr Pos.marked Bindlib.box)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (excepts : expr Marked.pos Bindlib.box list)
+    (just : expr Marked.pos Bindlib.box)
+    (cons : expr Marked.pos Bindlib.box)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply3
     (fun excepts just cons -> EDefault (excepts, just, cons), pos)
     (Bindlib.box_list excepts) just cons
 
 let eifthenelse
-    (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box)
-    (e3 : expr Pos.marked Bindlib.box)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (e1 : expr Marked.pos Bindlib.box)
+    (e2 : expr Marked.pos Bindlib.box)
+    (e3 : expr Marked.pos Bindlib.box)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply3 (fun e1 e2 e3 -> EIfThenElse (e1, e2, e3), pos) e1 e2 e3
 
-let eerroronempty (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
-    expr Pos.marked Bindlib.box =
+let eerroronempty (e1 : expr Marked.pos Bindlib.box) (pos : Pos.t) :
+    expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) e1
 
 let map_expr
     (ctx : 'a)
-    ~(f : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
-    (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
-  match Pos.unmark e with
-  | EVar (v, _pos) -> evar v (Pos.get_position e)
+    ~(f : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
+    (e : expr Marked.pos) : expr Marked.pos Bindlib.box =
+  match Marked.unmark e with
+  | EVar (v, _pos) -> evar v (Marked.get_mark e)
   | EApp (e1, args) ->
-    eapp (f ctx e1) (List.map (f ctx) args) (Pos.get_position e)
+    eapp (f ctx e1) (List.map (f ctx) args) (Marked.get_mark e)
   | EAbs ((binder, binder_pos), typs) ->
     eabs
       (Bindlib.box_mbinder (f ctx) binder)
-      binder_pos typs (Pos.get_position e)
-  | ETuple (args, s) -> etuple (List.map (f ctx) args) s (Pos.get_position e)
+      binder_pos typs (Marked.get_mark e)
+  | ETuple (args, s) -> etuple (List.map (f ctx) args) s (Marked.get_mark e)
   | ETupleAccess (e1, n, s_name, typs) ->
-    etupleaccess ((f ctx) e1) n s_name typs (Pos.get_position e)
+    etupleaccess ((f ctx) e1) n s_name typs (Marked.get_mark e)
   | EInj (e1, i, e_name, typs) ->
-    einj ((f ctx) e1) i e_name typs (Pos.get_position e)
+    einj ((f ctx) e1) i e_name typs (Marked.get_mark e)
   | EMatch (arg, arms, e_name) ->
-    ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Pos.get_position e)
-  | EArray args -> earray (List.map (f ctx) args) (Pos.get_position e)
-  | ELit l -> elit l (Pos.get_position e)
-  | EAssert e1 -> eassert ((f ctx) e1) (Pos.get_position e)
-  | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
+    ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Marked.get_mark e)
+  | EArray args -> earray (List.map (f ctx) args) (Marked.get_mark e)
+  | ELit l -> elit l (Marked.get_mark e)
+  | EAssert e1 -> eassert ((f ctx) e1) (Marked.get_mark e)
+  | EOp op -> Bindlib.box (EOp op, Marked.get_mark e)
   | EDefault (excepts, just, cons) ->
     edefault
       (List.map (f ctx) excepts)
       ((f ctx) just)
       ((f ctx) cons)
-      (Pos.get_position e)
+      (Marked.get_mark e)
   | EIfThenElse (e1, e2, e3) ->
-    eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Pos.get_position e)
-  | ErrorOnEmpty e1 -> eerroronempty ((f ctx) e1) (Pos.get_position e)
+    eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Marked.get_mark e)
+  | ErrorOnEmpty e1 -> eerroronempty ((f ctx) e1) (Marked.get_mark e)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
-let box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+let box_expr (e : expr Marked.pos) : expr Marked.pos Bindlib.box =
   let rec id_t () e = map_expr () ~f:id_t e in
   id_t () e
 
-type 'expr box_expr_sig = 'expr Pos.marked -> 'expr Pos.marked Bindlib.box
+type 'expr box_expr_sig = 'expr Marked.pos -> 'expr Marked.pos Bindlib.box
 
 let rec fold_left_scope_lets
     ~(f : 'a -> 'expr scope_let -> 'expr Bindlib.var -> 'a)
@@ -299,7 +299,7 @@ let rec fold_left_scope_lets
 
 let rec fold_right_scope_lets
     ~(f : 'expr scope_let -> 'expr Bindlib.var -> 'a -> 'a)
-    ~(init : 'expr Pos.marked -> 'a)
+    ~(init : 'expr Marked.pos -> 'a)
     (scope_body_expr : 'expr scope_body_expr) : 'a =
   match scope_body_expr with
   | Result result -> init result
@@ -309,7 +309,7 @@ let rec fold_right_scope_lets
     f scope_let var next_result
 
 let map_exprs_in_scope_lets
-    ~(f : 'expr Pos.marked -> 'expr Pos.marked Bindlib.box)
+    ~(f : 'expr Marked.pos -> 'expr Marked.pos Bindlib.box)
     (scope_body_expr : 'expr scope_body_expr) :
     'expr scope_body_expr Bindlib.box =
   fold_right_scope_lets
@@ -362,7 +362,7 @@ let map_scope_defs
     ~init:(Bindlib.box Nil) scopes
 
 let map_exprs_in_scopes
-    ~(f : 'expr Pos.marked -> 'expr Pos.marked Bindlib.box)
+    ~(f : 'expr Marked.pos -> 'expr Marked.pos Bindlib.box)
     (scopes : 'expr scopes) : 'expr scopes Bindlib.box =
   map_scope_defs
     ~f:(fun scope_def ->
@@ -389,10 +389,10 @@ let map_exprs_in_scopes
 module Var = struct
   type t = expr Bindlib.var
 
-  let make (s : string Pos.marked) : t =
+  let make (s : string Marked.pos) : t =
     Bindlib.new_var
-      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
-      (Pos.unmark s)
+      (fun (x : expr Bindlib.var) : expr -> EVar (x, Marked.get_mark s))
+      (Marked.unmark s)
 
   let compare x y = Bindlib.compare_vars x y
 end
@@ -400,8 +400,8 @@ end
 module VarMap = Map.Make (Var)
 module VarSet = Set.Make (Var)
 
-let rec free_vars_expr (e : expr Pos.marked) : VarSet.t =
-  match Pos.unmark e with
+let rec free_vars_expr (e : expr Marked.pos) : VarSet.t =
+  match Marked.unmark e with
   | EVar (v, _) -> VarSet.singleton v
   | ETuple (es, _) | EArray es ->
     es |> List.map free_vars_expr |> List.fold_left VarSet.union VarSet.empty
@@ -449,34 +449,34 @@ let rec free_vars_scopes (scopes : expr scopes) : VarSet.t =
 
 type vars = expr Bindlib.mvar
 
-let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
+let make_var ((x, pos) : Var.t Marked.pos) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun x -> x, pos) (Bindlib.box_var x)
 
 let make_abs
     (xs : vars)
-    (e : expr Pos.marked Bindlib.box)
+    (e : expr Marked.pos Bindlib.box)
     (pos_binder : Pos.t)
-    (taus : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (taus : typ Marked.pos list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply
     (fun b -> EAbs ((b, pos_binder), taus), pos)
     (Bindlib.bind_mvar xs e)
 
 let make_app
-    (e : expr Pos.marked Bindlib.box)
-    (u : expr Pos.marked Bindlib.box list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (e : expr Marked.pos Bindlib.box)
+    (u : expr Marked.pos Bindlib.box list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2 (fun e u -> EApp (e, u), pos) e (Bindlib.box_list u)
 
 let make_let_in
     (x : Var.t)
-    (tau : typ Pos.marked)
-    (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (tau : typ Marked.pos)
+    (e1 : expr Marked.pos Bindlib.box)
+    (e2 : expr Marked.pos Bindlib.box)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   make_app (make_abs (Array.of_list [x]) e2 pos [tau] pos) [e1] pos
 
-let empty_thunked_term : expr Pos.marked =
+let empty_thunked_term : expr Marked.pos =
   let silent = Var.make ("_", Pos.no_pos) in
   Bindlib.unbox
     (make_abs (Array.of_list [silent])
@@ -485,11 +485,11 @@ let empty_thunked_term : expr Pos.marked =
        [TLit TUnit, Pos.no_pos]
        Pos.no_pos)
 
-let is_value (e : expr Pos.marked) : bool =
-  match Pos.unmark e with ELit _ | EAbs _ | EOp _ -> true | _ -> false
+let is_value (e : expr Marked.pos) : bool =
+  match Marked.unmark e with ELit _ | EAbs _ | EOp _ -> true | _ -> false
 
-let rec equal_typs (ty1 : typ Pos.marked) (ty2 : typ Pos.marked) : bool =
-  match Pos.unmark ty1, Pos.unmark ty2 with
+let rec equal_typs (ty1 : typ Marked.pos) (ty2 : typ Marked.pos) : bool =
+  match Marked.unmark ty1, Marked.unmark ty2 with
   | TLit l1, TLit l2 -> l1 = l2
   | TTuple (tys1, n1), TTuple (tys2, n2) -> n1 = n2 && equal_typs_list tys1 tys2
   | TEnum (tys1, n1), TEnum (tys2, n2) -> n1 = n2 && equal_typs_list tys1 tys2
@@ -498,7 +498,7 @@ let rec equal_typs (ty1 : typ Pos.marked) (ty2 : typ Pos.marked) : bool =
   | TAny, TAny -> true
   | _, _ -> false
 
-and equal_typs_list (tys1 : typ Pos.marked list) (tys2 : typ Pos.marked list) :
+and equal_typs_list (tys1 : typ Marked.pos list) (tys2 : typ Marked.pos list) :
     bool =
   List.length tys1 = List.length tys2
   && (* OCaml && operator short-circuits when a clause is false, we can safely
@@ -525,9 +525,9 @@ let equal_ops (op1 : operator) (op2 : operator) : bool =
   | Unop op1, Unop op2 -> equal_unops op1 op2
   | _, _ -> false
 
-let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
-  match Pos.unmark e1, Pos.unmark e2 with
-  | EVar v1, EVar v2 -> Pos.unmark v1 = Pos.unmark v2
+let rec equal_exprs (e1 : expr Marked.pos) (e2 : expr Marked.pos) : bool =
+  match Marked.unmark e1, Marked.unmark e2 with
+  | EVar v1, EVar v2 -> Marked.unmark v1 = Marked.unmark v2
   | ETuple (es1, n1), ETuple (es2, n2) -> n1 = n2 && equal_exprs_list es1 es2
   | ETupleAccess (e1, id1, n1, tys1), ETupleAccess (e2, id2, n2, tys2) ->
     equal_exprs e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
@@ -540,9 +540,9 @@ let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
   | EAbs (b1, tys1), EAbs (b2, tys2) ->
     equal_typs_list tys1 tys2
     &&
-    let vars1, body1 = Bindlib.unmbind (Pos.unmark b1) in
+    let vars1, body1 = Bindlib.unmbind (Marked.unmark b1) in
     let body2 =
-      Bindlib.msubst (Pos.unmark b2)
+      Bindlib.msubst (Marked.unmark b2)
         (Array.map (fun x -> EVar (x, Pos.no_pos)) vars1)
     in
     equal_exprs body1 body2
@@ -556,7 +556,7 @@ let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
   | ErrorOnEmpty e1, ErrorOnEmpty e2 -> equal_exprs e1 e2
   | _, _ -> false
 
-and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) :
+and equal_exprs_list (es1 : expr Marked.pos list) (es2 : expr Marked.pos list) :
     bool =
   List.length es1 = List.length es2
   && (* OCaml && operator short-circuits when a clause is false, we can safely
@@ -565,25 +565,25 @@ and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) :
 
 type 'expr make_let_in_sig =
   'expr Bindlib.var ->
-  typ Pos.marked ->
-  'expr Pos.marked Bindlib.box ->
-  'expr Pos.marked Bindlib.box ->
+  typ Marked.pos ->
+  'expr Marked.pos Bindlib.box ->
+  'expr Marked.pos Bindlib.box ->
   Pos.t ->
-  'expr Pos.marked Bindlib.box
+  'expr Marked.pos Bindlib.box
 
 type 'expr make_abs_sig =
   'expr Bindlib.mvar ->
-  'expr Pos.marked Bindlib.box ->
+  'expr Marked.pos Bindlib.box ->
   Pos.t ->
-  typ Pos.marked list ->
+  typ Marked.pos list ->
   Pos.t ->
-  'expr Pos.marked Bindlib.box
+  'expr Marked.pos Bindlib.box
 
 let rec unfold_scope_body_expr
     ~(box_expr : 'expr box_expr_sig)
     ~(make_let_in : 'expr make_let_in_sig)
     (ctx : decl_ctx)
-    (scope_let : 'expr scope_body_expr) : 'expr Pos.marked Bindlib.box =
+    (scope_let : 'expr scope_body_expr) : 'expr Marked.pos Bindlib.box =
   match scope_let with
   | Result e -> box_expr e
   | ScopeLet
@@ -605,7 +605,7 @@ let build_whole_scope_expr
     ~(make_let_in : 'expr make_let_in_sig)
     (ctx : decl_ctx)
     (body : 'expr scope_body)
-    (pos_scope : Pos.t) : 'expr Pos.marked Bindlib.box =
+    (pos_scope : Pos.t) : 'expr Marked.pos Bindlib.box =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_scope_body_expr ~box_expr ~make_let_in ctx body_expr in
   make_abs (Array.of_list [var]) body_expr pos_scope
@@ -622,7 +622,7 @@ let build_scope_typ_from_sig
     (ctx : decl_ctx)
     (scope_input_struct_name : StructName.t)
     (scope_return_struct_name : StructName.t)
-    (pos : Pos.t) : typ Pos.marked =
+    (pos : Pos.t) : typ Marked.pos =
   let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
   let scope_return_typ =
     StructMap.find scope_return_struct_name ctx.ctx_structs
@@ -645,7 +645,7 @@ let rec unfold_scopes
     ~(make_let_in : 'expr make_let_in_sig)
     (ctx : decl_ctx)
     (s : 'expr scopes)
-    (main_scope : 'expr scope_name_or_var) : 'expr Pos.marked Bindlib.box =
+    (main_scope : 'expr scope_name_or_var) : 'expr Marked.pos Bindlib.box =
   match s with
   | Nil -> (
     match main_scope with
@@ -654,7 +654,7 @@ let rec unfold_scopes
     | ScopeName _ -> failwith "should not happen")
   | ScopeDef { scope_name; scope_body; scope_next } ->
     let scope_var, scope_next = Bindlib.unbind scope_next in
-    let scope_pos = Pos.get_position (ScopeName.get_info scope_name) in
+    let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
     let main_scope =
       match main_scope with
       | ScopeVar v -> ScopeVar v
@@ -674,8 +674,8 @@ let build_whole_program_expr (p : program) (main_scope : ScopeName.t) =
   unfold_scopes ~box_expr ~make_abs ~make_let_in p.decl_ctx p.scopes
     (ScopeName main_scope)
 
-let rec expr_size (e : expr Pos.marked) : int =
-  match Pos.unmark e with
+let rec expr_size (e : expr Marked.pos) : int =
+  match Marked.unmark e with
   | EVar _ | ELit _ | EOp _ -> 1
   | ETuple (args, _) | EArray args ->
     List.fold_left (fun acc arg -> acc + expr_size arg) 1 args
@@ -696,9 +696,9 @@ let rec expr_size (e : expr Pos.marked) : int =
       (1 + expr_size just + expr_size cons)
       exceptions
 
-let remove_logging_calls (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+let remove_logging_calls (e : expr Marked.pos) : expr Marked.pos Bindlib.box =
   let rec f () e =
-    match Pos.unmark e with
+    match Marked.unmark e with
     | EApp ((EOp (Unop (Log _)), _), [arg]) -> map_expr () ~f arg
     | _ -> map_expr () ~f e
   in

@@ -213,9 +213,3 @@ let no_pos : t =
     }
   in
   { code_pos = zero_pos, zero_pos; law_pos = [] }
-let compare_marked
-    (cmp : 'a -> 'a -> int)
-    ((x, _) : 'a marked)
-    ((y, _) : 'a marked) : int =
-  cmp x y
-

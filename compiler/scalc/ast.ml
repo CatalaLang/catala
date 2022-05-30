@@ -23,23 +23,23 @@ module LocalName = Uid.Make (Uid.MarkedString) ()
 type expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t
-  | EStruct of expr Pos.marked list * D.StructName.t
-  | EStructFieldAccess of expr Pos.marked * D.StructFieldName.t * D.StructName.t
-  | EInj of expr Pos.marked * D.EnumConstructor.t * D.EnumName.t
-  | EArray of expr Pos.marked list
+  | EStruct of expr Marked.pos list * D.StructName.t
+  | EStructFieldAccess of expr Marked.pos * D.StructFieldName.t * D.StructName.t
+  | EInj of expr Marked.pos * D.EnumConstructor.t * D.EnumName.t
+  | EArray of expr Marked.pos list
   | ELit of L.lit
-  | EApp of expr Pos.marked * expr Pos.marked list
+  | EApp of expr Marked.pos * expr Marked.pos list
   | EOp of Dcalc.Ast.operator
 
 type stmt =
-  | SInnerFuncDef of LocalName.t Pos.marked * func
-  | SLocalDecl of LocalName.t Pos.marked * D.typ Pos.marked
-  | SLocalDef of LocalName.t Pos.marked * expr Pos.marked
+  | SInnerFuncDef of LocalName.t Marked.pos * func
+  | SLocalDecl of LocalName.t Marked.pos * D.typ Marked.pos
+  | SLocalDef of LocalName.t Marked.pos * expr Marked.pos
   | STryExcept of block * L.except * block
   | SRaise of L.except
-  | SIfThenElse of expr Pos.marked * block * block
+  | SIfThenElse of expr Marked.pos * block * block
   | SSwitch of
-      expr Pos.marked
+      expr Marked.pos
       * D.EnumName.t
       * (block (* Statements corresponding to arm closure body*)
         * (* Variable instantiated with enum payload *) LocalName.t)
@@ -47,10 +47,10 @@ type stmt =
   | SReturn of expr
   | SAssert of expr
 
-and block = stmt Pos.marked list
+and block = stmt Marked.pos list
 
 and func = {
-  func_params : (LocalName.t Pos.marked * D.typ Pos.marked) list;
+  func_params : (LocalName.t Marked.pos * D.typ Marked.pos) list;
   func_body : block;
 }
 

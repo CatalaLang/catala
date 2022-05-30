@@ -51,7 +51,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
 end
 
 module MarkedString = struct
-  type info = string Pos.marked
+  type info = string Marked.pos
 
   let format_info fmt (s, _) = Format.fprintf fmt "%s" s
 end

@@ -31,8 +31,8 @@ let begins_with_uppercase (s : string) : bool =
 
 (** {b Note:} (EmileRolley) seems to be factorizable with
     Dcalc.Print.format_lit. *)
-let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
-  match Pos.unmark l with
+let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
+  match Marked.unmark l with
   | LBool b -> Dcalc.Print.format_lit_style fmt (string_of_bool b)
   | LInt i -> Dcalc.Print.format_lit_style fmt (Runtime.integer_to_string i)
   | LUnit -> Dcalc.Print.format_lit_style fmt "()"
@@ -68,8 +68,8 @@ let format_keyword (fmt : Format.formatter) (s : string) : unit =
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.cyan]) s
 
-let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
+let needs_parens (e : expr Marked.pos) : bool =
+  match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
@@ -78,16 +78,16 @@ let rec format_expr
     ?(debug : bool = false)
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Pos.marked) : unit =
+    (e : expr Marked.pos) : unit =
   let format_expr = format_expr ctx ~debug in
-  let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
+  let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" format_punctuation "(" format_expr e
         format_punctuation ")"
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Pos.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
+  match Marked.unmark e with
+  | EVar v -> Format.fprintf fmt "%a" format_var (Marked.unmark v)
   | ETuple (es, None) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "("
       (Format.pp_print_list
@@ -136,7 +136,7 @@ let rec format_expr
              format_expr e))
       (List.combine es
          (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
@@ -212,4 +212,4 @@ let format_scope
     (Bindlib.unbox
        (Dcalc.Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
           ~make_let_in:Ast.make_let_in ~box_expr:Ast.box_expr ctx s
-          (Pos.get_position (Dcalc.Ast.ScopeName.get_info n))))
+          (Marked.get_mark (Dcalc.Ast.ScopeName.get_info n))))

@@ -50,11 +50,11 @@ module EnumConstructorMapLift : sig
 end
 
 type location =
-  | ScopeVar of ScopeVar.t Pos.marked
+  | ScopeVar of ScopeVar.t Marked.pos
   | SubScopeVar of
-      ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
+      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
 
-module LocationSet : Set.S with type elt = location Pos.marked
+module LocationSet : Set.S with type elt = location Marked.pos
 
 (** {1 Abstract syntax tree} *)
 
@@ -62,7 +62,7 @@ type typ =
   | TLit of Dcalc.Ast.typ_lit
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TArrow of typ Pos.marked * typ Pos.marked
+  | TArrow of typ Marked.pos * typ Marked.pos
   | TArray of typ
   | TAny
 
@@ -72,26 +72,26 @@ module Typ : Set.OrderedType with type t = typ
     library, based on higher-order abstract syntax*)
 type expr =
   | ELocation of location
-  | EVar of expr Bindlib.var Pos.marked
-  | EStruct of StructName.t * expr Pos.marked StructFieldMap.t
-  | EStructAccess of expr Pos.marked * StructFieldName.t * StructName.t
-  | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
+  | EVar of expr Bindlib.var Marked.pos
+  | EStruct of StructName.t * expr Marked.pos StructFieldMap.t
+  | EStructAccess of expr Marked.pos * StructFieldName.t * StructName.t
+  | EEnumInj of expr Marked.pos * EnumConstructor.t * EnumName.t
   | EMatch of
-      expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
+      expr Marked.pos * EnumName.t * expr Marked.pos EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
-      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
-  | EApp of expr Pos.marked * expr Pos.marked list
+      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos * typ Marked.pos list
+  | EApp of expr Marked.pos * expr Marked.pos list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
-  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
-  | EArray of expr Pos.marked list
-  | ErrorOnEmpty of expr Pos.marked
+  | EDefault of expr Marked.pos list * expr Marked.pos * expr Marked.pos
+  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
+  | EArray of expr Marked.pos list
+  | ErrorOnEmpty of expr Marked.pos
 
 module Expr : Set.OrderedType with type t = expr
 module ExprMap : Map.S with type key = expr
 
-val locations_used : expr Pos.marked -> LocationSet.t
+val locations_used : expr Marked.pos -> LocationSet.t
 
 (** This type characterizes the three levels of visibility for a given scope
     variable with regards to the scope's input and possible redefinitions inside
@@ -108,25 +108,25 @@ type io_input =
           caller as they appear in the input. *)
 
 type io = {
-  io_output : bool Pos.marked;
+  io_output : bool Marked.pos;
       (** [true] is present in the output of the scope. *)
-  io_input : io_input Pos.marked;
+  io_input : io_input Marked.pos;
 }
 (** Characterization of the input/output status of a scope variable. *)
 
 type rule =
-  | Definition of location Pos.marked * typ Pos.marked * io * expr Pos.marked
-  | Assertion of expr Pos.marked
+  | Definition of location Marked.pos * typ Marked.pos * io * expr Marked.pos
+  | Assertion of expr Marked.pos
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ Pos.marked * io) ScopeVarMap.t;
+  scope_sig : (typ Marked.pos * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 
-type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
-type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
+type struct_ctx = (StructFieldName.t * typ Marked.pos) list StructMap.t
+type enum_ctx = (EnumConstructor.t * typ Marked.pos) list EnumMap.t
 
 type program = {
   program_scopes : scope_decl ScopeMap.t;
@@ -139,7 +139,7 @@ type program = {
 module Var : sig
   type t = expr Bindlib.var
 
-  val make : string Pos.marked -> t
+  val make : string Marked.pos -> t
   val compare : t -> t -> int
 end
 
@@ -147,35 +147,35 @@ module VarMap : Map.S with type key = Var.t
 
 type vars = expr Bindlib.mvar
 
-val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
+val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 
 val make_abs :
   vars ->
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   Pos.t ->
-  typ Pos.marked list ->
+  typ Marked.pos list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_app :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box list ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_let_in :
   Var.t ->
-  typ Pos.marked ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box
+  typ Marked.pos ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box
 
 val make_default :
   ?pos:Pos.t ->
-  expr Pos.marked list ->
-  expr Pos.marked ->
-  expr Pos.marked ->
-  expr Pos.marked
+  expr Marked.pos list ->
+  expr Marked.pos ->
+  expr Marked.pos ->
+  expr Marked.pos
 (** [make_default ?pos exceptions just cons] builds a term semantically
     equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
     while avoiding redundant nested constructions. The position is extracted

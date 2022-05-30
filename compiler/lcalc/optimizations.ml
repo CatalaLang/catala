@@ -20,13 +20,13 @@ let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x y = Bindlib.box_pair x y
 
 let visitor_map
-    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
     (ctx : 'a)
-    (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+    (e : expr Marked.pos) : expr Marked.pos Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract
      syntax tree modified. Used in other transformations. *)
-  let default_mark e' = Pos.same_pos_as e' e in
-  match Pos.unmark e with
+  let default_mark e' = Marked.same_mark_as e' e in
+  match Marked.unmark e with
   | EVar (v, _pos) ->
     let+ v = Bindlib.box_var v in
     default_mark @@ v
@@ -66,10 +66,10 @@ let visitor_map
     default_mark @@ ECatch (e1, exn, e2)
   | ERaise _ | ELit _ | EOp _ -> Bindlib.box e
 
-let rec iota_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
+let rec iota_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
     =
-  let default_mark e' = Pos.mark (Pos.get_position e) e' in
-  match Pos.unmark e with
+  let default_mark e' = Marked.mark (Marked.get_mark e) e' in
+  match Marked.unmark e with
   | EMatch ((EInj (e1, i, n', _ts), _), cases, n)
     when Dcalc.Ast.EnumName.compare n n' = 0 ->
     let+ e1 = visitor_map iota_expr () e1
@@ -86,14 +86,14 @@ let rec iota_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
     visitor_map iota_expr () e'
   | _ -> visitor_map iota_expr () e
 
-let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
+let rec beta_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
     =
-  let default_mark e' = Pos.same_pos_as e' e in
-  match Pos.unmark e with
+  let default_mark e' = Marked.same_mark_as e' e in
+  match Marked.unmark e with
   | EApp (e1, args) -> (
     let+ e1 = beta_expr () e1
     and+ args = List.map (beta_expr ()) args |> Bindlib.box_list in
-    match Pos.unmark e1 with
+    match Marked.unmark e1 with
     | EAbs ((binder, _pos_binder), _ts) ->
       let (_ : (_, _) Bindlib.mbinder) = binder in
       Bindlib.msubst binder (List.map fst args |> Array.of_list)
@@ -112,16 +112,16 @@ let _beta_optimizations (p : program) : program =
   let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) p.scopes in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
-    expr Pos.marked Bindlib.box =
-  let default_mark e' = Pos.mark (Pos.get_position e) e' in
+let rec peephole_expr (_ : unit) (e : expr Marked.pos) :
+    expr Marked.pos Bindlib.box =
+  let default_mark e' = Marked.mark (Marked.get_mark e) e' in
 
-  match Pos.unmark e with
+  match Marked.unmark e with
   | EIfThenElse (e1, e2, e3) -> (
     let+ e1 = peephole_expr () e1
     and+ e2 = peephole_expr () e2
     and+ e3 = peephole_expr () e3 in
-    match Pos.unmark e1 with
+    match Marked.unmark e1 with
     | ELit (LBool true)
     | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]) ->
       e2
@@ -131,7 +131,7 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
     | _ -> default_mark @@ EIfThenElse (e1, e2, e3))
   | ECatch (e1, except, e2) -> (
     let+ e1 = peephole_expr () e1 and+ e2 = peephole_expr () e2 in
-    match Pos.unmark e1, Pos.unmark e2 with
+    match Marked.unmark e1, Marked.unmark e2 with
     | ERaise except', ERaise except'' when except' = except && except = except''
       ->
       default_mark @@ ERaise except

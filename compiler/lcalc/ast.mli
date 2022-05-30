@@ -35,34 +35,34 @@ type lit =
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 type expr =
-  | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list * Dcalc.Ast.StructName.t option
+  | EVar of expr Bindlib.var Marked.pos
+  | ETuple of expr Marked.pos list * Dcalc.Ast.StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
   | ETupleAccess of
-      expr Pos.marked
+      expr Marked.pos
       * int
       * Dcalc.Ast.StructName.t option
-      * Dcalc.Ast.typ Pos.marked list
+      * Dcalc.Ast.typ Marked.pos list
       (** The [MarkedString.info] is the former struct field name *)
   | EInj of
-      expr Pos.marked
+      expr Marked.pos
       * int
       * Dcalc.Ast.EnumName.t
-      * Dcalc.Ast.typ Pos.marked list
+      * Dcalc.Ast.typ Marked.pos list
       (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Pos.marked * expr Pos.marked list * Dcalc.Ast.EnumName.t
+  | EMatch of expr Marked.pos * expr Marked.pos list * Dcalc.Ast.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
-  | EArray of expr Pos.marked list
+  | EArray of expr Marked.pos list
   | ELit of lit
   | EAbs of
-      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked
-      * Dcalc.Ast.typ Pos.marked list
-  | EApp of expr Pos.marked * expr Pos.marked list
-  | EAssert of expr Pos.marked
+      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos
+      * Dcalc.Ast.typ Marked.pos list
+  | EApp of expr Marked.pos * expr Marked.pos list
+  | EAssert of expr Marked.pos
   | EOp of Dcalc.Ast.operator
-  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
   | ERaise of except
-  | ECatch of expr Pos.marked * except * expr Pos.marked
+  | ECatch of expr Marked.pos * except * expr Marked.pos
 
 type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
 
@@ -71,7 +71,7 @@ type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
 module Var : sig
   type t = expr Bindlib.var
 
-  val make : string Pos.marked -> t
+  val make : string Marked.pos -> t
   val compare : t -> t -> int
 end
 
@@ -79,142 +79,142 @@ module VarMap : Map.S with type key = Var.t
 module VarSet : Set.S with type elt = Var.t
 
 type vars = expr Bindlib.mvar
-type binder = (expr, expr Pos.marked) Bindlib.binder
+type binder = (expr, expr Marked.pos) Bindlib.binder
 
 (** {1 Boxed constructors}*)
 
-val evar : expr Bindlib.var -> Pos.t -> expr Pos.marked Bindlib.box
+val evar : expr Bindlib.var -> Pos.t -> expr Marked.pos Bindlib.box
 
 val etuple :
-  expr Pos.marked Bindlib.box list ->
+  expr Marked.pos Bindlib.box list ->
   Dcalc.Ast.StructName.t option ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val etupleaccess :
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   int ->
   Dcalc.Ast.StructName.t option ->
-  Dcalc.Ast.typ Pos.marked list ->
+  Dcalc.Ast.typ Marked.pos list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val einj :
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   int ->
   Dcalc.Ast.EnumName.t ->
-  Dcalc.Ast.typ Pos.marked list ->
+  Dcalc.Ast.typ Marked.pos list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val ematch :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box list ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box list ->
   Dcalc.Ast.EnumName.t ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val earray :
-  expr Pos.marked Bindlib.box list -> Pos.t -> expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box list -> Pos.t -> expr Marked.pos Bindlib.box
 
-val elit : lit -> Pos.t -> expr Pos.marked Bindlib.box
+val elit : lit -> Pos.t -> expr Marked.pos Bindlib.box
 
 val eabs :
-  (expr, expr Pos.marked) Bindlib.mbinder Bindlib.box ->
+  (expr, expr Marked.pos) Bindlib.mbinder Bindlib.box ->
   Pos.t ->
-  Dcalc.Ast.typ Pos.marked list ->
+  Dcalc.Ast.typ Marked.pos list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val eapp :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box list ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val eassert :
-  expr Pos.marked Bindlib.box -> Pos.t -> expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box -> Pos.t -> expr Marked.pos Bindlib.box
 
-val eop : Dcalc.Ast.operator -> Pos.t -> expr Pos.marked Bindlib.box
+val eop : Dcalc.Ast.operator -> Pos.t -> expr Marked.pos Bindlib.box
 
 val eifthenelse :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val ecatch :
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   except ->
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
-val eraise : except -> Pos.t -> expr Pos.marked Bindlib.box
+val eraise : except -> Pos.t -> expr Marked.pos Bindlib.box
 
 (** {1 Language terms construction}*)
 
-val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
+val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 
 val make_abs :
   vars ->
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   Pos.t ->
-  Dcalc.Ast.typ Pos.marked list ->
+  Dcalc.Ast.typ Marked.pos list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_app :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box list ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_let_in :
   Var.t ->
-  Dcalc.Ast.typ Pos.marked ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
+  Dcalc.Ast.typ Marked.pos ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_multiple_let_in :
   Var.t array ->
-  Dcalc.Ast.typ Pos.marked list ->
-  expr Pos.marked Bindlib.box list ->
-  expr Pos.marked Bindlib.box ->
+  Dcalc.Ast.typ Marked.pos list ->
+  expr Marked.pos Bindlib.box list ->
+  expr Marked.pos Bindlib.box ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val option_enum : Dcalc.Ast.EnumName.t
 val none_constr : Dcalc.Ast.EnumConstructor.t
 val some_constr : Dcalc.Ast.EnumConstructor.t
 
 val option_enum_config :
-  (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list
+  (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Marked.pos) list
 
-val make_none : Pos.t -> expr Pos.marked Bindlib.box
-val make_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box
+val make_none : Pos.t -> expr Marked.pos Bindlib.box
+val make_some : expr Marked.pos Bindlib.box -> expr Marked.pos Bindlib.box
 
 val make_matchopt_with_abs_arms :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box
 
 val make_matchopt :
   Pos.t ->
   Var.t ->
-  Dcalc.Ast.typ Pos.marked ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box
+  Dcalc.Ast.typ Marked.pos ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 
-val box_expr : expr Pos.marked -> expr Pos.marked Bindlib.box
+val box_expr : expr Marked.pos -> expr Marked.pos Bindlib.box
 
 (** {1 Special symbols}*)
 

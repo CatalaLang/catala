@@ -51,16 +51,16 @@ module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
 module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 
 type location =
-  | ScopeVar of ScopeVar.t Pos.marked
+  | ScopeVar of ScopeVar.t Marked.pos
   | SubScopeVar of
-      ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
+      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
 
-module LocationSet : Set.S with type elt = location Pos.marked =
+module LocationSet : Set.S with type elt = location Marked.pos =
 Set.Make (struct
-  type t = location Pos.marked
+  type t = location Marked.pos
 
   let compare x y =
-    match Pos.unmark x, Pos.unmark y with
+    match Marked.unmark x, Marked.unmark y with
     | ScopeVar (vx, _), ScopeVar (vy, _) -> ScopeVar.compare vx vy
     | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
         SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
@@ -74,7 +74,7 @@ type typ =
   | TLit of Dcalc.Ast.typ_lit
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TArrow of typ Pos.marked * typ Pos.marked
+  | TArrow of typ Marked.pos * typ Marked.pos
   | TArray of typ
   | TAny
 
@@ -104,21 +104,21 @@ end
 
 type expr =
   | ELocation of location
-  | EVar of expr Bindlib.var Pos.marked
-  | EStruct of StructName.t * expr Pos.marked StructFieldMap.t
-  | EStructAccess of expr Pos.marked * StructFieldName.t * StructName.t
-  | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
+  | EVar of expr Bindlib.var Marked.pos
+  | EStruct of StructName.t * expr Marked.pos StructFieldMap.t
+  | EStructAccess of expr Marked.pos * StructFieldName.t * StructName.t
+  | EEnumInj of expr Marked.pos * EnumConstructor.t * EnumName.t
   | EMatch of
-      expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
+      expr Marked.pos * EnumName.t * expr Marked.pos EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
-      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
-  | EApp of expr Pos.marked * expr Pos.marked list
+      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos * typ Marked.pos list
+  | EApp of expr Marked.pos * expr Marked.pos list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
-  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
-  | EArray of expr Pos.marked list
-  | ErrorOnEmpty of expr Pos.marked
+  | EDefault of expr Marked.pos list * expr Marked.pos * expr Marked.pos
+  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
+  | EArray of expr Marked.pos list
+  | ErrorOnEmpty of expr Marked.pos
 
 module Expr = struct
   type t = expr
@@ -140,9 +140,7 @@ module Expr = struct
     | EStruct (name1, field_map1), EStruct (name2, field_map2) -> (
       match StructName.compare name1 name2 with
       | 0 ->
-        StructFieldMap.compare
-          (Pos.compare_marked compare)
-          field_map1 field_map2
+        StructFieldMap.compare (Marked.compare compare) field_map1 field_map2
       | n -> n)
     | ( EStructAccess ((e1, _), field_name1, struct_name1),
         EStructAccess ((e2, _), field_name2, struct_name2) ) -> (
@@ -163,13 +161,12 @@ module Expr = struct
       match compare e1 e2 with
       | 0 -> (
         match EnumName.compare name1 name2 with
-        | 0 ->
-          EnumConstructorMap.compare (Pos.compare_marked compare) emap1 emap2
+        | 0 -> EnumConstructorMap.compare (Marked.compare compare) emap1 emap2
         | n -> n)
       | n -> n)
     | ELit l1, ELit l2 -> Stdlib.compare l1 l2
     | EAbs ((binder1, _), typs1), EAbs ((binder2, _), typs2) -> (
-      match list_compare (Pos.compare_marked Typ.compare) typs1 typs2 with
+      match list_compare (Marked.compare Typ.compare) typs1 typs2 with
       | 0 ->
         let _, (e1, _), (e2, _) = Bindlib.unmbind2 binder1 binder2 in
         compare e1 e2
@@ -184,7 +181,7 @@ module Expr = struct
       match compare just1 just2 with
       | 0 -> (
         match compare cons1 cons2 with
-        | 0 -> list_compare (Pos.compare_marked compare) exs1 exs2
+        | 0 -> list_compare (Marked.compare compare) exs1 exs2
         | n -> n)
       | n -> n)
     | ( EIfThenElse ((i1, _), (t1, _), (e1, _)),
@@ -225,9 +222,9 @@ end
 
 module ExprMap = Map.Make (Expr)
 
-let rec locations_used (e : expr Pos.marked) : LocationSet.t =
-  match Pos.unmark e with
-  | ELocation l -> LocationSet.singleton (l, Pos.get_position e)
+let rec locations_used (e : expr Marked.pos) : LocationSet.t =
+  match Marked.unmark e with
+  | ELocation l -> LocationSet.singleton (l, Marked.get_mark e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
   | EAbs ((binder, _), _) ->
     let _, body = Bindlib.unmbind binder in
@@ -261,21 +258,21 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   | ErrorOnEmpty e' -> locations_used e'
 
 type io_input = NoInput | OnlyInput | Reentrant
-type io = { io_output : bool Pos.marked; io_input : io_input Pos.marked }
+type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
 
 type rule =
-  | Definition of location Pos.marked * typ Pos.marked * io * expr Pos.marked
-  | Assertion of expr Pos.marked
+  | Definition of location Marked.pos * typ Marked.pos * io * expr Marked.pos
+  | Assertion of expr Marked.pos
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ Pos.marked * io) ScopeVarMap.t;
+  scope_sig : (typ Marked.pos * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 
-type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
-type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
+type struct_ctx = (StructFieldName.t * typ Marked.pos) list StructMap.t
+type enum_ctx = (EnumConstructor.t * typ Marked.pos) list EnumMap.t
 
 type program = {
   program_scopes : scope_decl ScopeMap.t;
@@ -286,46 +283,46 @@ type program = {
 module Var = struct
   type t = expr Bindlib.var
 
-  let make (s : string Pos.marked) : t =
+  let make (s : string Marked.pos) : t =
     Bindlib.new_var
-      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
-      (Pos.unmark s)
+      (fun (x : expr Bindlib.var) : expr -> EVar (x, Marked.get_mark s))
+      (Marked.unmark s)
 
   let compare x y = Bindlib.compare_vars x y
 end
 
 type vars = expr Bindlib.mvar
 
-let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
+let make_var ((x, pos) : Var.t Marked.pos) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var x)
 
 let make_abs
     (xs : vars)
-    (e : expr Pos.marked Bindlib.box)
+    (e : expr Marked.pos Bindlib.box)
     (pos_binder : Pos.t)
-    (taus : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (taus : typ Marked.pos list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply
     (fun b -> EAbs ((b, pos_binder), taus), pos)
     (Bindlib.bind_mvar xs e)
 
 let make_app
-    (e : expr Pos.marked Bindlib.box)
-    (u : expr Pos.marked Bindlib.box list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (e : expr Marked.pos Bindlib.box)
+    (u : expr Marked.pos Bindlib.box list)
+    (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2 (fun e u -> EApp (e, u), pos) e (Bindlib.box_list u)
 
 let make_let_in
     (x : Var.t)
-    (tau : typ Pos.marked)
-    (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+    (tau : typ Marked.pos)
+    (e1 : expr Marked.pos Bindlib.box)
+    (e2 : expr Marked.pos Bindlib.box) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2
-    (fun e u -> EApp (e, u), Pos.get_position (Bindlib.unbox e2))
+    (fun e u -> EApp (e, u), Marked.get_mark (Bindlib.unbox e2))
     (make_abs (Array.of_list [x]) e2
-       (Pos.get_position (Bindlib.unbox e2))
+       (Marked.get_mark (Bindlib.unbox e2))
        [tau]
-       (Pos.get_position (Bindlib.unbox e2)))
+       (Marked.get_mark (Bindlib.unbox e2)))
     (Bindlib.box_list [e1])
 
 let make_default ?(pos = Pos.no_pos) exceptions just cons =
@@ -344,7 +341,7 @@ let make_default ?(pos = Pos.no_pos) exceptions just cons =
     EDefault (exceptions, just, cons), pos
   | [except], Some false, _ -> except
   | exceptions, _, cons ->
-    let pos = if pos <> Pos.no_pos then pos else Pos.get_position just in
+    let pos = if pos <> Pos.no_pos then pos else Marked.get_mark just in
     EDefault (exceptions, just, cons), pos
 
 module VarMap = Map.Make (Var)

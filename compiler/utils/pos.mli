@@ -52,6 +52,3 @@ val retrieve_loc_text : t -> string
 
 val no_pos : t
 (** Placeholder position *)
-val compare_marked : ('a -> 'a -> int) -> 'a marked -> 'a marked -> int
-(** Compares two marked values {b ignoring positions} *)
-

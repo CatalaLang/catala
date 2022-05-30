@@ -18,15 +18,15 @@ open Utils
 open Ast
 
 type partial_evaluation_ctx = {
-  var_values : expr Pos.marked Ast.VarMap.t;
+  var_values : expr Marked.pos Ast.VarMap.t;
   decl_ctx : decl_ctx;
 }
 
-let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
-    : expr Pos.marked Bindlib.box =
-  let pos = Pos.get_position e in
+let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Marked.pos)
+    : expr Marked.pos Bindlib.box =
+  let pos = Marked.get_mark e in
   let rec_helper = partial_evaluation ctx in
-  match Pos.unmark e with
+  match Marked.unmark e with
   | EApp
       ( (( EOp (Unop Not), _
          | EApp ((EOp (Unop (Log _)), _), [(EOp (Unop Not), _)]), _ ) as op),
@@ -103,7 +103,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
   | EApp (f, args) ->
     Bindlib.box_apply2
       (fun f args ->
-        match Pos.unmark f with
+        match Marked.unmark f with
         | EAbs ((binder, _pos_binder), _ts) ->
           (* beta reduction *)
           Bindlib.msubst binder (List.map fst args |> Array.of_list)
@@ -119,7 +119,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
         match
           ( List.filter
               (fun except ->
-                match Pos.unmark except with
+                match Marked.unmark except with
                 | ELit LEmptyError -> false
                 | _ -> true)
               exceptions
@@ -166,7 +166,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
   | EIfThenElse (e1, e2, e3) ->
     Bindlib.box_apply3
       (fun e1 e2 e3 ->
-        match Pos.unmark e1, Pos.unmark e2, Pos.unmark e3 with
+        match Marked.unmark e1, Marked.unmark e2, Marked.unmark e3 with
         | ELit (LBool true), _, _
         | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]), _, _ ->
           e2
@@ -185,11 +185,11 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
   | ErrorOnEmpty e1 ->
     Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) (rec_helper e1)
 
-let optimize_expr (decl_ctx : decl_ctx) (e : expr Pos.marked) =
+let optimize_expr (decl_ctx : decl_ctx) (e : expr Marked.pos) =
   partial_evaluation { var_values = VarMap.empty; decl_ctx } e
 
 let rec scope_lets_map
-    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
     (ctx : 'a)
     (scope_body_expr : expr scope_body_expr) : expr scope_body_expr Bindlib.box
     =
@@ -211,7 +211,7 @@ let rec scope_lets_map
       new_scope_let_expr new_next
 
 let rec scopes_map
-    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
     (ctx : 'a)
     (scopes : expr scopes) : expr scopes Bindlib.box =
   match scopes with
@@ -242,7 +242,7 @@ let rec scopes_map
       new_scope_body_expr new_scope_next
 
 let program_map
-    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
     (ctx : 'a)
     (p : program) : program Bindlib.box =
   Bindlib.box_apply

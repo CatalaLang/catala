@@ -17,7 +17,7 @@
 open Utils
 open Ast
 
-let needs_parens (_e : expr Pos.marked) : bool = false
+let needs_parens (_e : expr Marked.pos) : bool = false
 
 let format_local_name (fmt : Format.formatter) (v : LocalName.t) : unit =
   Format.fprintf fmt "%a_%s" LocalName.format_t v
@@ -27,15 +27,15 @@ let rec format_expr
     (decl_ctx : Dcalc.Ast.decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
-    (e : expr Pos.marked) : unit =
+    (e : expr Marked.pos) : unit =
   let format_expr = format_expr decl_ctx ~debug in
-  let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
+  let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" Dcalc.Print.format_punctuation "(" format_expr
         e Dcalc.Print.format_punctuation ")"
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Pos.unmark e with
+  match Marked.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_local_name v
   | EFunc v -> Format.fprintf fmt "%a" TopLevelName.format_t v
   | EStruct (es, s) ->
@@ -75,7 +75,7 @@ let rec format_expr
             (Dcalc.Ast.EnumMap.find enum decl_ctx.ctx_enums)))
       format_expr e
   | ELit l ->
-    Format.fprintf fmt "%a" Lcalc.Print.format_lit (Pos.same_pos_as l e)
+    Format.fprintf fmt "%a" Lcalc.Print.format_lit (Marked.same_mark_as l e)
   | EApp
       ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
     ->
@@ -106,12 +106,12 @@ let rec format_statement
     (decl_ctx : Dcalc.Ast.decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
-    (stmt : stmt Pos.marked) : unit =
+    (stmt : stmt Marked.pos) : unit =
   if debug then () else ();
-  match Pos.unmark stmt with
+  match Marked.unmark stmt with
   | SInnerFuncDef (name, func) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
-      Dcalc.Print.format_keyword "let" LocalName.format_t (Pos.unmark name)
+      Dcalc.Print.format_keyword "let" LocalName.format_t (Marked.unmark name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
@@ -124,13 +124,13 @@ let rec format_statement
       func.func_body
   | SLocalDecl (name, typ) ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Dcalc.Print.format_keyword
-      "decl" LocalName.format_t (Pos.unmark name) Dcalc.Print.format_punctuation
-      ":"
+      "decl" LocalName.format_t (Marked.unmark name)
+      Dcalc.Print.format_punctuation ":"
       (Dcalc.Print.format_typ decl_ctx)
       typ
   | SLocalDef (name, expr) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" LocalName.format_t
-      (Pos.unmark name) Dcalc.Print.format_punctuation "="
+      (Marked.unmark name) Dcalc.Print.format_punctuation "="
       (format_expr decl_ctx ~debug)
       expr
   | STryExcept (b_try, except, b_with) ->
@@ -157,11 +157,11 @@ let rec format_statement
   | SReturn ret ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Dcalc.Print.format_keyword "return"
       (format_expr decl_ctx ~debug)
-      (ret, Pos.get_position stmt)
+      (ret, Marked.get_mark stmt)
   | SAssert expr ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Dcalc.Print.format_keyword "assert"
       (format_expr decl_ctx ~debug)
-      (expr, Pos.get_position stmt)
+      (expr, Marked.get_mark stmt)
   | SSwitch (e_switch, enum, arms) ->
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a"
       Dcalc.Print.format_keyword "switch"

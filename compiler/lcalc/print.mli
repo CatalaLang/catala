@@ -23,7 +23,7 @@ val begins_with_uppercase : string -> bool
 
 (** {1 Formatters} *)
 
-val format_lit : Format.formatter -> Ast.lit Pos.marked -> unit
+val format_lit : Format.formatter -> Ast.lit Marked.pos -> unit
 val format_var : Format.formatter -> Ast.Var.t -> unit
 val format_exception : Format.formatter -> Ast.except -> unit
 
@@ -31,7 +31,7 @@ val format_expr :
   ?debug:bool ->
   Dcalc.Ast.decl_ctx ->
   Format.formatter ->
-  Ast.expr Pos.marked ->
+  Ast.expr Marked.pos ->
   unit
 
 val format_scope :
