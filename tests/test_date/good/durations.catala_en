@@ -9,6 +9,7 @@ declaration scope A:
   context output z3 content duration
   context output d content decimal
   context output d2 content decimal
+  context output m content duration
 
 scope A:
   definition x equals |2019-01-01|
@@ -20,4 +21,6 @@ scope A:
 
   definition d equals z3 /^ z3
   definition d2 equals z3 /^ 2 day
+
+  definition m equals z3 *^ 2
 ```
