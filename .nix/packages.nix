@@ -13,9 +13,10 @@ ocamlPackages.overrideScope' (self: super: {
   }).overrideAttrs (_: {
     doCheck = false;
   });
-  bindlib = ocamlPackages.callPackage ./bindlib.nix { };
-  unionfind = ocamlPackages.callPackage ./unionfind.nix { };
-  ninja_utils = ocamlPackages.callPackage ./ninja_utils.nix { };
-  clerk = ocamlPackages.callPackage ./clerk.nix { };
-  ppx_yojson_conv = ocamlPackages.callPackage ./ppx_yojson_conv.nix { };
+  catala = self.callPackage ./catala.nix { };
+  bindlib = self.callPackage ./bindlib.nix { };
+  unionfind = self.callPackage ./unionfind.nix { };
+  ninja_utils = self.callPackage ./ninja_utils.nix { };
+  clerk = self.callPackage ./clerk.nix { };
+  ppx_yojson_conv = self.callPackage ./ppx_yojson_conv.nix { };
 })

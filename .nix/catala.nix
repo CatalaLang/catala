@@ -32,7 +32,7 @@ buildDunePackage rec {
 
   minimumOCamlVersion = "4.11";
 
-  src = ./.;
+  src = ../.;
 
   useDune2 = true;
 
