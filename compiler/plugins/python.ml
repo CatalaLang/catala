@@ -24,9 +24,7 @@ let name = "python-plugin"
 let extension = ".py"
 
 let apply output_file prgm type_ordering =
-  let oc = open_out output_file in
-  let fmt = Format.formatter_of_out_channel oc in
-  Scalc.To_python.format_program fmt prgm type_ordering;
-  close_out oc
+  Utils.File.with_formatter_of_opt_file output_file @@ fun fmt ->
+  Scalc.To_python.format_program fmt prgm type_ordering
 
 let () = Driver.Plugin.register_scalc ~name ~extension apply

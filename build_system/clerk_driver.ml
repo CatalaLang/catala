@@ -228,7 +228,7 @@ let add_reset_rules_aux
         Var "tested_file";
         Var "extra_flags";
         Lit "--unstyled";
-        Lit "--output=/dev/stdout";
+        Lit "--output=-";
         Lit redirect;
         Var "expected_output";
         Lit "2>&1";

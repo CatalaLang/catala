@@ -81,6 +81,21 @@ let driver source_file (options : Cli.options) : int =
       Surface.Parser_driver.parse_top_level_file source_file language
     in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
+    let get_output ?ext () =
+      match options.output_file, ext with
+      | Some "-", _ | None, None -> None, fun f -> f stdout
+      | Some f, _ -> Some f, File.with_out_channel f
+      | None, Some ext ->
+        let src =
+          match source_file with FileName f -> f | Contents _ -> "a"
+        in
+        let f = Filename.remove_extension src ^ ext in
+        Some f, File.with_out_channel f
+    in
+    let get_output_format ?ext () =
+      let f, with_ = get_output ?ext () in
+      f, fun f -> with_ (fun oc -> File.with_formatter_of_out_channel oc f)
+    in
     (match backend with
     | `Makefile ->
       let backend_extensions_list = [".tex"] in
@@ -91,40 +106,26 @@ let driver source_file (options : Cli.options) : int =
           Errors.raise_error
             "The Makefile backend does not work if the input is not a file"
       in
-      let output_file =
-        match options.output_file with
-        | Some f -> f
-        | None -> Filename.remove_extension source_file ^ ".d"
-      in
-      Cli.debug_print "Writing list of dependencies to %s..." output_file;
-      File.with_out_channel output_file @@ fun oc ->
+      let output_file, with_output = get_output ~ext:".d" () in
+      Cli.debug_print "Writing list of dependencies to %s..."
+        (Option.value ~default:"stdout" output_file);
+      with_output @@ fun oc ->
       Printf.fprintf oc "%s:\\\n%s\n%s:"
         (String.concat "\\\n"
-           (output_file
+           (Option.value ~default:"stdout" output_file
            :: List.map
                 (fun ext -> Filename.remove_extension source_file ^ ext)
                 backend_extensions_list))
         (String.concat "\\\n" prgm.program_source_files)
         (String.concat "\\\n" prgm.program_source_files)
     | (`Latex | `Html) as backend ->
-      let source_file =
-        match source_file with
-        | FileName f -> f
-        | Contents _ ->
-          Errors.raise_error
-            "The literate programming backends do not work if the input is not \
-             a file"
-      in
       Cli.debug_print "Weaving literate program into %s"
         (match backend with `Latex -> "LaTeX" | `Html -> "HTML");
-      let output_file =
-        match options.output_file with
-        | Some f -> f
-        | None -> (
-          Filename.remove_extension source_file
-          ^ match backend with `Latex -> ".tex" | `Html -> ".html")
+      let output_file, with_output =
+        get_output_format ()
+          ~ext:(match backend with `Latex -> ".tex" | `Html -> ".html")
       in
-      File.with_formatter_of_file output_file (fun fmt ->
+      with_output (fun fmt ->
           let weave_output =
             match backend with
             | `Latex ->
@@ -134,7 +135,8 @@ let driver source_file (options : Cli.options) : int =
               Literate.Html.ast_to_html language
                 ~print_only_law:options.print_only_law
           in
-          Cli.debug_print "Writing to %s" output_file;
+          Cli.debug_print "Writing to %s"
+            (Option.value ~default:"stdout" output_file);
           if options.wrap_weaved_output then
             match backend with
             | `Latex ->
@@ -170,7 +172,8 @@ let driver source_file (options : Cli.options) : int =
       let prgm = Desugared.Desugared_to_scope.translate_program prgm in
       match backend with
       | `Scopelang ->
-        File.with_formatter_of_opt_file options.output_file @@ fun fmt ->
+        let _output_file, with_output = get_output_format () in
+        with_output @@ fun fmt ->
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.format_scope ~debug:options.debug)
@@ -198,7 +201,8 @@ let driver source_file (options : Cli.options) : int =
         in
         match backend with
         | `Dcalc ->
-          File.with_formatter_of_opt_file options.output_file @@ fun fmt ->
+          let _output_file, with_output = get_output_format () in
+          with_output @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
@@ -289,7 +293,8 @@ let driver source_file (options : Cli.options) : int =
             in
             match backend with
             | `Lcalc ->
-              File.with_formatter_of_opt_file options.output_file @@ fun fmt ->
+              let _output_file, with_output = get_output_format () in
+              with_output @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
                   (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
@@ -315,38 +320,29 @@ let driver source_file (options : Cli.options) : int =
                        i + 1)
                      prgm.scopes)
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
-              let source_file =
-                match source_file with
-                | FileName f -> f
-                | Contents _ ->
-                  Errors.raise_error
-                    "This backend does not work if the input is not a file"
-              in
-              let new_output_file (extension : string) : string =
-                match options.output_file with
-                | Some f -> f
-                | None -> Filename.remove_extension source_file ^ extension
-              in
               match backend with
               | `OCaml ->
-                let output_file = new_output_file ".ml" in
-                File.with_out_channel output_file @@ fun oc ->
-                let fmt = Format.formatter_of_out_channel oc in
+                let output_file, with_output =
+                  get_output_format ~ext:".ml" ()
+                in
+                with_output @@ fun fmt ->
                 Cli.debug_print "Compiling program into OCaml...";
-                Cli.debug_print "Writing to %s..." output_file;
+                Cli.debug_print "Writing to %s..."
+                  (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
               | `Plugin (Plugin.Lcalc p) ->
-                let output_file = new_output_file p.Plugin.extension in
+                let output_file, _ = get_output ~ext:p.Plugin.extension () in
                 Cli.debug_print "Compiling program through backend \"%s\"..."
                   p.Plugin.name;
-                Cli.debug_print "Writing to %s..." output_file;
+                Cli.debug_print "Writing to %s..."
+                  (Option.value ~default:"stdout" output_file);
                 p.Plugin.apply output_file prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
                 let prgm = Scalc.Compile_from_lambda.translate_program prgm in
                 match backend with
                 | `Scalc ->
-                  File.with_formatter_of_opt_file options.output_file
-                  @@ fun fmt ->
+                  let _output_file, with_output = get_output_format () in
+                  with_output @@ fun fmt ->
                   if Option.is_some options.ex_scope then
                     Format.fprintf fmt "%a\n"
                       (Scalc.Print.format_scope ~debug:options.debug
@@ -363,18 +359,21 @@ let driver source_file (options : Cli.options) : int =
                            (Scalc.Print.format_scope prgm.decl_ctx) fmt scope))
                       prgm.scopes
                 | `Python ->
-                  let output_file = new_output_file ".py" in
+                  let output_file, with_output =
+                    get_output_format ~ext:".py" ()
+                  in
                   Cli.debug_print "Compiling program into Python...";
-                  Cli.debug_print "Writing to %s..." output_file;
-                  File.with_out_channel output_file @@ fun oc ->
-                  let fmt = Format.formatter_of_out_channel oc in
+                  Cli.debug_print "Writing to %s..."
+                    (Option.value ~default:"stdout" output_file);
+                  with_output @@ fun fmt ->
                   Scalc.To_python.format_program fmt prgm type_ordering
                 | `Plugin (Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->
-                  let output_file = new_output_file p.Plugin.extension in
+                  let output_file, _ = get_output ~ext:p.Plugin.extension () in
                   Cli.debug_print "Compiling program through backend \"%s\"..."
                     p.Plugin.name;
-                  Cli.debug_print "Writing to %s..." output_file;
+                  Cli.debug_print "Writing to %s..."
+                    (Option.value ~default:"stdout" output_file);
                   p.Plugin.apply output_file prgm type_ordering)))))));
     0
   with

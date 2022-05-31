@@ -19,7 +19,7 @@
 type 'ast gen = {
   name : string;
   extension : string;
-  apply : string -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
+  apply : string option -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
 }
 
 type t = Lcalc of Lcalc.Ast.program gen | Scalc of Scalc.Ast.program gen
@@ -39,13 +39,19 @@ module PluginAPI : sig
   val register_lcalc :
     name:string ->
     extension:string ->
-    (string -> Lcalc.Ast.program -> Scopelang.Dependency.TVertex.t list -> unit) ->
+    (string option ->
+    Lcalc.Ast.program ->
+    Scopelang.Dependency.TVertex.t list ->
+    unit) ->
     unit
 
   val register_scalc :
     name:string ->
     extension:string ->
-    (string -> Scalc.Ast.program -> Scopelang.Dependency.TVertex.t list -> unit) ->
+    (string option ->
+    Scalc.Ast.program ->
+    Scopelang.Dependency.TVertex.t list ->
+    unit) ->
     unit
 end
 

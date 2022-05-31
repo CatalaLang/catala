@@ -50,27 +50,29 @@ let with_temp_file pfx sfx f =
 
 let apply output_file prgm type_ordering =
   with_temp_file "catala_jsoo_" ".ml" @@ fun ml_file ->
-  with_open_out ml_file (fun oc ->
-      Lcalc.To_ocaml.format_program
-        (Format.formatter_of_out_channel oc)
-        prgm type_ordering;
-      with_temp_file "catala_jsoo_" ".byte" @@ fun bytecode_file ->
-      if
-        Sys.command
-          (Printf.sprintf
-             "ocamlfind ocamlc -package catala.runtime -linkpkg %S -o %S"
-             ml_file bytecode_file)
-        <> 0
-      then failwith "ocaml err";
-      Utils.Cli.debug_print "OCaml compil ok";
-      if
-        Sys.command
-          (Printf.sprintf
-             "js_of_ocaml +zarith_stubs_js/biginteger.js \
-              +zarith_stubs_js/runtime.js %S -o %S"
-             bytecode_file output_file)
-        <> 0
-      then failwith "jsoo err";
-      Utils.Cli.debug_print "Jsoo compil ok, output in %s" output_file)
+  Utils.File.with_formatter_of_opt_file output_file @@ fun fmt ->
+  Lcalc.To_ocaml.format_program fmt prgm type_ordering;
+  with_temp_file "catala_jsoo_" ".byte" @@ fun bytecode_file ->
+  if
+    Sys.command
+      (Printf.sprintf
+         "ocamlfind ocamlc -package catala.runtime -linkpkg %S -o %S" ml_file
+         bytecode_file)
+    <> 0
+  then failwith "ocaml err";
+  Utils.Cli.debug_print "OCaml compil ok";
+  let out_arg =
+    match output_file with Some f -> Printf.sprintf "%S" f | None -> "-"
+  in
+  if
+    Sys.command
+      (Printf.sprintf
+         "js_of_ocaml +zarith_stubs_js/biginteger.js \
+          +zarith_stubs_js/runtime.js %S -o %s"
+         bytecode_file out_arg)
+    <> 0
+  then failwith "jsoo err";
+  Utils.Cli.debug_print "Jsoo compil ok, output in %s"
+    (Option.value ~default:"stdout" output_file)
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply
