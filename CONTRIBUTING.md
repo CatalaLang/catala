@@ -89,6 +89,12 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
+### Installing and using nix
+
+We provide an nix environement to develop the Catala compiler. It is available
+after [installing nix](https://nixos.org/download.html). You can then just
+use `nix develop` to enter the environment.
+
 ### Example: adding a builtin function
 
 The language provides a limited number of builtin functions, which are sometimes
