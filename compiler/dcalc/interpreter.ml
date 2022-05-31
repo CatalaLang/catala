@@ -21,7 +21,7 @@ module A = Ast
 
 (** {1 Helpers} *)
 
-let is_empty_error (e : A.expr Marked.pos) : bool =
+let is_empty_error (e : 'm A.marked_expr) : bool =
   match Marked.unmark e with ELit LEmptyError -> true | _ -> false
 
 let log_indent = ref 0
@@ -31,32 +31,32 @@ let log_indent = ref 0
 let rec evaluate_operator
     (ctx : Ast.decl_ctx)
     (op : A.operator Marked.pos)
-    (args : A.expr Marked.pos list) : A.expr Marked.pos =
+    (args : 'm A.marked_expr list) : 'm A.marked_expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
      [op] to raise multispanned errors. *)
-  let apply_div_or_raise_err (div : unit -> A.expr) (op : A.operator Marked.pos)
-      : A.expr =
+  let apply_div_or_raise_err (div : unit -> 'm A.expr) (op : A.operator Marked.pos)
+      : 'm A.expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error
         [
           Some "The division operator:", Marked.get_mark op;
-          Some "The null denominator:", Marked.get_mark (List.nth args 1);
+          Some "The null denominator:", Ast.pos (List.nth args 1);
         ]
         "division by zero at runtime"
   in
-  let get_binop_args_pos (args : (A.expr * Pos.t) list) :
+  let get_binop_args_pos (arg0::arg1::_ : ('m A.expr * 'm) list) :
       (string option * Pos.t) list =
     [
-      None, Marked.get_mark (List.nth args 0);
-      None, Marked.get_mark (List.nth args 1);
+      None, Ast.pos arg0;
+      None, Ast.pos arg1;
     ]
   in
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
      use [args] to raise multispanned errors. *)
   let apply_cmp_or_raise_err
-      (cmp : unit -> A.expr)
-      (args : (A.expr * Pos.t) list) : A.expr =
+      (cmp : unit -> 'm A.expr)
+      (args : 'm A.marked_expr list) : 'm A.expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
       Errors.raise_multispanned_error (get_binop_args_pos args)
@@ -329,8 +329,8 @@ let rec evaluate_operator
          (should not happen if the term was well-typed)")
     op
 
-and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Marked.pos) :
-    A.expr Marked.pos =
+and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
+    'm A.marked_expr =
   match Marked.unmark e with
   | EVar _ ->
     Errors.raise_spanned_error (Marked.get_mark e)

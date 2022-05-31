@@ -61,7 +61,7 @@ and expr =
   | ERaise of except
   | ECatch of marked_expr * except * marked_expr
 
-type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : (expr, Dcalc.Ast.untyped) Dcalc.Ast.scopes }
 
 (** {1 Variable helpers} *)
 

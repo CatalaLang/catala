@@ -36,25 +36,25 @@ val format_lit_style : Format.formatter -> string -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val format_enum_constructor : Format.formatter -> Ast.EnumConstructor.t -> unit
 val format_tlit : Format.formatter -> Ast.typ_lit -> unit
-val format_typ : Ast.decl_ctx -> Format.formatter -> Ast.typ Marked.pos -> unit
-val format_lit : Format.formatter -> Ast.lit Marked.pos -> unit
+val format_typ : Ast.decl_ctx -> Format.formatter -> Ast.typ -> unit
+val format_lit : Format.formatter -> Ast.lit -> unit
 val format_op_kind : Format.formatter -> Ast.op_kind -> unit
-val format_binop : Format.formatter -> Ast.binop Marked.pos -> unit
-val format_ternop : Format.formatter -> Ast.ternop Marked.pos -> unit
+val format_binop : Format.formatter -> Ast.binop -> unit
+val format_ternop : Format.formatter -> Ast.ternop -> unit
 val format_log_entry : Format.formatter -> Ast.log_entry -> unit
-val format_unop : Format.formatter -> Ast.unop Marked.pos -> unit
-val format_var : Format.formatter -> Ast.Var.t -> unit
+val format_unop : Format.formatter -> Ast.unop -> unit
+val format_var : Format.formatter -> 'm Ast.var -> unit
 
 val format_expr :
   ?debug:bool (** [true] for debug printing *) ->
   Ast.decl_ctx ->
   Format.formatter ->
-  Ast.expr Marked.pos ->
+  'm Ast.marked_expr ->
   unit
 
 val format_scope :
   ?debug:bool (** [true] for debug printing *) ->
   Ast.decl_ctx ->
   Format.formatter ->
-  Ast.ScopeName.t * Ast.expr Ast.scope_body ->
+  Ast.ScopeName.t * ('m Ast.expr, 'm) Ast.scope_body ->
   unit

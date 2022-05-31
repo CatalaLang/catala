@@ -603,7 +603,7 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
     match Marked.unmark e with
     | EAbs (e, _) ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
-      let fresh_v = Var.make "arm!tmp" in
+      let fresh_v = new_var "arm!tmp" in
       let fresh_e = EVar fresh_v in
 
       (* Invariant: Catala enums always have exactly one argument *)

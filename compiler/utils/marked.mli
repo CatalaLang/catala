@@ -18,10 +18,11 @@
 (** AST node annotations (used for position, type, etc.) *)
 
 type ('a, 'm) t = 'a * 'm
-(** Everything related to the source code should keep its position stored, to
-    improve error messages *)
+(** Everything related to the source code should keep at least its position
+    stored, to improve error messages *)
 
 type 'a pos = ('a, Pos.t) t
+(** The type of marks containing only position information *)
 
 val mark : 'm -> 'a -> ('a, 'm) t
 val unmark : ('a, 'm) t -> 'a

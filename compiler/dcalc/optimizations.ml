@@ -18,12 +18,12 @@ open Utils
 open Ast
 
 type partial_evaluation_ctx = {
-  var_values : expr Marked.pos Ast.VarMap.t;
+  var_values : typed marked_expr Ast.VarMap.t;
   decl_ctx : decl_ctx;
 }
 
-let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Marked.pos)
-    : expr Marked.pos Bindlib.box =
+let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr)
+    : 'm marked_expr Bindlib.box =
   let pos = Marked.get_mark e in
   let rec_helper = partial_evaluation ctx in
   match Marked.unmark e with
@@ -183,13 +183,13 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Marked.pos)
   | ErrorOnEmpty e1 ->
     Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) (rec_helper e1)
 
-let optimize_expr (decl_ctx : decl_ctx) (e : expr Marked.pos) =
+let optimize_expr (decl_ctx : decl_ctx) (e : 'm marked_expr) =
   partial_evaluation { var_values = VarMap.empty; decl_ctx } e
 
 let rec scope_lets_map
-    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
+    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
     (ctx : 'a)
-    (scope_body_expr : expr scope_body_expr) : expr scope_body_expr Bindlib.box
+    (scope_body_expr : ('m expr, 'm) scope_body_expr) : ('m expr, 'm) scope_body_expr Bindlib.box
     =
   match scope_body_expr with
   | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
@@ -209,9 +209,9 @@ let rec scope_lets_map
       new_scope_let_expr new_next
 
 let rec scopes_map
-    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
+    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
     (ctx : 'a)
-    (scopes : expr scopes) : expr scopes Bindlib.box =
+    (scopes : ('m expr, 'm) scopes) : ('m expr, 'm) scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
@@ -240,14 +240,14 @@ let rec scopes_map
       new_scope_body_expr new_scope_next
 
 let program_map
-    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
+    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
     (ctx : 'a)
-    (p : program) : program Bindlib.box =
+    (p : 'm program) : 'm program Bindlib.box =
   Bindlib.box_apply
     (fun new_scopes -> { p with scopes = new_scopes })
     (scopes_map t ctx p.scopes)
 
-let optimize_program (p : program) : program =
+let optimize_program (p : 'm program) : 'm program =
   Bindlib.unbox
     (program_map partial_evaluation
        { var_values = VarMap.empty; decl_ctx = p.decl_ctx }

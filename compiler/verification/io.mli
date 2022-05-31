@@ -39,9 +39,7 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context ->
-    Dcalc.Ast.expr Utils.Marked.pos ->
-    backend_context * vc_encoding
+    backend_context -> Dcalc.Ast.typed_expr -> backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -57,9 +55,7 @@ module type BackendIO = sig
   type vc_encoding
 
   val translate_expr :
-    backend_context ->
-    Dcalc.Ast.expr Utils.Marked.pos ->
-    backend_context * vc_encoding
+    backend_context -> Dcalc.Ast.typed_expr -> backend_context * vc_encoding
 
   type model
 

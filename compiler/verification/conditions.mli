@@ -26,7 +26,7 @@ type verification_condition_kind =
           a conflict error *)
 
 type verification_condition = {
-  vc_guard : Dcalc.Ast.expr Utils.Marked.pos;
+  vc_guard : Dcalc.Ast.typed_expr;
       (** This expression should have type [bool]*)
   vc_kind : verification_condition_kind;
   vc_scope : Dcalc.Ast.ScopeName.t;
@@ -38,7 +38,7 @@ type verification_condition = {
 }
 
 val generate_verification_conditions :
-  Dcalc.Ast.program ->
+  'm Dcalc.Ast.program ->
   Dcalc.Ast.ScopeName.t option ->
   verification_condition list
 (** [generate_verification_conditions p None] will generate the verification
