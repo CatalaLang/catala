@@ -15,5 +15,7 @@ ocamlPackages.overrideScope' (self: super: {
   });
   bindlib = ocamlPackages.callPackage ./bindlib.nix { };
   unionfind = ocamlPackages.callPackage ./unionfind.nix { };
+  ninja_utils = ocamlPackages.callPackage ./ninja_utils.nix { };
+  clerk = ocamlPackages.callPackage ./clerk.nix { };
   ppx_yojson_conv = ocamlPackages.callPackage ./ppx_yojson_conv.nix { };
 })
