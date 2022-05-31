@@ -331,7 +331,11 @@ let make_let_in
 let make_default ?(pos = Pos.no_pos) exceptions just cons =
   let rec bool_value = function
     | ELit (Dcalc.Ast.LBool b), _ -> Some b
-    | EApp ((EOp (Unop (Log _)), _), [e]), _ -> bool_value e
+    | EApp ((EOp (Unop (Log (l, _))), _), [e]), _
+      when l <> Dcalc.Ast.PosRecordIfTrueBool
+           (* we don't remove the log calls corresponding to source code
+              definitions !*) ->
+      bool_value e
     | _ -> None
   in
   match exceptions, bool_value just, cons with
