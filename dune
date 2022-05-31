@@ -1,1 +1,21 @@
-(dirs compiler plugins french_law build_system syntax_highlighting)
+(dirs compiler french_law build_system)
+
+(data_only_dirs tests examples syntax_highlighting)
+
+(alias
+ (name exec)
+ (deps compiler/catala.exe build_system/clerk.exe))
+
+(rule
+ (alias runtest)
+ (deps
+  (source_tree tests))
+ (action
+  (run clerk --exe %{bin:catala} test tests)))
+
+(rule
+ (alias runtest)
+ (deps
+  (source_tree examples))
+ (action
+  (run clerk --exe %{bin:catala} test examples)))

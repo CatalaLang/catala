@@ -1,8 +1,4 @@
 let scope TestBool (foo: bool|context|output) (bar: integer|context|output) =
-  let bar : integer = reentrant or by default
-    ⟨⟨true ⊢ ⟨⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
-      ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩;
+  let bar : integer = reentrant or by default ⟨1 | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default
-    ⟨⟨true ⊢ ⟨⟨bar < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩,
-      ⟨true ⊢ ⟨⟨bar >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩⟩ |
-      true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
+    ⟨⟨bar < 0 ⊢ false⟩, ⟨bar >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩

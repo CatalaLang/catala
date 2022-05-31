@@ -68,6 +68,9 @@ val map_under_mark : ('a -> 'b) -> 'a marked -> 'b marked
 val same_pos_as : 'a -> 'b marked -> 'a marked
 val unmark_option : 'a marked option -> 'a option
 
+val compare_marked : ('a -> 'a -> int) -> 'a marked -> 'a marked -> int
+(** Compares two marked values {b ignoring positions} *)
+
 (** Visitors *)
 
 class ['self] marked_map :

@@ -222,6 +222,12 @@ let get_position ((_, x) : 'a marked) : t = x
 let map_under_mark (f : 'a -> 'b) ((x, y) : 'a marked) : 'b marked = f x, y
 let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = x, y
 
+let compare_marked
+    (cmp : 'a -> 'a -> int)
+    ((x, _) : 'a marked)
+    ((y, _) : 'a marked) : int =
+  cmp x y
+
 let unmark_option (x : 'a marked option) : 'a option =
   match x with Some x -> Some (unmark x) | None -> None
 
