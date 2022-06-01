@@ -112,6 +112,8 @@ déclaration structure LogementFoyer:
   donnée remplit_conditions_r832_21 contenu booléen
   donnée pour_jeunes_travailleurs_III_12_loi_1957 contenu booléen
 
+déclaration structure InformationsCalculAPLLogementFoyer:
+  donnée équivalence_loyer_éligible contenu argent
 ```
 
 #### Calcul et éligibilité pour tous les secteurs
@@ -243,7 +245,7 @@ déclaration énumération CatégorieCalculAPL:
 
 déclaration énumération InformationsCalculAPL:
   -- InfosLocatif contenu InformationsCalculAPLLocatif
-  -- InfosLogementFoyer
+  -- InfosLogementFoyer contenu InformationsCalculAPLLogementFoyer
   -- InfosAccessionPropriété contenu
     InformationsCalculAPLAccessionPropriété
 ```
@@ -535,13 +537,14 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
+  entrée équivalence_loyer_éligible contenu argent
 
   contexte condition_2_du_832_25 contenu booléen
 
   interne coefficient_multiplicateur_d832_25 contenu argent
   interne coefficient_r_d832_25 contenu argent
   interne n_nombre_parts_d832_25 contenu décimal
-  interne équivalence_loyer_éligible contenu argent
+  interne plafond_équivalence_loyer_éligible contenu argent
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
@@ -793,6 +796,8 @@ champ d'application CalculAllocationLogementAccessionPropriété:
       }
       -- remplit_conditions_r832_21: faux
     })
+  définition calcul_apl_logement_foyer.équivalence_loyer_éligible égal à
+    0 € # Valeur par défaut
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage_arrondies
   définition calcul_apl_logement_foyer.nombre_personnes_à_charge égal à
@@ -843,6 +848,8 @@ champ d'application CalculAllocationLogementFoyer:
     # TODO informatique: refactoriser calcul_apl_logement_foyer.mode_occupation
     # pour ne garder que LogementFoyer
     RésidentLogementFoyer contenu logement_foyer
+  définition calcul_apl_logement_foyer.équivalence_loyer_éligible égal à
+    redevance
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage_arrondies
   définition calcul_apl_logement_foyer.nombre_personnes_à_charge égal à

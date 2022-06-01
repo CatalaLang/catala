@@ -2666,7 +2666,7 @@ pour les prestations dues à compter du 1er octobre 2021.
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer sous condition
   date_courante >=@ |2021-10-01|:
-  définition équivalence_loyer_éligible égal à
+  définition plafond_équivalence_loyer_éligible égal à
     (selon zone sous forme
     -- Zone1: (
       si nombre_personnes_à_charge = 0 alors

@@ -1549,6 +1549,12 @@ champ d'application CalculAidePersonnelleLogement:
     -- InfosLogementFoyer: Neuf # Valeur par défaut
     -- InfosAccessionPropriété de infos:
       infos.InformationsCalculAPLAccessionPropriété.ancienneté_logement
+
+  définition logement_foyer.équivalence_loyer_éligible égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: 0 € # Valeur par défaut
+    -- InfosLogementFoyer de infos: infos.équivalence_loyer_éligible
+    -- InfosAccessionPropriété:  0 € # Valeur par défaut
 ```
 
 ####### Sous-section 1 : Ouverture et extinction des droits
