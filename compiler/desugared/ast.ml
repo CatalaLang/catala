@@ -155,6 +155,116 @@ type expr =
   | EArray of expr Pos.marked list
   | ErrorOnEmpty of expr Pos.marked
 
+module Expr = struct
+  type t = expr
+
+  (** Syntactic comparison, up to locations and alpha-renaming *)
+  let rec compare e1 e2 =
+    let rec list_compare cmp l1 l2 =
+      (* List.compare is available from OCaml 4.12 on *)
+      match l1, l2 with
+      | [], [] -> 0
+      | [], _ :: _ -> -1
+      | _ :: _, [] -> 1
+      | a1 :: l1, a2 :: l2 ->
+        let c = cmp a1 a2 in
+        if c <> 0 then c else list_compare cmp l1 l2
+    in
+    match e1, e2 with
+    | ELocation _, ELocation _ -> 0
+    | EVar (v1, _), EVar (v2, _) -> Bindlib.compare_vars v1 v2
+    | EStruct (name1, field_map1), EStruct (name2, field_map2) -> (
+      match Scopelang.Ast.StructName.compare name1 name2 with
+      | 0 ->
+        Scopelang.Ast.StructFieldMap.compare
+          (Pos.compare_marked compare)
+          field_map1 field_map2
+      | n -> n)
+    | ( EStructAccess ((e1, _), field_name1, struct_name1),
+        EStructAccess ((e2, _), field_name2, struct_name2) ) -> (
+      match compare e1 e2 with
+      | 0 -> (
+        match Scopelang.Ast.StructFieldName.compare field_name1 field_name2 with
+        | 0 -> Scopelang.Ast.StructName.compare struct_name1 struct_name2
+        | n -> n)
+      | n -> n)
+    | EEnumInj ((e1, _), cstr1, name1), EEnumInj ((e2, _), cstr2, name2) -> (
+      match compare e1 e2 with
+      | 0 -> (
+        match Scopelang.Ast.EnumName.compare name1 name2 with
+        | 0 -> Scopelang.Ast.EnumConstructor.compare cstr1 cstr2
+        | n -> n)
+      | n -> n)
+    | EMatch ((e1, _), name1, emap1), EMatch ((e2, _), name2, emap2) -> (
+      match compare e1 e2 with
+      | 0 -> (
+        match Scopelang.Ast.EnumName.compare name1 name2 with
+        | 0 ->
+          Scopelang.Ast.EnumConstructorMap.compare
+            (Pos.compare_marked compare)
+            emap1 emap2
+        | n -> n)
+      | n -> n)
+    | ELit l1, ELit l2 -> Stdlib.compare l1 l2
+    | EAbs ((binder1, _), typs1), EAbs ((binder2, _), typs2) -> (
+      match
+        list_compare (Pos.compare_marked Scopelang.Ast.Typ.compare) typs1 typs2
+      with
+      | 0 ->
+        let _, (e1, _), (e2, _) = Bindlib.unmbind2 binder1 binder2 in
+        compare e1 e2
+      | n -> n)
+    | EApp ((f1, _), args1), EApp ((f2, _), args2) -> (
+      match compare f1 f2 with
+      | 0 -> list_compare (fun (x1, _) (x2, _) -> compare x1 x2) args1 args2
+      | n -> n)
+    | EOp op1, EOp op2 -> Stdlib.compare op1 op2
+    | ( EDefault (exs1, (just1, _), (cons1, _)),
+        EDefault (exs2, (just2, _), (cons2, _)) ) -> (
+      match compare just1 just2 with
+      | 0 -> (
+        match compare cons1 cons2 with
+        | 0 -> list_compare (Pos.compare_marked compare) exs1 exs2
+        | n -> n)
+      | n -> n)
+    | ( EIfThenElse ((i1, _), (t1, _), (e1, _)),
+        EIfThenElse ((i2, _), (t2, _), (e2, _)) ) -> (
+      match compare i1 i2 with
+      | 0 -> ( match compare t1 t2 with 0 -> compare e1 e2 | n -> n)
+      | n -> n)
+    | EArray a1, EArray a2 ->
+      list_compare (fun (e1, _) (e2, _) -> compare e1 e2) a1 a2
+    | ErrorOnEmpty (e1, _), ErrorOnEmpty (e2, _) -> compare e1 e2
+    | ELocation _, _ -> -1
+    | _, ELocation _ -> 1
+    | EVar _, _ -> -1
+    | _, EVar _ -> 1
+    | EStruct _, _ -> -1
+    | _, EStruct _ -> 1
+    | EStructAccess _, _ -> -1
+    | _, EStructAccess _ -> 1
+    | EEnumInj _, _ -> -1
+    | _, EEnumInj _ -> 1
+    | EMatch _, _ -> -1
+    | _, EMatch _ -> 1
+    | ELit _, _ -> -1
+    | _, ELit _ -> 1
+    | EAbs _, _ -> -1
+    | _, EAbs _ -> 1
+    | EApp _, _ -> -1
+    | _, EApp _ -> 1
+    | EOp _, _ -> -1
+    | _, EOp _ -> 1
+    | EDefault _, _ -> -1
+    | _, EDefault _ -> 1
+    | EIfThenElse _, _ -> -1
+    | _, EIfThenElse _ -> 1
+    | EArray _, _ -> -1
+    | _, EArray _ -> 1
+end
+
+module ExprMap = Map.Make (Expr)
+
 module Var = struct
   type t = expr Bindlib.var
 
@@ -175,6 +285,41 @@ type rule = {
   rule_parameter : (Var.t * Scopelang.Ast.typ Pos.marked) option;
   rule_exception_to_rules : RuleSet.t Pos.marked;
 }
+
+module Rule = struct
+  type t = rule
+
+  (** Structural equality (otherwise, you should just compare the [rule_id]
+      fields) *)
+  let compare r1 r2 =
+    match r1.rule_parameter, r2.rule_parameter with
+    | None, None -> (
+      let j1, _ = Bindlib.unbox r1.rule_just in
+      let j2, _ = Bindlib.unbox r2.rule_just in
+      match Expr.compare j1 j2 with
+      | 0 ->
+        let c1, _ = Bindlib.unbox r1.rule_cons in
+        let c2, _ = Bindlib.unbox r2.rule_cons in
+        Expr.compare c1 c2
+      | n -> n)
+    | Some (v1, (t1, _)), Some (v2, (t2, _)) -> (
+      match Scopelang.Ast.Typ.compare t1 t2 with
+      | 0 -> (
+        let open Bindlib in
+        let b1 = unbox (bind_var v1 r1.rule_just) in
+        let b2 = unbox (bind_var v2 r2.rule_just) in
+        let _, (j1, _), (j2, _) = unbind2 b1 b2 in
+        match Expr.compare j1 j2 with
+        | 0 ->
+          let b1 = unbox (bind_var v1 r1.rule_cons) in
+          let b2 = unbox (bind_var v2 r2.rule_cons) in
+          let _, (c1, _), (c2, _) = unbind2 b1 b2 in
+          Expr.compare c1 c2
+        | n -> n)
+      | n -> n)
+    | None, Some _ -> -1
+    | Some _, None -> 1
+end
 
 let empty_rule
     (pos : Pos.t)

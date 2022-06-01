@@ -214,6 +214,7 @@ val ( /^ ) : duration -> duration -> decimal
 (** @raise Division_by_zero
     @raise IndivisableDurations *)
 
+val ( *^ ) : duration -> integer -> duration
 val ( ~-^ ) : duration -> duration
 val ( =^ ) : duration -> duration -> bool
 

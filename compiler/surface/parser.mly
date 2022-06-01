@@ -230,6 +230,7 @@ mult_op:
 | MULTMONEY { (Mult KMoney, Pos.from_lpos $sloc) }
 | DIVMONEY { (Div KMoney, Pos.from_lpos $sloc) }
 | DIVDURATION { (Div KDuration, Pos.from_lpos $sloc) }
+| MULDURATION { (Mult KDuration, Pos.from_lpos $sloc) }
 
 mult_expression:
 | e =  unop_expression { e }

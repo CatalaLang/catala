@@ -13,8 +13,8 @@ scope A:
   definition x equals Case1 content 2
   definition y under condition match x with pattern
     -- Case1 of i : true
-    -- Case2 : true consequence equals 2
+    -- Case2 : true consequence equals 3
   definition y under condition match x with pattern
     -- Case1 of i : false
-    -- Case2 : true consequence equals 2
+    -- Case2 : true consequence equals 4
 ```

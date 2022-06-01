@@ -7,7 +7,7 @@
 , menhir
 , unionfind
 , bindlib
-, cmdliner
+, cmdliner_1_1_0
 , re
 , zarith
 , zarith_stubs_js
@@ -22,12 +22,13 @@
 , ppx_deriving
 , z3
 , alcotest
+, ppx_yojson_conv
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
 buildDunePackage rec {
   pname = "catala";
-  version = "0.5.0";
+  version = "0.6.0"; # TODO parse `catala.opam` with opam2json
 
   minimumOCamlVersion = "4.11";
 
@@ -40,7 +41,7 @@ buildDunePackage rec {
     sedlex_2
     menhir
     menhirLib
-    cmdliner
+    cmdliner_1_1_0
     re
     zarith
     zarith_stubs_js
@@ -50,6 +51,7 @@ buildDunePackage rec {
     benchmark
     js_of_ocaml
     js_of_ocaml-ppx
+    ppx_yojson_conv
     camomile
     cppo
     z3
@@ -64,8 +66,6 @@ buildDunePackage rec {
     bindlib
   ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
   doCheck = true;
-
-  patches = [ ./.nix/no-web.patch ];
 
   meta = with lib; {
     homepage = "https://catala-lang.org";

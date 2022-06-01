@@ -115,6 +115,45 @@ let tag_with_log_entry
         Pos.get_position e ))
     e
 
+(* In a list of exceptions, it is normally an error if more than a single one
+   apply at the same time. This relaxes this constraint slightly, allowing a
+   conflict if all the triggered conflicting exception yield syntactically equal
+   results (and as long as none of these exceptions have exceptions themselves)
+
+   NOTE: the choice of the exception that will be triggered and show in the
+   trace is arbitrary (but deterministic). *)
+let collapse_similar_outcomes (excepts : Ast.expr Pos.marked list) :
+    Ast.expr Pos.marked list =
+  let cons_map =
+    List.fold_left
+      (fun map -> function
+        | (Ast.EDefault ([], _, (cons, _)), _) as e ->
+          Ast.ExprMap.update cons
+            (fun prev -> Some (e :: Option.value ~default:[] prev))
+            map
+        | _ -> map)
+      Ast.ExprMap.empty excepts
+  in
+  let _, excepts =
+    List.fold_right
+      (fun e (cons_map, excepts) ->
+        match e with
+        | Ast.EDefault ([], _, (cons, _)), _ ->
+          let collapsed_exc =
+            List.fold_left
+              (fun acc -> function
+                | Ast.EDefault ([], just, cons), pos ->
+                  [Ast.EDefault (acc, just, cons), pos]
+                | _ -> assert false)
+              []
+              (Ast.ExprMap.find cons cons_map)
+          in
+          Ast.ExprMap.add cons [] cons_map, collapsed_exc @ excepts
+        | e -> cons_map, e :: excepts)
+      excepts (cons_map, [])
+  in
+  excepts
+
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
     Dcalc.Ast.expr Pos.marked Bindlib.box =
   Bindlib.box_apply
@@ -287,6 +326,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
           Dcalc.Ast.EAbs ((b, pos_binder), List.map (translate_typ ctx) typ))
         binder
     | EDefault (excepts, just, cons) ->
+      let excepts = collapse_similar_outcomes excepts in
       Bindlib.box_apply3
         (fun e j c -> Dcalc.Ast.EDefault (e, j, c))
         (Bindlib.box_list (List.map (translate_expr ctx) excepts))

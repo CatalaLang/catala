@@ -66,6 +66,8 @@ type typ =
   | TArray of typ
   | TAny
 
+module Typ : Set.OrderedType with type t = typ
+
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax*)
 type expr =
@@ -85,6 +87,9 @@ type expr =
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | EArray of expr Pos.marked list
   | ErrorOnEmpty of expr Pos.marked
+
+module Expr : Set.OrderedType with type t = expr
+module ExprMap : Map.S with type key = expr
 
 val locations_used : expr Pos.marked -> LocationSet.t
 
@@ -164,3 +169,22 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
+
+val make_default :
+  ?pos:Pos.t ->
+  expr Pos.marked list ->
+  expr Pos.marked ->
+  expr Pos.marked ->
+  expr Pos.marked
+(** [make_default ?pos exceptions just cons] builds a term semantically
+    equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
+    while avoiding redundant nested constructions. The position is extracted
+    from [just] by default.
+
+    Note that, due to the simplifications taking place, the result might not be
+    of the form [EDefault]:
+
+    - [<true :- x>] is rewritten as [x]
+    - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
+      exceptions, is collapsed into [<ex | def>]
+    - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
