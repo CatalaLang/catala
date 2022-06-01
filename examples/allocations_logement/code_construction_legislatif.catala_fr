@@ -312,7 +312,7 @@ lorsque le demandeur est âgé de moins de vingt-cinq ans et qu'il dispose d'un
 contrat de travail autre qu'un contrat à durée indéterminée.
 
 ```catala
-# Information donnée par le bureau DGLAN/DHUP/FE4 le 25/05/2022:
+# Information donnée par le bureau DGALN/DHUP/FE4 le 25/05/2022:
 # "Historiquement, cet article avait été créé pour déroger (pour les moins
 # de 25 ans) au dispositif « d’évaluation forfaitaire » appliqué, avant réforme,
 # pour les ménages présentant un revenu moindre en N-2 mais ayant une activité
@@ -337,7 +337,7 @@ logement. Cette condition est appréciée pour chacun des membres du ménage.
 ```catala
 # La condition, si elle est vérifiée par un membre du ménage
 # enlève-t-elle le droit aux APL pour l'ensemble des membres du ménage ?
-# => Réponse de DGLAN/DHUP/FE4 le 25/05/2022: OUI.
+# => Réponse de DGALN/DHUP/FE4 le 25/05/2022: OUI.
 
 # L'interpretation est donc qu'aucun membre du ménage ne doit être
 # rattaché à des parents payant l'ifi.
@@ -588,7 +588,7 @@ conditions d'octroi sont fixées par voie réglementaire, sous les réserves
 ```catala
 # Les conditions d'octroi pour le prêt sont définities aux articles D331-1
 # et suivants du même code. Cela a été confirmé le 25/05/2022 par
-# DGLAN/DHUP/FE4.
+# DGALN/DHUP/FE4.
 
 # Ici, le 1° vient affiner le principe général définit à L822-2 selon lequel
 # tous les propriétaires ayant un prêt peuvent toucher les APL. En effet, ça
@@ -743,7 +743,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
     selon ménage.logement.mode_occupation sous forme
       -- LocationAccession de propriété:
         # Le fait que cette exception ne soit valable qu'après le 1er janvier
-        # 2018 nous a été confirmé le 25/05/2022 par DGLAN/DHUP/FE4.
+        # 2018 nous a été confirmé le 25/05/2022 par DGALN/DHUP/FE4.
         propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
         ménage.logement.est_ancien_l831_2 et
@@ -864,7 +864,7 @@ ont un enfant à charge au sens de l'article L. 512-3 du code de la sécurité s
 
 ```catala
 # "un enfant à charge": au moins un ou exactement un ?
-# => OUI confirmé par DGLAN/DHUP/FE4 le 25/05/2022
+# => OUI confirmé par DGALN/DHUP/FE4 le 25/05/2022
 # Le cas de plus d'un enfant est déjà géré par le 1°
 champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_2 exception l841_1_1
@@ -1003,7 +1003,7 @@ l'aide personnalisée au logement peuvent prétendre au bénéfice de l'allocati
 de logement sociale.
 
 ```catala
-# Complément d'explications donnés pat DGLAN/DHUP/FE4 le 25/05/2022:
+# Complément d'explications donnés pat DGALN/DHUP/FE4 le 25/05/2022:
 # "Il est exact de considérer que cet article détermine une hiérarchie pour
 # l’accession aux aides au logement c'est-à-dire que :
 # - Si un ménage est éligible à l’aide personnalisée au logement,

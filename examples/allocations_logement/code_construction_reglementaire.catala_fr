@@ -121,7 +121,7 @@ les personnes vivant habituellement au foyer.
 ```catala
 # Ici "conjoint" veut implicitement dire également "concubin" car on
 # a vu que les deux cas étaient gérés de la même manière précédemment.
-# Interprétation confirmée par DGLAN/DHUP/FE4 le 25/05/2022.
+# Interprétation confirmée par DGALN/DHUP/FE4 le 25/05/2022.
 champ d'application RessourcesAidePersonnelleLogement:
   définition ressources_prises_en_compte égal à
     ressources_demandeur +€
@@ -1143,7 +1143,7 @@ l'article L. 823-2 du présent code ;
 
 ```catala
 # TODO informatique: renommer le cas "ParentÀCharge" en "AutrePersonneÀCharge"
-# puisque "Parents" peut prêter à confusion comme signalé par DGLAN/DHUP/FE4 le
+# puisque "Parents" peut prêter à confusion comme signalé par DGALN/DHUP/FE4 le
 # 25/05/2022.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
@@ -2224,7 +2224,7 @@ charges ou à une échéance.
 # Est ce qu'un sous-locataire est considéré comme un locataire pour les
 # impayés ?
 # Oui car le deuxième alinéa de L822-4 s'applique ici, comme rappelé par
-# DGLAN/DHUP/FE4 le 25/05/2022.
+# DGALN/DHUP/FE4 le 25/05/2022.
 champ d'application ImpayéDépenseLogement:
   définition mode_occupation_impayé égal à
     selon mode_occupation sous forme
@@ -3108,7 +3108,7 @@ II du présent livre et arrondies à la centaine d'euros supérieure ;
 # Il n'y a aucun intervalle de ressources définis à la section 2 du chapitre
 # II du présent livre. Est-ce que c'est juste redondant avec l'arrondi à la
 # centaine d'euros supérieure (intervalles de 100 €) ?
-# Réponse de DGLAN/DHUP/FE4 le 25/05/2022:
+# Réponse de DGALN/DHUP/FE4 le 25/05/2022:
 # "L’intervalle correspond bien à l’arrondi de l’assiette ressources à la
 # centaine d’euros supérieure. La rédaction, issue de la recodification,
 # est en effet une reprise peut-être maladroite et perfectible de l’ancien
@@ -3274,7 +3274,7 @@ se situent les ressources ;
 # tranche la plus haute il n'y a pas de limite supérieure, donc qu'est-ce
 # qu'on fait ? Est-ce qu'on prend comme revenu la limite supérieure de
 # la tranche sauf pour la dernière ? Ambiguité.
-# Réponse de DGLAN/DHUP/FE4 le 25/05/2022:
+# Réponse de DGALN/DHUP/FE4 le 25/05/2022:
 # "Comme pour le D. 832-11, l’intervalle fait référence à l’arrondi de R à la
 #  centaine d’euros supérieure (sinon cela n’aurait effectivement pas de sens
 #  pour la dernière tranche).
@@ -3352,7 +3352,7 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
     # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
     # peut-on nous confirmer que le montant de la mensualité minimale est bien
     # calculée selon l'alinéa 2° de D832-15 ?
-    # Réponse de DGLAN/DHUP/FE4 le 25/05/2022:
+    # Réponse de DGALN/DHUP/FE4 le 25/05/2022:
     # "Le demandeur est éligible à l’APL qui est calculée selon l’alinéa 1°
     #  du D832-15. Le 2° ne concerne que les travaux d’amélioration."
     # La réponse à notre question est bien oui pour les deux items,
@@ -3450,7 +3450,7 @@ et R. 822-13 à R. 822-17.
 # Les ressources mentionnées ici prennent-elles en compte
 # les ressources des personnes à charge autre que le bénéficiaire et son
 # conjoint ?
-# Non, selon réponse de DGLAN/DHUP/FE4 du 25/05/2022.
+# Non, selon réponse de DGALN/DHUP/FE4 du 25/05/2022.
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition ressources_ménage_avec_d832_18 égal à
     si ressources_ménage_arrondies <=€ mensualité_principale *€
@@ -4076,14 +4076,14 @@ conditions de décence ;
 # Quand il y a deux prêts différents, un pour le logement et un pour les
 # travaux, donc les périodes de remboursement se chevauchent mais ne sont
 # pas égales ? Les deux prêts doivent-t-il commencer en même temps?
-# Réponse de DGLAN/DHUP/FE4 le 20/05/2022:
+# Réponse de DGALN/DHUP/FE4 le 20/05/2022:
 # "Il s’agit de travaux pour la décence (cf. art 6 loi de 89 et décret décence
 # du 30/01/2002) et non juste de travaux d’embellissement."
 # Lorsqu’il y a deux prêts différents, un pour le logement et un pour
 # les travaux et que les périodes de remboursement se chevauchent et ne sont
 # pas égales, doit-on comprendre que les deux prêts doivent commencer en
 # même temps pour que la disposition s’applique ?
-# Réponse de DGLAN/DHUP/FE4 du 25/05/2022:
+# Réponse de DGALN/DHUP/FE4 du 25/05/2022:
 # "Soit la demande est globale avec 2 prêts « en même temps » (cf. 1°), soit
 # les travaux arrivent ultérieurement, dans ce cas c’est le 2°."
 champ d'application ÉligibilitéAllocationLogement:
@@ -4573,7 +4573,7 @@ au montant de cette redevance.
 ```catala
 # Qu'est-ce que la redevance supportée par le résident? Le loyer
 # du logement-foyer?
-# OUI, selon réponse de DGLAN/DHUP/FE4 du 25/05/2022.
+# OUI, selon réponse de DGALN/DHUP/FE4 du 25/05/2022.
 champ d'application CalculAllocationLogementFoyer:
   définition allocation_mensuelle état redevance
   égal à si allocation_mensuelle >€ redevance
