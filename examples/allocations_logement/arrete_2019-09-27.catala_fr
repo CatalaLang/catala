@@ -3084,6 +3084,15 @@ NOTA :
 Conformément à l'article 2 de l'arrêté du 3 janvier 2020 ( NOR : LOGL1934006A ), ces dispositions sont applicables
 pour les prestations dues à compter du 1er janvier 2020.
 
+```catala
+# Dans le bloc "Certificats datés à partir du 01/07/02", dans la ligne
+# correspondant à la zone III, dans la colonne "C+1", il est inscrit la valeur
+# "2987,27" qui est clairement aberrante par rapport aux autres valeurs.
+# Selon DGALN/DHUP/FE4 en date du 01/06/2022, la bonne valeur est "287,27"
+# qui provient de l'article 2 de l'arrêté du 20 décembre 2002 relatif à la
+# revalorisation des aides au logement
+```
+
 ### Article 34 | LEGIARTI000044137403
 
 Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-6 du même code sont fixés comme
