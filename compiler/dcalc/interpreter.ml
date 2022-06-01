@@ -119,6 +119,8 @@ let rec evaluate_operator
               "Cannot divide durations that cannot be converted to a precise \
                number of days")
         op
+    | A.Binop (A.Mult KDuration), [ELit (LDuration d1); ELit (LInt i1)] ->
+      A.ELit (LDuration Runtime.(d1 *^ i1))
     | A.Binop (A.Lt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
       A.ELit (LBool Runtime.(i1 <! i2))
     | A.Binop (A.Lte KInt), [ELit (LInt i1); ELit (LInt i2)] ->
