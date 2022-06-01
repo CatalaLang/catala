@@ -620,7 +620,11 @@ let get_def_key
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
     Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
-  | _ -> Errors.raise_spanned_error default_pos "Structs are not handled yet"
+  | _ ->
+    Errors.raise_spanned_error default_pos
+      "This line is defining a quantity that is neither a scope variable nor a \
+       subscope variable. In particular, it is not possible to define struct \
+       fields individually in Catala."
 
 let process_definition
     (ctxt : context)
