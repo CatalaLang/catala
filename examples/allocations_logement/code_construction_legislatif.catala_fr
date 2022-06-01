@@ -312,14 +312,17 @@ lorsque le demandeur est âgé de moins de vingt-cinq ans et qu'il dispose d'un
 contrat de travail autre qu'un contrat à durée indéterminée.
 
 ```catala
-# TODO juridique: que se passe-t-il si le demandeur est dans un ménage?
+# Information donnée par le bureau DGLAN/DHUP/FE4 le 25/05/2022:
+# "Historiquement, cet article avait été créé pour déroger (pour les moins
+# de 25 ans) au dispositif « d’évaluation forfaitaire » appliqué, avant réforme,
+# pour les ménages présentant un revenu moindre en N-2 mais ayant une activité
+# professionnelle lors de la demande ou du recalcul du droit (anciens articles
+# R. 822-18 à 20 du CCH abrogés en 2020). Cet article n’a de fait plus lieu
+# d’être (il n’a plus d’application concrète, l’évaluation forfaitaire ayant
+# été supprimée) mais n’a pas pu être abrogé en même temps, l’abrogation ayant
+# eu lieu par un vecteur réglementaire."
 
-champ d'application ÉligibilitéAidePersonnelleLogement:
-  règle condition_spécifique_prise_en_compte_revenus_demandeur sous condition
-    (demandeur.age_demandeur <= 25) et
-    non (demandeur.contrat_de_travail sous forme CDI)
-  conséquence rempli
-
+# Il n'y a donc rien à formaliser ici en Catala.
 ```
 
 
@@ -332,10 +335,11 @@ logement. Cette condition est appréciée pour chacun des membres du ménage.
 
 
 ```catala
-# TODO juridique: la condition, si elle est vérifiée par un membre du ménage
+# La condition, si elle est vérifiée par un membre du ménage
 # enlève-t-elle le droit aux APL pour l'ensemble des membres du ménage ?
+# => Réponse de DGLAN/DHUP/FE4 le 25/05/2022: OUI.
 
-# Pour l'instant l'interpretation est que aucun membre du ménage ne doit être
+# L'interpretation est donc qu'aucun membre du ménage ne doit être
 # rattaché à des parents payant l'ifi.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_non_ouverture_l822_8
@@ -582,8 +586,9 @@ conditions d'octroi sont fixées par voie réglementaire, sous les réserves
 énoncées à l'article L. 831-2 ;
 
 ```catala
-# TODO juridique: trouver quelles sont ces mystérieuses conditions d'octroi
-# pour le prêt ? => Articles D331-1 et suivants du même code.
+# Les conditions d'octroi pour le prêt sont définities aux articles D331-1
+# et suivants du même code. Cela a été confirmé le 25/05/2022 par
+# DGLAN/DHUP/FE4.
 
 # Ici, le 1° vient affiner le principe général définit à L822-2 selon lequel
 # tous les propriétaires ayant un prêt peuvent toucher les APL. En effet, ça
@@ -737,10 +742,14 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
   exception l831_2_1 règle condition_logement_prêt sous condition
     selon ménage.logement.mode_occupation sous forme
       -- LocationAccession de propriété:
+        # Le fait que cette exception ne soit valable qu'après le 1er janvier
+        # 2018 nous a été confirmé le 25/05/2022 par DGLAN/DHUP/FE4.
+        propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
         ménage.logement.est_ancien_l831_2 et
         ménage.logement.situé_commune_déséquilibre_l831_2
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
+        propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
         ménage.logement.est_ancien_l831_2 et
         ménage.logement.situé_commune_déséquilibre_l831_2
@@ -854,9 +863,9 @@ champ d'application ÉligibilitéAllocationLogement:
 ont un enfant à charge au sens de l'article L. 512-3 du code de la sécurité sociale ;
 
 ```catala
-# TODO juridique: "un enfant à charge" => au moins un ou exactement un ?
-# Hypothèse: comme les allocations familiales sont ouvertes à partir du
-# deuxième enfant ça semble dire "exactement un".
+# "un enfant à charge": au moins un ou exactement un ?
+# => OUI confirmé par DGLAN/DHUP/FE4 le 25/05/2022
+# Le cas de plus d'un enfant est déjà géré par le 1°
 champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_2 exception l841_1_1
   règle éligibilité_allocation_logement_familiale
@@ -989,10 +998,26 @@ champ d'application ÉligibilitéAllocationLogement:
 
 ###### Article L841-2 | LEGIARTI000038814862
 
-Les personnes ne bénéficiant pas de l'allocation de logement familiale ou de l'aide personnalisée au
-logement peuvent prétendre au bénéfice de l'allocation de logement sociale.
+Les personnes ne bénéficiant pas de l'allocation de logement familiale ou de
+l'aide personnalisée au logement peuvent prétendre au bénéfice de l'allocation
+de logement sociale.
 
 ```catala
+# Complément d'explications donnés pat DGLAN/DHUP/FE4 le 25/05/2022:
+# "Il est exact de considérer que cet article détermine une hiérarchie pour
+# l’accession aux aides au logement c'est-à-dire que :
+# - Si un ménage est éligible à l’aide personnalisée au logement,
+#   il bénéficie de l’aide personnalisée.
+# - S’il n’est pas éligible à l’aide  personnalisée mais est
+#   éligible à l’allocation de logement familiale, il bénéficie de cette
+#   dernière.
+# - S’il ne bénéficie ni de l’aide personnalisée, ni de l’allocation de
+#   logement familiale, il peut prétendre à l’allocation de logement sociale."
+# Dans notre code Catala, nous faisons cependant, et plus fidèlement au texte de
+# loi, la différence entre éligibilité et bénéfice des différentes aides. Plus
+# précisément, nous gardons l'option d'attribuer l'ALS/ALF préférentiellement
+# à l'APL aux ménages éligibiles aux deux prestations, mais dont le montant
+# d'ALF/ALS et supérieur au montant d'APL.
 champ d'application ÉligibilitéAllocationLogement:
   définition éligibilité état l841_2 égal à
     si bénéficie_aide_personnelle_logement alors

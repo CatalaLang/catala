@@ -322,12 +322,23 @@ Personne seule ou couple ayant une personne à charge 2,70%
 Majoration par personne à charge	                   -0,06%
 
 ```catala
-# TODO juridique: rechercher si la distinction enfants/personnes est juste
-# un artefact de rédaction ou s'il y a vraiment une différence de calcul dans
+# La distinction enfants/personnes est-elle juste
+# un artefact de rédaction ou y-a-t-il vraiment une différence de calcul dans
 # le cas où e.g. il y a 3 enfants + 2 adultes à charges : doit on prendre 1,79%
 # ou 2,01% ?
-# TODO juridique: que se passe-t-il quand il y a 29 personnes à charge et que
-# le taux devient négatif?
+# Réponse de DGLAN/DHUP/FE4 du 25/05/2022:
+# "Non pas de différence, « X enfants ou X personnes » signifie « personne seule
+#  ou couple ayant X personnes à charge » (ainsi, dans le cas d’un couple avec
+#  3 enfants à charge et 2 adultes à charge, il faut prendre la ligne « 5
+#  enfants ou personnes », soit la valeur 1,79 %).
+#  Nous notons le point pour uniformiser les rédactions (également pour le
+#  tableau du 4° de l’article 46, correspondant aux valeurs pour l’outre-mer)."
+# Que se passe-t-il quand il y a 29 personnes à charge et que le taux devient
+# négatif?
+# Réponse de DGLAN/DHUP/FE4 du 25/05/2022:
+# "Cette situation étant très éloignée de la réalité elle n’a pas été traitée."
+# Nous sommes donc libres de choisir une interprétation, et nous choisissons
+# donc de laisser courir cette valeur dans le territoire négatif.
 champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition taux_composition_familiale égal à
@@ -2003,6 +2014,34 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
         # incorrect selon information DGALN/DHUP/FE4 du 25/04/2022
         59,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
+
+# Concernant l'erreur dans la valeur, voici la réponse intégrale de
+# DGLAN/DHUP/FE4:
+# "Pour les deux valeurs indiquées, il faut lire « 59,47 » à la place de
+#  « 459,47 » et « 47,99 » à la place de « 347,99 » (les valeurs des centaines
+#  sont à supprimer).
+#  L’arrêté du 27/09/2019 fait suite à la recodification des APL dans le CCH,
+#  opérée à l’été 2019. Il reprend et regroupe plusieurs anciens arrêtés, dont
+#  celui du 03/07/1978.
+#  Les valeurs citées correspondent à celles en vigueur pour des prêts signés en
+#  2012 et découlent de l’arrêté du 28/12/2011 modifiant celui du 03/07/1978 :
+#  - la version JO « scannée » authentifiée de cet arrêté de 2011 (page 123 du
+#    JO du 30/12/2011) est correcte, avec les vraies valeurs, qui ont été
+#    intégrées dans les SI à l’époque (et le sont toujours).
+#    (https://www.legifrance.gouv.fr/download/pdf?id=MX15OwEPRjsyPR0h_40wx-7mT0ji9z3kMMVYU8Jy7sc=)
+#  - on constate cependant sur légifrance que la version remise en page comporte
+#    l’erreur (article 6, mais également article 5 pour des valeurs qui ont été
+#    « écrasées » depuis et ne sont donc pas reprises dans l’arrêté de 2019
+#    (https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000025054546)
+#  La correction a été demandé fin avril à légifrance, mais n’est pas encore
+#  effective.
+#  En conséquence, l’arrêté modifié de 1978 apparaissait erroné sur légifrance
+#  en 2019 (et jusqu’à fin avril 2022, légifrance l’ayant corrigé à la suite de
+#  notre signalement), lorsqu’il a servi de base pour la rédaction du nouvel
+#  arrêté du 27/09/2019.
+#  Nous procéderons à la correction de l’arrêté de 2019 lors de la prochaine
+#  revalorisation des barèmes. Dans l’attente, les valeurs SI ont toujours
+#  été correctes, sans impact dans le calcul des aides."
 ```
 
 

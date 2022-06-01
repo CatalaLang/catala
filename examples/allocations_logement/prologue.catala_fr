@@ -299,7 +299,6 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
 
   # Différentes conditions pour l'éligibilité
   interne condition_prêt condition dépend de Prêt
-  interne condition_spécifique_prise_en_compte_revenus_demandeur condition
   interne condition_nationalité condition
   interne condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition

@@ -121,6 +121,7 @@ les personnes vivant habituellement au foyer.
 ```catala
 # Ici "conjoint" veut implicitement dire également "concubin" car on
 # a vu que les deux cas étaient gérés de la même manière précédemment.
+# Interprétation confirmée par DGLAN/DHUP/FE4 le 25/05/2022.
 champ d'application RessourcesAidePersonnelleLogement:
   définition ressources_prises_en_compte égal à
     ressources_demandeur +€
@@ -1141,6 +1142,9 @@ sens des 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de
 l'article L. 823-2 du présent code ;
 
 ```catala
+# TODO informatique: renommer le cas "ParentÀCharge" en "AutrePersonneÀCharge"
+# puisque "Parents" peut prêter à confusion comme signalé par DGLAN/DHUP/FE4 le
+# 25/05/2022.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
@@ -2217,12 +2221,10 @@ de location-accession ou par le contrat d'occupation en logement-foyer mentionn�
 charges ou à une échéance.
 
 ```catala
-# TODO juridique: chercher une controverse autour de cet article.
-
-# TODO juridique: est ce qu'un sous-locataire est considéré comme un
-# locataire pour les impayés ?
-# => peut-être un oubli car dans d'autres articles il est explicitement
-# mentionné que c'est le cas.
+# Est ce qu'un sous-locataire est considéré comme un locataire pour les
+# impayés ?
+# Oui car le deuxième alinéa de L822-4 s'applique ici, comme rappelé par
+# DGLAN/DHUP/FE4 le 25/05/2022.
 champ d'application ImpayéDépenseLogement:
   définition mode_occupation_impayé égal à
     selon mode_occupation sous forme
@@ -2231,7 +2233,6 @@ champ d'application ImpayéDépenseLogement:
     -- RésidentLogementFoyer: ImpayéPrêt
     -- LocationAccession: ImpayéLoyer
     -- SousLocataire:  ImpayéLoyer
-
 ```
 
 ###### Section 2 : Secteur locatif
@@ -2724,11 +2725,6 @@ attribuée, pour leur résidence principale, aux personnes qui occupent :
 amélioré, ou acquis et amélioré dans les conditions définies par le 1° de
 l'article L. 831-1 ;
 
-```catala
-# TODO juridique : y a-t-il une distinction entre "logement" et "local
-# à usage exclusif d'habitation".
-```
-
 2° Soit un logement à usage locatif, faisant l'objet d'une convention conclue
 en application des 2°, 3° ou 4° de l'article L. 831-1 ;
 
@@ -3108,11 +3104,25 @@ du ménage, appréciées conformément aux dispositions de la section 2 du chapi
 II du présent livre et arrondies à la centaine d'euros supérieure ;
 
 ```catala
-# TODO juridique: pourquoi nous parle-t-on de limite supérieure d'intervalle
-# ici ?
+# Pourquoi nous parle-t-on de limite supérieure d'intervalle ici ?
 # Il n'y a aucun intervalle de ressources définis à la section 2 du chapitre
 # II du présent livre. Est-ce que c'est juste redondant avec l'arrondi à la
 # centaine d'euros supérieure (intervalles de 100 €) ?
+# Réponse de DGLAN/DHUP/FE4 le 25/05/2022:
+# "L’intervalle correspond bien à l’arrondi de l’assiette ressources à la
+# centaine d’euros supérieure. La rédaction, issue de la recodification,
+# est en effet une reprise peut-être maladroite et perfectible de l’ancien
+# article (avant recodification, abrogé depuis) R. 351-19 qui est plus clair
+# sur cette notion d’intervalle :
+#   « Le coefficient K, au plus égal à 0,95, est déterminé pour chaque intervalle
+#     de ressources de 100 euros en appliquant la formule suivante :
+#     K = 0,95-R/ CM x N
+#     dans laquelle :
+#     R représente la limite supérieure de l'intervalle dans lequel se situent
+#     les ressources appréciées conformément à l'article R. 351-5 ; […] »
+# La manière dont nous interprétons cette réponse est la suivante : toutes
+# ces circonvolutions autour des limites supérieures des tranches reviennent
+# bien à faire un arrondi à la centaine d'euros supérieure.
 ```
 
 3° " cm " est un coefficient multiplicateur fixé par arrêté ;
@@ -3258,12 +3268,33 @@ coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans 
 se situent les ressources ;
 
 ```catala
-# TODO juridique et informatique : que veut dire la phrase "Les pourcentages
+# Que veut dire la phrase "Les pourcentages
 # et le coefficient " N " sont appliqués à la limite supérieure de
 # l'intervalle dans lequel se situent les ressources" ? Parce que pour la
 # tranche la plus haute il n'y a pas de limite supérieure, donc qu'est-ce
 # qu'on fait ? Est-ce qu'on prend comme revenu la limite supérieure de
 # la tranche sauf pour la dernière ? Ambiguité.
+# Réponse de DGLAN/DHUP/FE4 le 25/05/2022:
+# "Comme pour le D. 832-11, l’intervalle fait référence à l’arrondi de R à la
+#  centaine d’euros supérieure (sinon cela n’aurait effectivement pas de sens
+#  pour la dernière tranche).
+#  La précision de la notion d’intervalle apparaissait dans les articles avant
+#  recodification :
+#  - ex R. 351-21 (pour le D. 832-15)
+#  « […] Le loyer minimum L0 est déterminé pour chaque intervalle de ressources
+#    de 100 euros mentionné à l'article R. 351-19. Les pourcentages et le
+#    coefficient N prévus au premier alinéa du présent article sont appliqués
+#    à la limite supérieure de l'intervalle dans lequel se situent les
+#    ressources appréciées conformément à l'article R. 351-5. »
+#  - ex R. 351-62 (pour le D. 832-26)
+#  « […] L'équivalence de loyer et de charges minima est déterminée pour chaque
+#    intervalle de ressources de 100 euros mentionné à l'article R. 351-61.
+#    Les pourcentages et le coefficient N prévus au premier alinéa du présent
+#    article sont appliqués à la limite supérieure de l'intervalle dans lequel
+#    se situent les ressources appréciées conformément à l'article R. 351-5. »"
+# La manière dont nous interprétons cette réponse est la suivante : toutes
+# ces circonvolutions autour des limites supérieures des tranches reviennent
+# bien à faire un arrondi à la centaine d'euros supérieure.
 
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition mensualité_minimale sous condition
@@ -3315,13 +3346,17 @@ champ d'application CalculAidePersonnelleLogement:
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme SurLogementExistant ou
-    # TODO juridique: demander à la CAF comment interpetéter le R832-5 dans
+    # Comment interpetéter le R832-5 dans
     # le cas d'un prêt conventionné D331-63 alinéa 3° où le prêt finance
     # l'acquisition d'un logement existant sans travaux et donc sans
     # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
     # peut-on nous confirmer que le montant de la mensualité minimale est bien
-    # calculée selon l'alinéa 2° de D832-15 ? On prend l'hypothèse ici dans
-    # le code Catala que oui, d'où la ligne ci-dessous.
+    # calculée selon l'alinéa 2° de D832-15 ?
+    # Réponse de DGLAN/DHUP/FE4 le 25/05/2022:
+    # "Le demandeur est éligible à l’APL qui est calculée selon l’alinéa 1°
+    #  du D832-15. Le 2° ne concerne que les travaux d’amélioration."
+    # La réponse à notre question est bien oui pour les deux items,
+    # d'où la ligne ci-dessous.
     type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
   conséquence égal à
     équivalence_minimale_loyer
@@ -3412,9 +3447,10 @@ les intéressés se trouvent dans l'une des situations mentionnées aux articles
 et R. 822-13 à R. 822-17.
 
 ```catala
-# TODO juridique: vérifier si les ressources mentionnées ici prennent en compte
+# Les ressources mentionnées ici prennent-elles en compte
 # les ressources des personnes à charge autre que le bénéficiaire et son
-# conjoint.
+# conjoint ?
+# Non, selon réponse de DGLAN/DHUP/FE4 du 25/05/2022.
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition ressources_ménage_avec_d832_18 égal à
     si ressources_ménage_arrondies <=€ mensualité_principale *€
@@ -4034,12 +4070,22 @@ de celle contractée en même temps pour réaliser des travaux permettant de rem
 conditions de décence ;
 
 ```catala
-# TODO juridique: "le cas échéant, de celle contractée en même temps pour
+# "le cas échéant, de celle contractée en même temps pour
 # réaliser des travaux permettant de remplir les conditions de décence"
-# => Quel est le sens de cette précision, quel cas cela recouvre-t-il ?
+# Quel est le sens de cette précision, quel cas cela recouvre-t-il ?
 # Quand il y a deux prêts différents, un pour le logement et un pour les
 # travaux, donc les périodes de remboursement se chevauchent mais ne sont
 # pas égales ? Les deux prêts doivent-t-il commencer en même temps?
+# Réponse de DGLAN/DHUP/FE4 le 20/05/2022:
+# "Il s’agit de travaux pour la décence (cf. art 6 loi de 89 et décret décence
+# du 30/01/2002) et non juste de travaux d’embellissement."
+# Lorsqu’il y a deux prêts différents, un pour le logement et un pour
+# les travaux et que les périodes de remboursement se chevauchent et ne sont
+# pas égales, doit-on comprendre que les deux prêts doivent commencer en
+# même temps pour que la disposition s’applique ?
+# Réponse de DGLAN/DHUP/FE4 du 25/05/2022:
+# "Soit la demande est globale avec 2 prêts « en même temps » (cf. 1°), soit
+# les travaux arrivent ultérieurement, dans ce cas c’est le 2°."
 champ d'application ÉligibilitéAllocationLogement:
   règle condition_logement sous condition
     selon mode_occupation sous forme
@@ -4525,8 +4571,9 @@ supérieur au montant de la redevance supportée par le résident, il est rappor
 au montant de cette redevance.
 
 ```catala
-# TODO juridique: qu'est-ce que la redevance supportée par le résident? Le loyer
+# Qu'est-ce que la redevance supportée par le résident? Le loyer
 # du logement-foyer?
+# OUI, selon réponse de DGLAN/DHUP/FE4 du 25/05/2022.
 champ d'application CalculAllocationLogementFoyer:
   définition allocation_mensuelle état redevance
   égal à si allocation_mensuelle >€ redevance
