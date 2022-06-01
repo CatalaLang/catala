@@ -2841,6 +2841,33 @@ champ d'application CalculAidePersonnelleLogementFoyer:
     };
     TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
   ]
+
+  # Cette exception ne figure pas dans le texte de l'arrête mais cette absence
+  # nous a été confirmée comme une erreur de recodification par DLGAN/DHUP/FE4
+  # le 30/05/2022. Les valeurs et taux des tranches exceptionnelles sont
+  # décrites dans les éléments de calcul publiés par ce même bureau (page 33):
+  # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf
+  exception définition tranches_revenus_d832_26 sous condition
+    condition_2_du_832_25
+  conséquence égal à [
+    TrancheRevenu { -- haut: Revenu contenu 1423,03€  -- bas: 0€ -- taux: 0%};
+    TrancheRevenu {
+      -- haut: Revenu contenu 2047,61€
+      -- bas: 1423,03€
+      -- taux: 2,40%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 2629,85€
+      -- bas: 2047,61€
+      -- taux: 20,80%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 4095,05€
+      -- bas: 2629,85€
+      -- taux: 23,20%
+    };
+    TrancheRevenu { -- haut: Infini  -- bas: 4095,05€ -- taux: 32,80%}
+  ]
 ```
 
 II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont
