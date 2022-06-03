@@ -1556,10 +1556,10 @@ champ d'application CalculAidePersonnelleLogement:
     -- InfosAccessionPropriété de infos:
       infos.InformationsCalculAPLAccessionPropriété.ancienneté_logement
 
-  définition logement_foyer.équivalence_loyer_éligible égal à
+  définition logement_foyer.redevance égal à
     selon informations_calcul sous forme
     -- InfosLocatif: 0 € # Valeur par défaut
-    -- InfosLogementFoyer de infos: infos.équivalence_loyer_éligible
+    -- InfosLogementFoyer de infos: infos.redevance
     -- InfosAccessionPropriété:  0 € # Valeur par défaut
 ```
 
@@ -3618,6 +3618,15 @@ l'article D. 832-25 ;
 R. 353-156 à R. 353-160, et prise en compte dans la limite d'un plafond fixé par arrêté en fonction
 de la zone géographique et de la composition familiale ;
 
+```catala
+champ d'application CalculAidePersonnelleLogementFoyer:
+  définition équivalence_loyer_éligible égal à
+    si redevance >=€ plafond_équivalence_loyer_éligible alors
+      plafond_équivalence_loyer_éligible
+    sinon
+      redevance
+```
+
 4° " E0 " est l'équivalence de loyer et de charges locatives minimale ; elle est calculée selon
 les dispositions de l'article D. 832-26.
 
@@ -3639,10 +3648,10 @@ de calcul sont fixées à l'article D. 832-27.
 champ d'application CalculAidePersonnelleLogementFoyer:
   définition aide_finale état abattement égal à
     si aide_finale -€
-      dépense_nette_minimale_d832_27 de aide_finale >=€ 0€
+      abattement_dépense_nette_minimale_d832_27 de aide_finale >=€ 0€
     alors
       aide_finale -€
-        dépense_nette_minimale_d832_27 de aide_finale
+        abattement_dépense_nette_minimale_d832_27 de aide_finale
     sinon 0€
 ```
 
@@ -3805,10 +3814,10 @@ champ d'application CalculAidePersonnelleLogementFoyer:
     # à partir d'un arrondi au plus proche à l'unité.
     (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
       *. 100,0)) /. 100,0
-  définition coefficient_prise_en_charge_d832_25 état seuil
+  exception définition coefficient_prise_en_charge_d832_25 état seuil
   sous condition
     condition_2_du_832_25
-  conséquence  égal à
+  conséquence égal à
     si coefficient_prise_en_charge_d832_25 >=. 0,90 alors 0,90 sinon
       coefficient_prise_en_charge_d832_25
 ```
@@ -3864,23 +3873,31 @@ nombre de parts " N ", le total étant divisé par douze.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
+  définition tranches_revenus_d832_26_multipliées égal à
+    application pour tranche dans tranches_revenus_d832_26 de
+      TrancheRevenu {
+        -- haut: (selon tranche.haut sous forme
+          -- Infini: Infini
+          -- Revenu de tranche_haut:
+            Revenu contenu (tranche_haut *€ n_nombre_parts_d832_25))
+        -- bas: tranche.bas *€ n_nombre_parts_d832_25
+        -- taux: tranche.taux
+      }
+
   définition équivalence_minimale_loyer égal à
-    (((somme argent pour tranche dans tranches_revenus_d832_26 de
-      (si ressources_ménage_arrondies <=€ tranche.bas *€ n_nombre_parts_d832_25
+    (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
+      (si ressources_ménage_arrondies <=€ tranche.bas
       alors 0€
       sinon
         (selon tranche.haut sous forme
         -- Revenu de tranche_haut:
-          (si ressources_ménage_arrondies >=€ tranche_haut *€ n_nombre_parts_d832_25
+          (si ressources_ménage_arrondies >=€ tranche_haut
           alors
-            (tranche_haut -€ tranche.bas) *€
-              (tranche.taux *. n_nombre_parts_d832_25)
+            (tranche_haut -€ tranche.bas) *€ tranche.taux
           sinon
-            ((ressources_ménage_arrondies -€ tranche.bas *€ n_nombre_parts_d832_25) *€
-              tranche.taux))
+            ((ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux))
         -- Infini:
-          (ressources_ménage_arrondies -€ tranche.bas *€ n_nombre_parts_d832_25) *€
-            tranche.taux)
+          (ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux)
       ))) +€
     montant_forfaitaire_d832_26 *€ n_nombre_parts_d832_25) *€ (1,0 /. 12,0)
 ```
@@ -3925,15 +3942,19 @@ l'aide est égal à la différence constatée.
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
   définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
-  état avant_abattement égal à
+  égal à
     équivalence_loyer_éligible -€ aide_calculée_1_8_d832_24
 
-  définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
-  état après_abattement égal à
+  définition abattement_dépense_nette_minimale_d832_27
+    de aide_calculée_1_8_d832_24
+  égal à
     si dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24 <=€
       montant_forfaitaire_d832_27
-    alors montant_forfaitaire_d832_27 sinon
-      dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+    alors
+      montant_forfaitaire_d832_27 -€
+        dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+    sinon
+      0€
 
 ```
 ######## Article D832-28 | LEGIARTI000038878704
@@ -4519,6 +4540,18 @@ où :
 
 2° " K " est le coefficient de prise en charge ; il est calculé selon les dispositions
 du 2° de l'article D. 832-25 ;
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  # En définissant cette variable de contexte, on s'assure que le chemin de code
+  # pris dans le sous-champ d'application du calcul de l'APL en secteur logement
+  # foyer prenne bien le 2° du D832-25 et non pas le 1°.
+  définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à
+    vrai
+
+  définition coefficient_prise_en_charge égal à
+    calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
+```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions
 de l'article D. 842-16 ;

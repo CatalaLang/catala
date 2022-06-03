@@ -1,38 +1,75 @@
 > Inclusion: ../allocations_logement.catala_fr
 
-# Test 
+# Test
 
 ```catala
-déclaration champ d'application CasTest1 : 
-calcul champ d'application CalculAidePersonnelleLogementFoyer
-sortie montant contenu argent 
+déclaration champ d'application CasTest1 :
+  calcul champ d'application CalculAidePersonnelleLogementFoyer
+  sortie montant contenu argent
 
 champ d'application CasTest1:
-définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
-  -- type : RésidenceSociale
-  -- date_conventionnement : |2022-01-01|
-  -- location : Location {
-        -- bailleur: Bailleur {
-          -- type_bailleur: BailleurSocial
-          -- respecte_convention_titre_V: vrai
-          -- respecte_convention_titre_II: vrai
-          -- construit_amélioré_conditions_l831_1_4: vrai
-          -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
+    -- type : LogementPersonnesÂgéesOuHandicapées
+    -- date_conventionnement : |2022-01-01|
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
         }
-      }
-  -- remplit_conditions_r832_21 : faux 
-  -- pour_jeunes_travailleurs_III_12_loi_1957 : faux 
-})
-définition calcul.ressources_ménage_arrondies égal à 15 000€
-définition calcul.nombre_personnes_à_charge égal à 0
-définition calcul.situation_familiale_calcul_apl égal à Couple 
-définition calcul.zone égal à Zone3
-définition calcul.date_courante égal à |2022-04-23|
-assertion calcul.coefficient_r_d832_25 = 1217,26 €
-assertion calcul.coefficient_multiplicateur_d832_25 = 13393,40 €
-assertion calcul.n_nombre_parts_d832_25 = 1,8 
-assertion calcul.coefficient_prise_en_charge_d832_25 = 0,42
-assertion calcul.équivalence_loyer_éligible = 450,57 €
-assertion calcul.équivalence_minimale_loyer = 26,76 €
-assertion montant = 68,80 €
+    -- remplit_conditions_r832_21 : faux
+    -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
+  })
+  définition calcul.redevance égal à 360 €
+  définition calcul.ressources_ménage_arrondies égal à 15 000€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.zone égal à Zone3
+  définition calcul.date_courante égal à |2022-04-23|
+  assertion calcul.coefficient_r_d832_25 = 1217,26 €
+  assertion calcul.coefficient_multiplicateur_d832_25 = 13393,40 €
+  assertion calcul.n_nombre_parts_d832_25 = 1,8
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,41
+  assertion calcul.plafond_équivalence_loyer_éligible = 450,57 €
+  assertion calcul.équivalence_minimale_loyer = 318,13 €
+  définition montant égal à calcul.aide_finale
+  assertion montant = 12,06 €
+
+déclaration champ d'application CasTest2 :
+  calcul champ d'application CalculAllocationLogementFoyer
+  sortie montant contenu argent
+
+champ d'application CasTest2:
+  définition calcul.logement_foyer égal à LogementFoyer {
+    -- type : LogementPersonnesÂgéesOuHandicapées
+    -- date_conventionnement : |2022-01-01|
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
+        }
+    -- remplit_conditions_r832_21 : faux
+    -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
+  }
+  définition calcul.redevance égal à 360 €
+  définition calcul.ressources_ménage_arrondies égal à 15 000€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à Couple
+  définition calcul.zone égal à Zone3
+  définition calcul.date_courante égal à |2022-04-23|
+  définition calcul.catégorie_équivalence_loyer_d842_16 égal à
+    PersonnesÂgéesSelon3DeD842_16
+  assertion calcul.équivalence_loyer = 320,73 €
+  assertion calcul.montant_forfaitaire_charges = 54,22 €
+  assertion calcul.loyer_minimal = 311,15 €
+  assertion calcul.coefficient_prise_en_charge = 0,43
+  définition montant égal à calcul.allocation_mensuelle
+  assertion montant = 22,11 €
 ```

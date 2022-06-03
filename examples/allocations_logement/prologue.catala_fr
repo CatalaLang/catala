@@ -113,7 +113,7 @@ déclaration structure LogementFoyer:
   donnée pour_jeunes_travailleurs_III_12_loi_1957 contenu booléen
 
 déclaration structure InformationsCalculAPLLogementFoyer:
-  donnée équivalence_loyer_éligible contenu argent
+  donnée redevance contenu argent
 ```
 
 #### Calcul et éligibilité pour tous les secteurs
@@ -536,25 +536,24 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
-  entrée équivalence_loyer_éligible contenu argent
+  entrée redevance contenu argent
 
   contexte condition_2_du_832_25 contenu booléen
 
   sortie coefficient_multiplicateur_d832_25 contenu argent
   sortie coefficient_r_d832_25 contenu argent
   sortie n_nombre_parts_d832_25 contenu décimal
+  interne équivalence_loyer_éligible contenu argent
   sortie plafond_équivalence_loyer_éligible contenu argent
-  # TODO informatique: reprendre le calcul de cette variable
-  # en distinguant l'abattement de la dépense nette minimale,
-  # suivre modèle de CalculAllocationLogementFoyer.
+  interne abattement_dépense_nette_minimale_d832_27
+    contenu argent dépend de argent
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
-    état avant_abattement
-    état après_abattement
   interne montant_forfaitaire_d832_24 contenu argent
   interne montant_forfaitaire_d832_26 contenu argent
   interne montant_forfaitaire_d832_27 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
   interne tranches_revenus_d832_26 contenu collection TrancheRevenu
+  interne tranches_revenus_d832_26_multipliées contenu collection TrancheRevenu
 
   contributions_sociales champ d'application
     ContributionsSocialesAidePersonnelleLogement
@@ -807,7 +806,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
       }
       -- remplit_conditions_r832_21: faux
     })
-  définition calcul_apl_logement_foyer.équivalence_loyer_éligible égal à
+  définition calcul_apl_logement_foyer.redevance égal à
     0 € # Valeur par défaut
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage_arrondies
@@ -840,10 +839,10 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   interne montant_minimal_aide_d842_15 contenu argent
   interne montant_forfaitaire_d842_15 contenu argent
   interne montant_minimal_dépense_nette_d842_17 contenu argent
-  interne coefficient_prise_en_charge contenu décimal
-  interne équivalence_loyer contenu argent
-  interne montant_forfaitaire_charges contenu argent
-  interne loyer_minimal contenu argent
+  sortie coefficient_prise_en_charge contenu décimal
+  sortie équivalence_loyer contenu argent
+  sortie montant_forfaitaire_charges contenu argent
+  sortie loyer_minimal contenu argent
 
   calcul_apl_logement_foyer champ d'application
     CalculAidePersonnelleLogementFoyer
@@ -863,7 +862,7 @@ champ d'application CalculAllocationLogementFoyer:
     # TODO informatique: refactoriser calcul_apl_logement_foyer.mode_occupation
     # pour ne garder que LogementFoyer
     RésidentLogementFoyer contenu logement_foyer
-  définition calcul_apl_logement_foyer.équivalence_loyer_éligible égal à
+  définition calcul_apl_logement_foyer.redevance égal à
     redevance
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage_arrondies
