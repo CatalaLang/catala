@@ -544,6 +544,9 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   interne coefficient_r_d832_25 contenu argent
   interne n_nombre_parts_d832_25 contenu décimal
   interne plafond_équivalence_loyer_éligible contenu argent
+  # TODO informatique: reprendre le calcul de cette variable
+  # en distinguant l'abattement de la dépense nette minimale,
+  # suivre modèle de CalculAllocationLogementFoyer.
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
@@ -601,6 +604,9 @@ déclaration champ d'application
     état formule
     état arrondi
     état seuil
+  # TODO informatique: reprendre le calcul de cette variable
+  # en distinguant l'abattement de la dépense nette minimale,
+  # suivre modèle de CalculAllocationLogementFoyer.
   interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
@@ -749,14 +755,19 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne coefficient_prise_en_charge contenu décimal
   interne plafond_mensualité_d842_6 contenu argent
   interne calcul_plafond_mensualité_d842_6 contenu argent dépend de date
+    état base
+    état avec_copropriété
   interne montant_forfaitaire_d842_6 contenu argent
   interne seuil_minimal_dépense_nette_minimale contenu argent
   interne seuil_minimal_ressources_ménage contenu argent
   interne taux_francs_vers_euros contenu décimal
+  # TODO informatique: reprendre le calcul de cette variable
+  # en distinguant l'abattement de la dépense nette minimale,
+  # suivre modèle de CalculAllocationLogementFoyer.
   interne dépense_nette_minimale contenu argent dépend de argent
     état base
     état abattement
-  interne montant_minimal_aide_d823_24 contenu argent
+  interne montant_minimal_aide_d842_6 contenu argent
   interne montant_forfaitaire_d842_11 contenu argent
   interne montant_forfaitaire_d842_12 contenu argent
   interne coefficient_d842_11 contenu décimal
@@ -821,10 +832,14 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
+  entrée catégorie_équivalence_loyer_d842_16 contenu
+    CatégorieÉquivalenceLoyerAllocationLogementFoyer
 
   interne dépense_nette_minimale contenu argent dépend de argent
+  interne abattement_dépense_nette_minimale contenu argent dépend de argent
   interne montant_minimal_aide_d842_15 contenu argent
-  interne montant_forfaitaire_d842_6 contenu argent
+  interne montant_forfaitaire_d842_15 contenu argent
+  interne montant_minimal_dépense_nette_d842_17 contenu argent
   interne coefficient_prise_en_charge contenu décimal
   interne équivalence_loyer contenu argent
   interne montant_forfaitaire_charges contenu argent

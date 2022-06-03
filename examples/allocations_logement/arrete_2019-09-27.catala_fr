@@ -3098,7 +3098,8 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
   date_courante >=@ |2020-01-01|:
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |1992-07-01| et date_calcul <@ |1994-07-01|
   conséquence égal à
     (selon zone sous forme
@@ -3143,7 +3144,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |1994-07-01| et date_calcul <@ |1997-07-01|
   conséquence égal à
     (selon zone sous forme
@@ -3188,7 +3190,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |1997-07-01| et date_calcul <@ |1998-07-01|
   conséquence égal à
     (selon zone sous forme
@@ -3233,7 +3236,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |1998-07-01| et date_calcul <@ |1999-07-01|
   conséquence égal à
     (selon zone sous forme
@@ -3278,7 +3282,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |1999-07-01| et date_calcul <@ |2000-07-01|
   conséquence égal à
     (selon zone sous forme
@@ -3323,7 +3328,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2000-07-01| et date_calcul <@ |2001-07-01|
   conséquence égal à
     (selon zone sous forme
@@ -3368,7 +3374,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2001-07-01| et date_calcul <@ |2002-01-01|
   conséquence égal à
     (selon zone sous forme
@@ -3413,7 +3420,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
     ) *€ taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2002-01-01| et date_calcul <@ |2002-07-01|
   conséquence égal à
     selon zone sous forme
@@ -3457,7 +3465,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (343,01€ +€ 29,73€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2002-07-01| et date_calcul <@ |2003-07-01|
   conséquence égal à
     selon zone sous forme
@@ -3503,7 +3512,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (347,13€ +€ 30,09€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2003-07-01| et date_calcul <@ |2005-09-01|
   conséquence égal à
     selon zone sous forme
@@ -3547,7 +3557,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (351,30€ +€ 30,45€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2005-09-01| et date_calcul <@ |2007-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3591,7 +3602,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (357,62€ +€ 31,00€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2007-01-01| et date_calcul <@ |2008-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3635,7 +3647,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (367,33€ +€ 31,87€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2008-01-01| et date_calcul <@ |2009-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3679,7 +3692,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (377,78€ +€ 32,75€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2009-01-01| et date_calcul <@ |2010-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3723,7 +3737,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (388,92€ +€ 33,72€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2010-01-01| et date_calcul <@ |2011-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3767,7 +3782,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (390,16€ +€ 33,83€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2011-01-01| et date_calcul <@ |2012-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3811,7 +3827,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (394,45€ +€ 34,20€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2012-01-01| et date_calcul <@ |2013-01-01|
   conséquence égal à
     selon zone sous forme
@@ -3855,7 +3872,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (398,39€ +€ 34,54€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2013-01-01| et date_calcul <@ |2014-10-01|
   conséquence égal à
     selon zone sous forme
@@ -3899,7 +3917,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (406,96€ +€ 35,28€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2014-10-01| et date_calcul <@ |2015-10-01|
   conséquence égal à
     selon zone sous forme
@@ -3943,7 +3962,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (409,28€ +€ 35,48€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2015-10-01| et date_calcul <@ |2017-10-01|
   conséquence égal à
     selon zone sous forme
@@ -3987,7 +4007,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (409,61€ +€ 35,51€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2017-10-01| et date_calcul <@ |2019-10-01|
   conséquence égal à
     selon zone sous forme
@@ -4031,7 +4052,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (412,68€ +€ 35,78€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  sous condition
     date_calcul >=@ |2019-10-01|
   conséquence égal à
     selon zone sous forme
@@ -4074,6 +4096,11 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 5 alors 413,92 € sinon
         (413,92€ +€ 35,88€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  # Une exception est à venir avec l'article 37
+  définition calcul_plafond_mensualité_d842_6 de date_calcul
+  état avec_copropriété égal à
+    calcul_plafond_mensualité_d842_6 de date_calcul
 ```
 
 ### Article 34 | LEGIARTI000044137403
@@ -4091,20 +4118,47 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
 les prestations dues à compter du 1er octobre 2021.
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >=@ |2021-10-01| :
+  définition montant_forfaitaire_charges égal à
+   si nombre_personnes_à_charge = 0 alors 54,22 €
+   sinon 54,22 € +€ (12,29 € *€ (
+     entier_vers_décimal de nombre_personnes_à_charge))
+```
+
 ### Article 35 | LEGIARTI000039160693
 
 Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-6 du même code est fixé à 5 euros.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition montant_forfaitaire_d842_6 égal à 5 €
+```
 
 ### Article 36 | LEGIARTI000039160695
 
 Le seuil de versement prévu au dernier alinéa de l'article D. 842-6 du même code, avant application de la
 contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition montant_minimal_aide_d842_6 égal à 10 €
+```
+
 ### Article 37 | LEGIARTI000044137400
 
 Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 
 1° Les plafonds de mensualités sont fixés à 75 % des plafonds de mensualités mentionnés à l'article 33 ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >=@ |2021-10-01|:
+  définition calcul_plafond_mensualité_d842_6 de date_calcul
+  état avec_copropriété égal à
+    calcul_plafond_mensualité_d842_6 de date_calcul *€ 75%
+```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
 
@@ -4113,6 +4167,16 @@ Composition du ménage                                   Montant
 Bénéficiaire isolé                                       27,10
 Couple sans personne à charge                            54,22
 Majoration par personne à charge                         12,29
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >=@ |2021-10-01| :
+  définition montant_forfaitaire_charges égal à
+   (selon situation_familiale_calcul_apl sous forme
+     -- PersonneSeule: 27,10 €
+     -- Couple : 54,22€) +€ (12,29 € *€ (
+     entier_vers_décimal de nombre_personnes_à_charge))
+```
 
 NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
@@ -4124,7 +4188,17 @@ Pour le calcul de la dépense nette minimale de logement définie à l'article D
 
 1° Le montant minimum mentionné au deuxième alinéa est fixé à 15 euros ;
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition montant_forfaitaire_d842_11 égal à 15 €
+```
+
 2° Le coefficient mentionné au troisième alinéa est fixé à 0,0234.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition coefficient_d842_11 égal à 0,0234
+```
 
 ### Article 39 | LEGIARTI000039160701
 
@@ -4132,7 +4206,17 @@ Pour déterminer le plancher de ressources défini à l'article D. 842-12 du mê
 
 1° Le coefficient prévu au 1° est fixé à 16,25 ;
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition coefficient_d842_12 égal à 16,25
+```
+
 2° Le montant forfaitaire prévu au 2° est fixé à 3 900 euros.
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition montant_forfaitaire_d842_12 égal à 3 900 €
+```
 
 ## Chapitre VII : Calcul des allocations de logement en secteur logement-foyer
 
@@ -4150,16 +4234,35 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
+```catala
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >=@ |2021-10-01| :
+  définition montant_forfaitaire_charges égal à
+   si nombre_personnes_à_charge = 0 alors 54,22 €
+   sinon 54,22 € +€ (12,29 € *€ (
+     entier_vers_décimal de nombre_personnes_à_charge))
+```
+
 ### Article 41 | LEGIARTI000039160703
 
 Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-15 du même code est
 fixé à 5 euros.
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition montant_forfaitaire_d842_15 égal à 5 €
+```
 
 ### Article 42 | LEGIARTI000039160707
 
 Le seuil de versement prévu au dernier alinéa de l'article D. 842-15 du même code,
 avant application de la contribution pour le remboursement de la dette sociale,
 est fixé à 10 euros.
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition montant_minimal_aide_d842_15 égal à 10 €
+```
 
 ### Article 43 | LEGIARTI000044137394
 
@@ -4172,11 +4275,34 @@ a) 84,14 euros lorsqu'il s'agit d'une personne seule ;
 
 b) 131,00 euros lorsqu'il s'agit d'un couple ;
 
+```catala
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >=@ |2021-10-01|:
+  définition équivalence_loyer sous condition
+     catégorie_équivalence_loyer_d842_16 sous forme ÉtudiantLogéEnChambre
+  conséquence égal à
+    selon situation_familiale_calcul_apl sous forme
+    -- PersonneSeule: 84,14 €
+    -- Couple: 131,00 €
+```
+
 2° Pour les étudiants logés dans une chambre ayant fait l'objet d'une réhabilitation :
 
 a) 170,12 euros lorsqu'il s'agit d'une personne seule ;
 
 b) 264,40 euros lorsqu'il s'agit d'un couple ;
+
+```catala
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >=@ |2021-10-01|:
+  définition équivalence_loyer sous condition
+     catégorie_équivalence_loyer_d842_16 sous forme
+        ÉtudiantLogéEnChambreRéhabilitée
+  conséquence égal à
+    selon situation_familiale_calcul_apl sous forme
+    -- PersonneSeule: 170,12 €
+    -- Couple: 264,40 €
+```
 
 3° Pour les personnes mentionnées au 3° :
 
@@ -4184,11 +4310,35 @@ a) 206,40 euros lorsqu'il s'agit d'une personne seule ;
 
 b) 320,73 euros lorsqu'il s'agit d'un couple ;
 
+```catala
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >=@ |2021-10-01|:
+  définition équivalence_loyer sous condition
+     catégorie_équivalence_loyer_d842_16 sous forme
+        PersonnesÂgéesSelon3DeD842_16
+  conséquence égal à
+    selon situation_familiale_calcul_apl sous forme
+    -- PersonneSeule: 206,40 €
+    -- Couple: 320,73 €
+```
+
 4° Pour les autres personnes :
 
 a) 170,12 euros lorsqu'il s'agit d'une personne seule ;
 
 b) 264,40 euros lorsqu'il s'agit d'un couple.
+
+```catala
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >=@ |2021-10-01|:
+  définition équivalence_loyer sous condition
+     catégorie_équivalence_loyer_d842_16 sous forme
+        AutresPersonnes
+  conséquence égal à
+    selon situation_familiale_calcul_apl sous forme
+    -- PersonneSeule: 170,12 €
+    -- Couple: 264,40 €
+```
 
 NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont
@@ -4198,6 +4348,11 @@ applicables pour les prestations dues à compter du 1er octobre 2021.
 
 Le montant minimum de dépense nette de logement défini à l'article D. 842-17 du même code
 est fixé à 15 euros.
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  définition montant_minimal_dépense_nette_d842_17 égal à 15 €
+```
 
 ## Chapitre VIII : Prime de déménagement
 
