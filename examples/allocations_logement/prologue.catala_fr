@@ -603,12 +603,9 @@ déclaration champ d'application
     état formule
     état arrondi
     état seuil
-  # TODO informatique: reprendre le calcul de cette variable
-  # en distinguant l'abattement de la dépense nette minimale,
-  # suivre modèle de CalculAllocationLogementFoyer.
   interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
-    état avant_abattement
-    état après_abattement
+  interne abattement_dépense_nette_minimale_d832_10
+    contenu argent dépend de argent
   interne ressources_ménage_avec_d832_18 contenu argent
   interne montant_forfaitaire_charges_d832_10 contenu argent
   interne montant_forfaitaire_d832_10 contenu argent
@@ -760,12 +757,8 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne seuil_minimal_dépense_nette_minimale contenu argent
   interne seuil_minimal_ressources_ménage contenu argent
   interne taux_francs_vers_euros contenu décimal
-  # TODO informatique: reprendre le calcul de cette variable
-  # en distinguant l'abattement de la dépense nette minimale,
-  # suivre modèle de CalculAllocationLogementFoyer.
   interne dépense_nette_minimale contenu argent dépend de argent
-    état base
-    état abattement
+  interne abattement_dépense_nette_minimale contenu argent dépend de argent
   interne montant_minimal_aide_d842_6 contenu argent
   interne montant_forfaitaire_d842_11 contenu argent
   interne montant_forfaitaire_d842_12 contenu argent

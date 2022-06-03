@@ -3026,10 +3026,10 @@ de calcul sont fixées par l'article D. 832-17.
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition aide_finale état abattement égal à
     si aide_finale -€
-      dépense_nette_minimale_d832_10 de aide_finale >=€ 0€
+      abattement_dépense_nette_minimale_d832_10 de aide_finale >=€ 0€
     alors
       aide_finale -€
-        dépense_nette_minimale_d832_10 de aide_finale
+        abattement_dépense_nette_minimale_d832_10 de aide_finale
     sinon 0€
 ```
 
@@ -3401,7 +3401,7 @@ alinéas du même article.
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   exception
   définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
-  état avant_abattement  sous condition
+  sous condition
     date_signature_prêt >=@ |1999-06-30|
   conséquence égal à
     mensualité_principale +€ montant_forfaitaire_charges_d832_10 -€
@@ -3413,8 +3413,7 @@ déclarée le montant mensuel de l'aide calculé de la même façon.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
-  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
-  état avant_abattement égal à
+  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 égal à
     mensualité_principale -€ aide_calculée_2_9_d832_10
 ```
 
@@ -3425,14 +3424,16 @@ différence constatée.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
-  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
-  état après_abattement égal à
+  définition abattement_dépense_nette_minimale_d832_10
+    de aide_calculée_2_9_d832_10
+  égal à
     si dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 <=€
       ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
     alors
-      ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
+      ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3 -€
+         dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
     sinon
-      dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+      0€
 ```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre
@@ -4230,12 +4231,13 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   définition allocation_mensuelle état dépense_nette_minimale
   égal à
     si
-      allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle <€
-        0€
+      allocation_mensuelle -€
+        abattement_dépense_nette_minimale de allocation_mensuelle <€ 0€
     alors
       0 €
     sinon
-      (allocation_mensuelle -€ dépense_nette_minimale de allocation_mensuelle)
+      (allocation_mensuelle -€
+        abattement_dépense_nette_minimale de allocation_mensuelle)
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -4388,7 +4390,7 @@ des charges, le montant mensuel de l'allocation calculé selon les dispositions 
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-   définition dépense_nette_minimale de allocation_mensuelle état base égal à
+   définition dépense_nette_minimale de allocation_mensuelle égal à
       charges_mensuelles_prêt +€ montant_forfaitaire_charges -€
         allocation_mensuelle
 ```
@@ -4399,15 +4401,16 @@ constatée.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition dépense_nette_minimale de allocation_mensuelle état abattement
+  définition abattement_dépense_nette_minimale de allocation_mensuelle
   égal à
     si
       dépense_nette_minimale de allocation_mensuelle <€
         seuil_minimal_dépense_nette_minimale
     alors
-      seuil_minimal_dépense_nette_minimale
+      seuil_minimal_dépense_nette_minimale -€
+        dépense_nette_minimale de allocation_mensuelle
     sinon
-     dépense_nette_minimale de allocation_mensuelle
+     0 €
 
   définition seuil_minimal_dépense_nette_minimale égal à
      montant_forfaitaire_d842_11
