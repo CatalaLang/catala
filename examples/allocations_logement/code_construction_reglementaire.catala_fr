@@ -143,6 +143,7 @@ droit à celle-ci.
 champ d'application RessourcesAidePersonnelleLogement:
   assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
     personne.durée_résidence_durant_période_r_822_3_1 >=^ 6 mois
+# TODO informatique et juridique: la comparaison avec 6 mois est ambiguë!
 # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
 # des différentes périodes mentionnées et en forçant l'utilisateur à bien
 # remplir toutes ses périodes de résidence mais cela rendrait le formulaire
@@ -1178,6 +1179,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
         parent.ParentÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
         (
           (parent.ParentÀCharge.âge >=^ âge_l351_8_1_sécu ou
+          # TODO informatique: changer l'encodage de âge vers un entier
             (parent.titulaire_allocation_personne_âgée et
               parent.ParentÀCharge.âge >=^ 65 an)
           ) ou
