@@ -538,10 +538,10 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
 
   contexte condition_2_du_832_25 contenu booléen
 
-  interne coefficient_multiplicateur_d832_25 contenu argent
-  interne coefficient_r_d832_25 contenu argent
-  interne n_nombre_parts_d832_25 contenu décimal
-  interne équivalence_loyer_éligible contenu argent
+  sortie coefficient_multiplicateur_d832_25 contenu argent
+  sortie coefficient_r_d832_25 contenu argent
+  sortie n_nombre_parts_d832_25 contenu décimal
+  sortie équivalence_loyer_éligible contenu argent
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
