@@ -87,7 +87,7 @@ let rec format_expr
     else Format.fprintf fmt "%a" format_expr e
   in
   match Marked.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var (Marked.unmark v)
+  | EVar v -> Format.fprintf fmt "%a" format_var v
   | ETuple (es, None) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "("
       (Format.pp_print_list
@@ -137,7 +137,7 @@ let rec format_expr
       (List.combine es
          (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
-  | EApp ((EAbs ((binder, _), taus), _), args) ->
+  | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
@@ -150,7 +150,7 @@ let rec format_expr
              (Dcalc.Print.format_typ ctx)
              tau format_punctuation "=" format_expr arg format_keyword "in"))
       xs_tau_arg format_expr body
-  | EAbs ((binder, _), taus) ->
+  | EAbs (binder, taus) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_punctuation "λ"

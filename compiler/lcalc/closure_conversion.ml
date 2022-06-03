@@ -32,9 +32,9 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
   match Marked.unmark e with
   | EVar v ->
     ( Bindlib.box_apply
-        (fun new_v -> new_v, Marked.get_mark v)
-        (Bindlib.box_var (Marked.unmark v)),
-      VarSet.diff (VarSet.singleton (Marked.unmark v)) ctx.globally_bound_vars )
+        (fun new_v -> new_v, Marked.get_mark e)
+        (Bindlib.box_var v),
+      VarSet.diff (VarSet.singleton v) ctx.globally_bound_vars )
   | ETuple (args, s) ->
     let new_args, free_vars =
       List.fold_left
@@ -67,13 +67,12 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
       List.fold_right
         (fun arm (new_arms, free_vars) ->
           match Marked.unmark arm with
-          | EAbs ((binder, binder_pos), typs) ->
+          | EAbs (binder, typs) ->
             let vars, body = Bindlib.unmbind binder in
             let new_body, new_free_vars = closure_conversion_expr ctx body in
             let new_binder = Bindlib.bind_mvar vars new_body in
             ( Bindlib.box_apply
-                (fun new_binder ->
-                  EAbs ((new_binder, binder_pos), typs), Marked.get_mark arm)
+                (fun new_binder -> EAbs (new_binder, typs), Marked.get_mark arm)
                 new_binder
               :: new_arms,
               VarSet.union free_vars new_free_vars )
@@ -99,7 +98,7 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
         (Bindlib.box_list new_args),
       free_vars )
   | ELit l -> Bindlib.box (ELit l, Marked.get_mark e), VarSet.empty
-  | EApp ((EAbs ((binder, binder_pos), typs_abs), e1_pos), args) ->
+  | EApp ((EAbs (binder, typs_abs), e1_pos), args) ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let new_body, free_vars = closure_conversion_expr ctx body in
@@ -113,13 +112,14 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
     in
     ( Bindlib.box_apply2
         (fun new_binder new_args ->
-          ( EApp ((EAbs ((new_binder, binder_pos), typs_abs), e1_pos), new_args),
+          ( EApp ((EAbs (new_binder, typs_abs), e1_pos), new_args),
             Marked.get_mark e ))
         new_binder
         (Bindlib.box_list new_args),
       free_vars )
-  | EAbs ((binder, binder_pos), typs) ->
+  | EAbs (binder, typs) ->
     (* λ x.t *)
+    let binder_pos = Marked.get_mark e in
     (* Converting the closure. *)
     let vars, body = Bindlib.unmbind binder in
     (* t *)
@@ -130,9 +130,9 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
     in
     let extra_vars_list = VarSet.elements extra_vars in
     (* x1, ..., xn *)
-    let code_var = Var.make (ctx.name_context, binder_pos) in
+    let code_var = Var.make ctx.name_context in
     (* code *)
-    let inner_c_var = Var.make ("env", binder_pos) in
+    let inner_c_var = Var.make "env" in
     let new_closure_body =
       make_multiple_let_in
         (Array.of_list extra_vars_list)
@@ -157,7 +157,7 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
     let new_closure =
       make_abs
         (Array.concat [Array.make 1 inner_c_var; vars])
-        new_closure_body binder_pos
+        new_closure_body
         ((Dcalc.Ast.TAny, binder_pos) :: typs)
         (Marked.get_mark e)
     in
@@ -193,8 +193,7 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
         (fun new_e2 -> EApp ((EOp op, pos_op), new_e2), Marked.get_mark e)
         (Bindlib.box_list new_args),
       free_vars )
-  | EApp ((EVar (v, _), v_pos), args) when VarSet.mem v ctx.globally_bound_vars
-    ->
+  | EApp ((EVar v, v_pos), args) when VarSet.mem v ctx.globally_bound_vars ->
     (* This corresponds to a scope call, which we don't want to transform*)
     let new_args, free_vars =
       List.fold_right
@@ -210,8 +209,8 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Marked.pos) :
       free_vars )
   | EApp (e1, args) ->
     let new_e1, free_vars = closure_conversion_expr ctx e1 in
-    let env_var = Var.make ("env", Marked.get_mark e1) in
-    let code_var = Var.make ("code", Marked.get_mark e1) in
+    let env_var = Var.make "env" in
+    let code_var = Var.make "code" in
     let new_args, free_vars =
       List.fold_right
         (fun arg (new_args, free_vars) ->

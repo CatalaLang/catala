@@ -139,18 +139,18 @@ let rec translate_expr
       Scopelang.Ast.EnumConstructorMap.mapi
         (fun c_uid' tau ->
           if Scopelang.Ast.EnumConstructor.compare c_uid c_uid' <> 0 then
-            let nop_var = Desugared.Ast.Var.make ("_", pos) in
+            let nop_var = Desugared.Ast.Var.make "_" in
             Bindlib.unbox
               (Desugared.Ast.make_abs [| nop_var |]
                  (Bindlib.box (Desugared.Ast.ELit (Dcalc.Ast.LBool false), pos))
-                 pos [tau] pos)
+                 [tau] pos)
           else
             let ctxt, binding_var =
-              Name_resolution.add_def_local_var ctxt binding
+              Name_resolution.add_def_local_var ctxt (Marked.unmark binding)
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
             Bindlib.unbox
-              (Desugared.Ast.make_abs [| binding_var |] e2 pos [tau] pos))
+              (Desugared.Ast.make_abs [| binding_var |] e2 [tau] pos))
         (Scopelang.Ast.EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
@@ -516,7 +516,7 @@ let rec translate_expr
     let cases =
       Scopelang.Ast.EnumConstructorMap.mapi
         (fun c_uid' tau ->
-          let nop_var = Desugared.Ast.Var.make ("_", pos) in
+          let nop_var = Desugared.Ast.Var.make "_" in
           Bindlib.unbox
             (Desugared.Ast.make_abs [| nop_var |]
                (Bindlib.box
@@ -524,7 +524,7 @@ let rec translate_expr
                       (Dcalc.Ast.LBool
                          (Scopelang.Ast.EnumConstructor.compare c_uid c_uid' = 0)),
                     pos ))
-               pos [tau] pos))
+               [tau] pos))
         (Scopelang.Ast.EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
@@ -540,11 +540,12 @@ let rec translate_expr
         collection,
         predicate ) ->
     let collection = rec_helper collection in
-    let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
+    let ctxt, param =
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+    in
     let f_pred =
       Desugared.Ast.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
-        pos
         [Scopelang.Ast.TAny, pos]
         pos
     in
@@ -568,7 +569,9 @@ let rec translate_expr
         predicate ) ->
     let init = rec_helper init in
     let collection = rec_helper collection in
-    let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
+    let ctxt, param =
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+    in
     let op_kind =
       match pred_typ with
       | Ast.Integer -> Dcalc.Ast.KInt
@@ -588,21 +591,16 @@ let rec translate_expr
     let f_pred =
       Desugared.Ast.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
-        pos
         [Scopelang.Ast.TAny, pos]
         pos
     in
-    let f_pred_var =
-      Desugared.Ast.Var.make ("predicate", Marked.get_mark predicate)
-    in
+    let f_pred_var = Desugared.Ast.Var.make "predicate" in
     let f_pred_var_e =
       Desugared.Ast.make_var (f_pred_var, Marked.get_mark predicate)
     in
-    let acc_var = Desugared.Ast.Var.make ("acc", pos) in
+    let acc_var = Desugared.Ast.Var.make "acc" in
     let acc_var_e = Desugared.Ast.make_var (acc_var, pos) in
-    let item_var =
-      Desugared.Ast.Var.make ("item", Marked.get_mark (Bindlib.unbox collection))
-    in
+    let item_var = Desugared.Ast.Var.make "item" in
     let item_var_e =
       Desugared.Ast.make_var
         (item_var, Marked.get_mark (Bindlib.unbox collection))
@@ -624,7 +622,7 @@ let rec translate_expr
         acc_var_e item_var_e f_pred_var_e
     in
     let fold_f =
-      Desugared.Ast.make_abs [| acc_var; item_var |] fold_body pos
+      Desugared.Ast.make_abs [| acc_var; item_var |] fold_body
         [Scopelang.Ast.TAny, pos; Scopelang.Ast.TAny, pos]
         pos
     in
@@ -639,7 +637,9 @@ let rec translate_expr
     in
     Desugared.Ast.make_let_in f_pred_var (Scopelang.Ast.TAny, pos) f_pred fold
   | CollectionOp (op', param', collection, predicate) ->
-    let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
+    let ctxt, param =
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+    in
     let collection = rec_helper collection in
     let init =
       match Marked.unmark op' with
@@ -680,7 +680,7 @@ let rec translate_expr
           ( Desugared.Ast.ELit (Dcalc.Ast.LInt (Runtime.integer_of_int 0)),
             Marked.get_mark op' )
     in
-    let acc_var = Desugared.Ast.Var.make ("acc", Marked.get_mark param') in
+    let acc_var = Desugared.Ast.Var.make "acc" in
     let acc = Desugared.Ast.make_var (acc_var, Marked.get_mark param') in
     let f_body =
       let make_body (op : Dcalc.Ast.binop) =
@@ -696,7 +696,7 @@ let rec translate_expr
       let make_extr_body
           (cmp_op : Dcalc.Ast.binop)
           (t : Scopelang.Ast.typ Marked.pos) =
-        let tmp_var = Desugared.Ast.Var.make ("tmp", Marked.get_mark param') in
+        let tmp_var = Desugared.Ast.Var.make "tmp" in
         let tmp = Desugared.Ast.make_var (tmp_var, Marked.get_mark param') in
         Desugared.Ast.make_let_in tmp_var t
           (translate_expr scope inside_definition_of ctxt predicate)
@@ -773,7 +773,7 @@ let rec translate_expr
         Bindlib.box_apply
           (fun binder ->
             ( Desugared.Ast.EAbs
-                ( (binder, pos),
+                ( binder,
                   [
                     Scopelang.Ast.TLit t, Marked.get_mark op';
                     Scopelang.Ast.TAny, pos
@@ -814,11 +814,11 @@ let rec translate_expr
           pos ))
       f collection init
   | MemCollection (member, collection) ->
-    let param_var = Desugared.Ast.Var.make ("collection_member", pos) in
+    let param_var = Desugared.Ast.Var.make "collection_member" in
     let param = Desugared.Ast.make_var (param_var, pos) in
     let collection = rec_helper collection in
     let init = Bindlib.box (Desugared.Ast.ELit (Dcalc.Ast.LBool false), pos) in
-    let acc_var = Desugared.Ast.Var.make ("acc", pos) in
+    let acc_var = Desugared.Ast.Var.make "acc" in
     let acc = Desugared.Ast.make_var (acc_var, pos) in
     let f_body =
       Bindlib.box_apply3
@@ -840,7 +840,7 @@ let rec translate_expr
       Bindlib.box_apply
         (fun binder ->
           ( Desugared.Ast.EAbs
-              ( (binder, pos),
+              ( binder,
                 [
                   Scopelang.Ast.TLit Dcalc.Ast.TBool, pos;
                   Scopelang.Ast.TAny, pos;
@@ -878,16 +878,15 @@ and disambiguate_match_and_build_expression
     Desugared.Ast.expr Marked.pos Bindlib.box Scopelang.Ast.EnumConstructorMap.t
     * Scopelang.Ast.EnumName.t =
   let create_var = function
-    | None -> ctxt, (Desugared.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos)
+    | None -> ctxt, Desugared.Ast.Var.make "_"
     | Some param ->
       let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
-      ctxt, (param_var, Marked.get_mark param)
+      ctxt, param_var
   in
   let bind_case_body
       (c_uid : Dcalc.Ast.EnumConstructor.t)
       (e_uid : Dcalc.Ast.EnumName.t)
       (ctxt : Name_resolution.context)
-      (param_pos : Pos.t)
       (case_body : ('a * Pos.t) Bindlib.box)
       (e_binder :
         (Desugared.Ast.expr, Desugared.Ast.expr * Pos.t) Bindlib.mbinder
@@ -896,7 +895,7 @@ and disambiguate_match_and_build_expression
       (fun e_binder case_body ->
         Marked.same_mark_as
           (Desugared.Ast.EAbs
-             ( (e_binder, param_pos),
+             ( e_binder,
                [
                  Scopelang.Ast.EnumConstructorMap.find c_uid
                    (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
@@ -935,14 +934,12 @@ and disambiguate_match_and_build_expression
           ]
           "The constructor %a has been matched twice:"
           Scopelang.Ast.EnumConstructor.format_t c_uid);
-      let ctxt, (param_var, param_pos) = create_var binding in
+      let ctxt, param_var = create_var (Option.map Marked.unmark binding) in
       let case_body =
         translate_expr scope inside_definition_of ctxt case.Ast.match_case_expr
       in
       let e_binder = Bindlib.bind_mvar (Array.of_list [param_var]) case_body in
-      let case_expr =
-        bind_case_body c_uid e_uid ctxt param_pos case_body e_binder
-      in
+      let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
       ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
         Some e_uid,
         curr_index + 1 )
@@ -992,7 +989,7 @@ and disambiguate_match_and_build_expression
                 ...
                | CaseN -> wildcard_payload *)
         (* Creates the wildcard payload *)
-        let ctxt, (payload_var, var_pos) = create_var None in
+        let ctxt, payload_var = create_var None in
         let case_body =
           translate_expr scope inside_definition_of ctxt match_case_expr
         in
@@ -1004,7 +1001,7 @@ and disambiguate_match_and_build_expression
         Scopelang.Ast.EnumConstructorMap.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
             let case_expr =
-              bind_case_body c_uid e_uid ctxt var_pos case_body e_binder
+              bind_case_body c_uid e_uid ctxt case_body e_binder
             in
             ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
               e_uid_opt,
@@ -1115,7 +1112,9 @@ let process_def
     match def.definition_parameter with
     | None -> None, ctxt
     | Some param ->
-      let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
+      let ctxt, param_var =
+        Name_resolution.add_def_local_var ctxt (Marked.unmark param)
+      in
       Some (Marked.same_mark_as param_var param), ctxt
   in
   let scope_updated =

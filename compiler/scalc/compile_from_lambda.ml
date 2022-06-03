@@ -34,11 +34,10 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Marked.pos) :
   match Marked.unmark expr with
   | L.EVar v ->
     let local_var =
-      try A.EVar (L.VarMap.find (Marked.unmark v) ctxt.var_dict)
-      with Not_found ->
-        A.EFunc (L.VarMap.find (Marked.unmark v) ctxt.func_dict)
+      try A.EVar (L.VarMap.find v ctxt.var_dict)
+      with Not_found -> A.EFunc (L.VarMap.find v ctxt.func_dict)
     in
-    [], (local_var, Marked.get_mark v)
+    [], (local_var, Marked.get_mark expr)
   | L.ETuple (args, Some s_name) ->
     let args_stmts, new_args =
       List.fold_left
@@ -127,7 +126,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Marked.pos) :
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
     e_stmts @ [A.SAssert (Marked.unmark new_e), Marked.get_mark block_expr]
-  | L.EApp ((L.EAbs ((binder, binder_pos), taus), eabs_pos), args) ->
+  | L.EApp ((L.EAbs (binder, taus), binder_pos), args) ->
     (* This defines multiple local variables at the time *)
     let vars, body = Bindlib.unmbind binder in
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
@@ -147,7 +146,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Marked.pos) :
       List.map
         (fun (x, tau) ->
           ( A.SLocalDecl ((L.VarMap.find x ctxt.var_dict, binder_pos), tau),
-            eabs_pos ))
+            binder_pos ))
         vars_tau
     in
     let vars_args =
@@ -173,8 +172,9 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Marked.pos) :
     in
     let rest_of_block = translate_statements ctxt body in
     local_decls @ List.flatten def_blocks @ rest_of_block
-  | L.EAbs ((binder, binder_pos), taus) ->
+  | L.EAbs (binder, taus) ->
     let vars, body = Bindlib.unmbind binder in
+    let binder_pos = Marked.get_mark block_expr in
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
     let closure_name =
       match ctxt.inside_definition_of with
@@ -214,12 +214,12 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Marked.pos) :
       List.fold_left
         (fun new_args arg ->
           match Marked.unmark arg with
-          | L.EAbs ((binder, pos_binder), _) ->
+          | L.EAbs (binder, _) ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
             let scalc_var =
-              A.LocalName.fresh (Bindlib.name_of var, pos_binder)
+              A.LocalName.fresh (Bindlib.name_of var, Marked.get_mark arg)
             in
             let ctxt =
               { ctxt with var_dict = L.VarMap.add var scalc_var ctxt.var_dict }

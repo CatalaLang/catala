@@ -76,14 +76,14 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Marked.pos) :
   match Marked.unmark e with
   | ErrorOnEmpty
       ( EDefault
-          ( [(EApp ((EVar (x, _), _), [(ELit LUnit, _)]), _)],
+          ( [(EApp ((EVar x, _), [(ELit LUnit, _)]), _)],
             (ELit (LBool true), _),
             cons ),
         _ )
     when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
     (* scope variables*)
     cons
-  | EAbs ((binder, _), [(TLit TUnit, _)]) ->
+  | EAbs (binder, [(TLit TUnit, _)]) ->
     (* context sub-scope variables *)
     let _, body = Bindlib.unmbind binder in
     body
@@ -124,7 +124,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Marked.pos) :
       (* Hot take: for a function never to return an empty error when called, it has to do
          so whatever its input. So we universally quantify over the variable of the function
          when inspecting the body, resulting in simply traversing through in the code here. *)
-      let vars, body = Bindlib.unmbind (Marked.unmark binder) in
+      let vars, body = Bindlib.unmbind binder in
       let vc_body_expr, vc_body_ty =
         (generate_vc_must_not_return_empty ctx) body
       in
@@ -217,7 +217,7 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Marked.pos) :
     | ErrorOnEmpty e1 ->
       generate_vs_must_not_return_confict ctx e1
     | EAbs (binder, typs) ->
-      let vars, body = Bindlib.unmbind (Marked.unmark binder) in
+      let vars, body = Bindlib.unmbind binder in
       let vc_body_expr, vc_body_ty =
         (generate_vs_must_not_return_confict ctx) body
       in

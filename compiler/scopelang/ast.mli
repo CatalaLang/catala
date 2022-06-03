@@ -68,25 +68,25 @@ type typ =
 
 module Typ : Set.OrderedType with type t = typ
 
+type marked_expr = expr Marked.pos
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax*)
-type expr =
+
+and expr =
   | ELocation of location
-  | EVar of expr Bindlib.var Marked.pos
-  | EStruct of StructName.t * expr Marked.pos StructFieldMap.t
-  | EStructAccess of expr Marked.pos * StructFieldName.t * StructName.t
-  | EEnumInj of expr Marked.pos * EnumConstructor.t * EnumName.t
-  | EMatch of
-      expr Marked.pos * EnumName.t * expr Marked.pos EnumConstructorMap.t
+  | EVar of expr Bindlib.var
+  | EStruct of StructName.t * marked_expr StructFieldMap.t
+  | EStructAccess of marked_expr * StructFieldName.t * StructName.t
+  | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
+  | EMatch of marked_expr * EnumName.t * marked_expr EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of
-      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos * typ Marked.pos list
-  | EApp of expr Marked.pos * expr Marked.pos list
+  | EAbs of (expr, marked_expr) Bindlib.mbinder * typ Marked.pos list
+  | EApp of marked_expr * marked_expr list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Marked.pos list * expr Marked.pos * expr Marked.pos
-  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
-  | EArray of expr Marked.pos list
-  | ErrorOnEmpty of expr Marked.pos
+  | EDefault of marked_expr list * marked_expr * marked_expr
+  | EIfThenElse of marked_expr * marked_expr * marked_expr
+  | EArray of marked_expr list
+  | ErrorOnEmpty of marked_expr
 
 module Expr : Set.OrderedType with type t = expr
 module ExprMap : Map.S with type key = expr
@@ -139,7 +139,7 @@ type program = {
 module Var : sig
   type t = expr Bindlib.var
 
-  val make : string Marked.pos -> t
+  val make : string -> t
   val compare : t -> t -> int
 end
 
@@ -152,7 +152,6 @@ val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 val make_abs :
   vars ->
   expr Marked.pos Bindlib.box ->
-  Pos.t ->
   typ Marked.pos list ->
   Pos.t ->
   expr Marked.pos Bindlib.box

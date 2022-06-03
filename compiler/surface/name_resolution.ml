@@ -350,15 +350,14 @@ let process_item_decl
   | Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
 
 (** Adds a binding to the context *)
-let add_def_local_var (ctxt : context) (name : ident Marked.pos) :
+let add_def_local_var (ctxt : context) (name : ident) :
     context * Desugared.Ast.Var.t =
   let local_var_uid = Desugared.Ast.Var.make name in
   let ctxt =
     {
       ctxt with
       local_var_idmap =
-        Desugared.Ast.IdentMap.add (Marked.unmark name) local_var_uid
-          ctxt.local_var_idmap;
+        Desugared.Ast.IdentMap.add name local_var_uid ctxt.local_var_idmap;
     }
   in
   ctxt, local_var_uid

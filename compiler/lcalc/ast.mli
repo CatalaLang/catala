@@ -34,35 +34,32 @@ type lit =
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
-type expr =
-  | EVar of expr Bindlib.var Marked.pos
-  | ETuple of expr Marked.pos list * Dcalc.Ast.StructName.t option
+type marked_expr = expr Marked.pos
+
+and expr =
+  | EVar of expr Bindlib.var
+  | ETuple of marked_expr list * Dcalc.Ast.StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
   | ETupleAccess of
-      expr Marked.pos
+      marked_expr
       * int
       * Dcalc.Ast.StructName.t option
       * Dcalc.Ast.typ Marked.pos list
       (** The [MarkedString.info] is the former struct field name *)
   | EInj of
-      expr Marked.pos
-      * int
-      * Dcalc.Ast.EnumName.t
-      * Dcalc.Ast.typ Marked.pos list
+      marked_expr * int * Dcalc.Ast.EnumName.t * Dcalc.Ast.typ Marked.pos list
       (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Marked.pos * expr Marked.pos list * Dcalc.Ast.EnumName.t
+  | EMatch of marked_expr * marked_expr list * Dcalc.Ast.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
-  | EArray of expr Marked.pos list
+  | EArray of marked_expr list
   | ELit of lit
-  | EAbs of
-      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos
-      * Dcalc.Ast.typ Marked.pos list
-  | EApp of expr Marked.pos * expr Marked.pos list
-  | EAssert of expr Marked.pos
+  | EAbs of (expr, marked_expr) Bindlib.mbinder * Dcalc.Ast.typ Marked.pos list
+  | EApp of marked_expr * marked_expr list
+  | EAssert of marked_expr
   | EOp of Dcalc.Ast.operator
-  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
+  | EIfThenElse of marked_expr * marked_expr * marked_expr
   | ERaise of except
-  | ECatch of expr Marked.pos * except * expr Marked.pos
+  | ECatch of marked_expr * except * marked_expr
 
 type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
 
@@ -71,7 +68,7 @@ type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
 module Var : sig
   type t = expr Bindlib.var
 
-  val make : string Marked.pos -> t
+  val make : string -> t
   val compare : t -> t -> int
 end
 
@@ -121,7 +118,6 @@ val elit : lit -> Pos.t -> expr Marked.pos Bindlib.box
 
 val eabs :
   (expr, expr Marked.pos) Bindlib.mbinder Bindlib.box ->
-  Pos.t ->
   Dcalc.Ast.typ Marked.pos list ->
   Pos.t ->
   expr Marked.pos Bindlib.box
@@ -160,7 +156,6 @@ val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 val make_abs :
   vars ->
   expr Marked.pos Bindlib.box ->
-  Pos.t ->
   Dcalc.Ast.typ Marked.pos list ->
   Pos.t ->
   expr Marked.pos Bindlib.box

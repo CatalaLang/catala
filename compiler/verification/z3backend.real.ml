@@ -603,8 +603,8 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
     match Marked.unmark e with
     | EAbs (e, _) ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
-      let fresh_v = Var.make ("arm!tmp", Pos.no_pos) in
-      let fresh_e = EVar (fresh_v, Pos.no_pos) in
+      let fresh_v = Var.make "arm!tmp" in
+      let fresh_e = EVar fresh_v in
 
       (* Invariant: Catala enums always have exactly one argument *)
       let accessor = List.hd accessors in
@@ -613,7 +613,7 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
          in the body, we add this to the context *)
       let ctx = add_z3matchsubst fresh_v proj ctx in
 
-      let body = Bindlib.msubst (Marked.unmark e) [| fresh_e |] in
+      let body = Bindlib.msubst e [| fresh_e |] in
       translate_expr ctx body
     (* Invariant: Catala match arms are always lambda*)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
@@ -621,10 +621,9 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
 
   match Marked.unmark vc with
   | EVar v -> (
-    match VarMap.find_opt (Marked.unmark v) ctx.ctx_z3matchsubsts with
+    match VarMap.find_opt v ctx.ctx_z3matchsubsts with
     | None ->
       (* We are in the standard case, where this is a true Catala variable *)
-      let v = Marked.unmark v in
       let t = VarMap.find v ctx.ctx_var in
       let name = unique_name v in
       let ctx = add_z3var name v ctx in
@@ -699,7 +698,7 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
     match Marked.unmark head with
     | EOp op -> translate_op ctx op args
     | EVar v ->
-      let ctx, fd = find_or_create_funcdecl ctx (Marked.unmark v) in
+      let ctx, fd = find_or_create_funcdecl ctx v in
       (* Fold_right to preserve the order of the arguments: The head argument is
          appended at the head *)
       let ctx, z3_args =

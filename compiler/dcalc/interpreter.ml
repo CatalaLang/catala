@@ -340,7 +340,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Marked.pos) :
     let e1 = evaluate_expr ctx e1 in
     let args = List.map (evaluate_expr ctx) args in
     match Marked.unmark e1 with
-    | EAbs ((binder, _), _) ->
+    | EAbs (binder, _) ->
       if Bindlib.mbinder_arity binder = List.length args then
         evaluate_expr ctx
           (Bindlib.msubst binder (Array.of_list (List.map Marked.unmark args)))

@@ -102,30 +102,30 @@ type unop =
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
+type marked_expr = expr Marked.pos
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax*)
-type expr =
-  | EVar of expr Bindlib.var Marked.pos
-  | ETuple of expr Marked.pos list * StructName.t option
+
+and expr =
+  | EVar of expr Bindlib.var
+  | ETuple of marked_expr list * StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
   | ETupleAccess of
-      expr Marked.pos * int * StructName.t option * typ Marked.pos list
+      marked_expr * int * StructName.t option * typ Marked.pos list
       (** The [MarkedString.info] is the former struct field name *)
-  | EInj of expr Marked.pos * int * EnumName.t * typ Marked.pos list
+  | EInj of marked_expr * int * EnumName.t * typ Marked.pos list
       (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Marked.pos * expr Marked.pos list * EnumName.t
+  | EMatch of marked_expr * marked_expr list * EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
-  | EArray of expr Marked.pos list
+  | EArray of marked_expr list
   | ELit of lit
-  | EAbs of
-      ((expr, expr Marked.pos) Bindlib.mbinder[@opaque]) Marked.pos
-      * typ Marked.pos list
-  | EApp of expr Marked.pos * expr Marked.pos list
-  | EAssert of expr Marked.pos
+  | EAbs of ((expr, marked_expr) Bindlib.mbinder[@opaque]) * typ Marked.pos list
+  | EApp of marked_expr * marked_expr list
+  | EAssert of marked_expr
   | EOp of operator
-  | EDefault of expr Marked.pos list * expr Marked.pos * expr Marked.pos
-  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
-  | ErrorOnEmpty of expr Marked.pos
+  | EDefault of marked_expr list * marked_expr * marked_expr
+  | EIfThenElse of marked_expr * marked_expr * marked_expr
+  | ErrorOnEmpty of marked_expr
 
 type struct_ctx = (StructFieldName.t * typ Marked.pos) list StructMap.t
 type enum_ctx = (EnumConstructor.t * typ Marked.pos) list EnumMap.t
@@ -226,7 +226,6 @@ val elit : lit -> Pos.t -> expr Marked.pos Bindlib.box
 
 val eabs :
   (expr, expr Marked.pos) Bindlib.mbinder Bindlib.box ->
-  Pos.t ->
   typ Marked.pos list ->
   Pos.t ->
   expr Marked.pos Bindlib.box
@@ -352,7 +351,7 @@ val map_exprs_in_scopes :
 module Var : sig
   type t = expr Bindlib.var
 
-  val make : string Marked.pos -> t
+  val make : string -> t
   val compare : t -> t -> int
 end
 
@@ -373,7 +372,6 @@ val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 val make_abs :
   vars ->
   expr Marked.pos Bindlib.box ->
-  Pos.t ->
   typ Marked.pos list ->
   Pos.t ->
   expr Marked.pos Bindlib.box
@@ -413,7 +411,6 @@ type 'expr make_let_in_sig =
 type 'expr make_abs_sig =
   'expr Bindlib.mvar ->
   'expr Marked.pos Bindlib.box ->
-  Pos.t ->
   typ Marked.pos list ->
   Pos.t ->
   'expr Marked.pos Bindlib.box

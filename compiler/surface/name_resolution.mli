@@ -145,8 +145,7 @@ val label_groups :
 
 val is_type_cond : Ast.typ Marked.pos -> bool
 
-val add_def_local_var :
-  context -> ident Marked.pos -> context * Desugared.Ast.Var.t
+val add_def_local_var : context -> ident -> context * Desugared.Ast.Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :

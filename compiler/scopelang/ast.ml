@@ -102,23 +102,23 @@ module Typ = struct
     | _, TArray _ -> 1
 end
 
-type expr =
+type marked_expr = expr Marked.pos
+
+and expr =
   | ELocation of location
-  | EVar of expr Bindlib.var Marked.pos
-  | EStruct of StructName.t * expr Marked.pos StructFieldMap.t
-  | EStructAccess of expr Marked.pos * StructFieldName.t * StructName.t
-  | EEnumInj of expr Marked.pos * EnumConstructor.t * EnumName.t
-  | EMatch of
-      expr Marked.pos * EnumName.t * expr Marked.pos EnumConstructorMap.t
+  | EVar of expr Bindlib.var
+  | EStruct of StructName.t * marked_expr StructFieldMap.t
+  | EStructAccess of marked_expr * StructFieldName.t * StructName.t
+  | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
+  | EMatch of marked_expr * EnumName.t * marked_expr EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of
-      (expr, expr Marked.pos) Bindlib.mbinder Marked.pos * typ Marked.pos list
-  | EApp of expr Marked.pos * expr Marked.pos list
+  | EAbs of (expr, marked_expr) Bindlib.mbinder * typ Marked.pos list
+  | EApp of marked_expr * marked_expr list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Marked.pos list * expr Marked.pos * expr Marked.pos
-  | EIfThenElse of expr Marked.pos * expr Marked.pos * expr Marked.pos
-  | EArray of expr Marked.pos list
-  | ErrorOnEmpty of expr Marked.pos
+  | EDefault of marked_expr list * marked_expr * marked_expr
+  | EIfThenElse of marked_expr * marked_expr * marked_expr
+  | EArray of marked_expr list
+  | ErrorOnEmpty of marked_expr
 
 module Expr = struct
   type t = expr
@@ -136,7 +136,7 @@ module Expr = struct
     in
     match e1, e2 with
     | ELocation _, ELocation _ -> 0
-    | EVar (v1, _), EVar (v2, _) -> Bindlib.compare_vars v1 v2
+    | EVar v1, EVar v2 -> Bindlib.compare_vars v1 v2
     | EStruct (name1, field_map1), EStruct (name2, field_map2) -> (
       match StructName.compare name1 name2 with
       | 0 ->
@@ -165,7 +165,7 @@ module Expr = struct
         | n -> n)
       | n -> n)
     | ELit l1, ELit l2 -> Stdlib.compare l1 l2
-    | EAbs ((binder1, _), typs1), EAbs ((binder2, _), typs2) -> (
+    | EAbs (binder1, typs1), EAbs (binder2, typs2) -> (
       match list_compare (Marked.compare Typ.compare) typs1 typs2 with
       | 0 ->
         let _, (e1, _), (e2, _) = Bindlib.unmbind2 binder1 binder2 in
@@ -226,7 +226,7 @@ let rec locations_used (e : expr Marked.pos) : LocationSet.t =
   match Marked.unmark e with
   | ELocation l -> LocationSet.singleton (l, Marked.get_mark e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
-  | EAbs ((binder, _), _) ->
+  | EAbs (binder, _) ->
     let _, body = Bindlib.unmbind binder in
     locations_used body
   | EStruct (_, es) ->
@@ -283,10 +283,8 @@ type program = {
 module Var = struct
   type t = expr Bindlib.var
 
-  let make (s : string Marked.pos) : t =
-    Bindlib.new_var
-      (fun (x : expr Bindlib.var) : expr -> EVar (x, Marked.get_mark s))
-      (Marked.unmark s)
+  let make (s : string) : t =
+    Bindlib.new_var (fun (x : expr Bindlib.var) : expr -> EVar x) s
 
   let compare x y = Bindlib.compare_vars x y
 end
@@ -299,12 +297,9 @@ let make_var ((x, pos) : Var.t Marked.pos) : expr Marked.pos Bindlib.box =
 let make_abs
     (xs : vars)
     (e : expr Marked.pos Bindlib.box)
-    (pos_binder : Pos.t)
     (taus : typ Marked.pos list)
     (pos : Pos.t) : expr Marked.pos Bindlib.box =
-  Bindlib.box_apply
-    (fun b -> EAbs ((b, pos_binder), taus), pos)
-    (Bindlib.bind_mvar xs e)
+  Bindlib.box_apply (fun b -> EAbs (b, taus), pos) (Bindlib.bind_mvar xs e)
 
 let make_app
     (e : expr Marked.pos Bindlib.box)
@@ -319,10 +314,7 @@ let make_let_in
     (e2 : expr Marked.pos Bindlib.box) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2
     (fun e u -> EApp (e, u), Marked.get_mark (Bindlib.unbox e2))
-    (make_abs (Array.of_list [x]) e2
-       (Marked.get_mark (Bindlib.unbox e2))
-       [tau]
-       (Marked.get_mark (Bindlib.unbox e2)))
+    (make_abs (Array.of_list [x]) e2 [tau] (Marked.get_mark (Bindlib.unbox e2)))
     (Bindlib.box_list [e1])
 
 let make_default ?(pos = Pos.no_pos) exceptions just cons =

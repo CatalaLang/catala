@@ -64,7 +64,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Marked.pos)
            ELit (LBool false), pos
          | _ -> EApp (op, [e1; e2]), pos))
       (rec_helper e1) (rec_helper e2)
-  | EVar (x, _) -> Bindlib.box_apply (fun x -> x, pos) (Bindlib.box_var x)
+  | EVar x -> Bindlib.box_apply (fun x -> x, pos) (Bindlib.box_var x)
   | ETuple (args, s_name) ->
     Bindlib.box_apply
       (fun args -> ETuple (args, s_name), pos)
@@ -93,18 +93,16 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Marked.pos)
       (fun args -> EArray args, pos)
       (List.map rec_helper args |> Bindlib.box_list)
   | ELit l -> Bindlib.box (ELit l, pos)
-  | EAbs ((binder, binder_pos), typs) ->
+  | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
     let new_body = rec_helper body in
     let new_binder = Bindlib.bind_mvar vars new_body in
-    Bindlib.box_apply
-      (fun binder -> EAbs ((binder, binder_pos), typs), pos)
-      new_binder
+    Bindlib.box_apply (fun binder -> EAbs (binder, typs), pos) new_binder
   | EApp (f, args) ->
     Bindlib.box_apply2
       (fun f args ->
         match Marked.unmark f with
-        | EAbs ((binder, _pos_binder), _ts) ->
+        | EAbs (binder, _ts) ->
           (* beta reduction *)
           Bindlib.msubst binder (List.map fst args |> Array.of_list)
         | _ -> EApp (f, args), pos)

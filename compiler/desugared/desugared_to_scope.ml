@@ -81,7 +81,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
   | Ast.EVar v ->
     Bindlib.box_apply
       (fun v -> Marked.same_mark_as v e)
-      (Bindlib.box_var (Ast.VarMap.find (Marked.unmark v) ctx.var_mapping))
+      (Bindlib.box_var (Ast.VarMap.find v ctx.var_mapping))
   | EStruct (s_name, fields) ->
     Bindlib.box_apply
       (fun new_fields ->
@@ -106,12 +106,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
       (Scopelang.Ast.EnumConstructorMapLift.lift_box
          (Scopelang.Ast.EnumConstructorMap.map (translate_expr ctx) arms))
   | ELit l -> Bindlib.box (Scopelang.Ast.ELit l, Marked.get_mark e)
-  | EAbs ((binder, binder_pos), typs) ->
+  | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
     let new_vars =
-      Array.map
-        (fun var -> Scopelang.Ast.Var.make (Bindlib.name_of var, binder_pos))
-        vars
+      Array.map (fun var -> Scopelang.Ast.Var.make (Bindlib.name_of var)) vars
     in
     let ctx =
       List.fold_left2
@@ -121,7 +119,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     in
     Bindlib.box_apply
       (fun new_binder ->
-        Scopelang.Ast.EAbs ((new_binder, binder_pos), typs), Marked.get_mark e)
+        Scopelang.Ast.EAbs (new_binder, typs), Marked.get_mark e)
       (Bindlib.bind_mvar new_vars (translate_expr ctx body))
   | EApp (e1, args) ->
     Bindlib.box_apply2
@@ -229,7 +227,7 @@ let rec rule_tree_to_expr
       match Ast.VarMap.find_opt new_param ctx.var_mapping with
       | None ->
         let new_param_scope =
-          Scopelang.Ast.Var.make (Bindlib.name_of new_param, def_pos)
+          Scopelang.Ast.Var.make (Bindlib.name_of new_param)
         in
         {
           ctx with
@@ -307,7 +305,7 @@ let rec rule_tree_to_expr
       in
       Scopelang.Ast.make_abs
         (Array.of_list [Ast.VarMap.find new_param ctx.var_mapping])
-        default def_pos [typ] def_pos
+        default [typ] def_pos
     else default
   | _ -> (* should not happen *) assert false
 
@@ -404,10 +402,7 @@ let translate_def
     Bindlib.unbox
       (rule_tree_to_expr ~toplevel:true ctx
          (Ast.ScopeDef.get_position def_info)
-         (Option.map
-            (fun _ ->
-              Ast.Var.make ("param", Ast.ScopeDef.get_position def_info))
-            is_def_func_param_typ)
+         (Option.map (fun _ -> Ast.Var.make "param") is_def_func_param_typ)
          (match top_list with
          | [] ->
            (* In this case, there are no rules to define the expression *)

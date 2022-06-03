@@ -35,8 +35,8 @@ let translate_lit (l : D.lit) : A.expr =
 
 let thunk_expr (e : A.expr Marked.pos Bindlib.box) (pos : Pos.t) :
     A.expr Marked.pos Bindlib.box =
-  let dummy_var = A.Var.make ("_", pos) in
-  A.make_abs [| dummy_var |] e pos [D.TAny, pos] pos
+  let dummy_var = A.Var.make "_" in
+  A.make_abs [| dummy_var |] e [D.TAny, pos] pos
 
 let rec translate_default
     (ctx : ctx)
@@ -64,8 +64,7 @@ let rec translate_default
 and translate_expr (ctx : ctx) (e : D.expr Marked.pos) :
     A.expr Marked.pos Bindlib.box =
   match Marked.unmark e with
-  | D.EVar v ->
-    A.make_var (D.VarMap.find (Marked.unmark v) ctx, Marked.get_mark e)
+  | D.EVar v -> A.make_var (D.VarMap.find v ctx, Marked.get_mark e)
   | D.ETuple (args, s) ->
     A.etuple (List.map (translate_expr ctx) args) s (Marked.get_mark e)
   | D.ETupleAccess (e1, i, s, ts) ->
@@ -92,12 +91,12 @@ and translate_expr (ctx : ctx) (e : D.expr Marked.pos) :
     A.eapp (translate_expr ctx e1)
       (List.map (translate_expr ctx) args)
       (Marked.get_mark e)
-  | D.EAbs ((binder, pos_binder), ts) ->
+  | D.EAbs (binder, ts) ->
     let vars, body = Bindlib.unmbind binder in
     let ctx, lc_vars =
       Array.fold_right
         (fun var (ctx, lc_vars) ->
-          let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
+          let lc_var = A.Var.make (Bindlib.name_of var) in
           D.VarMap.add var lc_var ctx, lc_var :: lc_vars)
         vars (ctx, [])
     in
@@ -105,8 +104,7 @@ and translate_expr (ctx : ctx) (e : D.expr Marked.pos) :
     let new_body = translate_expr ctx body in
     let new_binder = Bindlib.bind_mvar lc_vars new_body in
     Bindlib.box_apply
-      (fun new_binder ->
-        Marked.same_mark_as (A.EAbs ((new_binder, pos_binder), ts)) e)
+      (fun new_binder -> Marked.same_mark_as (A.EAbs (new_binder, ts)) e)
       new_binder
   | D.EDefault ([exn], just, cons) when !Cli.optimize_flag ->
     A.ecatch (translate_expr ctx exn) A.EmptyError
@@ -128,9 +126,7 @@ let rec translate_scope_lets
     let old_scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
-    let new_scope_let_var =
-      A.Var.make (Bindlib.name_of old_scope_let_var, scope_let.scope_let_pos)
-    in
+    let new_scope_let_var = A.Var.make (Bindlib.name_of old_scope_let_var) in
     let new_scope_let_expr = translate_expr ctx scope_let.scope_let_expr in
     let new_ctx = D.VarMap.add old_scope_let_var new_scope_let_var ctx in
     let new_scope_next = translate_scope_lets decl_ctx new_ctx scope_let_next in
@@ -156,15 +152,13 @@ let rec translate_scopes
   | ScopeDef scope_def ->
     let old_scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
     let new_scope_var =
-      A.Var.make (D.ScopeName.get_info scope_def.scope_name)
+      A.Var.make (Marked.unmark (D.ScopeName.get_info scope_def.scope_name))
     in
     let old_scope_input_var, scope_body_expr =
       Bindlib.unbind scope_def.scope_body.scope_body_expr
     in
     let new_scope_input_var =
-      A.Var.make
-        ( Bindlib.name_of old_scope_input_var,
-          Marked.get_mark (D.ScopeName.get_info scope_def.scope_name) )
+      A.Var.make (Bindlib.name_of old_scope_input_var)
     in
     let new_ctx = D.VarMap.add old_scope_input_var new_scope_input_var ctx in
     let new_scope_body_expr =

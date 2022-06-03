@@ -27,7 +27,7 @@ let visitor_map
      syntax tree modified. Used in other transformations. *)
   let default_mark e' = Marked.same_mark_as e' e in
   match Marked.unmark e with
-  | EVar (v, _pos) ->
+  | EVar v ->
     let+ v = Bindlib.box_var v in
     default_mark @@ v
   | ETuple (args, n) ->
@@ -46,11 +46,11 @@ let visitor_map
   | EArray args ->
     let+ args = args |> List.map (t ctx) |> Bindlib.box_list in
     default_mark @@ EArray args
-  | EAbs ((binder, pos_binder), ts) ->
+  | EAbs (binder, ts) ->
     let vars, body = Bindlib.unmbind binder in
     let body = t ctx body in
     let+ binder = Bindlib.bind_mvar vars body in
-    default_mark @@ EAbs ((binder, pos_binder), ts)
+    default_mark @@ EAbs (binder, ts)
   | EApp (e1, args) ->
     let+ e1 = t ctx e1
     and+ args = args |> List.map (t ctx) |> Bindlib.box_list in
@@ -94,7 +94,7 @@ let rec beta_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
     let+ e1 = beta_expr () e1
     and+ args = List.map (beta_expr ()) args |> Bindlib.box_list in
     match Marked.unmark e1 with
-    | EAbs ((binder, _pos_binder), _ts) ->
+    | EAbs (binder, _ts) ->
       let (_ : (_, _) Bindlib.mbinder) = binder in
       Bindlib.msubst binder (List.map fst args |> Array.of_list)
     | _ -> default_mark @@ EApp (e1, args))

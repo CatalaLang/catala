@@ -94,7 +94,7 @@ let find ?(info : string = "none") (n : D.Var.t) (ctx : ctx) : info =
     corresponding expression, and the boolean is_pure. It is usefull for
     debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
 let add_var (pos : Pos.t) (var : D.Var.t) (is_pure : bool) (ctx : ctx) : ctx =
-  let new_var = A.Var.make (Bindlib.name_of var, pos) in
+  let new_var = A.Var.make (Bindlib.name_of var) in
   let expr = A.make_var (new_var, pos) in
 
   (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Dcalc.Print.format_var
@@ -173,46 +173,44 @@ let rec translate_and_hoist (ctx : ctx) (e : D.expr Marked.pos) :
        current context) is thunked, hence matched in the next case. This
        assumption can change in the future, and this case is here for this
        reason. *)
-    let v, pos_v = v in
     if not (find ~info:"search for a variable" v ctx).is_pure then
-      let v' = A.Var.make (Bindlib.name_of v, pos_v) in
+      let v' = A.Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
          created a variable %a to replace it" Dcalc.Print.format_var v
          Print.format_var v'; *)
       A.make_var (v', pos), A.VarMap.singleton v' e
     else (find ~info:"should never happend" v ctx).expr, A.VarMap.empty
-  | D.EApp ((D.EVar (v, pos_v), p), [(D.ELit D.LUnit, _)]) ->
+  | D.EApp ((D.EVar v, p), [(D.ELit D.LUnit, _)]) ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
-      let v' = A.Var.make (Bindlib.name_of v, pos_v) in
+      let v' = A.Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
          created a variable %a to replace it" Dcalc.Print.format_var v
          Print.format_var v'; *)
-      A.make_var (v', pos), A.VarMap.singleton v' (D.EVar (v, pos_v), p)
+      A.make_var (v', pos), A.VarMap.singleton v' (D.EVar v, p)
     else
       Errors.raise_spanned_error pos
         "Internal error: an pure variable was found in an unpure environment."
   | D.EDefault (_exceptions, _just, _cons) ->
-    let v' = A.Var.make ("default_term", pos) in
+    let v' = A.Var.make "default_term" in
     A.make_var (v', pos), A.VarMap.singleton v' e
   | D.ELit D.LEmptyError ->
-    let v' = A.Var.make ("empty_litteral", pos) in
+    let v' = A.Var.make "empty_litteral" in
     A.make_var (v', pos), A.VarMap.singleton v' e
   (* This one is a very special case. It transform an unpure expression
      environement to a pure expression. *)
   | ErrorOnEmpty arg ->
     (* [ match arg with | None -> raise NoValueProvided | Some v -> {{ v }} ] *)
-    let silent_var = A.Var.make ("_", pos) in
-    let x = A.Var.make ("non_empty_argument", pos) in
+    let silent_var = A.Var.make "_" in
+    let x = A.Var.make "non_empty_argument" in
 
     let arg' = translate_expr ctx arg in
 
     ( A.make_matchopt_with_abs_arms arg'
         (A.make_abs [| silent_var |]
            (Bindlib.box (A.ERaise A.NoValueProvided, pos))
-           pos
            [D.TAny, pos]
            pos)
-        (A.make_abs [| x |] (A.make_var (x, pos)) pos [D.TAny, pos] pos),
+        (A.make_abs [| x |] (A.make_var (x, pos)) [D.TAny, pos] pos),
       A.VarMap.empty )
   (* pure terms *)
   | D.ELit l -> A.elit (translate_lit l pos) pos, A.VarMap.empty
@@ -231,7 +229,7 @@ let rec translate_and_hoist (ctx : ctx) (e : D.expr Marked.pos) :
        raised. *)
     let e1', h1 = translate_and_hoist ctx e1 in
     A.eassert e1' pos, h1
-  | D.EAbs ((binder, pos_binder), ts) ->
+  | D.EAbs (binder, ts) ->
     let vars, body = Bindlib.unmbind binder in
     let ctx, lc_vars =
       ArrayLabels.fold_right vars ~init:(ctx, []) ~f:(fun var (ctx, lc_vars) ->
@@ -253,8 +251,7 @@ let rec translate_and_hoist (ctx : ctx) (e : D.expr Marked.pos) :
     let new_binder = Bindlib.bind_mvar lc_vars new_body in
 
     ( Bindlib.box_apply
-        (fun new_binder ->
-          A.EAbs ((new_binder, pos_binder), List.map translate_typ ts), pos)
+        (fun new_binder -> A.EAbs (new_binder, List.map translate_typ ts), pos)
         new_binder,
       hoists )
   | EApp (e1, args) ->
@@ -315,8 +312,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Marked.pos) :
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)
-        | D.EVar v ->
-          (find ~info:"should never happend" (Marked.unmark v) ctx).expr
+        | D.EVar v -> (find ~info:"should never happend" v ctx).expr
         | D.EDefault (excep, just, cons) ->
           let excep' = List.map (translate_expr ctx) excep in
           let just' = translate_expr ctx just in
@@ -338,20 +334,18 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Marked.pos) :
 
           (* [ match arg with | None -> raise NoValueProvided | Some v -> assert
              {{ v }} ] *)
-          let silent_var = A.Var.make ("_", pos_hoist) in
-          let x = A.Var.make ("assertion_argument", pos_hoist) in
+          let silent_var = A.Var.make "_" in
+          let x = A.Var.make "assertion_argument" in
 
           A.make_matchopt_with_abs_arms arg'
             (A.make_abs [| silent_var |]
                (Bindlib.box (A.ERaise A.NoValueProvided, pos_hoist))
-               pos_hoist
                [D.TAny, pos_hoist]
                pos_hoist)
             (A.make_abs [| x |]
                (Bindlib.box_apply
                   (fun arg -> A.EAssert arg, pos_hoist)
                   (A.make_var (x, pos_hoist)))
-               pos_hoist
                [D.TAny, pos_hoist]
                pos_hoist)
         | _ ->
@@ -378,7 +372,7 @@ let rec translate_scope_let (ctx : ctx) (lets : D.expr D.scope_body_expr) :
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_typ = typ;
-        scope_let_expr = D.EAbs ((binder, _), _), _;
+        scope_let_expr = D.EAbs (binder, _), _;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
