@@ -322,12 +322,23 @@ Personne seule ou couple ayant une personne à charge 2,70%
 Majoration par personne à charge	                   -0,06%
 
 ```catala
-# TODO juridique: rechercher si la distinction enfants/personnes est juste
-# un artefact de rédaction ou s'il y a vraiment une différence de calcul dans
+# La distinction enfants/personnes est-elle juste
+# un artefact de rédaction ou y-a-t-il vraiment une différence de calcul dans
 # le cas où e.g. il y a 3 enfants + 2 adultes à charges : doit on prendre 1,79%
 # ou 2,01% ?
-# TODO juridique: que se passe-t-il quand il y a 29 personnes à charge et que
-# le taux devient négatif?
+# Réponse de DGALN/DHUP/FE4 du 25/05/2022:
+# "Non pas de différence, « X enfants ou X personnes » signifie « personne seule
+#  ou couple ayant X personnes à charge » (ainsi, dans le cas d’un couple avec
+#  3 enfants à charge et 2 adultes à charge, il faut prendre la ligne « 5
+#  enfants ou personnes », soit la valeur 1,79 %).
+#  Nous notons le point pour uniformiser les rédactions (également pour le
+#  tableau du 4° de l’article 46, correspondant aux valeurs pour l’outre-mer)."
+# Que se passe-t-il quand il y a 29 personnes à charge et que le taux devient
+# négatif?
+# Réponse de DGALN/DHUP/FE4 du 25/05/2022:
+# "Cette situation étant très éloignée de la réalité elle n’a pas été traitée."
+# Nous sommes donc libres de choisir une interprétation, et nous choisissons
+# donc de laisser courir cette valeur dans le territoire négatif.
 champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition taux_composition_familiale égal à
@@ -2003,6 +2014,34 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
         # incorrect selon information DGALN/DHUP/FE4 du 25/04/2022
         59,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
+
+# Concernant l'erreur dans la valeur, voici la réponse intégrale de
+# DGALN/DHUP/FE4:
+# "Pour les deux valeurs indiquées, il faut lire « 59,47 » à la place de
+#  « 459,47 » et « 47,99 » à la place de « 347,99 » (les valeurs des centaines
+#  sont à supprimer).
+#  L’arrêté du 27/09/2019 fait suite à la recodification des APL dans le CCH,
+#  opérée à l’été 2019. Il reprend et regroupe plusieurs anciens arrêtés, dont
+#  celui du 03/07/1978.
+#  Les valeurs citées correspondent à celles en vigueur pour des prêts signés en
+#  2012 et découlent de l’arrêté du 28/12/2011 modifiant celui du 03/07/1978 :
+#  - la version JO « scannée » authentifiée de cet arrêté de 2011 (page 123 du
+#    JO du 30/12/2011) est correcte, avec les vraies valeurs, qui ont été
+#    intégrées dans les SI à l’époque (et le sont toujours).
+#    (https://www.legifrance.gouv.fr/download/pdf?id=MX15OwEPRjsyPR0h_40wx-7mT0ji9z3kMMVYU8Jy7sc=)
+#  - on constate cependant sur légifrance que la version remise en page comporte
+#    l’erreur (article 6, mais également article 5 pour des valeurs qui ont été
+#    « écrasées » depuis et ne sont donc pas reprises dans l’arrêté de 2019
+#    (https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000025054546)
+#  La correction a été demandé fin avril à légifrance, mais n’est pas encore
+#  effective.
+#  En conséquence, l’arrêté modifié de 1978 apparaissait erroné sur légifrance
+#  en 2019 (et jusqu’à fin avril 2022, légifrance l’ayant corrigé à la suite de
+#  notre signalement), lorsqu’il a servi de base pour la rédaction du nouvel
+#  arrêté du 27/09/2019.
+#  Nous procéderons à la correction de l’arrêté de 2019 lors de la prochaine
+#  revalorisation des barèmes. Dans l’attente, les valeurs SI ont toujours
+#  été correctes, sans impact dans le calcul des aides."
 ```
 
 
@@ -2666,7 +2705,7 @@ pour les prestations dues à compter du 1er octobre 2021.
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer sous condition
   date_courante >=@ |2021-10-01|:
-  définition équivalence_loyer_éligible égal à
+  définition plafond_équivalence_loyer_éligible égal à
     (selon zone sous forme
     -- Zone1: (
       si nombre_personnes_à_charge = 0 alors
@@ -2802,6 +2841,33 @@ champ d'application CalculAidePersonnelleLogementFoyer:
     };
     TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
   ]
+
+  # Cette exception ne figure pas dans le texte de l'arrête mais cette absence
+  # nous a été confirmée comme une erreur de recodification par DLGAN/DHUP/FE4
+  # le 30/05/2022. Les valeurs et taux des tranches exceptionnelles sont
+  # décrites dans les éléments de calcul publiés par ce même bureau (page 33):
+  # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf
+  exception définition tranches_revenus_d832_26 sous condition
+    condition_2_du_832_25
+  conséquence égal à [
+    TrancheRevenu { -- haut: Revenu contenu 1423,03€  -- bas: 0€ -- taux: 0%};
+    TrancheRevenu {
+      -- haut: Revenu contenu 2047,61€
+      -- bas: 1423,03€
+      -- taux: 2,40%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 2629,85€
+      -- bas: 2047,61€
+      -- taux: 20,80%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 4095,05€
+      -- bas: 2629,85€
+      -- taux: 23,20%
+    };
+    TrancheRevenu { -- haut: Infini  -- bas: 4095,05€ -- taux: 32,80%}
+  ]
 ```
 
 II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont
@@ -2825,126 +2891,1204 @@ champ d'application CalculAidePersonnelleLogementFoyer:
     si condition_2_du_832_25 alors 15 € sinon 26,68€
 ```
 
-## Chapitre IV : Calcul des allocations de logement en secteur accession 
+## Chapitre IV : Calcul des allocations de logement en secteur accession
 
 ### Article 33 | LEGIARTI000041489184
 
-Pour l'application de l'article D. 842-6 du même code, la mensualité plafonds à prendre en considération est fixée 
-selon le tableau suivant (en francs jusqu'au 31 décembre 2001 et en euros à compter du 1er janvier 2002), quelle que 
-soit la date de construction ou d'achèvement du logement, conformément au certificat daté prévu au 1° de l'article 
+Pour l'application de l'article D. 842-6 du même code, la mensualité plafonds à prendre en considération est fixée
+selon le tableau suivant (en francs jusqu'au 31 décembre 2001 et en euros à compter du 1er janvier 2002), quelle que
+soit la date de construction ou d'achèvement du logement, conformément au certificat daté prévu au 1° de l'article
 D. 842-7 du même code :
 
 ---------------------------------------------------------------------------------------------------------------------
-
 Date du certificat daté   Zones     isolé     couples    C+1      C+2      C+3      C+4      C+5       par pers supp
-
 ------------------------ ------- --------- ----------- -------- -------- -------- -------- -------- -----------------
-Certificats datés          I        1587      1913      2055     2113     2171      2229     2280         198 
-à partir du                II       1393      1706      1847     1912     1977      2042     2187         191
-01/07/1992                 III      1306      1584      1726     1798     1870      1942     2086         182
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I        1604      1934      2078     2137     2196      2255     2305         200 
-à partir du                II       1408      1725      1867     1933     1999      2065     2211         193
-01/07/1994                 III      1320      1601      1745     1818     1891      1942     2109         184
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I        1633      1969      2116     2176     2236      2296     2346         204 
-à partir du                II       1433      1756      1901     1968     2035      2102     2251         196
-01/07/1997                 III      1344      1630      1777     1851     1925      1999     2147         187
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I        1672      2016      2167     2228     2290      2351     2402         209 
-à partir du                II       1467      1798      1947     2015     2084      2152     2305         201
-01/07/1998                 III      1376      1669      1820     1895     1971      2047     2199         191
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I        1674      2018      2169     2230     2292      2353     2404         209 
-à partir du                II       1468      1800      1949     2017     2086      2154     2307         201
-01/07/1999                 III      1377      1671      1822     1897     1973      2049     2201         191
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I        1691      2038      2191     2252     2315      2377     2428         211 
-à partir du                II       1483      1818      1968     2037     2107      2176     2330         203
-01/07/2000                 III      1391      1688      1840     1916     1993      2069     2223         193
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I        1711      2062      2217     2279     2343      2406     2457         214 
-à partir du                II       1501      1840      1992     2061     2132      2202     2358         205
-01/07/2001                 III      1408      1708      1862     1939     2017      2094     2250         195
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       260,84    314,35    337,98   347,43   357,19    366,79   374,57       32,62 
-à partir du                II      228,83    280,51    303,68   314,20   325,02    335,69   359,47       31,25
-01/01/2002                 III     214,65    260,38    283,86   295,60   307,49    319,23   343,01       29,73
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       263,97    318,12    342,04   351,60   361,48    371,19   379,06       33,01 
-à partir du                II      231,58    283,88	   307,32   317,97   328,92    339,72   363,78       31,63
-01/07/2002                 III     217,23    263,50    2987,27  299,15   311,18    323,06   347,13       30,09
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       267,14    321,94    346,14   355,82   365,82    375,64   383,61       33,41 
-à partir du                II      234,36    287,29	   311,01   321,79   332,87    343,80   368,15       32,01
-01/07/2003                 III     219,84    266,66    290,72   302,74   314,91    326,94   351,30       30,45
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       271,95    327,73    352,37   362,22   372,40    382,40   390,51       34,01 
-à partir du                II      238,58    292,46	   316,61   327,58   338,86    349,99   374,78       32,59
-01/09/2005                 III     223,80    271,46    295,95   308,19   320,58    332,82   357,62       31,00
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       279,56    336,91    362,24   372,36   382,83    393,11   401,44       34,96 
-à partir du                II      245,26    300,65	   325,48   336,75   348,65    359,79   385,27       33,50
-01/01/2007                 III     230,07    279,06    304,24   316,82   329,56    342,14   367,33       31,87
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       287,28    346,21    372,24   382,64   393,40    403,96   412,52       35,92 
-à partir du                II      252,03    308,95	   334,46   346,04   357,96    369,72   395,90       34,42
-01/01/2008                 III     236,42    286,76    312,64   325,56   338,66    351,58   377,78       32,75
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       295,75    356,42    383,22   393,93   405,01    415,88   424,69       36,98 
-à partir du                II      259,46    318,06	   344,33   356,25   368,52    380,63   407,58       35,44
-01/01/2009                 III     243,39    295,22	   321,86   335,16   348,65    361,95   388,92       33,72
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       296,70    357,56    384,45   395,19   406,31    417,21   426,05       37,10 
-à partir du                II      260,29    319,08	   346,43   357,39   369,70    381,85   408,88       35,55
-01/01/2010                 III     244,17    296,16	   322,89   336,23   349,77    363,11   390,16       33,83
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       299,96    361,49    388,68   399,54   410,78    421,80   430,74       37,51 
-à partir du                II      263,15    322,59	   349,23   361,32   373,77    386,05   413,38       35,94
-01/01/2011                 III     246,86    299,42	   326,44   339,93   353,62    367,10   394,45       34,20
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       302,96    365,10    392,57   403,54   414,89    426,02   435,05       37,89 
-à partir du                II      265,78    325,82	   352,72   364,93   377,51    389,91   417,51       36,30
-01/01/2012                 III     249,33    302,41	   329,70   343,33   357,16    370,77   398,39       34,54
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       309,47    372,95    401,01   412,22   423,81    435,18   444,4        38,7 
-à partir du                II      271,49    332,83	   360,3    372,78   385,63    398,29   426,49       37,08
-01/01/2013                 III     254,69    308,91	   336,79   350,71   364,84    378,74   406,96       35,28
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       311,23    375,08    403,30   414,57   426,23    437,66   446,93       38,92 
-à partir du                II      273,04    334,73	   362,35   374,90   387,83    400,56   428,92       37,29
-01/10/2014                 III     256,14    310,67	   338,71   352,71   366,92    380,90   409,28       35,48
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       311,48    375,38    403,62   414,9    426,57    438,01   447,29       38,95 
-à partir du                II      273,26    335  	   362,64   375,2    388,14    400,88   429,26       37,32
-01/10/2015                 III     256,34    310,92	   338,98   352,99   367,21    381,2    409,61       35,51
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       313,82    378,2     406,65   418,01   429,77    441,3    450,64       39,24 
-à partir du                II      275,31    337,51	   365,36   378,01   391,05    403,89   432,48       37,6
-01/10/2017                 III     258,26    313,25	   341,52   355,64   369,96    384,06   412,68       35,78
--------------------------------------------------------------------------------------------------------------------
-Certificats datés          I       314,76    379,33    407,87   419,27   431,06    442,62   452,00       39,36 
-à partir du                II      276,14    338,53	   366,46   379,15   392,22    405,10   433,78       37,71
-01/10/2019                 III     259,04    314,19	   342,55   356,70   371,07    385,21   413,92       35,88
+Certificats datés          I        1587      1913      2055     2113     2171      2229     2280         198
+à partir du
+01/07/1992
+
+                           II       1393      1706      1847     1912     1977      2042     2187         191
+
+                           III      1306      1584      1726     1798     1870      1942     2086         182
+
+Certificats datés          I        1604      1934      2078     2137     2196      2255     2305         200
+à partir du
+01/07/1994
+
+                           II       1408      1725      1867     1933     1999      2065     2211         193
+
+                           III      1320      1601      1745     1818     1891      1942     2109         184
+
+Certificats datés          I        1633      1969      2116     2176     2236      2296     2346         204
+à partir du
+01/07/1997
+
+                           II       1433      1756      1901     1968     2035      2102     2251         196
+
+                           III      1344      1630      1777     1851     1925      1999     2147         187
+
+Certificats datés          I        1672      2016      2167     2228     2290      2351     2402         209
+à partir du
+01/07/1998
+
+                           II       1467      1798      1947     2015     2084      2152     2305         201
+
+                           III      1376      1669      1820     1895     1971      2047     2199         191
+
+Certificats datés          I        1674      2018      2169     2230     2292      2353     2404         209
+à partir du
+01/07/1999
+
+                           II       1468      1800      1949     2017     2086      2154     2307         201
+
+                           III      1377      1671      1822     1897     1973      2049     2201         191
+
+Certificats datés          I        1691      2038      2191     2252     2315      2377     2428         211
+à partir du
+01/07/2000
+
+                           II       1483      1818      1968     2037     2107      2176     2330         203
+
+                           III      1391      1688      1840     1916     1993      2069     2223         193
+
+Certificats datés          I        1711      2062      2217     2279     2343      2406     2457         214
+à partir du
+01/07/2001
+
+                           II       1501      1840      1992     2061     2132      2202     2358         205
+
+                           III      1408      1708      1862     1939     2017      2094     2250         195
+
+Certificats datés          I       260,84    314,35    337,98   347,43   357,19    366,79   374,57       32,62
+à partir du
+01/01/2002
+
+                           II      228,83    280,51    303,68   314,20   325,02    335,69   359,47       31,25
+
+                           III     214,65    260,38    283,86   295,60   307,49    319,23   343,01       29,73
+
+Certificats datés          I       263,97    318,12    342,04   351,60   361,48    371,19   379,06       33,01
+à partir du
+01/07/2002
+
+                           II      231,58    283,88	   307,32   317,97   328,92    339,72   363,78       31,63
+
+                           III     217,23    263,50    2987,27  299,15   311,18    323,06   347,13       30,09
+
+Certificats datés          I       267,14    321,94    346,14   355,82   365,82    375,64   383,61       33,41
+à partir du
+01/07/2003
+
+                           II      234,36    287,29	   311,01   321,79   332,87    343,80   368,15       32,01
+
+                           III     219,84    266,66    290,72   302,74   314,91    326,94   351,30       30,45
+
+Certificats datés          I       271,95    327,73    352,37   362,22   372,40    382,40   390,51       34,01
+à partir du
+01/09/2005
+
+                           II      238,58    292,46	   316,61   327,58   338,86    349,99   374,78       32,59
+
+                           III     223,80    271,46    295,95   308,19   320,58    332,82   357,62       31,00
+
+Certificats datés          I       279,56    336,91    362,24   372,36   382,83    393,11   401,44       34,96
+à partir du
+01/01/2007
+
+                           II      245,26    300,65	   325,48   336,75   348,65    359,79   385,27       33,50
+
+                           III     230,07    279,06    304,24   316,82   329,56    342,14   367,33       31,87
+
+Certificats datés          I       287,28    346,21    372,24   382,64   393,40    403,96   412,52       35,92
+à partir du
+01/01/2008
+
+                           II      252,03    308,95	   334,46   346,04   357,96    369,72   395,90       34,42
+
+                           III     236,42    286,76    312,64   325,56   338,66    351,58   377,78       32,75
+
+Certificats datés          I       295,75    356,42    383,22   393,93   405,01    415,88   424,69       36,98
+à partir du
+01/01/2009
+
+                           II      259,46    318,06	   344,33   356,25   368,52    380,63   407,58       35,44
+
+                           III     243,39    295,22	   321,86   335,16   348,65    361,95   388,92       33,72
+
+Certificats datés          I       296,70    357,56    384,45   395,19   406,31    417,21   426,05       37,10
+à partir du
+01/01/2010
+
+                           II      260,29    319,08	   346,43   357,39   369,70    381,85   408,88       35,55
+
+                           III     244,17    296,16	   322,89   336,23   349,77    363,11   390,16       33,83
+
+Certificats datés          I       299,96    361,49    388,68   399,54   410,78    421,80   430,74       37,51
+à partir du
+01/01/2011
+
+                           II      263,15    322,59	   349,23   361,32   373,77    386,05   413,38       35,94
+
+                           III     246,86    299,42	   326,44   339,93   353,62    367,10   394,45       34,20
+
+Certificats datés          I       302,96    365,10    392,57   403,54   414,89    426,02   435,05       37,89
+à partir du
+01/01/2012
+
+                           II      265,78    325,82	   352,72   364,93   377,51    389,91   417,51       36,30
+
+                           III     249,33    302,41	   329,70   343,33   357,16    370,77   398,39       34,54
+
+Certificats datés          I       309,47    372,95    401,01   412,22   423,81    435,18   444,4        38,7
+à partir du
+01/01/2013
+
+                           II      271,49    332,83	   360,3    372,78   385,63    398,29   426,49       37,08
+
+                           III     254,69    308,91	   336,79   350,71   364,84    378,74   406,96       35,28
+
+Certificats datés          I       311,23    375,08    403,30   414,57   426,23    437,66   446,93       38,92
+à partir du
+01/10/2014
+
+                           II      273,04    334,73	   362,35   374,90   387,83    400,56   428,92       37,29
+
+                           III     256,14    310,67	   338,71   352,71   366,92    380,90   409,28       35,48
+
+Certificats datés          I       311,48    375,38    403,62   414,9    426,57    438,01   447,29       38,95
+à partir du
+01/10/2015
+
+                           II      273,26    335  	   362,64   375,2    388,14    400,88   429,26       37,32
+
+                           III     256,34    310,92	   338,98   352,99   367,21    381,2    409,61       35,51
+
+Certificats datés          I       313,82    378,2     406,65   418,01   429,77    441,3    450,64       39,24
+à partir du
+01/10/2017
+
+                           II      275,31    337,51	   365,36   378,01   391,05    403,89   432,48       37,6
+
+                           III     258,26    313,25	   341,52   355,64   369,96    384,06   412,68       35,78
+
+Certificats datés          I       314,76    379,33    407,87   419,27   431,06    442,62   452,00       39,36
+à partir du
+01/10/2019
+
+                           II      276,14    338,53	   366,46   379,15   392,22    405,10   433,78       37,71
+
+                           III     259,04    314,19	   342,55   356,70   371,07    385,21   413,92       35,88
 -------------------------------------------------------------------------------------------------------------------
 
-NOTA : 
-Conformément à l'article 2 de l'arrêté du 3 janvier 2020 ( NOR : LOGL1934006A ), ces dispositions sont applicables 
+NOTA :
+Conformément à l'article 2 de l'arrêté du 3 janvier 2020 ( NOR : LOGL1934006A ), ces dispositions sont applicables
 pour les prestations dues à compter du 1er janvier 2020.
+
+```catala
+# Dans le bloc "Certificats datés à partir du 01/07/02", dans la ligne
+# correspondant à la zone III, dans la colonne "C+1", il est inscrit la valeur
+# "2987,27" qui est clairement aberrante par rapport aux autres valeurs.
+# Selon DGALN/DHUP/FE4 en date du 01/06/2022, la bonne valeur est "287,27"
+# qui provient de l'article 2 de l'arrêté du 20 décembre 2002 relatif à la
+# revalorisation des aides au logement
+
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
+
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >=@ |2020-01-01|:
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |1992-07-01| et date_calcul <@ |1994-07-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1587€
+         -- Couple: 1913€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2055 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2113 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2171 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2229 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2280 € sinon
+        (2280€ +€ 198€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1393 €
+         -- Couple: 1706€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1847 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1912 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1977 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2042 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2187 € sinon
+        (2187€ +€ 191€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1306 €
+         -- Couple: 1584€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1726 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1798 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1870 € sinon
+        (si nombre_personnes_à_charge = 4 alors 1942 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2086 € sinon
+        (2086€ +€ 182€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |1994-07-01| et date_calcul <@ |1997-07-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1604€
+         -- Couple: 1934€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2078 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2137 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2196 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2255 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2305 € sinon
+        (2305€ +€ 200€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1408 €
+         -- Couple: 1725€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1867 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1933 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1999 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2065 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2211 € sinon
+        (2211 € +€ 193€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1320 €
+         -- Couple: 1801€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1745 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1818 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1891 € sinon
+        (si nombre_personnes_à_charge = 4 alors 1942 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2109 € sinon
+        (2109€ +€ 184€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |1997-07-01| et date_calcul <@ |1998-07-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1633€
+         -- Couple: 1969€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2116 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2176 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2236 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2296 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2346 € sinon
+        (2346€ +€ 204€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1433 €
+         -- Couple: 1756€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1901 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1966 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2035 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2102 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2251 € sinon
+        (2251 € +€ 196€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1344 €
+         -- Couple: 1630€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1777 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1851 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1925 € sinon
+        (si nombre_personnes_à_charge = 4 alors 1999 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2147 € sinon
+        (2147€ +€ 187€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |1998-07-01| et date_calcul <@ |1999-07-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1672€
+         -- Couple: 2016€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2167 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2228 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2290 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2351 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2402 € sinon
+        (2402€ +€ 209€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1467 €
+         -- Couple: 1798€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1947 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2015 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2084 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2152 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2305 € sinon
+        (2305 € +€ 201€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1376 €
+         -- Couple: 1669€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1820 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1895 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1971 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2047 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2199 € sinon
+        (2199€ +€ 191€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |1999-07-01| et date_calcul <@ |2000-07-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1674€
+         -- Couple: 2018€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2169 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2230 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2292 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2353 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2404 € sinon
+        (2404€ +€ 209€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1468 €
+         -- Couple: 1800€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1949 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2017 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2086 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2154 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2307 € sinon
+        (2307 € +€ 201€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1377 €
+         -- Couple: 1671€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1822 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1897 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1973 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2049 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2201 € sinon
+        (2201€ +€ 191€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2000-07-01| et date_calcul <@ |2001-07-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1691€
+         -- Couple: 2038€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2191 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2252 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2315 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2377 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2428 € sinon
+        (2428€ +€ 211€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1483 €
+         -- Couple: 1818€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1968 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2037 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2107 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2176 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2330 € sinon
+        (2330 € +€ 203€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1391 €
+         -- Couple: 1688€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1840 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1916 € sinon
+        (si nombre_personnes_à_charge = 3 alors 1993 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2069 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2223 € sinon
+        (2223€ +€ 193€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2001-07-01| et date_calcul <@ |2002-01-01|
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1711€
+         -- Couple: 2062€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 2217 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2279 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2343 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2406 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2457 € sinon
+        (2457€ +€ 214€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1501 €
+         -- Couple: 1840€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1992 € sinon
+        (si nombre_personnes_à_charge = 2 alors 2061 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2132 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2202 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2358 € sinon
+        (2358 € +€ 205€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1408 €
+         -- Couple: 1708€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 1862 € sinon
+        (si nombre_personnes_à_charge = 2 alors 1939 € sinon
+        (si nombre_personnes_à_charge = 3 alors 2017 € sinon
+        (si nombre_personnes_à_charge = 4 alors 2094 € sinon
+        (si nombre_personnes_à_charge = 5 alors 2250 € sinon
+        (2250€ +€ 195€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) *€ taux_francs_vers_euros
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2002-01-01| et date_calcul <@ |2002-07-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 260,84€
+         -- Couple: 314,35€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 337,98 € sinon
+        (si nombre_personnes_à_charge = 2 alors 347,43 € sinon
+        (si nombre_personnes_à_charge = 3 alors 357,19 € sinon
+        (si nombre_personnes_à_charge = 4 alors 366,79 € sinon
+        (si nombre_personnes_à_charge = 5 alors 374,57 € sinon
+        (374,57€ +€ 32,62€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 228,83 €
+         -- Couple: 280,51€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 303,68 € sinon
+        (si nombre_personnes_à_charge = 2 alors 314,20 € sinon
+        (si nombre_personnes_à_charge = 3 alors 325,02 € sinon
+        (si nombre_personnes_à_charge = 4 alors 335,69 € sinon
+        (si nombre_personnes_à_charge = 5 alors 359,47 € sinon
+        (359,47 € +€ 31,25€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 214,65 €
+         -- Couple: 260,38€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 283,86 € sinon
+        (si nombre_personnes_à_charge = 2 alors 295,60 € sinon
+        (si nombre_personnes_à_charge = 3 alors 307,49 € sinon
+        (si nombre_personnes_à_charge = 4 alors 319,23 € sinon
+        (si nombre_personnes_à_charge = 5 alors 343,01 € sinon
+        (343,01€ +€ 29,73€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2002-07-01| et date_calcul <@ |2003-07-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 263,97€
+         -- Couple: 318,12€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 342,04 € sinon
+        (si nombre_personnes_à_charge = 2 alors 351,60 € sinon
+        (si nombre_personnes_à_charge = 3 alors 361,48 € sinon
+        (si nombre_personnes_à_charge = 4 alors 371,19 € sinon
+        (si nombre_personnes_à_charge = 5 alors 379,06 € sinon
+        (379,06€ +€ 33,01€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 231,58 €
+         -- Couple: 283,88€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 307,32 € sinon
+        (si nombre_personnes_à_charge = 2 alors 317,97 € sinon
+        (si nombre_personnes_à_charge = 3 alors 328,92 € sinon
+        (si nombre_personnes_à_charge = 4 alors 339,72 € sinon
+        (si nombre_personnes_à_charge = 5 alors 363,78 € sinon
+        (363,78 € +€ 31,63€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 217,23 €
+         -- Couple: 263,50€)
+      sinon
+        # Première valeur différente de ce qui est marqué selon mail de
+        # DGALN/DHUP/FE4 du 01/06/2022.
+        (si nombre_personnes_à_charge = 1 alors 287,27 € sinon
+        (si nombre_personnes_à_charge = 2 alors 299,15 € sinon
+        (si nombre_personnes_à_charge = 3 alors 311,18 € sinon
+        (si nombre_personnes_à_charge = 4 alors 323,06 € sinon
+        (si nombre_personnes_à_charge = 5 alors 347,13 € sinon
+        (347,13€ +€ 30,09€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2003-07-01| et date_calcul <@ |2005-09-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 267,14€
+         -- Couple: 321,94€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 346,14 € sinon
+        (si nombre_personnes_à_charge = 2 alors 355,82 € sinon
+        (si nombre_personnes_à_charge = 3 alors 365,82 € sinon
+        (si nombre_personnes_à_charge = 4 alors 375,64 € sinon
+        (si nombre_personnes_à_charge = 5 alors 383,61 € sinon
+        (383,61€ +€ 33,41€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 234,36 €
+         -- Couple: 287,29€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 311,01 € sinon
+        (si nombre_personnes_à_charge = 2 alors 321,79 € sinon
+        (si nombre_personnes_à_charge = 3 alors 332,87 € sinon
+        (si nombre_personnes_à_charge = 4 alors 343,80 € sinon
+        (si nombre_personnes_à_charge = 5 alors 368,15 € sinon
+        (368,15 € +€ 32,01€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 219,84 €
+         -- Couple: 266,66€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 290,72 € sinon
+        (si nombre_personnes_à_charge = 2 alors 302,74 € sinon
+        (si nombre_personnes_à_charge = 3 alors 314,91 € sinon
+        (si nombre_personnes_à_charge = 4 alors 326,94 € sinon
+        (si nombre_personnes_à_charge = 5 alors 351,30 € sinon
+        (351,30€ +€ 30,45€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2005-09-01| et date_calcul <@ |2007-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 271,95€
+         -- Couple: 327,73€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 352,37 € sinon
+        (si nombre_personnes_à_charge = 2 alors 362,22 € sinon
+        (si nombre_personnes_à_charge = 3 alors 372,40 € sinon
+        (si nombre_personnes_à_charge = 4 alors 382,40 € sinon
+        (si nombre_personnes_à_charge = 5 alors 390,51 € sinon
+        (390,51€ +€ 34,01€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 238,58 €
+         -- Couple: 292,46€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 316,61 € sinon
+        (si nombre_personnes_à_charge = 2 alors 327,58 € sinon
+        (si nombre_personnes_à_charge = 3 alors 338,86 € sinon
+        (si nombre_personnes_à_charge = 4 alors 349,99 € sinon
+        (si nombre_personnes_à_charge = 5 alors 374,78 € sinon
+        (374,78 € +€ 32,59€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 223,80 €
+         -- Couple: 271,46€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 295,95 € sinon
+        (si nombre_personnes_à_charge = 2 alors 308,19 € sinon
+        (si nombre_personnes_à_charge = 3 alors 320,58 € sinon
+        (si nombre_personnes_à_charge = 4 alors 332,82 € sinon
+        (si nombre_personnes_à_charge = 5 alors 357,62 € sinon
+        (357,62€ +€ 31,00€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2007-01-01| et date_calcul <@ |2008-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 279,56€
+         -- Couple: 336,91€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 362,24 € sinon
+        (si nombre_personnes_à_charge = 2 alors 372,36 € sinon
+        (si nombre_personnes_à_charge = 3 alors 382,83 € sinon
+        (si nombre_personnes_à_charge = 4 alors 393,11 € sinon
+        (si nombre_personnes_à_charge = 5 alors 401,44 € sinon
+        (401,44€ +€ 34,96€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 245,26 €
+         -- Couple: 300,65€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 325,48 € sinon
+        (si nombre_personnes_à_charge = 2 alors 336,75 € sinon
+        (si nombre_personnes_à_charge = 3 alors 348,65 € sinon
+        (si nombre_personnes_à_charge = 4 alors 359,79 € sinon
+        (si nombre_personnes_à_charge = 5 alors 385,27 € sinon
+        (385,27 € +€ 33,50€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 230,07 €
+         -- Couple: 279,06€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 304,24 € sinon
+        (si nombre_personnes_à_charge = 2 alors 316,82 € sinon
+        (si nombre_personnes_à_charge = 3 alors 329,56 € sinon
+        (si nombre_personnes_à_charge = 4 alors 342,14 € sinon
+        (si nombre_personnes_à_charge = 5 alors 367,33 € sinon
+        (367,33€ +€ 31,87€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2008-01-01| et date_calcul <@ |2009-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 287,28€
+         -- Couple: 346,21€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 372,24 € sinon
+        (si nombre_personnes_à_charge = 2 alors 382,64 € sinon
+        (si nombre_personnes_à_charge = 3 alors 393,40 € sinon
+        (si nombre_personnes_à_charge = 4 alors 403,96 € sinon
+        (si nombre_personnes_à_charge = 5 alors 412,52 € sinon
+        (412,52€ +€ 35,92€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 252,03 €
+         -- Couple: 308,95€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 334,46 € sinon
+        (si nombre_personnes_à_charge = 2 alors 346,04 € sinon
+        (si nombre_personnes_à_charge = 3 alors 357,96 € sinon
+        (si nombre_personnes_à_charge = 4 alors 369,72 € sinon
+        (si nombre_personnes_à_charge = 5 alors 395,90 € sinon
+        (395,90 € +€ 34,42€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 236,42 €
+         -- Couple: 286,76€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 312,64 € sinon
+        (si nombre_personnes_à_charge = 2 alors 325,56 € sinon
+        (si nombre_personnes_à_charge = 3 alors 338,66 € sinon
+        (si nombre_personnes_à_charge = 4 alors 351,58 € sinon
+        (si nombre_personnes_à_charge = 5 alors 377,78 € sinon
+        (377,78€ +€ 32,75€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2009-01-01| et date_calcul <@ |2010-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 295,75€
+         -- Couple: 356,42€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 383,22 € sinon
+        (si nombre_personnes_à_charge = 2 alors 393,93 € sinon
+        (si nombre_personnes_à_charge = 3 alors 405,01 € sinon
+        (si nombre_personnes_à_charge = 4 alors 415,88 € sinon
+        (si nombre_personnes_à_charge = 5 alors 424,69 € sinon
+        (424,69€ +€ 36,98€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 259,46 €
+         -- Couple: 318,06 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 344,33 € sinon
+        (si nombre_personnes_à_charge = 2 alors 356,25 € sinon
+        (si nombre_personnes_à_charge = 3 alors 368,52 € sinon
+        (si nombre_personnes_à_charge = 4 alors 380,63 € sinon
+        (si nombre_personnes_à_charge = 5 alors 407,58 € sinon
+        (407,58 € +€ 35,44€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 243,39 €
+         -- Couple: 295,22€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 321,86 € sinon
+        (si nombre_personnes_à_charge = 2 alors 335,16 € sinon
+        (si nombre_personnes_à_charge = 3 alors 348,65 € sinon
+        (si nombre_personnes_à_charge = 4 alors 361,95 € sinon
+        (si nombre_personnes_à_charge = 5 alors 388,92 € sinon
+        (388,92€ +€ 33,72€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2010-01-01| et date_calcul <@ |2011-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 296,70€
+         -- Couple: 357,57€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 384,45 € sinon
+        (si nombre_personnes_à_charge = 2 alors 395,19 € sinon
+        (si nombre_personnes_à_charge = 3 alors 406,01 € sinon
+        (si nombre_personnes_à_charge = 4 alors 417,21 € sinon
+        (si nombre_personnes_à_charge = 5 alors 426,05 € sinon
+        (426,05€ +€ 37,10€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 260,29 €
+         -- Couple: 319,08 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 346,43 € sinon
+        (si nombre_personnes_à_charge = 2 alors 357,39 € sinon
+        (si nombre_personnes_à_charge = 3 alors 369,70 € sinon
+        (si nombre_personnes_à_charge = 4 alors 381,85 € sinon
+        (si nombre_personnes_à_charge = 5 alors 408,88 € sinon
+        (408,88 € +€ 35,55€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 244,17 €
+         -- Couple: 296,16€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 322,89 € sinon
+        (si nombre_personnes_à_charge = 2 alors 336,23 € sinon
+        (si nombre_personnes_à_charge = 3 alors 349,77 € sinon
+        (si nombre_personnes_à_charge = 4 alors 363,11 € sinon
+        (si nombre_personnes_à_charge = 5 alors 390,16 € sinon
+        (390,16€ +€ 33,83€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2011-01-01| et date_calcul <@ |2012-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 299,96€
+         -- Couple: 361,49€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 388,68 € sinon
+        (si nombre_personnes_à_charge = 2 alors 399,54 € sinon
+        (si nombre_personnes_à_charge = 3 alors 410,78 € sinon
+        (si nombre_personnes_à_charge = 4 alors 421,80 € sinon
+        (si nombre_personnes_à_charge = 5 alors 430,74 € sinon
+        (430,74€ +€ 37,51€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 263,15 €
+         -- Couple: 322,59 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 349,23 € sinon
+        (si nombre_personnes_à_charge = 2 alors 361,32 € sinon
+        (si nombre_personnes_à_charge = 3 alors 373,73 € sinon
+        (si nombre_personnes_à_charge = 4 alors 386,05 € sinon
+        (si nombre_personnes_à_charge = 5 alors 413,38 € sinon
+        (413,38 € +€ 35,94€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 246,86 €
+         -- Couple: 299,42€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 326,44 € sinon
+        (si nombre_personnes_à_charge = 2 alors 339,93 € sinon
+        (si nombre_personnes_à_charge = 3 alors 353,62 € sinon
+        (si nombre_personnes_à_charge = 4 alors 367,10 € sinon
+        (si nombre_personnes_à_charge = 5 alors 394,45 € sinon
+        (394,45€ +€ 34,20€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2012-01-01| et date_calcul <@ |2013-01-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 302,96€
+         -- Couple: 365,10€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 392,57 € sinon
+        (si nombre_personnes_à_charge = 2 alors 403,54 € sinon
+        (si nombre_personnes_à_charge = 3 alors 414,89 € sinon
+        (si nombre_personnes_à_charge = 4 alors 426,02 € sinon
+        (si nombre_personnes_à_charge = 5 alors 435,05 € sinon
+        (435,05€ +€ 37,89€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 265,78 €
+         -- Couple: 325,82 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 352,72 € sinon
+        (si nombre_personnes_à_charge = 2 alors 364,93 € sinon
+        (si nombre_personnes_à_charge = 3 alors 377,51 € sinon
+        (si nombre_personnes_à_charge = 4 alors 389,91 € sinon
+        (si nombre_personnes_à_charge = 5 alors 417,51 € sinon
+        (417,51 € +€ 36,30€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 249,33 €
+         -- Couple: 302,41€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 329,70 € sinon
+        (si nombre_personnes_à_charge = 2 alors 343,33 € sinon
+        (si nombre_personnes_à_charge = 3 alors 357,16 € sinon
+        (si nombre_personnes_à_charge = 4 alors 370,77 € sinon
+        (si nombre_personnes_à_charge = 5 alors 398,39 € sinon
+        (398,39€ +€ 34,54€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2013-01-01| et date_calcul <@ |2014-10-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 309,47€
+         -- Couple: 372,95€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 401,01 € sinon
+        (si nombre_personnes_à_charge = 2 alors 412,22 € sinon
+        (si nombre_personnes_à_charge = 3 alors 423,81 € sinon
+        (si nombre_personnes_à_charge = 4 alors 435,18 € sinon
+        (si nombre_personnes_à_charge = 5 alors 444,40 € sinon
+        (444,40€ +€ 38,70€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 271,49 €
+         -- Couple: 332,83 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 360,30 € sinon
+        (si nombre_personnes_à_charge = 2 alors 372,78 € sinon
+        (si nombre_personnes_à_charge = 3 alors 385,63 € sinon
+        (si nombre_personnes_à_charge = 4 alors 398,29 € sinon
+        (si nombre_personnes_à_charge = 5 alors 426,49 € sinon
+        (426,59 € +€ 37,08€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 254,69 €
+         -- Couple: 308,91€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 336,79 € sinon
+        (si nombre_personnes_à_charge = 2 alors 350,71 € sinon
+        (si nombre_personnes_à_charge = 3 alors 364,84 € sinon
+        (si nombre_personnes_à_charge = 4 alors 378,74 € sinon
+        (si nombre_personnes_à_charge = 5 alors 406,96 € sinon
+        (406,96€ +€ 35,28€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2014-10-01| et date_calcul <@ |2015-10-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 311,23€
+         -- Couple: 375,08€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 403,30 € sinon
+        (si nombre_personnes_à_charge = 2 alors 414,57 € sinon
+        (si nombre_personnes_à_charge = 3 alors 426,23 € sinon
+        (si nombre_personnes_à_charge = 4 alors 437,66 € sinon
+        (si nombre_personnes_à_charge = 5 alors 446,93 € sinon
+        (446,93€ +€ 38,92€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 273,04 €
+         -- Couple: 334,73 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 362,35 € sinon
+        (si nombre_personnes_à_charge = 2 alors 374,90 € sinon
+        (si nombre_personnes_à_charge = 3 alors 387,83 € sinon
+        (si nombre_personnes_à_charge = 4 alors 400,56 € sinon
+        (si nombre_personnes_à_charge = 5 alors 428,92 € sinon
+        (428,92 € +€ 37,29€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 256,14 €
+         -- Couple: 310,67€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 338,71 € sinon
+        (si nombre_personnes_à_charge = 2 alors 352,71 € sinon
+        (si nombre_personnes_à_charge = 3 alors 366,92 € sinon
+        (si nombre_personnes_à_charge = 4 alors 380,90 € sinon
+        (si nombre_personnes_à_charge = 5 alors 409,28 € sinon
+        (409,28€ +€ 35,48€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2015-10-01| et date_calcul <@ |2017-10-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 311,48€
+         -- Couple: 375,38€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 403,62 € sinon
+        (si nombre_personnes_à_charge = 2 alors 414,90 € sinon
+        (si nombre_personnes_à_charge = 3 alors 426,57 € sinon
+        (si nombre_personnes_à_charge = 4 alors 438,01 € sinon
+        (si nombre_personnes_à_charge = 5 alors 447,29 € sinon
+        (447,29€ +€ 38,95€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 273,26 €
+         -- Couple: 335 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 362,64 € sinon
+        (si nombre_personnes_à_charge = 2 alors 375,20 € sinon
+        (si nombre_personnes_à_charge = 3 alors 388,14 € sinon
+        (si nombre_personnes_à_charge = 4 alors 400,88 € sinon
+        (si nombre_personnes_à_charge = 5 alors 429,26 € sinon
+        (429,26 € +€ 37,32€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 256,34 €
+         -- Couple: 310,92€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 338,98 € sinon
+        (si nombre_personnes_à_charge = 2 alors 352,99 € sinon
+        (si nombre_personnes_à_charge = 3 alors 367,21 € sinon
+        (si nombre_personnes_à_charge = 4 alors 381,20 € sinon
+        (si nombre_personnes_à_charge = 5 alors 409,61 € sinon
+        (409,61€ +€ 35,51€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2017-10-01| et date_calcul <@ |2019-10-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 313,82€
+         -- Couple: 378,20€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 406,65 € sinon
+        (si nombre_personnes_à_charge = 2 alors 418,01 € sinon
+        (si nombre_personnes_à_charge = 3 alors 429,77 € sinon
+        (si nombre_personnes_à_charge = 4 alors 441,30 € sinon
+        (si nombre_personnes_à_charge = 5 alors 450,64 € sinon
+        (450,64€ +€ 39,24€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 275,31 €
+         -- Couple: 337,51 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 365,36 € sinon
+        (si nombre_personnes_à_charge = 2 alors 378,01 € sinon
+        (si nombre_personnes_à_charge = 3 alors 391,05 € sinon
+        (si nombre_personnes_à_charge = 4 alors 403,89 € sinon
+        (si nombre_personnes_à_charge = 5 alors 432,48 € sinon
+        (432,48 € +€ 37,60€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 258,26 €
+         -- Couple: 313,25€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 341,52 € sinon
+        (si nombre_personnes_à_charge = 2 alors 355,64 € sinon
+        (si nombre_personnes_à_charge = 3 alors 369,96 € sinon
+        (si nombre_personnes_à_charge = 4 alors 384,06 € sinon
+        (si nombre_personnes_à_charge = 5 alors 412,68 € sinon
+        (412,68€ +€ 35,78€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+
+  définition calcul_plafond_mensualité_d842_6 de date_calcul sous condition
+    date_calcul >=@ |2019-10-01|
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 314,76€
+         -- Couple: 379,33€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 407,87 € sinon
+        (si nombre_personnes_à_charge = 2 alors 419,27 € sinon
+        (si nombre_personnes_à_charge = 3 alors 431,06 € sinon
+        (si nombre_personnes_à_charge = 4 alors 442,62 € sinon
+        (si nombre_personnes_à_charge = 5 alors 452,00 € sinon
+        (452,00€ +€ 39,36€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 276,14 €
+         -- Couple: 338,53 €)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 366,46 € sinon
+        (si nombre_personnes_à_charge = 2 alors 379,15 € sinon
+        (si nombre_personnes_à_charge = 3 alors 392,22 € sinon
+        (si nombre_personnes_à_charge = 4 alors 405,10 € sinon
+        (si nombre_personnes_à_charge = 5 alors 433,78 € sinon
+        (433,78 € +€ 37,71€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 259,04 €
+         -- Couple: 314,19€)
+      sinon
+        (si nombre_personnes_à_charge = 1 alors 342,55 € sinon
+        (si nombre_personnes_à_charge = 2 alors 356,70 € sinon
+        (si nombre_personnes_à_charge = 3 alors 371,07 € sinon
+        (si nombre_personnes_à_charge = 4 alors 385,21 € sinon
+        (si nombre_personnes_à_charge = 5 alors 413,92 € sinon
+        (413,92€ +€ 35,88€ *€
+          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+```
 
 ### Article 34 | LEGIARTI000044137403
 
-Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-6 du même code sont fixés comme 
+Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-6 du même code sont fixés comme
 suit (en euros) :
 
 -----------------------------------------------------------------------
-Désignation                                              Toutes zones 
+Désignation                                              Toutes zones
 ----------------------------------------------------- -----------------
 Bénéficiaire isolé ou couple sans personne à charge         54,22
 Par personne supplémentaire à charge                        12,29
 
-NOTA : 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour 
+NOTA :
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
 les prestations dues à compter du 1er octobre 2021.
 
 ### Article 35 | LEGIARTI000039160693
@@ -2953,7 +4097,7 @@ Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-6 
 
 ### Article 36 | LEGIARTI000039160695
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 842-6 du même code, avant application de la 
+Le seuil de versement prévu au dernier alinéa de l'article D. 842-6 du même code, avant application de la
 contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
 ### Article 37 | LEGIARTI000044137400
@@ -2964,15 +4108,14 @@ Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
 
---------------------------------------------------------------------
-Composition du ménage                                   Montant 
+Composition du ménage                                   Montant
 --------------------------------------------------- ----------------
 Bénéficiaire isolé                                       27,10
 Couple sans personne à charge                            54,22
 Majoration par personne à charge                         12,29
 
-NOTA : 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables 
+NOTA :
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
 ### Article 38 | LEGIARTI000039160699
@@ -2995,58 +4138,65 @@ Pour déterminer le plancher de ressources défini à l'article D. 842-12 du mê
 
 ### Article 40 | LEGIARTI000044137397
 
-Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-15 
+Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-15
 du même code sont fixés comme suit (en euros) :
 
----------------------------------------------------------------------------------
-Composition du ménage                                            Toutes zones 
+Composition du ménage                                            Toutes zones
 ------------------------------------------------------------ --------------------
 Bénéficiaire isolé ou couple sans personne à charge                  54,22
 Par personne supplémentaire à charge                                 12,29
 
-NOTA : 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions 
+NOTA :
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
 ### Article 41 | LEGIARTI000039160703
 
-Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-15 du même code est 
+Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-15 du même code est
 fixé à 5 euros.
 
 ### Article 42 | LEGIARTI000039160707
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 842-15 du même code, 
-avant application de la contribution pour le remboursement de la dette sociale, 
+Le seuil de versement prévu au dernier alinéa de l'article D. 842-15 du même code,
+avant application de la contribution pour le remboursement de la dette sociale,
 est fixé à 10 euros.
 
 ### Article 43 | LEGIARTI000044137394
 
-L'équivalence de loyer L pour chacune des catégories de personnes mentionnées à l'article 
+L'équivalence de loyer L pour chacune des catégories de personnes mentionnées à l'article
 D. 842-16 du même code est égal à :
 
 1° Pour les étudiants logés en chambre :
+
 a) 84,14 euros lorsqu'il s'agit d'une personne seule ;
+
 b) 131,00 euros lorsqu'il s'agit d'un couple ;
 
 2° Pour les étudiants logés dans une chambre ayant fait l'objet d'une réhabilitation :
+
 a) 170,12 euros lorsqu'il s'agit d'une personne seule ;
+
 b) 264,40 euros lorsqu'il s'agit d'un couple ;
 
 3° Pour les personnes mentionnées au 3° :
+
 a) 206,40 euros lorsqu'il s'agit d'une personne seule ;
+
 b) 320,73 euros lorsqu'il s'agit d'un couple ;
 
 4° Pour les autres personnes :
+
 a) 170,12 euros lorsqu'il s'agit d'une personne seule ;
+
 b) 264,40 euros lorsqu'il s'agit d'un couple.
 
 NOTA :
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont 
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont
 applicables pour les prestations dues à compter du 1er octobre 2021.
 
 ### Article 44 | LEGIARTI000039160711
 
-Le montant minimum de dépense nette de logement défini à l'article D. 842-17 du même code 
+Le montant minimum de dépense nette de logement défini à l'article D. 842-17 du même code
 est fixé à 15 euros.
 
 ## Chapitre VIII : Prime de déménagement

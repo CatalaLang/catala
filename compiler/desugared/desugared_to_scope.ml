@@ -129,8 +129,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
   | EDefault (excepts, just, cons) ->
     Bindlib.box_apply3
       (fun new_excepts new_just new_cons ->
-        ( Scopelang.Ast.EDefault (new_excepts, new_just, new_cons),
-          Pos.get_position e ))
+        Scopelang.Ast.make_default ~pos:(Pos.get_position e) new_excepts
+          new_just new_cons)
       (Bindlib.box_list (List.map (translate_expr ctx) excepts))
       (translate_expr ctx just) (translate_expr ctx cons)
   | EIfThenElse (e1, e2, e3) ->
@@ -181,7 +181,7 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
     let base_case_as_rule_list =
       List.map
         (fun r -> Ast.RuleMap.find r def)
-        (List.of_seq (Ast.RuleSet.to_seq base_cases))
+        (Ast.RuleSet.elements base_cases)
     in
     match exceptions with
     | [] -> Leaf base_case_as_rule_list
@@ -261,21 +261,17 @@ let rec rule_tree_to_expr
   let default_containing_base_cases =
     Bindlib.box_apply2
       (fun base_just_list base_cons_list ->
-        ( Scopelang.Ast.EDefault
-            ( List.map2
-                (fun base_just base_cons ->
-                  ( Scopelang.Ast.EDefault
-                      ( [],
-                        (* Here we insert the logging command that records when
-                           a decision is taken for the value of a variable. *)
-                        tag_with_log_entry base_just
-                          Dcalc.Ast.PosRecordIfTrueBool [],
-                        base_cons ),
-                    Pos.get_position base_just ))
-                base_just_list base_cons_list,
-              (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), def_pos),
-              (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, def_pos) ),
-          def_pos ))
+        Scopelang.Ast.make_default
+          (List.map2
+             (fun base_just base_cons ->
+               Scopelang.Ast.make_default ~pos:def_pos []
+                 (* Here we insert the logging command that records when a
+                    decision is taken for the value of a variable. *)
+                 (tag_with_log_entry base_just Dcalc.Ast.PosRecordIfTrueBool [])
+                 base_cons)
+             base_just_list base_cons_list)
+          (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), def_pos)
+          (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, def_pos))
       (Bindlib.box_list (translate_and_unbox_list base_just_list))
       (Bindlib.box_list (translate_and_unbox_list base_cons_list))
   in
@@ -288,11 +284,9 @@ let rec rule_tree_to_expr
   let default =
     Bindlib.box_apply2
       (fun exceptions default_containing_base_cases ->
-        ( Scopelang.Ast.EDefault
-            ( exceptions,
-              (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), def_pos),
-              default_containing_base_cases ),
-          def_pos ))
+        Scopelang.Ast.make_default exceptions
+          (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), def_pos)
+          default_containing_base_cases)
       exceptions default_containing_base_cases
   in
   match is_func, (List.hd base_rules).Ast.rule_parameter with

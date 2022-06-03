@@ -239,6 +239,20 @@ class Duration:
     def __neg__(self: 'Duration') -> 'Duration':
         return Duration(- self.value)
 
+    def __truediv__(self, other: 'Duration') -> Decimal:
+        x = self.value.normalized()
+        y = other.value.normalized()
+        if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+            raise Exception("Can only divide durations expressed in days")
+        else:
+            return Decimal(x.days / y.days)
+
+    def __mul__(self: 'Duration', rhs: Integer) -> 'Duration':
+        return Duration(
+            dateutil.relativedelta.relativedelta(years=self.value.years * rhs.value,
+                                                 months=self.value.months * rhs.value,
+                                                 days=self.value.days * rhs.value))
+
     def __lt__(self, other: 'Duration') -> bool:
         x = self.value.normalized()
         y = other.value.normalized()

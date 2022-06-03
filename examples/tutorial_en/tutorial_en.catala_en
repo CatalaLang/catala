@@ -526,6 +526,44 @@ patterns. Sometimes, you want to declare an exception to a group of
 piecewise definitions. To do that, simply use the same label for all
 the piecewise definitions.
 
+### Cumulative exceptions
+
+As we have seen, two exceptions applying at the same time to a given rule are in
+conflict, and trigger an error. It happens, though, that these exceptions yield
+the same end result: for convenience, Catala tolerates this case and returns the
+common result, as long as there is a strict syntactic equality.
+
+#### Article 6 bis
+
+Individuals with 7 children or more are exempted of the income tax mentioned
+at article 1.
+
+```catala
+scope NewIncomeTaxComputationFixed:
+  exception article_5
+  definition income_tax under condition
+    individual.number_of_children >= 7
+  consequence equals $0
+```
+
+The same problem as above would be triggered for families with an income below
+`$10,000` and 7 children or more. But here Catala can detect that it won't
+matter since the result in both cases is an exemption.
+
+```catala
+declaration scope Test4:
+  tax_computation scope NewIncomeTaxComputationFixed
+  output income_tax content money
+
+scope Test4:
+  definition tax_computation.individual equals Individual {
+    -- income: $7,000
+    -- number_of_children: 7
+  }
+  definition income_tax equals tax_computation.income_tax
+  assertion income_tax = $0
+```
+
 ## Context scope variables
 
 With its "input","output" and "internal" variables, Catala's scope are close

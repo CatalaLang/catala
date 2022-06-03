@@ -89,6 +89,12 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
+### Installing and using nix
+
+We provide an nix environement to develop the Catala compiler. It is available
+after [installing nix](https://nixos.org/download.html). You can then just
+use `nix develop` to enter the environment.
+
 ### Example: adding a builtin function
 
 The language provides a limited number of builtin functions, which are sometimes
@@ -173,3 +179,8 @@ configuration. The `make build` target should ensure that.
 In case the formatting rules or ocamlformat version changed remotely, you can
 use [this script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
 reformat your branch patch by patch before rebasing.
+
+### Hand-updating packages in the nix part
+
+Requirements of catala that are not inside [nixpkgs](https://github.com/nixos/nixpkgs) are available inside the `.nix` directory of the repo. The main part is inside the `.nix/packages.nix`, where all the packages are either added (because absent from nixpkgs) using `ocamlPackage.callPackage`; or modified from nixpkgs, for instance cmdliner is currently pinned at version 1.1.0.
+

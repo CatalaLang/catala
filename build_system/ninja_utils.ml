@@ -18,17 +18,14 @@ module Expr = struct
   type t = Lit of string | Var of string | Seq of t list
 
   let rec format fmt = function
-    | Lit s -> Format.fprintf fmt "%s" s
+    | Lit s -> Format.pp_print_string fmt s
     | Var s -> Format.fprintf fmt "$%s" s
     | Seq ls -> format_list fmt ls
 
-  and format_list fmt = function
-    | hd :: tl ->
-      Format.fprintf fmt "%a%a" format hd
-        (fun fmt tl ->
-          tl |> List.iter (fun s -> Format.fprintf fmt " %a" format s))
-        tl
-    | [] -> ()
+  and format_list fmt ls =
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.pp_print_char fmt ' ')
+      format fmt ls
 end
 
 module Rule = struct

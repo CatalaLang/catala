@@ -1,5 +1,6 @@
 _build/
 _opam/
+dune-workspace*
 result
 *.install
 *.spellok
