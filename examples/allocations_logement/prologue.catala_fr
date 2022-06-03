@@ -752,6 +752,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne montant_forfaitaire_d842_6 contenu argent
   interne seuil_minimal_dépense_nette_minimale contenu argent
   interne seuil_minimal_ressources_ménage contenu argent
+  interne taux_francs_vers_euros contenu décimal
   interne dépense_nette_minimale contenu argent dépend de argent
     état base
     état abattement
