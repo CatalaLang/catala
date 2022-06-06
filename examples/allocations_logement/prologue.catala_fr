@@ -8,7 +8,7 @@ dans les sections suivantes.
 
 ## Types de données manipulées par le programme
 
-### Calcul et éligibilité de l'aide personnalisée au logement
+### Calcul et éligibilité des aides personnelles au logement
 
 #### Calcul et éligibilité pour le secteur locatif
 
@@ -281,7 +281,7 @@ déclaration énumération ModeOccupationImpayé:
 
 ## Déclarations des champs d'application
 
-### Éligibilité à l'aide personnelle au logement
+### Éligibilité aux aides personnelles au logement
 
 ```catala-metadata
 déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
@@ -445,7 +445,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
     date_ouverture_droits
 ```
 
-### Prise en compte des ressources pour l'aide personnelle au logement
+### Prise en compte des ressources pour les aides personnelles au logement
 
 ```catala-metadata
 déclaration champ d'application RessourcesAidesPersonnelleLogement:
@@ -481,17 +481,16 @@ déclaration champ d'application RessourcesAidesPersonnelleLogement:
   sortie ressources_prises_en_compte contenu argent
 ```
 
-### Calcul des contributions sociales s'appliquant à l'aide personnelle au logement
+### Calcul des contributions sociales s'appliquant aux aides personnelles au logement
 
 ```catala-metadata
 déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
-  sortie montant contenu argent dépend de argent
+  entrée date_courante contenu date
 
-champ d'application ContributionsSocialesAidesPersonnelleLogement:
-  # TODO juridique: mettre ce bout de code à côté des articles de loi qui le
-  # justifient. (Pas de CSG mais la CRDS pour les APL)
-  définition montant de aide_finale égal à
-    aide_finale *€ 0,5%
+  interne taux_crds contenu décimal
+  interne exonéré_csg condition
+
+  sortie montant contenu argent dépend de argent
 ```
 
 ### Calcul du montant de l'aide personnelle au logement
@@ -545,6 +544,9 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
     état montant_minimal
+
+champ d'application CalculAidePersonnaliséeLogementLocatif:
+  définition contributions_sociales.date_courante égal à date_courante
 ```
 
 #### Secteur logement-foyer
@@ -590,6 +592,9 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     état abattement
     état contributions_sociales_arrondi
     état montant_minimal
+
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  définition contributions_sociales.date_courante égal à date_courante
 ```
 
 #### Secteur accession à la propriété
@@ -648,6 +653,9 @@ déclaration champ d'application
     état abattement
     état contributions_sociales_arrondi
     état montant_minimal
+
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  définition contributions_sociales.date_courante égal à date_courante
 ```
 
 #### Tous secteurs
@@ -832,6 +840,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     zone
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
+  définition contributions_sociales.date_courante égal à date_courante
 ```
 
 ### Secteur logement-foyer
@@ -886,6 +895,7 @@ champ d'application CalculAllocationLogementFoyer:
     zone
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
+  définition contributions_sociales.date_courante égal à date_courante
 ```
 
 ### Date d'ouverture des droits à la retraite
