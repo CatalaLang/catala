@@ -4156,7 +4156,10 @@ champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >=@ |2021-10-01|:
   définition calcul_plafond_mensualité_d842_6 de date_calcul
   état avec_copropriété égal à
-    calcul_plafond_mensualité_d842_6 de date_calcul *€ 75%
+    si copropriété alors
+      calcul_plafond_mensualité_d842_6 de date_calcul *€ 75%
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_calcul
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :

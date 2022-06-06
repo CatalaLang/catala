@@ -36,6 +36,8 @@ déclaration structure InformationsCalculAPLLocatif:
     contenu booléen
   donnée type_aide contenu TypeAidesPersonnelleLogement
   donnée réduction_loyer_solidarité contenu argent
+  donnée logement_meublé_d842_2 contenu booléen
+  donnée changement_logement_d842_4 contenu ChangementLogementD842_4
 ```
 
 #### Calcul et éligibilité pour le secteur accession à la propriété
@@ -81,9 +83,11 @@ déclaration énumération NeufOuAncien:
 
 déclaration structure InformationsCalculAPLAccessionPropriété:
   donnée mensualité_principale contenu argent
+  donnée charges_mensuelles_prêt contenu argent
   donnée date_signature_prêt contenu date
   donnée date_entrée_logement contenu date
-  donnée type_travaux_logement contenu TypeTravauxLogementD832_15
+  donnée type_travaux_logement_d832_15 contenu TypeTravauxLogementD832_15
+  donnée type_travaux_logement_r832_5 contenu TypeTravauxLogementR842_5
   donnée local_habité_première_fois_bénéficiaire contenu booléen
   donnée copropriété contenu booléen
   donnée situation_r822_11_13_17 contenu booléen
@@ -113,6 +117,8 @@ déclaration structure LogementFoyer:
 
 déclaration structure InformationsCalculAPLLogementFoyer:
   donnée redevance contenu argent
+  donnée catégorie_équivalence_loyer_d842_16 contenu
+    CatégorieÉquivalenceLoyerAllocationLogementFoyer
 ```
 
 #### Calcul et éligibilité pour tous les secteurs
@@ -773,6 +779,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   entrée local_habité_première_fois_bénéficiaire contenu booléen
   entrée date_entrée_logement contenu date
   entrée charges_mensuelles_prêt contenu argent
+  entrée copropriété contenu booléen
 
   interne mensualité_éligible contenu argent
   interne montant_forfaitaire_charges contenu argent
@@ -848,7 +855,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 ```catala-metadata
 déclaration champ d'application CalculAllocationLogementFoyer:
   entrée redevance contenu argent
-  entrée logement_foyer contenu LogementFoyer
+  entrée mode_occupation contenu ModeOccupation
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -882,7 +889,7 @@ déclaration champ d'application CalculAllocationLogementFoyer:
 
 champ d'application CalculAllocationLogementFoyer:
   définition calcul_apl_logement_foyer.mode_occupation égal à
-    RésidentLogementFoyer contenu logement_foyer
+    mode_occupation
   définition calcul_apl_logement_foyer.redevance égal à
     redevance
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
@@ -896,6 +903,31 @@ champ d'application CalculAllocationLogementFoyer:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+```
+
+#### Tous secteurs
+
+```catala-metadata
+déclaration champ d'application CalculAllocationLogement:
+  entrée mode_occupation contenu ModeOccupation
+  entrée informations_calcul contenu InformationsCalculAPL
+  entrée ressources_ménage contenu argent
+    état sans_arrondi
+    état avec_arrondi
+  entrée situation_familiale contenu SituationFamiliale
+  entrée nombre_personnes_à_charge contenu entier
+  entrée zone contenu ZoneDHabitation
+  entrée date_courante contenu date
+
+  interne catégorie_calcul_apl contenu CatégorieCalculAPL
+  interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+
+  locatif champ d'application CalculAllocationLogementLocatif
+  logement_foyer champ d'application CalculAllocationLogementFoyer
+  accession_propriété champ d'application
+    CalculAllocationLogementAccessionPropriété
+
+  sortie aide_finale contenu argent
 ```
 
 ### Date d'ouverture des droits à la retraite

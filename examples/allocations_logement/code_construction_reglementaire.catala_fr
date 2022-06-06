@@ -1513,7 +1513,7 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- InfosLocatif: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
     -- InfosLogementFoyer: TypeTravauxLogementD832_15.PasDeTravaux
     # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.type_travaux_logement
+    -- InfosAccessionPropriété de infos: infos.type_travaux_logement_d832_15
   définition accession_propriété.date_signature_prêt égal à
     selon informations_calcul sous forme
     -- InfosLocatif: |2010-01-01| # Valeur par défaut
@@ -1558,6 +1558,153 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- InfosLocatif: 0 € # Valeur par défaut
     -- InfosLogementFoyer de infos: infos.redevance
     -- InfosAccessionPropriété:  0 € # Valeur par défaut
+
+champ d'application CalculAllocationLogement:
+  assertion
+    si catégorie_calcul_apl sous forme Location
+    alors informations_calcul sous forme InfosLocatif
+    sinon vrai
+  assertion
+    si catégorie_calcul_apl sous forme LogementFoyer
+    alors informations_calcul sous forme InfosLogementFoyer
+    sinon vrai
+  assertion
+    si catégorie_calcul_apl sous forme AccessionPropriété
+    alors informations_calcul sous forme InfosAccessionPropriété
+    sinon vrai
+
+  définition locatif.ressources_ménage_arrondies égal à ressources_ménage
+  définition logement_foyer.ressources_ménage_arrondies égal à
+    ressources_ménage
+  définition accession_propriété.ressources_ménage_arrondies égal à
+    ressources_ménage
+  définition locatif.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition logement_foyer.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition accession_propriété.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition locatif.zone égal à zone
+  définition logement_foyer.zone égal à zone
+  définition accession_propriété.zone égal à zone
+  définition locatif.date_courante égal à date_courante
+  définition logement_foyer.date_courante égal à date_courante
+  définition accession_propriété.date_courante égal à date_courante
+  définition locatif.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition logement_foyer.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition accession_propriété.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition logement_foyer.mode_occupation égal à
+    mode_occupation
+
+  définition locatif.loyer_principal égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos: infos.loyer_principal
+    -- InfosLogementFoyer: 0 € # Valeur par défaut
+    -- InfosAccessionPropriété: 0 € # Valeur par défaut
+  définition locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos:
+      infos.bénéficiaire_aide_adulte_ou_enfant_handicapés
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété: faux # Valeur par défaut
+  définition locatif.logement_est_chambre égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos:
+      infos.logement_est_chambre
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété: faux # Valeur par défaut
+  définition locatif.colocation égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos:
+      infos.colocation
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété: faux # Valeur par défaut
+  définition
+    locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos:
+      infos.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété: faux # Valeur par défaut
+  définition locatif.type_aide égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos:
+      infos.type_aide
+    -- InfosLogementFoyer: AidePersonnaliséeLogement # Valeur par défaut
+    -- InfosAccessionPropriété: AidePersonnaliséeLogement # Valeur par défaut
+  définition locatif.réduction_loyer_solidarité égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos: infos.réduction_loyer_solidarité
+    -- InfosLogementFoyer: 0 € # Valeur par défaut
+    -- InfosAccessionPropriété: 0 € # Valeur par défaut
+  définition locatif.logement_meublé_d842_2 égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos: infos.logement_meublé_d842_2
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété: faux # Valeur par défaut
+  définition locatif.changement_logement_d842_4 égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos: infos.changement_logement_d842_4
+    -- InfosLogementFoyer: PasDeChangement # Valeur par défaut
+    -- InfosAccessionPropriété: PasDeChangement # Valeur par défaut
+
+  définition accession_propriété.mensualité_principale égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: 0 € # Valeur par défaut
+    -- InfosLogementFoyer: 0 € # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.mensualité_principale
+  définition accession_propriété.type_travaux_logement égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
+    -- InfosLogementFoyer: TypeTravauxLogementR842_5.PasDeTravaux
+    # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.type_travaux_logement_r832_5
+  définition accession_propriété.date_signature_prêt égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: |2010-01-01| # Valeur par défaut
+    -- InfosLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.date_signature_prêt
+  définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: faux # Valeur par défaut
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété de infos:
+      infos.local_habité_première_fois_bénéficiaire
+  définition accession_propriété.date_entrée_logement égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: |2010-01-01| # Valeur par défaut
+    -- InfosLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.date_entrée_logement
+  définition accession_propriété.copropriété égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: faux # Valeur par défaut
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.copropriété
+  définition accession_propriété.situation_r822_11_13_17 égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: faux # Valeur par défaut
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.situation_r822_11_13_17
+  définition accession_propriété.charges_mensuelles_prêt égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: 0 € # Valeur par défaut
+    -- InfosLogementFoyer: 0 € # Valeur par défaut
+    -- InfosAccessionPropriété de infos: infos.charges_mensuelles_prêt
+
+  définition logement_foyer.redevance égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: 0 € # Valeur par défaut
+    -- InfosLogementFoyer de infos: infos.redevance
+    -- InfosAccessionPropriété:  0 € # Valeur par défaut
+  définition logement_foyer.catégorie_équivalence_loyer_d842_16 égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif: AutresPersonnes # Valeur par défaut
+    -- InfosLogementFoyer de infos: infos.catégorie_équivalence_loyer_d842_16
+    -- InfosAccessionPropriété: AutresPersonnes # Valeur par défaut
 ```
 
 ####### Sous-section 1 : Ouverture et extinction des droits
