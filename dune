@@ -8,6 +8,7 @@
 
 (rule
  (alias runtest)
+ (package catala)
  (deps
   (source_tree tests))
  (action
@@ -15,6 +16,7 @@
 
 (rule
  (alias runtest)
+ (package catala)
  (deps
   (source_tree examples))
  (action
