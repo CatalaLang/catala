@@ -32,7 +32,7 @@ déclaration structure InformationsCalculAPLLocatif:
   donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
   donnée logement_est_chambre contenu booléen
   donnée colocation contenu booléen
-  donnée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  donnée âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
   donnée type_aide contenu TypeAidesPersonnelleLogement
   donnée réduction_loyer_solidarité contenu argent
@@ -509,7 +509,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée logement_est_chambre contenu booléen
-  entrée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  entrée âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
   entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
@@ -700,7 +700,7 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée logement_est_chambre contenu booléen
-  entrée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  entrée âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
   entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
@@ -733,9 +733,9 @@ champ d'application CalculAllocationLogementLocatif:
   définition calcul_apl_locatif.logement_est_chambre égal à
     logement_est_chambre
   définition
-    calcul_apl_locatif.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    calcul_apl_locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à
-    personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   définition calcul_apl_locatif.type_aide égal à
     type_aide
   définition calcul_apl_locatif.colocation égal à
