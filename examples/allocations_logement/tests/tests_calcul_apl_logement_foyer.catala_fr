@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application CasTest1 :
-  calcul champ d'application CalculAidePersonnelleLogementFoyer
+  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
   sortie montant contenu argent
 
 champ d'application CasTest1:

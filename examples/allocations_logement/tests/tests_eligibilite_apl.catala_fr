@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application Exemple1 :
-  éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+  éligibilité champ d'application ÉligibilitéAidePersonnaliséeLogement
   sortie éligible contenu booléen
 
 champ d'application Exemple1 :
@@ -89,7 +89,7 @@ assertion éligible
    }
 
 # déclaration champ d'application Exemple2 :
-#   éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+#   éligibilité champ d'application ÉligibilitéAidesPersonnelleLogement
 #   sortie éligible contenu booléen
 
 # champ d'application Exemple2 :
@@ -139,7 +139,7 @@ assertion éligible
 #    }
 
 # déclaration champ d'application Exemple3 :
-#   éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+#   éligibilité champ d'application ÉligibilitéAidesPersonnelleLogement
 #   sortie éligible contenu booléen
 
 # champ d'application Exemple3 :

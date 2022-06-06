@@ -2,24 +2,24 @@
 
 # Tests
 
-```catala 
+```catala
 déclaration champ d'application Exemple1:
-  calcul champ d'application CalculAidePersonnelleLogementAccessionPropriété
+  calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
 
 champ d'application Exemple1:
   définition calcul.mensualité_principale égal à 650 €
   définition calcul.ressources_ménage_arrondies égal à 10 000 €
   définition calcul.nombre_personnes_à_charge égal à 3
-  définition calcul.situation_familiale_calcul_apl égal à Couple 
+  définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.type_travaux_logement égal à SurLogementExistant
   définition calcul.date_signature_prêt égal à |2001-03-02|
-  définition calcul.local_habité_première_fois_bénéficiaire égal à vrai 
+  définition calcul.local_habité_première_fois_bénéficiaire égal à vrai
   définition calcul.date_entrée_logement égal à |2001-06-24|
-  définition calcul.copropriété égal à faux 
-  définition calcul.situation_r822_11_13_17 égal à vrai 
-  définition calcul.équivalence_minimale_loyer égal à 0 € 
+  définition calcul.copropriété égal à faux
+  définition calcul.situation_r822_11_13_17 égal à vrai
+  définition calcul.équivalence_minimale_loyer égal à 0 €
   # Ne sert à rien car pas de travaux, TODO juridique à calculer à la main sinon
-  
+
   définition calcul.zone égal à Zone3
   définition calcul.type_prêt égal à D331_63_64
   définition calcul.ancienneté_logement égal à Ancien contenu (AmélioréParOccupant.Non)

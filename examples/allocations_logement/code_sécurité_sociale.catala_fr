@@ -28,7 +28,7 @@ champ d'application OuvertureDroitsRetraite:
     date_naissance_assuré >=@ |1955-01-01|
   conséquence égal à 62 an
 
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition ouverture_droits_retraite.date_naissance_assuré égal à
     demandeur.date_naissance
   définition âge_l161_17_2_sécu égal à
@@ -68,7 +68,7 @@ plusieurs autres régimes obligatoires :
 de cinq années ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition âge_l351_8_1_sécu égal à âge_l161_17_2_sécu +^ 5 an
 ```
 
@@ -135,7 +135,7 @@ concubins ou partenaires liés par un pacte civil de solidarité dépasse ces
 plafonds, la ou les allocations sont réduites à due concurrence.
 
 ```catala
-# Définit ÉligibilitéAidePersonnelleLogement.plafond_individuel_l815_9_sécu,
+# Définit ÉligibilitéAidesPersonnelleLogement.plafond_individuel_l815_9_sécu,
 # mais valeur dans un décret.
 ```
 
@@ -233,7 +233,7 @@ janvier 2019 et à 10 838,40 euros par an à compter du 1er janvier 2020 ;
 # Uniquement la valeur du plafond individuel est importante pour
 # l'éligibilité aux APL.
 
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition plafond_individuel_l815_9_sécu sous condition
     date_ouverture_droits >=@ |2018-01-04| et
      date_ouverture_droits <@ |2019-01-01|

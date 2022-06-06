@@ -26,7 +26,7 @@ a) L'allocation de logement familiale ;
 b) L'allocation de logement sociale.
 
 ```catala-metadata
-déclaration énumération TypeAidePersonnelleLogement:
+déclaration énumération TypeAidesPersonnelleLogement:
   -- AidePersonnaliséeLogement
   -- AllocationLogementFamiliale
   -- AllocationLogementSociale
@@ -41,7 +41,7 @@ Les aides personnelles au logement sont accordées au titre de
 la résidence principale.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle condition_logement_résidence_principale sous condition
     ménage.logement.résidence_principale
   conséquence rempli
@@ -55,7 +55,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
 # condition positive. Il n'y a pas vraiment de bonne manière de modéliser
 # cela en Catala pour le moment à part le code ci-dessous qui récapitule
 # la méta-structure logique des articles de loi de ce chapitre.
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
 
   règle éligibilité_logement sous condition
     # La condition logement est en fait l'amalgame de plusieurs sous-conditions
@@ -63,8 +63,6 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
     # du code de la construction et de l'habitation. Attention, ne pas oublier
     # de modifier cette liste en cas de rajout d'une sous-condition.
     condition_logement_résidence_principale et # L821-2
-    condition_logement_bailleur et # L831-1
-    condition_logement_prêt et # L831-2
     condition_logement_mode_occupation et
     condition_logement_location_tiers et
     condition_logement_surface
@@ -105,7 +103,7 @@ prévues par les deux premiers alinéas de l'article L. 512-2 du
 code de la sécurité sociale.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle condition_nationalité sous condition
     selon demandeur.nationalité sous forme
     -- Française: vrai
@@ -122,7 +120,7 @@ d'habitation et constituant leur résidence principale.
 Les sous-locataires, sous les mêmes conditions, peuvent également en bénéficier.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette l822_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire: vrai
@@ -144,7 +142,7 @@ personnellement ou par l'intermédiaire de parts sociales de sociétés,
 quels que soient leurs formes et leurs objets.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition usufruit_ou_propriété_famille égal à
     (selon ménage.logement.propriétaire sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: vrai
@@ -167,7 +165,7 @@ ainsi détenues est inférieur à des seuils fixés par voie réglementaire.
 Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logement.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette l822_3_2 exception l822_3_1
   règle condition_logement_mode_occupation sous condition
     usufruit_ou_propriété_famille et
@@ -193,7 +191,7 @@ l'article L. 442-1 du code de l'action sociale et des familles ou d'une
 personne de moins de trente ans.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette cas_base_l822_4 règle condition_logement_location_tiers
   sous condition
     ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
@@ -243,7 +241,7 @@ réglementaire.
 # Cet article est une déclaration d'intention qui donne des propriétée sur
 # la formule de calcul. Dans le futur il serait interessant de vérifier que
 # la formule est bien de cette forme là.
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition patrimoine_total_demandeur égal à
     demandeur.patrimoine.produisant_revenu_période_r822_3_3_r822_4 +€
     demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
@@ -263,7 +261,7 @@ du même code, la valeur en capital du patrimoine appréciée pour l'ensemble du
 n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette l822_5_2 exception r822_22_3 définition patrimoine_pris_en_compte
   sous condition existe prestation dans ménage.prestations_reçues tel que
     (prestation = AllocationSoutienEnfantHandicapé) ou
@@ -282,7 +280,7 @@ l'action sociale et des familles.
 # rapport aux autres. On pourrait rajouter un sucre syntaxique pour activer
 # ça en vérifiant que les conséquences sont syntaxiquement les mêmes.
 # Voir https://github.com/CatalaLang/catala/issues/208
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   exception l822_5_2 définition patrimoine_pris_en_compte
   sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
   conséquence égal à 0€
@@ -341,7 +339,7 @@ logement. Cette condition est appréciée pour chacun des membres du ménage.
 
 # L'interpretation est donc qu'aucun membre du ménage ne doit être
 # rattaché à des parents payant l'ifi.
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle condition_non_ouverture_l822_8
   sous condition ménage.condition_rattaché_foyer_fiscal_parent_ifi
   conséquence rempli
@@ -355,7 +353,7 @@ l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rap
 locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle condition_non_ouverture_l822_9_decence_logement
   sous condition non ménage.logement.logement_decent_l89_462
   conséquence rempli
@@ -378,7 +376,7 @@ L'attribution d'une aide personnelle au logement est subordonnée au
 respect de conditions de peuplement des logements.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle condition_non_ouverture_l822_10_peuplement_logement
   sous condition condition_peuplement_logement_l822_10
   conséquence rempli
@@ -534,7 +532,7 @@ Ce montant minimal est fixé par voie réglementaire.
 
 ```catala
 # Voir les états "montant_minimal" dans le calcul des aides finales dans
-# le champ d'application CalculAidePersonnelleLogement.
+# le champ d'application CalculAidePersonnaliséeLogement.
 ```
 
 ###### Article L823-8 | LEGIARTI000038814906
@@ -576,6 +574,21 @@ indûment versés.
 
 ##### Chapitre Ier : Champ d'application
 
+```catala
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  règle éligibilité sous condition
+    # La condition est en fait l'amalgame de plusieurs sous-conditions
+    # portant toutes sur le logement définies au long des diverses parties
+    # du code de la construction et de l'habitation. Attention, ne pas oublier
+    # de modifier cette liste en cas de rajout d'une sous-condition.
+    condition_logement_bailleur et # L831-1
+    condition_logement_prêt et # L831-2
+    éligibilité_commune.éligibilité # Pour être éligible à l'aide personnalisée
+                                    # au logement, il faut remplir les
+                                    # conditions communes.
+  conséquence rempli
+```
+
 ###### Article L831-1 | LEGIARTI000038814882
 
 L'aide personnalisée au logement s'applique aux :
@@ -595,7 +608,7 @@ conditions d'octroi sont fixées par voie réglementaire, sous les réserves
 # dépend du prêt (voir articles référés). Donc ici on vient apporter une
 # exception à la règle de L822-2 quand les conditions relatives au prêt ne
 # sont pas remplies.
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
@@ -616,7 +629,7 @@ que ceux-ci s'engagent à respecter les obligations précisées par des conventi
 régies par la section 3 du chapitre Ier du titre II du livre III ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   étiquette l831_1_2 règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
@@ -636,7 +649,7 @@ bailleurs de respecter les obligations précisées par des conventions régies
 par le chapitre III du titre V du livre III ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   # TODO recherche: citer cet exemple intéréssant d'un point de vue
   # computationel.
   # Ici attention à la structure d'exception! Le 2°) est le cas de base, le
@@ -665,7 +678,7 @@ obligations précisées par des conventions régies par le chapitre III du titre
 ou par la section 3 du chapitre Ier du titre II du livre III ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   étiquette l831_1_4 exception l831_1_2
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
@@ -700,7 +713,7 @@ fixées par voie réglementaire, sous les réserves énoncées à l ‘ article 
 
 ```catala
 # TODO juridique: trouver quelles sont ces mystérieuses conditions d'octroi.
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- LocationAccession de propriété:
@@ -716,7 +729,7 @@ mentionné au 1° ou au 6° de l'article L. 831-1 signé après le 31 décembre 
 n'ouvrent pas droit à l'aide personnalisée au logement.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   étiquette l831_2_base règle condition_logement_prêt rempli
   # Cas de base implicite
 
@@ -738,7 +751,7 @@ important entre l'offre et la demande de logements entraînant des difficultés
 d'accès au logement dans le parc résidentiel existant.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   exception l831_2_1 règle condition_logement_prêt sous condition
     selon ménage.logement.mode_occupation sous forme
       -- LocationAccession de propriété:
@@ -806,7 +819,7 @@ concernés par la réduction de loyer de solidarité définie à l'article L. 44
 est fixée par voie réglementaire.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale état réduction_loyer_solidarité égal à
     si
       aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€
@@ -831,6 +844,20 @@ Dans le cas prévu à l'article L. 824-3, le versement reprend dans les conditio
 #### Titre IV : Allocations de logement
 
 ##### Chapitre Ier : Champ d'application
+
+```catala
+champ d'application ÉligibilitéAllocationLogement:
+  # Implicitement, l'éligibilité de l'allocation logement est conditionnée
+  # à l'égibilité suivant les dispositions communes à toutes les aides
+  # personnelles au logement. Comme il n'existe pas d'article de loi ou de
+  # règlement rappelant ce fait, nous le traduisons en code ici.
+  définition éligibilité état dispositions_communes égal à
+    si non éligibilité_commune.éligibilité alors
+      PasÉligible
+    sinon
+      # Valeur par défaut, sera réécrit à l'application de L841-2.
+      ÉligibilitéAllocationLogement.AllocationLogementSociale
+```
 
 ###### Article L841-1 | LEGIARTI000038814864
 
@@ -1020,7 +1047,7 @@ de logement sociale.
 # d'ALF/ALS et supérieur au montant d'APL.
 champ d'application ÉligibilitéAllocationLogement:
   définition éligibilité état l841_2 égal à
-    si bénéficie_aide_personnelle_logement alors
+    si éligibilité = PasÉligible ou bénéficie_aide_personnelle_logement alors
       PasÉligible
     sinon (si éligibilité_allocation_logement_familiale alors
      ÉligibilitéAllocationLogement.AllocationLogementFamiliale

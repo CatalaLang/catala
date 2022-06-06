@@ -8,7 +8,7 @@ dans les sections suivantes.
 
 ## Types de données manipulées par le programme
 
-### Calcul et éligibilité de l'aide personnelle au logement
+### Calcul et éligibilité de l'aide personnalisée au logement
 
 #### Calcul et éligibilité pour le secteur locatif
 
@@ -34,8 +34,7 @@ déclaration structure InformationsCalculAPLLocatif:
   donnée colocation contenu booléen
   donnée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
-  # TODO informatique et juridique: calculer type_aide!
-  donnée type_aide contenu TypeAidePersonnelleLogement
+  donnée type_aide contenu TypeAidesPersonnelleLogement
   donnée réduction_loyer_solidarité contenu argent
 ```
 
@@ -285,14 +284,7 @@ déclaration énumération ModeOccupationImpayé:
 ### Éligibilité à l'aide personnelle au logement
 
 ```catala-metadata
-# TODO informatique (URGENT): créer deux champs d'application différents:
-# * ÉligibilitéAidesPersonnellesLogement pour les disposition communes aux trois
-#   aides (APL, ALS, ALF)
-# * ÉligibilitéAidePersonnaliséeLogement pour les disposition qui concernent
-#   uniquement l'APL.
-
-
-déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
+déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
   entrée sortie date_ouverture_droits contenu date
@@ -303,8 +295,6 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
-  interne condition_logement_bailleur condition
-  interne condition_logement_prêt condition
   interne condition_logement_surface_minimale_sans_seuil_m_carrés
     contenu entier
   interne condition_logement_surface condition
@@ -320,8 +310,6 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
 
   # Autres variables
   interne patrimoine_total_demandeur contenu argent
-  interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
-  interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
   interne nombre_personnes_logement contenu entier
   interne usufruit_ou_propriété_famille contenu booléen
   interne seuil_l822_3_parts_propriété contenu décimal
@@ -335,7 +323,7 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
   sortie éligibilité condition
 
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique et juridique: trouver une meilleur place pour mettre
   # cette conjonction.
   règle éligibilité sous condition
@@ -343,6 +331,31 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
     condition_logement_mode_occupation et
     éligibilité_logement
   conséquence rempli
+```
+
+### Éligibilité à l'aide personnalisée au logement
+
+```catala-metadata
+déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  entrée ménage contenu Ménage
+  entrée demandeur contenu Demandeur
+  entrée sortie date_ouverture_droits contenu date
+
+  interne condition_logement_bailleur condition
+  interne condition_logement_prêt condition
+  interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
+  interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
+
+  éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
+
+  sortie éligibilité condition
+
+
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  définition éligibilité_commune.ménage égal à ménage
+  définition éligibilité_commune.demandeur égal à demandeur
+  définition éligibilité_commune.date_ouverture_droits égal à
+    date_ouverture_droits
 ```
 
 ### Éligibilité aux allocations de logement
@@ -356,6 +369,7 @@ déclaration énumération ÉligibilitéAllocationLogement:
 déclaration champ d'application ÉligibilitéAllocationLogement:
   entrée date_courante contenu date
   entrée ménage contenu Ménage
+  entrée demandeur contenu Demandeur
   entrée bénéficie_aide_personnelle_logement contenu booléen
   entrée mode_occupation contenu ModeOccupation
   entrée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
@@ -370,9 +384,11 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   interne durée_l841_1_3 contenu durée
 
   prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
+  éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
 
 
   sortie éligibilité contenu ÉligibilitéAllocationLogement
+    état dispositions_communes
     état l841_2
     état avec_condition_logement
 
@@ -385,6 +401,11 @@ champ d'application ÉligibilitéAllocationLogement:
   # TODO juridique et informatique : adapter quand le code gèrera les outre-
   # mer.
   définition prestations_familiales.résidence égal à Métropole
+
+  définition éligibilité_commune.ménage égal à ménage
+  définition éligibilité_commune.demandeur égal à demandeur
+  définition éligibilité_commune.date_ouverture_droits égal à
+    date_courante
 
   définition éligibilité état avec_condition_logement égal à
     si non condition_logement alors
@@ -409,7 +430,7 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   interne délai_après_emménagement_l823_8_2 contenu durée
   interne plafond_d823_22 contenu argent
 
-  éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
+  éligibilité_apl champ d'application ÉligibilitéAidesPersonnelleLogement
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
 
@@ -427,7 +448,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
 ### Prise en compte des ressources pour l'aide personnelle au logement
 
 ```catala-metadata
-déclaration champ d'application RessourcesAidePersonnelleLogement:
+déclaration champ d'application RessourcesAidesPersonnelleLogement:
   entrée ressources_demandeur contenu argent
   entrée ressources_conjoint contenu argent
   entrée personnes_vivant_habituellement_foyer contenu
@@ -463,10 +484,10 @@ déclaration champ d'application RessourcesAidePersonnelleLogement:
 ### Calcul des contributions sociales s'appliquant à l'aide personnelle au logement
 
 ```catala-metadata
-déclaration champ d'application ContributionsSocialesAidePersonnelleLogement:
+déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   sortie montant contenu argent dépend de argent
 
-champ d'application ContributionsSocialesAidePersonnelleLogement:
+champ d'application ContributionsSocialesAidesPersonnelleLogement:
   # TODO juridique: mettre ce bout de code à côté des articles de loi qui le
   # justifient. (Pas de CSG mais la CRDS pour les APL)
   définition montant de aide_finale égal à
@@ -478,7 +499,7 @@ champ d'application ContributionsSocialesAidePersonnelleLogement:
 #### Secteur locatif
 
 ```catala-metadata
-déclaration champ d'application CalculAidePersonnelleLogementLocatif:
+déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée loyer_principal contenu argent
   entrée ressources_ménage_arrondies contenu argent
   entrée bénéficiaire_aide_adulte_ou_enfant_handicapés
@@ -490,7 +511,7 @@ déclaration champ d'application CalculAidePersonnelleLogementLocatif:
   entrée logement_est_chambre contenu booléen
   entrée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
-  entrée type_aide contenu TypeAidePersonnelleLogement
+  entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
 
@@ -515,7 +536,7 @@ déclaration champ d'application CalculAidePersonnelleLogementLocatif:
   sortie participation_personnelle contenu argent
 
   contributions_sociales champ d'application
-    ContributionsSocialesAidePersonnelleLogement
+    ContributionsSocialesAidesPersonnelleLogement
 
   sortie aide_finale contenu argent
     état formule
@@ -529,7 +550,7 @@ déclaration champ d'application CalculAidePersonnelleLogementLocatif:
 #### Secteur logement-foyer
 
 ```catala-metadata
-déclaration champ d'application CalculAidePersonnelleLogementFoyer:
+déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   entrée mode_occupation contenu ModeOccupation
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
@@ -556,7 +577,7 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   interne tranches_revenus_d832_26_multipliées contenu collection TrancheRevenu
 
   contributions_sociales champ d'application
-    ContributionsSocialesAidePersonnelleLogement
+    ContributionsSocialesAidesPersonnelleLogement
 
   sortie coefficient_prise_en_charge_d832_25 contenu décimal
     état formule
@@ -575,7 +596,7 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
 
 ```catala-metadata
 déclaration champ d'application
-  CalculAidePersonnelleLogementAccessionPropriété:
+  CalculAidePersonnaliséeLogementAccessionPropriété:
   entrée mensualité_principale contenu argent
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
@@ -619,7 +640,7 @@ déclaration champ d'application
   interne taux_francs_vers_euros contenu décimal
 
   contributions_sociales champ d'application
-    ContributionsSocialesAidePersonnelleLogement
+    ContributionsSocialesAidesPersonnelleLogement
 
   sortie aide_finale contenu argent
     état formule
@@ -632,7 +653,7 @@ déclaration champ d'application
 #### Tous secteurs
 
 ```catala-metadata
-déclaration champ d'application CalculAidePersonnelleLogement:
+déclaration champ d'application CalculAidePersonnaliséeLogement:
   entrée mode_occupation contenu ModeOccupation
   entrée informations_calcul contenu InformationsCalculAPL
   entrée ressources_ménage contenu argent
@@ -646,10 +667,10 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
-  locatif champ d'application CalculAidePersonnelleLogementLocatif
-  logement_foyer champ d'application CalculAidePersonnelleLogementFoyer
+  locatif champ d'application CalculAidePersonnaliséeLogementLocatif
+  logement_foyer champ d'application CalculAidePersonnaliséeLogementFoyer
   accession_propriété champ d'application
-    CalculAidePersonnelleLogementAccessionPropriété
+    CalculAidePersonnaliséeLogementAccessionPropriété
 
   sortie aide_finale contenu argent
 ```
@@ -681,7 +702,7 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée logement_est_chambre contenu booléen
   entrée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
-  entrée type_aide contenu TypeAidePersonnelleLogement
+  entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
 
@@ -689,7 +710,7 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée logement_meublé_d842_2 contenu booléen
   entrée changement_logement_d842_4 contenu ChangementLogementD842_4
 
-  calcul_apl_locatif champ d'application CalculAidePersonnelleLogementLocatif
+  calcul_apl_locatif champ d'application CalculAidePersonnaliséeLogementLocatif
 
   sortie aide_finale contenu argent
 
@@ -766,9 +787,9 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne coefficient_d842_12 contenu décimal
 
   calcul_apl_logement_foyer champ d'application
-    CalculAidePersonnelleLogementFoyer
+    CalculAidePersonnaliséeLogementFoyer
   contributions_sociales champ d'application
-    ContributionsSocialesAidePersonnelleLogement
+    ContributionsSocialesAidesPersonnelleLogement
 
   sortie allocation_mensuelle contenu argent
     état formule
@@ -838,9 +859,9 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   sortie loyer_minimal contenu argent
 
   calcul_apl_logement_foyer champ d'application
-    CalculAidePersonnelleLogementFoyer
+    CalculAidePersonnaliséeLogementFoyer
   contributions_sociales champ d'application
-    ContributionsSocialesAidePersonnelleLogement
+    ContributionsSocialesAidesPersonnelleLogement
 
   sortie allocation_mensuelle contenu argent
     état formule
@@ -852,8 +873,6 @@ déclaration champ d'application CalculAllocationLogementFoyer:
 
 champ d'application CalculAllocationLogementFoyer:
   définition calcul_apl_logement_foyer.mode_occupation égal à
-    # TODO informatique: refactoriser calcul_apl_logement_foyer.mode_occupation
-    # pour ne garder que LogementFoyer
     RésidentLogementFoyer contenu logement_foyer
   définition calcul_apl_logement_foyer.redevance égal à
     redevance

@@ -103,7 +103,7 @@ d'usufruit, sans que l'ensemble de ces parts puisse égaler ou dépasser
 10 % de la propriété ou de l'usufruit du logement.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition seuil_l822_3_parts_propriété égal à 10%
   définition seuil_l822_3_parts_usufruit égal à 10%
 ```
@@ -122,7 +122,7 @@ les personnes vivant habituellement au foyer.
 # Ici "conjoint" veut implicitement dire également "concubin" car on
 # a vu que les deux cas étaient gérés de la même manière précédemment.
 # Interprétation confirmée par DGALN/DHUP/FE4 le 25/05/2022.
-champ d'application RessourcesAidePersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement:
   définition ressources_prises_en_compte égal à
     ressources_demandeur +€
     ressources_conjoint +€
@@ -140,7 +140,7 @@ qui y résident encore au moment de la demande de l'aide ou du réexamen du
 droit à celle-ci.
 
 ```catala
-champ d'application RessourcesAidePersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement:
   assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
     personne.durée_résidence_durant_période_r_822_3_1 >=^ 6 mois
 # TODO informatique et juridique: la comparaison avec 6 mois est ambiguë!
@@ -398,7 +398,7 @@ des allocations familiales en vigueur à la date de la demande ou du réexamen
 du droit.
 
 ```catala
-champ d'application RessourcesAidePersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement:
   définition abattement_r_822_7 égal à
     si demandeur_exerce_activité_rémunérée et
       conjoint_exerce_activité_rémunérée et
@@ -451,7 +451,7 @@ charges de loyer supplémentaires correspondant à ce logement, il est procédé
 à un abattement forfaitaire sur ses ressources ou sur celles du ménage.
 
 ```catala
-champ d'application RessourcesAidePersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement:
   définition abattement_r_822_8 égal à
     selon paiement_logement_distinct_professionnel sous forme
     -- OuiAvecLoyerOuCharges de loyer_ou_charges:
@@ -513,7 +513,7 @@ il est opéré sur ses ressources un abattement de :
 2° 1 350 euros dès trois personnes à charge.
 
 ```catala
-champ d'application RessourcesAidePersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement:
   définition abattement_r_822_10 égal à
     selon situation_familiale sous forme
     # TODO informatique: améliorer avec
@@ -847,7 +847,7 @@ d'une bourse de l'enseignement supérieur qui n'est pas assujettie à l'impôt
 sur le revenu.
 
 ```catala
-champ d'application RessourcesAidePersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement:
   exception définition ressources_prises_en_compte sous condition
      mode_occupation sous forme Locataire et
      condition_âge_bourse_enseignement_supérieur et
@@ -920,7 +920,7 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 Le montant prévu au premier alinéa de l'article L. 822-5 est fixé à 30 000 euros.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition seuil_l822_5_patrimoine égal à 30 000 €
 ```
 
@@ -935,7 +935,7 @@ le revenu au titre des revenus nets catégoriels mentionnés à l'article
 R. 822-4 est pris en compte pour le calcul de l'aide.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette r822_22_3 exception l822_5_1
   définition patrimoine_pris_en_compte sous condition
     patrimoine_total_demandeur >=€ seuil_l822_5_patrimoine
@@ -1027,7 +1027,7 @@ en plus, dans la limite de soixante-dix mètres carrés pour huit personnes et
 plus.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique : remplacer par variables locales
   définition nombre_personnes_logement égal à
     (selon ménage.situation_familiale sous forme
@@ -1132,7 +1132,7 @@ Sont considérés comme personnes à charge, sous réserve qu'ils vivent
 habituellement au foyer :
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition personnes_à_charge_prises_en_compte égal à
     filtre pour personne_à_charge dans ménage.personnes_à_charge de
       prise_en_compte_personne_à_charge de personne_à_charge
@@ -1143,7 +1143,7 @@ sens des 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de
 l'article L. 823-2 du présent code ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant: enfant.EnfantÀCharge.âge <= 21
@@ -1166,7 +1166,7 @@ sociale et bénéficiaires des articles L. 161-19, L. 351-8 ou L. 643-3 du même
 code ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette r823_4_2
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
@@ -1198,7 +1198,7 @@ individuel prévu à l'article L. 815-9 du code de la sécurité sociale en vigu
 au 31 décembre de l'année de référence multiplié par 1,25.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement:
   exception r823_4_2
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
    selon personne_à_charge sous forme
@@ -1382,7 +1382,7 @@ location-accession, par les règles figurant aux articles R. 842-5
 et D. 842-6 à D. 842-13.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnaliséeLogement:
   définition catégorie_calcul_apl égal à
     selon mode_occupation sous forme
     -- Locataire: Location
@@ -1420,7 +1420,7 @@ champ d'application CalculAidePersonnelleLogement:
   # donne alors des valeurs par défaut pour les paramètres d'entrée des modes
   # de calcul non utilisés, valeurs par défaut qui n'ont aucune influence
   # sur le résultat puisque le mode de calcul n'est pas utilisé.
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnaliséeLogement:
   assertion
     si catégorie_calcul_apl sous forme Location
     alors informations_calcul sous forme InfosLocatif
@@ -1685,7 +1685,7 @@ est calculé selon la formule suivante :
 $$\text{Af} = \text{L} + \text{C}-\text{Pp}$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale état formule égal à
     si loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
       participation_personnelle <€ 0 €
@@ -1703,7 +1703,7 @@ la limite d'un plafond fixé par arrêté en fonction de la zone géographique e
 dans le cas où le logement occupé est une chambre, de la composition familiale ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition loyer_éligible égal à
     si loyer_principal >€ plafond_loyer_d823_16_2 alors plafond_loyer_d823_16_2
     sinon loyer_principal
@@ -1737,7 +1737,7 @@ l'article L. 821-1 du code de la sécurité sociale ou de l'allocation d'éducat
 l'enfant handicapé prévue à l'article L. 541-1 du même code.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale état diminué égal à
     si loyer_principal >€ plafond_suppression_d823_16 alors
       0€
@@ -1760,7 +1760,7 @@ champ d'application CalculAidePersonnelleLogementLocatif:
 Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arrêté.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale état minoration_forfaitaire égal à
     si aide_finale -€ montant_forfaitaire_d823_16 >=€ 0€ alors
       aide_finale -€ montant_forfaitaire_d823_16
@@ -1772,7 +1772,7 @@ sociales qui s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce mo
 représentatif.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale état contributions_sociales_arrondi égal à
     si
       arrondi_argent de ((aide_finale -€
@@ -1790,7 +1790,7 @@ de l'article L. 442-2-1, ce résultat est réduit d'un montant égal à 98 % de 
 de loyer de solidarité.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition fraction_l832_3 égal à 98%
 ```
 
@@ -1799,7 +1799,7 @@ un montant fixé par arrêté, selon celle des trois aides dont le ménage bén�
 n'est pas procédé à son versement.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale état montant_minimal égal à
     si aide_finale <€ montant_minimal_aide_d823_16 alors
       0 €
@@ -1816,7 +1816,7 @@ du ménage, calculée selon la formule suivante :
 $$\text{Pp} = \text{P0} + \text{Tp}* (\text{R}-\text{R0})$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition participation_personnelle égal à
     participation_minimale +€
     (ressources_ménage_arrondies -€ abattement_forfaitaire_d823_17) *€
@@ -1845,7 +1845,7 @@ Les valeurs du premier taux, les modalités de calcul du second taux et les vale
 loyers de référence sont fixées par arrêté ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition taux_prise_compte_ressources égal à
     taux_composition_familiale +. taux_loyer_éligible
 ```
@@ -1854,7 +1854,7 @@ champ d'application CalculAidePersonnelleLogementLocatif:
 à la section 2 du chapitre II du présent titre et arrondies à la centaine d'euros supérieure ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnaliséeLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
@@ -2863,7 +2863,7 @@ en accession à la propriété défini à l'article D. 331-32 ;
 2° Prêt conventionné défini à l'article D. 331-63, dans les conditions précisées par l'article D. 331-64.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle caractéristiques_prêt_l831_1_1 de prêt sous condition
     prêt.titulaire_prêt sous forme Demandeur et (
     prêt.Prêt.type_prêt sous forme D331_32 ou
@@ -2898,7 +2898,7 @@ lorsque le vendeur est titulaire d'un prêt défini par les articles D. 331-59-8
 défini par les articles D. 331-76-1 et suivants et que ce dernier supporte les charges correspondantes.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle caractéristiques_prêt_l831_1_1 de prêt sous condition
     prêt.titulaire_prêt sous forme
       VendeurQuandDemandeurAContratLocationAccession et (
@@ -2963,7 +2963,7 @@ les modalités suivantes :
 $$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale état formule égal à
     si (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
       mensualité_minimale) *€ coefficient_prise_en_charge_d832_10 <€ 0 €
@@ -2983,7 +2983,7 @@ prise en compte dans la limite d'un plafond fixé par arrêté en fonction de la
 de la composition familiale et de la finalité de l'opération ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_éligible égal à
     si mensualité_principale >€ plafond_mensualité_d832_10_3
     alors plafond_mensualité_d832_10_3
@@ -3008,7 +3008,7 @@ la composition familiale ;
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale état minoration_forfaitaire égal à
     si aide_finale -€ montant_forfaitaire_d832_10 >=€ 0€
     alors
@@ -3020,7 +3020,7 @@ Ce résultat est minoré d'un abattement au titre de la dépense nette minimale,
 de calcul sont fixées par l'article D. 832-17.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale état abattement égal à
     si aide_finale -€
       abattement_dépense_nette_minimale_d832_10 de aide_finale >=€ 0€
@@ -3035,7 +3035,7 @@ représentatif des contributions sociales qui s'y appliquent, arrondi à l'euro 
 puis majoré de ce montant représentatif.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale
   état contributions_sociales_arrondi
   égal à
@@ -3056,7 +3056,7 @@ Lorsque le montant mensuel de l'aide, ainsi calculé, est inférieur à un monta
 il n'est pas procédé à son versement.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale état montant_minimal égal à
     si aide_finale <€ montant_minimal_aide_d832_10
     alors 0 €
@@ -3071,7 +3071,7 @@ et les modalités suivantes :
 $$\text{K} =  0,95 - \frac{\text{R}}{\text{cm} \times \text{N}}$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition coefficient_prise_en_charge_d832_10 état formule égal à
     0,95 -.
       (ressources_ménage_arrondies /€
@@ -3087,7 +3087,7 @@ où :
 Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré comme égal à 0,95 ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition coefficient_prise_en_charge_d832_10 état arrondi égal à
     # Cette formule implémente bien l'arrondi à deux décimales par défaut,
     # à partir d'un arrondi au plus proche à l'unité.
@@ -3139,7 +3139,7 @@ majoration par personne à charge supplémentaire              0,5
 ------------------------------------------------------------ ---
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition n_nombre_parts_d832_11 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -3217,7 +3217,7 @@ l'article D. 832-12 a été établi.
 ```catala
 # Voir l'article 18 de l'arrêté du 27 septembre 2019 qui précise le sens de
 # cet alinéa en termes de calcul.
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition plafond_mensualité_d832_10_3 état base égal à
     calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
 ```
@@ -3236,7 +3236,7 @@ pour la première fois par le bénéficiaire.
 # permet de choisir la date la plus avantageuse pour calculer le plafond
 # entre la date de signature du prêt et celle d'entrée dans le logement si
 # le local est habité pour la première fois par le bénéficiaire.
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   exception définition plafond_mensualité_d832_10_3 état base sous condition
     local_habité_première_fois_bénéficiaire
   conséquence égal à
@@ -3295,7 +3295,7 @@ se situent les ressources ;
 # ces circonvolutions autour des limites supérieures des tranches reviennent
 # bien à faire un arrondi à la centaine d'euros supérieure.
 
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme SurLocauxNonHabitation
   conséquence égal à
@@ -3325,12 +3325,12 @@ mensualité minimale " L0 " se substitue à l'équivalence minimale de loyer et 
 charges " E0 ".
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnaliséeLogement:
   # Ce calcul marche car l'équivalence minimale de loyers ne dépend que
   # de la situation familiale et des ressources du ménage. Afin de bien
   # avoir le premier alinéa du D832-26 et non le second, il nous faut remettre
   # à zéro la condition_2_du_832_25 qui contrôle dans le champ d'application
-  # CalculAidePersonnelleLogementFoyer comment l'équivalence minimale de loyer
+  # CalculAidePersonnaliséeLogementFoyer comment l'équivalence minimale de loyer
   # est calculée.
 
   définition logement_foyer.condition_2_du_832_25 sous condition
@@ -3342,7 +3342,7 @@ champ d'application CalculAidePersonnelleLogement:
   définition accession_propriété.équivalence_minimale_loyer égal à
     logement_foyer.équivalence_minimale_loyer
 
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme SurLogementExistant ou
     # Comment interpetéter le R832-5 dans
@@ -3395,7 +3395,7 @@ le montant mensuel de l'aide calculé selon les dispositions des deuxième à ne
 alinéas du même article.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   exception
   définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
   sous condition
@@ -3409,7 +3409,7 @@ Dans les autres cas, cette dépense nette est obtenue en déduisant de la seule 
 déclarée le montant mensuel de l'aide calculé de la même façon.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 égal à
     mensualité_principale -€ aide_calculée_2_9_d832_10
 ```
@@ -3420,7 +3420,7 @@ l'opération, il est appliqué un abattement sur le montant mensuel de l'aide é
 différence constatée.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale_d832_10
     de aide_calculée_2_9_d832_10
   égal à
@@ -3451,7 +3451,7 @@ et R. 822-13 à R. 822-17.
 # les ressources des personnes à charge autre que le bénéficiaire et son
 # conjoint ?
 # Non, selon réponse de DGALN/DHUP/FE4 du 25/05/2022.
-champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition ressources_ménage_avec_d832_18 égal à
     si ressources_ménage_arrondies <=€ mensualité_principale *€
       coefficient_multiplicateur_d832_18
@@ -3552,7 +3552,7 @@ mentionné à l'article D. 331-8 et que la convention prévue au II de l'article
 remplacée par la convention prévue au III de l'article R. 353-159.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnelleLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de logement_foyer:
@@ -3596,7 +3596,7 @@ mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 $$\text{Af} = \text{K} \times (\text{E}-\text{E0})$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale état formule égal à
     si (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
       coefficient_prise_en_charge_d832_25 <€ 0 €
@@ -3617,7 +3617,7 @@ R. 353-156 à R. 353-160, et prise en compte dans la limite d'un plafond fixé p
 de la zone géographique et de la composition familiale ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition équivalence_loyer_éligible égal à
     si redevance >=€ plafond_équivalence_loyer_éligible alors
       plafond_équivalence_loyer_éligible
@@ -3631,7 +3631,7 @@ les dispositions de l'article D. 832-26.
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale état minoration_forfaitaire égal à
     si aide_finale -€ montant_forfaitaire_d832_24 >=€ 0€
     alors
@@ -3643,7 +3643,7 @@ Ce résultat est minoré d'un abattement au titre de la dépense nette minimale,
 de calcul sont fixées à l'article D. 832-27.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale état abattement égal à
     si aide_finale -€
       abattement_dépense_nette_minimale_d832_27 de aide_finale >=€ 0€
@@ -3658,7 +3658,7 @@ s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant représ
 
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale état contributions_sociales_arrondi
   égal à
     si
@@ -3678,7 +3678,7 @@ Lorsque le montant mensuel de l'aide, calculé selon les modalités précédente
 à un montant fixé par arrêté, il n'est pas procédé à son versement.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale état montant_minimal égal à
     si aide_finale <€ montant_minimal_aide_d823_24
     alors 0 € sinon aide_finale
@@ -3695,7 +3695,7 @@ de l'article L. 831-1, et mentionnés au 1° de l'article R. 832-21, le coeffici
 selon la formule et les modalités précisées au 2° du présent article.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition condition_2_du_832_25 égal à
     selon mode_occupation sous forme
     -- RésidentLogementFoyer de logement_foyer: (
@@ -3713,7 +3713,7 @@ champ d'application CalculAidePersonnelleLogementFoyer:
 $$\text{K} = 0,95 - \frac{\text{R} - \text{r} \times \text{N}}{\text{cm} \times \text{N}}$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état formule égal à
     0,95 -.
       ((ressources_ménage_arrondies -€
@@ -3729,7 +3729,7 @@ calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0
 
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état arrondi égal à
     # Cette formule implémente bien l'arrondi à deux décimales par défaut,
     # à partir d'un arrondi au plus proche à l'unité.
@@ -3761,7 +3761,7 @@ majoration par personne à charge supplémentaire	              0,5
 ------------------------------------------------------------- ---
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition n_nombre_parts_d832_25 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -3786,7 +3786,7 @@ champ d'application CalculAidePersonnelleLogementFoyer:
 $$\text{K} = 0,90 - \frac{\text{R}}{\text{cm} \times \text{N}}$$
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   exception définition coefficient_prise_en_charge_d832_25 état formule
   sous condition
     condition_2_du_832_25
@@ -3803,7 +3803,7 @@ lorsque le calcul le porte à une valeur supérieure à 0,90, il est considéré
 
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   exception définition coefficient_prise_en_charge_d832_25 état arrondi
   sous condition
     condition_2_du_832_25
@@ -3839,7 +3839,7 @@ majoration par personne à charge supplémentaire	             0,5
 ------------------------------------------------------------ ---
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   exception définition n_nombre_parts_d832_25 sous condition
     condition_2_du_832_25
   conséquence égal à
@@ -3870,7 +3870,7 @@ de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfait
 nombre de parts " N ", le total étant divisé par douze.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition tranches_revenus_d832_26_multipliées égal à
     application pour tranche dans tranches_revenus_d832_26 de
       TrancheRevenu {
@@ -3938,7 +3938,7 @@ arrêté selon le type de logements-foyer, l'abattement à effectuer sur le mont
 l'aide est égal à la différence constatée.
 
 ```catala
-champ d'application CalculAidePersonnelleLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
   égal à
     équivalence_loyer_éligible -€ aide_calculée_1_8_d832_24

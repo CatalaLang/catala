@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application Exemple1 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple1:
@@ -34,7 +34,7 @@ champ d'application Exemple1:
 
 ```catala
 déclaration champ d'application Exemple2 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple2:
@@ -63,7 +63,7 @@ champ d'application Exemple2:
 
 ```catala
 déclaration champ d'application Exemple3 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple3:
@@ -92,7 +92,7 @@ champ d'application Exemple3:
 
 ```catala
 déclaration champ d'application Exemple4 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple4:
@@ -121,7 +121,7 @@ champ d'application Exemple4:
 
 ```catala
 déclaration champ d'application Exemple5 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple5:
@@ -150,7 +150,7 @@ champ d'application Exemple5:
 
 ```catala
 déclaration champ d'application Exemple6 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple6:
@@ -179,7 +179,7 @@ champ d'application Exemple6:
 
 ```catala
 déclaration champ d'application Exemple7 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple7:
@@ -208,7 +208,7 @@ champ d'application Exemple7:
 
 ```catala
 déclaration champ d'application Exemple8 :
-  calcul champ d'application CalculAidePersonnelleLogementLocatif
+  calcul champ d'application CalculAidePersonnaliséeLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple8:
