@@ -43,7 +43,7 @@ déclaration champ d'application CasTest2 :
   sortie montant contenu argent
 
 champ d'application CasTest2:
-  définition calcul.logement_foyer égal à LogementFoyer {
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
     -- type : LogementPersonnesÂgéesOuHandicapées
     -- date_conventionnement : |2022-01-01|
     -- location : Location {
@@ -57,7 +57,7 @@ champ d'application CasTest2:
         }
     -- remplit_conditions_r832_21 : faux
     -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
-  }
+  })
   définition calcul.redevance égal à 360 €
   définition calcul.ressources_ménage_arrondies égal à 15 000€
   définition calcul.nombre_personnes_à_charge égal à 0
