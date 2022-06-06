@@ -3,7 +3,7 @@
 , fetchFromGitHub
 , buildDunePackage
 , ansiterminal
-, sedlex_2
+, sedlex
 , menhir
 , unionfind
 , bindlib
@@ -39,7 +39,7 @@ buildDunePackage rec {
 
   propagatedBuildInputs = [
     ansiterminal
-    sedlex_2
+    sedlex
     menhir
     menhirLib
     cmdliner_1_1_0
