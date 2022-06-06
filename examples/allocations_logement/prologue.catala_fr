@@ -180,7 +180,7 @@ déclaration énumération Parenté:
   -- Descendant
   -- CollatéralDeuxièmeTroisièmeDegré
 
-déclaration structure ParentÀCharge:
+déclaration structure AutrePersonneÀCharge:
   donnée âge contenu durée
   donnée ressources contenu argent
   donnée ascendant_descendant_collatéral_deuxième_troisième_degré
@@ -192,7 +192,7 @@ déclaration structure ParentÀCharge:
 
 déclaration énumération PersonneÀCharge:
   -- EnfantÀCharge contenu EnfantÀCharge
-  -- ParentÀCharge contenu ParentÀCharge
+  -- AutrePersonneÀCharge contenu AutrePersonneÀCharge
 
 déclaration énumération DateDeNaissanceOuMoisDeGrossesse:
   -- DateDeNaissance contenu date

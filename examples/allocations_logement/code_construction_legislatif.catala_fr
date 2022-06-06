@@ -872,7 +872,7 @@ champ d'application ÉligibilitéAllocationLogement:
   sous condition
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
-      -- ParentÀCharge: faux
+      -- AutrePersonneÀCharge: faux
       -- EnfantÀCharge de enfant: (prestations_familiales.droit_ouvert de
         EnfantPrestationsFamiliales {
         -- identifiant: enfant.EnfantÀCharge.identifiant
@@ -907,7 +907,7 @@ champ d'application ÉligibilitéAllocationLogement:
   sous condition
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
-      -- ParentÀCharge: faux
+      -- AutrePersonneÀCharge: faux
       -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
         EnfantPrestationsFamiliales {
         -- identifiant: enfant.EnfantÀCharge.identifiant
@@ -946,7 +946,8 @@ champ d'application ÉligibilitéAllocationLogement:
   sous condition
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
-      -- ParentÀCharge de parent: parent.ParentÀCharge.âge >=^ âge_l841_1_4
+      -- AutrePersonneÀCharge de parent:
+        parent.AutrePersonneÀCharge.âge >=^ âge_l841_1_4
       -- EnfantÀCharge de enfant: faux
     )) >= 1
   conséquence rempli
@@ -966,7 +967,7 @@ champ d'application ÉligibilitéAllocationLogement:
   sous condition
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
-      -- ParentÀCharge de parent:
+      -- AutrePersonneÀCharge de parent:
         # Cela a l'air similaire au 3° du R823-4 code construction mais
         # ici le pourcentage est "fixé par voie réglementaire" au lieu d'être
         # fixé à 80%.
@@ -991,7 +992,6 @@ champ d'application ÉligibilitéAllocationLogement:
     -- Célibataire :
       nombre de ménage.personnes_à_charge = 0 et
       ménage.enfant_à_naître_après_quatrième_mois_grossesse
-      # TODO informatique: faire la manip avec le premier jour du mois civil
     -- n'importe quel : faux
   conséquence rempli
 ```

@@ -1143,14 +1143,11 @@ sens des 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de
 l'article L. 823-2 du présent code ;
 
 ```catala
-# TODO informatique: renommer le cas "ParentÀCharge" en "AutrePersonneÀCharge"
-# puisque "Parents" peut prêter à confusion comme signalé par DGALN/DHUP/FE4 le
-# 25/05/2022.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant: enfant.EnfantÀCharge.âge <= 21
-    -- ParentÀCharge de parent: faux
+    -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```
 
@@ -1174,16 +1171,16 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
-      -- ParentÀCharge de parent:
+      -- AutrePersonneÀCharge de parent:
         parent.parenté = Ascendant et
-        parent.ParentÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
+        parent.AutrePersonneÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
         (
-          (parent.ParentÀCharge.âge >=^ âge_l351_8_1_sécu ou
+          (parent.AutrePersonneÀCharge.âge >=^ âge_l351_8_1_sécu ou
           # TODO informatique: changer l'encodage de âge vers un entier
             (parent.titulaire_allocation_personne_âgée et
-              parent.ParentÀCharge.âge >=^ 65 an)
+              parent.AutrePersonneÀCharge.âge >=^ 65 an)
           ) ou
-          (parent.ParentÀCharge.âge >=^ âge_l161_17_2_sécu et
+          (parent.AutrePersonneÀCharge.âge >=^ âge_l161_17_2_sécu et
             parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
         )
   conséquence rempli
@@ -1206,10 +1203,10 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
    selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
-      -- ParentÀCharge de parent:
+      -- AutrePersonneÀCharge de parent:
         # Pas besoin de préciser parenté car inclusif ici
         parent.incapacité_80_pourcent_ou_restriction_emploi et
-        parent.ParentÀCharge.ressources >=€
+        parent.AutrePersonneÀCharge.ressources >=€
           plafond_individuel_l815_9_sécu *€ 1,25
   conséquence rempli
 ```
@@ -1947,7 +1944,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
       (selon personne_à_charge sous forme
       -- EnfantÀCharge: vrai
-      -- ParentÀCharge: faux)
+      -- AutrePersonneÀCharge: faux)
     ) +
     ménage.nombre_enfants_à_naître_après_troisième_mois_grossesse >= 3
   conséquence rempli
