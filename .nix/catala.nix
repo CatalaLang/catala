@@ -3,7 +3,7 @@
 , fetchFromGitHub
 , buildDunePackage
 , ansiterminal
-, sedlex_2
+, sedlex
 , menhir
 , unionfind
 , bindlib
@@ -23,6 +23,7 @@
 , z3
 , alcotest
 , ppx_yojson_conv
+, clerk
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -32,13 +33,13 @@ buildDunePackage rec {
 
   minimumOCamlVersion = "4.11";
 
-  src = ./.;
+  src = ../.;
 
   useDune2 = true;
 
   propagatedBuildInputs = [
     ansiterminal
-    sedlex_2
+    sedlex
     menhir
     menhirLib
     cmdliner_1_1_0
@@ -55,6 +56,7 @@ buildDunePackage rec {
     camomile
     cppo
     z3
+    clerk
 
     pkgs.z3
 

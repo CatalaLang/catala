@@ -14,7 +14,8 @@
       in
         rec {
           packages = {
-            catala = ocamlPackages.callPackage ./. {};
+            catala = ocamlPackages.catala;
+            clerk = ocamlPackages.clerk;
           };
           defaultPackage = packages.catala;
           devShell = pkgs.mkShell {
