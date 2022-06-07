@@ -9,7 +9,7 @@
 }:
 
 buildDunePackage rec {
-  pname = "ninja_utils";
+  pname = "clerk";
   version = "0.6.0"; # TODO parse `catala.opam` with opam2json
 
   minimumOCamlVersion = "4.11";
