@@ -26,7 +26,7 @@ buildDunePackage rec {
     ninja_utils
     alcotest
   ];
-  doCheck = true;
+  doCheck = false;
 
   meta = with lib; {
     homepage = "https://github.com/CatalaLang/catala";

@@ -67,7 +67,7 @@ buildDunePackage rec {
     unionfind
     bindlib
   ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
-  doCheck = true;
+  doCheck = false;
 
   meta = with lib; {
     homepage = "https://catala-lang.org";
