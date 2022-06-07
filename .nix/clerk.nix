@@ -6,10 +6,11 @@
 , cmdliner_1_1_0
 , ninja_utils
 , alcotest
+, catala
 }:
 
 buildDunePackage rec {
-  pname = "ninja_utils";
+  pname = "clerk";
   version = "0.6.0"; # TODO parse `catala.opam` with opam2json
 
   minimumOCamlVersion = "4.11";
@@ -25,8 +26,9 @@ buildDunePackage rec {
     cmdliner_1_1_0
     ninja_utils
     alcotest
+    catala
   ];
-  doCheck = true;
+  doCheck = false;
 
   meta = with lib; {
     homepage = "https://github.com/CatalaLang/catala";

@@ -23,7 +23,6 @@
 , z3
 , alcotest
 , ppx_yojson_conv
-, clerk
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -56,7 +55,7 @@ buildDunePackage rec {
     camomile
     cppo
     z3
-    clerk
+
 
     pkgs.z3
 
