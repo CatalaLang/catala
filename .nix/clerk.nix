@@ -6,6 +6,7 @@
 , cmdliner_1_1_0
 , ninja_utils
 , alcotest
+, catala
 }:
 
 buildDunePackage rec {
@@ -25,8 +26,9 @@ buildDunePackage rec {
     cmdliner_1_1_0
     ninja_utils
     alcotest
+    catala
   ];
-  doCheck = false;
+  doCheck = true;
 
   meta = with lib; {
     homepage = "https://github.com/CatalaLang/catala";

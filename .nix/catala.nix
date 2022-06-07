@@ -23,7 +23,6 @@
 , z3
 , alcotest
 , ppx_yojson_conv
-, clerk
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -56,7 +55,7 @@ buildDunePackage rec {
     camomile
     cppo
     z3
-    clerk
+
 
     pkgs.z3
 
@@ -67,7 +66,7 @@ buildDunePackage rec {
     unionfind
     bindlib
   ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
-  doCheck = false;
+  doCheck = true;
 
   meta = with lib; {
     homepage = "https://catala-lang.org";

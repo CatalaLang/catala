@@ -8,7 +8,7 @@
 
 (rule
  (alias runtest)
- (package catala)
+ (package clerk)
  (deps
   (source_tree tests))
  (action
@@ -16,7 +16,7 @@
 
 (rule
  (alias runtest)
- (package catala)
+ (package clerk)
  (deps
   (source_tree examples))
  (action
