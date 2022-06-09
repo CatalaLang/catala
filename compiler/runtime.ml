@@ -172,15 +172,36 @@ let embed_date x = Date x
 let embed_duration x = Duration x
 let embed_array f x = Array (Array.map f x)
 
-type event =
+type rawEvent =
   | BeginCall of string list
   | EndCall of string list
   | VariableDefinition of string list * runtime_value
   | DecisionTaken of source_position
 
-let log_ref : event list ref = ref []
+type event =
+  | VarDef of var_def
+  | VarDefWithFunCalls of var_def_with_fun_calls
+  | FunCall of fun_call
+  | SubScopeCall of { inputs : var_def list; body : event list }
+
+and var_def = {
+  pos : source_position;
+  name : string list;
+  value : runtime_value;
+}
+
+and var_def_with_fun_calls = { var : var_def; fun_calls : fun_call list }
+
+and fun_call = {
+  input : var_def;
+  body : event list;
+  output : var_def_with_fun_calls;
+}
+
+let log_ref : rawEvent list ref = ref []
 let reset_log () = log_ref := []
-let retrieve_log () = List.rev !log_ref
+let parse_raw_events (_events : rawEvent list) : event list = failwith "TODO"
+let retrieve_log () = List.rev !log_ref |> parse_raw_events
 
 let log_begin_call info f x =
   log_ref := BeginCall info :: !log_ref;

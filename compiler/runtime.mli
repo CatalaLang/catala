@@ -72,11 +72,41 @@ val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
 
 (** {1 Logging} *)
 
-type event =
+(** The logging is constituted of two phases.
+
+    The first one consists in collecting {!type: rawEvent} during the program
+    execution.
+
+    The second one consists in parsing the collected raw events into structured
+    ones. *)
+
+(** The raw events. *)
+type rawEvent =
   | BeginCall of string list
   | EndCall of string list
   | VariableDefinition of string list * runtime_value
   | DecisionTaken of source_position
+
+(** The structured events. *)
+type event =
+  | VarDef of var_def
+  | VarDefWithFunCalls of var_def_with_fun_calls
+  | FunCall of fun_call
+  | SubScopeCall of { inputs : var_def list; body : event list }
+
+and var_def = {
+  pos : source_position;
+  name : string list;
+  value : runtime_value;
+}
+
+and var_def_with_fun_calls = { var : var_def; fun_calls : fun_call list }
+
+and fun_call = {
+  input : var_def;
+  body : event list;
+  output : var_def_with_fun_calls;
+}
 
 val reset_log : unit -> unit
 val retrieve_log : unit -> event list
