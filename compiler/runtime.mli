@@ -81,7 +81,7 @@ val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
     ones. *)
 
 (** The raw events. *)
-type rawEvent =
+type raw_event =
   | BeginCall of string list
   | EndCall of string list
   | VariableDefinition of string list * runtime_value
@@ -92,10 +92,14 @@ type event =
   | VarDef of var_def
   | VarDefWithFunCalls of var_def_with_fun_calls
   | FunCall of fun_call
-  | SubScopeCall of { inputs : var_def list; body : event list }
+  | SubScopeCall of {
+      name : string list;
+      inputs : var_def list;
+      body : event list;
+    }
 
 and var_def = {
-  pos : source_position;
+  pos : source_position option;
   name : string list;
   value : runtime_value;
 }
@@ -103,13 +107,20 @@ and var_def = {
 and var_def_with_fun_calls = { var : var_def; fun_calls : fun_call list }
 
 and fun_call = {
+  fun_name : string list;
   input : var_def;
   body : event list;
   output : var_def_with_fun_calls;
 }
 
+module EventParser : sig
+  val parse_log : raw_event list -> event list
+end
+
 val reset_log : unit -> unit
-val retrieve_log : unit -> event list
+val retrieve_log : unit -> raw_event list
+
+(* val parse_log : rawEvent list -> event list *)
 val log_begin_call : string list -> ('a -> 'b) -> 'a -> 'b
 val log_end_call : string list -> 'a -> 'a
 val log_variable_definition : string list -> ('a -> runtime_value) -> 'a -> 'a

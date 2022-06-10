@@ -4,9 +4,7 @@
 
 Log events respect the following invariants:
 
-1. _The number of log events is independent of the inputs._
-> Note: seems false.
-2. _Function calls always have one input and one ouput._
+1. _Function calls always have one input and one ouput._
 2. _2 <= `logEvent.information.length` <= 3_
 
 ## Structure
@@ -27,10 +25,10 @@ For raw log events, there is four types of event:
 * `End call` (token: `END`)
 
 ```
-                                                      [sub-scope call]
-                                                             |
-                                                        __________
-event.information = [ "Scope name", "attribute name", ("Scope name" | "attribute name") ]
+                                                      [sub-scope call]                   [function call]
+                                                             |                                  |
+                                                        __________                        ____________
+event.information = [ "Scope name", "attribute name", ("Scope name" | "attribute name" | "input/output") ]
                                                                        ______________
                                                                               |
                                                         [sub-scope input var definition]
@@ -41,10 +39,10 @@ event.information = [ "Scope name", "attribute name", ("Scope name" | "attribute
 ```
 <structured_events> := <events>+
 
-<events> := <fun_call>
-          | <subscope_call>
-          | <var_def>
-          | <var_def_with_fun>
+<events> := <fun_call>          [DONE]
+          | <subscope_call>     [DONE]
+          | <var_def>           [DONE]
+          | <var_def_with_fun>  [DONE]
 
 <fun_call> :=
     <fun_call_beg>
