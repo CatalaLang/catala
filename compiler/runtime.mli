@@ -80,14 +80,18 @@ val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
     The second one consists in parsing the collected raw events into structured
     ones. *)
 
-(** The raw events. *)
+(** {2 Data structures} *)
+
+(** {3 The raw events} *)
+
 type raw_event =
   | BeginCall of string list
   | EndCall of string list
   | VariableDefinition of string list * runtime_value
   | DecisionTaken of source_position
 
-(** The structured events. *)
+(** {3 The structured events} *)
+
 type event =
   | VarDef of var_def
   | VarDefWithFunCalls of var_def_with_fun_calls
@@ -113,15 +117,27 @@ and fun_call = {
   output : var_def_with_fun_calls;
 }
 
-module EventParser : sig
-  val parse_log : raw_event list -> event list
-end
+val raw_event_to_string : raw_event -> string
+(** TODO: should it be removed? *)
+
+(** {2 Parsing} *)
+
+val retrieve_log : unit -> raw_event list
+(** [retrieve_log ()] returns the current list of collected [raw_event].*)
+
+val parse_log : raw_event list -> event list
+(** [parse_log raw_events] parses raw events into {i structured} ones. *)
+
+val format_events : Format.formatter -> event list -> unit
+(** [format_events ppf events] pretty prints in [ppf] the string representation
+    of [events].
+
+    Note: it's used for debugging purposes. *)
+
+(** {2 Log instruments} *)
 
 val reset_log : unit -> unit
-val retrieve_log : unit -> raw_event list
-
-(* val parse_log : rawEvent list -> event list *)
-val log_begin_call : string list -> ('a -> 'b) -> 'a -> 'b
+val log_begin_call : string list -> 'a -> 'a
 val log_end_call : string list -> 'a -> 'a
 val log_variable_definition : string list -> ('a -> runtime_value) -> 'a -> 'a
 val log_decision_taken : source_position -> bool -> bool
