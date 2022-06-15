@@ -276,11 +276,28 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
         | _ -> e1_func
       in
       let new_args = List.map (translate_expr ctx) args in
+      let input_typ, output_typ =
+        let retrieve_in_and_out_typ_or_any var vars =
+          let _, typ, _ = Ast.ScopeVarMap.find (Pos.unmark var) vars in
+          match typ with
+          | Dcalc.Ast.TArrow (marked_input_typ, marked_output_typ) ->
+            Pos.unmark marked_input_typ, Pos.unmark marked_output_typ
+          | _ -> Dcalc.Ast.TAny, Dcalc.Ast.TAny
+        in
+        match Pos.unmark e1 with
+        | ELocation (ScopeVar var) ->
+          retrieve_in_and_out_typ_or_any var ctx.scope_vars
+        | ELocation (SubScopeVar (_, sname, var)) ->
+          ctx.subscope_vars
+          |> Ast.SubScopeMap.find (Pos.unmark sname)
+          |> retrieve_in_and_out_typ_or_any var
+        | _ -> Dcalc.Ast.TAny, Dcalc.Ast.TAny
+      in
       let new_args =
         match Pos.unmark e1, new_args with
         | ELocation l, [new_arg] ->
           [
-            tag_with_log_entry new_arg (Dcalc.Ast.VarDef Dcalc.Ast.TAny)
+            tag_with_log_entry new_arg (Dcalc.Ast.VarDef input_typ)
               (markings l @ [Pos.same_pos_as "input" e]);
           ]
         | _ -> new_args
@@ -295,7 +312,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
         match Pos.unmark e1 with
         | ELocation l ->
           tag_with_log_entry
-            (tag_with_log_entry new_e (Dcalc.Ast.VarDef Dcalc.Ast.TAny)
+            (tag_with_log_entry new_e (Dcalc.Ast.VarDef output_typ)
                (markings l @ [Pos.same_pos_as "output" e]))
             Dcalc.Ast.EndCall (markings l)
         | _ -> new_e
