@@ -208,8 +208,9 @@ let raw_event_to_string = function
     Printf.sprintf "BeginCall([ " ^ String.concat ", " name ^ " ])"
   | EndCall name ->
     Printf.sprintf "EndCall([ " ^ String.concat ", " name ^ " ])"
-  | VariableDefinition (name, _) ->
-    Printf.sprintf "VariableDefinition([ " ^ String.concat ", " name ^ " ], _)"
+  | VariableDefinition (name, value) ->
+    Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
+      (yojson_of_runtime_value value |> Yojson.Safe.to_string)
   | DecisionTaken _ -> Printf.sprintf "DecisionTaken(_)"
 
 (* let event_to_string = function *)
@@ -263,7 +264,7 @@ module VarDefMap = struct
   let empty : t = StringMap.empty
 end
 
-let rec format_events ppf events =
+let rec pp_events ?(is_first_call = true) ppf events =
   let rec format_var_def ppf var =
     Format.fprintf ppf "@[<hov 2><var_def at %a>@ %s:@ %a@]" format_pos_opt
       var.pos
@@ -276,12 +277,20 @@ let rec format_events ppf events =
         pos.end_line
   and format_var_defs ppf =
     Format.pp_print_list
-      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+      ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ ")
       format_var_def ppf
   and format_var_def_with_fun_calls ppf var_with_fun =
-    Format.fprintf ppf "@[<hov 2><var_def_with_fun>@ %s:@ %a@]"
-      (String.concat "." var_with_fun.var.name)
-      format_value var_with_fun.var.value
+    if [] = var_with_fun.fun_calls then format_var_def ppf var_with_fun.var
+    else
+      Format.fprintf ppf
+        "@[<hov 2><var_def_with_fun>@ %s: %a@ computed from@ :@ @[<hv 2>[@ %a@;\
+         <1 -2>]@] @]"
+        (String.concat "." var_with_fun.var.name)
+        format_value var_with_fun.var.value
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+           (fun ppf fun_call -> format_event ppf (FunCall fun_call)))
+        var_with_fun.fun_calls
   and format_value ppf = function
     | Unembeddable -> Format.fprintf ppf "fun"
     | Unit -> Format.fprintf ppf "()"
@@ -307,25 +316,34 @@ let rec format_events ppf events =
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
            format_value)
         (elts |> Array.to_list)
-  in
-
-  let format_event ppf = function
+  and format_event ppf = function
     | VarDef var -> Format.fprintf ppf "%a" format_var_def var
     | VarDefWithFunCalls var_with_fun ->
       Format.fprintf ppf "%a" format_var_def_with_fun_calls var_with_fun
     | FunCall { fun_name; input; body; output } ->
       Format.fprintf ppf
-        "@[<hv><function_call> %s :=@ {@ input: %a@output: %a@body: %a@]"
+        "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
+         %a,@ body:@ [@,\
+         %a]@]@,\
+         @]@,\
+         }"
         (String.concat "." fun_name)
-        format_var_def input format_var_def_with_fun_calls output format_events
+        format_var_def input format_var_def_with_fun_calls output
+        (pp_events ~is_first_call:false)
         body
     | SubScopeCall { name; inputs; body } ->
       Format.fprintf ppf
-        "@[<hov 2><subscope_call> %s :=@ {@ @[<hov 2>inputs:@ [@ %a]@],@ \
-         @[<hov 2>body:@ [@ %a]@]@]}"
-        (String.concat "." name) format_var_defs inputs format_events body
+        "@[<hv 2><subscope_call>@ %s :=@ {@[<hv 1>@,\
+         inputs:@ @[<hv 2>[@,\
+         %a@]],@,\
+         body:@ @[<hv 2>[@ %a@ ]@]@]@]@,\
+         }"
+        (String.concat "." name) format_var_defs inputs
+        (pp_events ~is_first_call:false)
+        body
   in
-  Format.fprintf ppf "@[<hv 2>%a@]@."
+  Format.fprintf ppf
+    ("@[<hv 1>%a@]" ^^ if is_first_call then "@." else "")
     (Format.pp_print_list
        ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ ")
        format_event)
@@ -382,8 +400,6 @@ let parse_log (raw_events : raw_event list) : event list =
       when is_subscope_input_var_def name -> (
       match name with
       | [_; var_dot_subscope_var_name] ->
-        Printf.printf "=====> Found subscope input variable %s <=======\n"
-          var_dot_subscope_var_name;
         let var_name =
           List.nth (String.split_on_char '.' var_dot_subscope_var_name) 0
         in

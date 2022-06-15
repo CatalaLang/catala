@@ -128,9 +128,12 @@ val retrieve_log : unit -> raw_event list
 val parse_log : raw_event list -> event list
 (** [parse_log raw_events] parses raw events into {i structured} ones. *)
 
-val format_events : Format.formatter -> event list -> unit
-(** [format_events ppf events] pretty prints in [ppf] the string representation
-    of [events].
+val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
+(** [pp_events ~is_first_call ppf events] pretty prints in [ppf] the string
+    representation of [events].
+
+    If [is_first_call] is set to true, the formatter will be flush at the end.
+    By default, [is_first_call] is set to false.
 
     Note: it's used for debugging purposes. *)
 
