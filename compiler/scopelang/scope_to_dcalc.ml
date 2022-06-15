@@ -277,6 +277,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
       in
       let new_args = List.map (translate_expr ctx) args in
       let input_typ, output_typ =
+        (* NOTE: this is a temporary solution, it works because it's assume that
+           all function calls are from scope variable. However, this will change
+           -- for more information see
+           https://github.com/CatalaLang/catala/pull/280#discussion_r898851693. *)
         let retrieve_in_and_out_typ_or_any var vars =
           let _, typ, _ = Ast.ScopeVarMap.find (Pos.unmark var) vars in
           match typ with

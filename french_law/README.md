@@ -14,11 +14,6 @@ will export functions corresponding to the scopes of the original Catala
 program. You can then reuse those exported functions in your application written
 in X.
 
-### Log events
-
-To have a better understanding of the log events structure, see [the dedicated
-readme](log-events.md).
-
 ## OCaml
 
 To see how to deploy Catala programs as an OCaml library, see

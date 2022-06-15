@@ -172,59 +172,36 @@ let embed_date x = Date x
 let embed_duration x = Duration x
 let embed_array f x = Array (Array.map f x)
 
+type information = string list
+
 type raw_event =
-  | BeginCall of string list
-  | EndCall of string list
-  | VariableDefinition of string list * runtime_value
+  | BeginCall of information
+  | EndCall of information
+  | VariableDefinition of information * runtime_value
   | DecisionTaken of source_position
 
 type event =
-  | VarDef of var_def
-  | VarDefWithFunCalls of var_def_with_fun_calls
+  | VarComputation of var_def
   | FunCall of fun_call
   | SubScopeCall of {
-      name : string list;
+      name : information;
       inputs : var_def list;
       body : event list;
     }
 
 and var_def = {
   pos : source_position option;
-  name : string list;
+  name : information;
   value : runtime_value;
+  fun_calls : fun_call list option;
 }
-
-and var_def_with_fun_calls = { var : var_def; fun_calls : fun_call list }
 
 and fun_call = {
-  fun_name : string list;
+  fun_name : information;
   input : var_def;
   body : event list;
-  output : var_def_with_fun_calls;
+  output : var_def;
 }
-
-let raw_event_to_string = function
-  | BeginCall name ->
-    Printf.sprintf "BeginCall([ " ^ String.concat ", " name ^ " ])"
-  | EndCall name ->
-    Printf.sprintf "EndCall([ " ^ String.concat ", " name ^ " ])"
-  | VariableDefinition (name, value) ->
-    Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
-      (yojson_of_runtime_value value |> Yojson.Safe.to_string)
-  | DecisionTaken _ -> Printf.sprintf "DecisionTaken(_)"
-
-(* let event_to_string = function *)
-(*   | VarDef { name; _ } -> *)
-(*     Printf.sprintf "VarDef(name: [ " ^ String.concat ", " name ^ " ])" *)
-(*   | VarDefWithFunCalls { var; _ } -> *)
-(*     Printf.sprintf "VarDefWithFunCalls(var.name: [ " *)
-(*     ^ String.concat ", " var.name *)
-(*     ^ " ])" *)
-(*   | FunCall { fun_name; _ } -> *)
-(* Printf.sprintf "FunCall(fun_name: [ " ^ String.concat ", " fun_name ^ "
-   ])" *)
-(* | SubScopeCall { name; _ } -> *)
-(* Printf.sprintf "SubScopeCall(name: [ " ^ String.concat ", " name ^ " ])" *)
 
 let log_ref : raw_event list ref = ref []
 let reset_log () = log_ref := []
@@ -246,24 +223,6 @@ let log_decision_taken pos x =
   if x then log_ref := DecisionTaken pos :: !log_ref;
   x
 
-module VarDefMap = struct
-  module StringMap = Map.Make (String)
-
-  type t = var_def list StringMap.t
-
-  let add (name : string) (v : var_def) (map : t) : t =
-    match StringMap.find_opt name map with
-    | Some ls -> StringMap.add name (v :: ls) map
-    | None -> StringMap.add name [v] map
-
-  (** [get name map] return the list of definitions if there is a corresponding
-      entry, otherwise, returns an empty array. *)
-  let get (name : string) (map : t) : var_def list =
-    match StringMap.find_opt name map with Some ls -> ls | None -> []
-
-  let empty : t = StringMap.empty
-end
-
 let rec pp_events ?(is_first_call = true) ppf events =
   let rec format_var_def ppf var =
     Format.fprintf ppf "@[<hov 2><var_def at %a>@ %s:@ %a@]" format_pos_opt
@@ -280,17 +239,18 @@ let rec pp_events ?(is_first_call = true) ppf events =
       ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ ")
       format_var_def ppf
   and format_var_def_with_fun_calls ppf var_with_fun =
-    if [] = var_with_fun.fun_calls then format_var_def ppf var_with_fun.var
-    else
+    match var_with_fun.fun_calls with
+    | None | Some [] -> format_var_def ppf var_with_fun
+    | Some fun_calls ->
       Format.fprintf ppf
         "@[<hov 2><var_def_with_fun>@ %s: %a@ computed from@ :@ @[<hv 2>[@ %a@;\
          <1 -2>]@] @]"
-        (String.concat "." var_with_fun.var.name)
-        format_value var_with_fun.var.value
+        (String.concat "." var_with_fun.name)
+        format_value var_with_fun.value
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            (fun ppf fun_call -> format_event ppf (FunCall fun_call)))
-        var_with_fun.fun_calls
+        fun_calls
   and format_value ppf = function
     | Unembeddable -> Format.fprintf ppf "fun"
     | Unit -> Format.fprintf ppf "()"
@@ -317,9 +277,10 @@ let rec pp_events ?(is_first_call = true) ppf events =
            format_value)
         (elts |> Array.to_list)
   and format_event ppf = function
-    | VarDef var -> Format.fprintf ppf "%a" format_var_def var
-    | VarDefWithFunCalls var_with_fun ->
-      Format.fprintf ppf "%a" format_var_def_with_fun_calls var_with_fun
+    | VarComputation var_def_with_fun
+      when Option.is_some var_def_with_fun.fun_calls ->
+      Format.fprintf ppf "%a" format_var_def_with_fun_calls var_def_with_fun
+    | VarComputation var_def -> Format.fprintf ppf "%a" format_var_def var_def
     | FunCall { fun_name; input; body; output } ->
       Format.fprintf ppf
         "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
@@ -349,182 +310,188 @@ let rec pp_events ?(is_first_call = true) ppf events =
        format_event)
     events
 
-type context = {
-  (* Keeps tracks of the subscope input variable definitions. *)
-  vars : VarDefMap.t;
-  (* Current parsed events. *)
-  events : event list;
-  rest : raw_event list;
-}
+module EventParser = struct
+  module VarDefMap = struct
+    module StringMap = Map.Make (String)
 
-(** TODO:
+    type t = var_def list StringMap.t
 
-    - add error handling*)
-let parse_log (raw_events : raw_event list) : event list =
-  let nb_raw_events = List.length raw_events in
-  Printf.printf "Start parsing %d events\n" nb_raw_events;
-  let is_function_call infos = 2 = List.length infos in
-  let is_subscope_call infos = 3 = List.length infos in
-  let is_var_def name = 2 = List.length name in
-  let is_output_var_def name =
-    3 = List.length name && "output" = List.nth name 2
-  in
-  let is_input_var_def name =
-    3 = List.length name && "input" = List.nth name 2
-  in
-  let is_subscope_input_var_def name =
-    let res = 2 = List.length name && String.contains (List.nth name 1) '.' in
-    Printf.printf "\n==== is_subscope_input_var_def %s = %b\n"
-      (String.concat "." name) res;
-    res
-  in
+    let add (name : string) (v : var_def) (map : t) : t =
+      match StringMap.find_opt name map with
+      | Some ls -> StringMap.add name (v :: ls) map
+      | None -> StringMap.add name [v] map
 
-  let rec parse_events (ctx : context) : context =
-    (try
-       Printf.printf "[%d/%d] Parsing events: %s followed by %s\n"
-         (nb_raw_events - List.length ctx.rest + 1)
-         nb_raw_events
-         (List.hd ctx.rest |> raw_event_to_string)
-         (ctx.rest |> List.tl |> List.hd |> raw_event_to_string)
-     with Failure _ -> ());
-    match ctx.rest with
-    | [] -> { ctx with events = ctx.events |> List.rev }
-    | VariableDefinition (name, value) :: rest when is_var_def name ->
-      parse_events
-        {
-          ctx with
-          events = VarDef { pos = None; name; value } :: ctx.events;
-          rest;
-        }
-    | DecisionTaken pos :: VariableDefinition (name, value) :: rest
-      when is_subscope_input_var_def name -> (
-      match name with
-      | [_; var_dot_subscope_var_name] ->
-        let var_name =
-          List.nth (String.split_on_char '.' var_dot_subscope_var_name) 0
-        in
-        parse_events
-          {
-            ctx with
-            vars =
-              ctx.vars |> VarDefMap.add var_name { pos = Some pos; name; value };
-            rest;
-          }
-      | _ ->
-        failwith
-          ("Invalid subscope input variable definition: [ "
-         ^ String.concat ", " name ^ " ]"))
-    | DecisionTaken pos :: VariableDefinition (name, value) :: rest
-      when is_var_def name || is_output_var_def name ->
-      parse_events
-        {
-          ctx with
-          events = VarDef { pos = Some pos; name; value } :: ctx.events;
-          rest;
-        }
-    | DecisionTaken pos
-      :: VariableDefinition _ (* fun input *)
-      :: BeginCall infos
-      :: _
-      when is_function_call infos ->
-      (* Variable definition with fun calls. *)
-      let rec parse_fun_calls fun_calls raw_events =
-        match raw_events with
-        | VariableDefinition _ :: BeginCall infos :: _
-          when is_function_call infos ->
-          let rest, fun_call = parse_fun_call raw_events in
-          parse_fun_calls (fun_call :: fun_calls) rest
-        | rest -> rest, fun_calls |> List.rev
-      in
-      let rest, fun_calls, var =
-        let rest, fun_calls = parse_fun_calls [] (List.tl ctx.rest) in
-        match rest with
-        | VariableDefinition (name, value) :: rest ->
-          rest, fun_calls, { pos = Some pos; name; value }
-        | event :: _ ->
-          failwith
-            ("Invalid function call ([ " ^ String.concat ", " infos
-           ^ " ]): expected variable definition (function ouput), found: "
-           ^ raw_event_to_string event ^ "["
-            ^ (nb_raw_events - List.length rest + 1 |> string_of_int)
-            ^ "]")
-        | [] -> failwith "empty log"
-      in
+    (** [get name map] returns the list of definitions if there is a
+        corresponding entry, otherwise, returns an empty array. *)
+    let get (name : string) (map : t) : var_def list =
+      match StringMap.find_opt name map with Some ls -> ls | None -> []
 
-      parse_events
-        {
-          ctx with
-          events = VarDefWithFunCalls { var; fun_calls } :: ctx.events;
-          rest;
-        }
-    | VariableDefinition _ :: BeginCall infos :: _ when is_function_call infos
-      ->
-      let rest, fun_call = parse_fun_call ctx.rest in
+    let empty : t = StringMap.empty
+  end
 
-      parse_events { ctx with events = FunCall fun_call :: ctx.events; rest }
-    | BeginCall infos :: rest when is_subscope_call infos -> (
-      match infos with
-      | [_; var_name; _] ->
-        (* NOTE: should use an empty context here? *)
-        let body_ctx = parse_events { ctx with events = []; rest } in
-        let inputs = VarDefMap.get var_name body_ctx.vars in
+  type context = {
+    (* Keeps tracks of the subscope input variable definitions. *)
+    vars : VarDefMap.t;
+    (* Current parsed events. *)
+    events : event list;
+    rest : raw_event list;
+  }
+
+  let empty_ctx = { vars = VarDefMap.empty; events = []; rest = [] }
+
+  let raw_event_to_string = function
+    | BeginCall name ->
+      Printf.sprintf "BeginCall([ " ^ String.concat ", " name ^ " ])"
+    | EndCall name ->
+      Printf.sprintf "EndCall([ " ^ String.concat ", " name ^ " ])"
+    | VariableDefinition (name, value) ->
+      Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
+        (yojson_of_runtime_value value |> Yojson.Safe.to_string)
+    | DecisionTaken _ -> Printf.sprintf "DecisionTaken(_)"
+
+  let parse_raw_events raw_events =
+    let nb_raw_events = List.length raw_events
+    and is_function_call infos = 2 = List.length infos
+    and is_subscope_call infos = 3 = List.length infos
+    and is_var_def name = 2 = List.length name
+    and is_output_var_def name =
+      3 = List.length name && "output" = List.nth name 2
+    and is_input_var_def name =
+      3 = List.length name && "input" = List.nth name 2
+    and is_subscope_input_var_def name =
+      2 = List.length name && String.contains (List.nth name 1) '.'
+    in
+
+    let rec parse_events (ctx : context) : context =
+      match ctx.rest with
+      | [] -> { ctx with events = ctx.events |> List.rev }
+      | VariableDefinition (name, value) :: rest when is_var_def name ->
         parse_events
           {
             ctx with
             events =
-              SubScopeCall { name = infos; inputs; body = body_ctx.events }
+              VarComputation { pos = None; name; value; fun_calls = None }
               :: ctx.events;
-            rest = body_ctx.rest;
+            rest;
           }
-      | _ ->
-        failwith
-          ("Invalid subscope call name: [ " ^ String.concat ", " infos ^ " ]"))
-    | EndCall infos :: rest ->
-      Printf.printf "Find the endcall token of: %s\n" (String.concat ", " infos);
-      { ctx with events = ctx.events |> List.rev; rest }
-    | event :: event' :: _ ->
-      failwith
-        ("[EventParser error] invalid event: " ^ raw_event_to_string event
-       ^ ", followed by: " ^ raw_event_to_string event')
-    | _ -> failwith "empty log"
-  and parse_fun_call events =
-    (try
-       Printf.printf "[%d/%d] In parse_fun_call, parsing events: %s\n"
-         (nb_raw_events - List.length events)
-         nb_raw_events
-         (List.hd events |> raw_event_to_string)
-     with Failure _ -> Printf.printf "Error in parse_fun_call");
-    match events with
-    | VariableDefinition (name, value) :: BeginCall infos :: rest
-      when is_function_call infos && is_input_var_def name ->
-      Printf.printf "Parsing function call of: %s\n" (String.concat ", " infos);
-      let rest, body, output =
-        let body_ctx =
-          Printf.printf "Before call rest.length = %d\n" (List.length rest);
-          parse_events { vars = VarDefMap.empty; events = []; rest }
+      | DecisionTaken pos :: VariableDefinition (name, value) :: rest
+        when is_subscope_input_var_def name -> (
+        match name with
+        | [_; var_dot_subscope_var_name] ->
+          let var_name =
+            List.nth (String.split_on_char '.' var_dot_subscope_var_name) 0
+          in
+          parse_events
+            {
+              ctx with
+              vars =
+                ctx.vars
+                |> VarDefMap.add var_name
+                     { pos = Some pos; name; value; fun_calls = None };
+              rest;
+            }
+        | _ ->
+          failwith "unreachable due to the [is_subscope_input_var_def] test")
+      | DecisionTaken pos :: VariableDefinition (name, value) :: rest
+        when is_var_def name || is_output_var_def name ->
+        parse_events
+          {
+            ctx with
+            events =
+              VarComputation { pos = Some pos; name; value; fun_calls = None }
+              :: ctx.events;
+            rest;
+          }
+      | DecisionTaken pos :: VariableDefinition _ :: BeginCall infos :: _
+        when is_function_call infos ->
+        (* Variable definition with function calls. *)
+        let rec parse_fun_calls fun_calls raw_events =
+          match raw_events with
+          | VariableDefinition _ :: BeginCall infos :: _
+            when is_function_call infos ->
+            let rest, fun_call = parse_fun_call raw_events in
+            parse_fun_calls (fun_call :: fun_calls) rest
+          | rest -> rest, fun_calls |> List.rev
         in
-        Printf.printf "After call rest.length = %d\n"
-          (List.length body_ctx.rest);
-        let body_rev = List.rev body_ctx.events in
-        body_ctx.rest, body_rev |> List.tl |> List.rev, body_rev |> List.hd
-      in
-      let output =
-        match output with
-        | VarDef var -> { var; fun_calls = [] }
-        | VarDefWithFunCalls def -> def
-        | _ -> failwith "[EventParser error]: invalid function call output"
-      in
+        let rest, var_comp =
+          let rest, fun_calls = parse_fun_calls [] (List.tl ctx.rest) in
+          match rest with
+          | VariableDefinition (name, value) :: rest ->
+            ( rest,
+              VarComputation
+                { pos = Some pos; name; value; fun_calls = Some fun_calls } )
+          | event :: _ ->
+            failwith
+              ("Invalid function call ([ " ^ String.concat ", " infos
+             ^ " ]): expected variable definition (function output), found: "
+             ^ raw_event_to_string event ^ "["
+              ^ (nb_raw_events - List.length rest + 1 |> string_of_int)
+              ^ "]")
+          | [] ->
+            failwith
+              ("Invalid function call ([ " ^ String.concat ", " infos
+             ^ " ]): expected variable definition (function output), found: \
+                end of tokens")
+        in
 
-      ( rest,
-        { fun_name = infos; input = { pos = None; name; value }; body; output }
-      )
-    | _ -> failwith "[EventParser error]: invalid function call"
-  in
+        parse_events { ctx with events = var_comp :: ctx.events; rest }
+      | VariableDefinition _ :: BeginCall infos :: _ when is_function_call infos
+        ->
+        let rest, fun_call = parse_fun_call ctx.rest in
 
-  let ctx =
-    parse_events { vars = VarDefMap.empty; events = []; rest = raw_events }
-  in
-  ctx.events
+        parse_events { ctx with events = FunCall fun_call :: ctx.events; rest }
+      | BeginCall infos :: rest when is_subscope_call infos -> (
+        match infos with
+        | [_; var_name; _] ->
+          let body_ctx = parse_events { empty_ctx with rest } in
+          let inputs = VarDefMap.get var_name ctx.vars in
+          parse_events
+            {
+              ctx with
+              events =
+                SubScopeCall { name = infos; inputs; body = body_ctx.events }
+                :: ctx.events;
+              rest = body_ctx.rest;
+            }
+        | _ -> failwith "unreachable due to the [is_subscope_call] test")
+      | EndCall _ :: rest -> { ctx with events = ctx.events |> List.rev; rest }
+      | event :: _ -> failwith ("Unexpected event: " ^ raw_event_to_string event)
+    and parse_fun_call events =
+      match events with
+      | VariableDefinition (name, value) :: BeginCall infos :: rest
+        when is_function_call infos && is_input_var_def name ->
+        let rest, body, output =
+          let body_ctx =
+            parse_events { vars = VarDefMap.empty; events = []; rest }
+          in
+          let body_rev = List.rev body_ctx.events in
+          body_ctx.rest, body_rev |> List.tl |> List.rev, body_rev |> List.hd
+        in
+        let output =
+          match output with
+          | VarComputation var_def -> var_def
+          | _ -> failwith "Missing function output variable definition."
+        in
+
+        ( rest,
+          {
+            fun_name = infos;
+            input = { pos = None; name; value; fun_calls = None };
+            body;
+            output;
+          } )
+      | _ -> failwith "Invalid start of function call."
+    in
+
+    let ctx =
+      try parse_events { empty_ctx with rest = raw_events }
+      with Failure msg ->
+        (* TODO: discuss what should be done. *)
+        Printf.eprintf "An error occurred while parsing raw events: %s\n" msg;
+        empty_ctx
+    in
+    ctx.events
+end
 
 let handle_default :
       'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =

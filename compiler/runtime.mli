@@ -72,78 +72,134 @@ val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
 
 (** {1 Logging} *)
 
-(** The logging is constituted of two phases.
+(** {2 Global process} *)
 
-    The first one consists in collecting {!type: rawEvent} during the program
-    execution.
+(** The logging is constituted of two phases:
 
-    The second one consists in parsing the collected raw events into structured
-    ones. *)
+    - The first one consists of collecting {i raw} events (see
+      {!type:raw_event}) during the program execution (see {!val:retrieve_log})
+      throught {!instruments}.
+    - The second one consists in parsing the collected raw events into
+      {i structured} ones (see {!type: event}). *)
 
 (** {2 Data structures} *)
+
+type information = string list
+(** Represents information about a name in the code -- i.e. variable name,
+    subscope name, etc...
+
+    It's a list of strings with a length varying from 2 to 3, where:
+
+    - the first string is the name of the current scope -- starting with a
+      capitalized letter [Scope_name],
+    - the second string is either: the name of a scope variable or, the name of
+      a subscope input variable -- [a_subscope_var.input_var]
+    - the third string is either: a subscope name (starting with a capitalized
+      letter [Subscope_name] or, the [input] (resp. [output]) string -- which
+      corresponds to the input (resp. the output) of a function. *)
 
 (** {3 The raw events} *)
 
 type raw_event =
-  | BeginCall of string list
-  | EndCall of string list
-  | VariableDefinition of string list * runtime_value
-  | DecisionTaken of source_position
+  | BeginCall of information  (** Subscope or function call. *)
+  | EndCall of information  (** End of a subscope or a function call. *)
+  | VariableDefinition of information * runtime_value
+      (** Definition of a variable or a function argument. *)
+  | DecisionTaken of source_position  (** Source code position of an event. *)
 
 (** {3 The structured events} *)
 
+(** The corresponding grammar of the {!type: event} type, is the following:
+
+    {v
+<event> := <fun_call>
+         | <subscope_call>
+         | <var_def>
+         | <var_def_with_fun>
+         | VariableDefinition
+
+<fun_call> :=
+    VariableDefinition                      (function input)
+    <fun_call_beg>
+        <event>*
+        (<var_def> | <var_def_with_fun>)    (function output)
+    EndCall
+
+<var_def_with_fun> :=
+       /-- DecisionTaken
+pos of |   <fun_call>+                      (function calls needed to compute the variable value)
+       \-> VariableDefinition
+
+<subscope_call> :=
+    <sub_var_def>*          (sub-scope attributes def)
+    <sub_call_beg>
+        <event>+
+    EndCall
+
+<var_def> := DecisionTaken VariableDefinition(info, _)
+  (when info.length = 2 && info[1] == "id")
+
+<sub_var_def> := DecisionTaken VariableDefinition(info, _)
+  (when info.length = 3)
+
+<fun_call_beg> := BeginCall(info)
+  (when info.length = 2)
+
+<sub_call_beg> := BeginCall(info)
+  (when info.length = 2 and '.' in info[1])
+    v} *)
+
 type event =
-  | VarDef of var_def
-  | VarDefWithFunCalls of var_def_with_fun_calls
+  | VarComputation of var_def
   | FunCall of fun_call
   | SubScopeCall of {
-      name : string list;
+      name : information;
       inputs : var_def list;
       body : event list;
     }
 
 and var_def = {
   pos : source_position option;
-  name : string list;
+  name : information;
   value : runtime_value;
+  fun_calls : fun_call list option;
 }
-
-and var_def_with_fun_calls = { var : var_def; fun_calls : fun_call list }
 
 and fun_call = {
-  fun_name : string list;
+  fun_name : information;
   input : var_def;
   body : event list;
-  output : var_def_with_fun_calls;
+  output : var_def;
 }
-
-val raw_event_to_string : raw_event -> string
-(** TODO: should it be removed? *)
 
 (** {2 Parsing} *)
 
 val retrieve_log : unit -> raw_event list
 (** [retrieve_log ()] returns the current list of collected [raw_event].*)
 
-val parse_log : raw_event list -> event list
-(** [parse_log raw_events] parses raw events into {i structured} ones. *)
+module EventParser : sig
+  val parse_raw_events : raw_event list -> event list
+  (** [parse_raw_events raw_events] parses raw events into {i structured} ones. *)
+end
 
-val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
-(** [pp_events ~is_first_call ppf events] pretty prints in [ppf] the string
-    representation of [events].
+(** {2 Helping functions} *)
 
-    If [is_first_call] is set to true, the formatter will be flush at the end.
-    By default, [is_first_call] is set to false.
-
-    Note: it's used for debugging purposes. *)
-
-(** {2 Log instruments} *)
+(** {3:instruments Logging instruments} *)
 
 val reset_log : unit -> unit
 val log_begin_call : string list -> 'a -> 'a
 val log_end_call : string list -> 'a -> 'a
 val log_variable_definition : string list -> ('a -> runtime_value) -> 'a -> 'a
 val log_decision_taken : source_position -> bool -> bool
+
+(** {3 Pretty printers} *)
+
+val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
+(** [pp_events ~is_first_call ppf events] pretty prints in [ppf] the string
+    representation of [events].
+
+    If [is_first_call] is set to true, the formatter will be flush at the end.
+    By default, [is_first_call] is set to false. *)
 
 (**{1 Constructors and conversions} *)
 
