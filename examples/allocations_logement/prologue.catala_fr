@@ -200,8 +200,9 @@ déclaration énumération PersonneÀCharge:
   -- AutrePersonneÀCharge contenu AutrePersonneÀCharge
 
 déclaration énumération DateDeNaissanceOuMoisDeGrossesse:
-  -- DateDeNaissance contenu date
-  -- PremierJourMoisCivilTroisièmeMoisDeGrossesse contenu date
+  -- DernierJourMoisPrécédantDateDeNaissance contenu date
+  -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse
+  -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse
 
 déclaration énumération DateNaissanceTroisièmeOuDernierPlusEnfant:
   -- MoinsDeTroisEnfants
