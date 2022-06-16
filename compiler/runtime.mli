@@ -31,6 +31,7 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
+[@@deriving yojson_of]
 
 type 'a eoption = ENone of unit | ESome of 'a
 
@@ -84,7 +85,7 @@ val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
 
 (** {2 Data structures} *)
 
-type information = string list
+type information = string list [@@deriving yojson_of]
 (** Represents information about a name in the code -- i.e. variable name,
     subscope name, etc...
 
@@ -157,6 +158,7 @@ type event =
       inputs : var_def list;
       body : event list;
     }
+[@@deriving yojson_of]
 
 and var_def = {
   pos : source_position option;

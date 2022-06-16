@@ -29,6 +29,7 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
+[@@deriving yojson_of]
 
 exception EmptyError
 exception AssertionFailed
@@ -172,7 +173,7 @@ let embed_date x = Date x
 let embed_duration x = Duration x
 let embed_array f x = Array (Array.map f x)
 
-type information = string list
+type information = string list [@@deriving yojson_of]
 
 type raw_event =
   | BeginCall of information
@@ -188,6 +189,7 @@ type event =
       inputs : var_def list;
       body : event list;
     }
+[@@deriving yojson_of]
 
 and var_def = {
   pos : source_position option;
