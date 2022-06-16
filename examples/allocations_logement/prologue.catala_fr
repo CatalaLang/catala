@@ -206,7 +206,7 @@ déclaration énumération DateDeNaissanceOuMoisDeGrossesse:
 
 déclaration énumération DateNaissanceTroisièmeOuDernierPlusEnfant:
   -- MoinsDeTroisEnfants
-  -- Date contenu DateDeNaissanceOuMoisDeGrossesse
+  -- PlusDeTroisEnfants contenu DateDeNaissanceOuMoisDeGrossesse
 
 déclaration structure Ménage:
   donnée prestations_reçues contenu collection PrestationReçue

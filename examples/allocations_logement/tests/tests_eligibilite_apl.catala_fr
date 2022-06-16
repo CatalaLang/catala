@@ -74,7 +74,7 @@ assertion éligible
   -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
   -- enfant_à_naître_après_quatrième_mois_grossesse: faux
   -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-    Date contenu (DateDeNaissance contenu |2014-09-23|)
+    PlusDeTroisEnfants contenu (DernierJourMoisPrécédantDateDeNaissance contenu |2014-08-30|)
  }
  définition éligibilité.demandeur égal à Demandeur {
    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
