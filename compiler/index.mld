@@ -72,7 +72,7 @@ v}
 
 {1 List of top-level modules }
 
-Each of those intermediate representation is bundled into its own `dune` bundle
+Each of those intermediate representation is bundled into its own [dune] bundle
 module. Click on the items below if you want to dive straight into the signatures.
 
 {!modules: Surface Desugared Scopelang Dcalc Lcalc Scalc }
@@ -105,6 +105,10 @@ Two more modules contain additional features for the compiler:
 {li {{: literate.html} Literate programming}}
 {li {{: utils.html} Compiler utilities}}
 }
+
+The Catala runtime documentation is available here:
+
+{!modules: Runtime}
 
 Last, it is possible to customize the backend to the compiler using a plugin
 mechanism. The API is defined inside the following module:
