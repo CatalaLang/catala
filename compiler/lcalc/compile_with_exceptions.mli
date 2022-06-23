@@ -15,6 +15,6 @@
    the License. *)
 
 (** Translation from the default calculus to the lambda calculus. This
-    translation uses exceptions handle empty default terms. *)
+    translation uses exceptions to handle empty default terms. *)
 
-val translate_program : Dcalc.Ast.typed Dcalc.Ast.program -> Ast.program
+val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program

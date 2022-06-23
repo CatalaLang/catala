@@ -229,6 +229,7 @@ type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
 (** {2 Manipulation of marks} *)
 
 val no_mark: 'm mark -> 'm mark
+val mark_pos: 'm mark -> Pos.t
 val pos: ('a, 'm) marked -> Pos.t
 val ty: ('a, typed) marked -> typ
 val with_ty: Infer.unionfind_typ -> ('a, 'm) marked -> ('a, typed) marked
@@ -402,12 +403,11 @@ type 'm var = 'm expr Bindlib.var
 
 val new_var: string -> 'm var
 
-(** {2 Boxed term constructors} *)
 module Var : sig
   type t
 
-  val t: 'm var -> t
-  val make : string -> t
+  val t: 'm expr Bindlib.var -> t
+  val get: t -> 'm expr Bindlib.var
   val compare : t -> t -> int
 end
 
@@ -422,7 +422,9 @@ module VarSet : Set.S with type elt = Var.t
                                
 (* type vars = expr Bindlib.mvar *)
 
-val make_var : ('m expr Bindlib.var, 'm) marked -> 'm marked_expr Bindlib.box
+val make_var : ('m var, 'm) marked -> 'm marked_expr Bindlib.box
+
+(** {2 Boxed term constructors} *)
 
 type ('e, 'm) make_abs_sig =
   'e Bindlib.mvar ->

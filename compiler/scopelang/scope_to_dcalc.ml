@@ -556,7 +556,7 @@ let translate_rule
                should have been defined (even an empty definition, if they're
                not defined by any rule in the source code) by the translation
                from desugared to the scope language. *)
-            Bindlib.box Dcalc.Ast.empty_thunked_term
+            Bindlib.box (Dcalc.Ast.empty_thunked_term (Untyped {pos = pos_call}))
           else
             let a_var, _, _ =
               Ast.ScopeVarMap.find subvar.scope_var_name subscope_vars_defined

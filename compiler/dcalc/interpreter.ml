@@ -30,27 +30,29 @@ let log_indent = ref 0
 
 let rec evaluate_operator
     (ctx : Ast.decl_ctx)
-    (op : A.operator Marked.pos)
-    (args : 'm A.marked_expr list) : 'm A.marked_expr =
+    (op : A.operator)
+    (pos : Pos.t)
+    (args : 'm A.marked_expr list) : 'm A.expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
      [op] to raise multispanned errors. *)
-  let apply_div_or_raise_err (div : unit -> 'm A.expr) (op : A.operator Marked.pos)
+  let apply_div_or_raise_err (div : unit -> 'm A.expr)
       : 'm A.expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error
         [
-          Some "The division operator:", Marked.get_mark op;
+          Some "The division operator:", pos;
           Some "The null denominator:", Ast.pos (List.nth args 1);
         ]
         "division by zero at runtime"
   in
-  let get_binop_args_pos (arg0::arg1::_ : ('m A.expr * 'm) list) :
-      (string option * Pos.t) list =
-    [
-      None, Ast.pos arg0;
-      None, Ast.pos arg1;
-    ]
+  let get_binop_args_pos = function
+    | (arg0::arg1::_ : 'm A.marked_expr list) ->
+      [
+        None, Ast.pos arg0;
+        None, Ast.pos arg1;
+      ]
+    | _ -> assert false
   in
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
      use [args] to raise multispanned errors. *)
@@ -63,8 +65,7 @@ let rec evaluate_operator
         "Cannot compare together durations that cannot be converted to a \
          precise number of days"
   in
-  Marked.same_mark_as
-    (match Marked.unmark op, List.map Marked.unmark args with
+  match op, List.map Marked.unmark args with
     | A.Ternop A.Fold, [_f; _init; EArray es] ->
       Marked.unmark
         (List.fold_left
@@ -85,7 +86,7 @@ let rec evaluate_operator
     | A.Binop (A.Mult KInt), [ELit (LInt i1); ELit (LInt i2)] ->
       A.ELit (LInt Runtime.(i1 *! i2))
     | A.Binop (A.Div KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-      apply_div_or_raise_err (fun _ -> A.ELit (LInt Runtime.(i1 /! i2))) op
+      apply_div_or_raise_err (fun _ -> A.ELit (LInt Runtime.(i1 /! i2)))
     | A.Binop (A.Add KRat), [ELit (LRat i1); ELit (LRat i2)] ->
       A.ELit (LRat Runtime.(i1 +& i2))
     | A.Binop (A.Sub KRat), [ELit (LRat i1); ELit (LRat i2)] ->
@@ -93,7 +94,7 @@ let rec evaluate_operator
     | A.Binop (A.Mult KRat), [ELit (LRat i1); ELit (LRat i2)] ->
       A.ELit (LRat Runtime.(i1 *& i2))
     | A.Binop (A.Div KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-      apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /& i2))) op
+      apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /& i2)))
     | A.Binop (A.Add KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
       A.ELit (LMoney Runtime.(m1 +$ m2))
     | A.Binop (A.Sub KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
@@ -101,7 +102,7 @@ let rec evaluate_operator
     | A.Binop (A.Mult KMoney), [ELit (LMoney m1); ELit (LRat m2)] ->
       A.ELit (LMoney Runtime.(m1 *$ m2))
     | A.Binop (A.Div KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-      apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(m1 /$ m2))) op
+      apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(m1 /$ m2)))
     | A.Binop (A.Add KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
       A.ELit (LDuration Runtime.(d1 +^ d2))
     | A.Binop (A.Sub KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
@@ -118,7 +119,6 @@ let rec evaluate_operator
             Errors.raise_multispanned_error (get_binop_args_pos args)
               "Cannot divide durations that cannot be converted to a precise \
                number of days")
-        op
     | A.Binop (A.Mult KDuration), [ELit (LDuration d1); ELit (LInt i1)] ->
       A.ELit (LDuration Runtime.(d1 *^ i1))
     | A.Binop (A.Lt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
@@ -180,7 +180,7 @@ let rec evaluate_operator
            (try
               List.for_all2
                 (fun e1 e2 ->
-                  match Marked.unmark (evaluate_operator ctx op [e1; e2]) with
+                  match evaluate_operator ctx op pos [e1; e2] with
                   | A.ELit (LBool b) -> b
                   | _ -> assert false
                   (* should not happen *))
@@ -194,7 +194,7 @@ let rec evaluate_operator
               && List.for_all2
                    (fun e1 e2 ->
                      match
-                       Marked.unmark (evaluate_operator ctx op [e1; e2])
+                       evaluate_operator ctx op pos [e1; e2]
                      with
                      | A.ELit (LBool b) -> b
                      | _ -> assert false
@@ -207,7 +207,7 @@ let rec evaluate_operator
            (try
               en1 = en2 && i1 = i2
               &&
-              match Marked.unmark (evaluate_operator ctx op [e1; e2]) with
+              match evaluate_operator ctx op pos [e1; e2] with
               | A.ELit (LBool b) -> b
               | _ -> assert false
               (* should not happen *)
@@ -216,8 +216,7 @@ let rec evaluate_operator
       A.ELit (LBool false) (* comparing anything else return false *)
     | A.Binop A.Neq, [_; _] -> (
       match
-        Marked.unmark
-          (evaluate_operator ctx (Marked.same_mark_as (A.Binop A.Eq) op) args)
+          evaluate_operator ctx (A.Binop A.Eq) pos args
       with
       | A.ELit (A.LBool b) -> A.ELit (A.LBool (not b))
       | _ -> assert false (*should not happen *))
@@ -240,7 +239,7 @@ let rec evaluate_operator
              | A.ELit (A.LBool b), _ -> b
              | _ ->
                Errors.raise_spanned_error
-                 (Marked.get_mark (List.nth args 0))
+                 (A.pos (List.nth args 0))
                  "This predicate evaluated to something else than a boolean \
                   (should not happen if the term was well-typed)")
            es)
@@ -285,7 +284,7 @@ let rec evaluate_operator
               let expr_str =
                 Format.asprintf "%a"
                   (Print.format_expr ctx ~debug:false)
-                  (e', Pos.no_pos)
+                  (List.hd args)
               in
               let expr_str =
                 Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
@@ -294,7 +293,6 @@ let rec evaluate_operator
               in
               Cli.with_style [ANSITerminal.green] "%s" expr_str)
         | PosRecordIfTrueBool -> (
-          let pos = Marked.get_mark op in
           match pos <> Pos.no_pos, e' with
           | true, ELit (LBool true) ->
             Cli.log_format "%*s%a%s:\n%s" (!log_indent * 2) ""
@@ -316,24 +314,23 @@ let rec evaluate_operator
     | A.Unop _, [ELit LEmptyError] -> A.ELit LEmptyError
     | _ ->
       Errors.raise_multispanned_error
-        ([Some "Operator:", Marked.get_mark op]
+        ([Some "Operator:", pos]
         @ List.mapi
             (fun i arg ->
               ( Some
                   (Format.asprintf "Argument n°%d, value %a" (i + 1)
                      (Print.format_expr ctx ~debug:true)
                      arg),
-                Marked.get_mark arg ))
+                A.pos arg ))
             args)
         "Operator applied to the wrong arguments\n\
-         (should not happen if the term was well-typed)")
-    op
+         (should not happen if the term was well-typed)"
 
 and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
     'm A.marked_expr =
   match Marked.unmark e with
   | EVar _ ->
-    Errors.raise_spanned_error (Marked.get_mark e)
+    Errors.raise_spanned_error (A.pos e)
       "free variable found at evaluation (should not happen if term was \
        well-typed"
   | EApp (e1, args) -> (
@@ -345,17 +342,17 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
         evaluate_expr ctx
           (Bindlib.msubst binder (Array.of_list (List.map Marked.unmark args)))
       else
-        Errors.raise_spanned_error (Marked.get_mark e)
+        Errors.raise_spanned_error (A.pos e)
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
     | EOp op ->
       Marked.same_mark_as
-        (Marked.unmark (evaluate_operator ctx (Marked.same_mark_as op e1) args))
+        (evaluate_operator ctx op (A.pos e) args)
         e
     | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (Marked.get_mark e)
+      Errors.raise_spanned_error (A.pos e)
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
@@ -373,19 +370,19 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
       | Some s, Some s' when s = s' -> ()
       | _ ->
         Errors.raise_multispanned_error
-          [None, Marked.get_mark e; None, Marked.get_mark e1]
+          [None, A.pos e; None, A.pos e1]
           "Error during tuple access: not the same structs (should not happen \
            if the term was well-typed)");
       match List.nth_opt es n with
       | Some e' -> e'
       | None ->
-        Errors.raise_spanned_error (Marked.get_mark e1)
+        Errors.raise_spanned_error (A.pos e1)
           "The tuple has %d components but the %i-th element was requested \
            (should not happen if the term was well-type)"
           (List.length es) n)
     | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (Marked.get_mark e1)
+      Errors.raise_spanned_error (A.pos e1)
         "The expression %a should be a tuple with %d components but is not \
          (should not happen if the term was well-typed)"
         (Print.format_expr ctx ~debug:true)
@@ -400,14 +397,14 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
     | A.EInj (e1, n, e_name', _) ->
       if e_name <> e_name' then
         Errors.raise_multispanned_error
-          [None, Marked.get_mark e; None, Marked.get_mark e1]
+          [None, A.pos e; None, A.pos e1]
           "Error during match: two different enums found (should not happend \
            if the term was well-typed)";
       let es_n =
         match List.nth_opt es n with
         | Some es_n -> es_n
         | None ->
-          Errors.raise_spanned_error (Marked.get_mark e)
+          Errors.raise_spanned_error (A.pos e)
             "sum type index error (should not happend if the term was \
              well-typed)"
       in
@@ -415,7 +412,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
       evaluate_expr ctx new_e
     | A.ELit A.LEmptyError -> Marked.same_mark_as (A.ELit A.LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (Marked.get_mark e1)
+      Errors.raise_spanned_error (A.pos e1)
         "Expected a term having a sum type as an argument to a match (should \
          not happend if the term was well-typed")
   | EDefault (exceptions, just, cons) -> (
@@ -429,7 +426,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
       | ELit (LBool true) -> evaluate_expr ctx cons
       | ELit (LBool false) -> Marked.same_mark_as (A.ELit LEmptyError) e
       | _ ->
-        Errors.raise_spanned_error (Marked.get_mark e)
+        Errors.raise_spanned_error (A.pos e)
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) exceptions
@@ -438,7 +435,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
         (List.map
            (fun except ->
              ( Some "This consequence has a valid justification:",
-               Marked.get_mark except ))
+               A.pos except ))
            (List.filter (fun sub -> not (is_empty_error sub)) exceptions))
         "There is a conflict between multiple valid consequences for assigning \
          the same variable.")
@@ -448,7 +445,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
     | ELit (LBool false) -> evaluate_expr ctx ef
     | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (Marked.get_mark cond)
+      Errors.raise_spanned_error (A.pos cond)
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
@@ -459,7 +456,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
   | ErrorOnEmpty e' ->
     let e' = evaluate_expr ctx e' in
     if Marked.unmark e' = A.ELit LEmptyError then
-      Errors.raise_spanned_error (Marked.get_mark e')
+      Errors.raise_spanned_error (A.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
     else e'
@@ -470,45 +467,64 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
       match Marked.unmark e' with
       | Ast.ErrorOnEmpty
           ( EApp
-              ( (Ast.EOp (Binop op), pos_op),
+              ( (Ast.EOp (Binop op), _),
                 [((ELit _, _) as e1); ((ELit _, _) as e2)] ),
             _ )
       | EApp
           ( (Ast.EOp (Ast.Unop (Ast.Log _)), _),
             [
               ( Ast.EApp
-                  ( (Ast.EOp (Binop op), pos_op),
+                  ( (Ast.EOp (Binop op), _),
                     [((ELit _, _) as e1); ((ELit _, _) as e2)] ),
                 _ );
             ] )
       | EApp
-          ( (Ast.EOp (Binop op), pos_op),
+          ( (Ast.EOp (Binop op), _),
             [((ELit _, _) as e1); ((ELit _, _) as e2)] ) ->
-        Errors.raise_spanned_error (Marked.get_mark e')
+        Errors.raise_spanned_error (A.pos e')
           "Assertion failed: %a %a %a"
           (Print.format_expr ctx ~debug:false)
-          e1 Print.format_binop (op, pos_op)
+          e1 Print.format_binop op
           (Print.format_expr ctx ~debug:false)
           e2
       | _ ->
         Cli.debug_format "%a" (Print.format_expr ctx) e';
-        Errors.raise_spanned_error (Marked.get_mark e') "Assertion failed")
+        Errors.raise_spanned_error (A.pos e') "Assertion failed")
     | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (Marked.get_mark e')
+      Errors.raise_spanned_error (A.pos e')
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
 
 (** {1 API} *)
 
-let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Marked.pos) :
-    (Uid.MarkedString.info * Ast.expr Marked.pos) list =
-  match Marked.unmark (evaluate_expr ctx e) with
-  | Ast.EAbs (_, [(Ast.TTuple (taus, Some s_in), _)]) -> (
-    let application_term = List.map (fun _ -> Ast.empty_thunked_term) taus in
+let interpret_program: 'm. Ast.decl_ctx -> 'm Ast.marked_expr ->     (Uid.MarkedString.info * 'm Ast.marked_expr) list =
+fun
+ (ctx : Ast.decl_ctx) (e : 'm Ast.marked_expr) :
+    (Uid.MarkedString.info * 'm Ast.marked_expr) list ->
+  match evaluate_expr ctx e with
+  | Ast.EAbs (_, [(Ast.TTuple (taus, Some s_in), _) as targs]), mark_e ->
+    begin
+    let application_term =
+      List.map (fun ty ->
+          Ast.empty_thunked_term (A.map_mark (fun pos -> pos)
+                                    (fun _ -> A.Infer.ast_to_typ ty) mark_e))
+        taus
+    in
     let to_interpret =
-      ( Ast.EApp (e, [Ast.ETuple (application_term, Some s_in), Pos.no_pos]),
-        Pos.no_pos )
+      ( Ast.EApp (e, [Ast.ETuple (application_term, Some s_in),
+                      A.fold_marks
+                        (fun pos_l -> List.hd pos_l)
+                        (fun _ -> A.Infer.ast_to_typ targs)
+                        (List.map Marked.get_mark application_term)
+                     ]),
+        A.map_mark (fun pos -> pos)
+          (fun ty -> match UnionFind.get ty with
+             | A.Infer.TArrow (_, t_out), _ -> t_out
+             | _ ->
+               Errors.raise_spanned_error (A.pos e)
+                 "(bug) Result of interpretation doesn't have the expected type")
+          mark_e )
     in
     match Marked.unmark (evaluate_expr ctx to_interpret) with
     | Ast.ETuple (args, Some s_out) ->
@@ -519,10 +535,11 @@ let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Marked.pos) :
       in
       List.map2 (fun arg var -> var, arg) args s_out_fields
     | _ ->
-      Errors.raise_spanned_error (Marked.get_mark e)
+      Errors.raise_spanned_error (A.pos e)
         "The interpretation of a program should always yield a struct \
-         corresponding to the scope variables")
+         corresponding to the scope variables"
+  end
   | _ ->
-    Errors.raise_spanned_error (Marked.get_mark e)
+    Errors.raise_spanned_error (A.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"

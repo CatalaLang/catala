@@ -30,7 +30,7 @@ let format_lit (fmt : Format.formatter) (l : L.lit Marked.pos) : unit =
   | LUnit -> Format.fprintf fmt "Unit()"
   | LRat i ->
     Format.fprintf fmt "decimal_of_string(\"%a\")" Dcalc.Print.format_lit
-      (Marked.same_mark_as (Dcalc.Ast.LRat i) l)
+       (Dcalc.Ast.LRat i) 
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))

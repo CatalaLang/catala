@@ -22,7 +22,9 @@ type 'ast gen = {
   apply : string option -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
 }
 
-type t = Lcalc of Lcalc.Ast.program gen | Scalc of Scalc.Ast.program gen
+type t =
+  | Lcalc of Dcalc.Ast.typed Lcalc.Ast.program gen
+  | Scalc of Scalc.Ast.program gen
 
 val find : string -> t
 (** Find a registered plugin *)
@@ -40,7 +42,7 @@ module PluginAPI : sig
     name:string ->
     extension:string ->
     (string option ->
-    Lcalc.Ast.program ->
+    Dcalc.Ast.typed Lcalc.Ast.program ->
     Scopelang.Dependency.TVertex.t list ->
     unit) ->
     unit

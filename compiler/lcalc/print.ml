@@ -68,19 +68,19 @@ let format_keyword (fmt : Format.formatter) (s : string) : unit =
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ANSITerminal.cyan]) s
 
-let needs_parens (e : expr Marked.pos) : bool =
+let needs_parens (e : 'm marked_expr) : bool =
   match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
-let format_var (fmt : Format.formatter) (v : Var.t) : unit =
+let format_var (fmt : Format.formatter) (v : 'm Ast.var) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 let rec format_expr
     ?(debug : bool = false)
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Marked.pos) : unit =
+    (e : 'm marked_expr) : unit =
   let format_expr = format_expr ctx ~debug in
-  let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
+  let format_with_parens (fmt : Format.formatter) (e : 'm marked_expr) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" format_punctuation "(" format_expr e
         format_punctuation ")"
@@ -136,23 +136,21 @@ let rec format_expr
              format_expr e))
       (List.combine es
          (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (Dcalc.Ast.pos e) l)
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
-    let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "%a%a"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
-         (fun fmt (x, tau, arg) ->
+         (fun fmt ((x, tau), arg) ->
            Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@ %a@]@\n"
              format_keyword "let" format_var x format_punctuation ":"
              (Dcalc.Print.format_typ ctx)
-             tau format_punctuation "=" format_expr arg format_keyword "in"))
-      xs_tau_arg format_expr body
+             (Marked.unmark tau) format_punctuation "=" format_expr arg format_keyword "in"))
+      (List.combine (List.combine (Array.to_list xs) taus) args)
+      format_expr body
   | EAbs (binder, taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_punctuation "λ"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -160,21 +158,22 @@ let rec format_expr
            Format.fprintf fmt "%a%a%a %a%a" format_punctuation "(" format_var x
              format_punctuation ":"
              (Dcalc.Print.format_typ ctx)
-             tau format_punctuation ")"))
-      xs_tau format_punctuation "→" format_expr body
+             (Marked.unmark tau) format_punctuation ")"))
+      (List.combine (Array.to_list xs) taus)
+ format_punctuation "→" format_expr body
   | EApp
       ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
     ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop
-      (op, Pos.no_pos) format_with_parens arg1 format_with_parens arg2
+      op format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      Dcalc.Print.format_binop (op, Pos.no_pos) format_with_parens arg2
+      Dcalc.Print.format_binop op format_with_parens arg2
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop
-      (op, Pos.no_pos) format_with_parens arg1
+      op format_with_parens arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
@@ -186,11 +185,11 @@ let rec format_expr
       format_expr e1 format_keyword "then" format_expr e2 format_keyword "else"
       format_expr e3
   | EOp (Ternop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_ternop (op, Pos.no_pos)
+    Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
   | EOp (Binop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_binop (op, Pos.no_pos)
+    Format.fprintf fmt "%a" Dcalc.Print.format_binop op
   | EOp (Unop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_unop (op, Pos.no_pos)
+    Format.fprintf fmt "%a" Dcalc.Print.format_unop op
   | ECatch (e1, exn, e2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a ->@ %a@]" format_keyword "try"
       format_with_parens e1 format_keyword "with" format_exception exn
@@ -202,14 +201,13 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert"
       format_punctuation "(" format_expr e' format_punctuation ")"
 
-let format_scope
-    ?(debug : bool = false)
-    (ctx : Dcalc.Ast.decl_ctx)
-    (fmt : Format.formatter)
-    ((n, s) : Dcalc.Ast.ScopeName.t * Ast.expr Dcalc.Ast.scope_body) : unit =
+let format_scope ?(debug=false) ctx fmt (n, s) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
     Dcalc.Ast.ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox
        (Dcalc.Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
           ~make_let_in:Ast.make_let_in ~box_expr:Ast.box_expr ctx s
-          (Marked.get_mark (Dcalc.Ast.ScopeName.get_info n))))
+          (Dcalc.Ast.map_mark
+             (fun _ -> Marked.get_mark (Dcalc.Ast.ScopeName.get_info n))
+             (fun ty -> ty)
+             (Dcalc.Ast.get_scope_body_mark s))))

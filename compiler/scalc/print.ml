@@ -80,15 +80,15 @@ let rec format_expr
       ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
     ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop
-      (op, Pos.no_pos) format_with_parens arg1 format_with_parens arg2
+      op format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      Dcalc.Print.format_binop (op, Pos.no_pos) format_with_parens arg2
+      Dcalc.Print.format_binop op format_with_parens arg2
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop
-      (op, Pos.no_pos) format_with_parens arg1
+      op format_with_parens arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
@@ -96,11 +96,11 @@ let rec format_expr
          format_with_parens)
       args
   | EOp (Ternop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_ternop (op, Pos.no_pos)
+    Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
   | EOp (Binop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_binop (op, Pos.no_pos)
+    Format.fprintf fmt "%a" Dcalc.Print.format_binop op
   | EOp (Unop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_unop (op, Pos.no_pos)
+    Format.fprintf fmt "%a" Dcalc.Print.format_unop op
 
 let rec format_statement
     (decl_ctx : Dcalc.Ast.decl_ctx)
@@ -118,7 +118,7 @@ let rec format_statement
            Format.fprintf fmt "%a%a %a@ %a%a" Dcalc.Print.format_punctuation "("
              LocalName.format_t name Dcalc.Print.format_punctuation ":"
              (Dcalc.Print.format_typ decl_ctx)
-             typ Dcalc.Print.format_punctuation ")"))
+             (Marked.unmark typ) Dcalc.Print.format_punctuation ")"))
       func.func_params Dcalc.Print.format_punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
@@ -127,7 +127,7 @@ let rec format_statement
       "decl" LocalName.format_t (Marked.unmark name)
       Dcalc.Print.format_punctuation ":"
       (Dcalc.Print.format_typ decl_ctx)
-      typ
+      (Marked.unmark typ)
   | SLocalDef (name, expr) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" LocalName.format_t
       (Marked.unmark name) Dcalc.Print.format_punctuation "="
@@ -204,7 +204,7 @@ let format_scope
          Format.fprintf fmt "%a%a %a@ %a%a" Dcalc.Print.format_punctuation "("
            LocalName.format_t name Dcalc.Print.format_punctuation ":"
            (Dcalc.Print.format_typ decl_ctx)
-           typ Dcalc.Print.format_punctuation ")"))
+           (Marked.unmark typ) Dcalc.Print.format_punctuation ")"))
     body.scope_body_func.func_params Dcalc.Print.format_punctuation "="
     (format_block decl_ctx ~debug)
     body.scope_body_func.func_body

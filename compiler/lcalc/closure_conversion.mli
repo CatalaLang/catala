@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,8 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Ast
-
-val optimize_program : 'm program -> 'm program
+val closure_conversion: 'm Ast.program -> 'm Ast.program Bindlib.box
 (** Warning/todo: no effort was yet made to ensure
     correct propagation of type annotations in the typed case *)

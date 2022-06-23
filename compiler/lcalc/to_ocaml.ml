@@ -40,13 +40,13 @@ let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) :
 let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
   match Marked.unmark l with
   | LBool b ->
-    Dcalc.Print.format_lit fmt (Marked.same_mark_as (Dcalc.Ast.LBool b) l)
+    Dcalc.Print.format_lit fmt (Dcalc.Ast.LBool b)
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
-  | LUnit -> Dcalc.Print.format_lit fmt (Marked.same_mark_as Dcalc.Ast.LUnit l)
+  | LUnit -> Dcalc.Print.format_lit fmt Dcalc.Ast.LUnit
   | LRat i ->
     Format.fprintf fmt "decimal_of_string \"%a\"" Dcalc.Print.format_lit
-      (Marked.same_mark_as (Dcalc.Ast.LRat i) l)
+      (Dcalc.Ast.LRat i)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string@ \"%s\""
       (Runtime.integer_to_string (Runtime.money_to_cents e))
@@ -221,7 +221,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 
-let format_var (fmt : Format.formatter) (v : Var.t) : unit =
+let format_var (fmt : Format.formatter) (v : 'm var) : unit =
   let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
@@ -236,7 +236,7 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
 
-let needs_parens (e : expr Marked.pos) : bool =
+let needs_parens (e : 'm marked_expr) : bool =
   match Marked.unmark e with
   | EApp ((EAbs (_, _), _), _)
   | ELit (LBool _ | LUnit)
@@ -261,9 +261,9 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
 let rec format_expr
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Marked.pos) : unit =
+    (e : 'm marked_expr) : unit =
   let format_expr = format_expr ctx in
-  let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
+  let format_with_parens (fmt : Format.formatter) (e : 'm marked_expr) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
   in
@@ -326,7 +326,7 @@ let rec format_expr
                (* should not happen *))
              e))
       (List.combine es (List.map fst (find_enum e_name ctx)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (D.pos e) l)
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
@@ -363,8 +363,9 @@ let rec format_expr
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
-  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [arg1])
+  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), m), [arg1])
     when !Cli.trace_flag ->
+    let pos = D.mark_pos m in 
     Format.fprintf fmt
       "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
@@ -398,11 +399,11 @@ let rec format_expr
       "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
       format_with_parens e'
   | ERaise exc ->
-    Format.fprintf fmt "raise@ %a" format_exception (exc, Marked.get_mark e)
+    Format.fprintf fmt "raise@ %a" format_exception (exc, D.pos e)
   | ECatch (e1, exc, e2) ->
     Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens
       e1 format_exception
-      (exc, Marked.get_mark e)
+      (exc, D.pos e)
       format_with_parens e2
 
 let format_struct_embedding
@@ -510,7 +511,7 @@ let format_ctx
 let rec format_scope_body_expr
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (scope_lets : Ast.expr Dcalc.Ast.scope_body_expr) : unit =
+    (scope_lets : ('m Ast.expr, 'm) Dcalc.Ast.scope_body_expr) : unit =
   match scope_lets with
   | Dcalc.Ast.Result e -> format_expr ctx fmt e
   | Dcalc.Ast.ScopeLet scope_let ->
@@ -526,7 +527,7 @@ let rec format_scope_body_expr
 let rec format_scopes
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (scopes : Ast.expr Dcalc.Ast.scopes) : unit =
+    (scopes : ('m Ast.expr, 'm) Dcalc.Ast.scopes) : unit =
   match scopes with
   | Dcalc.Ast.Nil -> ()
   | Dcalc.Ast.ScopeDef scope_def ->
@@ -543,7 +544,7 @@ let rec format_scopes
 
 let format_program
     (fmt : Format.formatter)
-    (p : Ast.program)
+    (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
   Cli.style_flag := false;
   Format.fprintf fmt

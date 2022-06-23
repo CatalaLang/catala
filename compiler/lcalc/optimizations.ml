@@ -20,9 +20,9 @@ let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x y = Bindlib.box_pair x y
 
 let visitor_map
-    (t : 'a -> expr Marked.pos -> expr Marked.pos Bindlib.box)
+    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
     (ctx : 'a)
-    (e : expr Marked.pos) : expr Marked.pos Bindlib.box =
+    (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract
      syntax tree modified. Used in other transformations. *)
   let default_mark e' = Marked.same_mark_as e' e in
@@ -66,7 +66,7 @@ let visitor_map
     default_mark @@ ECatch (e1, exn, e2)
   | ERaise _ | ELit _ | EOp _ -> Bindlib.box e
 
-let rec iota_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
+let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box
     =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
   match Marked.unmark e with
@@ -86,7 +86,7 @@ let rec iota_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
     visitor_map iota_expr () e'
   | _ -> visitor_map iota_expr () e
 
-let rec beta_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
+let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box
     =
   let default_mark e' = Marked.same_mark_as e' e in
   match Marked.unmark e with
@@ -100,20 +100,20 @@ let rec beta_expr (_ : unit) (e : expr Marked.pos) : expr Marked.pos Bindlib.box
     | _ -> default_mark @@ EApp (e1, args))
   | _ -> visitor_map beta_expr () e
 
-let iota_optimizations (p : program) : program =
-  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) p.scopes in
+let iota_optimizations (p : 'm program) : 'm program =
+  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes in
   { p with scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
    of beta-optimization as future work since its produce code that is harder to
    read, and can produce exponential blowup of the size of the generated
    program. *)
-let _beta_optimizations (p : program) : program =
-  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) p.scopes in
+let _beta_optimizations (p : 'm program) : 'm program =
+  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let rec peephole_expr (_ : unit) (e : expr Marked.pos) :
-    expr Marked.pos Bindlib.box =
+let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
+    'm marked_expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
 
   match Marked.unmark e with
@@ -140,11 +140,11 @@ let rec peephole_expr (_ : unit) (e : expr Marked.pos) :
     | _ -> default_mark @@ ECatch (e1, except, e2))
   | _ -> visitor_map peephole_expr () e
 
-let peephole_optimizations (p : program) : program =
+let peephole_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ()) p.scopes
+    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ()) ~varf:(fun v -> v) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let optimize_program (p : program) : program =
+let optimize_program (p : 'm program) : 'm program =
   p |> iota_optimizations |> peephole_optimizations
