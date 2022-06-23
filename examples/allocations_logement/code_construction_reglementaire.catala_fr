@@ -2099,13 +2099,11 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
   règle condition_période_déménagement sous condition
     (selon ménage.date_naissance_troisième_enfant_ou_dernier_si_plus sous forme
     -- MoinsDeTroisEnfants: faux
-    -- Date de date_naissance_ou_grossesse:
+    -- PlusDeTroisEnfants de date_naissance_ou_grossesse:
       (selon date_naissance_ou_grossesse sous forme
-      -- PremierJourMoisCivilTroisièmeMoisDeGrossesse de date_grossesse:
-        date_ouverture_droits >@ date_grossesse
-      -- DateDeNaissance de date_naissance:
-        # TODO informatique : opération manipulation prendre premier jour du
-        # mois d'une date
+      -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse: faux
+      -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse: vrai
+      -- DernierJourMoisPrécédantDateDeNaissance de date_naissance:
         date_ouverture_droits <=@ date_naissance +@ 2 an)
     )
   conséquence rempli
