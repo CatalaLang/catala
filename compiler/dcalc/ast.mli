@@ -122,6 +122,8 @@ module Infer: sig
 
   val typ_to_ast : unionfind_typ -> marked_typ
 
+  val ast_to_typ : marked_typ -> unionfind_typ
+
 end
 
 type untyped = { pos : Pos.t } [@@unboxed]
@@ -232,6 +234,7 @@ val ty: ('a, typed) marked -> typ
 val with_ty: Infer.unionfind_typ -> ('a, 'm) marked -> ('a, typed) marked
 val map_mark: (Pos.t -> Pos.t) -> (Infer.unionfind_typ -> Infer.unionfind_typ) -> 'm mark -> 'm mark
 val map_mark2: (Pos.t -> Pos.t -> Pos.t) -> (typed -> typed -> Infer.unionfind_typ) -> 'm mark -> 'm mark -> 'm mark
+val fold_marks: (Pos.t list -> Pos.t) -> (typed list -> Infer.unionfind_typ) -> 'm mark list -> 'm mark
 val get_scope_body_mark: ('expr, 'm) scope_body -> 'm mark
 
 (** {2 Boxed constructors} *)
@@ -448,7 +451,7 @@ val make_let_in : ('m expr, 'm) make_let_in_sig
 
 (**{2 Other}*)
 
-val empty_thunked_term : untyped marked_expr
+val empty_thunked_term : 'm mark -> 'm marked_expr
 val is_value : 'm marked_expr -> bool
 
 val equal_exprs : 'm marked_expr -> 'm marked_expr -> bool

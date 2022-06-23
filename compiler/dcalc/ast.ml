@@ -138,6 +138,18 @@ module Infer = struct
     | TArrow (t1, t2) -> TArrow (typ_to_ast t1, typ_to_ast t2), pos
     | TAny _ -> TAny, pos
     | TArray t1 -> TArray (typ_to_ast t1), pos
+
+  let rec ast_to_typ (ty : marked_typ) : unionfind_typ =
+    let ty' =
+      match Marked.unmark ty with
+      | TLit l -> TLit l
+      | TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
+      | TTuple (ts, s) -> TTuple (List.map (fun t -> ast_to_typ t) ts, s)
+      | TEnum (ts, e) -> TEnum (List.map (fun t -> ast_to_typ t) ts, e)
+      | TArray t -> TArray (ast_to_typ t)
+      | TAny -> TAny (Any.fresh ())
+    in
+    UnionFind.make (Marked.same_mark_as ty' ty)
 end
 
 type untyped = { pos : Pos.t } [@@ocaml.unboxed]
@@ -483,16 +495,6 @@ let (make_abs : ('m expr, 'm) make_abs_sig) =
  fun xs e taus mark ->
   Bindlib.box_apply (fun b -> EAbs (b, taus), mark) (Bindlib.bind_mvar xs e)
 
-let empty_thunked_term : untyped marked_expr =
-  let silent = new_var "_" in
-  Bindlib.unbox
-    (make_abs [| silent |]
-       (Bindlib.box
-          (ELit LEmptyError, Untyped { pos = Pos.no_pos }
-            : (untyped expr, untyped) marked))
-       [TLit TUnit, Pos.no_pos]
-       (Untyped { pos = Pos.no_pos }))
-
 let make_app :
     'm marked_expr Bindlib.box ->
     'm marked_expr Bindlib.box list ->
@@ -527,6 +529,37 @@ let map_mark2
   match m1, m2 with
   | Untyped m1, Untyped m2 -> Untyped { pos = pos_f m1.pos m2.pos }
   | Typed m1, Typed m2 -> Typed { pos = pos_f m1.pos m2.pos; ty = ty_f m1 m2 }
+
+let fold_marks
+    (type m)
+    (pos_f : Pos.t list -> Pos.t)
+    (ty_f : typed list -> Infer.unionfind_typ)
+    (ms : m mark list) : m mark =
+  match ms with
+  | [] -> invalid_arg "Dcalc.Ast.fold_mark"
+  | Untyped _ :: _ as ms ->
+    Untyped { pos = pos_f (List.map (function Untyped { pos } -> pos) ms) }
+  | Typed _ :: _ ->
+    Typed
+      {
+        pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
+        ty = ty_f (List.map (function Typed m -> m) ms);
+      }
+
+let empty_thunked_term mark : 'm marked_expr =
+  let silent = new_var "_" in
+  let pos = mark_pos mark in
+  Bindlib.unbox
+    (make_abs [| silent |]
+       (Bindlib.box (ELit LEmptyError, mark))
+       [TLit TUnit, mark_pos mark]
+       (map_mark
+          (fun pos -> pos)
+          (fun ty ->
+            UnionFind.make
+              Infer.(
+                TArrow (UnionFind.make (TLit TUnit, pos), ty), mark_pos mark))
+          mark))
 
 let (make_let_in : ('m expr, 'm) make_let_in_sig) =
  fun x tau e1 e2 pos ->
