@@ -367,15 +367,10 @@ module EventParser = struct
     let rec parse_events (ctx : context) : context =
       match ctx.rest with
       | [] -> { ctx with events = ctx.events |> List.rev }
-      | VariableDefinition (name, value) :: rest when is_var_def name ->
-        parse_events
-          {
-            ctx with
-            events =
-              VarComputation { pos = None; name; value; fun_calls = None }
-              :: ctx.events;
-            rest;
-          }
+      | VariableDefinition (name, _) :: rest when is_var_def name ->
+        (* VariableDefinition without position corresponds to a function
+           definition which are ignored for now in structured events. *)
+        parse_events { ctx with rest }
       | DecisionTaken pos :: VariableDefinition (name, value) :: rest
         when is_subscope_input_var_def name -> (
         match name with
