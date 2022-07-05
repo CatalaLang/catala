@@ -1173,7 +1173,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
         parent.parenté = Ascendant et
-        parent.AutrePersonneÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
+        parent.AutrePersonneÀCharge.ressources <=€ plafond_individuel_l815_9_sécu *€ 1,25 et
         (
           (parent.AutrePersonneÀCharge.âge >=^ âge_l351_8_1_sécu ou
           # TODO informatique: changer l'encodage de âge vers un entier
@@ -1206,7 +1206,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- AutrePersonneÀCharge de parent:
         # Pas besoin de préciser parenté car inclusif ici
         parent.incapacité_80_pourcent_ou_restriction_emploi et
-        parent.AutrePersonneÀCharge.ressources >=€
+        parent.AutrePersonneÀCharge.ressources <=€
           plafond_individuel_l815_9_sécu *€ 1,25
   conséquence rempli
 ```
