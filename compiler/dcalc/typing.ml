@@ -221,8 +221,8 @@ let rec typecheck_expr_bottom_up
     (ctx : Ast.decl_ctx)
     (env : env)
     (e : 'm A.marked_expr) : A.typed_expr Bindlib.box =
-  (* Cli.debug_print (Format.asprintf "Looking for type of %a"
-     (Print.format_expr ctx) e); *)
+  (* Cli.debug_format "Looking for type of %a"
+   *    (Print.format_expr ~debug:true ctx) e; *)
   try
     let pos_e = A.pos e in
     let mark (e : A.typed A.expr) ty =
@@ -238,7 +238,8 @@ let rec typecheck_expr_bottom_up
         mark v' t
       | None ->
         Errors.raise_spanned_error (A.pos e)
-          "Variable not found in the current context"
+          "Variable %S not found in the current context."
+          (Bindlib.name_of v)
     end
     | A.ELit (LBool _) as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TBool)
     | A.ELit (LInt _) as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TInt)
@@ -396,8 +397,9 @@ and typecheck_expr_top_down
     (e : 'm A.marked_expr)
     (tau : typ Marked.pos UnionFind.elem) :
   A.typed_expr Bindlib.box =
-  (* Cli.debug_print (Format.asprintf "Typechecking %a : %a" (Print.format_expr
-     ctx) e (format_typ ctx) tau); *)
+  (* Cli.debug_format "Propagating type %a for expr %a"
+   *   (format_typ ctx) tau
+   *   (Print.format_expr ~debug:true ctx) e; *)
   try
     let pos_e = A.pos e in
     let mark e =
@@ -415,7 +417,8 @@ and typecheck_expr_top_down
           unify_and_mark v' tau'
         | None ->
           Errors.raise_spanned_error (A.pos e)
-            "Variable not found in the current context"
+            "Variable %S not found in the current context"
+            (Bindlib.name_of v)
       end
     | A.ELit (LBool _) as e1 -> Bindlib.box @@ unify_and_mark e1 (unionfind_make (TLit TBool))
     | A.ELit (LInt _) as e1 -> Bindlib.box @@ unify_and_mark e1 (unionfind_make (TLit TInt))
