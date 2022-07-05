@@ -312,10 +312,9 @@ let rec typecheck_expr_bottom_up
         let xs, body = Bindlib.unmbind binder in
         let xs' = Array.map translate_var xs in
         let xstaus =
-          List.map2
-            (fun x tau ->
-               x, ast_to_typ tau)
-            (Array.to_list xs) taus
+          List.mapi (fun i tau ->
+              xs'.(i), ast_to_typ tau)
+            taus
         in
         let env =
           List.fold_left (fun env (x, tau) -> A.VarMap.add (A.Var.t x) tau env) env xstaus
@@ -382,7 +381,7 @@ let rec typecheck_expr_bottom_up
           es
       in
       mark_with_uf (A.EArray es') (TArray cell_type)
-  with Errors.StructuredError (msg, err_pos) when List.length err_pos = 2 ->
+  with Errors.StructuredError (msg, ([_; _] as err_pos)) ->
     raise
       (Errors.StructuredError
          ( msg,
@@ -518,7 +517,8 @@ and typecheck_expr_top_down
           (fun arg acc -> unionfind_make (TArrow (ty arg, acc)))
           args' tau
       in
-      unify_and_mark (EApp (e1', args')) t_func
+      unify ctx (ty e1') t_func;
+      unify_and_mark (EApp (e1', args')) tau
     | A.EOp op as e1 ->
       let op_typ = op_type (add_pos e op) in
       Bindlib.box (unify_and_mark e1 op_typ)
@@ -584,15 +584,83 @@ let check_type
   typecheck_expr_top_down ctx A.VarMap.empty e (ast_to_typ tau)
 
 let infer_types_program prg =
-  let scopes =
-    Bindlib.unbox @@
-    A.map_exprs_in_scopes
-      ~f:(typecheck_expr_bottom_up prg.A.decl_ctx A.VarMap.empty)
-      ~varf:translate_var
-      prg.A.scopes
+  let ctx = prg.A.decl_ctx in
+  let rec process_scopes env = function
+    | A.Nil -> Bindlib.box A.Nil
+    | A.ScopeDef {
+        scope_next;
+        scope_name;
+        scope_body = {
+          scope_body_input_struct = s_in;
+          scope_body_output_struct = s_out;
+          scope_body_expr = body;
+        }
+      } ->
+      let scope_pos = Marked.get_mark (A.ScopeName.get_info scope_name) in
+      let struct_ty struct_name =
+        let struc = A.StructMap.find struct_name ctx.A.ctx_structs in
+        ast_to_typ (Marked.mark scope_pos (A.TTuple (List.map snd struc, Some struct_name)))
+      in
+      let ty_in = struct_ty s_in in
+      let ty_out = struct_ty s_out in
+      let ty_scope =
+        UnionFind.make (Marked.mark scope_pos (TArrow (ty_in, ty_out))) in
+      let rec process_scope_body_expr env = function
+        | A.Result e ->
+          let e' = typecheck_expr_top_down ctx env e ty_out in
+          Bindlib.box_apply (fun e -> A.Result e) e'
+        | A.ScopeLet {
+            scope_let_kind;
+            scope_let_typ;
+            scope_let_expr = e;
+            scope_let_next;
+            scope_let_pos;
+          } ->
+          let ty = ast_to_typ scope_let_typ in
+          let e = typecheck_expr_top_down ctx env e ty in
+          let var, next = Bindlib.unbind scope_let_next in
+          let env = A.VarMap.add (A.Var.t var) ty env in
+          let next = process_scope_body_expr env next in
+          let scope_let_next = Bindlib.bind_var (translate_var var) next in
+          Bindlib.box_apply2 (fun scope_let_expr scope_let_next ->
+              A.ScopeLet {
+                scope_let_kind;
+                scope_let_typ;
+                scope_let_expr;
+                scope_let_next;
+                scope_let_pos;
+              })
+            e scope_let_next
+      in
+      let scope_body_expr =
+        let var, e = Bindlib.unbind body in
+        let env = A.VarMap.add (A.Var.t var) ty_in env in
+        Bindlib.bind_var (translate_var var)
+          (process_scope_body_expr env e)
+      in
+      let scope_next =
+        let scope_var, next = Bindlib.unbind scope_next in
+        let env = A.VarMap.add (A.Var.t scope_var) ty_scope env in
+        let next = process_scopes env next in
+        Bindlib.bind_var (translate_var scope_var) next;
+      in
+      Bindlib.box_apply2 (fun scope_body_expr scope_next ->
+          A.ScopeDef {
+            scope_next;
+            scope_name;
+            scope_body = {
+              scope_body_input_struct = s_in;
+              scope_body_output_struct = s_out;
+              scope_body_expr;
+            };
+          })
+        scope_body_expr scope_next
   in
-  {A.
-    decl_ctx = prg.A.decl_ctx;
-    scopes;
-  }
-
+  let scopes = process_scopes A.VarMap.empty prg.scopes in
+  Bindlib.box_apply (fun scopes ->
+      { A.
+        decl_ctx = ctx;
+        scopes;
+      })
+    scopes
+  |> Bindlib.unbox

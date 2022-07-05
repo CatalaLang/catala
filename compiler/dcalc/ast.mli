@@ -499,3 +499,7 @@ val expr_size : 'm marked_expr -> int
 val remove_logging_calls : 'm marked_expr -> 'm marked_expr Bindlib.box
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
+
+val build_scope_typ_from_sig: decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ Marked.pos
+(** [build_scope_typ_from_sig ctx in_struct out_struct pos] builds the arrow
+    type for the specified scope *)
