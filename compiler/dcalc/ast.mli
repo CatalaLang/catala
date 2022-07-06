@@ -237,6 +237,7 @@ val map_mark: (Pos.t -> Pos.t) -> (Infer.unionfind_typ -> Infer.unionfind_typ) -
 val map_mark2: (Pos.t -> Pos.t -> Pos.t) -> (typed -> typed -> Infer.unionfind_typ) -> 'm mark -> 'm mark -> 'm mark
 val fold_marks: (Pos.t list -> Pos.t) -> (typed list -> Infer.unionfind_typ) -> 'm mark list -> 'm mark
 val get_scope_body_mark: ('expr, 'm) scope_body -> 'm mark
+val untype_expr: 'm marked_expr -> untyped marked_expr
 
 (** {2 Boxed constructors} *)
 
@@ -318,9 +319,9 @@ val box_expr : ('m expr, 'm) box_expr_sig
 
 val map_expr :
   'a ->
-  f:('a -> 'm marked_expr -> 'm marked_expr Bindlib.box) ->
-  'm marked_expr ->
-  'm marked_expr Bindlib.box
+  f:('a -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box) ->
+  ('m1 expr, 'm2 mark) Marked.t ->
+  'm2 marked_expr Bindlib.box
 (** If you want to apply a map transform to an expression, you can save up
     writing a painful match over all the cases of the AST. For instance, if you
     want to remove all errors on empty, you can write
@@ -337,6 +338,11 @@ val map_expr :
 
     The first argument of map_expr is an optional context that you can carry
     around during your map traversal. *)
+
+val map_expr_top_down: f:('m1 marked_expr -> ('m1 expr, 'm2 mark) Marked.t) -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box
+(** Recursively applies [f] to the nodes of the expression tree. The type returned by [f] is hybrid since the mark at top-level has been rewritten, but not yet the marks in the subtrees. *)
+
+val map_expr_marks: f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
 
 val fold_left_scope_lets :
   f:('a -> ('expr, 'm) scope_let -> 'expr Bindlib.var -> 'a) ->
@@ -402,6 +408,9 @@ val map_exprs_in_scopes :
 type 'm var = 'm expr Bindlib.var
 
 val new_var: string -> 'm var
+
+(** used to convert between e.g. [untyped expr var] into a [typed expr var] *)
+val translate_var: 'm1 var -> 'm2 var
 
 module Var : sig
   type t

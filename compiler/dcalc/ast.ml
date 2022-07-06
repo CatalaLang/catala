@@ -293,33 +293,51 @@ let eifthenelse e1 e2 e3 mark =
 let eerroronempty e1 mark =
   Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, mark) e1
 
+let translate_var v =
+  Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
+
 let map_expr ctx ~f e =
+  let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EVar v -> evar v (Marked.get_mark e)
+  | EVar v -> evar (translate_var v) m
   | EApp (e1, args) ->
-    eapp (f ctx e1) (List.map (f ctx) args) (Marked.get_mark e)
+    eapp (f ctx e1) (List.map (f ctx) args) m
   | EAbs (binder, typs) ->
-    eabs (Bindlib.box_mbinder (f ctx) binder) typs (Marked.get_mark e)
-  | ETuple (args, s) -> etuple (List.map (f ctx) args) s (Marked.get_mark e)
+    let vars, body = Bindlib.unmbind binder in
+    eabs
+      (Bindlib.bind_mvar (Array.map translate_var vars) (f ctx body))
+      typs
+      m
+  | ETuple (args, s) -> etuple (List.map (f ctx) args) s m
   | ETupleAccess (e1, n, s_name, typs) ->
-    etupleaccess ((f ctx) e1) n s_name typs (Marked.get_mark e)
+    etupleaccess ((f ctx) e1) n s_name typs m
   | EInj (e1, i, e_name, typs) ->
-    einj ((f ctx) e1) i e_name typs (Marked.get_mark e)
+    einj ((f ctx) e1) i e_name typs m
   | EMatch (arg, arms, e_name) ->
-    ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Marked.get_mark e)
-  | EArray args -> earray (List.map (f ctx) args) (Marked.get_mark e)
-  | ELit l -> elit l (Marked.get_mark e)
-  | EAssert e1 -> eassert ((f ctx) e1) (Marked.get_mark e)
-  | EOp op -> Bindlib.box (EOp op, Marked.get_mark e)
+    ematch ((f ctx) arg) (List.map (f ctx) arms) e_name m
+  | EArray args -> earray (List.map (f ctx) args) m
+  | ELit l -> elit l m
+  | EAssert e1 -> eassert ((f ctx) e1) m
+  | EOp op -> Bindlib.box (EOp op, m)
   | EDefault (excepts, just, cons) ->
     edefault
       (List.map (f ctx) excepts)
       ((f ctx) just)
       ((f ctx) cons)
-      (Marked.get_mark e)
+      m
   | EIfThenElse (e1, e2, e3) ->
-    eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Marked.get_mark e)
-  | ErrorOnEmpty e1 -> eerroronempty ((f ctx) e1) (Marked.get_mark e)
+    eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) m
+  | ErrorOnEmpty e1 -> eerroronempty ((f ctx) e1) m
+
+let rec map_expr_top_down ~f e =
+  map_expr () ~f:(fun () -> map_expr_top_down ~f) (f e)
+
+let map_expr_marks ~f e =
+  Bindlib.unbox @@
+  map_expr_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
+
+let untype_expr e =
+  map_expr_marks ~f:(fun m -> Untyped {pos=mark_pos m}) e
 
 type ('expr, 'm) box_expr_sig =
   ('expr, 'm) marked -> ('expr, 'm) marked Bindlib.box

@@ -192,10 +192,6 @@ type env = typ Marked.pos UnionFind.elem A.VarMap.t
 let add_pos e ty = Marked.mark (A.pos e) ty
 let ty (_, A.Typed { ty; _ }) = ty
 
-(** used to convert an [untyped expr var] into a [typed expr var] *)
-let translate_var: 'm1 A.var -> 'm2 A.var =
-  fun v -> Bindlib.copy_var v (fun x -> A.EVar x) (Bindlib.name_of v)
-
 let (let+) x f = Bindlib.box_apply f x
 let (and+) x1 x2 = Bindlib.box_pair x1 x2
 
@@ -234,7 +230,7 @@ let rec typecheck_expr_bottom_up
     | A.EVar v -> begin
       match A.VarMap.find_opt (A.Var.t v) env with
       | Some t ->
-        let+ v' = Bindlib.box_var (translate_var v) in
+        let+ v' = Bindlib.box_var (A.translate_var v) in
         mark v' t
       | None ->
         Errors.raise_spanned_error (A.pos e)
@@ -311,7 +307,7 @@ let rec typecheck_expr_bottom_up
           (Bindlib.mbinder_arity binder) (List.length taus)
       else
         let xs, body = Bindlib.unmbind binder in
-        let xs' = Array.map translate_var xs in
+        let xs' = Array.map A.translate_var xs in
         let xstaus =
           List.mapi (fun i tau ->
               xs'.(i), ast_to_typ tau)
@@ -413,7 +409,7 @@ and typecheck_expr_top_down
     match Marked.unmark e with
     | A.EVar v -> begin
         match A.VarMap.find_opt (A.Var.t v) env with
-        | Some tau' -> let+ v' = Bindlib.box_var (translate_var v) in
+        | Some tau' -> let+ v' = Bindlib.box_var (A.translate_var v) in
           unify_and_mark v' tau'
         | None ->
           Errors.raise_spanned_error (A.pos e)
@@ -491,7 +487,7 @@ and typecheck_expr_top_down
           (Bindlib.mbinder_arity binder) (List.length t_args)
       else
       let xs, body = Bindlib.unmbind binder in
-      let xs' = Array.map translate_var xs in
+      let xs' = Array.map A.translate_var xs in
       let xstaus =
         List.map2
           (fun x t_arg ->
@@ -624,7 +620,7 @@ let infer_types_program prg =
           let var, next = Bindlib.unbind scope_let_next in
           let env = A.VarMap.add (A.Var.t var) ty env in
           let next = process_scope_body_expr env next in
-          let scope_let_next = Bindlib.bind_var (translate_var var) next in
+          let scope_let_next = Bindlib.bind_var (A.translate_var var) next in
           Bindlib.box_apply2 (fun scope_let_expr scope_let_next ->
               A.ScopeLet {
                 scope_let_kind;
@@ -638,14 +634,14 @@ let infer_types_program prg =
       let scope_body_expr =
         let var, e = Bindlib.unbind body in
         let env = A.VarMap.add (A.Var.t var) ty_in env in
-        Bindlib.bind_var (translate_var var)
+        Bindlib.bind_var (A.translate_var var)
           (process_scope_body_expr env e)
       in
       let scope_next =
         let scope_var, next = Bindlib.unbind scope_next in
         let env = A.VarMap.add (A.Var.t scope_var) ty_scope env in
         let next = process_scopes env next in
-        Bindlib.bind_var (translate_var scope_var) next;
+        Bindlib.bind_var (A.translate_var scope_var) next;
       in
       Bindlib.box_apply2 (fun scope_body_expr scope_next ->
           A.ScopeDef {
