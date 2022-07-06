@@ -67,7 +67,7 @@ class type source_position =
     method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
   end
 
-class type log_event =
+class type raw_event =
   object
     method eventType : Js.js_string Js.t Js.prop
     method information : Js.js_string Js.t Js.js_array Js.t Js.prop
@@ -75,13 +75,31 @@ class type log_event =
     method loggedValueJson : Js.js_string Js.t Js.prop
   end
 
+class type event =
+  object
+    method data : Js.js_string Js.t Js.prop
+  end
+
 let _ =
   Js.export_all
     (object%js
        method resetLog : (unit -> unit) Js.callback = Js.wrap_callback reset_log
 
-       method retrieveLog
-           : (unit -> log_event Js.t Js.js_array Js.t) Js.callback =
+       method retrieveEvents : (unit -> event Js.t Js.js_array Js.t) Js.callback
+           =
+         Js.wrap_callback (fun () ->
+             Js.array
+               (Array.of_list
+                  (retrieve_log () |> EventParser.parse_raw_events
+                  |> List.map (fun event ->
+                         object%js
+                           val mutable data =
+                             event |> Runtime.yojson_of_event
+                             |> Yojson.Safe.to_string |> Js.string
+                         end))))
+
+       method retrieveRawEvents
+           : (unit -> raw_event Js.t Js.js_array Js.t) Js.callback =
          Js.wrap_callback (fun () ->
              Js.array
                (Array.of_list

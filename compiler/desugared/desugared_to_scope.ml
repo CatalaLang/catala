@@ -361,7 +361,7 @@ let translate_def
   let top_list = def_map_to_tree def_info def in
   let top_value =
     (if is_cond then Ast.always_false_rule else Ast.empty_rule)
-      Pos.no_pos is_def_func_param_typ
+      (Pos.get_position typ) is_def_func_param_typ
   in
   if
     Ast.RuleMap.cardinal def = 0

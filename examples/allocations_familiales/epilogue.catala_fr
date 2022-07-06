@@ -1,6 +1,6 @@
-## Épilogue
+# Épilogue
 
-### Règles diverses
+## Règles diverses
 
 Les textes législatifs et règlementaires contiennent toutes les informations
 kécessaires au calcul. Cependant, certaines règles de calcul sont implicites
@@ -52,7 +52,7 @@ champ d'application AllocationsFamiliales:
     sinon 0€
 ```
 
-### Interface du programme
+## Interface du programme
 
 Le calcul des allocations familiales nécessite un certain nombre d'informations
 sur les enfants à charge. Certaines de ces informations sont dépendantes les
@@ -102,9 +102,9 @@ champ d'application InterfaceAllocationsFamiliales:
   conséquence rempli
 ```
 
-#### Code de l'éducation
+### Code de l'éducation
 
-#### Article L131-1|LEGIARTI000038901859
+### Article L131-1|LEGIARTI000038901859
 
 L'instruction est obligatoire pour chaque enfant dès l'âge de trois ans et
 jusqu'à l'âge de seize ans.

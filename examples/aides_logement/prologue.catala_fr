@@ -1,7 +1,7 @@
-# Prologue : allocations logement
+# Prologue : aides au logement
 
 Avant de présenter les textes réglementaires qui régissent le calcul des
-allocations logement, il est nécessaire de définir les structures de données
+aides au logement, il est nécessaire de définir les structures de données
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 Vous pouvez passer cette section pour aller directement au textes législatifs
 dans les sections suivantes.
@@ -1094,7 +1094,7 @@ champ d'application CalculetteAidesAuLogement:
 
 ## Calculette avec garde alternée
 
-Afin de calculer l'impact de la garde alternée sur les allocations logement,
+Afin de calculer l'impact de la garde alternée sur les aides au logement,
 il est nécessaire de réaliser une double liquidation du calcul des aides
 au logement. Voir le code Catala attaché à la décision n°398563 du conseil
 d'État.

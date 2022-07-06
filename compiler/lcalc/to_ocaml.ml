@@ -357,7 +357,7 @@ let rec format_expr
       format_binop (op, Pos.no_pos) format_with_parens arg2
   | EApp ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [f]), _), [arg])
     when !Cli.trace_flag ->
-    Format.fprintf fmt "(log_begin_call@ %a@ %a@ %a)" format_uid_list info
+    Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
   | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [arg1])
     when !Cli.trace_flag ->

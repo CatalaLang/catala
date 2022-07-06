@@ -16,6 +16,9 @@ jobs:
       - name: update flake.lock
         run: |
           nix flake update
+      - name: check it builds
+        run: |
+          nix build
       - name: commit changes
         uses: EndBug/add-and-commit@v9
         with:

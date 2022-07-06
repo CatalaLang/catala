@@ -141,7 +141,7 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
       "style=colorful,anchorlinenos=True,lineanchors=\""
       ^ Pos.get_file (Pos.get_position c)
       ^ "\",linenos=table,linenostart="
-      ^ string_of_int (Pos.get_start_line (Pos.get_position c));
+      ^ string_of_int (Pos.get_start_line (Pos.get_position c) - 1);
       "-o";
       temp_file_out;
       temp_file_in;
