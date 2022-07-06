@@ -265,7 +265,7 @@ let rec law_structure_to_latex
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
        break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
-       \\begin{minted}[numbersep=9mm, firstnumber=%d, \
+       \\begin{minted}[numbersep=9mm, firstnumber=%d, breaklines, \
        label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
        ```catala\n\
        %s```\n\
