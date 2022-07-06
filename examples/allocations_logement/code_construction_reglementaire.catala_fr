@@ -1382,6 +1382,21 @@ location-accession, par les règles figurant aux articles R. 842-5
 et D. 842-6 à D. 842-13.
 
 ```catala
+champ d'application CalculAllocationLogement:
+  définition catégorie_calcul_apl égal à
+    selon mode_occupation sous forme
+    -- Locataire: Location
+    -- SousLocataire: Location
+    -- RésidentLogementFoyer: CatégorieCalculAPL.LogementFoyer
+    -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriété
+    -- LocationAccession: AccessionPropriété
+
+  définition aide_finale égal à
+    selon catégorie_calcul_apl sous forme
+    -- Location: locatif.aide_finale
+    -- LogementFoyer: logement_foyer.allocation_mensuelle
+    -- AccessionPropriété : accession_propriété.allocation_mensuelle
+
 champ d'application CalculAidePersonnaliséeLogement:
   définition catégorie_calcul_apl égal à
     selon mode_occupation sous forme
@@ -1491,12 +1506,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       infos.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     -- InfosLogementFoyer: faux # Valeur par défaut
     -- InfosAccessionPropriété: faux # Valeur par défaut
-  définition locatif.type_aide égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.type_aide
-    -- InfosLogementFoyer: AidePersonnaliséeLogement # Valeur par défaut
-    -- InfosAccessionPropriété: AidePersonnaliséeLogement # Valeur par défaut
+  définition locatif.type_aide égal à type_aide
   définition locatif.réduction_loyer_solidarité égal à
     selon informations_calcul sous forme
     -- InfosLocatif de infos: infos.réduction_loyer_solidarité
@@ -1630,12 +1640,7 @@ champ d'application CalculAllocationLogement:
       infos.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     -- InfosLogementFoyer: faux # Valeur par défaut
     -- InfosAccessionPropriété: faux # Valeur par défaut
-  définition locatif.type_aide égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.type_aide
-    -- InfosLogementFoyer: AidePersonnaliséeLogement # Valeur par défaut
-    -- InfosAccessionPropriété: AidePersonnaliséeLogement # Valeur par défaut
+  définition locatif.type_aide égal à type_aide
   définition locatif.réduction_loyer_solidarité égal à
     selon informations_calcul sous forme
     -- InfosLocatif de infos: infos.réduction_loyer_solidarité
@@ -1662,7 +1667,7 @@ champ d'application CalculAllocationLogement:
     -- InfosLocatif: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
     -- InfosLogementFoyer: TypeTravauxLogementR842_5.PasDeTravaux
     # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.type_travaux_logement_r832_5
+    -- InfosAccessionPropriété de infos: infos.type_travaux_logement_r842_5
   définition accession_propriété.date_signature_prêt égal à
     selon informations_calcul sous forme
     -- InfosLocatif: |2010-01-01| # Valeur par défaut
@@ -2104,7 +2109,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse: faux
       -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse: vrai
       -- DernierJourMoisPrécédantDateDeNaissance de date_naissance:
-        date_ouverture_droits <=@ date_naissance +@ 2 an)
+        date_courante <=@ date_naissance +@ 2 an)
     )
   conséquence rempli
 
@@ -4120,6 +4125,10 @@ due est fixée à cinq ans.
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
   définition durée_l841_1_3 égal à 5 an
+
+  # TODO informatique et juridique: enlever cette valeur aléatoire quand
+  # on saura où elle est définie dans les textes.
+  définition âge_l841_1_4 égal à 65 an
 ```
 
 ####### Article R841-2 | LEGIARTI000038878696
@@ -4254,11 +4263,15 @@ conditions de décence ;
 # les travaux arrivent ultérieurement, dans ce cas c’est le 2°."
 champ d'application ÉligibilitéAllocationLogement:
   règle condition_logement sous condition
-    selon mode_occupation sous forme
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
-       (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
-         ou type_travaux_logement sous forme ObjectifDécenceLogement)
+    selon informations_calcul sous forme
+    -- InfosAccessionPropriété de infos: (
+      selon ménage.logement.mode_occupation sous forme
+      -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+         propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+         (infos.type_travaux_logement_r842_5 sous forme
+           TypeTravauxLogementR842_5.PasDeTravaux
+           ou infos.type_travaux_logement_r842_5 sous forme ObjectifDécenceLogement)
+      -- n'importe quel: faux)
     -- n'importe quel: faux
   conséquence rempli
 ```
@@ -4269,10 +4282,13 @@ figurant sur la liste mentionnée à l'article R. 321-15 ;
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
   règle condition_logement sous condition
-    selon mode_occupation sous forme
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
-       type_travaux_logement sous forme PrévuDansListeR321_15
+    selon informations_calcul sous forme
+    -- InfosAccessionPropriété de infos: (
+      selon ménage.logement.mode_occupation sous forme
+      -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+         propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+         infos.type_travaux_logement_r842_5 sous forme PrévuDansListeR321_15
+      -- n'importe quel: faux)
     -- n'importe quel: faux
   conséquence rempli
 ```
@@ -4285,10 +4301,14 @@ mentionnés à l'article D. 331-63.
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
   règle condition_logement sous condition
-    selon mode_occupation sous forme
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
-       type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63
+    selon informations_calcul sous forme
+    -- InfosAccessionPropriété de infos: (
+      selon ménage.logement.mode_occupation sous forme
+      -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+         propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+         infos.type_travaux_logement_r842_5 sous forme
+            AgrandirOuRendreHabitableD331_63
+      -- n'importe quel: faux)
     -- n'importe quel: faux
   conséquence rempli
 ```
@@ -4696,6 +4716,14 @@ champ d'application CalculAllocationLogementFoyer:
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
+
+champ d'application CalculAllocationLogement:
+  # TODO informatique: mieux gérer où on fait l'arrondi des ressources parce
+  # que là par exemple c'est pas explicitement précisé dans la loi.
+  définition ressources_ménage état avec_arrondi égal à
+    # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
+    # exemples pour vous en convaincre, dont 100 et 150.
+    arrondi_argent de ((ressources_ménage +€ 49,99€) *€ 1%) *€ 100,0
 ```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions

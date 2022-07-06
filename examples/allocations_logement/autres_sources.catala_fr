@@ -30,9 +30,46 @@ Couple marié   17 079,77 €    1 423,31 €
 # aux APL
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition plafond_individuel_l815_9_sécu sous condition
-    date_ouverture_droits >=@ |2022-01-01| et
-    date_ouverture_droits <@ |2023-01-01|
+    date_courante >=@ |2022-01-01| et
+    date_courante <@ |2023-01-01|
   conséquence égal à 11 001,44€
+```
+
+# Circulaire de la CNAV 2021-1 du 11/01/2021 "Revalorisation à compter du 1er janvier 2021"
+
+[Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2021_01_11012021.pdf)
+
+
+## Allocation de solidarité aux personnes âgées
+
+
+Le montant de l’Aspa s’élève, à compter du 1er janvier 2022, à :
+
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- ---------------
+Personne seule 10 881,75 €    906,81 €
+Couple marié   16 893,94 €    1 407,82 €
+
+```catala
+# Pas important pour nous
+```
+
+
+Pour prétendre à cette allocation non contributive, les plafonds de ressources sont fixés à:
+
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- -----------------
+Personne seule 10 881,75 €    906,81 €
+Couple marié   16 893,94 €    1 407,82 €
+
+```catala
+# Uniquement la valeur du plafond individuel est important pour l'éligibilité
+# aux APL
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition plafond_individuel_l815_9_sécu sous condition
+    date_courante >=@ |2021-01-01| et
+    date_courante <@ |2022-01-01|
+  conséquence égal à 10 881,75€
 ```
 
 # Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale

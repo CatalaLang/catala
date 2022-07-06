@@ -555,7 +555,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
   règle éligibilité_logement sous condition
     éligibilité_apl.éligibilité et condition_rang_enfant et
     condition_période_déménagement et
-    éligibilité_apl.date_ouverture_droits -@ date_emménagement
+    éligibilité_apl.date_courante -@ date_emménagement
      <=^ délai_après_emménagement_l823_8_2
   conséquence rempli
 ```
@@ -1047,13 +1047,62 @@ de logement sociale.
 # d'ALF/ALS et supérieur au montant d'APL.
 champ d'application ÉligibilitéAllocationLogement:
   définition éligibilité état l841_2 égal à
-    si éligibilité = PasÉligible ou bénéficie_aide_personnelle_logement alors
+    si éligibilité = PasÉligible ou bénéficie_aide_personnalisée_logement alors
       PasÉligible
     sinon (si éligibilité_allocation_logement_familiale alors
      ÉligibilitéAllocationLogement.AllocationLogementFamiliale
     sinon (si éligibilité_allocation_logement_sociale alors
      ÉligibilitéAllocationLogement.AllocationLogementSociale
     sinon PasÉligible))
+
+champ d'application CalculetteAidesAuLogement:
+  # Le champ d'application CalculetteAidesAuLogement suppose un scenario type
+  # formulaire de la CNAF qui va déterminer automatiquement la meilleure
+  # aide au logement pour un ménage qui n'en bénéficie pas encore. Donc, dans
+  # ce scénario, le ménage ne bénéficie pas encore de l'aide personnalisée
+  # au logement et nous pouvons évaluser l'éligibilité à l'allocation logement
+  # indépendamment de ce fait.
+  définition
+    éligibilité_allocation_logement.bénéficie_aide_personnalisée_logement
+  égal à faux
+
+  # Nous mettons ici la logique de notre interprétation de l'article L841-2
+  # qui prend le maximum des deux types d'aide.
+  définition éligibilité égal à
+    éligibilité_aide_personnalisée_logement.éligibilité ou
+    (selon éligibilité_allocation_logement.éligibilité sous forme
+      -- PasÉligible: faux
+      -- ÉligibilitéAllocationLogement.AllocationLogementFamiliale: vrai
+      -- ÉligibilitéAllocationLogement.AllocationLogementSociale: vrai)
+
+  # Pour chaque calcul d'aide potentielle à donner, on suppose que c'est
+  # cette aide qui est donnée.
+  définition calcul_aide_personnalisée_logement.type_aide égal à
+    TypeAidesPersonnelleLogement.AidePersonnaliséeLogement
+  définition calcul_allocation_logement.type_aide égal à
+    (selon éligibilité_allocation_logement.éligibilité sous forme
+      -- PasÉligible:
+        # Valeur par défaut, ne sera pas utilisée
+        TypeAidesPersonnelleLogement.AllocationLogementSociale
+      -- ÉligibilitéAllocationLogement.AllocationLogementFamiliale:
+        TypeAidesPersonnelleLogement.AllocationLogementFamiliale
+      -- ÉligibilitéAllocationLogement.AllocationLogementSociale:
+        TypeAidesPersonnelleLogement.AllocationLogementSociale)
+
+  définition montant_versé égal à
+    si non éligibilité alors 0 € sinon si
+      éligibilité_aide_personnalisée_logement.éligibilité et
+      non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
+    alors
+      (si calcul_aide_personnalisée_logement.aide_finale >€
+        calcul_allocation_logement.aide_finale
+      alors
+        calcul_aide_personnalisée_logement.aide_finale
+      sinon
+        calcul_allocation_logement.aide_finale)
+    sinon si éligibilité_aide_personnalisée_logement.éligibilité
+    alors calcul_aide_personnalisée_logement.aide_finale
+    sinon calcul_allocation_logement.aide_finale
 ```
 
 ###### Article L841-3 | LEGIARTI000038814860
@@ -1064,7 +1113,7 @@ soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la s
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
   règle éligibilité_allocation_logement_sociale sous condition
-    personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
+    demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
   conséquence rempli
 ```
 
@@ -1076,7 +1125,7 @@ l'habitation signés après le 31 décembre 2017.
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
   exception définition éligibilité état l841_2 sous condition
-    selon mode_occupation sous forme
+    selon ménage.logement.mode_occupation sous forme
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       propriétaire.prêt.date_signature >@ |2017-12-31|
     -- n'importe quel: faux

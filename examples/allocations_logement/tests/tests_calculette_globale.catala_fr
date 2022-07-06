@@ -1,0 +1,105 @@
+> Inclusion: ../allocations_logement.catala_fr
+
+# Tests
+
+```catala
+déclaration champ d'application Exemple1 :
+  calculette champ d'application CalculetteAidesAuLogement
+  sortie éligibilité contenu booléen
+  sortie montant_versé contenu argent
+
+champ d'application Exemple1 :
+  définition éligibilité égal à calculette.éligibilité
+  définition montant_versé égal à calculette.montant_versé
+  définition calculette.date_courante égal à |2022-01-01|
+  définition calculette.ménage égal à Ménage {
+   -- prestations_reçues: [
+     PrestationReçue.AllocationSoutienEnfantHandicapé;
+     PrestationReçue.ComplémentFamilial;
+     PrestationReçue.AllocationsFamiliales
+   ]
+   -- situation_familiale: Mariés contenu |2010-11-26|
+   -- personnes_à_charge: [
+     EnfantÀCharge contenu (EnfantÀCharge {
+       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
+       -- âge : 19
+       -- identifiant: 0
+       -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+       -- date_de_naissance: |2001-01-01|
+       -- rémuneration_mensuelle: 0€
+       -- obligation_scolaire: Après
+     }); EnfantÀCharge contenu (EnfantÀCharge {
+       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
+       -- âge : 11
+       -- identifiant: 1
+       -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+       -- date_de_naissance: |2009-01-01|
+       -- rémuneration_mensuelle: 0€
+       -- obligation_scolaire: Pendant
+     }); EnfantÀCharge contenu (EnfantÀCharge {
+       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
+       -- âge : 8
+       -- identifiant: 2
+       -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+       -- date_de_naissance: |2012-01-01|
+       -- rémuneration_mensuelle: 0€
+       -- obligation_scolaire: Pendant
+     })]
+   -- logement: Logement {
+     -- zone: Zone1
+     -- résidence_principale : vrai
+     -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
+     -- mode_occupation : Locataire contenu (Location {
+       -- bailleur: Bailleur {
+         -- type_bailleur: BailleurPrivé
+         -- respecte_convention_titre_V: vrai
+         -- respecte_convention_titre_II: vrai
+         -- construit_amélioré_conditions_l831_1_4: faux
+         -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+
+       }
+     })
+     -- propriétaire : ParentOuAutre.Autre
+     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
+     -- usufruit : ParentOuAutre.Autre
+     -- logement_decent_l89_462 : vrai
+     -- loyers_l823_3 : 700€
+     -- surface_m_carrés : 80
+     -- est_ancien_l831_2 : faux
+     -- situé_commune_déséquilibre_l831_2 : faux
+   }
+   -- nombre_autres_occupants_logement: 1
+   -- condition_rattaché_foyer_fiscal_parent_ifi: faux
+   -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
+   -- enfant_à_naître_après_quatrième_mois_grossesse: faux
+   -- date_naissance_troisième_enfant_ou_dernier_si_plus :
+     PlusDeTroisEnfants contenu (DernierJourMoisPrécédantDateDeNaissance contenu |2014-08-30|)
+  }
+  définition calculette.demandeur égal à Demandeur {
+    -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
+    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
+    -- age_demandeur : 52
+    -- date_naissance : |1970-05-02|
+    -- contrat_de_travail : CDI
+    -- nationalité : Française
+    -- patrimoine : Patrimoine {
+      -- produisant_revenu_période_r822_3_3_r822_4: 0€
+      -- ne_produisant_pas_revenu_période_r822_3_3_r822_4: 0€
+      }
+    }
+  définition calculette.informations_calcul égal à
+    InfosLocatif contenu (InformationsCalculAPLLocatif {
+      -- loyer_principal: 1700 €
+      -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
+      -- logement_est_chambre: faux
+      -- colocation: faux
+      -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+      -- réduction_loyer_solidarité: 0€
+      -- logement_meublé_d842_2: faux
+      -- changement_logement_d842_4: PasDeChangement
+    })
+  définition calculette.ressources_ménage_prises_en_compte égal à 30 000 €
+```

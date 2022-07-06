@@ -326,18 +326,18 @@ janvier 2019 et à 10 838,40 euros par an à compter du 1er janvier 2020 ;
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition plafond_individuel_l815_9_sécu sous condition
-    date_ouverture_droits >=@ |2018-01-04| et
-     date_ouverture_droits <@ |2019-01-01|
+    date_courante >=@ |2018-01-04| et
+     date_courante <@ |2019-01-01|
   conséquence égal à 9 998,40€
 
   définition plafond_individuel_l815_9_sécu sous condition
-    date_ouverture_droits >=@ |2019-01-01| et
-     date_ouverture_droits <@ |2020-01-01|
+    date_courante >=@ |2019-01-01| et
+     date_courante <@ |2020-01-01|
   conséquence égal à 10 418,40€
 
   définition plafond_individuel_l815_9_sécu sous condition
-    date_ouverture_droits >=@ |2020-01-04| et
-     date_ouverture_droits <@ |2021-01-01|
+    date_courante >=@ |2020-01-04| et
+     date_courante <@ |2021-01-01|
   conséquence égal à 10 838,40€
 
 # TODO juridique: trouver les décrets définissant les montants pour
