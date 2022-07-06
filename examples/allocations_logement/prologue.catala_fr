@@ -339,6 +339,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier
   sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
+  sortie condition_2_r823_4 condition dépend de PersonneÀCharge
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique et juridique: trouver une meilleur place pour mettre
@@ -420,7 +421,6 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
 
   interne éligibilité_allocation_logement_familiale condition
   interne éligibilité_allocation_logement_sociale condition
-  interne âge_l841_1_4 contenu durée
   interne durée_l841_1_3 contenu durée
 
   prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales

@@ -967,16 +967,14 @@ champ d'application ÉligibilitéAllocationLogement:
 un âge déterminé ;
 
 ```catala
+# Selon mail de DGALN/DHUP/FE4 du 06/07/2022, l'expression "âge déterminé" ici
+# renvoie au 2° du R823-4 du même code.
 champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_4 exception l841_1_3
   règle éligibilité_allocation_logement_familiale
   sous condition
     (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-      (selon personne_à_charge sous forme
-      -- AutrePersonneÀCharge de parent:
-        parent.AutrePersonneÀCharge.âge >=^ âge_l841_1_4
-      -- EnfantÀCharge de enfant: faux
-    )) >= 1
+      éligibilité_commune.condition_2_r823_4 de personne_à_charge) >= 1
   conséquence rempli
 ```
 

@@ -1167,8 +1167,7 @@ code ;
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  étiquette r823_4_2
-  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+  règle condition_2_r823_4 de personne_à_charge sous condition
     selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
@@ -1183,6 +1182,11 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
           (parent.AutrePersonneÀCharge.âge >=^ âge_l161_17_2_sécu et
             parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
         )
+  conséquence rempli
+
+  étiquette r823_4_2
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    condition_2_r823_4 de personne_à_charge
   conséquence rempli
 ```
 
@@ -4064,15 +4068,6 @@ est majoré d'un montant forfaitaire, le total étant alors divisé par douze.
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle
 dans lequel se situent les ressources.
 
-```catala
-# TODO juridique et informatique : que veut dire la phrase "Les pourcentages
-# et le coefficient " N " sont appliqués à la limite supérieure de
-# l'intervalle dans lequel se situent les ressources" ? Parce que pour la
-# tranche la plus haute il n'y a pas de limite supérieure, donc qu'est-ce
-# qu'on fait ? Est-ce qu'on prend comme revenu la limite supérieure de la
-# tranche sauf pour la dernière ? Ambiguité.
-```
-
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre II du
 titre II du présent livre et arrondies à la centaine d'euros supérieure.
 
@@ -4125,10 +4120,6 @@ due est fixée à cinq ans.
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
   définition durée_l841_1_3 égal à 5 an
-
-  # TODO informatique et juridique: enlever cette valeur aléatoire quand
-  # on saura où elle est définie dans les textes.
-  définition âge_l841_1_4 égal à 65 an
 ```
 
 ####### Article R841-2 | LEGIARTI000038878696
