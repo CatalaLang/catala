@@ -99,7 +99,7 @@ let base_day = CalendarLib.Date.make 1900 1 1
 
 (** [unique_name] returns the full, unique name corresponding to variable [v],
     as given by Bindlib **)
-let unique_name (v : Var.t) : string =
+let unique_name (v : 'm var) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 (** [date_to_int] translates [date] to an integer corresponding to the number of
@@ -223,7 +223,7 @@ let print_model (ctx : context) (model : Model.model) : string =
              let v = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
+               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of (Var.get v)))
                (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
          else
            (* Declaration d is a function *)
@@ -238,7 +238,7 @@ let print_model (ctx : context) (model : Model.model) : string =
              let v = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
+               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of (Var.get v)))
                (* TODO: Model of a Z3 function should be pretty-printed *)
                (Model.FuncInterp.to_string f)))
     decls
@@ -396,7 +396,7 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) :
     | TArrow (t1, t2) ->
       let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
-      let name = unique_name v in
+      let name = unique_name (Var.get v) in
       let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ctx in
@@ -415,7 +415,7 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) :
 let rec translate_op
     (ctx : context)
     (op : operator)
-    (args : expr Marked.pos list) : context * Expr.expr =
+    (args : 'm marked_expr list) : context * Expr.expr =
   match op with
   | Ternop _top ->
     let _e1, _e2, _e3 =
@@ -426,7 +426,7 @@ let rec translate_op
           (Format.asprintf
              "[Z3 encoding] Ill-formed ternary operator application: %a"
              (Print.format_expr ctx.ctx_decl)
-             (EApp ((EOp op, Pos.no_pos), args), Pos.no_pos))
+             (EApp ((EOp op, Untyped {pos=Pos.no_pos}), (List.map untype_expr args)), Untyped {pos=Pos.no_pos}))
     in
 
     failwith "[Z3 encoding] ternary operator application not supported"
@@ -514,7 +514,7 @@ let rec translate_op
             (Format.asprintf
                "[Z3 encoding] Ill-formed binary operator application: %a"
                (Print.format_expr ctx.ctx_decl)
-               (EApp ((EOp op, Pos.no_pos), args), Pos.no_pos))
+               (EApp ((EOp op, Untyped{pos=Pos.no_pos}), List.map untype_expr args), Untyped{pos=Pos.no_pos}))
       in
 
       match bop with
@@ -561,7 +561,7 @@ let rec translate_op
           (Format.asprintf
              "[Z3 encoding] Ill-formed unary operator application: %a"
              (Print.format_expr ctx.ctx_decl)
-             (EApp ((EOp op, Pos.no_pos), args), Pos.no_pos))
+             (EApp ((EOp op, Untyped{pos=Pos.no_pos}), List.map untype_expr args), Untyped{pos=Pos.no_pos}))
     in
 
     match uop with
@@ -593,12 +593,12 @@ let rec translate_op
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
+and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr
     =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)
-      (e : expr Marked.pos * FuncDecl.func_decl list) : context * Expr.expr =
+      (e : 'm marked_expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Marked.unmark e with
     | EAbs (e, _) ->
@@ -611,7 +611,7 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
       let proj = Expr.mk_app ctx.ctx_z3 accessor [head] in
       (* The fresh variable should be substituted by a projection into the enum
          in the body, we add this to the context *)
-      let ctx = add_z3matchsubst fresh_v proj ctx in
+      let ctx = add_z3matchsubst (Var.t fresh_v) proj ctx in
 
       let body = Bindlib.msubst e [| fresh_e |] in
       translate_expr ctx body
@@ -621,12 +621,12 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
 
   match Marked.unmark vc with
   | EVar v -> (
-    match VarMap.find_opt v ctx.ctx_z3matchsubsts with
+    match VarMap.find_opt (Var.t v) ctx.ctx_z3matchsubsts with
     | None ->
       (* We are in the standard case, where this is a true Catala variable *)
-      let t = VarMap.find v ctx.ctx_var in
+      let t = VarMap.find (Var.t v) ctx.ctx_var in
       let name = unique_name v in
-      let ctx = add_z3var name v ctx in
+      let ctx = add_z3var name (Var.t v) ctx in
       let ctx, ty = translate_typ ctx (Marked.unmark t) in
       let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
       let ctx =
@@ -698,7 +698,7 @@ and translate_expr (ctx : context) (vc : expr Marked.pos) : context * Expr.expr
     match Marked.unmark head with
     | EOp op -> translate_op ctx op args
     | EVar v ->
-      let ctx, fd = find_or_create_funcdecl ctx v in
+      let ctx, fd = find_or_create_funcdecl ctx (Var.t v) in
       (* Fold_right to preserve the order of the arguments: The head argument is
          appended at the head *)
       let ctx, z3_args =
@@ -768,7 +768,7 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
-  let translate_expr (ctx : backend_context) (e : Dcalc.Ast.expr Marked.pos) =
+  let translate_expr (ctx : backend_context) (e : 'm marked_expr) =
     translate_expr ctx e
 
   let init_backend () =

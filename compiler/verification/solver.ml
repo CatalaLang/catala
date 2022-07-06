@@ -21,7 +21,7 @@ open Dcalc.Ast
     discharged by Z3, and attempts to solve them **)
 let solve_vc
     (decl_ctx : decl_ctx)
-    (vcs : Conditions.verification_condition list) : unit =
+    (vcs : 'm Conditions.verification_condition list) : unit =
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)
   Z3backend.Io.init_backend ();

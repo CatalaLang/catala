@@ -418,6 +418,7 @@ module Var : sig
   val t: 'm expr Bindlib.var -> t
   val get: t -> 'm expr Bindlib.var
   val compare : t -> t -> int
+  val eq : t -> t -> bool
 end
 
 module VarMap : Map.S with type key = Var.t

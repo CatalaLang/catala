@@ -439,6 +439,8 @@ module Var = struct
   let get (V v) = Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
 
   let compare (V x) (V y) = Bindlib.compare_vars x y
+
+  let eq (V x) (V y) = Bindlib.eq_vars x y
 end
 
 module VarSet = Set.Make (Var)

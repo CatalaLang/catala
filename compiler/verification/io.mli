@@ -39,7 +39,7 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context -> Dcalc.Ast.typed_expr -> backend_context * vc_encoding
+    backend_context -> 'm Dcalc.Ast.marked_expr -> backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -55,7 +55,7 @@ module type BackendIO = sig
   type vc_encoding
 
   val translate_expr :
-    backend_context -> Dcalc.Ast.typed_expr -> backend_context * vc_encoding
+    backend_context -> 'm Dcalc.Ast.marked_expr -> backend_context * vc_encoding
 
   type model
 
@@ -63,17 +63,17 @@ module type BackendIO = sig
     | Success of vc_encoding * backend_context
     | Fail of string
 
-  val print_positive_result : Conditions.verification_condition -> string
+  val print_positive_result : 'm Conditions.verification_condition -> string
 
   val print_negative_result :
-    Conditions.verification_condition ->
+    'm Conditions.verification_condition ->
     backend_context ->
     model option ->
     string
 
   val encode_and_check_vc :
     Dcalc.Ast.decl_ctx ->
-    Conditions.verification_condition * vc_encoding_result ->
+    'm Conditions.verification_condition * vc_encoding_result ->
     unit
 end
 
