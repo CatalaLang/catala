@@ -28,6 +28,7 @@ assertion éligible
       -- date_de_naissance: |2001-01-01|
       -- rémuneration_mensuelle: 0€
       -- obligation_scolaire: Après
+      -- situation_garde_alternée: PasDeGardeAlternée
     }); EnfantÀCharge contenu (EnfantÀCharge {
       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
@@ -37,6 +38,7 @@ assertion éligible
       -- date_de_naissance: |2009-01-01|
       -- rémuneration_mensuelle: 0€
       -- obligation_scolaire: Pendant
+      -- situation_garde_alternée: PasDeGardeAlternée
     }); EnfantÀCharge contenu (EnfantÀCharge {
       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
@@ -46,6 +48,7 @@ assertion éligible
       -- date_de_naissance: |2012-01-01|
       -- rémuneration_mensuelle: 0€
       -- obligation_scolaire: Pendant
+      -- situation_garde_alternée: PasDeGardeAlternée
     })]
   -- logement: Logement {
     -- résidence_principale : vrai

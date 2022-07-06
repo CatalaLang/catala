@@ -169,6 +169,10 @@ déclaration structure Logement:
   donnée situé_commune_déséquilibre_l831_2 contenu booléen
   donnée zone contenu ZoneDHabitation
 
+déclaration énumération SituationGardeAlternée:
+  -- PasDeGardeAlternée
+  -- GardeAlternéeCoefficientPriseEnCharge contenu décimal
+
 déclaration structure EnfantÀCharge:
   donnée identifiant contenu entier
   donnée bénéficie_titre_personnel_aide_personnelle_logement
@@ -179,6 +183,7 @@ déclaration structure EnfantÀCharge:
   donnée obligation_scolaire contenu SituationObligationScolaire
   donnée prise_en_charge contenu PriseEnCharge
   donnée âge contenu entier
+  donnée situation_garde_alternée contenu SituationGardeAlternée
 
 déclaration énumération Parenté:
   -- Ascendant
@@ -332,6 +337,8 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
   sortie éligibilité condition
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier
+  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+   collection décimal
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique et juridique: trouver une meilleur place pour mettre
@@ -343,6 +350,23 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   conséquence rempli
   définition nombre_personnes_à_charge_prises_en_compte égal à
     nombre de personnes_à_charge_prises_en_compte
+  définition coefficents_enfants_garde_alternée_pris_en_compte égal à
+    application pour personne_à_charge dans (
+      filtre pour personne_à_charge dans personnes_à_charge_prises_en_compte de
+        (selon personne_à_charge sous forme
+        -- AutrePersonneÀCharge: faux
+        -- EnfantÀCharge de enfant: (
+          selon enfant.situation_garde_alternée sous forme
+          -- GardeAlternéeCoefficientPriseEnCharge: vrai
+          -- PasDeGardeAlternée: faux
+        ))
+    ) de (selon personne_à_charge sous forme
+      -- AutrePersonneÀCharge: 0,0
+      -- EnfantÀCharge de enfant: (
+        selon enfant.situation_garde_alternée sous forme
+        -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
+        -- PasDeGardeAlternée: 0,0
+    ))
 ```
 
 ### Éligibilité à l'aide personnalisée au logement
@@ -362,6 +386,8 @@ déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
 
   sortie éligibilité condition
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier
+  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+   collection décimal
 
 
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
@@ -371,6 +397,8 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
     date_courante
   définition nombre_personnes_à_charge_prises_en_compte égal à
     éligibilité_commune.nombre_personnes_à_charge_prises_en_compte
+  définition coefficents_enfants_garde_alternée_pris_en_compte égal à
+    éligibilité_commune.coefficents_enfants_garde_alternée_pris_en_compte
 ```
 
 ### Éligibilité aux allocations de logement
@@ -404,6 +432,8 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
     état l841_2
     état avec_condition_logement
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier
+  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+    collection décimal
 
 champ d'application ÉligibilitéAllocationLogement:
   # Ici nous instancions le champ d'application d'éligibilité aux prestations
@@ -427,6 +457,8 @@ champ d'application ÉligibilitéAllocationLogement:
       éligibilité
   définition nombre_personnes_à_charge_prises_en_compte égal à
     éligibilité_commune.nombre_personnes_à_charge_prises_en_compte
+  définition coefficents_enfants_garde_alternée_pris_en_compte égal à
+    éligibilité_commune.coefficents_enfants_garde_alternée_pris_en_compte
 ```
 
 ### Éligibilité à la prime de déménagement
