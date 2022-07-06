@@ -129,6 +129,14 @@ let wrap_weaved_output =
     & info ["wrap"; "w"]
         ~doc:"Wraps literate programming output with a minimal preamble.")
 
+let print_only_law =
+  Arg.(
+    value & flag
+    & info ["print_only_law"]
+        ~doc:
+          "In literate programming output, skip all code and metadata sections \
+           and print only the text of the law.")
+
 let backend =
   Arg.(
     required
@@ -205,6 +213,7 @@ type options = {
   ex_scope : string option;
   output_file : string option;
   closure_conversion : bool;
+  print_only_law : bool;
 }
 
 let options =
@@ -222,7 +231,8 @@ let options =
       disable_counterexamples
       optimize
       ex_scope
-      output_file : options =
+      output_file
+      print_only_law : options =
     {
       debug;
       unstyled;
@@ -238,13 +248,14 @@ let options =
       ex_scope;
       output_file;
       closure_conversion;
+      print_only_law;
     }
   in
   Term.(
     const make $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
     $ closure_conversion $ backend $ plugins_dirs $ language
     $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize
-    $ ex_scope $ output)
+    $ ex_scope $ output $ print_only_law)
 
 let catala_t f = Term.(const f $ file $ options)
 

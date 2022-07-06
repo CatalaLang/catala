@@ -494,6 +494,104 @@ let smic (smic_in : smic_in) : smic_out =
                    log_decision_taken
                      {
                        filename = "./../smic/smic.catala_fr";
+                       start_line = 204;
+                       start_column = 5;
+                       end_line = 206;
+                       end_column = 6;
+                       law_headings =
+                         [
+                           "Article 2";
+                           "Arrêté du 19 avril 2022 relatif au relèvement du \
+                            salaire minimum de croissance";
+                           "Montant du salaire minimum de croissance";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2022 5 1
+                     && date_courante_ <=@ date_of_numbers 2022 12 31
+                     && residence_ = Mayotte ()))
+                 (fun (_ : _) -> money_of_cents_string "819"));
+             (fun (_ : _) ->
+               handle_default [||]
+                 (fun (_ : _) ->
+                   log_decision_taken
+                     {
+                       filename = "./../smic/smic.catala_fr";
+                       start_line = 186;
+                       start_column = 5;
+                       end_line = 195;
+                       end_column = 6;
+                       law_headings =
+                         [
+                           "Article 2";
+                           "Arrêté du 19 avril 2022 relatif au relèvement du \
+                            salaire minimum de croissance";
+                           "Montant du salaire minimum de croissance";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2022 5 1
+                     && date_courante_ <=@ date_of_numbers 2022 12 31
+                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion ()
+                        || residence_ = SaintBarthelemy ()
+                        || residence_ = SaintMartin ()
+                        || residence_ = SaintPierreEtMiquelon ())))
+                 (fun (_ : _) -> money_of_cents_string "1085"));
+             (fun (_ : _) ->
+               handle_default [||]
+                 (fun (_ : _) ->
+                   log_decision_taken
+                     {
+                       filename = "./../smic/smic.catala_fr";
+                       start_line = 165;
+                       start_column = 5;
+                       end_line = 167;
+                       end_column = 6;
+                       law_headings =
+                         [
+                           "Article 1";
+                           "Décret n° 2021-1741 du 22 décembre 2021 portant \
+                            relèvement du salaire minimum de croissance";
+                           "Montant du salaire minimum de croissance";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2022 1 1
+                     && date_courante_ <=@ date_of_numbers 2022 4 30
+                     && residence_ = Mayotte ()))
+                 (fun (_ : _) -> money_of_cents_string "798"));
+             (fun (_ : _) ->
+               handle_default [||]
+                 (fun (_ : _) ->
+                   log_decision_taken
+                     {
+                       filename = "./../smic/smic.catala_fr";
+                       start_line = 146;
+                       start_column = 5;
+                       end_line = 155;
+                       end_column = 6;
+                       law_headings =
+                         [
+                           "Article 1";
+                           "Décret n° 2021-1741 du 22 décembre 2021 portant \
+                            relèvement du salaire minimum de croissance";
+                           "Montant du salaire minimum de croissance";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2022 1 1
+                     && date_courante_ <=@ date_of_numbers 2022 4 30
+                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion ()
+                        || residence_ = SaintBarthelemy ()
+                        || residence_ = SaintMartin ()
+                        || residence_ = SaintPierreEtMiquelon ())))
+                 (fun (_ : _) -> money_of_cents_string "1057"));
+             (fun (_ : _) ->
+               handle_default [||]
+                 (fun (_ : _) ->
+                   log_decision_taken
+                     {
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 125;
                        start_column = 5;
                        end_line = 127;

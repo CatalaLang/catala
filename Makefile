@@ -140,11 +140,16 @@ vscode: vscode_fr vscode_en
 
 EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
+AIDES_LOGEMENT_DIR=$(EXAMPLES_DIR)/aides_logement
 CODE_GENERAL_IMPOTS_DIR=$(EXAMPLES_DIR)/code_general_impots
 US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
+
+literate_aides_logement: build
+	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
+	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
 
 literate_allocations_familiales: build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
@@ -172,7 +177,8 @@ literate_polish_taxes: build
 
 #> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.
 literate_examples: literate_allocations_familiales literate_code_general_impots \
-	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr literate_polish_taxes
+	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr \
+	literate_polish_taxes literate_aides_logement
 
 ##########################################
 # French law library
