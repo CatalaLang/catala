@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application Exemple1 :
-  calculette champ d'application CalculetteAidesAuLogement
+  calculette champ d'application CalculetteAidesAuLogementGardeAlternée
   sortie éligibilité contenu booléen
   sortie montant_versé contenu argent
 

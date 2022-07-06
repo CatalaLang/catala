@@ -1002,6 +1002,8 @@ déclaration champ d'application ImpayéDépenseLogement:
 
 ## Calcul de l'aide au logement effective
 
+## Calculette globale
+
 Le but de ce champ d'application est de réaliser le calcul automatique
 de l'éligibilité et du montant de l'aide au logement pour un ménage, en fonction
 de toutes les aides disponibles : APL, ALS, ALF.
@@ -1032,6 +1034,8 @@ déclaration champ d'application CalculetteAidesAuLogement:
 
   sortie éligibilité contenu booléen
   sortie montant_versé contenu argent
+  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+   collection décimal
 
 champ d'application CalculetteAidesAuLogement:
   définition éligibilité_aide_personnalisée_logement.ménage égal à
@@ -1070,7 +1074,8 @@ champ d'application CalculetteAidesAuLogement:
   définition calcul_allocation_logement.situation_familiale égal à
     ménage.situation_familiale
   définition calcul_aide_personnalisée_logement.nombre_personnes_à_charge égal à
-    éligibilité_aide_personnalisée_logement.nombre_personnes_à_charge_prises_en_compte
+    éligibilité_aide_personnalisée_logement.
+      nombre_personnes_à_charge_prises_en_compte
   définition calcul_allocation_logement.nombre_personnes_à_charge égal à
     éligibilité_allocation_logement.nombre_personnes_à_charge_prises_en_compte
   définition calcul_aide_personnalisée_logement.zone égal à
@@ -1081,4 +1086,93 @@ champ d'application CalculetteAidesAuLogement:
     date_courante
   définition calcul_allocation_logement.date_courante égal à
     date_courante
+
+  définition coefficents_enfants_garde_alternée_pris_en_compte égal à
+    éligibilité_aide_personnalisée_logement.
+      coefficents_enfants_garde_alternée_pris_en_compte
+```
+
+## Calculette avec garde alternée
+
+Afin de calculer l'impact de la garde alternée sur les allocations logement,
+il est nécessaire de réaliser une double liquidation du calcul des aides
+au logement. Voir le code Catala attaché à la décision n°398563 du conseil
+d'État.
+
+```catala-metadata
+déclaration champ d'application CalculetteAidesAuLogementGardeAlternée:
+  entrée ménage contenu Ménage
+  entrée demandeur contenu Demandeur
+  entrée informations_calcul contenu InformationsCalculAPL
+  entrée date_courante contenu date
+  entrée ressources_ménage_prises_en_compte contenu argent
+
+  interne ménage_sans_enfants_garde_alternée contenu Ménage
+  interne coefficents_enfants_garde_alternée_pris_en_compte contenu
+   collection décimal
+
+  calculette champ d'application CalculetteAidesAuLogement
+  calculette_sans_garde_alternée champ d'application CalculetteAidesAuLogement
+
+  sortie éligibilité contenu booléen
+  sortie montant_versé contenu argent
+
+champ d'application CalculetteAidesAuLogementGardeAlternée:
+  définition calculette.ménage égal à
+    ménage
+  définition calculette.demandeur égal à
+    demandeur
+  définition calculette.informations_calcul égal à
+    informations_calcul
+  définition calculette.date_courante égal à
+    date_courante
+  définition calculette.ressources_ménage_prises_en_compte égal à
+    ressources_ménage_prises_en_compte
+  définition calculette_sans_garde_alternée.ménage égal à
+    ménage_sans_enfants_garde_alternée
+  définition calculette_sans_garde_alternée.demandeur égal à
+    demandeur
+  définition calculette_sans_garde_alternée.informations_calcul égal à
+    informations_calcul
+  définition calculette_sans_garde_alternée.date_courante égal à
+    date_courante
+  définition
+    calculette_sans_garde_alternée.ressources_ménage_prises_en_compte
+  égal à
+    ressources_ménage_prises_en_compte
+
+  définition coefficents_enfants_garde_alternée_pris_en_compte égal à
+    calculette.coefficents_enfants_garde_alternée_pris_en_compte
+  définition ménage_sans_enfants_garde_alternée égal à
+    Ménage {
+      # TODO informatique: syntaxe OCaml { ... with foo = bar} ?
+      -- prestations_reçues :
+        ménage.prestations_reçues
+      -- logement :
+        ménage.logement
+      -- personnes_à_charge :
+        filtre pour personne_à_charge dans
+          ménage.personnes_à_charge
+        de
+          (selon personne_à_charge sous forme
+          -- AutrePersonneÀCharge: vrai
+          -- EnfantÀCharge de enfant: (
+            selon enfant.situation_garde_alternée sous forme
+            -- GardeAlternéeCoefficientPriseEnCharge: faux
+            -- PasDeGardeAlternée: vrai
+          ))
+      -- nombre_autres_occupants_logement :
+        ménage.nombre_autres_occupants_logement
+      -- situation_familiale :
+        ménage.situation_familiale
+      -- condition_rattaché_foyer_fiscal_parent_ifi :
+        ménage.condition_rattaché_foyer_fiscal_parent_ifi
+      -- nombre_enfants_à_naître_après_troisième_mois_grossesse :
+        ménage.nombre_enfants_à_naître_après_troisième_mois_grossesse
+      -- enfant_à_naître_après_quatrième_mois_grossesse :
+        ménage.enfant_à_naître_après_quatrième_mois_grossesse
+      -- date_naissance_troisième_enfant_ou_dernier_si_plus :
+        ménage.date_naissance_troisième_enfant_ou_dernier_si_plus
+    }
+  définition éligibilité égal à calculette.éligibilité
 ```
