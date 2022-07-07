@@ -30,6 +30,8 @@ authors:
   - given-names: Alain
     family-names: Delaët-Tixeuil
     affiliation: 'INRIA, ENS Lyon'
+  - given-names: Lilya
+    family-names: Slimani
 repository-code: 'https://github.com/CatalaLang/catala'
 url: 'https://catala-lang.org/'
 abstract: >-
