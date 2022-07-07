@@ -20,16 +20,16 @@ authors:
     affiliation: 'INRIA, ENS'
   - given-names: Emile
     family-names: Rolley
-    affiliation: Université Paris-Diderot
+    email: emile.rolley@tuta.io
   - given-names: Louis
     family-names: Gesbert
-    affiliation: OCamlPro
+    affiliation: 'INRIA, OCamlPro'
   - given-names: Aymeric
     family-names: Fromherz
     affiliation: Inria
   - given-names: Alain
     family-names: Delaët-Tixeuil
-    affiliation: Inria/ENS Lyon
+    affiliation: 'INRIA, ENS Lyon'
 repository-code: 'https://github.com/CatalaLang/catala'
 url: 'https://catala-lang.org/'
 abstract: >-
@@ -37,5 +37,5 @@ abstract: >-
   faithful-by-construction algorithms from
   legislative texts.
 license: Apache-2.0
-version: 0.5.0
-date-released: '2021-11-07'
+version: 0.6.0
+date-released: '2022-03-08'
