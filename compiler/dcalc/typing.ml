@@ -606,8 +606,8 @@ let infer_types_program prg =
         UnionFind.make (Marked.mark scope_pos (TArrow (ty_in, ty_out))) in
       let rec process_scope_body_expr env = function
         | A.Result e ->
-          let e' = typecheck_expr_top_down ctx env e ty_out in
-          Bindlib.box_apply (fun e -> A.Result e) e'
+          let e' = typecheck_expr_bottom_up ctx env e in
+          Bindlib.box_apply (fun e -> unify ctx (ty e) ty_out; A.Result e) e'
         | A.ScopeLet {
             scope_let_kind;
             scope_let_typ;
@@ -615,13 +615,14 @@ let infer_types_program prg =
             scope_let_next;
             scope_let_pos;
           } ->
-          let ty = ast_to_typ scope_let_typ in
-          let e = typecheck_expr_top_down ctx env e ty in
+          let ty_e = ast_to_typ scope_let_typ in
+          let e = typecheck_expr_bottom_up ctx env e in
           let var, next = Bindlib.unbind scope_let_next in
-          let env = A.VarMap.add (A.Var.t var) ty env in
+          let env = A.VarMap.add (A.Var.t var) ty_e env in
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (A.translate_var var) next in
           Bindlib.box_apply2 (fun scope_let_expr scope_let_next ->
+              unify ctx (ty scope_let_expr) ty_e;
               A.ScopeLet {
                 scope_let_kind;
                 scope_let_typ;
