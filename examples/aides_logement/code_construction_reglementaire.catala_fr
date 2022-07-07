@@ -1395,13 +1395,17 @@ champ d'application CalculAllocationLogement:
     -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriété
     -- LocationAccession: AccessionPropriété
 
-  définition aide_finale égal à
+  définition aide_finale_formule égal à
     selon catégorie_calcul_apl sous forme
-    -- Location: locatif.traitement_aide_finale de locatif.aide_finale_formule
-    -- LogementFoyer: logement_foyer.traitement_aide_finale de
-      logement_foyer.aide_finale_formule
+    -- Location: locatif.aide_finale_formule
+    -- LogementFoyer: logement_foyer.aide_finale_formule
+    -- AccessionPropriété : accession_propriété.aide_finale_formule
+  définition traitement_aide_finale de aide_finale égal à
+    selon catégorie_calcul_apl sous forme
+    -- Location: locatif.traitement_aide_finale de aide_finale
+    -- LogementFoyer: logement_foyer.traitement_aide_finale de aide_finale
     -- AccessionPropriété : accession_propriété.traitement_aide_finale de
-      accession_propriété.aide_finale_formule
+      aide_finale
 
 champ d'application CalculAidePersonnaliséeLogement:
   définition catégorie_calcul_apl égal à
@@ -1412,13 +1416,17 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriété
     -- LocationAccession: AccessionPropriété
 
-  définition aide_finale égal à
+  définition aide_finale_formule égal à
     selon catégorie_calcul_apl sous forme
-    -- Location: locatif.traitement_aide_finale de locatif.aide_finale_formule
-    -- LogementFoyer: logement_foyer.traitement_aide_finale de
-      logement_foyer.aide_finale_formule
+    -- Location: locatif.aide_finale_formule
+    -- LogementFoyer: logement_foyer.aide_finale_formule
+    -- AccessionPropriété : accession_propriété.aide_finale_formule
+  définition traitement_aide_finale de aide_finale égal à
+    selon catégorie_calcul_apl sous forme
+    -- Location: locatif.traitement_aide_finale de aide_finale
+    -- LogementFoyer: logement_foyer.traitement_aide_finale de aide_finale
     -- AccessionPropriété : accession_propriété.traitement_aide_finale de
-      accession_propriété.aide_finale_formule
+      aide_finale
 ```
 
 ```catala-metadata

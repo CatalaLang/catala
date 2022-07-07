@@ -1089,20 +1089,40 @@ champ d'application CalculetteAidesAuLogement:
       -- ÉligibilitéAllocationLogement.AllocationLogementSociale:
         TypeAidesPersonnelleLogement.AllocationLogementSociale)
 
-  définition montant_versé égal à
+  définition aide_finale_formule égal à
     si non éligibilité alors 0 € sinon si
       éligibilité_aide_personnalisée_logement.éligibilité et
       non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
     alors
-      (si calcul_aide_personnalisée_logement.aide_finale >€
-        calcul_allocation_logement.aide_finale
+      (si calcul_aide_personnalisée_logement.traitement_aide_finale de
+        calcul_aide_personnalisée_logement.aide_finale_formule >€
+          calcul_allocation_logement.traitement_aide_finale de
+            calcul_allocation_logement.aide_finale_formule
       alors
-        calcul_aide_personnalisée_logement.aide_finale
+        calcul_aide_personnalisée_logement.aide_finale_formule
       sinon
-        calcul_allocation_logement.aide_finale)
+        calcul_allocation_logement.aide_finale_formule)
     sinon si éligibilité_aide_personnalisée_logement.éligibilité
-    alors calcul_aide_personnalisée_logement.aide_finale
-    sinon calcul_allocation_logement.aide_finale
+    alors calcul_aide_personnalisée_logement.aide_finale_formule
+    sinon calcul_allocation_logement.aide_finale_formule
+
+  définition traitement_aide_finale de aide_finale égal à
+    si non éligibilité alors aide_finale sinon si
+      éligibilité_aide_personnalisée_logement.éligibilité et
+      non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
+    alors
+      (si calcul_aide_personnalisée_logement.traitement_aide_finale de
+        calcul_aide_personnalisée_logement.aide_finale_formule >€
+          calcul_allocation_logement.traitement_aide_finale de
+            calcul_allocation_logement.aide_finale_formule
+      alors
+        calcul_aide_personnalisée_logement.traitement_aide_finale de aide_finale
+      sinon
+        calcul_allocation_logement.traitement_aide_finale de aide_finale)
+    sinon si éligibilité_aide_personnalisée_logement.éligibilité
+    alors
+      calcul_aide_personnalisée_logement.traitement_aide_finale de aide_finale
+    sinon calcul_allocation_logement.traitement_aide_finale de aide_finale
 ```
 
 ###### Article L841-3 | LEGIARTI000038814860

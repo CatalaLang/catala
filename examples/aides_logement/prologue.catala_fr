@@ -730,7 +730,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
   accession_propriété champ d'application
     CalculAidePersonnaliséeLogementAccessionPropriété
 
-  sortie aide_finale contenu argent
+  sortie aide_finale_formule contenu argent
+  sortie traitement_aide_finale contenu argent dépend de argent
 ```
 
 ## Calcul du montant de l'allocation logement
@@ -977,7 +978,8 @@ déclaration champ d'application CalculAllocationLogement:
   accession_propriété champ d'application
     CalculAllocationLogementAccessionPropriété
 
-  sortie aide_finale contenu argent
+  sortie aide_finale_formule contenu argent
+  sortie traitement_aide_finale contenu argent dépend de argent
 ```
 
 ### Date d'ouverture des droits à la retraite
@@ -1040,7 +1042,8 @@ déclaration champ d'application CalculetteAidesAuLogement:
     CalculAllocationLogement
 
   sortie éligibilité contenu booléen
-  sortie montant_versé contenu argent
+  sortie aide_finale_formule contenu argent
+  sortie traitement_aide_finale contenu argent dépend de argent
   sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
 
@@ -1122,7 +1125,7 @@ déclaration champ d'application CalculetteAidesAuLogementGardeAlternée:
   calculette_sans_garde_alternée champ d'application CalculetteAidesAuLogement
 
   sortie éligibilité contenu booléen
-  sortie montant_versé contenu argent
+  sortie aide_finale contenu argent
 
 champ d'application CalculetteAidesAuLogementGardeAlternée:
   définition calculette.ménage égal à

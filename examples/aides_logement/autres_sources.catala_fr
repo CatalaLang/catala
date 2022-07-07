@@ -232,20 +232,25 @@ de l'année ;
 
 ```catala
 champ d'application CalculetteAidesAuLogementGardeAlternée:
-  définition montant_versé égal à
-    calculette_sans_garde_alternée.montant_versé +€ (
-      si nombre de coefficents_enfants_garde_alternée_pris_en_compte = 0 alors
-        0 €
-      sinon
-        # On retire la part des allocations logement dues aux enfants
-        # en garde alternée à hauteur des coefficients prenant en compte la
-        # période cumulée pendant laquelle le ménage accueille l'enfant à domicile.
-        (calculette.montant_versé -€
-          calculette_sans_garde_alternée.montant_versé) *€
-            ((somme décimal pour coeff dans
-              coefficents_enfants_garde_alternée_pris_en_compte de coeff) /.
-            (entier_vers_décimal de
-              (nombre de coefficents_enfants_garde_alternée_pris_en_compte))))
+  définition aide_finale égal à
+    # TODO juridique: discuter des effets du choix de la fonction de traitement.
+    # Faut-il prendre calculette.traitement_aide_finale ou
+    # calculette_sans_garde_alternée.traitement_aide_finale ?
+    calculette.traitement_aide_finale de (
+      calculette_sans_garde_alternée.aide_finale_formule +€ (
+        si nombre de coefficents_enfants_garde_alternée_pris_en_compte = 0 alors
+          0 €
+        sinon
+          # On retire la part des allocations logement dues aux enfants
+          # en garde alternée à hauteur des coefficients prenant en compte la
+          # période cumulée pendant laquelle le ménage accueille l'enfant à domicile.
+          (calculette.aide_finale_formule -€
+            calculette_sans_garde_alternée.aide_finale_formule) *€
+              ((somme décimal pour coeff dans
+                coefficents_enfants_garde_alternée_pris_en_compte de coeff) /.
+              (entier_vers_décimal de
+                (nombre de
+                  coefficents_enfants_garde_alternée_pris_en_compte)))))
 ```
 
 5. Considérant qu'il résulte de ce qui précède que le ministre du logement et
