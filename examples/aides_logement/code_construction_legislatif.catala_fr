@@ -820,12 +820,14 @@ est fixée par voie réglementaire.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition aide_finale état réduction_loyer_solidarité égal à
+  définition traitement_aide_finale de aide_finale état réduction_loyer_solidarité égal à
     si
-      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€
+      traitement_aide_finale de aide_finale -€
+        réduction_loyer_solidarité *€ fraction_l832_3 >=€
         0€
     alors
-      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3
+      traitement_aide_finale de aide_finale -€
+        réduction_loyer_solidarité *€ fraction_l832_3
     sinon 0€
 
   assertion fraction_l832_3 >=. 90% et fraction_l832_3 <=. 98%

@@ -584,8 +584,9 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie aide_finale contenu argent
-    état formule
+  sortie aide_finale_formule contenu argent
+
+  sortie traitement_aide_finale contenu argent dépend de argent
     état diminué
     état minoration_forfaitaire
     état contributions_sociales_arrondi
@@ -633,8 +634,9 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     état arrondi
     état seuil
   sortie équivalence_minimale_loyer contenu argent
-  sortie aide_finale contenu argent
-    état formule
+
+  sortie aide_finale_formule contenu argent
+  sortie traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi
@@ -694,8 +696,8 @@ déclaration champ d'application
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie aide_finale contenu argent
-    état formule
+  sortie aide_finale_formule contenu argent
+  sortie traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi
@@ -768,7 +770,9 @@ déclaration champ d'application CalculAllocationLogementLocatif:
 
   calcul_apl_locatif champ d'application CalculAidePersonnaliséeLogementLocatif
 
-  sortie aide_finale contenu argent
+  sortie aide_finale_formule contenu argent
+
+  sortie traitement_aide_finale contenu argent dépend de argent
 
 champ d'application CalculAllocationLogementLocatif:
   définition calcul_apl_locatif.loyer_principal égal à
@@ -800,7 +804,9 @@ champ d'application CalculAllocationLogementLocatif:
     réduction_loyer_solidarité
 
 
-  définition aide_finale égal à calcul_apl_locatif.aide_finale
+  définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
+  définition traitement_aide_finale de aide_finale égal à
+    calcul_apl_locatif.traitement_aide_finale de aide_finale
 ```
 
 ### Secteur accession à la propriété
@@ -848,8 +854,9 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie allocation_mensuelle contenu argent
-    état formule
+  sortie aide_finale_formule contenu argent
+
+  sortie traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état dépense_nette_minimale
     état contributions_sociales_arrondi
@@ -921,8 +928,8 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie allocation_mensuelle contenu argent
-    état formule
+  sortie aide_finale_formule contenu argent
+  sortie traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état dépense_nette_minimale
     état redevance

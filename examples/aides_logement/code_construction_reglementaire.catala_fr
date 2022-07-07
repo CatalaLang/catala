@@ -1397,9 +1397,11 @@ champ d'application CalculAllocationLogement:
 
   définition aide_finale égal à
     selon catégorie_calcul_apl sous forme
-    -- Location: locatif.aide_finale
-    -- LogementFoyer: logement_foyer.allocation_mensuelle
-    -- AccessionPropriété : accession_propriété.allocation_mensuelle
+    -- Location: locatif.traitement_aide_finale de locatif.aide_finale_formule
+    -- LogementFoyer: logement_foyer.traitement_aide_finale de
+      logement_foyer.aide_finale_formule
+    -- AccessionPropriété : accession_propriété.traitement_aide_finale de
+      accession_propriété.aide_finale_formule
 
 champ d'application CalculAidePersonnaliséeLogement:
   définition catégorie_calcul_apl égal à
@@ -1412,9 +1414,11 @@ champ d'application CalculAidePersonnaliséeLogement:
 
   définition aide_finale égal à
     selon catégorie_calcul_apl sous forme
-    -- Location: locatif.aide_finale
-    -- LogementFoyer: logement_foyer.aide_finale
-    -- AccessionPropriété : accession_propriété.aide_finale
+    -- Location: locatif.traitement_aide_finale de locatif.aide_finale_formule
+    -- LogementFoyer: logement_foyer.traitement_aide_finale de
+      logement_foyer.aide_finale_formule
+    -- AccessionPropriété : accession_propriété.traitement_aide_finale de
+      accession_propriété.aide_finale_formule
 ```
 
 ```catala-metadata
@@ -1842,7 +1846,7 @@ $$\text{Af} = \text{L} + \text{C}-\text{Pp}$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition aide_finale état formule égal à
+  définition aide_finale_formule égal à
     si loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
       participation_personnelle <€ 0 €
     alors 0 € sinon
@@ -1894,19 +1898,18 @@ l'enfant handicapé prévue à l'article L. 541-1 du même code.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition aide_finale état diminué égal à
+  définition traitement_aide_finale de aide_finale état diminué égal à
     si loyer_principal >€ plafond_suppression_d823_16 alors
       0€
     sinon (si loyer_principal >€ plafond_dégressivité_d823_16 alors
         aide_finale -€ (aide_finale *€
           ((loyer_principal -€ plafond_dégressivité_d823_16) /€
-           (plafond_suppression_d823_16 -€ plafond_dégressivité_d823_16))
-        )
+            (plafond_suppression_d823_16 -€ plafond_dégressivité_d823_16)))
         # Faire un graphique pour se convaincre que la pente proportionnelle
         # a bien cette expression.
     sinon aide_finale)
 
-  exception définition aide_finale état diminué sous condition
+  exception définition traitement_aide_finale de aide_finale état diminué sous condition
     bénéficiaire_aide_adulte_ou_enfant_handicapés
   conséquence égal à aide_finale
 
@@ -1917,9 +1920,12 @@ Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition aide_finale état minoration_forfaitaire égal à
-    si aide_finale -€ montant_forfaitaire_d823_16 >=€ 0€ alors
-      aide_finale -€ montant_forfaitaire_d823_16
+  définition traitement_aide_finale de aide_finale état minoration_forfaitaire égal à
+    si
+      traitement_aide_finale de aide_finale -€
+        montant_forfaitaire_d823_16 >=€ 0€
+    alors
+      traitement_aide_finale de aide_finale -€ montant_forfaitaire_d823_16
     sinon 0€
 ```
 
@@ -1929,15 +1935,21 @@ représentatif.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition aide_finale état contributions_sociales_arrondi égal à
+  définition traitement_aide_finale de aide_finale
+  état contributions_sociales_arrondi
+  égal à
     si
-      arrondi_argent de ((aide_finale -€
-        contributions_sociales.montant de aide_finale) -€ 0,50€) +€
-      contributions_sociales.montant de aide_finale >=€ 0€
+      arrondi_argent de ((traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      arrondi_argent de ((aide_finale -€
-        contributions_sociales.montant de aide_finale) -€ 0,50€) +€
-      contributions_sociales.montant de aide_finale
+      arrondi_argent de ((traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -1956,11 +1968,13 @@ n'est pas procédé à son versement.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition aide_finale état montant_minimal égal à
-    si aide_finale <€ montant_minimal_aide_d823_16 alors
+  définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    si
+      traitement_aide_finale de aide_finale <€ montant_minimal_aide_d823_16
+    alors
       0 €
     sinon
-      aide_finale
+      traitement_aide_finale de aide_finale
 ```
 
 ######## Article D823-17 | LEGIARTI000041419255
@@ -3118,7 +3132,7 @@ $$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition aide_finale état formule égal à
+  définition aide_finale_formule égal à
     si (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
       mensualité_minimale) *€ coefficient_prise_en_charge_d832_10 <€ 0 €
     alors 0 € sinon
@@ -3163,7 +3177,9 @@ Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition aide_finale état minoration_forfaitaire égal à
+  définition traitement_aide_finale de aide_finale
+  état minoration_forfaitaire
+  égal à
     si aide_finale -€ montant_forfaitaire_d832_10 >=€ 0€
     alors
       aide_finale -€ montant_forfaitaire_d832_10
@@ -3175,12 +3191,14 @@ de calcul sont fixées par l'article D. 832-17.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition aide_finale état abattement égal à
-    si aide_finale -€
-      abattement_dépense_nette_minimale_d832_10 de aide_finale >=€ 0€
+  définition traitement_aide_finale de aide_finale état abattement égal à
+    si traitement_aide_finale de aide_finale -€
+      abattement_dépense_nette_minimale_d832_10 de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      aide_finale -€
-        abattement_dépense_nette_minimale_d832_10 de aide_finale
+      traitement_aide_finale de aide_finale -€
+        abattement_dépense_nette_minimale_d832_10 de
+          (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -3190,19 +3208,23 @@ puis majoré de ce montant représentatif.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition aide_finale
+  définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
     si
-      arrondi_argent de (aide_finale -€
-        contributions_sociales.montant de aide_finale -€
+      arrondi_argent de (traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale) -€
         0,50€) +€
-      contributions_sociales.montant de aide_finale >=€ 0€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      arrondi_argent de (aide_finale -€
-        contributions_sociales.montant de aide_finale -€
+      arrondi_argent de (traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale) -€
         0,50€) +€
-      contributions_sociales.montant de aide_finale
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -3211,10 +3233,10 @@ il n'est pas procédé à son versement.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition aide_finale état montant_minimal égal à
-    si aide_finale <€ montant_minimal_aide_d832_10
+  définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d832_10
     alors 0 €
-    sinon aide_finale
+    sinon traitement_aide_finale de aide_finale
 ```
 
 ####### Article D832-11 | LEGIARTI000038878744
@@ -3751,7 +3773,7 @@ $$\text{Af} = \text{K} \times (\text{E}-\text{E0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition aide_finale état formule égal à
+  définition aide_finale_formule égal à
     si (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
       coefficient_prise_en_charge_d832_25 <€ 0 €
     alors 0 € sinon
@@ -3786,7 +3808,9 @@ Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition aide_finale état minoration_forfaitaire égal à
+  définition traitement_aide_finale de aide_finale
+  état minoration_forfaitaire
+  égal à
     si aide_finale -€ montant_forfaitaire_d832_24 >=€ 0€
     alors
       aide_finale -€ montant_forfaitaire_d832_24
@@ -3798,12 +3822,14 @@ de calcul sont fixées à l'article D. 832-27.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition aide_finale état abattement égal à
-    si aide_finale -€
-      abattement_dépense_nette_minimale_d832_27 de aide_finale >=€ 0€
+  définition traitement_aide_finale de aide_finale état abattement égal à
+    si traitement_aide_finale de aide_finale -€
+      abattement_dépense_nette_minimale_d832_27 de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      aide_finale -€
-        abattement_dépense_nette_minimale_d832_27 de aide_finale
+      traitement_aide_finale de aide_finale -€
+        abattement_dépense_nette_minimale_d832_27 de
+          (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -3813,18 +3839,23 @@ s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant représ
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition aide_finale état contributions_sociales_arrondi
+  définition traitement_aide_finale de aide_finale
+  état contributions_sociales_arrondi
   égal à
     si
-      arrondi_argent de (aide_finale -€
-        contributions_sociales.montant de aide_finale -€
+      arrondi_argent de (traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale) -€
         0,50€) +€
-      contributions_sociales.montant de aide_finale >=€ 0€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      arrondi_argent de (aide_finale -€
-        contributions_sociales.montant de aide_finale -€
+      arrondi_argent de (traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale) -€
         0,50€) +€
-      contributions_sociales.montant de aide_finale
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -3833,9 +3864,9 @@ Lorsque le montant mensuel de l'aide, calculé selon les modalités précédente
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition aide_finale état montant_minimal égal à
-    si aide_finale <€ montant_minimal_aide_d823_24
-    alors 0 € sinon aide_finale
+  définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d823_24
+    alors 0 € sinon traitement_aide_finale de aide_finale
 ```
 
 ######## Article D832-25 | LEGIARTI000038878710
@@ -4210,18 +4241,22 @@ nouveau loyer principal qui leur est réclamé, dans la limite du plafond fixé 
 du 3° de l'article L. 823-1.
 
 ```catala
-champ d'application CalculAllocationLogementLocatif:
-  exception définition aide_finale sous condition
-    selon changement_logement_d842_4 sous forme
-    -- Changement de infos:
-      loyer_principal >=€ infos.ancien_loyer_principal
-    -- PasDeChangement: faux
-  conséquence égal à
+champ d'application CalculAllocationLogementLocatif sous condition
+  selon changement_logement_d842_4 sous forme
+  -- Changement de infos:
+    loyer_principal >=€ infos.ancien_loyer_principal
+  -- PasDeChangement: faux:
+
+  exception définition aide_finale_formule égal à
     selon changement_logement_d842_4 sous forme
     -- Changement de infos:
         loyer_principal -€
           (infos.ancien_loyer_principal -€ infos.ancienne_allocation_logement)
     -- n'importe quel: 0 € # N'arrive pas
+
+  # TODO juridique: confirmer cette ligne
+  exception définition traitement_aide_finale de aide_finale égal à
+    aide_finale
 ```
 
 ###### Section 2 : Accession à la propriété
@@ -4313,7 +4348,7 @@ $$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition allocation_mensuelle état formule égal à
+  définition aide_finale_formule égal à
     (
       mensualité_éligible +€ montant_forfaitaire_charges -€
         mensualité_minimale
@@ -4369,11 +4404,13 @@ Ce résultat, ainsi calculé, est minoré d'un montant fixé forfaitairement par
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition allocation_mensuelle état minoration_forfaitaire égal à
-    si allocation_mensuelle -€ montant_forfaitaire_d842_6 <€ 0€ alors
+  définition traitement_aide_finale de aide_finale
+  état minoration_forfaitaire
+  égal à
+    si aide_finale -€ montant_forfaitaire_d842_6 <€ 0€ alors
       0 €
     sinon
-      (allocation_mensuelle -€ montant_forfaitaire_d842_6)
+      (aide_finale -€ montant_forfaitaire_d842_6)
 ```
 
 Le montant ainsi obtenu est minoré d'un abattement au titre de la dépense nette minimale,
@@ -4381,16 +4418,18 @@ dont les modalités de calcul sont précisées par l'article D. 842-11.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition allocation_mensuelle état dépense_nette_minimale
+  définition traitement_aide_finale de aide_finale état dépense_nette_minimale
   égal à
     si
-      allocation_mensuelle -€
-        abattement_dépense_nette_minimale de allocation_mensuelle <€ 0€
+      traitement_aide_finale de aide_finale -€
+        abattement_dépense_nette_minimale de
+          (traitement_aide_finale de aide_finale) <€ 0€
     alors
       0 €
     sinon
-      (allocation_mensuelle -€
-        abattement_dépense_nette_minimale de allocation_mensuelle)
+      (traitement_aide_finale de aide_finale -€
+        abattement_dépense_nette_minimale de
+          (traitement_aide_finale de aide_finale))
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -4398,15 +4437,21 @@ s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant représ
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition allocation_mensuelle état contributions_sociales_arrondi égal à
+  définition traitement_aide_finale de aide_finale
+  état contributions_sociales_arrondi
+  égal à
     si
-      arrondi_argent de ((allocation_mensuelle -€
-        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
-      contributions_sociales.montant de allocation_mensuelle >=€ 0€
+      arrondi_argent de ((traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      arrondi_argent de ((allocation_mensuelle -€
-        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
-      contributions_sociales.montant de allocation_mensuelle
+      arrondi_argent de ((traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -4415,9 +4460,9 @@ par arrêté, il n'est pas procédé à son versement.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition allocation_mensuelle état montant_minimal égal à
-    si allocation_mensuelle <€ montant_minimal_aide_d842_6
-    alors 0 € sinon allocation_mensuelle
+  définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d842_6
+    alors 0 € sinon traitement_aide_finale de aide_finale
 ```
 
 ####### Article D842-7 | LEGIARTI000038878673
@@ -4684,7 +4729,7 @@ $$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition allocation_mensuelle état formule égal à
+  définition aide_finale_formule égal à
     (équivalence_loyer +€
       montant_forfaitaire_charges -€ loyer_minimal) *€
     coefficient_prise_en_charge
@@ -4741,11 +4786,11 @@ Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition allocation_mensuelle état minoration_forfaitaire égal à
-    si allocation_mensuelle -€ montant_forfaitaire_d842_15 <€ 0€ alors
+  définition traitement_aide_finale de aide_finale état minoration_forfaitaire égal à
+    si aide_finale -€ montant_forfaitaire_d842_15 <€ 0€ alors
       0 €
     sinon
-      (allocation_mensuelle -€ montant_forfaitaire_d842_15)
+      (aide_finale -€ montant_forfaitaire_d842_15)
 ```
 
 Ce résultat est minoré d'un abattement au titre de la dépense nette minimale. Les
@@ -4754,16 +4799,18 @@ sont fixées à l'article D. 842-17.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition allocation_mensuelle état dépense_nette_minimale
+  définition traitement_aide_finale de aide_finale état dépense_nette_minimale
   égal à
     si
-      allocation_mensuelle -€
-        abattement_dépense_nette_minimale de allocation_mensuelle <€ 0€
+      traitement_aide_finale de aide_finale -€
+        abattement_dépense_nette_minimale de
+          (traitement_aide_finale de aide_finale) <€ 0€
     alors
       0 €
     sinon
-      allocation_mensuelle -€
-        abattement_dépense_nette_minimale de allocation_mensuelle
+      traitement_aide_finale de aide_finale -€
+        abattement_dépense_nette_minimale de
+          (traitement_aide_finale de aide_finale)
 ```
 
 Si le montant obtenu par application des dispositions des alinéas précédents est
@@ -4775,10 +4822,10 @@ au montant de cette redevance.
 # du logement-foyer?
 # OUI, selon réponse de DGALN/DHUP/FE4 du 25/05/2022.
 champ d'application CalculAllocationLogementFoyer:
-  définition allocation_mensuelle état redevance
-  égal à si allocation_mensuelle >€ redevance
+  définition traitement_aide_finale de aide_finale état redevance
+  égal à si traitement_aide_finale de aide_finale >€ redevance
   alors redevance
-  sinon allocation_mensuelle
+  sinon traitement_aide_finale de aide_finale
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions
@@ -4787,15 +4834,21 @@ montant représentatif.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition allocation_mensuelle état contributions_sociales_arrondi égal à
+  définition traitement_aide_finale de aide_finale
+  état contributions_sociales_arrondi
+  égal à
     si
-      arrondi_argent de ((allocation_mensuelle -€
-        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
-      contributions_sociales.montant de allocation_mensuelle >=€ 0€
+      arrondi_argent de ((traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale) >=€ 0€
     alors
-      arrondi_argent de ((allocation_mensuelle -€
-        contributions_sociales.montant de allocation_mensuelle) -€ 0,50€) +€
-      contributions_sociales.montant de allocation_mensuelle
+      arrondi_argent de ((traitement_aide_finale de aide_finale -€
+        contributions_sociales.montant de
+          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
+      contributions_sociales.montant de
+        (traitement_aide_finale de aide_finale)
     sinon 0€
 ```
 
@@ -4805,9 +4858,9 @@ son versement.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition allocation_mensuelle état montant_minimal égal à
-    si allocation_mensuelle <€ montant_minimal_aide_d842_15
-    alors 0 € sinon allocation_mensuelle
+  définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d842_15
+    alors 0 € sinon traitement_aide_finale de aide_finale
 ```
 
 ####### Article D842-16 | LEGIARTI000038878653
