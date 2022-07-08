@@ -16,3 +16,11 @@ scope A:
   definition e equals b + c + d + 1
   definition f equals e + 1
 ```
+
+```catala-test {id="A.Dcalc"}
+catala Dcalc -s A
+```
+
+```catala-test {id="A.Typecheck"}
+catala Typecheck -s A
+```

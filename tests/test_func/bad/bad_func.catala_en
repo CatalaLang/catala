@@ -20,3 +20,11 @@ scope R:
   definition s.f of x equals x + x * x
   definition r equals s.out
 ```
+
+```catala-test {id="R.Interpret"}
+catala Interpret -s R
+```
+
+```catala-test {id="S.Interpret"}
+catala Interpret -s S
+```

@@ -9,3 +9,7 @@ declaration scope DayByMonth:
 scope DayByMonth:
   definition d equals 1 day /^ 2 month
 ```
+
+```catala-test {id="DayByMonth.Interpret"}
+catala Interpret -s DayByMonth
+```

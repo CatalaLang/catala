@@ -16,3 +16,11 @@ scope B:
    definition y equals filter for m in a.x of (m >=$ $4.95)
    definition z equals map for m in a.x of (m >=$ $4.95)
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

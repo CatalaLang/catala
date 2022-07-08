@@ -13,3 +13,7 @@ scope TestXor:
   definition t_xor_f equals true xor false
   definition f_xor_f equals false xor false
 ```
+
+```catala-test {id="TestXor.Interpret"}
+catala Interpret -s TestXor
+```

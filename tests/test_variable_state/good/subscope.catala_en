@@ -29,3 +29,11 @@ scope B:
   definition b.foo equals foofoo
   definition foofoofoo equals b.foo
 ```
+
+```catala-test {id="A.Scopelang"}
+catala Scopelang -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

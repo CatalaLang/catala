@@ -7,3 +7,7 @@ declaration scope TestBool:
 scope TestBool:
   definition foo equals true and not false and false = false
 ```
+
+```catala-test {id="TestBool.Interpret"}
+catala Interpret -s TestBool
+```

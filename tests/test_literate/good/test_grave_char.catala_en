@@ -26,3 +26,15 @@ Even after `Catala` code block:
 ```c
 int main(void) { return 0; }
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

@@ -8,3 +8,7 @@ declaration scope A:
 scope A:
   definition x equals 1
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

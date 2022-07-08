@@ -120,3 +120,7 @@ scope Amount:
   consequence equals
     80 * number_of_advisors
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

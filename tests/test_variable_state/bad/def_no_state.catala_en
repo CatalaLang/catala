@@ -9,3 +9,7 @@ declaration scope A:
 scope A:
   definition foo equals 2
 ```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

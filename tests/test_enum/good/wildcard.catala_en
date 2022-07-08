@@ -35,3 +35,11 @@ scope Simple_case_2:
     -- Case1 of i : i
     -- anything : 31
 ```
+
+```catala-test {id="Simple_case_2.Interpret"}
+catala Interpret -s Simple_case_2
+```
+
+```catala-test {id="Simple_case.Interpret"}
+catala Interpret -s Simple_case
+```

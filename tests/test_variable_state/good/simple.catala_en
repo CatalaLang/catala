@@ -14,3 +14,11 @@ scope A:
 
   definition foo state fizz equals foo + 1
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

@@ -13,3 +13,7 @@ scope A:
 
   exception thing definition foo state baz under condition true consequence equals 3
 ```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

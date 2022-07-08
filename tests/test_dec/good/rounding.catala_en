@@ -13,3 +13,7 @@ scope A:
   definition x1 equals round_decimal of x
   definition y1 equals round_decimal of y
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

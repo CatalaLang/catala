@@ -12,3 +12,7 @@ declaration enumeration E:
 declaration scope A:
   context x content E
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

@@ -16,3 +16,7 @@ scope Callee:
 scope Caller:
   definition y equals sub.output_v
 ```
+
+```catala-test {id="Caller.Interpret"}
+catala Interpret -s Caller
+```

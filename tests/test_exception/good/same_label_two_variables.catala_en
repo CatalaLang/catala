@@ -18,3 +18,7 @@ scope A:
 
   definition z equals 0
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

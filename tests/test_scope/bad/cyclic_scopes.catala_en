@@ -15,3 +15,7 @@ scope A:
 scope B:
   definition y equals a.x
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

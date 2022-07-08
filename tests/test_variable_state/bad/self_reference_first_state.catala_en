@@ -11,3 +11,7 @@ scope A:
 
   definition foo state baz equals foo + 1
 ```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

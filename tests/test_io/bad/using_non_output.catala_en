@@ -13,3 +13,6 @@ scope A:
 scope B:
   assertion a.a = 0
 ```
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

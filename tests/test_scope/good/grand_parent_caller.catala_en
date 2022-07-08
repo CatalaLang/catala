@@ -28,3 +28,15 @@ scope C:
   definition z1 equals 2
   definition z2 equals b.y2
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```
+
+```catala-test {id="C.Interpret"}
+catala Interpret -s C
+```

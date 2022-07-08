@@ -37,3 +37,7 @@ scope A:
   consequence equals false
 
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

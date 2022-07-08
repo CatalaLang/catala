@@ -18,3 +18,7 @@ scope Caller:
   definition callee.input_v equals 0
   assertion callee.output_v
 ```
+
+```catala-test {id="Caller.Interpret"}
+catala Interpret -s Caller
+```

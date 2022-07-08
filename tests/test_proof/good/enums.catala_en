@@ -18,3 +18,6 @@ scope A:
   definition x under condition match y with pattern -- A of a: true -- B of b: false consequence equals 0
   definition x under condition match y with pattern -- A of a: false -- B of b: true consequence equals 1
 ```
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

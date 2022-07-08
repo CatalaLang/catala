@@ -15,3 +15,7 @@ scope A:
   exception exception_x
   definition x equals 2
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

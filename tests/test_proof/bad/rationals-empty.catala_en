@@ -9,3 +9,7 @@ scope A:
   definition x equals 1.
   definition y under condition x >. 1./.3. consequence equals true
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

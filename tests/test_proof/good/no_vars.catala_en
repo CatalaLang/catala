@@ -8,3 +8,6 @@ scope A:
   definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54))
   consequence equals 0
 ```
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

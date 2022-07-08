@@ -18,3 +18,7 @@ scope A:
     -- Case1 of i : false
     -- Case2 : true consequence equals 2
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

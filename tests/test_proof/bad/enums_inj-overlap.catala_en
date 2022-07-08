@@ -15,3 +15,7 @@ scope A:
   definition y under condition x = C2 consequence equals 2
   definition y under condition x = C2 consequence equals 3
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

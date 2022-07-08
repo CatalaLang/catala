@@ -338,7 +338,7 @@ let collect_all_ninja_build
           let expected_output_file =
             expected_output.output_dir
             ^ Filename.basename expected_output.tested_filename
-            ^ "." ^ expected_output.id ^ ".out"
+            ^ "." ^ expected_output.id
           in
           let vars =
             [

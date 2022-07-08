@@ -17,3 +17,7 @@ scope A:
     -- Case3 : false
     -- Case3 : true
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

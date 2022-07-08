@@ -16,3 +16,7 @@ scope A:
   definition x equals Foo { -- f: 1 }
   definition y equals x.Foo.g
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
