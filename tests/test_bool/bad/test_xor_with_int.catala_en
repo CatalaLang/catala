@@ -7,3 +7,7 @@ declaration scope TestXorWithInt:
 scope TestXorWithInt:
   definition test_var equals 10 xor 20
 ```
+
+```catala-test { id = "bad" }
+catala Typecheck -s TestXorWithInt
+```

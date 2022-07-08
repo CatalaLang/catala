@@ -606,65 +606,70 @@ let driver
     (scope : string option)
     (reset_test_outputs : bool)
     (ninja_output : string option) : int =
-  if debug then Cli.debug_flag := true;
-  let ninja_flags = makeflags_to_ninja_flags makeflags in
-  let files_or_folders = List.sort_uniq String.compare files_or_folders
-  and catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe
-  and catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts
-  and ninja_output =
-    Option.fold
-      ~none:(Filename.temp_file "clerk_build" ".ninja")
-      ~some:Fun.id ninja_output
-  in
-  match String.lowercase_ascii command with
-  | "test" -> (
-    Cli.debug_print "building ninja rules...";
-    let ctx =
-      add_test_builds
-        (ninja_building_context_init (ninja_start catala_exe catala_opts))
-        files_or_folders reset_test_outputs
+  try
+    if debug then Cli.debug_flag := true;
+    let ninja_flags = makeflags_to_ninja_flags makeflags in
+    let files_or_folders = List.sort_uniq String.compare files_or_folders
+    and catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe
+    and catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts
+    and ninja_output =
+      Option.fold
+        ~none:(Filename.temp_file "clerk_build" ".ninja")
+        ~some:Fun.id ninja_output
     in
-    let there_is_some_fails = 0 <> List.length ctx.all_failed_names in
-    let ninja =
-      match ctx.curr_ninja with
-      | Some ninja -> ninja
-      | None -> ctx.last_valid_ninja
-    in
-    if there_is_some_fails then
-      List.iter
-        (fun f ->
-          f
-          |> Cli.with_style [ANSITerminal.magenta] "%s"
-          |> Cli.warning_print "No test case found for %s")
-        ctx.all_failed_names;
-    if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then
-      return_ok
-    else
-      try
-        File.with_formatter_of_file ninja_output (fun fmt ->
-            Cli.debug_print "writing %s..." ninja_output;
-            Nj.format fmt
-              (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds));
-        let ninja_cmd = "ninja " ^ ninja_flags ^ " test -f " ^ ninja_output in
-        Cli.debug_print "executing '%s'..." ninja_cmd;
-        Sys.command ninja_cmd
-      with Sys_error e ->
-        Cli.error_print "can not write in %s" e;
-        return_err)
-  | "run" -> (
-    match scope with
-    | Some scope ->
-      let res =
-        List.fold_left
-          (fun ret f -> ret + run_file f catala_exe catala_opts scope)
-          0 files_or_folders
+    match String.lowercase_ascii command with
+    | "test" -> (
+      Cli.debug_print "building ninja rules...";
+      let ctx =
+        add_test_builds
+          (ninja_building_context_init (ninja_start catala_exe catala_opts))
+          files_or_folders reset_test_outputs
       in
-      if 0 <> res then return_err else return_ok
-    | None ->
-      Cli.error_print "Please provide a scope to run with the -s option";
-      return_err)
-  | _ ->
-    Cli.error_print "The command \"%s\" is unknown to clerk." command;
+      let there_is_some_fails = 0 <> List.length ctx.all_failed_names in
+      let ninja =
+        match ctx.curr_ninja with
+        | Some ninja -> ninja
+        | None -> ctx.last_valid_ninja
+      in
+      if there_is_some_fails then
+        List.iter
+          (fun f ->
+            f
+            |> Cli.with_style [ANSITerminal.magenta] "%s"
+            |> Cli.warning_print "No test case found for %s")
+          ctx.all_failed_names;
+      if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then
+        return_ok
+      else
+        try
+          File.with_formatter_of_file ninja_output (fun fmt ->
+              Cli.debug_print "writing %s..." ninja_output;
+              Nj.format fmt
+                (add_root_test_build ninja ctx.all_file_names
+                   ctx.all_test_builds));
+          let ninja_cmd = "ninja " ^ ninja_flags ^ " test -f " ^ ninja_output in
+          Cli.debug_print "executing '%s'..." ninja_cmd;
+          Sys.command ninja_cmd
+        with Sys_error e ->
+          Cli.error_print "can not write in %s" e;
+          return_err)
+    | "run" -> (
+      match scope with
+      | Some scope ->
+        let res =
+          List.fold_left
+            (fun ret f -> ret + run_file f catala_exe catala_opts scope)
+            0 files_or_folders
+        in
+        if 0 <> res then return_err else return_ok
+      | None ->
+        Cli.error_print "Please provide a scope to run with the -s option";
+        return_err)
+    | _ ->
+      Cli.error_print "The command \"%s\" is unknown to clerk." command;
+      return_err
+  with Errors.StructuredError (msg, pos) ->
+    Cli.error_print "%s" (Errors.print_structured_error msg pos);
     return_err
 
 let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))
