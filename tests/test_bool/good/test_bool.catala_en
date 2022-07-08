@@ -10,3 +10,7 @@ scope TestBool:
   definition foo under condition bar >= 0 consequence equals true
   definition foo under condition bar < 0 consequence equals false
 ```
+
+```catala-test { id = "interpret"}
+catala Interpret -s TestBool
+```

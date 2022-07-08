@@ -20,6 +20,10 @@ val with_out_channel : string -> (out_channel -> 'a) -> 'a
 (** Runs the given function with the provided file opened, ensuring it is
     properly closed afterwards. May raise just as [open_out]. *)
 
+val with_in_channel : string -> (in_channel -> 'a) -> 'a
+(** Runs the given function with the provided file opened, ensuring it is
+    properly closed afterwards. May raise just as [open_in]. *)
+
 (** {2 Formatter wrappers} *)
 
 val with_formatter_of_out_channel :
