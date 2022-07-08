@@ -73,3 +73,11 @@ champ d'application CasTest2:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
   assertion montant = 22,11 €
 ```
+
+```catala-test {id="CasTest1.Interpret"}
+catala Interpret -s CasTest1
+```
+
+```catala-test {id="CasTest2.Interpret"}
+catala Interpret -s CasTest2
+```

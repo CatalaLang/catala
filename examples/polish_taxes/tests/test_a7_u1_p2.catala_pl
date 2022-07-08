@@ -21,3 +21,11 @@ zakres Test_A7_U1_P2_PPb:
 
   asercja sprzedaz.podatek = 1 PLN
 ```
+
+```catala-test {id="Test_A7_U1_P2_PPa.Interpret"}
+catala Interpret -s Test_A7_U1_P2_PPa
+```
+
+```catala-test {id="Test_A7_U1_P2_PPb.Interpret"}
+catala Interpret -s Test_A7_U1_P2_PPb
+```

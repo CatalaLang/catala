@@ -193,3 +193,11 @@ champ d'application Exemple1 :
 #      }
 #  }
 ```
+
+```catala-test {id="Exemple1.Interpret"}
+catala Interpret -s Exemple1
+```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

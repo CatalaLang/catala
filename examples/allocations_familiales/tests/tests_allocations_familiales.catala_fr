@@ -321,3 +321,55 @@ champ d'application Test13:
   règle f.i_personne_charge_effective_permanente_est_parent rempli
   assertion f.i_montant_versé = 34,99€
 ```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
+```
+
+```catala-test {id="Test5.Interpret"}
+catala Interpret -s Test5
+```
+
+```catala-test {id="Test6.Interpret"}
+catala Interpret -s Test6
+```
+
+```catala-test {id="Test7.Interpret"}
+catala Interpret -s Test7
+```
+
+```catala-test {id="Test8.Interpret"}
+catala Interpret -s Test8
+```
+
+```catala-test {id="Test9.Interpret"}
+catala Interpret -s Test9
+```
+
+```catala-test {id="Test10.Interpret"}
+catala Interpret -s Test10
+```
+
+```catala-test {id="Test11.Interpret"}
+catala Interpret -s Test11
+```
+
+```catala-test {id="Test12.Interpret"}
+catala Interpret -s Test12
+```
+
+```catala-test {id="Test13.Interpret"}
+catala Interpret -s Test13
+```

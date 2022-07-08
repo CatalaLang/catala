@@ -234,3 +234,35 @@ champ d'application Exemple8:
   assertion calcul.taux_composition_familiale = 3,15%
   assertion calcul.participation_personnelle = 306,11 €
 ```
+
+```catala-test {id="Exemple1.Interpret"}
+catala Interpret -s Exemple1
+```
+
+```catala-test {id="Exemple2.Interpret"}
+catala Interpret -s Exemple2
+```
+
+```catala-test {id="Exemple3.Interpret"}
+catala Interpret -s Exemple3
+```
+
+```catala-test {id="Exemple4.Interpret"}
+catala Interpret -s Exemple4
+```
+
+```catala-test {id="Exemple5.Interpret"}
+catala Interpret -s Exemple5
+```
+
+```catala-test {id="Exemple6.Interpret"}
+catala Interpret -s Exemple6
+```
+
+```catala-test {id="Exemple7.Interpret"}
+catala Interpret -s Exemple7
+```
+
+```catala-test {id="Exemple8.Interpret"}
+catala Interpret -s Exemple8
+```

@@ -27,3 +27,11 @@ champ d'application TestUnitaire2:
 
   assertion calcul_impôt.impôt_revenu = 0,00 €
 ```
+
+```catala-test {id="TestUnitaire1.Interpret"}
+catala Interpret -s TestUnitaire1
+```
+
+```catala-test {id="TestUnitaire2.Interpret"}
+catala Interpret -s TestUnitaire2
+```
