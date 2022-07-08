@@ -44,7 +44,3 @@ val get_language_extension : Cli.backend_lang -> string
 val run_pandoc : string -> [ `Html | `Latex ] -> string
 (** Runs the [pandoc] on a string to pretty-print markdown features into the
     desired format. *)
-
-val get_code_authors : string list -> string list
-(** Usage: [get_code_authors source_files] calls [git log] to retrieve the names
-    of the authors of the source files. *)

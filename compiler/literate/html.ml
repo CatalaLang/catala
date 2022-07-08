@@ -82,7 +82,6 @@ let wrap_html
      <h1>%s<br />\n\
      <small>%s Catala version %s</small>\n\
      </h1>\n\
-     <h3>%s</h3>\n\
      %s\n\
      <p>\n\
      %s:\n\
@@ -93,11 +92,6 @@ let wrap_html
     css_as_string (literal_title language)
     (literal_generated_by language)
     Utils.Cli.version
-    ((match language with
-     | En -> "Authors: "
-     | Fr -> "Auteurs : "
-     | Pl -> "Autors: ")
-    ^ String.concat ", " (get_code_authors source_files))
     (pre_html (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat "\n"

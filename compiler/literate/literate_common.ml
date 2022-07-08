@@ -98,21 +98,3 @@ let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
   Sys.remove tmp_file_in;
   Sys.remove tmp_file_out;
   tmp_file_as_string
-
-let get_code_authors (source_files : string list) : string list =
-  let git_channel =
-    Unix.open_process_in
-      (Format.asprintf "git shortlog -sn -- %s"
-         (String.concat " " source_files))
-  in
-  let authors = ref [] in
-  (try
-     let authors_rex = Re.Pcre.regexp "^\\s*(\\d+)\\s*(\\w.*)$" in
-     while true do
-       let new_author = input_line git_channel in
-       let groups = Re.Pcre.exec ~rex:authors_rex new_author in
-       try authors := Re.Pcre.get_substring groups 2 :: !authors
-       with Not_found -> ()
-     done
-   with End_of_file -> ());
-  List.sort_uniq String.compare !authors

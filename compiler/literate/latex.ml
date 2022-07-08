@@ -40,7 +40,6 @@ let wrap_latex
     (language : C.backend_lang)
     (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) =
-  let authors = get_code_authors source_files in
   Format.fprintf fmt
     {latex|\documentclass[%s, 11pt, a4paper]{article}
 
@@ -131,8 +130,6 @@ codes={\catcode`\$=3\catcode`\^=7}
 %s\\
 %s Catala version %s
 }
-\author{
-%s}
 \begin{document}
 \maketitle
 
@@ -153,8 +150,6 @@ codes={\catcode`\$=3\catcode`\^=7}
     (literal_title language)
     (literal_generated_by language)
     Utils.Cli.version
-    (String.concat " \\and "
-       (List.map (fun authors -> Format.asprintf "%s" authors) authors))
     (pre_latexify (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat
