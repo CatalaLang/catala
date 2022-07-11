@@ -55,9 +55,12 @@ let rec format_typ
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
   | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
 
+exception Type_error of (A.untyped A.marked_expr) * typ Marked.pos UnionFind.elem * typ Marked.pos UnionFind.elem
+
 (** Raises an error if unification cannot be performed *)
 let rec unify
     (ctx : Ast.decl_ctx)
+    (e : 'm A.marked_expr) (* used for error context *)
     (t1 : typ Marked.pos UnionFind.elem)
     (t2 : typ Marked.pos UnionFind.elem) : unit =
   let unify = unify ctx in
@@ -65,60 +68,74 @@ let rec unify
      (format_typ ctx) t2); *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
-  let raise_type_error (t1_pos : Pos.t) (t2_pos : Pos.t) : 'a =
-    (* TODO: if we get weird error messages, then it means that we should use
-       the persistent version of the union-find data structure. *)
-    let t1_s =
-      Cli.with_style [ANSITerminal.yellow] "%s"
-        (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-           ~subst:(fun _ -> " ")
-           (Format.asprintf "%a" (format_typ ctx) t1))
-    in
-    let t2_s =
-      Cli.with_style [ANSITerminal.yellow] "%s"
-        (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-           ~subst:(fun _ -> " ")
-           (Format.asprintf "%a" (format_typ ctx) t2))
-    in
-    Errors.raise_multispanned_error
-      [
-        Some (Format.asprintf "Type %s coming from expression:" t1_s), t1_pos;
-        Some (Format.asprintf "Type %s coming from expression:" t2_s), t2_pos;
-      ]
-      "Error during typechecking, incompatible types:\n%a %s\n%a %s"
-      (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
-      "-->" t1_s
-      (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
-      "-->" t2_s
+  let raise_type_error () =
+    raise (Type_error (A.untype_expr e, t1, t2))
   in
   let repr =
-    match t1_repr, t2_repr with
-    | (TLit tl1, _), (TLit tl2, _) when tl1 = tl2 -> None
-    | (TArrow (t11, t12), _), (TArrow (t21, t22), _) ->
-      unify t11 t21;
-      unify t12 t22;
+    match Marked.unmark t1_repr, Marked.unmark t2_repr with
+    | TLit tl1, TLit tl2 when tl1 = tl2 -> None
+    | TArrow (t11, t12), TArrow (t21, t22) ->
+      unify e t11 t21;
+      unify e t12 t22;
       None
-    | (TTuple (ts1, s1), t1_pos), (TTuple (ts2, s2), t2_pos) ->
+    | TTuple (ts1, s1), TTuple (ts2, s2) ->
       if s1 = s2 && List.length ts1 = List.length ts2 then begin
-        List.iter2 unify ts1 ts2;
+        List.iter2 (unify e) ts1 ts2;
         None
       end
-      else raise_type_error t1_pos t2_pos
-    | (TEnum (ts1, e1), t1_pos), (TEnum (ts2, e2), t2_pos) ->
+      else raise_type_error ()
+    | TEnum (ts1, e1), TEnum (ts2, e2) ->
       if e1 = e2 && List.length ts1 = List.length ts2 then begin
-        List.iter2 unify ts1 ts2;
+        List.iter2 (unify e) ts1 ts2;
         None
       end
-      else raise_type_error t1_pos t2_pos
-    | (TArray t1', _), (TArray t2', _) ->
-      unify t1' t2';
+      else raise_type_error ()
+    | TArray t1', TArray t2' ->
+      unify e t1' t2';
       None
-    | (TAny _, _), (TAny _, _) -> None
-    | (TAny _, _), t_repr | t_repr, (TAny _, _) -> Some t_repr
-    | (_, t1_pos), (_, t2_pos) -> raise_type_error t1_pos t2_pos
+    | TAny _, TAny _ -> None
+    | TAny _, _ -> Some t2_repr
+    | _, TAny _ -> Some t1_repr
+    | _ -> raise_type_error ()
   in
   let t_union = UnionFind.union t1 t2 in
   match repr with None -> () | Some t_repr -> UnionFind.set t_union t_repr
+
+let handle_type_error ctx e t1 t2 =
+  (* TODO: if we get weird error messages, then it means that we should use
+     the persistent version of the union-find data structure. *)
+  let t1_repr = UnionFind.get (UnionFind.find t1) in
+  let t2_repr = UnionFind.get (UnionFind.find t2) in
+  let t1_pos = Marked.get_mark t1_repr in
+  let t2_pos = Marked.get_mark t2_repr in
+  let unformat_typ typ =
+    let buf = Buffer.create 59 in
+    let ppf = Format.formatter_of_buffer buf in
+    (* set infinite width to disable line cuts *)
+    Format.pp_set_margin ppf max_int;
+    format_typ ctx ppf typ;
+    Format.pp_print_flush ppf ();
+    Buffer.contents buf
+  in
+  let t1_s fmt () =
+    Cli.format_with_style [ANSITerminal.yellow] fmt
+      (unformat_typ t1)
+  in
+  let t2_s fmt () =
+    Cli.format_with_style [ANSITerminal.yellow] fmt
+      (unformat_typ t2)
+  in
+  Errors.raise_multispanned_error
+    [
+      Some (Format.asprintf "Error coming from typechecking the following expression:"), A.pos e;
+      Some (Format.asprintf "Type %a coming from expression:" t1_s ()), t1_pos;
+      Some (Format.asprintf "Type %a coming from expression:" t2_s ()), t2_pos;
+    ]
+    "Error during typechecking, incompatible types:\n%a %a\n%a %a"
+    (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
+    "-->" t1_s ()
+    (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
+    "-->" t2_s ()
 
 (** Operators have a single type, instead of being polymorphic with constraints.
     This allows us to have a simpler type system, while we argue the syntactic
@@ -219,7 +236,6 @@ let rec typecheck_expr_bottom_up
     (e : 'm A.marked_expr) : A.typed_expr Bindlib.box =
   (* Cli.debug_format "Looking for type of %a"
    *    (Print.format_expr ~debug:true ctx) e; *)
-  try
     let pos_e = A.pos e in
     let mark (e : A.typed A.expr) ty =
       Marked.mark (A.Typed { ty; pos = pos_e }) e
@@ -257,7 +273,7 @@ let rec typecheck_expr_bottom_up
         List.map ast_to_typ typs
       in
       let+ e1 =
-        typecheck_expr_top_down ctx env e1 (unionfind_make (TTuple (utyps, s)))
+        typecheck_expr_top_down ctx env (unionfind_make (TTuple (utyps, s))) e1
       in
       match List.nth_opt utyps n with
       | Some t' -> mark (ETupleAccess (e1, n, s, typs)) t'
@@ -281,7 +297,7 @@ let rec typecheck_expr_bottom_up
              has %d"
             n (List.length ts')
       in
-      let+ e1' = typecheck_expr_top_down ctx env e1 ts_n in
+      let+ e1' = typecheck_expr_top_down ctx env ts_n e1 in
       mark_with_uf (A.EInj (e1', n, e_name, ts)) (TEnum (ts', e_name))
     | A.EMatch (e1, es, e_name) ->
       let enum_cases =
@@ -293,10 +309,10 @@ let rec typecheck_expr_bottom_up
       let t_ret =
         unionfind_make ~pos:e (TAny (Any.fresh ()))
       in
-      let+ e1' = typecheck_expr_top_down ctx env e1 t_e1
+      let+ e1' = typecheck_expr_top_down ctx env t_e1 e1
       and+ es' = bmap2 (fun es' enum_t ->
-          typecheck_expr_top_down ctx env es'
-            (unionfind_make ~pos:es' (TArrow (enum_t, t_ret))))
+          typecheck_expr_top_down ctx env
+            (unionfind_make ~pos:es' (TArrow (enum_t, t_ret))) es')
           es enum_cases
       in
       mark (EMatch (e1', es', e_name)) t_ret
@@ -334,35 +350,36 @@ let rec typecheck_expr_bottom_up
           (fun ty_arg acc -> unionfind_make (TArrow (ty_arg, acc)))
           (Bindlib.unbox (Bindlib.box_apply (List.map ty) args')) t_ret
       in
-      let+ e1' = typecheck_expr_top_down ctx env e1 t_func
+      let+ e1' = typecheck_expr_bottom_up ctx env e1
       and+ args' = args' in
+      unify ctx e (ty e1') t_func;
       mark (EApp (e1', args')) t_ret
     | A.EOp op as e1 -> Bindlib.box @@ mark e1 (op_type (Marked.mark pos_e op))
     | A.EDefault (excepts, just, cons) ->
-      let just' = typecheck_expr_top_down ctx env just
-        (unionfind_make ~pos:just (TLit TBool)) in
+      let just' = typecheck_expr_top_down ctx env
+        (unionfind_make ~pos:just (TLit TBool)) just in
       let cons' = typecheck_expr_bottom_up ctx env cons in
       let tau = box_ty cons' in
       let+ just' = just'
       and+ cons' = cons'
       and+ excepts' =
         bmap
-          (fun except -> typecheck_expr_top_down ctx env except tau)
+          (fun except -> typecheck_expr_top_down ctx env tau except)
         excepts
       in
       mark (A.EDefault (excepts', just', cons')) tau
     | A.EIfThenElse (cond, et, ef) ->
-      let cond' = typecheck_expr_top_down ctx env cond
-          (unionfind_make ~pos:cond (TLit TBool)) in
+      let cond' = typecheck_expr_top_down ctx env
+          (unionfind_make ~pos:cond (TLit TBool)) cond in
       let et' = typecheck_expr_bottom_up ctx env et in
       let tau = box_ty et' in
       let+ cond' = cond' and+ et' = et'
-      and+ ef' = typecheck_expr_top_down ctx env ef tau in
+      and+ ef' = typecheck_expr_top_down ctx env tau ef in
       mark (A.EIfThenElse (cond', et', ef')) tau
     | A.EAssert e1 ->
       let+ e1' =
-        typecheck_expr_top_down ctx env e1
-          (unionfind_make ~pos:e1 (TLit TBool)) in
+        typecheck_expr_top_down ctx env
+          (unionfind_make ~pos:e1 (TLit TBool))  e1 in
       mark_with_uf (A.EAssert e1') ~pos:e1 (TLit TUnit)
     | A.ErrorOnEmpty e1 ->
       let+ e1' = typecheck_expr_bottom_up ctx env e1 in
@@ -373,37 +390,30 @@ let rec typecheck_expr_bottom_up
         bmap
           (fun e1 ->
              let e1' = typecheck_expr_bottom_up ctx env e1 in
-             unify ctx cell_type (box_ty e1');
+             unify ctx e1 cell_type (box_ty e1');
              e1')
           es
       in
       mark_with_uf (A.EArray es') (TArray cell_type)
-  with Errors.StructuredError (msg, ([_; _] as err_pos)) ->
-    raise
-      (Errors.StructuredError
-         ( msg,
-           ( Some "Error coming from typechecking the following expression:",
-             A.pos e )
-           :: err_pos ))
 
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down
     (ctx : Ast.decl_ctx)
     (env : env)
-    (e : 'm A.marked_expr)
-    (tau : typ Marked.pos UnionFind.elem) :
+    (tau : typ Marked.pos UnionFind.elem)
+    (e : 'm A.marked_expr) :
   A.typed_expr Bindlib.box =
   (* Cli.debug_format "Propagating type %a for expr %a"
    *   (format_typ ctx) tau
    *   (Print.format_expr ~debug:true ctx) e; *)
-  try
     let pos_e = A.pos e in
     let mark e =
       Marked.mark (A.Typed { ty = tau; pos = pos_e }) e
     in
     let unify_and_mark (e : A.typed A.expr) tau' =
-      unify ctx tau tau';
-      Marked.mark (A.Typed { ty = tau'; pos = pos_e }) e
+      let e = Marked.mark (A.Typed { ty = tau'; pos = pos_e }) e in
+      unify ctx e tau tau';
+      e
     in
     let unionfind_make ?(pos=e) t = UnionFind.make (add_pos pos t) in
     match Marked.unmark e with
@@ -434,8 +444,8 @@ and typecheck_expr_top_down
     | A.ETupleAccess (e1, n, s, typs) -> begin
       let typs' = List.map ast_to_typ typs in
       let+ e1' =
-        typecheck_expr_top_down ctx env e1
-            (unionfind_make (TTuple (typs', s)))
+        typecheck_expr_top_down ctx env
+            (unionfind_make (TTuple (typs', s))) e1
       in
       match List.nth_opt typs' n with
       | Some t1n ->
@@ -459,7 +469,7 @@ and typecheck_expr_top_down
              has %d"
             n (List.length ts)
       in
-      let+ e1' = typecheck_expr_top_down ctx env e1 ts_n in
+      let+ e1' = typecheck_expr_top_down ctx env ts_n e1 in
       unify_and_mark (A.EInj (e1', n, e_name, ts))
         (unionfind_make (TEnum (ts', e_name)))
     | A.EMatch (e1, es, e_name) ->
@@ -468,15 +478,17 @@ and typecheck_expr_top_down
           es
       in
       let e1' =
-        typecheck_expr_top_down ctx env e1
+        typecheck_expr_top_down ctx env
           (unionfind_make ~pos:e1 (TEnum (enum_cases, e_name)))
+          e1
       in
       let t_ret = unionfind_make ~pos:e (TAny (Any.fresh ())) in
       let+ e1' = e1'
       and+ es' =
         bmap2 (fun es' enum_t ->
-            typecheck_expr_top_down ctx env es'
-              (unionfind_make ~pos:es' (TArrow (enum_t, t_ret))))
+            typecheck_expr_top_down ctx env
+              (unionfind_make ~pos:es' (TArrow (enum_t, t_ret)))
+              es')
           es enum_cases
       in
       unify_and_mark (EMatch (e1', es', e_name)) t_ret
@@ -516,31 +528,31 @@ and typecheck_expr_top_down
           (fun arg acc -> unionfind_make (TArrow (ty arg, acc)))
           args' tau
       in
-      unify ctx (ty e1') t_func;
+      unify ctx e (ty e1') t_func;
       unify_and_mark (EApp (e1', args')) tau
     | A.EOp op as e1 ->
       let op_typ = op_type (add_pos e op) in
       Bindlib.box (unify_and_mark e1 op_typ)
     | A.EDefault (excepts, just, cons) ->
-      let+ just' = typecheck_expr_top_down ctx env just (unionfind_make ~pos:just (TLit TBool))
-      and+ cons' = typecheck_expr_top_down ctx env cons tau
+      let+ just' = typecheck_expr_top_down ctx env (unionfind_make ~pos:just (TLit TBool)) just
+      and+ cons' = typecheck_expr_top_down ctx env tau cons
       and+ excepts' =
-        bmap (fun except -> typecheck_expr_top_down ctx env except tau)
+        bmap (typecheck_expr_top_down ctx env tau)
           excepts
       in
       mark (A.EDefault (excepts', just', cons'))
     | A.EIfThenElse (cond, et, ef) ->
-      let+ cond' = typecheck_expr_top_down ctx env cond
-          (unionfind_make ~pos:cond (TLit TBool))
-      and+ et' = typecheck_expr_top_down ctx env et tau
-      and+ ef' = typecheck_expr_top_down ctx env ef tau in
+      let+ cond' = typecheck_expr_top_down ctx env
+          (unionfind_make ~pos:cond (TLit TBool)) cond
+      and+ et' = typecheck_expr_top_down ctx env tau et
+      and+ ef' = typecheck_expr_top_down ctx env tau ef in
       mark (A.EIfThenElse (cond', et', ef'))
     | A.EAssert e1 ->
-      let+ e1' = typecheck_expr_top_down ctx env e1
-        (unionfind_make ~pos:e1 (TLit TBool)) in
+      let+ e1' = typecheck_expr_top_down ctx env
+        (unionfind_make ~pos:e1 (TLit TBool))  e1 in
       unify_and_mark (EAssert e1') (unionfind_make ~pos:e1 (TLit TUnit))
     | A.ErrorOnEmpty e1 ->
-      let+ e1' = typecheck_expr_top_down ctx env e1 tau in
+      let+ e1' = typecheck_expr_top_down ctx env tau e1 in
       mark (A.ErrorOnEmpty e1')
     | A.EArray es ->
       let cell_type = unionfind_make (TAny (Any.fresh ())) in
@@ -548,25 +560,23 @@ and typecheck_expr_top_down
         bmap
           (fun e1 ->
              let e1' = typecheck_expr_bottom_up ctx env e1 in
-             unify ctx cell_type (box_ty e1');
+             unify ctx e cell_type (box_ty e1');
              e1')
           es
       in
       unify_and_mark (A.EArray es') (unionfind_make (TArray cell_type))
-  with Errors.StructuredError (msg, err_pos) when List.length err_pos = 2 ->
-    raise
-      (Errors.StructuredError
-         ( msg,
-           ( Some "Error coming from typechecking the following expression:",
-             A.pos e )
-           :: err_pos ))
+
+let wrap ctx f e =
+  try f e with Type_error (e, ty1, ty2) ->
+    let bt = Printexc.get_raw_backtrace () in
+    try handle_type_error ctx e ty1 ty2 with e -> Printexc.raise_with_backtrace e bt
 
 (** {1 API} *)
 
 (* Infer the type of an expression *)
 let infer_types (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :  Ast.typed Ast.marked_expr
  =
-  Bindlib.unbox @@ typecheck_expr_bottom_up ctx A.VarMap.empty e
+  Bindlib.unbox @@ wrap ctx (typecheck_expr_bottom_up ctx A.VarMap.empty) e
 
 let infer_type (type m) ctx (e: m A.marked_expr) =
   match Marked.get_mark e with
@@ -580,7 +590,7 @@ let check_type
     (tau : A.typ Marked.pos) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
   ignore @@
-  typecheck_expr_top_down ctx A.VarMap.empty e (ast_to_typ tau)
+  wrap ctx (typecheck_expr_top_down ctx A.VarMap.empty (ast_to_typ tau)) e
 
 let infer_types_program prg =
   let ctx = prg.A.decl_ctx in
@@ -607,7 +617,7 @@ let infer_types_program prg =
       let rec process_scope_body_expr env = function
         | A.Result e ->
           let e' = typecheck_expr_bottom_up ctx env e in
-          Bindlib.box_apply (fun e -> unify ctx (ty e) ty_out; A.Result e) e'
+          Bindlib.box_apply (fun e -> unify ctx e (ty e) ty_out; A.Result e) e'
         | A.ScopeLet {
             scope_let_kind;
             scope_let_typ;
@@ -622,7 +632,7 @@ let infer_types_program prg =
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (A.translate_var var) next in
           Bindlib.box_apply2 (fun scope_let_expr scope_let_next ->
-              unify ctx (ty scope_let_expr) ty_e;
+              unify ctx scope_let_expr (ty scope_let_expr) ty_e;
               A.ScopeLet {
                 scope_let_kind;
                 scope_let_typ;
@@ -656,7 +666,9 @@ let infer_types_program prg =
           })
         scope_body_expr scope_next
   in
-  let scopes = process_scopes A.VarMap.empty prg.scopes in
+  let scopes =
+    wrap ctx (process_scopes A.VarMap.empty) prg.scopes
+  in
   Bindlib.box_apply (fun scopes ->
       { A.
         decl_ctx = ctx;

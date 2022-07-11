@@ -90,18 +90,20 @@ let merge_defaults
     (callee : Dcalc.Ast.untyped Dcalc.Ast.marked_expr Bindlib.box) :
     Dcalc.Ast.untyped Dcalc.Ast.marked_expr Bindlib.box =
   let caller =
+    let m = Marked.get_mark (Bindlib.unbox caller) in
     Dcalc.Ast.make_app caller
-      [Bindlib.box (Dcalc.Ast.ELit Dcalc.Ast.LUnit, (pos_mark Pos.no_pos))]
-      (pos_mark Pos.no_pos)
+      [Bindlib.box (Dcalc.Ast.ELit Dcalc.Ast.LUnit, m)]
+      m
   in
   let body =
     Bindlib.box_apply2
       (fun caller callee ->
-        ( Dcalc.Ast.EDefault
+         let m = Marked.get_mark callee in
+         ( Dcalc.Ast.EDefault
             ( [caller],
-              (Dcalc.Ast.ELit (Dcalc.Ast.LBool true), (pos_mark Pos.no_pos)),
+              (Dcalc.Ast.ELit (Dcalc.Ast.LBool true), m),
               callee ),
-          (pos_mark Pos.no_pos) ))
+          m ))
       caller callee
   in
   body

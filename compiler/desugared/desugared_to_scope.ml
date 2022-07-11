@@ -42,6 +42,7 @@ let tag_with_log_entry
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     Scopelang.Ast.expr Marked.pos Bindlib.box =
+  let m = Marked.get_mark e in
   match Marked.unmark e with
   | Ast.ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
     (* When referring to a subscope variable in an expression, we are referring
@@ -56,7 +57,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     in
     Bindlib.box
       ( Scopelang.Ast.ELocation (SubScopeVar (s_name, ss_name, new_s_var)),
-        Marked.get_mark e )
+        m )
   | Ast.ELocation (ScopeVar (s_var, None)) ->
     Bindlib.box
       ( Scopelang.Ast.ELocation
@@ -66,7 +67,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
               with
              | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
              | States _ -> failwith "should not happen")),
-        Marked.get_mark e )
+        m )
   | Ast.ELocation (ScopeVar (s_var, Some state)) ->
     Bindlib.box
       ( Scopelang.Ast.ELocation
@@ -77,7 +78,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
              | WholeVar _ -> failwith "should not happen"
              | States states ->
                Marked.same_mark_as (List.assoc state states) s_var)),
-        Marked.get_mark e )
+        m )
   | Ast.EVar v ->
     Bindlib.box_apply
       (fun v -> Marked.same_mark_as v e)
@@ -85,27 +86,27 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
   | EStruct (s_name, fields) ->
     Bindlib.box_apply
       (fun new_fields ->
-        Scopelang.Ast.EStruct (s_name, new_fields), Marked.get_mark e)
+        Scopelang.Ast.EStruct (s_name, new_fields), m)
       (Scopelang.Ast.StructFieldMapLift.lift_box
          (Scopelang.Ast.StructFieldMap.map (translate_expr ctx) fields))
   | EStructAccess (e1, s_name, f_name) ->
     Bindlib.box_apply
       (fun new_e1 ->
-        Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), Marked.get_mark e)
+        Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), m)
       (translate_expr ctx e1)
   | EEnumInj (e1, cons, e_name) ->
     Bindlib.box_apply
       (fun new_e1 ->
-        Scopelang.Ast.EEnumInj (new_e1, cons, e_name), Marked.get_mark e)
+        Scopelang.Ast.EEnumInj (new_e1, cons, e_name), m)
       (translate_expr ctx e1)
   | EMatch (e1, e_name, arms) ->
     Bindlib.box_apply2
       (fun new_e1 new_arms ->
-        Scopelang.Ast.EMatch (new_e1, e_name, new_arms), Marked.get_mark e)
+        Scopelang.Ast.EMatch (new_e1, e_name, new_arms), m)
       (translate_expr ctx e1)
       (Scopelang.Ast.EnumConstructorMapLift.lift_box
          (Scopelang.Ast.EnumConstructorMap.map (translate_expr ctx) arms))
-  | ELit l -> Bindlib.box (Scopelang.Ast.ELit l, Marked.get_mark e)
+  | ELit l -> Bindlib.box (Scopelang.Ast.ELit l, m)
   | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
     let new_vars =
@@ -119,34 +120,34 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     in
     Bindlib.box_apply
       (fun new_binder ->
-        Scopelang.Ast.EAbs (new_binder, typs), Marked.get_mark e)
+        Scopelang.Ast.EAbs (new_binder, typs), m)
       (Bindlib.bind_mvar new_vars (translate_expr ctx body))
   | EApp (e1, args) ->
     Bindlib.box_apply2
       (fun new_e1 new_args ->
-        Scopelang.Ast.EApp (new_e1, new_args), Marked.get_mark e)
+        Scopelang.Ast.EApp (new_e1, new_args), m)
       (translate_expr ctx e1)
       (Bindlib.box_list (List.map (translate_expr ctx) args))
-  | EOp op -> Bindlib.box (Scopelang.Ast.EOp op, Marked.get_mark e)
+  | EOp op -> Bindlib.box (Scopelang.Ast.EOp op, m)
   | EDefault (excepts, just, cons) ->
     Bindlib.box_apply3
       (fun new_excepts new_just new_cons ->
-        Scopelang.Ast.make_default ~pos:(Marked.get_mark e) new_excepts new_just
+        Scopelang.Ast.make_default ~pos:m new_excepts new_just
           new_cons)
       (Bindlib.box_list (List.map (translate_expr ctx) excepts))
       (translate_expr ctx just) (translate_expr ctx cons)
   | EIfThenElse (e1, e2, e3) ->
     Bindlib.box_apply3
       (fun new_e1 new_e2 new_e3 ->
-        Scopelang.Ast.EIfThenElse (new_e1, new_e2, new_e3), Marked.get_mark e)
+        Scopelang.Ast.EIfThenElse (new_e1, new_e2, new_e3), m)
       (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
   | EArray args ->
     Bindlib.box_apply
-      (fun new_args -> Scopelang.Ast.EArray new_args, Marked.get_mark e)
+      (fun new_args -> Scopelang.Ast.EArray new_args, m)
       (Bindlib.box_list (List.map (translate_expr ctx) args))
   | ErrorOnEmpty e1 ->
     Bindlib.box_apply
-      (fun new_e1 -> Scopelang.Ast.ErrorOnEmpty new_e1, Marked.get_mark e)
+      (fun new_e1 -> Scopelang.Ast.ErrorOnEmpty new_e1, m)
       (translate_expr ctx e1)
 
 (** {1 Rule tree construction} *)
@@ -365,7 +366,7 @@ let translate_def
   let top_list = def_map_to_tree def_info def in
   let top_value =
     (if is_cond then Ast.always_false_rule else Ast.empty_rule)
-      (Marked.get_mark typ) is_def_func_param_typ
+      (Ast.ScopeDef.get_position def_info) is_def_func_param_typ
   in
   if
     Ast.RuleMap.cardinal def = 0
@@ -397,7 +398,7 @@ let translate_def
        defined as an OnlyInput to a subscope, since the [false] default value
        will not be provided by the calee scope, it has to be placed in the
        caller. *)
-  then ELit LEmptyError, Pos.no_pos
+  then ELit LEmptyError, Ast.ScopeDef.get_position def_info
   else
     Bindlib.unbox
       (rule_tree_to_expr ~toplevel:true ctx
