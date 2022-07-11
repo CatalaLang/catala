@@ -33,7 +33,6 @@ type lit =
   | LDuration of Runtime.duration
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash
-
 type 'm mark = 'm Dcalc.Ast.mark
 
 type 'm marked_expr = ('m expr, 'm) Dcalc.Ast.marked
@@ -49,13 +48,17 @@ and 'm expr =
       * Dcalc.Ast.typ Marked.pos list
       (** The [MarkedString.info] is the former struct field name *)
   | EInj of
-      'm marked_expr * int * Dcalc.Ast.EnumName.t * Dcalc.Ast.typ Marked.pos list
+      'm marked_expr
+      * int
+      * Dcalc.Ast.EnumName.t
+      * Dcalc.Ast.typ Marked.pos list
       (** The [MarkedString.info] is the former enum case name *)
   | EMatch of 'm marked_expr * 'm marked_expr list * Dcalc.Ast.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of 'm marked_expr list
   | ELit of lit
-  | EAbs of ('m expr, 'm marked_expr) Bindlib.mbinder * Dcalc.Ast.typ Marked.pos list
+  | EAbs of
+      ('m expr, 'm marked_expr) Bindlib.mbinder * Dcalc.Ast.typ Marked.pos list
   | EApp of 'm marked_expr * 'm marked_expr list
   | EAssert of 'm marked_expr
   | EOp of Dcalc.Ast.operator
@@ -63,7 +66,10 @@ and 'm expr =
   | ERaise of except
   | ECatch of 'm marked_expr * except * 'm marked_expr
 
-type 'm program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : ('m expr, 'm) Dcalc.Ast.scopes }
+type 'm program = {
+  decl_ctx : Dcalc.Ast.decl_ctx;
+  scopes : ('m expr, 'm) Dcalc.Ast.scopes;
+}
 
 (** {1 Variable helpers} *)
 
@@ -73,14 +79,15 @@ type 'm vars = 'm expr Bindlib.mvar
 module Var : sig
   type t
 
-  val t: 'm expr Bindlib.var -> t
-  val get: t -> 'm expr Bindlib.var
+  val t : 'm expr Bindlib.var -> t
+  val get : t -> 'm expr Bindlib.var
   val compare : t -> t -> int
 end
+
 module VarMap : Map.S with type key = Var.t
 module VarSet : Set.S with type elt = Var.t
 
-val new_var: string -> 'm var
+val new_var : string -> 'm var
 
 type 'm binder = ('m expr, 'm marked_expr) Bindlib.binder
 

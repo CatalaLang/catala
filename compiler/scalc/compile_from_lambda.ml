@@ -57,9 +57,7 @@ let rec translate_expr (ctxt : ctxt) (expr : 'm L.marked_expr) :
       fst
         (List.nth (D.StructMap.find s_name ctxt.decl_ctx.ctx_structs) num_field)
     in
-    ( e1_stmts,
-      (A.EStructFieldAccess (new_e1, field_name, s_name), D.pos expr)
-    )
+    e1_stmts, (A.EStructFieldAccess (new_e1, field_name, s_name), D.pos expr)
   | L.ETupleAccess (_, _, None, _) ->
     failwith "Non-struct tuples cannot be compiled to scalc"
   | L.EInj (e1, num_cons, e_name, _) ->
@@ -113,14 +111,12 @@ let rec translate_expr (ctxt : ctxt) (expr : 'm L.marked_expr) :
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
-    ( ( A.SLocalDecl
-          ((tmp_var, D.pos expr), (D.TAny, D.pos expr)),
-        D.pos expr )
+    ( (A.SLocalDecl ((tmp_var, D.pos expr), (D.TAny, D.pos expr)), D.pos expr)
       :: tmp_stmts,
       (A.EVar tmp_var, D.pos expr) )
 
-and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) :
-    A.block =
+and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
+    =
   match Marked.unmark block_expr with
   | L.EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
@@ -146,7 +142,8 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) :
     let local_decls =
       List.map
         (fun (x, tau) ->
-          ( A.SLocalDecl ((L.VarMap.find (L.Var.t x) ctxt.var_dict, binder_pos), tau),
+          ( A.SLocalDecl
+              ((L.VarMap.find (L.Var.t x) ctxt.var_dict, binder_pos), tau),
             binder_pos ))
         vars_tau
     in
@@ -223,7 +220,10 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) :
               A.LocalName.fresh (Bindlib.name_of var, D.pos arg)
             in
             let ctxt =
-              { ctxt with var_dict = L.VarMap.add (L.Var.t var) scalc_var ctxt.var_dict }
+              {
+                ctxt with
+                var_dict = L.VarMap.add (L.Var.t var) scalc_var ctxt.var_dict;
+              }
             in
             let new_arg = translate_statements ctxt body in
             (new_arg, scalc_var) :: new_args
@@ -232,14 +232,12 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) :
         [] args
     in
     let new_args = List.rev new_args in
-    e1_stmts
-    @ [A.SSwitch (new_e1, e_name, new_args), D.pos block_expr]
+    e1_stmts @ [A.SSwitch (new_e1, e_name, new_args), D.pos block_expr]
   | L.EIfThenElse (cond, e_true, e_false) ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt e_true in
     let s_e_false = translate_statements ctxt e_false in
-    cond_stmts
-    @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), D.pos block_expr]
+    cond_stmts @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), D.pos block_expr]
   | L.ECatch (e_try, except, e_catch) ->
     let s_e_try = translate_statements ctxt e_try in
     let s_e_catch = translate_statements ctxt e_catch in
@@ -349,7 +347,9 @@ let translate_program (p : 'm L.program) : A.program =
              let func_id =
                A.TopLevelName.fresh (Bindlib.name_of scope_var, Pos.no_pos)
              in
-             let func_dict = L.VarMap.add (L.Var.t scope_var) func_id func_dict in
+             let func_dict =
+               L.VarMap.add (L.Var.t scope_var) func_id func_dict
+             in
              ( func_dict,
                {
                  Ast.scope_body_name = scope_def.D.scope_name;

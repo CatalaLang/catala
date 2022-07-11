@@ -79,10 +79,8 @@ let format_enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) :
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
-let rec format_typ
-    (ctx : Ast.decl_ctx)
-    (fmt : Format.formatter)
-    (typ : typ) : unit =
+let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ) :
+    unit =
   let format_typ = format_typ ctx in
   let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
@@ -106,7 +104,9 @@ let rec format_typ
            Format.fprintf fmt "%a%a%a%a@ %a" format_punctuation "\""
              StructFieldName.format_t field format_punctuation "\""
              format_punctuation ":" format_typ typ))
-      (List.map (fun (c, t) -> c, Marked.unmark t) (StructMap.find s ctx.ctx_structs))
+      (List.map
+         (fun (c, t) -> c, Marked.unmark t)
+         (StructMap.find s ctx.ctx_structs))
       format_punctuation "}"
   | TEnum (_, e) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" Ast.EnumName.format_t e
@@ -117,11 +117,13 @@ let rec format_typ
          (fun fmt (case, typ) ->
            Format.fprintf fmt "%a%a@ %a" format_enum_constructor case
              format_punctuation ":" format_typ typ))
-      (List.map (fun (c, t) -> c, Marked.unmark t) (EnumMap.find e ctx.ctx_enums))
+      (List.map
+         (fun (c, t) -> c, Marked.unmark t)
+         (EnumMap.find e ctx.ctx_enums))
       format_punctuation "]"
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens (Marked.unmark t1)
-      format_operator "→" format_typ (Marked.unmark t2)
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens
+      (Marked.unmark t1) format_operator "→" format_typ (Marked.unmark t2)
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_base_type "array" format_typ
       (Marked.unmark t1)
@@ -277,7 +279,9 @@ let rec format_expr
   | ELit l -> format_lit fmt l
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus in
+    let xs_tau =
+      List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus
+    in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "%a%a"
       (Format.pp_print_list
@@ -290,7 +294,9 @@ let rec format_expr
       xs_tau_arg format_expr body
   | EAbs (binder, taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus in
+    let xs_tau =
+      List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus
+    in
     Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" format_punctuation
       "λ"
       (Format.pp_print_list
@@ -308,8 +314,8 @@ let rec format_expr
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     format_expr fmt arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop op
-      format_with_parens arg1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop op format_with_parens
+      arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list

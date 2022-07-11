@@ -33,7 +33,7 @@ let translate_lit (l : D.lit) : 'm A.expr =
   | D.LDuration d -> A.ELit (A.LDuration d)
   | D.LEmptyError -> A.ERaise A.EmptyError
 
-let thunk_expr (e : 'm A.marked_expr Bindlib.box) (mark: 'm A.mark) :
+let thunk_expr (e : 'm A.marked_expr Bindlib.box) (mark : 'm A.mark) :
     'm A.marked_expr Bindlib.box =
   let dummy_var = A.new_var "_" in
   A.make_abs [| dummy_var |] e [D.TAny, D.mark_pos mark] mark
@@ -128,7 +128,9 @@ let rec translate_scope_lets
     in
     let new_scope_let_var = A.new_var (Bindlib.name_of old_scope_let_var) in
     let new_scope_let_expr = translate_expr ctx scope_let.scope_let_expr in
-    let new_ctx = D.VarMap.add (D.Var.t old_scope_let_var) new_scope_let_var ctx in
+    let new_ctx =
+      D.VarMap.add (D.Var.t old_scope_let_var) new_scope_let_var ctx
+    in
     let new_scope_next = translate_scope_lets decl_ctx new_ctx scope_let_next in
     let new_scope_next = Bindlib.bind_var new_scope_let_var new_scope_next in
     Bindlib.box_apply2
@@ -157,10 +159,10 @@ let rec translate_scopes
     let old_scope_input_var, scope_body_expr =
       Bindlib.unbind scope_def.scope_body.scope_body_expr
     in
-    let new_scope_input_var =
-      A.new_var (Bindlib.name_of old_scope_input_var)
+    let new_scope_input_var = A.new_var (Bindlib.name_of old_scope_input_var) in
+    let new_ctx =
+      D.VarMap.add (D.Var.t old_scope_input_var) new_scope_input_var ctx
     in
-    let new_ctx = D.VarMap.add (D.Var.t old_scope_input_var) new_scope_input_var ctx in
     let new_scope_body_expr =
       translate_scope_lets decl_ctx new_ctx scope_body_expr
     in

@@ -33,6 +33,7 @@ module EnumMap : Map.S with type key = EnumName.t
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type marked_typ = typ Marked.pos
+
 and typ =
   | TLit of typ_lit
   | TTuple of marked_typ list * StructName.t option
@@ -104,14 +105,14 @@ type unop =
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 (** Contains some structures used for type inference *)
-module Infer: sig
+module Infer : sig
+  module Any : Utils.Uid.Id with type info = unit
 
-  module Any: Utils.Uid.Id with type info = unit
-
-  (** We do not reuse {!type: typ} because we have to include a new
-      [TAny] variant. Indeed, error terms can have any type and this has to be
-      captured by the type sytem. *)
   type unionfind_typ = typ Marked.pos UnionFind.elem
+  (** We do not reuse {!type: typ} because we have to include a new [TAny]
+      variant. Indeed, error terms can have any type and this has to be captured
+      by the type sytem. *)
+
   and typ =
     | TLit of typ_lit
     | TArrow of unionfind_typ * unionfind_typ
@@ -121,9 +122,7 @@ module Infer: sig
     | TAny of Any.t
 
   val typ_to_ast : unionfind_typ -> marked_typ
-
   val ast_to_typ : marked_typ -> unionfind_typ
-
 end
 
 type untyped = { pos : Pos.t } [@@unboxed]
@@ -132,9 +131,7 @@ type typed = { pos : Pos.t; ty : Infer.unionfind_typ }
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
     appropriate *)
-type _ mark =
-  | Untyped: untyped -> untyped mark
-  | Typed: typed -> typed mark
+type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
 
 type ('a, 'm) marked = ('a, 'm mark) Marked.t
 
@@ -146,8 +143,7 @@ and 'm expr =
   | EVar of 'm expr Bindlib.var
   | ETuple of 'm marked_expr list * StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of
-      'm marked_expr * int * StructName.t option * marked_typ list
+  | ETupleAccess of 'm marked_expr * int * StructName.t option * marked_typ list
       (** The [MarkedString.info] is the former struct field name *)
   | EInj of 'm marked_expr * int * EnumName.t * marked_typ list
       (** The [MarkedString.info] is the former enum case name *)
@@ -228,16 +224,33 @@ type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
 
 (** {2 Manipulation of marks} *)
 
-val no_mark: 'm mark -> 'm mark
-val mark_pos: 'm mark -> Pos.t
-val pos: ('a, 'm) marked -> Pos.t
-val ty: ('a, typed) marked -> typ
-val with_ty: Infer.unionfind_typ -> ('a, 'm) marked -> ('a, typed) marked
-val map_mark: (Pos.t -> Pos.t) -> (Infer.unionfind_typ -> Infer.unionfind_typ) -> 'm mark -> 'm mark
-val map_mark2: (Pos.t -> Pos.t -> Pos.t) -> (typed -> typed -> Infer.unionfind_typ) -> 'm mark -> 'm mark -> 'm mark
-val fold_marks: (Pos.t list -> Pos.t) -> (typed list -> Infer.unionfind_typ) -> 'm mark list -> 'm mark
-val get_scope_body_mark: ('expr, 'm) scope_body -> 'm mark
-val untype_expr: 'm marked_expr -> untyped marked_expr
+val no_mark : 'm mark -> 'm mark
+val mark_pos : 'm mark -> Pos.t
+val pos : ('a, 'm) marked -> Pos.t
+val ty : ('a, typed) marked -> typ
+val with_ty : Infer.unionfind_typ -> ('a, 'm) marked -> ('a, typed) marked
+
+val map_mark :
+  (Pos.t -> Pos.t) ->
+  (Infer.unionfind_typ -> Infer.unionfind_typ) ->
+  'm mark ->
+  'm mark
+
+val map_mark2 :
+  (Pos.t -> Pos.t -> Pos.t) ->
+  (typed -> typed -> Infer.unionfind_typ) ->
+  'm mark ->
+  'm mark ->
+  'm mark
+
+val fold_marks :
+  (Pos.t list -> Pos.t) ->
+  (typed list -> Infer.unionfind_typ) ->
+  'm mark list ->
+  'm mark
+
+val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
+val untype_expr : 'm marked_expr -> untyped marked_expr
 
 (** {2 Boxed constructors} *)
 
@@ -272,7 +285,9 @@ val ematch :
   'm mark ->
   'm marked_expr Bindlib.box
 
-val earray : 'm marked_expr Bindlib.box list -> 'm mark -> 'm marked_expr Bindlib.box
+val earray :
+  'm marked_expr Bindlib.box list -> 'm mark -> 'm marked_expr Bindlib.box
+
 val elit : lit -> 'm mark -> 'm marked_expr Bindlib.box
 
 val eabs :
@@ -287,7 +302,9 @@ val eapp :
   'm mark ->
   'm marked_expr Bindlib.box
 
-val eassert : 'm marked_expr Bindlib.box -> 'm mark -> 'm marked_expr Bindlib.box
+val eassert :
+  'm marked_expr Bindlib.box -> 'm mark -> 'm marked_expr Bindlib.box
+
 val eop : operator -> 'm mark -> 'm marked_expr Bindlib.box
 
 val edefault :
@@ -339,10 +356,16 @@ val map_expr :
     The first argument of map_expr is an optional context that you can carry
     around during your map traversal. *)
 
-val map_expr_top_down: f:('m1 marked_expr -> ('m1 expr, 'm2 mark) Marked.t) -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box
-(** Recursively applies [f] to the nodes of the expression tree. The type returned by [f] is hybrid since the mark at top-level has been rewritten, but not yet the marks in the subtrees. *)
+val map_expr_top_down :
+  f:('m1 marked_expr -> ('m1 expr, 'm2 mark) Marked.t) ->
+  'm1 marked_expr ->
+  'm2 marked_expr Bindlib.box
+(** Recursively applies [f] to the nodes of the expression tree. The type
+    returned by [f] is hybrid since the mark at top-level has been rewritten,
+    but not yet the marks in the subtrees. *)
 
-val map_expr_marks: f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
+val map_expr_marks :
+  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
 
 val fold_left_scope_lets :
   f:('a -> ('expr, 'm) scope_let -> 'expr Bindlib.var -> 'a) ->
@@ -407,16 +430,16 @@ val map_exprs_in_scopes :
 
 type 'm var = 'm expr Bindlib.var
 
-val new_var: string -> 'm var
+val new_var : string -> 'm var
 
+val translate_var : 'm1 var -> 'm2 var
 (** used to convert between e.g. [untyped expr var] into a [typed expr var] *)
-val translate_var: 'm1 var -> 'm2 var
 
 module Var : sig
   type t
 
-  val t: 'm expr Bindlib.var -> t
-  val get: t -> 'm expr Bindlib.var
+  val t : 'm expr Bindlib.var -> t
+  val get : t -> 'm expr Bindlib.var
   val compare : t -> t -> int
   val eq : t -> t -> bool
 end
@@ -429,7 +452,6 @@ module VarSet : Set.S with type elt = Var.t
  *   free_vars_scope_body : expr scope_body -> VarSet.t val free_vars_scopes :
  *   expr scopes -> VarSet.t *)
 
-                               
 (* type vars = expr Bindlib.mvar *)
 
 val make_var : ('m var, 'm) marked -> 'm marked_expr Bindlib.box
@@ -510,6 +532,7 @@ val remove_logging_calls : 'm marked_expr -> 'm marked_expr Bindlib.box
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
-val build_scope_typ_from_sig: decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ Marked.pos
+val build_scope_typ_from_sig :
+  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ Marked.pos
 (** [build_scope_typ_from_sig ctx in_struct out_struct pos] builds the arrow
     type for the specified scope *)

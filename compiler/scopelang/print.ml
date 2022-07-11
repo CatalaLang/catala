@@ -65,8 +65,7 @@ let rec format_expr
   match Marked.unmark e with
   | ELocation l -> Format.fprintf fmt "%a" format_location l
   | EVar v -> Format.fprintf fmt "%a" format_var v
-  | ELit l ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_lit l
+  | ELit l -> Format.fprintf fmt "%a" Dcalc.Print.format_lit l
   | EStruct (name, fields) ->
     Format.fprintf fmt " @[<hov 2>%a@ %a@ %a@ %a@]" Ast.StructName.format_t name
       Dcalc.Print.format_punctuation "{"
@@ -142,12 +141,9 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]"
       Dcalc.Print.format_keyword "if" format_expr e1 Dcalc.Print.format_keyword
       "then" format_expr e2 Dcalc.Print.format_keyword "else" format_expr e3
-  | EOp (Ternop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
-  | EOp (Binop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_binop op
-  | EOp (Unop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_unop op
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
+  | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop op
+  | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop op
   | EDefault (excepts, just, cons) ->
     if List.length excepts = 0 then
       Format.fprintf fmt "@[%a%a %a@ %a%a@]" Dcalc.Print.format_punctuation "⟨"

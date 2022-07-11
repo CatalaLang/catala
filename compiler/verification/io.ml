@@ -37,9 +37,7 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context ->
-    'm Dcalc.Ast.marked_expr ->
-    backend_context * vc_encoding
+    backend_context -> 'm Dcalc.Ast.marked_expr -> backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -52,9 +50,7 @@ module type BackendIO = sig
   type vc_encoding
 
   val translate_expr :
-    backend_context ->
-    'm Dcalc.Ast.marked_expr ->
-    backend_context * vc_encoding
+    backend_context -> 'm Dcalc.Ast.marked_expr -> backend_context * vc_encoding
 
   type model
 
@@ -93,7 +89,8 @@ module MakeBackendIO (B : Backend) = struct
     | Success of B.vc_encoding * B.backend_context
     | Fail of string
 
-  let print_positive_result (vc : 'm Conditions.verification_condition) : string =
+  let print_positive_result (vc : 'm Conditions.verification_condition) : string
+      =
     match vc.Conditions.vc_kind with
     | Conditions.NoEmptyError ->
       Format.asprintf "%s This variable never returns an empty error"

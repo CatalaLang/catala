@@ -56,8 +56,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
         Marked.same_mark_as (snd (List.hd (List.rev states))) s_var
     in
     Bindlib.box
-      ( Scopelang.Ast.ELocation (SubScopeVar (s_name, ss_name, new_s_var)),
-        m )
+      (Scopelang.Ast.ELocation (SubScopeVar (s_name, ss_name, new_s_var)), m)
   | Ast.ELocation (ScopeVar (s_var, None)) ->
     Bindlib.box
       ( Scopelang.Ast.ELocation
@@ -85,19 +84,16 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
       (Bindlib.box_var (Ast.VarMap.find v ctx.var_mapping))
   | EStruct (s_name, fields) ->
     Bindlib.box_apply
-      (fun new_fields ->
-        Scopelang.Ast.EStruct (s_name, new_fields), m)
+      (fun new_fields -> Scopelang.Ast.EStruct (s_name, new_fields), m)
       (Scopelang.Ast.StructFieldMapLift.lift_box
          (Scopelang.Ast.StructFieldMap.map (translate_expr ctx) fields))
   | EStructAccess (e1, s_name, f_name) ->
     Bindlib.box_apply
-      (fun new_e1 ->
-        Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), m)
+      (fun new_e1 -> Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), m)
       (translate_expr ctx e1)
   | EEnumInj (e1, cons, e_name) ->
     Bindlib.box_apply
-      (fun new_e1 ->
-        Scopelang.Ast.EEnumInj (new_e1, cons, e_name), m)
+      (fun new_e1 -> Scopelang.Ast.EEnumInj (new_e1, cons, e_name), m)
       (translate_expr ctx e1)
   | EMatch (e1, e_name, arms) ->
     Bindlib.box_apply2
@@ -119,21 +115,18 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
     Bindlib.box_apply
-      (fun new_binder ->
-        Scopelang.Ast.EAbs (new_binder, typs), m)
+      (fun new_binder -> Scopelang.Ast.EAbs (new_binder, typs), m)
       (Bindlib.bind_mvar new_vars (translate_expr ctx body))
   | EApp (e1, args) ->
     Bindlib.box_apply2
-      (fun new_e1 new_args ->
-        Scopelang.Ast.EApp (new_e1, new_args), m)
+      (fun new_e1 new_args -> Scopelang.Ast.EApp (new_e1, new_args), m)
       (translate_expr ctx e1)
       (Bindlib.box_list (List.map (translate_expr ctx) args))
   | EOp op -> Bindlib.box (Scopelang.Ast.EOp op, m)
   | EDefault (excepts, just, cons) ->
     Bindlib.box_apply3
       (fun new_excepts new_just new_cons ->
-        Scopelang.Ast.make_default ~pos:m new_excepts new_just
-          new_cons)
+        Scopelang.Ast.make_default ~pos:m new_excepts new_just new_cons)
       (Bindlib.box_list (List.map (translate_expr ctx) excepts))
       (translate_expr ctx just) (translate_expr ctx cons)
   | EIfThenElse (e1, e2, e3) ->
@@ -366,7 +359,8 @@ let translate_def
   let top_list = def_map_to_tree def_info def in
   let top_value =
     (if is_cond then Ast.always_false_rule else Ast.empty_rule)
-      (Ast.ScopeDef.get_position def_info) is_def_func_param_typ
+      (Ast.ScopeDef.get_position def_info)
+      is_def_func_param_typ
   in
   if
     Ast.RuleMap.cardinal def = 0

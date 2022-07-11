@@ -136,7 +136,8 @@ let rec format_expr
              format_expr e))
       (List.combine es
          (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (Dcalc.Ast.pos e) l)
+  | ELit l ->
+    Format.fprintf fmt "%a" format_lit (Marked.mark (Dcalc.Ast.pos e) l)
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     Format.fprintf fmt "%a%a"
@@ -146,7 +147,8 @@ let rec format_expr
            Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@ %a@]@\n"
              format_keyword "let" format_var x format_punctuation ":"
              (Dcalc.Print.format_typ ctx)
-             (Marked.unmark tau) format_punctuation "=" format_expr arg format_keyword "in"))
+             (Marked.unmark tau) format_punctuation "=" format_expr arg
+             format_keyword "in"))
       (List.combine (List.combine (Array.to_list xs) taus) args)
       format_expr body
   | EAbs (binder, taus) ->
@@ -160,20 +162,20 @@ let rec format_expr
              (Dcalc.Print.format_typ ctx)
              (Marked.unmark tau) format_punctuation ")"))
       (List.combine (Array.to_list xs) taus)
- format_punctuation "→" format_expr body
+      format_punctuation "→" format_expr body
   | EApp
       ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
     ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop
-      op format_with_parens arg1 format_with_parens arg2
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
+      format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       Dcalc.Print.format_binop op format_with_parens arg2
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop
-      op format_with_parens arg1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop op
+      format_with_parens arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
@@ -184,12 +186,9 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" format_keyword "if"
       format_expr e1 format_keyword "then" format_expr e2 format_keyword "else"
       format_expr e3
-  | EOp (Ternop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
-  | EOp (Binop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_binop op
-  | EOp (Unop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_unop op
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
+  | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop op
+  | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop op
   | ECatch (e1, exn, e2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a ->@ %a@]" format_keyword "try"
       format_with_parens e1 format_keyword "with" format_exception exn
@@ -201,7 +200,7 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert"
       format_punctuation "(" format_expr e' format_punctuation ")"
 
-let format_scope ?(debug=false) ctx fmt (n, s) =
+let format_scope ?(debug = false) ctx fmt (n, s) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
     Dcalc.Ast.ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox

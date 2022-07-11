@@ -290,8 +290,8 @@ type 'm verification_condition = {
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
-    (scope_body_expr : ('m expr, 'm) scope_body_expr) : ctx * 'm verification_condition list
-    =
+    (scope_body_expr : ('m expr, 'm) scope_body_expr) :
+    ctx * 'm verification_condition list =
   match scope_body_expr with
   | Result _ -> ctx, []
   | ScopeLet scope_let ->

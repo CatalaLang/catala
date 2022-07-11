@@ -223,7 +223,8 @@ let print_model (ctx : context) (model : Model.model) : string =
              let v = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of (Var.get v)))
+               (Cli.with_style [ANSITerminal.yellow] "%s"
+                  (Bindlib.name_of (Var.get v)))
                (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
          else
            (* Declaration d is a function *)
@@ -238,7 +239,8 @@ let print_model (ctx : context) (model : Model.model) : string =
              let v = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of (Var.get v)))
+               (Cli.with_style [ANSITerminal.yellow] "%s"
+                  (Bindlib.name_of (Var.get v)))
                (* TODO: Model of a Z3 function should be pretty-printed *)
                (Model.FuncInterp.to_string f)))
     decls
@@ -426,7 +428,10 @@ let rec translate_op
           (Format.asprintf
              "[Z3 encoding] Ill-formed ternary operator application: %a"
              (Print.format_expr ctx.ctx_decl)
-             (EApp ((EOp op, Untyped {pos=Pos.no_pos}), (List.map untype_expr args)), Untyped {pos=Pos.no_pos}))
+             ( EApp
+                 ( (EOp op, Untyped { pos = Pos.no_pos }),
+                   List.map untype_expr args ),
+               Untyped { pos = Pos.no_pos } ))
     in
 
     failwith "[Z3 encoding] ternary operator application not supported"
@@ -514,7 +519,10 @@ let rec translate_op
             (Format.asprintf
                "[Z3 encoding] Ill-formed binary operator application: %a"
                (Print.format_expr ctx.ctx_decl)
-               (EApp ((EOp op, Untyped{pos=Pos.no_pos}), List.map untype_expr args), Untyped{pos=Pos.no_pos}))
+               ( EApp
+                   ( (EOp op, Untyped { pos = Pos.no_pos }),
+                     List.map untype_expr args ),
+                 Untyped { pos = Pos.no_pos } ))
       in
 
       match bop with
@@ -561,7 +569,10 @@ let rec translate_op
           (Format.asprintf
              "[Z3 encoding] Ill-formed unary operator application: %a"
              (Print.format_expr ctx.ctx_decl)
-             (EApp ((EOp op, Untyped{pos=Pos.no_pos}), List.map untype_expr args), Untyped{pos=Pos.no_pos}))
+             ( EApp
+                 ( (EOp op, Untyped { pos = Pos.no_pos }),
+                   List.map untype_expr args ),
+               Untyped { pos = Pos.no_pos } ))
     in
 
     match uop with
@@ -593,8 +604,7 @@ let rec translate_op
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr
-    =
+and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)

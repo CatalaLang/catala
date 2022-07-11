@@ -39,8 +39,7 @@ let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) :
 
 let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
   match Marked.unmark l with
-  | LBool b ->
-    Dcalc.Print.format_lit fmt (Dcalc.Ast.LBool b)
+  | LBool b -> Dcalc.Print.format_lit fmt (Dcalc.Ast.LBool b)
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
   | LUnit -> Dcalc.Print.format_lit fmt Dcalc.Ast.LUnit
@@ -365,7 +364,7 @@ let rec format_expr
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
   | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), m), [arg1])
     when !Cli.trace_flag ->
-    let pos = D.mark_pos m in 
+    let pos = D.mark_pos m in
     Format.fprintf fmt
       "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
@@ -398,8 +397,7 @@ let rec format_expr
     Format.fprintf fmt
       "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
       format_with_parens e'
-  | ERaise exc ->
-    Format.fprintf fmt "raise@ %a" format_exception (exc, D.pos e)
+  | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception (exc, D.pos e)
   | ECatch (e1, exc, e2) ->
     Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens
       e1 format_exception

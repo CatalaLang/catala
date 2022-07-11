@@ -79,28 +79,25 @@ let rec format_expr
   | EApp
       ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
     ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop
-      op format_with_parens arg1 format_with_parens arg2
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
+      format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       Dcalc.Print.format_binop op format_with_parens arg2
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop
-      op format_with_parens arg1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop op
+      format_with_parens arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EOp (Ternop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
-  | EOp (Binop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_binop op
-  | EOp (Unop op) ->
-    Format.fprintf fmt "%a" Dcalc.Print.format_unop op
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
+  | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop op
+  | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop op
 
 let rec format_statement
     (decl_ctx : Dcalc.Ast.decl_ctx)

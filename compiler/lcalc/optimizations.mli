@@ -17,5 +17,5 @@
 open Ast
 
 val optimize_program : 'm program -> 'm program
-(** Warning/todo: no effort was yet made to ensure
-    correct propagation of type annotations in the typed case *)
+(** Warning/todo: no effort was yet made to ensure correct propagation of type
+    annotations in the typed case *)

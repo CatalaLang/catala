@@ -14,6 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val closure_conversion: 'm Ast.program -> 'm Ast.program Bindlib.box
-(** Warning/todo: no effort was yet made to ensure
-    correct propagation of type annotations in the typed case *)
+val closure_conversion : 'm Ast.program -> 'm Ast.program Bindlib.box
+(** Warning/todo: no effort was yet made to ensure correct propagation of type
+    annotations in the typed case *)

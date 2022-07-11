@@ -66,8 +66,7 @@ let visitor_map
     default_mark @@ ECatch (e1, exn, e2)
   | ERaise _ | ELit _ | EOp _ -> Bindlib.box e
 
-let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box
-    =
+let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
   match Marked.unmark e with
   | EMatch ((EInj (e1, i, n', _ts), _), cases, n)
@@ -86,8 +85,7 @@ let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box
     visitor_map iota_expr () e'
   | _ -> visitor_map iota_expr () e
 
-let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box
-    =
+let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
   let default_mark e' = Marked.same_mark_as e' e in
   match Marked.unmark e with
   | EApp (e1, args) -> (
@@ -101,7 +99,9 @@ let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box
   | _ -> visitor_map beta_expr () e
 
 let iota_optimizations (p : 'm program) : 'm program =
-  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes in
+  let new_scopes =
+    Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
+  in
   { p with scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
@@ -109,7 +109,9 @@ let iota_optimizations (p : 'm program) : 'm program =
    read, and can produce exponential blowup of the size of the generated
    program. *)
 let _beta_optimizations (p : 'm program) : 'm program =
-  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes in
+  let new_scopes =
+    Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes
+  in
   { p with scopes = Bindlib.unbox new_scopes }
 
 let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
@@ -142,7 +144,9 @@ let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ()) ~varf:(fun v -> v) p.scopes
+    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ())
+      ~varf:(fun v -> v)
+      p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 

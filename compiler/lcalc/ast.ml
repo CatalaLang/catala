@@ -27,7 +27,6 @@ type lit =
   | LDuration of Runtime.duration
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash
-
 type 'm mark = 'm D.mark
 
 type 'm marked_expr = ('m expr, 'm) D.marked
@@ -53,7 +52,10 @@ and 'm expr =
   | ERaise of except
   | ECatch of 'm marked_expr * except * 'm marked_expr
 
-type 'm program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : ('m expr, 'm) Dcalc.Ast.scopes }
+type 'm program = {
+  decl_ctx : Dcalc.Ast.decl_ctx;
+  scopes : ('m expr, 'm) Dcalc.Ast.scopes;
+}
 
 (* <copy-paste from dcalc/ast.ml> *)
 
@@ -87,7 +89,6 @@ let eapp e1 args mark =
     e1 (Bindlib.box_list args)
 
 let eassert e1 mark = Bindlib.box_apply (fun e1 -> EAssert e1, mark) e1
-
 let eop op mark = Bindlib.box (EOp op, mark)
 
 let eifthenelse e1 e2 e3 pos =
@@ -103,9 +104,7 @@ module Var = struct
   (* See Dcalc.Ast.var *)
 
   let t v = V v
-
   let get (V v) = Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
-
   let compare (V x) (V y) = Bindlib.compare_vars x y
 end
 
@@ -114,8 +113,7 @@ module VarMap = Map.Make (Var)
 
 (* </copy-paste> *)
 
-let eraise e1 pos =
-  Bindlib.box (ERaise e1, pos)
+let eraise e1 pos = Bindlib.box (ERaise e1, pos)
 
 let ecatch e1 exn e2 pos =
   Bindlib.box_apply2 (fun e1 e2 -> ECatch (e1, exn, e2), pos) e1 e2
@@ -171,20 +169,18 @@ let make_let_in x tau e1 e2 pos =
 let make_multiple_let_in xs taus e1s e2 pos =
   (* let m_e1s = List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s in *)
   let m_e1s =
-    D.fold_marks List.hd (fun tys ->
+    D.fold_marks List.hd
+      (fun tys ->
         UnionFind.make
-          (D.Infer.TTuple
-             (List.map (fun t -> t.D.ty) tys, None),
-           (List.hd tys).D.pos)
-      )
+          ( D.Infer.TTuple (List.map (fun t -> t.D.ty) tys, None),
+            (List.hd tys).D.pos ))
       (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s)
   in
   let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
   let m_abs =
     D.map_mark2
       (fun _ _ -> pos)
-      (fun m1 m2 ->
-         UnionFind.make (D.Infer.TArrow (m1.ty, m2.ty), pos))
+      (fun m1 m2 -> UnionFind.make (D.Infer.TArrow (m1.ty, m2.ty), pos))
       m_e1s m_e2
   in
   make_app (make_abs xs e2 taus m_abs) e1s m_e2
@@ -209,17 +205,20 @@ let make_none m =
   let tunit = D.TLit D.TUnit, D.mark_pos m in
   Bindlib.box @@ mark
   @@ EInj
-    (Marked.mark (D.map_mark (fun pos -> pos) (fun _ -> D.Infer.ast_to_typ tunit) m)
-       (ELit LUnit),
-     0,
-     option_enum,
-     [D.TLit D.TUnit, Pos.no_pos; D.TAny, Pos.no_pos])
+       ( Marked.mark
+           (D.map_mark (fun pos -> pos) (fun _ -> D.Infer.ast_to_typ tunit) m)
+           (ELit LUnit),
+         0,
+         option_enum,
+         [D.TLit D.TUnit, Pos.no_pos; D.TAny, Pos.no_pos] )
 
 let make_some e =
   let m = Marked.get_mark @@ Bindlib.unbox e in
   let mark = Marked.mark m in
-  let+ e = e in
-  mark @@ EInj (e, 1, option_enum, [ (D.TLit D.TUnit, D.mark_pos m); (D.TAny, D.mark_pos m) ])
+  let+ e in
+  mark
+  @@ EInj
+       (e, 1, option_enum, [D.TLit D.TUnit, D.mark_pos m; D.TAny, D.mark_pos m])
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and
@@ -227,10 +226,8 @@ let make_some e =
 let make_matchopt_with_abs_arms arg e_none e_some =
   let m = Marked.get_mark @@ Bindlib.unbox arg in
   let mark = Marked.mark m in
-  let+ arg = arg
-  and+ e_none = e_none
-  and+ e_some = e_some in
-  mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
+  let+ arg and+ e_none and+ e_some in
+  mark @@ EMatch (arg, [e_none; e_some], option_enum)
 
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to

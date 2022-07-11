@@ -66,7 +66,8 @@ type 'm ctx = {
 
 let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
   let pp_binding (fmt : Format.formatter) ((v, info) : D.Var.t * 'm info) =
-    Format.fprintf fmt "%a: %a" Dcalc.Print.format_var (D.Var.get v) pp_info info
+    Format.fprintf fmt "%a: %a" Dcalc.Print.format_var (D.Var.get v) pp_info
+      info
   in
 
   let pp_bindings =
@@ -93,7 +94,8 @@ let find ?(info : string = "none") (n : 'm D.var) (ctx : 'm ctx) : 'm info =
     var, creating a unique corresponding variable in Lcalc, with the
     corresponding expression, and the boolean is_pure. It is usefull for
     debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
-let add_var (mark : 'm D.mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx) : 'm ctx =
+let add_var (mark : 'm D.mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx)
+    : 'm ctx =
   let new_var = A.new_var (Bindlib.name_of var) in
   let expr = A.make_var (new_var, mark) in
 
@@ -293,8 +295,8 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     A.earray es' pos, disjoint_union_maps (D.pos e) hoists
   | EOp op -> Bindlib.box (A.EOp op, pos), A.VarMap.empty
 
-and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr) :
-    'm A.marked_expr Bindlib.box =
+and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
+    : 'm A.marked_expr Bindlib.box =
   let e', hoists = translate_and_hoist ctx e in
   let hoists = A.VarMap.bindings hoists in
 
@@ -358,10 +360,13 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr) 
          ] *)
       (* Cli.debug_print @@ Format.asprintf "build matchopt using %a"
          Print.format_var v; *)
-      A.make_matchopt mark_hoist (A.Var.get v) (D.TAny, D.mark_pos mark_hoist) c' (A.make_none mark_hoist)
-        acc)
+      A.make_matchopt mark_hoist (A.Var.get v)
+        (D.TAny, D.mark_pos mark_hoist)
+        c' (A.make_none mark_hoist) acc)
 
-let rec translate_scope_let (ctx : 'm ctx) (lets : ('m D.expr, 'm) D.scope_body_expr) :
+let rec translate_scope_let
+    (ctx : 'm ctx)
+    (lets : ('m D.expr, 'm) D.scope_body_expr) :
     ('m A.expr, 'm) D.scope_body_expr Bindlib.box =
   match lets with
   | Result e ->
@@ -471,7 +476,10 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : ('m D.expr, 'm) D.scope_body_
     (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
        var; *)
     let vmark =
-      D.map_mark (fun _ -> pos) (fun _ -> D.Infer.ast_to_typ typ) (Marked.get_mark expr)
+      D.map_mark
+        (fun _ -> pos)
+        (fun _ -> D.Infer.ast_to_typ typ)
+        (Marked.get_mark expr)
     in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
@@ -491,7 +499,8 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : ('m D.expr, 'm) D.scope_body_
 let translate_scope_body
     (scope_pos : Pos.t)
     (ctx : 'm ctx)
-    (body : ('m D.expr, 'm) D.scope_body) : ('m A.expr, 'm) D.scope_body Bindlib.box =
+    (body : ('m D.expr, 'm) D.scope_body) :
+    ('m A.expr, 'm) D.scope_body Bindlib.box =
   match body with
   | {
    scope_body_expr = result;
@@ -500,7 +509,10 @@ let translate_scope_body
   } ->
     let v, lets = Bindlib.unbind result in
     let vmark =
-      let m = match lets with Result e | ScopeLet { scope_let_expr=e; _} -> Marked.get_mark e in
+      let m =
+        match lets with
+        | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
+      in
       D.map_mark (fun _ -> scope_pos) (fun ty -> ty) m
     in
     let ctx' = add_var vmark v true ctx in
@@ -521,7 +533,8 @@ let rec translate_scopes (ctx : 'm ctx) (scopes : ('m D.expr, 'm) D.scopes) :
   | ScopeDef { scope_name; scope_body; scope_next } ->
     let scope_var, next = Bindlib.unbind scope_next in
     let vmark =
-      match Bindlib.unbind scope_body.scope_body_expr with _, (Result e | ScopeLet { scope_let_expr=e; _}) -> Marked.get_mark e
+      match Bindlib.unbind scope_body.scope_body_expr with
+      | _, (Result e | ScopeLet { scope_let_expr = e; _ }) -> Marked.get_mark e
     in
 
     let new_ctx = add_var vmark scope_var true ctx in
