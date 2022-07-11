@@ -218,10 +218,8 @@ let make_none m =
 let make_some e =
   let m = Marked.get_mark @@ Bindlib.unbox e in
   let mark = Marked.mark m in
-  begin[@ocamlformat "disable"]
-    let+ e = e in
-    mark @@ EInj (e, 1, option_enum, [ (D.TLit D.TUnit, D.mark_pos m); (D.TAny, D.mark_pos m) ])
-  end
+  let+ e = e in
+  mark @@ EInj (e, 1, option_enum, [ (D.TLit D.TUnit, D.mark_pos m); (D.TAny, D.mark_pos m) ])
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and
@@ -229,12 +227,10 @@ let make_some e =
 let make_matchopt_with_abs_arms arg e_none e_some =
   let m = Marked.get_mark @@ Bindlib.unbox arg in
   let mark = Marked.mark m in
-  begin[@ocamlformat "disable"]
-    let+ arg = arg
-    and+ e_none = e_none
-    and+ e_some = e_some in
-    mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
-  end
+  let+ arg = arg
+  and+ e_none = e_none
+  and+ e_some = e_some in
+  mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
 
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to
