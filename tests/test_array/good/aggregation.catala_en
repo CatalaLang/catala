@@ -20,3 +20,11 @@ scope B:
    definition y equals sum money for m in a.x of (m +$ $1)
    definition z equals number for m in a.x of (m >=$ $8.95)
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

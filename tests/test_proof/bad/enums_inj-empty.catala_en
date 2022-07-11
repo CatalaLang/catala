@@ -13,3 +13,7 @@ scope A:
   definition x equals C1
   definition y under condition x = C1 consequence equals 1
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

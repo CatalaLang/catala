@@ -17,7 +17,7 @@
 type 'ast gen = {
   name : string;
   extension : string;
-  apply : string -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
+  apply : string option -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
 }
 
 type t = Lcalc of Lcalc.Ast.program gen | Scalc of Scalc.Ast.program gen

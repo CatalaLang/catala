@@ -15,3 +15,7 @@ scope A:
     -- Case1 of i : 42
     -- Case2 : 43
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

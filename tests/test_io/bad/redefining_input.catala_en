@@ -7,3 +7,6 @@ declaration scope A:
 scope A:
   definition a equals 0
 ```
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

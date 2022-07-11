@@ -64,3 +64,7 @@ champ d'application Test1:
   assertion (f.droit_ouvert de données.enfant3)
   assertion (non (f.droit_ouvert de données.enfant4))
 ```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```

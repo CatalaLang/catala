@@ -12,3 +12,6 @@ scope A:
   definition z under condition x of true < 0 consequence equals -1
   definition z under condition x of true > 0 consequence equals 1
 ```
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

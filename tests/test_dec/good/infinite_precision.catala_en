@@ -13,3 +13,7 @@ scope A:
   definition z equals 654265429805103220650980650.5705405106540
   definition a equals x /. (y *. (x +. y) *. (x *. x *. z *. z))
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

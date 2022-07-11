@@ -30,6 +30,10 @@ let with_out_channel filename f =
   let oc = open_out filename in
   finally (fun () -> close_out oc) (fun () -> f oc)
 
+let with_in_channel filename f =
+  let oc = open_in filename in
+  finally (fun () -> close_in oc) (fun () -> f oc)
+
 let with_formatter_of_out_channel oc f =
   let fmt = Format.formatter_of_out_channel oc in
   finally (fun () -> Format.pp_print_flush fmt ()) @@ fun () -> f fmt

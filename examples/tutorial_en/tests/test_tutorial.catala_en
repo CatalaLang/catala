@@ -27,3 +27,11 @@ scope UnitTest2:
 
   assertion tax_computation.income_tax = $0.00
 ```
+
+```catala-test {id="UnitTest1.Interpret"}
+catala Interpret -s UnitTest1
+```
+
+```catala-test {id="UnitTest2.Interpret"}
+catala Interpret -s UnitTest2
+```

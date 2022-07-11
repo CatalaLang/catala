@@ -35,3 +35,11 @@ scope Middle_case:
     -- anything : 31
 	-- Case1 : 42
 ```
+
+```catala-test {id="First_case.Interpret"}
+catala Interpret -s First_case
+```
+
+```catala-test {id="Middle_case.Interpret"}
+catala Interpret -s Middle_case
+```

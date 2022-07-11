@@ -1,4 +1,0 @@
-(tests
- (names test_clerk_driver)
- (libraries alcotest clerk.driver ninja_utils catala.utils)
- (package clerk))

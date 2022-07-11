@@ -20,3 +20,11 @@ scope B:
    definition y equals exists m in a.x such that m = 9
    definition z equals for all m in a.x we have m > 0
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

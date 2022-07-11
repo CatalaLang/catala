@@ -14,3 +14,10 @@ scope A:
 scope B:
   assertion a.y = 1
 ```
+```catala-test {id="B.Dcalc"}
+catala Dcalc -s B
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

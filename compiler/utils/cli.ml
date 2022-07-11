@@ -196,7 +196,7 @@ let output =
         ~doc:
           "$(i, OUTPUT) is the file that will contain the output of the \
            compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
-           the chosen backend.")
+           the chosen backend. Use $(b,-o -) for stdout.")
 
 type options = {
   debug : bool;

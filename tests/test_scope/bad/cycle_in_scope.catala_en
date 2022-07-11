@@ -13,3 +13,7 @@ scope A:
   definition z under condition y < 1 consequence equals y
   definition x equals z
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

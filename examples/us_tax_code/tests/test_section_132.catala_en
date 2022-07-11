@@ -41,3 +41,15 @@ scope TestSection132_3:
   assertion section_132.employee_discount = $500
   assertion section_132.qualified_employee_discount = $300
 ```
+
+```catala-test {id="TestSection132_1.Interpret"}
+catala Interpret -s TestSection132_1
+```
+
+```catala-test {id="TestSection132_2.Interpret"}
+catala Interpret -s TestSection132_2
+```
+
+```catala-test {id="TestSection132_3.Interpret"}
+catala Interpret -s TestSection132_3
+```

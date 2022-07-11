@@ -10,3 +10,7 @@ scope A:
   definition y under condition (x +^ x) >^ 100 day consequence equals true
   definition y under condition (x +^ x) <=^ 100 day consequence equals false
 ```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

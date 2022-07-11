@@ -12,3 +12,7 @@ scope B:
   definition a.x equals true
   definition a.y equals if a.x then 0 else 1
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

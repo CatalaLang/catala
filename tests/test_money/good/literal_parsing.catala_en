@@ -10,3 +10,7 @@ scope A:
   definition y equals $0.3
   assertion x = y
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

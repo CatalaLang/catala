@@ -19,3 +19,7 @@ scope A:
   exception base
   definition x under condition z = 0 consequence equals 0
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

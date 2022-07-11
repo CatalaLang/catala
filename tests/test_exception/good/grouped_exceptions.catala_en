@@ -45,3 +45,7 @@ scope Benefit:
   definition benefit under condition person.disabled consequence equals $2000
 ```
 
+
+```catala-test {id="Benefit.Interpret"}
+catala Interpret -s Benefit
+```

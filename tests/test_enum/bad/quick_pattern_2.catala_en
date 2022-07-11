@@ -27,3 +27,7 @@ scope B:
   definition x equals Case2
   definition y equals x with pattern Case3
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

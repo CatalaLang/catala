@@ -22,3 +22,11 @@ scope B:
   definition b equals scopeA.b
   definition scopeA.a under condition a > 0 consequence equals scopeAbis.a_base
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

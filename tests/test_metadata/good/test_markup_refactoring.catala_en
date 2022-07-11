@@ -27,3 +27,11 @@ scope S:
 scope S2:
   definition b equals B
 ```
+
+```catala-test {id="S2.Interpret"}
+catala Interpret -s S2
+```
+
+```catala-test {id="S.Interpret"}
+catala Interpret -s S
+```

@@ -19,3 +19,11 @@ scope B:
   definition a.b equals 2
   assertion a.c = 1
 ```
+
+```catala-test {id="B.Dcalc"}
+catala Dcalc -s B
+```
+
+```catala-test {id="B.Typecheck"}
+catala Typecheck -s B
+```

@@ -39,3 +39,19 @@ declaration scope Duration:
 scope Duration:
   definition i equals 10 day /^ 0 day
 ```
+
+```catala-test {id="Dec.Interpret"}
+catala Interpret -s Dec
+```
+
+```catala-test {id="Duration.Interpret"}
+catala Interpret -s Duration
+```
+
+```catala-test {id="Int.Interpret"}
+catala Interpret -s Int
+```
+
+```catala-test {id="Money.Interpret"}
+catala Interpret -s Money
+```

@@ -33,3 +33,11 @@ scope B:
   definition t equals a.t
   definition out equals if t.a.y then t.a.x else (if t.b.y then t.b.x else 42)
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

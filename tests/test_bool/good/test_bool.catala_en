@@ -10,3 +10,15 @@ scope TestBool:
   definition foo under condition bar >= 0 consequence equals true
   definition foo under condition bar < 0 consequence equals false
 ```
+
+```catala-test {id="Dcalc"}
+catala Dcalc 
+```
+
+```catala-test {id="TestBool.Interpret"}
+catala Interpret -s TestBool
+```
+
+```catala-test {id="Scopelang"}
+catala Scopelang 
+```

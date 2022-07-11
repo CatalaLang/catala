@@ -20,3 +20,7 @@ scope A:
     -- F.Case1 of i : i
     -- Case2 : 3
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

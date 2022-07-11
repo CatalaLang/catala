@@ -11,3 +11,7 @@ scope A:
   definition y equals |2002-09-30|
   definition z equals x -@ y
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

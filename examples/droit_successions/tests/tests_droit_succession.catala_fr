@@ -66,3 +66,19 @@ champ d'application Test4:
   assertion réserve_héréditaire.patrimoine_assiette_réserve_héréditaire = 50 000 €
   assertion réserve_héréditaire.montant_réserve_héréditaire = 16666,67 €
 ```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
+```

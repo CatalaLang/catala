@@ -24,3 +24,11 @@ scope B:
    definition argmax equals content maximum money initial S { -- id: -1 --income: $0 } for m in a.x of (m.income *$ 2.0)
    definition argmin equals content minimum money initial  S { -- id: -1 --income: $20 } for m in a.x of (m.income +$ $5)
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```
