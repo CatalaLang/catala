@@ -294,8 +294,11 @@ défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,3
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition participation_minimale égal à
-    si loyer_éligible *€ 8,5% >=€ 35,39 € alors
-      loyer_éligible *€ 8,5%
+    si
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16)
+        *€ 8,5% >=€ 35,39 €
+    alors
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16) *€ 8,5%
     sinon
       35,39 €
 ```
