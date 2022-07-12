@@ -49,37 +49,45 @@ type element_prestations_familiales =
   | AllocationRentreeScolaire of unit
   | AllocationJournalierePresenceParentale of unit
 
-type enfant_entree = {
-  d_identifiant : integer;
-  d_remuneration_mensuelle : money;
-  d_date_de_naissance : date;
-  d_prise_en_charge : prise_en_charge;
-  d_a_deja_ouvert_droit_aux_allocations_familiales : bool;
-  d_beneficie_titre_personnel_aide_personnelle_logement : bool;
-}
+module EnfantEntree : sig
+  type t = {
+    d_identifiant : integer;
+    d_remuneration_mensuelle : money;
+    d_date_de_naissance : date;
+    d_prise_en_charge : prise_en_charge;
+    d_a_deja_ouvert_droit_aux_allocations_familiales : bool;
+    d_beneficie_titre_personnel_aide_personnelle_logement : bool;
+  }
+end
 
-type enfant = {
-  identifiant : integer;
-  obligation_scolaire : situation_obligation_scolaire;
-  remuneration_mensuelle : money;
-  date_de_naissance : date;
-  age : integer;
-  prise_en_charge : prise_en_charge;
-  a_deja_ouvert_droit_aux_allocations_familiales : bool;
-  beneficie_titre_personnel_aide_personnelle_logement : bool;
-}
+module Enfant : sig
+  type t = {
+    identifiant : integer;
+    obligation_scolaire : situation_obligation_scolaire;
+    remuneration_mensuelle : money;
+    date_de_naissance : date;
+    age : integer;
+    prise_en_charge : prise_en_charge;
+    a_deja_ouvert_droit_aux_allocations_familiales : bool;
+    beneficie_titre_personnel_aide_personnelle_logement : bool;
+  }
+end
 
-type interface_allocations_familiales_out = { i_montant_verse_out : money }
+module InterfaceAllocationsFamilialesOut : sig
+  type t = { i_montant_verse_out : money }
+end
 
-type interface_allocations_familiales_in = {
-  i_date_courante_in : date;
-  i_enfants_in : enfant_entree array;
-  i_ressources_menage_in : money;
-  i_residence_in : collectivite;
-  i_personne_charge_effective_permanente_est_parent_in : bool;
-  i_personne_charge_effective_permanente_remplit_titre_I_in : bool;
-  i_avait_enfant_a_charge_avant_1er_janvier_2012_in : bool;
-}
+module InterfaceAllocationsFamilialesIn : sig
+  type t = {
+    i_date_courante_in : date;
+    i_enfants_in : EnfantEntree.t array;
+    i_ressources_menage_in : money;
+    i_residence_in : collectivite;
+    i_personne_charge_effective_permanente_est_parent_in : bool;
+    i_personne_charge_effective_permanente_remplit_titre_I_in : bool;
+    i_avait_enfant_a_charge_avant_1er_janvier_2012_in : bool;
+  }
+end
 
 val interface_allocations_familiales :
-  interface_allocations_familiales_in -> interface_allocations_familiales_out
+  InterfaceAllocationsFamilialesIn.t -> InterfaceAllocationsFamilialesOut.t

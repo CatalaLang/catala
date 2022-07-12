@@ -1,0 +1,20 @@
+## Article
+
+```catala
+declaration scope ScopeA:
+  context output a content boolean
+
+declaration scope ScopeB:
+  context a content boolean
+  scopeA scope ScopeA
+
+scope ScopeA:
+  definition a equals true
+
+scope ScopeB:
+  definition a equals scopeA.a
+```
+
+```catala-test {id="OCaml"}
+catala OCaml 
+```
