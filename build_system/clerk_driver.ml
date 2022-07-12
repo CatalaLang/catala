@@ -362,9 +362,9 @@ let collect_all_ninja_build
             }
           in
           ( ninja_add_new_build
-              (expected_output_file ^ ".out")
+              (expected_output_file ^ ".PHONY")
               rule_to_call vars ninja,
-            test_names ^ " $\n  " ^ expected_output_file ^ ".out" ))
+            test_names ^ " $\n  " ^ expected_output_file ^ ".PHONY" ))
         (ninja, "") expected_outputs
     in
     let test_name =
