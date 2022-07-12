@@ -226,7 +226,6 @@ let add_reset_rules_aux
       [
         Var "catala_cmd";
         Var "tested_file";
-        Var "extra_flags";
         Lit "--unstyled";
         Lit "--output=-";
         Lit redirect;
@@ -265,7 +264,6 @@ let add_test_rules_aux
             :: [
                  Var "catala_cmd";
                  Var "tested_file";
-                 Var "extra_flags";
                  Lit "--unstyled";
                  Lit "--output=/dev/stdout";
                  Lit "2>&1 | colordiff -u -b";
@@ -363,8 +361,10 @@ let collect_all_ninja_build
                   ninja.builds;
             }
           in
-          ( ninja_add_new_build expected_output_file rule_to_call vars ninja,
-            test_names ^ " $\n  " ^ expected_output_file ))
+          ( ninja_add_new_build
+              (expected_output_file ^ ".PHONY")
+              rule_to_call vars ninja,
+            test_names ^ " $\n  " ^ expected_output_file ^ ".PHONY" ))
         (ninja, "") expected_outputs
     in
     let test_name =
