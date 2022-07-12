@@ -1,0 +1,6 @@
+let scope Foo (y: integer|input) (x: integer|internal|output) =
+  let x : integer =
+    ⟨⟨⟨y = 5 ⊢ 5⟩, ⟨y = 4 ⊢ 4⟩ | true ⊢
+         ⟨⟨y = 2 ⊢ 2⟩, ⟨y = 3 ⊢ 3⟩ | true ⊢
+           ⟨⟨y = 0 ⊢ 0⟩, ⟨y = 1 ⊢ 1⟩ | false ⊢ ∅ ⟩⟩⟩
+    | false ⊢ ∅ ⟩
