@@ -63,17 +63,17 @@ module type BackendIO = sig
     | Success of vc_encoding * backend_context
     | Fail of string
 
-  val print_positive_result : 'm Conditions.verification_condition -> string
+  val print_positive_result : Conditions.verification_condition -> string
 
   val print_negative_result :
-    'm Conditions.verification_condition ->
+    Conditions.verification_condition ->
     backend_context ->
     model option ->
     string
 
   val encode_and_check_vc :
     Dcalc.Ast.decl_ctx ->
-    'm Conditions.verification_condition * vc_encoding_result ->
+    Conditions.verification_condition * vc_encoding_result ->
     unit
 end
 

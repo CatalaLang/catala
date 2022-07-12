@@ -25,8 +25,8 @@ type verification_condition_kind =
       (** This verification condition checks whether a definition never returns
           a conflict error *)
 
-type 'm verification_condition = {
-  vc_guard : 'm Dcalc.Ast.marked_expr;
+type verification_condition = {
+  vc_guard : Dcalc.Ast.typed Dcalc.Ast.marked_expr;
       (** This expression should have type [bool]*)
   vc_kind : verification_condition_kind;
   vc_scope : Dcalc.Ast.ScopeName.t;
@@ -38,9 +38,9 @@ type 'm verification_condition = {
 }
 
 val generate_verification_conditions :
-  'm Dcalc.Ast.program ->
+  Dcalc.Ast.typed Dcalc.Ast.program ->
   Dcalc.Ast.ScopeName.t option ->
-  'm verification_condition list
+  verification_condition list
 (** [generate_verification_conditions p None] will generate the verification
     conditions for all the variables of all the scopes of the program [p], while
     [generate_verification_conditions p (Some s)] will focus only on the

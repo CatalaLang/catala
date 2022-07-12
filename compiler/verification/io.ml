@@ -58,17 +58,17 @@ module type BackendIO = sig
     | Success of vc_encoding * backend_context
     | Fail of string
 
-  val print_positive_result : 'm Conditions.verification_condition -> string
+  val print_positive_result : Conditions.verification_condition -> string
 
   val print_negative_result :
-    'm Conditions.verification_condition ->
+    Conditions.verification_condition ->
     backend_context ->
     model option ->
     string
 
   val encode_and_check_vc :
     Dcalc.Ast.decl_ctx ->
-    'm Conditions.verification_condition * vc_encoding_result ->
+    Conditions.verification_condition * vc_encoding_result ->
     unit
 end
 
@@ -89,8 +89,7 @@ module MakeBackendIO (B : Backend) = struct
     | Success of B.vc_encoding * B.backend_context
     | Fail of string
 
-  let print_positive_result (vc : 'm Conditions.verification_condition) : string
-      =
+  let print_positive_result (vc : Conditions.verification_condition) : string =
     match vc.Conditions.vc_kind with
     | Conditions.NoEmptyError ->
       Format.asprintf "%s This variable never returns an empty error"
@@ -104,7 +103,7 @@ module MakeBackendIO (B : Backend) = struct
            (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable))))
 
   let print_negative_result
-      (vc : 'm Conditions.verification_condition)
+      (vc : Conditions.verification_condition)
       (ctx : B.backend_context)
       (model : B.model option) : string =
     let var_and_pos =
@@ -152,7 +151,7 @@ module MakeBackendIO (B : Backend) = struct
       expression [vc] **)
   let encode_and_check_vc
       (decl_ctx : decl_ctx)
-      (vc : 'm Conditions.verification_condition * vc_encoding_result) : unit =
+      (vc : Conditions.verification_condition * vc_encoding_result) : unit =
     let vc, z3_vc = vc in
 
     Cli.debug_print "For this variable:\n%s\n"
