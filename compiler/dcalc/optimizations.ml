@@ -247,8 +247,9 @@ let program_map
     (fun new_scopes -> { p with scopes = new_scopes })
     (scopes_map t ctx p.scopes)
 
-let optimize_program (p : 'm program) : 'm program =
+let optimize_program (p : 'm program) : untyped program =
   Bindlib.unbox
     (program_map partial_evaluation
        { var_values = VarMap.empty; decl_ctx = p.decl_ctx }
        p)
+  |> untype_program

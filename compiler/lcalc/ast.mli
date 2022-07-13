@@ -91,6 +91,28 @@ val new_var : string -> 'm var
 
 type 'm binder = ('m expr, 'm marked_expr) Bindlib.binder
 
+(** {2 Program traversal} *)
+
+val map_expr :
+  'a ->
+  f:('a -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box) ->
+  ('m1 expr, 'm2 mark) Marked.t ->
+  'm2 marked_expr Bindlib.box
+(** See [Dcalc.Ast.map_expr] *)
+
+val map_expr_top_down :
+  f:('m1 marked_expr -> ('m1 expr, 'm2 mark) Marked.t) ->
+  'm1 marked_expr ->
+  'm2 marked_expr Bindlib.box
+(** See [Dcalc.Ast.map_expr_top_down] *)
+
+val map_expr_marks :
+  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
+(** See [Dcalc.Ast.map_expr_marks] *)
+
+val untype_expr : 'm marked_expr -> Dcalc.Ast.untyped marked_expr
+val untype_program : 'm program -> Dcalc.Ast.untyped program
+
 (** {1 Boxed constructors} *)
 
 val evar : 'm expr Bindlib.var -> 'm mark -> 'm marked_expr Bindlib.box

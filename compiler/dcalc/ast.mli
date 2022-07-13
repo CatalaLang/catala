@@ -251,6 +251,7 @@ val fold_marks :
 
 val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
 val untype_expr : 'm marked_expr -> untyped marked_expr
+val untype_program : 'm program -> untyped program
 
 (** {2 Boxed constructors} *)
 

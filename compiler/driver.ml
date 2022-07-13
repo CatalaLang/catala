@@ -284,7 +284,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
-              else prgm
+              else Lcalc.Ast.untype_program prgm
             in
             let prgm =
               if options.closure_conversion then (

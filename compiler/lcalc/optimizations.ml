@@ -150,5 +150,5 @@ let peephole_optimizations (p : 'm program) : 'm program =
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let optimize_program (p : 'm program) : 'm program =
-  p |> iota_optimizations |> peephole_optimizations
+let optimize_program (p : 'm program) : Dcalc.Ast.untyped program =
+  p |> iota_optimizations |> peephole_optimizations |> untype_program

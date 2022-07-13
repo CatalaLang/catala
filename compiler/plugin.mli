@@ -23,7 +23,7 @@ type 'ast gen = {
 }
 
 type t =
-  | Lcalc of Dcalc.Ast.typed Lcalc.Ast.program gen
+  | Lcalc of Dcalc.Ast.untyped Lcalc.Ast.program gen
   | Scalc of Scalc.Ast.program gen
 
 val find : string -> t
@@ -42,7 +42,7 @@ module PluginAPI : sig
     name:string ->
     extension:string ->
     (string option ->
-    Dcalc.Ast.typed Lcalc.Ast.program ->
+    Dcalc.Ast.untyped Lcalc.Ast.program ->
     Scopelang.Dependency.TVertex.t list ->
     unit) ->
     unit

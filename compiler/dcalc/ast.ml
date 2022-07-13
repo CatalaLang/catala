@@ -408,6 +408,16 @@ let map_exprs_in_scopes ~f ~varf scopes =
         new_scope_body_expr new_next)
     ~init:(Bindlib.box Nil) scopes
 
+let untype_program prg =
+  {
+    prg with
+    scopes =
+      Bindlib.unbox
+        (map_exprs_in_scopes
+           ~f:(fun e -> Bindlib.box (untype_expr e))
+           ~varf:translate_var prg.scopes);
+  }
+
 type 'm var = 'm expr Bindlib.var
 type 'm vars = 'm expr Bindlib.mvar
 

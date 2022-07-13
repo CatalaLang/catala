@@ -20,4 +20,4 @@
 open Ast
 
 val optimize_expr : decl_ctx -> 'm marked_expr -> 'm marked_expr Bindlib.box
-val optimize_program : 'm program -> 'm program
+val optimize_program : 'm program -> untyped program
