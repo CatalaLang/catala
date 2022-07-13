@@ -19,7 +19,7 @@ open Runtime
 
 let random_children (id : int) =
   {
-    AF.d_identifiant = integer_of_int id;
+    AF.EnfantEntree.d_identifiant = integer_of_int id;
     d_remuneration_mensuelle = money_of_units_int (Random.int 2000);
     d_date_de_naissance =
       date_of_numbers
@@ -100,10 +100,10 @@ let run_test () =
              \  income: %.2f\n\
              \  birth date: %s\n\
              \  prise en charge: %a"
-             (integer_to_int child.AF.d_identifiant)
-             (money_to_float child.AF.d_remuneration_mensuelle)
-             (Runtime.date_to_string child.AF.d_date_de_naissance)
-             format_prise_en_charge child.AF.d_prise_en_charge))
+             (integer_to_int child.AF.EnfantEntree.d_identifiant)
+             (money_to_float child.AF.EnfantEntree.d_remuneration_mensuelle)
+             (Runtime.date_to_string child.AF.EnfantEntree.d_date_de_naissance)
+             format_prise_en_charge child.AF.EnfantEntree.d_prise_en_charge))
       (Array.to_list children) income
       (Runtime.date_to_string current_date)
       format_residence residence;
