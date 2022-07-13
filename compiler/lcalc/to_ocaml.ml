@@ -143,16 +143,33 @@ let avoid_keywords (s : string) : string =
   else s
 
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
+  unit =
+Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
+|> to_ascii
+|> to_lowercase
+|> avoid_keywords
+|> Format.fprintf fmt "%s"
+[@@ocamlformat "disable"]
+
+let format_to_struct_type (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
-  Format.fprintf fmt "%s"
-    (avoid_keywords
-       (to_lowercase
-          (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructName.format_t v))))
+  Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
+  |> to_ascii
+  |> to_lowercase
+  |> avoid_keywords
+  |> String.split_on_char '_'
+  |> List.map String.capitalize_ascii
+  |> String.concat ""
+  |> Format.fprintf fmt "%s"
+  [@@ocamlformat "disable"]
 
 let format_struct_field_name
     (fmt : Format.formatter)
-    (v : Dcalc.Ast.StructFieldName.t) : unit =
-  Format.fprintf fmt "%s"
+    ((sname_opt, v) :
+      Dcalc.Ast.StructName.t option * Dcalc.Ast.StructFieldName.t) : unit =
+  (match sname_opt with
+  | Some sname -> Format.fprintf fmt "%a.%s" format_to_struct_type sname
+  | None -> Format.fprintf fmt "%s")
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v)))
 
@@ -206,7 +223,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          format_typ_with_parens)
       ts
-  | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
+  | TTuple (_, Some s) -> Format.fprintf fmt "%a.t" format_to_struct_type s
   | TEnum ([t], e) when D.EnumName.compare e Ast.option_enum = 0 ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
       format_enum_name e
@@ -283,7 +300,7 @@ let rec format_expr
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (e, struct_field) ->
              Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name
-               struct_field format_with_parens e))
+               (Some s, struct_field) format_with_parens e))
         (List.combine es (List.map fst (find_struct s ctx)))
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>[|%a|]@]"
@@ -302,7 +319,7 @@ let rec format_expr
         format_with_parens e1
     | Some s ->
       Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-        (fst (List.nth (find_struct s ctx) n)))
+        (Some s, fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
       (fst (List.nth (find_enum en ctx) n))
@@ -410,21 +427,22 @@ let format_struct_embedding
     ((struct_name, struct_fields) :
       D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list) =
   if List.length struct_fields = 0 then
-    Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n"
-      format_struct_name struct_name format_struct_name struct_name
+    Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
+      format_struct_name struct_name format_to_struct_type struct_name
   else
     Format.fprintf fmt
-      "@[<hov 2>let embed_%a (x: %a) : runtime_value =@ Struct([\"%a\"],@ \
+      "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Struct([\"%a\"],@ \
        @[<hov 2>[%a]@])@]@\n\
        @\n"
-      format_struct_name struct_name format_struct_name struct_name
+      format_struct_name struct_name format_to_struct_type struct_name
       D.StructName.format_t struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
          (fun _fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" D.StructFieldName.format_t
              struct_field typ_embedding_name struct_field_type
-             format_struct_field_name struct_field))
+             format_struct_field_name
+             (Some struct_name, struct_field)))
       struct_fields
 
 let format_enum_embedding
@@ -455,15 +473,22 @@ let format_ctx
     (ctx : D.decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     if List.length struct_fields = 0 then
-      Format.fprintf fmt "type %a = unit@\n@\n" format_struct_name struct_name
+      Format.fprintf fmt
+        "module %a = struct@\n@[<hov 2>@  type t = unit\nend@] @\n"
+        format_to_struct_type struct_name
     else
-      Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}@\n@\n"
-        format_struct_name struct_name
+      Format.fprintf fmt
+        "module %a = struct@\n\
+         @[<hov 2>@  type t = {@\n\
+         @[<hov 2>  %a@]@\n\
+         }\n\
+         end@]@\n"
+        format_to_struct_type struct_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun _fmt (struct_field, struct_field_type) ->
-             Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field
-               format_typ struct_field_type))
+             Format.fprintf fmt "%a:@ %a;" format_struct_field_name
+               (None, struct_field) format_typ struct_field_type))
         struct_fields;
     if !Cli.trace_flag then
       format_struct_embedding fmt (struct_name, struct_fields)
@@ -502,9 +527,9 @@ let format_ctx
     (fun struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-        Format.fprintf fmt "%a@\n@\n" format_struct_decl (s, find_struct s ctx)
+        Format.fprintf fmt "%a@\n" format_struct_decl (s, find_struct s ctx)
       | Scopelang.Dependency.TVertex.Enum e ->
-        Format.fprintf fmt "%a@\n@\n" format_enum_decl (e, find_enum e ctx))
+        Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
     (type_ordering @ scope_structs)
 
 let rec format_scope_body_expr
@@ -534,9 +559,9 @@ let rec format_scopes
       Bindlib.unbind scope_def.scope_body.scope_body_expr
     in
     let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-    Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a) : %a =@\n%a@]%a"
-      format_var scope_var format_var scope_input_var format_struct_name
-      scope_def.scope_body.scope_body_input_struct format_struct_name
+    Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a.t) : %a.t =@\n%a@]%a"
+      format_var scope_var format_var scope_input_var format_to_struct_type
+      scope_def.scope_body.scope_body_input_struct format_to_struct_type
       scope_def.scope_body.scope_body_output_struct
       (format_scope_body_expr ctx)
       scope_body_expr (format_scopes ctx) scope_next

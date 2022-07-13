@@ -158,31 +158,35 @@ let _ =
              let result =
                AF.interface_allocations_familiales
                  {
-                   AF.i_personne_charge_effective_permanente_est_parent_in =
+                   AF.InterfaceAllocationsFamilialesIn
+                   .i_personne_charge_effective_permanente_est_parent_in =
                      Js.to_bool
                        input##.personneQuiAssumeLaChargeEffectivePermanenteEstParent;
-                   AF.i_personne_charge_effective_permanente_remplit_titre_I_in =
+                   AF.InterfaceAllocationsFamilialesIn
+                   .i_personne_charge_effective_permanente_remplit_titre_I_in =
                      Js.to_bool
                        input##.personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale;
-                   AF.i_date_courante_in =
+                   AF.InterfaceAllocationsFamilialesIn.i_date_courante_in =
                      date_of_numbers
                        input##.currentDate##getUTCFullYear
                        input##.currentDate##getUTCMonth
                        input##.currentDate##getUTCDate;
-                   AF.i_enfants_in =
+                   AF.InterfaceAllocationsFamilialesIn.i_enfants_in =
                      Array.map
                        (fun (child : enfant_entree Js.t) ->
                          {
-                           AF.d_a_deja_ouvert_droit_aux_allocations_familiales =
+                           AF.EnfantEntree
+                           .d_a_deja_ouvert_droit_aux_allocations_familiales =
                              Js.to_bool
                                child##.aDejaOuvertDroitAuxAllocationsFamiliales;
-                           AF.d_identifiant = integer_of_int child##.id;
-                           AF.d_date_de_naissance =
+                           AF.EnfantEntree.d_identifiant =
+                             integer_of_int child##.id;
+                           AF.EnfantEntree.d_date_de_naissance =
                              date_of_numbers
                                child##.dateNaissance##getUTCFullYear
                                child##.dateNaissance##getUTCMonth
                                child##.dateNaissance##getUTCDate;
-                           AF.d_prise_en_charge =
+                           AF.EnfantEntree.d_prise_en_charge =
                              (match Js.to_string child##.priseEnCharge with
                              | "Effective et permanente" ->
                                EffectiveEtPermanente ()
@@ -198,16 +202,17 @@ let _ =
                                ServicesSociauxAllocationVerseeAuxServicesSociaux
                                  ()
                              | _ -> failwith "Unknown prise en charge");
-                           AF.d_remuneration_mensuelle =
+                           AF.EnfantEntree.d_remuneration_mensuelle =
                              money_of_units_int child##.remunerationMensuelle;
-                           AF
+                           AF.EnfantEntree
                            .d_beneficie_titre_personnel_aide_personnelle_logement =
                              Js.to_bool
                                child##.beneficieTitrePersonnelAidePersonnelleAuLogement;
                          })
                        (Js.to_array input##.children);
-                   AF.i_ressources_menage_in = money_of_units_int input##.income;
-                   AF.i_residence_in =
+                   AF.InterfaceAllocationsFamilialesIn.i_ressources_menage_in =
+                     money_of_units_int input##.income;
+                   AF.InterfaceAllocationsFamilialesIn.i_residence_in =
                      (match Js.to_string input##.residence with
                      | "Métropole" -> AF.Metropole ()
                      | "Guyane" -> AF.Guyane ()
@@ -219,9 +224,11 @@ let _ =
                      | "Saint Martin" -> AF.SaintMartin ()
                      | "Mayotte" -> AF.Mayotte ()
                      | _ -> failwith "unknown collectivite!");
-                   AF.i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
+                   AF.InterfaceAllocationsFamilialesIn
+                   .i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
                      Js.to_bool input##.avaitEnfantAChargeAvant1erJanvier2012;
                  }
              in
-             money_to_float result.AF.i_montant_verse_out)
+             money_to_float
+               result.AF.InterfaceAllocationsFamilialesOut.i_montant_verse_out)
     end)

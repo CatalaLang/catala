@@ -20,7 +20,7 @@ open Runtime
 
 let compute_allocations_familiales
     ~(current_date : Runtime.date)
-    ~(children : AF.enfant_entree array)
+    ~(children : AF.EnfantEntree.t array)
     ~(income : int)
     ~(residence : AF.collectivite)
     ~(is_parent : bool)
@@ -29,15 +29,19 @@ let compute_allocations_familiales
   let result =
     AF.interface_allocations_familiales
       {
-        AF.i_date_courante_in = current_date;
-        AF.i_enfants_in = children;
-        AF.i_ressources_menage_in = money_of_units_int income;
-        AF.i_residence_in = residence;
-        AF.i_personne_charge_effective_permanente_est_parent_in = is_parent;
-        AF.i_personne_charge_effective_permanente_remplit_titre_I_in =
+        AF.InterfaceAllocationsFamilialesIn.i_date_courante_in = current_date;
+        AF.InterfaceAllocationsFamilialesIn.i_enfants_in = children;
+        AF.InterfaceAllocationsFamilialesIn.i_ressources_menage_in =
+          money_of_units_int income;
+        AF.InterfaceAllocationsFamilialesIn.i_residence_in = residence;
+        AF.InterfaceAllocationsFamilialesIn
+        .i_personne_charge_effective_permanente_est_parent_in = is_parent;
+        AF.InterfaceAllocationsFamilialesIn
+        .i_personne_charge_effective_permanente_remplit_titre_I_in =
           fills_title_I;
-        AF.i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
+        AF.InterfaceAllocationsFamilialesIn
+        .i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
           had_rights_open_before_2012;
       }
   in
-  money_to_float result.AF.i_montant_verse_out
+  money_to_float result.AF.InterfaceAllocationsFamilialesOut.i_montant_verse_out
