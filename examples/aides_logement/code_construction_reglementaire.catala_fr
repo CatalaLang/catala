@@ -3484,7 +3484,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     type_travaux_logement sous forme SurLocauxNonHabitation
   conséquence égal à
     # Pour la tranche supérieure
-    (si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
+    ((si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
       n_nombre_parts_d832_11 >=€ 0€
     alors
       (ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
@@ -3497,8 +3497,8 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     alors
       ressources_ménage_arrondies *€ taux_tranche_inférieure_d832_15_1
     sinon
-      (montant_limite_tranches_d832_15_1 *€
-        taux_tranche_inférieure_d832_15_1))
+      ((montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11) *€
+        taux_tranche_inférieure_d832_15_1)))
     *€ (1,0/.12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
@@ -3527,6 +3527,7 @@ champ d'application CalculAidePersonnaliséeLogement:
     logement_foyer.équivalence_minimale_loyer
 
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme SurLogementExistant ou
     # Comment interpetéter le R832-5 dans
