@@ -3685,6 +3685,10 @@ déclaration énumération TypeLogementFoyer:
   -- LogementPersonnesÂgéesOuHandicapées
   -- RésidenceSociale
   -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995
+  -- Autre # TODO juridique: confirmer la présence de ce variant autre
+           # qui correspond aux logement mentionnés au R832-21, bien que
+           # la formulation de R832-20 semble impliquer que seuls les 3
+           # variants du dessus existent.
 ```
 
 ######## Article R832-21 | LEGIARTI000039048891

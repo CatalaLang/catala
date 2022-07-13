@@ -9,7 +9,7 @@ déclaration champ d'application CasTest1 :
 
 champ d'application CasTest1:
   définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
-    -- type : LogementPersonnesÂgéesOuHandicapées
+    -- type : TypeLogementFoyer.Autre
     -- date_conventionnement : |2022-01-01|
     -- location : Location {
           -- bailleur: Bailleur {
@@ -20,7 +20,7 @@ champ d'application CasTest1:
             -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
           }
         }
-    -- remplit_conditions_r832_21 : faux
+    -- remplit_conditions_r832_21 : vrai
     -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
   })
   définition calcul.redevance égal à 360 €
@@ -44,7 +44,7 @@ déclaration champ d'application CasTest2 :
 
 champ d'application CasTest2:
   définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
-    -- type : LogementPersonnesÂgéesOuHandicapées
+    -- type : TypeLogementFoyer.Autre
     -- date_conventionnement : |2022-01-01|
     -- location : Location {
           -- bailleur: Bailleur {
@@ -55,7 +55,7 @@ champ d'application CasTest2:
             -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
           }
         }
-    -- remplit_conditions_r832_21 : faux
+    -- remplit_conditions_r832_21 : vrai
     -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
   })
   définition calcul.redevance égal à 360 €
@@ -74,10 +74,52 @@ champ d'application CasTest2:
   assertion montant = 22,11 €
 ```
 
+```catala
+# Tiré de la page 34 de
+# https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=34
+déclaration champ d'application CasTest3 :
+  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  sortie montant contenu argent
+
+champ d'application CasTest3:
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
+    -- type : TypeLogementFoyer.Autre
+    -- date_conventionnement : |2022-01-01|
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
+        }
+    -- remplit_conditions_r832_21 : vrai
+    -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
+  })
+  définition calcul.redevance égal à 350 €
+  définition calcul.ressources_ménage_arrondies égal à 7 500€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.zone égal à Zone1
+  définition calcul.date_courante égal à |2021-09-15|
+  assertion calcul.équivalence_loyer_éligible = 350 €
+  assertion calcul.plafond_équivalence_loyer_éligible = 444,43€
+  assertion calcul.équivalence_minimale_loyer = 98,95 €
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,64
+  définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
+  assertion montant = 154,78 €
+```
+
+
 ```catala-test {id="CasTest1.Interpret"}
 catala Interpret -s CasTest1
 ```
 
 ```catala-test {id="CasTest2.Interpret"}
 catala Interpret -s CasTest2
+```
+
+```catala-test {id="CasTest3.Interpret"}
+catala Interpret -s CasTest3
 ```

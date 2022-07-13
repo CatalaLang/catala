@@ -402,6 +402,77 @@ Conformément à l’article 3, I de l’arrêté du 25 septembre 2020, ces
 dispositions sont applicables pour les prestations dues à compter du
 1er octobre 2020.
 
+
+### Article 27 | LEGIARTI000042378428
+
+Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds
+sont fixées comme suit (en euros) :
+
+Désignation                                                  Zone I Zone II Zone III
+------------------------------------------------------------ ------ ------- --------
+Bénéficiaire isolé	                                         444,43 406,43  385,78
+Couple sans personne à charge	                               521,02 474,33  448,69
+Bénéficiaire isolé ou couple ayant une personne à charge     555,55 505,75  476,02
+Bénéficiaire isolé ou couple ayant deux personnes à charge   594,54 541,38  507,44
+Bénéficiaire isolé ou couple ayant trois personnes à charge  633,69 576,87  538,84
+Bénéficiaire isolé ou couple ayant quatre personnes à charge 683,5  614,69  574,16
+Par personne supplémentaire à charge	                       70,89  64,07	  59,46
+
+NOTA :
+Conformément à l’article 3, I de l’arrêté du 25 septembre 2020, ces dispositions
+sont applicables pour les prestations dues à compter du 1er octobre 2020.
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
+  date_courante <@ |2021-10-01| et date_courante >=@ |2020-10-01|:
+  définition plafond_équivalence_loyer_éligible égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 444,43 €
+         -- Couple: 521,01€)
+      sinon (si nombre_personnes_à_charge = 1 alors
+        555,55 €
+      sinon (si nombre_personnes_à_charge = 2 alors
+        594,54 €
+      sinon (si nombre_personnes_à_charge = 3 alors
+        633,69 €
+      sinon
+        (683,5 € +€
+        70,89€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 406,43 €
+         -- Couple: 474,33€)
+      sinon (si nombre_personnes_à_charge = 1 alors
+        505,75 €
+      sinon (si nombre_personnes_à_charge = 2 alors
+        541,38 €
+      sinon (si nombre_personnes_à_charge = 3 alors
+        576,87 €
+      sinon
+        (614,69 € +€
+        64,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 385,78 €
+         -- Couple: 448,69€)
+      sinon (si nombre_personnes_à_charge = 1 alors
+        476,02 €
+      sinon (si nombre_personnes_à_charge = 2 alors
+        507,44 €
+      sinon (si nombre_personnes_à_charge = 3 alors
+        538,84 €
+      sinon
+        (574,16 € +€
+        59,46€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+    )
+```
+
+
 ## Articles valables du 1er janvier 2020 au 1er janvier 2022
 
 ### Article 15 | LEGIARTI000041489192
