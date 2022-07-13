@@ -32,7 +32,6 @@ type unique_rulename =
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
   label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
-  label_groups : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t;
 }
 
 type scope_context = {
@@ -179,17 +178,6 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
     is_var_cond ctxt x
-
-let label_groups
-    (ctxt : context)
-    (s_uid : Scopelang.Ast.ScopeName.t)
-    (def : Desugared.Ast.ScopeDef.t) :
-    Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t =
-  try
-    (Desugared.Ast.ScopeDefMap.find def
-       (Scopelang.Ast.ScopeMap.find s_uid ctxt.scopes).scope_defs_contexts)
-      .label_groups
-  with Not_found -> Desugared.Ast.LabelMap.empty
 
 (** {1 Declarations pass} *)
 
@@ -659,7 +647,6 @@ let process_definition
                                  definition for this definition key *)
                               default_exception_rulename = None;
                               label_idmap = Desugared.Ast.IdentMap.empty;
-                              label_groups = Desugared.Ast.LabelMap.empty;
                             }
                           ~some:(fun x -> x)
                           def_key_ctx
@@ -679,27 +666,7 @@ let process_definition
                                   Some (Desugared.Ast.LabelName.fresh label))
                               def_key_ctx.label_idmap
                           in
-                          let label_id =
-                            Desugared.Ast.IdentMap.find (Marked.unmark label)
-                              new_label_idmap
-                          in
-                          {
-                            def_key_ctx with
-                            label_idmap = new_label_idmap;
-                            label_groups =
-                              Desugared.Ast.LabelMap.update label_id
-                                (fun group ->
-                                  match group with
-                                  | None ->
-                                    Some
-                                      (Desugared.Ast.RuleSet.singleton
-                                         d.definition_id)
-                                  | Some existing_group ->
-                                    Some
-                                      (Desugared.Ast.RuleSet.add d.definition_id
-                                         existing_group))
-                                def_key_ctx.label_groups;
-                          }
+                          { def_key_ctx with label_idmap = new_label_idmap }
                       in
                       (* And second, we update the map of default rulenames for
                          unlabeled exceptions *)

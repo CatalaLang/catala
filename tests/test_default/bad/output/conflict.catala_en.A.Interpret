@@ -3,13 +3,13 @@
 This consequence has a valid justification:
  --> tests/test_default/bad/conflict.catala_en
   | 
-9 |   definition x under condition true consequence equals 0
+8 |   definition x under condition true consequence equals 1
   |                                                        ^
   + Article
 
 This consequence has a valid justification:
  --> tests/test_default/bad/conflict.catala_en
   | 
-8 |   definition x under condition true consequence equals 1
+9 |   definition x under condition true consequence equals 0
   |                                                        ^
   + Article

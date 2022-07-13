@@ -151,8 +151,8 @@ type rule_tree =
   | Leaf of Ast.rule list
       (** Rules defining a base case piecewise. List is non-empty. *)
   | Node of rule_tree list * Ast.rule list
-      (** A list of exceptions to a non-empty list of rules defining a base case
-          piecewise. *)
+      (** [Node (exceptions, base_case)] is a list of exceptions to a non-empty
+          list of rules defining a base case piecewise. *)
 
 (** Transforms a flat list of rules into a tree, taking into account the
     priorities declared between rules *)
@@ -160,17 +160,6 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
     rule_tree list =
   let exc_graph = Dependency.build_exceptions_graph def def_info in
   Dependency.check_for_exception_cycle exc_graph;
-  Dependency.ExceptionsDependencies.iter_vertex
-    (fun rule_group ->
-      Cli.debug_format "Rule group: [%a]"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " ; ")
-           (fun fmt rule ->
-             Format.fprintf fmt "%d"
-               (Pos.get_start_line
-                  (Pos.get_position (Ast.RuleName.get_info rule)))))
-        (Ast.RuleSet.elements rule_group))
-    exc_graph;
   (* we start by the base cases: they are the vertices which have no
      successors *)
   let base_cases =
@@ -181,7 +170,6 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
         else base_cases)
       exc_graph []
   in
-
   let rec build_tree (base_cases : Ast.RuleSet.t) : rule_tree =
     let exceptions =
       Dependency.ExceptionsDependencies.pred exc_graph base_cases
@@ -260,7 +248,7 @@ let rec rule_tree_to_expr
       Scopelang.Ast.expr Marked.pos Bindlib.box list =
     List.map
       (fun e ->
-        (* There are two levels of boxing here, the outermost is introduced by
+        (* There are two levels of boxing her e, the outermost is introduced by
            the [translate_expr] function for which all of the bindings should
            have been closed by now, so we can safely unbox. *)
         Bindlib.unbox (Bindlib.box_apply (translate_expr ctx) e))
