@@ -277,8 +277,7 @@ let rec evaluate_operator
           Cli.log_format "%*s%a %a: %s" (!log_indent * 2) ""
             Print.format_log_entry entry Print.format_uid_list infos
             (match e' with
-            (* | Ast.EAbs _ -> Cli.with_style [ ANSITerminal.green ]
-               "<function>" *)
+            | Ast.EAbs _ -> Cli.with_style [ANSITerminal.green] "<function>"
             | _ ->
               let expr_str =
                 Format.asprintf "%a"
