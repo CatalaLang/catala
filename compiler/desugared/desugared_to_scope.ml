@@ -248,7 +248,7 @@ let rec rule_tree_to_expr
       Scopelang.Ast.expr Marked.pos Bindlib.box list =
     List.map
       (fun e ->
-        (* There are two levels of boxing her e, the outermost is introduced by
+        (* There are two levels of boxing here, the outermost is introduced by
            the [translate_expr] function for which all of the bindings should
            have been closed by now, so we can safely unbox. *)
         Bindlib.unbox (Bindlib.box_apply (translate_expr ctx) e))
@@ -358,9 +358,12 @@ let translate_def
   in
   let top_list = def_map_to_tree def_info def in
   let top_value =
-    (if is_cond then Ast.always_false_rule else Ast.empty_rule)
-      (Ast.ScopeDef.get_position def_info)
-      is_def_func_param_typ
+    if is_cond then
+      Some
+        (Ast.always_false_rule
+           (Ast.ScopeDef.get_position def_info)
+           is_def_func_param_typ)
+    else None
   in
   if
     Ast.RuleMap.cardinal def = 0
@@ -398,11 +401,24 @@ let translate_def
       (rule_tree_to_expr ~toplevel:true ctx
          (Ast.ScopeDef.get_position def_info)
          (Option.map (fun _ -> Ast.Var.make "param") is_def_func_param_typ)
-         (match top_list with
-         | [] ->
-           (* In this case, there are no rules to define the expression *)
+         (match top_list, top_value with
+         | [], None ->
+           (* In this case, there are no rules to define the expression and no
+              default value so we put an empty rule. *)
+           Leaf [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ]
+         | [], Some top_value ->
+           (* In this case, there are no rules to define the expression but a
+              default value so we put it. *)
            Leaf [top_value]
-         | _ -> Node (top_list, [top_value])))
+         | _, Some top_value ->
+           (* When there are rules + a default value, we put the rules as
+              exceptions to the default value *)
+           Node (top_list, [top_value])
+         | [top_tree], None -> top_tree
+         | _, None ->
+           Node
+             ( top_list,
+               [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ] )))
 
 (** Translates a scope *)
 let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
