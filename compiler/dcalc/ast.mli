@@ -440,7 +440,13 @@ module Var : sig
   type t
 
   val t : 'm expr Bindlib.var -> t
+  (** Hides the marking type parameter annotation behind an existential type so
+      that variables can be stored in non-polymorphic sets and maps *)
+
   val get : t -> 'm expr Bindlib.var
+  (** Be careful with this, it breaks the type abstraction by casting the
+      existential type annotation. See [!Bindlib.copy_var] for more detail. *)
+
   val compare : t -> t -> int
   val eq : t -> t -> bool
 end

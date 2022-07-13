@@ -39,8 +39,6 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
-type struct_name = StructName.t
-type enum_name = EnumName.t
 
 type marked_typ = typ Marked.pos
 
