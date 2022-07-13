@@ -272,10 +272,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 .FORCE:
 
 test_suite: .FORCE
-	@$(CLERK) test tests
+	$(CLERK) test tests
 
 test_examples: .FORCE
-	@$(CLERK) test examples
+	$(CLERK) test examples
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples
