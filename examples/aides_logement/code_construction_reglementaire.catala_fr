@@ -4401,6 +4401,13 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   # foyer prenne bien le 2° du D832-25 et non pas le 1°.
   définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à
     vrai
+  # Attention ! Le calcul de K dépend également du nombre de parts N, qui
+  # est différent selon que l'on soit en secteur accession-propriété ou
+  # en secteur logement-foyer. Ici, nous sommes en secteur accession
+  # propriété donc il faut que le nombre de parts pris en compte pour le calcul
+  # soit le nombre de parts accession-propriété.
+  définition calcul_apl_logement_foyer.n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_11
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25

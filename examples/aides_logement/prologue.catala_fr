@@ -631,7 +631,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
 
   sortie coefficient_multiplicateur_d832_25 contenu argent
   sortie coefficient_r_d832_25 contenu argent
-  sortie n_nombre_parts_d832_25 contenu décimal
+  contexte sortie n_nombre_parts_d832_25 contenu décimal
   sortie équivalence_loyer_éligible contenu argent
   sortie plafond_équivalence_loyer_éligible contenu argent
   interne abattement_dépense_nette_minimale_d832_27
