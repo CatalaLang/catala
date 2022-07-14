@@ -3481,7 +3481,19 @@ se situent les ressources ;
 
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_minimale sous condition
-    type_travaux_logement sous forme SurLocauxNonHabitation
+    type_travaux_logement sous forme TravauxPourAcquisitionD832_15_1 ou
+    # Comment interpetéter le R832-5 dans
+    # le cas d'un prêt conventionné D331-63 alinéa 3° où le prêt finance
+    # l'acquisition d'un logement existant sans travaux et donc sans
+    # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
+    # peut-on nous confirmer que le montant de la mensualité minimale est bien
+    # calculée selon l'alinéa 1° de D832-15 ?
+    # Réponse de DGALN/DHUP/FE4 le 25/05/2022:
+    # "Le demandeur est éligible à l’APL qui est calculée selon l’alinéa 1°
+    #  du D832-15. Le 2° ne concerne que les travaux d’amélioration."
+    # La réponse à notre question est bien oui pour les deux items,
+    # d'où la ligne ci-dessous.
+    type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
   conséquence égal à
     # Pour la tranche supérieure
     ((si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
@@ -3529,19 +3541,7 @@ champ d'application CalculAidePersonnaliséeLogement:
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 
   définition mensualité_minimale sous condition
-    type_travaux_logement sous forme SurLogementExistant ou
-    # Comment interpetéter le R832-5 dans
-    # le cas d'un prêt conventionné D331-63 alinéa 3° où le prêt finance
-    # l'acquisition d'un logement existant sans travaux et donc sans
-    # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
-    # peut-on nous confirmer que le montant de la mensualité minimale est bien
-    # calculée selon l'alinéa 2° de D832-15 ?
-    # Réponse de DGALN/DHUP/FE4 le 25/05/2022:
-    # "Le demandeur est éligible à l’APL qui est calculée selon l’alinéa 1°
-    #  du D832-15. Le 2° ne concerne que les travaux d’amélioration."
-    # La réponse à notre question est bien oui pour les deux items,
-    # d'où la ligne ci-dessous.
-    type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
+    type_travaux_logement sous forme TravauxSurLogementDéjàAcquisD832_15_2
   conséquence égal à
     équivalence_minimale_loyer
 ```

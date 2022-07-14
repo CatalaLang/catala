@@ -62,8 +62,8 @@ déclaration structure Propriétaire:
   donnée prêt contenu Prêt
 
 déclaration énumération TypeTravauxLogementD832_15:
-  -- SurLocauxNonHabitation
-  -- SurLogementExistant
+  -- TravauxPourAcquisitionD832_15_1
+  -- TravauxSurLogementDéjàAcquisD832_15_2
   -- PasDeTravaux
 
 déclaration énumération TypeTravauxLogementR842_5:
@@ -667,14 +667,14 @@ déclaration champ d'application
   entrée ancienneté_logement contenu NeufOuAncien
   entrée date_courante contenu date
 
-  interne mensualité_éligible contenu argent
-  interne mensualité_minimale contenu argent
+  sortie mensualité_éligible contenu argent
+  sortie mensualité_minimale contenu argent
   interne plafond_mensualité_d832_10_3 contenu argent
     état base
     état copropriétaires
   interne calcul_plafond_mensualité_d832_10_3 contenu argent dépend de date
   interne n_nombre_parts_d832_11 contenu décimal
-  interne coefficient_prise_en_charge_d832_10 contenu décimal
+  sortie coefficient_prise_en_charge_d832_10 contenu décimal
     état formule
     état arrondi
     état seuil
