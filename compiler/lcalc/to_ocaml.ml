@@ -321,11 +321,12 @@ let rec format_expr
       Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
         (Some s, fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
+    Format.fprintf fmt "@[<hov 2>(%a@ %a:@ %a)@]" format_enum_cons_name
       (fst (List.nth (find_enum en ctx) n))
-      format_with_parens e
+      format_with_parens e format_enum_name en
   | EMatch (e, es, e_name) ->
-    Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
+    Format.fprintf fmt "@[<hov 2>match@ (%a:@ %a)@]@ with@\n%a"
+      format_with_parens e format_enum_name e_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
          (fun fmt (e, c) ->
