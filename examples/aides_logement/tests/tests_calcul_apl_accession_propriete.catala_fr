@@ -27,9 +27,6 @@ champ d'application Exemple1:
   définition calcul.copropriété égal à faux
   définition calcul.situation_r822_11_13_17 égal à faux
 
-  # On n'est pas dans le cas où l'on doit calculer cette valeur
-  définition calcul.équivalence_minimale_loyer égal à 0 €
-
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
   assertion montant = 181,91 €
   assertion calcul.mensualité_éligible = 533,91 €
@@ -62,9 +59,6 @@ champ d'application Exemple2:
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
   définition calcul.copropriété égal à faux
   définition calcul.situation_r822_11_13_17 égal à faux
-
-  # On n'est pas dans le cas où l'on doit calculer cette valeur
-  définition calcul.équivalence_minimale_loyer égal à 0 €
 
   # Ici nous sommes en désaccord avec la valeur finale, car la mensualité
   # plafond est déterminée dans le cas d'un logement ancien acquis et amélioré

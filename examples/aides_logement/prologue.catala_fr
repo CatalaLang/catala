@@ -600,6 +600,24 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 #### Secteur logement-foyer
 
 ```catala-metadata
+déclaration champ d'application CalculÉquivalenceLoyerMinimale:
+  entrée ressources_ménage_arrondies contenu argent
+  entrée condition_2_du_832_25 contenu booléen
+  entrée n_nombre_parts_d832_25 contenu décimal
+
+  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
+  interne tranches_revenus_d832_26_multipliées contenu collection TrancheRevenu
+  interne montant_forfaitaire_d832_26 contenu argent
+
+  sortie montant contenu argent
+
+déclaration champ d'application CalculNombrePartLogementFoyer:
+  entrée condition_2_du_832_25 contenu booléen
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+
+  sortie n_nombre_parts_d832_25 contenu décimal
+
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   entrée mode_occupation contenu ModeOccupation
   entrée ressources_ménage_arrondies contenu argent
@@ -620,12 +638,13 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     contenu argent dépend de argent
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
   interne montant_forfaitaire_d832_24 contenu argent
-  interne montant_forfaitaire_d832_26 contenu argent
   interne montant_forfaitaire_d832_27 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
-  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
-  interne tranches_revenus_d832_26_multipliées contenu collection TrancheRevenu
+  sortie équivalence_loyer_minimale contenu argent
 
+  calcul_nombre_parts champ d'application CalculNombrePartLogementFoyer
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
@@ -633,7 +652,6 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     état formule
     état arrondi
     état seuil
-  sortie équivalence_minimale_loyer contenu argent
 
   sortie aide_finale_formule contenu argent
   sortie traitement_aide_finale contenu argent dépend de argent
@@ -649,6 +667,13 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 #### Secteur accession à la propriété
 
 ```catala-metadata
+déclaration champ d'application CalculNombrePartsAccessionPropriété:
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+
+  sortie n_nombre_parts_d832_11 contenu décimal
+
+
 déclaration champ d'application
   CalculAidePersonnaliséeLogementAccessionPropriété:
   entrée mensualité_principale contenu argent
@@ -661,7 +686,6 @@ déclaration champ d'application
   entrée date_entrée_logement contenu date
   entrée copropriété contenu booléen
   entrée situation_r822_11_13_17 contenu booléen
-  entrée équivalence_minimale_loyer contenu argent
   entrée zone contenu ZoneDHabitation
   entrée type_prêt contenu TypePrêt
   entrée ancienneté_logement contenu NeufOuAncien
@@ -693,6 +717,9 @@ déclaration champ d'application
   interne taux_tranche_supérieure_d832_15_1 contenu décimal
   interne taux_francs_vers_euros contenu décimal
 
+  calcul_nombre_parts champ d'application CalculNombrePartsAccessionPropriété
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
@@ -850,10 +877,13 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne coefficient_d842_11 contenu décimal
   interne coefficient_d842_12 contenu décimal
 
+  calcul_nombre_parts champ d'application CalculNombrePartsAccessionPropriété
   calcul_apl_logement_foyer champ d'application
     CalculAidePersonnaliséeLogementFoyer
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
 
   sortie aide_finale_formule contenu argent
 
@@ -924,10 +954,13 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   sortie montant_forfaitaire_charges contenu argent
   sortie loyer_minimal contenu argent
 
+  calcul_nombre_parts champ d'application CalculNombrePartLogementFoyer
   calcul_apl_logement_foyer champ d'application
     CalculAidePersonnaliséeLogementFoyer
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
 
   sortie aide_finale_formule contenu argent
   sortie traitement_aide_finale contenu argent dépend de argent

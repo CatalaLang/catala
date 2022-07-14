@@ -3323,7 +3323,7 @@ majoration par personne à charge supplémentaire              0,5
 ------------------------------------------------------------ ---
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculNombrePartsAccessionPropriété:
   définition n_nombre_parts_d832_11 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -3341,6 +3341,14 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
       ( 4,3 +. (0,5 *. (entier_vers_décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
+
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  définition n_nombre_parts_d832_11 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_11
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
 ```
 
 ####### Article D832-12 | LEGIARTI000039048893
@@ -3521,29 +3529,18 @@ mensualité minimale " L0 " se substitue à l'équivalence minimale de loyer et 
 charges " E0 ".
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogement:
-  # Ce calcul marche car l'équivalence minimale de loyers ne dépend que
-  # de la situation familiale et des ressources du ménage. Afin de bien
-  # avoir le premier alinéa du D832-26 et non le second, il nous faut remettre
-  # à zéro la condition_2_du_832_25 qui contrôle dans le champ d'application
-  # CalculAidePersonnaliséeLogementFoyer comment l'équivalence minimale de loyer
-  # est calculée.
-
-  définition logement_foyer.condition_2_du_832_25 sous condition
-    catégorie_calcul_apl sous forme AccessionPropriété
-  conséquence égal à faux
-
-  # TODO recherche: citer cette structure de calcul comme un bon cas d'usage
-  # de la fonctionnalité "contexte" de Catala.
-  définition accession_propriété.équivalence_minimale_loyer égal à
-    logement_foyer.équivalence_minimale_loyer
-
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme TravauxSurLogementDéjàAcquisD832_15_2
   conséquence égal à
-    équivalence_minimale_loyer
+    calcul_équivalence_loyer_minimale.montant
+
+  # Mettre la condition à "faux" permet d'activer le premier alinéa de D832-26
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à faux
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+    égal à ressources_ménage_arrondies
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    n_nombre_parts_d832_11
 ```
 
 ####### Article D832-16 | LEGIARTI000041477280
@@ -3787,10 +3784,10 @@ $$\text{Af} = \text{K} \times (\text{E}-\text{E0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale_formule égal à
-    si (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+    si (équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
       coefficient_prise_en_charge_d832_25 <€ 0 €
     alors 0 € sinon
-      ((équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+      ((équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
       coefficient_prise_en_charge_d832_25)
 ```
 
@@ -3816,6 +3813,18 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 4° " E0 " est l'équivalence de loyer et de charges locatives minimale ; elle est calculée selon
 les dispositions de l'article D. 832-26.
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  définition équivalence_loyer_minimale égal à
+    calcul_équivalence_loyer_minimale.montant
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à
+    condition_2_du_832_25
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+    égal à ressources_ménage_arrondies
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    n_nombre_parts_d832_25
+```
 
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
 
@@ -3959,7 +3968,7 @@ majoration par personne à charge supplémentaire	              0,5
 ------------------------------------------------------------- ---
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculNombrePartLogementFoyer:
   définition n_nombre_parts_d832_25 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -3977,6 +3986,16 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
       ( 4,3 +. (0,5 *. (entier_vers_décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
+
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_nombre_parts.condition_2_du_832_25 égal à
+    condition_2_du_832_25
+  définition n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_25
 ```
 
 2°
@@ -4037,7 +4056,7 @@ majoration par personne à charge supplémentaire	             0,5
 ------------------------------------------------------------ ---
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculNombrePartLogementFoyer:
   exception définition n_nombre_parts_d832_25 sous condition
     condition_2_du_832_25
   conséquence égal à
@@ -4068,7 +4087,7 @@ de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfait
 nombre de parts " N ", le total étant divisé par douze.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26_multipliées égal à
     application pour tranche dans tranches_revenus_d832_26 de
       TrancheRevenu {
@@ -4080,7 +4099,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
         -- taux: tranche.taux
       }
 
-  définition équivalence_minimale_loyer égal à
+  définition montant égal à
     (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
       (si ressources_ménage_arrondies <=€ tranche.bas
       alors 0€
@@ -4410,7 +4429,18 @@ l'article D. 832-26, dans lesquelles elle se substitue à " E0 ".
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition mensualité_minimale égal à
-    calcul_apl_logement_foyer.équivalence_minimale_loyer
+    calcul_équivalence_loyer_minimale.montant
+
+  # Mettre la condition à "faux" permet d'activer le deuxième alinéa de D832-26
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à vrai
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+  égal à ressources_ménage_arrondies
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_11
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
 ```
 
 Ce résultat, ainsi calculé, est minoré d'un montant fixé forfaitairement par arrêté.
@@ -4789,10 +4819,20 @@ champ d'application CalculAllocationLogementFoyer:
   # En définissant comme vraie la condition du 2° de D832-25, on accède
   # logiquement aux disposition du deuxième alinéa de D832-26 (voir le jeu
   # des renvois).
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à vrai
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+    égal à ressources_ménage_arrondies
 
-  définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à vrai
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+   situation_familiale_calcul_apl
+  définition calcul_nombre_parts.condition_2_du_832_25 égal à vrai
+
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_25
   définition loyer_minimal égal à
-    calcul_apl_logement_foyer.équivalence_minimale_loyer
+    calcul_équivalence_loyer_minimale.montant
 ```
 
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.

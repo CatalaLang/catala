@@ -2829,7 +2829,7 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26 égal à [
     TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
     TrancheRevenu {
@@ -2887,7 +2887,7 @@ II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas so
 fixés respectivement à 45,57 et 76,32.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition montant_forfaitaire_d832_26 égal à
     si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
 ```
