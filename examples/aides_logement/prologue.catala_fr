@@ -112,7 +112,6 @@ déclaration structure LogementFoyer:
   donnée date_conventionnement contenu date
   donnée location contenu Location
   donnée remplit_conditions_r832_21 contenu booléen
-  donnée pour_jeunes_travailleurs_III_12_loi_1957 contenu booléen
 
 déclaration structure InformationsCalculAPLLogementFoyer:
   donnée redevance contenu argent
@@ -903,7 +902,6 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     RésidentLogementFoyer contenu (LogementFoyer {
       -- type: RésidenceSociale
       -- date_conventionnement: |2022-01-01|
-      -- pour_jeunes_travailleurs_III_12_loi_1957: faux
       -- location: Location {
         -- bailleur: Bailleur {
           -- type_bailleur: BailleurSocial

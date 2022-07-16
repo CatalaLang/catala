@@ -45,7 +45,7 @@ champ d'application Exemple2 :
   définition calcul.loyer_principal égal à 425 €
   définition calcul.ressources_ménage_arrondies égal à 11 500€
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
-  définition calcul.date_courante égal à |2022-01-01|
+  définition calcul.date_courante égal à |2022-05-01|
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone2
