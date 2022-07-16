@@ -820,7 +820,8 @@ champ d'application CalculAllocationLogementLocatif:
   définition calcul_apl_locatif.logement_est_chambre égal à
     logement_est_chambre
   définition
-    calcul_apl_locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    calcul_apl_locatif.
+      âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à
     âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   définition calcul_apl_locatif.type_aide égal à
@@ -1114,7 +1115,9 @@ champ d'application CalculetteAidesAuLogement:
     ménage.situation_familiale
   définition calcul_allocation_logement.situation_familiale égal à
     ménage.situation_familiale
-  définition calcul_aide_personnalisée_logement.nombre_personnes_à_charge égal à
+  définition
+    calcul_aide_personnalisée_logement.nombre_personnes_à_charge
+  égal à
     éligibilité_aide_personnalisée_logement.
       nombre_personnes_à_charge_prises_en_compte
   définition calcul_allocation_logement.nombre_personnes_à_charge égal à
