@@ -60,19 +60,6 @@ module EnfantEntree : sig
   }
 end
 
-module Enfant : sig
-  type t = {
-    identifiant : integer;
-    obligation_scolaire : situation_obligation_scolaire;
-    remuneration_mensuelle : money;
-    date_de_naissance : date;
-    age : integer;
-    prise_en_charge : prise_en_charge;
-    a_deja_ouvert_droit_aux_allocations_familiales : bool;
-    beneficie_titre_personnel_aide_personnelle_logement : bool;
-  }
-end
-
 module InterfaceAllocationsFamilialesOut : sig
   type t = { i_montant_verse_out : money }
 end
