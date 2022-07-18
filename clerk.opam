@@ -35,4 +35,7 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala.git"
-depexts: ["ninja-build"] {os-family = "debian"}
+depexts: [
+  ["ninja-build"] {os-family = "debian"}
+  ["samurai"] {os-distribution = "alpine"}
+]

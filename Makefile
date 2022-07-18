@@ -15,23 +15,25 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
+OPAM = opam --cli=2.1
+
 dependencies-ocaml:
-	opam install . ./doc/catala-dev-dependencies.opam --deps-only --with-doc --with-test --update-invariant
+	$(OPAM) pin . --no-action
+	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 dependencies-ocaml-with-z3:
-	opam install . ./doc/catala-dev-dependencies.opam z3 --deps-only --with-doc --with-test --update-invariant
+	$(OPAM) pin . --no-action
+	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
 
-init-submodules:
-	git submodule update --init
-
-
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
-dependencies: dependencies-ocaml dependencies-js init-submodules
+dependencies: dependencies-ocaml dependencies-js
 
-dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js init-submodules
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js
 
 ##########################################
 # Catala compiler rules
