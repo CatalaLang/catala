@@ -207,7 +207,6 @@ let typ_needs_parens (e : Dcalc.Ast.typ Marked.pos) : bool =
 
 let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
     unit =
-  let format_typ = format_typ in
   let format_typ_with_parens
       (fmt : Format.formatter)
       (t : Dcalc.Ast.typ Marked.pos) =
