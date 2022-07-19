@@ -389,9 +389,7 @@ let rec translate_scope_let
     let var, next = Bindlib.unbind next in
     (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
        var; *)
-    let vmark =
-      D.map_mark (fun _ -> pos) (fun _ -> D.Infer.ast_to_typ typ) emark
-    in
+    let vmark = D.map_mark (fun _ -> pos) (fun _ -> typ) emark in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
     let new_next = translate_scope_let ctx' next in
@@ -420,9 +418,7 @@ let rec translate_scope_let
     let var, next = Bindlib.unbind next in
     (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
        var; *)
-    let vmark =
-      D.map_mark (fun _ -> pos) (fun _ -> D.Infer.ast_to_typ typ) emark
-    in
+    let vmark = D.map_mark (fun _ -> pos) (fun _ -> typ) emark in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
     Bindlib.box_apply2
@@ -476,10 +472,7 @@ let rec translate_scope_let
     (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
        var; *)
     let vmark =
-      D.map_mark
-        (fun _ -> pos)
-        (fun _ -> D.Infer.ast_to_typ typ)
-        (Marked.get_mark expr)
+      D.map_mark (fun _ -> pos) (fun _ -> typ) (Marked.get_mark expr)
     in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in

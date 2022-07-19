@@ -151,12 +151,16 @@ module Infer = struct
 end
 
 type untyped = { pos : Pos.t } [@@ocaml.unboxed]
-type typed = { pos : Pos.t; ty : Infer.unionfind_typ }
+type typed = { pos : Pos.t; ty : marked_typ }
+type inferring = { pos : Pos.t; uf : Infer.unionfind_typ }
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
     appropriate *)
-type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
+type _ mark =
+  | Untyped : untyped -> untyped mark
+  | Typed : typed -> typed mark
+  | Inferring : inferring -> inferring mark
 
 type ('a, 'm) marked = ('a, 'm mark) Marked.t
 
@@ -224,24 +228,26 @@ type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
 
 let no_mark (type m) : m mark -> m mark = function
   | Untyped _ -> Untyped { pos = Pos.no_pos }
-  | Typed _ ->
-    Typed
+  | Typed _ -> Typed { pos = Pos.no_pos; ty = Marked.mark Pos.no_pos TAny }
+  | Inferring _ ->
+    Inferring
       {
         pos = Pos.no_pos;
-        ty = UnionFind.make Infer.(TAny (Any.fresh ()), Pos.no_pos);
+        uf = UnionFind.make Infer.(TAny (Any.fresh ()), Pos.no_pos);
       }
 
 let mark_pos (type m) (m : m mark) : Pos.t =
-  match m with Untyped { pos } | Typed { pos; _ } -> pos
+  match m with
+  | Untyped { pos } | Typed { pos; _ } | Inferring { pos; _ } -> pos
 
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Marked.get_mark x)
-let ty (_, Typed { ty; _ }) : typ = Marked.unmark (Infer.typ_to_ast ty)
+let ty (_, m) : marked_typ = match m with Typed { ty; _ } -> ty
 
-let with_ty (type m) (ty : Infer.unionfind_typ) (x : ('a, m) marked) :
-    ('a, typed) marked =
+let with_ty (type m) (ty : marked_typ) (x : ('a, m) marked) : ('a, typed) marked
+    =
   Marked.mark
     (match Marked.get_mark x with
-    | Untyped { pos } -> Typed { pos; ty }
+    | Untyped { pos } | Inferring { pos; _ } -> Typed { pos; ty }
     | Typed m -> Typed { m with ty })
     (Marked.unmark x)
 
@@ -564,26 +570,38 @@ type ('expr, 'm) make_let_in_sig =
 let map_mark
     (type m)
     (pos_f : Pos.t -> Pos.t)
-    (ty_f : Infer.unionfind_typ -> Infer.unionfind_typ)
+    (ty_f : marked_typ -> marked_typ)
     (m : m mark) : m mark =
   match m with
   | Untyped { pos } -> Untyped { pos = pos_f pos }
   | Typed { pos; ty } -> Typed { pos = pos_f pos; ty = ty_f ty }
+  | Inferring { pos; uf } ->
+    Inferring
+      { pos = pos_f pos; uf = Infer.ast_to_typ (ty_f (Infer.typ_to_ast uf)) }
+
+let resolve_inferring { uf; pos } = { ty = Infer.typ_to_ast uf; pos }
 
 let map_mark2
     (type m)
     (pos_f : Pos.t -> Pos.t -> Pos.t)
-    (ty_f : typed -> typed -> Infer.unionfind_typ)
+    (ty_f : typed -> typed -> marked_typ)
     (m1 : m mark)
     (m2 : m mark) : m mark =
   match m1, m2 with
   | Untyped m1, Untyped m2 -> Untyped { pos = pos_f m1.pos m2.pos }
   | Typed m1, Typed m2 -> Typed { pos = pos_f m1.pos m2.pos; ty = ty_f m1 m2 }
+  | Inferring m1, Inferring m2 ->
+    Inferring
+      {
+        pos = pos_f m1.pos m2.pos;
+        uf =
+          Infer.ast_to_typ (ty_f (resolve_inferring m1) (resolve_inferring m2));
+      }
 
 let fold_marks
     (type m)
     (pos_f : Pos.t list -> Pos.t)
-    (ty_f : typed list -> Infer.unionfind_typ)
+    (ty_f : typed list -> marked_typ)
     (ms : m mark list) : m mark =
   match ms with
   | [] -> invalid_arg "Dcalc.Ast.fold_mark"
@@ -595,6 +613,14 @@ let fold_marks
         pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
         ty = ty_f (List.map (function Typed m -> m) ms);
       }
+  | Inferring _ :: _ ->
+    Inferring
+      {
+        pos = pos_f (List.map (function Inferring { pos; _ } -> pos) ms);
+        uf =
+          Infer.ast_to_typ
+            (ty_f (List.map (function Inferring m -> resolve_inferring m) ms));
+      }
 
 let empty_thunked_term mark : 'm marked_expr =
   let silent = new_var "_" in
@@ -602,13 +628,11 @@ let empty_thunked_term mark : 'm marked_expr =
   Bindlib.unbox
     (make_abs [| silent |]
        (Bindlib.box (ELit LEmptyError, mark))
-       [TLit TUnit, mark_pos mark]
+       [TLit TUnit, pos]
        (map_mark
           (fun pos -> pos)
           (fun ty ->
-            UnionFind.make
-              Infer.(
-                TArrow (UnionFind.make (TLit TUnit, pos), ty), mark_pos mark))
+            Marked.mark pos (TArrow (Marked.mark pos (TLit TUnit), ty)))
           mark))
 
 let (make_let_in : ('m expr, 'm) make_let_in_sig) =
@@ -618,7 +642,7 @@ let (make_let_in : ('m expr, 'm) make_let_in_sig) =
   let m_abs =
     map_mark2
       (fun _ _ -> pos)
-      (fun m1 m2 -> UnionFind.make (Infer.TArrow (m1.ty, m2.ty), m1.pos))
+      (fun m1 m2 -> Marked.mark pos (TArrow (m1.ty, m2.ty)))
       m_e1 m_e2
   in
   make_app (make_abs [| x |] e2 [tau] m_abs) [e1] m_e2

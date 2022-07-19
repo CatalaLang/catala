@@ -185,7 +185,7 @@ let make_let_in x tau e1 e2 pos =
   let m_abs =
     D.map_mark2
       (fun _ _ -> pos)
-      (fun m1 m2 -> UnionFind.make (D.Infer.TArrow (m1.ty, m2.ty), m1.pos))
+      (fun m1 m2 -> TArrow (m1.ty, m2.ty), m1.pos)
       m_e1 m_e2
   in
   make_app (make_abs [| x |] e2 [tau] m_abs) [e1] m_e2
@@ -195,16 +195,14 @@ let make_multiple_let_in xs taus e1s e2 pos =
   let m_e1s =
     D.fold_marks List.hd
       (fun tys ->
-        UnionFind.make
-          ( D.Infer.TTuple (List.map (fun t -> t.D.ty) tys, None),
-            (List.hd tys).D.pos ))
+        D.TTuple (List.map (fun t -> t.D.ty) tys, None), (List.hd tys).D.pos)
       (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s)
   in
   let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
   let m_abs =
     D.map_mark2
       (fun _ _ -> pos)
-      (fun m1 m2 -> UnionFind.make (D.Infer.TArrow (m1.ty, m2.ty), pos))
+      (fun m1 m2 -> Marked.mark pos (D.TArrow (m1.ty, m2.ty)))
       m_e1s m_e2
   in
   make_app (make_abs xs e2 taus m_abs) e1s m_e2
@@ -230,7 +228,7 @@ let make_none m =
   Bindlib.box @@ mark
   @@ EInj
        ( Marked.mark
-           (D.map_mark (fun pos -> pos) (fun _ -> D.Infer.ast_to_typ tunit) m)
+           (D.map_mark (fun pos -> pos) (fun _ -> tunit) m)
            (ELit LUnit),
          0,
          option_enum,

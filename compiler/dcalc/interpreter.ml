@@ -495,10 +495,7 @@ let interpret_program :
       List.map
         (fun ty ->
           Ast.empty_thunked_term
-            (A.map_mark
-               (fun pos -> pos)
-               (fun _ -> A.Infer.ast_to_typ ty)
-               mark_e))
+            (A.map_mark (fun pos -> pos) (fun _ -> ty) mark_e))
         taus
     in
     let to_interpret =
@@ -511,23 +508,19 @@ let interpret_program :
                   | a :: _ -> A.pos a
                   | [] -> Pos.no_pos
                 in
-                A.map_mark
-                  (fun _ -> pos)
-                  (fun _ -> A.Infer.ast_to_typ targs)
-                  mark_e );
+                A.map_mark (fun _ -> pos) (fun _ -> targs) mark_e );
             ] ),
         A.map_mark
           (fun pos -> pos)
           (fun ty ->
-            match application_term, UnionFind.get ty with
-            | [], t_out -> UnionFind.make t_out
-            | _ :: _, (A.Infer.TArrow (_, t_out), _) -> t_out
+            match application_term, ty with
+            | [], t_out -> t_out
+            | _ :: _, (A.TArrow (_, t_out), _) -> t_out
             | _ :: _, (_, bad_pos) ->
               Errors.raise_spanned_error bad_pos
                 "@[<hv 2>(bug) Result of interpretation doesn't have the \
                  expected type:@ @[%a@]@]"
-                (Print.format_typ ctx)
-                (fst @@ A.Infer.typ_to_ast ty))
+                (Print.format_typ ctx) (fst @@ ty))
           mark_e )
     in
     match Marked.unmark (evaluate_expr ctx to_interpret) with

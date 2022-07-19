@@ -2,6 +2,7 @@
  (name dcalc)
  (public_name catala.dcalc)
  (libraries bindlib unionFind utils re camomile runtime)
+ ;; (flags (:standard -rectypes))
  (preprocess
   (pps visitors.ppx)))
 

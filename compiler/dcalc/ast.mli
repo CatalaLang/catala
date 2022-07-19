@@ -126,12 +126,16 @@ module Infer : sig
 end
 
 type untyped = { pos : Pos.t } [@@unboxed]
-type typed = { pos : Pos.t; ty : Infer.unionfind_typ }
+type typed = { pos : Pos.t; ty : marked_typ }
+type inferring = { pos : Pos.t; uf : Infer.unionfind_typ }
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
     appropriate *)
-type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
+type _ mark =
+  | Untyped : untyped -> untyped mark
+  | Typed : typed -> typed mark
+  | Inferring : inferring -> inferring mark
 
 type ('a, 'm) marked = ('a, 'm mark) Marked.t
 
@@ -227,27 +231,24 @@ type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
 val no_mark : 'm mark -> 'm mark
 val mark_pos : 'm mark -> Pos.t
 val pos : ('a, 'm) marked -> Pos.t
-val ty : ('a, typed) marked -> typ
-val with_ty : Infer.unionfind_typ -> ('a, 'm) marked -> ('a, typed) marked
+val ty : ('a, typed) marked -> marked_typ
+val with_ty : marked_typ -> ('a, 'm) marked -> ('a, typed) marked
+
+(** All the following functions will resolve the types if called on an
+    [Inferring] type *)
 
 val map_mark :
-  (Pos.t -> Pos.t) ->
-  (Infer.unionfind_typ -> Infer.unionfind_typ) ->
-  'm mark ->
-  'm mark
+  (Pos.t -> Pos.t) -> (marked_typ -> marked_typ) -> 'm mark -> 'm mark
 
 val map_mark2 :
   (Pos.t -> Pos.t -> Pos.t) ->
-  (typed -> typed -> Infer.unionfind_typ) ->
+  (typed -> typed -> marked_typ) ->
   'm mark ->
   'm mark ->
   'm mark
 
 val fold_marks :
-  (Pos.t list -> Pos.t) ->
-  (typed list -> Infer.unionfind_typ) ->
-  'm mark list ->
-  'm mark
+  (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
 val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
 val untype_expr : 'm marked_expr -> untyped marked_expr
