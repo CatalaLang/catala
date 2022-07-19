@@ -3273,10 +3273,11 @@ Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition coefficient_prise_en_charge_d832_10 état arrondi égal à
-    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
-    # à partir d'un arrondi au plus proche à l'unité.
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 -. 0,005)
-      *. 100,0)) /. 100,0
+    # Attention : bien que le texte dise bien d'arrondir "par défaut", qui
+    # s'oppose normalement à l'arrondi par excès et qui désigne donc une
+    # troncature, le bureau DGALN/DHUP/FE4 nous a indiqué le 19/07/2022 qu'il
+    # fallait ici produire un arrondi "traditionnel", et donc au plus proche.
+    (arrondi_décimal de (coefficient_prise_en_charge_d832_10 *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_10 état seuil égal à
     si coefficient_prise_en_charge_d832_10 >=. 0,95 alors 0,95 sinon
       coefficient_prise_en_charge_d832_10
@@ -3938,10 +3939,11 @@ calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état arrondi égal à
-    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
-    # à partir d'un arrondi au plus proche à l'unité.
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
-      *. 100,0)) /. 100,0
+    # Attention : bien que le texte dise bien d'arrondir "par défaut", qui
+    # s'oppose normalement à l'arrondi par excès et qui désigne donc une
+    # troncature, le bureau DGALN/DHUP/FE4 nous a indiqué le 19/07/2022 qu'il
+    # fallait ici produire un arrondi "traditionnel", et donc au plus proche.
+    (arrondi_décimal de (coefficient_prise_en_charge_d832_25 *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil égal à
     si coefficient_prise_en_charge_d832_25 >=. 0,95 alors 0,95 sinon
       coefficient_prise_en_charge_d832_25
@@ -4025,10 +4027,11 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   sous condition
     condition_2_du_832_25
   conséquence égal à
-    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
-    # à partir d'un arrondi au plus proche à l'unité.
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
-      *. 100,0)) /. 100,0
+    # Attention : bien que le texte dise bien d'arrondir "par défaut", qui
+    # s'oppose normalement à l'arrondi par excès et qui désigne donc une
+    # troncature, le bureau DGALN/DHUP/FE4 nous a indiqué le 19/07/2022 qu'il
+    # fallait ici produire un arrondi "traditionnel", et donc au plus proche.
+    (arrondi_décimal de (coefficient_prise_en_charge_d832_25 *. 100,0)) /. 100,0
   exception définition coefficient_prise_en_charge_d832_25 état seuil
   sous condition
     condition_2_du_832_25
@@ -4124,8 +4127,25 @@ multipliées par le nombre de parts " N " défini au d du 2° de l'article D. 83
 est majoré d'un montant forfaitaire, le total étant alors divisé par douze.
 
 ```catala
-# Contrairement au texte de loi, nous avons factorisé le code (définition de
-# n_nombre_parts_d832_25 avec case de base et exception pour le 1° et 2°).
+champ d'application CalculÉquivalenceLoyerMinimale:
+  exception définition montant sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
+      (si ressources_ménage_arrondies <=€ tranche.bas
+      alors 0€
+      sinon
+        (selon tranche.haut sous forme
+        -- Revenu de tranche_haut:
+          (si ressources_ménage_arrondies >=€ tranche_haut
+          alors
+            (tranche_haut -€ tranche.bas) *€ tranche.taux
+          sinon
+            ((ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux))
+        -- Infini:
+          (ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux)
+      ))) +€
+    montant_forfaitaire_d832_26) *€ (1,0 /. 12,0)
 ```
 
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle

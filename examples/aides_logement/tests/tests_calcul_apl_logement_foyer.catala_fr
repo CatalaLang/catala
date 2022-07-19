@@ -31,7 +31,7 @@ champ d'application CasTest1:
   assertion calcul.coefficient_r_d832_25 = 1217,26 €
   assertion calcul.coefficient_multiplicateur_d832_25 = 13393,40 €
   assertion calcul.n_nombre_parts_d832_25 = 1,8
-  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,41
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,42
   assertion calcul.plafond_équivalence_loyer_éligible = 450,57 €
   assertion calcul.équivalence_loyer_minimale = 318,13 €
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -66,10 +66,12 @@ champ d'application CasTest2:
     PersonnesÂgéesSelon3DeD842_16
   assertion calcul.équivalence_loyer = 320,73 €
   assertion calcul.montant_forfaitaire_charges = 54,22 €
-  assertion calcul.loyer_minimal = 311,15 €
+  assertion calcul.loyer_minimal = 307,97 €
   assertion calcul.coefficient_prise_en_charge = 0,43
-  définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
-  assertion montant = 22,11 €
+  définition montant égal à
+    calcul.traitement_aide_finale de
+    calcul.aide_finale_formule
+  assertion montant = 23,12 €
 ```
 
 ```catala
@@ -173,12 +175,12 @@ champ d'application CasTest5:
   définition calcul.date_courante égal à |2022-05-01|
   assertion calcul.équivalence_loyer_éligible = 350 €
   assertion calcul.plafond_équivalence_loyer_éligible = 446,30€
-  assertion calcul.équivalence_loyer_minimale = 125,92 €
-  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,6
+  assertion calcul.équivalence_loyer_minimale = 124,65 €
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,61
   définition montant égal à
-    calcul.traitement_aide_finale  de
+    calcul.traitement_aide_finale de
     calcul.aide_finale_formule
-  assertion montant = 128,65 €
+  assertion montant = 131,66 €
 ```
 
 ```catala-test {id="CasTest1.Interpret"}
