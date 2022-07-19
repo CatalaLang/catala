@@ -3505,23 +3505,34 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     # d'où la ligne ci-dessous.
     type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
   conséquence égal à
-    # Pour la tranche supérieure
-    ((si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
-      n_nombre_parts_d832_11 >=€ 0€
-    alors
-      (ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
-        n_nombre_parts_d832_11) *€
-      taux_tranche_supérieure_d832_15_1
-    sinon 0 €) +€
-    # Pour la tranche inférieure
-    (si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
-      n_nombre_parts_d832_11 <=€ 0€
-    alors
-      ressources_ménage_arrondies *€ taux_tranche_inférieure_d832_15_1
-    sinon
-      ((montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11) *€
-        taux_tranche_inférieure_d832_15_1)))
-    *€ (1,0/.12,0)
+    # Selon un mail de DGALN/DHUP/FE4 du 19/07/2022, il nest nécessaire pour le
+    # calcul de cette mensualité minimale de garder une précision infinie
+    # durant toutes les étapes du calcul. En Catala, nous utilisons donc le type
+    # décimal plutôt que argent qui arrondi systématiquement au centime près
+    # à chaque étape de calcul.
+    décimal_vers_argent de (
+      ((si
+        # Pour la tranche supérieure
+        argent_vers_décimal de ressources_ménage_arrondies >=.
+          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+            n_nombre_parts_d832_11)
+      alors
+        ((argent_vers_décimal de ressources_ménage_arrondies -.
+          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+          n_nombre_parts_d832_11)) *. taux_tranche_supérieure_d832_15_1)
+      sinon 0,0) +.
+      (si
+        # Pour la tranche inférieure
+        argent_vers_décimal de ressources_ménage_arrondies <=.
+          argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+            n_nombre_parts_d832_11
+      alors
+        argent_vers_décimal de ressources_ménage_arrondies *.
+          taux_tranche_inférieure_d832_15_1
+      sinon
+        ((argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+          n_nombre_parts_d832_11) *.
+            taux_tranche_inférieure_d832_15_1))) /. 12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
 
