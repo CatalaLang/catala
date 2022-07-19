@@ -417,18 +417,29 @@ let apply'
     (output_file : string option)
     (prgm : Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
+  let filename_without_ext_opt =
+    Option.map
+      (fun f -> Filename.basename f |> String.split_on_char '.' |> List.hd)
+      output_file
+  in
+  let dirname =
+    match output_file with Some f -> Filename.dirname f | None -> ""
+  in
   File.with_formatter_of_opt_file output_file @@ fun fmt ->
+  To_ocaml.format_program fmt prgm type_ordering;
   let module_name =
-    match output_file with
-    | Some _ ->
-      "open Law_source.Allocations_familiales\n"
-      (* Printf.sprintf "open %s" *)
-      (*   (Filename.basename f |> String.split_on_char '.' |> List.hd *)
-      (*  |> String.capitalize_ascii) *)
+    match filename_without_ext_opt with
+    | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
     | None -> ""
   in
+  let jsoo_output_file_opt =
+    Option.map
+      (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
+      filename_without_ext_opt
+  in
+  File.with_formatter_of_opt_file jsoo_output_file_opt @@ fun fmt ->
   To_jsoo.format_program fmt module_name prgm type_ordering;
-  match output_file with
+  match jsoo_output_file_opt with
   | Some f ->
     if Sys.command (Printf.sprintf "ocamlformat %s -i" f) <> 0 then
       failwith "jsoo err"
