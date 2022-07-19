@@ -142,25 +142,16 @@ let avoid_keywords (s : string) : string =
   else s
 
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
-  unit =
-Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-|> to_ascii
-|> to_lowercase
-|> avoid_keywords
-|> Format.fprintf fmt "%s"
-[@@ocamlformat "disable"]
-
-let format_to_struct_type (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
   Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-  |> to_ascii
-  |> to_lowercase
-  |> avoid_keywords
-  |> String.split_on_char '_'
+  |> to_ascii |> to_lowercase |> avoid_keywords |> Format.fprintf fmt "%s"
+
+let format_to_struct_type (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t)
+    : unit =
+  Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
+  |> to_ascii |> to_lowercase |> avoid_keywords |> String.split_on_char '_'
   |> List.map String.capitalize_ascii
-  |> String.concat ""
-  |> Format.fprintf fmt "%s"
-  [@@ocamlformat "disable"]
+  |> String.concat "" |> Format.fprintf fmt "%s"
 
 let format_struct_field_name
     (fmt : Format.formatter)
