@@ -66,18 +66,18 @@ instead execute `make dependencies-with-ocaml` prior to building the compiler.
 Other features of the Catala repository also require the following executables
 to be present
 
-    man2html virtualenv python3 pip rsync colordiff pygmentize nodejs npm
+    groff virtualenv python3 pip rsync colordiff pygmentize nodejs npm
 
 please install them if they're not here, otherwise you will get some errors.
 On a Debian distribution, this can be
 done with
 
-    sudo apt install python3-dev virtualenv python3-setuptools python3-pip python3-pygments man2html rsync colordiff npm nodejs libmpc-dev ninja-build
+    sudo apt install python3-dev virtualenv python3-setuptools python3-pip python3-pygments groff rsync colordiff npm nodejs libmpc-dev ninja-build
     sudo python3 -m pip install --upgrade pip
 
 On ArchLinux :
 
-    sudo pacman -S python-virtualenv man2html rsync colordiff nodejs npm
+    sudo pacman -S python-virtualenv groff rsync colordiff nodejs npm
 
 ## Build
 
@@ -112,7 +112,7 @@ Catala website.
 
     ./generate_website_assets.sh <path-to-catala-website>/assets
 
-You will need the `man2html` executable to generate the HTML versions of the man
+You will need the `groff` executable to generate the HTML versions of the man
 pages, as well as the `rsync` executable to transfer files (preferred to `cp`)
 because it also works with a remote server.
 

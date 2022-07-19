@@ -10,7 +10,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html python3 colordiff node pygmentize node npm ninja pandoc
+EXECUTABLES = groff python3 colordiff node pygmentize node npm ninja pandoc
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -305,8 +305,7 @@ grammar.html: $(COMPILER_DIR)/surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: $(COMPILER_DIR)/utils/cli.ml
-	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
-	| tac | sed "1,20d" | tac > $@
+	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | groff -mandoc -Thtml > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
 website-assets: doc js_build literate_examples grammar.html catala.html build_french_law_library_js
