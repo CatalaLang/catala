@@ -455,10 +455,10 @@ end
 module VarMap : Map.S with type key = Var.t
 module VarSet : Set.S with type elt = Var.t
 
-(* val free_vars_expr : expr Marked.pos -> VarSet.t val
- *   free_vars_scope_body_expr : expr scope_body_expr -> VarSet.t val
- *   free_vars_scope_body : expr scope_body -> VarSet.t val free_vars_scopes :
- *   expr scopes -> VarSet.t *)
+val free_vars_expr : 'm marked_expr -> VarSet.t
+val free_vars_scope_body_expr : ('m expr, 'm) scope_body_expr -> VarSet.t
+val free_vars_scope_body : ('m expr, 'm) scope_body -> VarSet.t
+val free_vars_scopes : ('m expr, 'm) scopes -> VarSet.t
 
 (* type vars = expr Bindlib.mvar *)
 

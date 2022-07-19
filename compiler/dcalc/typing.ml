@@ -215,14 +215,18 @@ let ty (_, A.Inferring { A.uf; _ }) = uf
 let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x1 x2 = Bindlib.box_pair x1 x2
 
-let bmap f es =
+(* Maps a boxing function on a list, returning a boxed list *)
+let bmap (f : 'a -> 'b Bindlib.box) (es : 'a list) : 'b list Bindlib.box =
   List.fold_right
     (fun e acc ->
       let+ e' = f e and+ acc in
       e' :: acc)
     es (Bindlib.box [])
 
-let bmap2 f es xs =
+(* Likewise, but with a function of two arguments on two lists of identical
+   lengths *)
+let bmap2 (f : 'a -> 'b -> 'c Bindlib.box) (es : 'a list) (xs : 'b list) :
+    'c list Bindlib.box =
   List.fold_right2
     (fun e x acc ->
       let+ e' = f e x and+ acc in
