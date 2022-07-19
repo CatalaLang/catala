@@ -18,6 +18,7 @@
 open Utils
 open Ast
 open Lcalc.Backends
+module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 

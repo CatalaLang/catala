@@ -16,6 +16,8 @@
    the License. *)
 
 open Utils
+module Runtime = Runtime_ocaml.Runtime
+
 (** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
 
     - Removes syntactic sugars

@@ -18,6 +18,7 @@
 (** Abstract syntax tree of the default calculus intermediate representation *)
 
 open Utils
+module Runtime = Runtime_ocaml.Runtime
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info
 module StructName : Uid.Id with type info = Uid.MarkedString.info
 module StructFieldName : Uid.Id with type info = Uid.MarkedString.info

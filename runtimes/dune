@@ -1,0 +1,4 @@
+(dirs jsoo ocaml)
+
+(documentation
+ (package catala))

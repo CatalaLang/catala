@@ -1,0 +1,5 @@
+(library
+ (name runtime_jsoo)
+ (public_name catala.runtime_jsoo)
+ (libraries catala.runtime_ocaml js_of_ocaml)
+ (modules runtime))

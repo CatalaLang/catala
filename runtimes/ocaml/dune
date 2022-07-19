@@ -1,6 +1,6 @@
 (library
- (name runtime)
- (public_name catala.runtime)
+ (name runtime_ocaml)
+ (public_name catala.runtime_ocaml)
  (preprocess
   (pps ppx_yojson_conv))
  (libraries calendar zarith zarith_stubs_js)

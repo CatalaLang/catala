@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 
 type lit =

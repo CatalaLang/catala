@@ -5,7 +5,7 @@
   bindlib
   utils
   dcalc
-  runtime
+  catala.runtime_ocaml
   calendar
   (select
    z3backend.ml

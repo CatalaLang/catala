@@ -248,7 +248,11 @@ val date_of_numbers : int -> int -> int -> date
 (**{2 Durations} *)
 
 val duration_of_numbers : int -> int -> int -> duration
+(** Usage : [duration_of_numbers year mounth day]. *)
+
 val duration_to_years_months_days : duration -> int * int * int
+(**{2 Times} *)
+
 val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
