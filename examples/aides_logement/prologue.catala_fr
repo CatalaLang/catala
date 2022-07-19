@@ -112,7 +112,7 @@ déclaration énumération LimiteTrancheDécimal:
   -- Infini
 
 déclaration structure TrancheRevenuDécimal:
-  donnée haut contenu LimiteTranche
+  donnée haut contenu LimiteTrancheDécimal
   donnée bas contenu décimal
   donnée taux contenu décimal
 

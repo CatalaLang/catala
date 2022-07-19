@@ -1175,7 +1175,8 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         parent.AutrePersonneÀCharge.ressources <=€ plafond_individuel_l815_9_sécu *€ 1,25 et
         (
           (parent.AutrePersonneÀCharge.âge >=^ âge_l351_8_1_sécu ou
-          # TODO informatique: changer l'encodage de âge vers un entier
+          # TODO informatique: changer la comparaison de durées par rapport
+          # à la comparaison avec la date de naissance plus la durée de l'âge.
             (parent.titulaire_allocation_personne_âgée et
               parent.AutrePersonneÀCharge.âge >=^ 65 an)
           ) ou
@@ -4090,40 +4091,52 @@ de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfait
 nombre de parts " N ", le total étant divisé par douze.
 
 ```catala
+# Selon un mail de DGALN/DHUP/FE4 du 19/07/2022, il nest nécessaire pour le
+# calcul de cette équivalence de loyer de garder une précision infinie durant
+# toutes les étapes du calcul. En Catala, nous utilisons donc le type
+# décimal plutôt que argent qui arrondi systématiquement au centime près
+# à chaque étape de calcul.
 champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26_multipliées égal à
     application pour tranche dans tranches_revenus_d832_26 de
-      TrancheRevenu {
+      TrancheRevenuDécimal {
         -- haut: (selon tranche.TrancheRevenu.haut sous forme
           -- LimiteTranche.Infini: LimiteTrancheDécimal.Infini
           -- LimiteTranche.Revenu de tranche_haut:
             LimiteTrancheDécimal.Revenu contenu
               ((argent_vers_décimal de tranche_haut) *. n_nombre_parts_d832_25))
-        -- bas: tranche.TrancheRevenu.bas *€ n_nombre_parts_d832_25
+        -- bas: argent_vers_décimal de tranche.TrancheRevenu.bas *.
+          n_nombre_parts_d832_25
         -- taux: tranche.TrancheRevenu.taux
       }
 
   définition montant égal à
-    (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
-      (si
-        argent_vers_décimal de ressources_ménage_arrondies <=.
-          tranche.TrancheRevenuDécimal.bas
-      alors 0€
-      sinon
-        (selon tranche.TrancheRevenuDécimal.haut sous forme
-        -- LimiteTrancheDécimal.Revenu de tranche_haut:
-          (si ressources_ménage_arrondies >=€ tranche_haut
-          alors
-            (tranche_haut -€ tranche.TrancheRevenuDécimal.bas) *€
-              tranche.TrancheRevenuDécimal.taux
-          sinon
-            ((ressources_ménage_arrondies -€ tranche.TrancheRevenuDécimal.bas) *€
-              tranche.TrancheRevenuDécimal.taux))
-        -- LimiteTrancheDécimal.Infini:
-          (ressources_ménage_arrondies -€ tranche.TrancheRevenuDécimal.bas) *€
-            tranche.TrancheRevenuDécimal.taux)
-      ))) +€
-    montant_forfaitaire_d832_26 *€ n_nombre_parts_d832_25) *€ (1,0 /. 12,0)
+    décimal_vers_argent de (
+      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
+        (si
+          argent_vers_décimal de ressources_ménage_arrondies <=.
+            tranche.TrancheRevenuDécimal.bas
+        alors 0,0
+        sinon
+          (selon tranche.TrancheRevenuDécimal.haut sous forme
+          -- LimiteTrancheDécimal.Revenu de tranche_haut:
+            (si
+              argent_vers_décimal de ressources_ménage_arrondies >=.
+                tranche_haut
+            alors
+              (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux
+            sinon
+              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+                tranche.TrancheRevenuDécimal.bas) *.
+                  tranche.TrancheRevenuDécimal.taux))
+          -- LimiteTrancheDécimal.Infini:
+            (argent_vers_décimal de ressources_ménage_arrondies -.
+              tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux)
+        ))) +.
+      argent_vers_décimal de montant_forfaitaire_d832_26 *.
+        n_nombre_parts_d832_25) /. 12,0)
 ```
 
 Toutefois, pour les logements-foyers de jeunes travailleurs et pour les résidences sociales
@@ -4137,24 +4150,31 @@ champ d'application CalculÉquivalenceLoyerMinimale:
   exception définition montant sous condition
     condition_2_du_832_25
   conséquence égal à
-    (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
-      (si ressources_ménage_arrondies <=€ tranche.TrancheRevenu.bas
-      alors 0€
-      sinon
-        (selon tranche.TrancheRevenu.haut sous forme
-        -- LimiteTranche.Revenu de tranche_haut:
-          (si ressources_ménage_arrondies >=€ tranche_haut
-          alors
-            (tranche_haut -€ tranche.TrancheRevenu.bas) *€
-              tranche.TrancheRevenu.taux
-          sinon
-            ((ressources_ménage_arrondies -€ tranche.TrancheRevenu.bas) *€
-              tranche.TrancheRevenu.taux))
-        -- LimiteTranche.Infini:
-          (ressources_ménage_arrondies -€ tranche.TrancheRevenu.bas) *€
-            tranche.TrancheRevenu.taux)
-      ))) +€
-    montant_forfaitaire_d832_26) *€ (1,0 /. 12,0)
+    décimal_vers_argent de (
+      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
+        (si
+          argent_vers_décimal de ressources_ménage_arrondies <=.
+            tranche.TrancheRevenuDécimal.bas
+        alors 0,0
+        sinon
+          (selon tranche.TrancheRevenuDécimal.haut sous forme
+          -- LimiteTrancheDécimal.Revenu de tranche_haut:
+            (si
+              argent_vers_décimal de ressources_ménage_arrondies >=.
+                tranche_haut
+            alors
+              (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux
+            sinon
+              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+                tranche.TrancheRevenuDécimal.bas) *.
+                  tranche.TrancheRevenuDécimal.taux))
+          -- LimiteTrancheDécimal.Infini:
+            (argent_vers_décimal de ressources_ménage_arrondies -.
+              tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux)
+        ))) +.
+      argent_vers_décimal de montant_forfaitaire_d832_26) /. 12,0)
 ```
 
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle
