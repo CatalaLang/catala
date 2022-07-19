@@ -102,6 +102,8 @@
 #define MS_RoundMoney "round_money"
 #define MS_RoundDecimal "round_decimal"
 #define MS_IntToDec "integer_to_decimal"
+#define MS_MoneyToDec "money_to_decimal"
+#define MS_DecToMoney "decimal_to_money"
 #define MS_GetDay "get_day"
 #define MS_GetMonth "get_month"
 #define MS_GetYear "get_year"

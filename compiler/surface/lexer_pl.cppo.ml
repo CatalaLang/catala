@@ -113,6 +113,10 @@
 #define MR_RoundMoney "zaokr",0x0105,"glony_pieni", 0x0105, "dze"
 #define MS_IntToDec "calkowita_wers_dziesiętny"
 #define MR_IntToDec "calkowita_wers_dziesi", 0x0119, "tny"
+#define MS_MoneyToDec "pieniądze_wers_dziesiętny"
+#define MR_MoneyToDec "pieni", 0x0105, "dze_wers_dziesi", 0x0119, "tny"
+#define MS_DecToMoney "dziesiętny_wers_pieniądze"
+#define MR_DecToMoney "dziesi", 0x0119, "tny_wers_pieni", 0x0105, "dze"
 #define MS_GetDay "dostęp_dzień"
 #define MR_GetDay "dost", 0x0119, "p_dzie", 0x144
 #define MS_GetMonth "dostęp_miesiąc"

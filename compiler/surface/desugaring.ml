@@ -853,6 +853,10 @@ let rec translate_expr
       f collection init
   | Builtin IntToDec ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.IntToRat), pos)
+  | Builtin MoneyToDec ->
+    Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.MoneyToRat), pos)
+  | Builtin DecToMoney ->
+    Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RatToMoney), pos)
   | Builtin Cardinal ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.Length), pos)
   | Builtin GetDay ->

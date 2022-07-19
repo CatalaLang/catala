@@ -407,6 +407,13 @@ def money_round(m: Money) -> Money:
     else:
         return (res + sign(res)) * 100
 
+
+def money_of_decimal(m: Decimal) -> Money:
+    """
+    Warning: rounds to nearest cent.
+    """
+    return Money(mpz(m.value))
+
 # --------
 # Decimals
 # --------
@@ -436,6 +443,10 @@ def decimal_round(q: Decimal) -> Decimal:
     # Implements the workaround by
     # https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
     return f_div(2*q.numerator + q.denominator, 2*q.denominator)  # type:ignore
+
+
+def decimal_of_money(m: Money) -> Decimal:
+    return Decimal(f_div(mpq(m.value), mpq(100)))
 
 # --------
 # Integers

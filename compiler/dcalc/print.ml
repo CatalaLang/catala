@@ -202,6 +202,8 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
         infos
     | Length -> "length"
     | IntToRat -> "int_to_rat"
+    | MoneyToRat -> "money_to_rat"
+    | RatToMoney -> "rat_to_money"
     | GetDay -> "get_day"
     | GetMonth -> "get_month"
     | GetYear -> "get_year"

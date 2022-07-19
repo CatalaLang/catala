@@ -263,6 +263,10 @@ let rec evaluate_operator
       A.ELit (LInt Runtime.(year_of_date d))
     | A.Unop A.IntToRat, [ELit (LInt i)] ->
       A.ELit (LRat Runtime.(decimal_of_integer i))
+    | A.Unop A.MoneyToRat, [ELit (LMoney i)] ->
+      A.ELit (LRat Runtime.(decimal_of_money i))
+    | A.Unop A.RatToMoney, [ELit (LRat i)] ->
+      A.ELit (LMoney Runtime.(money_of_decimal i))
     | A.Unop A.RoundMoney, [ELit (LMoney m)] ->
       A.ELit (LMoney Runtime.(money_round m))
     | A.Unop A.RoundDecimal, [ELit (LRat m)] ->

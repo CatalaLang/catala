@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(* An integer number of cents *)
 type money = Z.t
 type integer = Z.t
 type decimal = Q.t
@@ -54,6 +55,9 @@ let money_round (m : money) : money =
   (* If [m] is negative, [cents] will also be negative. *)
   if Z.(abs cents < of_int 50) then Z.(units * of_int 100)
   else Z.((units + of_int (sign units)) * of_int 100)
+
+let money_of_decimal (d : decimal) : money =
+  Q.to_bigint (Q.mul d (Q.of_int 100))
 
 let decimal_of_string (d : string) : decimal = Q.of_string d
 let decimal_to_float (d : decimal) : float = Q.to_float d
@@ -103,6 +107,9 @@ let decimal_round (q : decimal) : decimal =
   let n = Q.num q in
   let d = Q.den q in
   Q.of_bigint Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d))
+
+let decimal_of_money (m : money) : decimal =
+  Q.div (Q.of_bigint m) (Q.of_int 100)
 
 let integer_of_string (s : string) : integer = Z.of_string s
 let integer_to_string (i : integer) : string = Z.to_string i

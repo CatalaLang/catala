@@ -221,6 +221,12 @@ module R = Re.Pcre
 #ifndef MR_IntToDec
   #define MR_IntToDec MS_IntToDec
 #endif
+#ifndef MR_MoneyToDec
+  #define MR_MoneyToDec MS_MoneyToDec
+#endif
+#ifndef MR_DecToMoney
+  #define MR_DecToMoney MS_DecToMoney
+#endif
 #ifndef MR_RoundMoney
   #define MR_RoundMoney MS_RoundMoney
 #endif
@@ -322,6 +328,8 @@ let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
   | MR_IntToDec, eof -> Some IntToDec
+  | MR_DecToMoney, eof -> Some DecToMoney
+  | MR_MoneyToDec, eof -> Some MoneyToDec
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear

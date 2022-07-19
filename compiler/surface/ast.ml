@@ -300,6 +300,8 @@ type unop = Not | Minus of op_kind
 type builtin_expression =
   | Cardinal
   | IntToDec
+  | MoneyToDec
+  | DecToMoney
   | GetDay
   | GetMonth
   | GetYear
