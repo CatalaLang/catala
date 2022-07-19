@@ -4094,28 +4094,34 @@ champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26_multipliées égal à
     application pour tranche dans tranches_revenus_d832_26 de
       TrancheRevenu {
-        -- haut: (selon tranche.haut sous forme
-          -- Infini: Infini
-          -- Revenu de tranche_haut:
-            Revenu contenu (tranche_haut *€ n_nombre_parts_d832_25))
-        -- bas: tranche.bas *€ n_nombre_parts_d832_25
-        -- taux: tranche.taux
+        -- haut: (selon tranche.TrancheRevenu.haut sous forme
+          -- LimiteTranche.Infini: LimiteTrancheDécimal.Infini
+          -- LimiteTranche.Revenu de tranche_haut:
+            LimiteTrancheDécimal.Revenu contenu
+              ((argent_vers_décimal de tranche_haut) *. n_nombre_parts_d832_25))
+        -- bas: tranche.TrancheRevenu.bas *€ n_nombre_parts_d832_25
+        -- taux: tranche.TrancheRevenu.taux
       }
 
   définition montant égal à
     (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
-      (si ressources_ménage_arrondies <=€ tranche.bas
+      (si
+        argent_vers_décimal de ressources_ménage_arrondies <=.
+          tranche.TrancheRevenuDécimal.bas
       alors 0€
       sinon
-        (selon tranche.haut sous forme
-        -- Revenu de tranche_haut:
+        (selon tranche.TrancheRevenuDécimal.haut sous forme
+        -- LimiteTrancheDécimal.Revenu de tranche_haut:
           (si ressources_ménage_arrondies >=€ tranche_haut
           alors
-            (tranche_haut -€ tranche.bas) *€ tranche.taux
+            (tranche_haut -€ tranche.TrancheRevenuDécimal.bas) *€
+              tranche.TrancheRevenuDécimal.taux
           sinon
-            ((ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux))
-        -- Infini:
-          (ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux)
+            ((ressources_ménage_arrondies -€ tranche.TrancheRevenuDécimal.bas) *€
+              tranche.TrancheRevenuDécimal.taux))
+        -- LimiteTrancheDécimal.Infini:
+          (ressources_ménage_arrondies -€ tranche.TrancheRevenuDécimal.bas) *€
+            tranche.TrancheRevenuDécimal.taux)
       ))) +€
     montant_forfaitaire_d832_26 *€ n_nombre_parts_d832_25) *€ (1,0 /. 12,0)
 ```
@@ -4132,18 +4138,21 @@ champ d'application CalculÉquivalenceLoyerMinimale:
     condition_2_du_832_25
   conséquence égal à
     (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
-      (si ressources_ménage_arrondies <=€ tranche.bas
+      (si ressources_ménage_arrondies <=€ tranche.TrancheRevenu.bas
       alors 0€
       sinon
-        (selon tranche.haut sous forme
-        -- Revenu de tranche_haut:
+        (selon tranche.TrancheRevenu.haut sous forme
+        -- LimiteTranche.Revenu de tranche_haut:
           (si ressources_ménage_arrondies >=€ tranche_haut
           alors
-            (tranche_haut -€ tranche.bas) *€ tranche.taux
+            (tranche_haut -€ tranche.TrancheRevenu.bas) *€
+              tranche.TrancheRevenu.taux
           sinon
-            ((ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux))
-        -- Infini:
-          (ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux)
+            ((ressources_ménage_arrondies -€ tranche.TrancheRevenu.bas) *€
+              tranche.TrancheRevenu.taux))
+        -- LimiteTranche.Infini:
+          (ressources_ménage_arrondies -€ tranche.TrancheRevenu.bas) *€
+            tranche.TrancheRevenu.taux)
       ))) +€
     montant_forfaitaire_d832_26) *€ (1,0 /. 12,0)
 ```

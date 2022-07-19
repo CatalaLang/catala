@@ -107,6 +107,15 @@ déclaration structure TrancheRevenu:
   donnée bas contenu argent
   donnée taux contenu décimal
 
+déclaration énumération LimiteTrancheDécimal:
+  -- Revenu contenu décimal
+  -- Infini
+
+déclaration structure TrancheRevenuDécimal:
+  donnée haut contenu LimiteTranche
+  donnée bas contenu décimal
+  donnée taux contenu décimal
+
 déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
   donnée date_conventionnement contenu date
@@ -605,7 +614,8 @@ déclaration champ d'application CalculÉquivalenceLoyerMinimale:
   entrée n_nombre_parts_d832_25 contenu décimal
 
   interne tranches_revenus_d832_26 contenu collection TrancheRevenu
-  interne tranches_revenus_d832_26_multipliées contenu collection TrancheRevenu
+  interne tranches_revenus_d832_26_multipliées contenu
+    collection TrancheRevenuDécimal
   interne montant_forfaitaire_d832_26 contenu argent
 
   sortie montant contenu argent

@@ -2831,28 +2831,36 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 ```catala
 champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26 égal à [
-    TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
     TrancheRevenu {
-      -- haut: Revenu contenu 2678,71€
+      -- haut: LimiteTranche.Revenu contenu 1948,10€
+      -- bas: 0€
+      -- taux: 4%
+    };
+    TrancheRevenu {
+      -- haut: LimiteTranche.Revenu contenu 2678,71€
       -- bas: 1948,10€
       -- taux: 10,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 3896,18€
+      -- haut: LimiteTranche.Revenu contenu 3896,18€
       -- bas: 2678,71€
       -- taux: 21,60%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 5 357,44€
+      -- haut: LimiteTranche.Revenu contenu 5 357,44€
       -- bas: 3896,18€
       -- taux: 26,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 6 331,29€
+      -- haut: LimiteTranche.Revenu contenu 6 331,29€
       -- bas: 5 357,44€
       -- taux: 32%
     };
-    TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
+    TrancheRevenu {
+      -- haut: LimiteTranche.Infini
+      -- bas: 6 331,29€
+      -- taux: 48%
+    }
   ]
 
   # Cette exception ne figure pas dans le texte de l'arrête mais cette absence
@@ -2863,23 +2871,31 @@ champ d'application CalculÉquivalenceLoyerMinimale:
   exception définition tranches_revenus_d832_26 sous condition
     condition_2_du_832_25
   conséquence égal à [
-    TrancheRevenu { -- haut: Revenu contenu 1423,03€  -- bas: 0€ -- taux: 0%};
     TrancheRevenu {
-      -- haut: Revenu contenu 2047,61€
+      -- haut: LimiteTranche.Revenu contenu 1423,03€
+      -- bas: 0€
+      -- taux: 0%
+    };
+    TrancheRevenu {
+      -- haut: LimiteTranche.Revenu contenu 2047,61€
       -- bas: 1423,03€
       -- taux: 2,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 2629,85€
+      -- haut: LimiteTranche.Revenu contenu 2629,85€
       -- bas: 2047,61€
       -- taux: 20,80%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 4095,05€
+      -- haut: LimiteTranche.Revenu contenu 4095,05€
       -- bas: 2629,85€
       -- taux: 23,20%
     };
-    TrancheRevenu { -- haut: Infini  -- bas: 4095,05€ -- taux: 32,80%}
+    TrancheRevenu {
+      -- haut: LimiteTranche.Infini
+      -- bas: 4095,05€
+      -- taux: 32,80%
+    }
   ]
 ```
 

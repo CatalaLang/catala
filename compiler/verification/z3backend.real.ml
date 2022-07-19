@@ -576,6 +576,12 @@ let rec translate_op
     | IntToRat ->
       failwith
         "[Z3 encoding] application of unary operator IntToRat not supported"
+    | MoneyToRat ->
+      failwith
+        "[Z3 encoding] application of unary operator MoneyToRat not supported"
+    | RatToMoney ->
+      failwith
+        "[Z3 encoding] application of unary operator RatToMoney not supported"
     | GetDay ->
       failwith
         "[Z3 encoding] application of unary operator GetDay not supported"
