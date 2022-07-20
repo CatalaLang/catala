@@ -310,7 +310,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 Pour l'application de l'article D. 823-17 du même code, le taux de participation
 personnelle Tp du ménage, exprimé en pourcentage, est calculé selon la formule suivante :
 
-$$\text{Tp} = \text{TF} + \text{TL}$$
+$$\textrm{Tp} = \textrm{TF} + \textrm{TL}$$
 
 dans laquelle :
 
@@ -377,7 +377,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 ```
 
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
-RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : $\text{RL} = \text{L} / \text{LR}$.
+RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : $\textrm{RL} = \textrm{L} / \textrm{LR}$.
 
 RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
@@ -400,9 +400,9 @@ au 3° de l'article D. 823-17 du même code sont fixés comme suit :
 TL est exprimé en pourcentage et arrondi à la troisième décimale.
 Le tableau suivant traduit cette formule :
 
-Si $\text{RL}<45\%$ Si $45\% < \text{RL} < 75\%$               Si $\text{RL} >75 \%$
+Si $\textrm{RL}<45\%$ Si $45\% < \textrm{RL} < 75\%$               Si $\textrm{RL} >75 \%$
 ------------------- ------------------------------------------ -----------------------------------------------------------
-$\text{TL}=0 \%$    $\text{TL}=0,45 \%\times (\text{RL}-45\%)$ $\text{TL}=0,45\%\times30 \%+0,68 \%\times(\text{RL}-75\%)$
+$\textrm{TL}=0 \%$    $\textrm{TL}=0,45 \%\times (\textrm{RL}-45\%)$ $\textrm{TL}=0,45\%\times30 \%+0,68 \%\times(\textrm{RL}-75\%)$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif

@@ -305,7 +305,7 @@ grammar.html: $(COMPILER_DIR)/surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: $(COMPILER_DIR)/utils/cli.ml
-	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | groff -mandoc -Thtml > $@
+	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | groff -P -l -P -r -mandoc -Thtml > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
 website-assets: doc js_build literate_examples grammar.html catala.html build_french_law_library_js
