@@ -106,13 +106,21 @@ module To_jsoo = struct
       | _ -> Format.fprintf fmt "Js.readonly_prop"
     in
     let format_struct_decl fmt (struct_name, struct_fields) =
+      let fmt_struct_name fmt _ = format_struct_name fmt struct_name in
+      let fmt_module_struct_name fmt _ =
+        To_ocaml.format_to_module_name fmt (`Sname struct_name)
+      in
       if List.length struct_fields = 0 then
-        Format.fprintf fmt "class type %a =@ object end" format_struct_name
-          struct_name
+        Format.fprintf fmt
+          "class type %a =@ object end@\n\
+           let %a_to_jsoo (_ : %a.t) : %a Js.t = object%%js end\n\
+           let %a_of_jsoo (_ : %a Js.t) : %a.t = ()" fmt_struct_name ()
+          fmt_struct_name () fmt_module_struct_name () fmt_struct_name ()
+          fmt_struct_name () fmt_struct_name () fmt_module_struct_name ()
       else
         Format.fprintf fmt
           "class type %a =@\n@[<hov 2>object@ @[<hov 2>@ @ %a@]@\nend@]@\n"
-          format_struct_name struct_name
+          fmt_struct_name ()
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun _fmt (struct_field, struct_field_type) ->
@@ -125,8 +133,15 @@ module To_jsoo = struct
     in
     let format_enum_decl fmt (enum_name, enum_cons) =
       if List.length enum_cons = 0 then
-        Format.fprintf fmt "class type %a =@ object end" format_enum_name
-          enum_name
+        (* TODO: should ne be possible no?*)
+        Format.fprintf fmt
+          "class type %a =@ object end @\n\
+           let %a_to_jsoo (_ : %a.t) : %a Js.t = object%%js end@\n\
+           let %a_of_jsoo (_ : %a Js.t) : %a.t = ()" format_enum_name enum_name
+          format_enum_name enum_name To_ocaml.format_to_module_name
+          (`Ename enum_name) format_enum_name enum_name format_enum_name
+          enum_name format_enum_name enum_name To_ocaml.format_to_module_name
+          (`Ename enum_name)
       else
         Format.fprintf fmt
           "class type %a =@\n\
@@ -176,12 +191,6 @@ module To_jsoo = struct
       (ctx : Dcalc.Ast.decl_ctx)
       (fmt : Format.formatter)
       (scopes : ('expr, 'm) Dcalc.Ast.scopes) : unit =
-    let format_fun_call_input fmt struct_name =
-      let struct_fields = find_struct struct_name ctx in
-      if List.length struct_fields = 0 then Format.fprintf fmt "()"
-      else (*TODO: format_fun_call_inpute *)
-        Format.fprintf fmt "()"
-    in
     let format_typ_to_js fmt typ =
       match Marked.unmark typ with
       | Dcalc.Ast.TLit TUnit -> failwith "todo: TLit TUnit"
@@ -196,7 +205,7 @@ module To_jsoo = struct
         (* todo: format_typ_coerce *)
         Format.fprintf fmt ""
     in
-    let format_fun_call_res fmt struct_name =
+    let _format_fun_call_res fmt struct_name =
       let struct_fields = find_struct struct_name ctx in
       Format.fprintf fmt "(@[<hov 2> object%%js@\n%a@\nend@])"
         (Format.pp_print_list
@@ -215,19 +224,26 @@ module To_jsoo = struct
         Bindlib.unbind scope_def.scope_body.scope_body_expr
       in
       let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
+      let fmt_input_struct_name fmt _ =
+        format_struct_name fmt scope_def.scope_body.scope_body_input_struct
+      in
+      let fmt_output_struct_name fmt _ =
+        format_struct_name fmt scope_def.scope_body.scope_body_output_struct
+      in
+      let fmt_meth_name fmt _ =
+        Format.fprintf fmt "method %a : (%a -> %a) Js.callback"
+          format_var_camel_case scope_var fmt_input_struct_name ()
+          fmt_output_struct_name ()
+      in
+      let fmt_fun_call fmt _ =
+        Format.fprintf fmt "%a |> %a_of_jsoo |> %a |> %a_to_jsoo"
+          fmt_input_struct_name () fmt_input_struct_name () format_var scope_var
+          fmt_output_struct_name ()
+      in
       Format.fprintf fmt
-        "@\n\
-         @\n\
-         @[<hov 2>method %a : (%a -> %a) Js.callback =@\n\
-        \ Js.wrap_callback@ (fun %a ->@[<hov 2>@\n\
-        \  let result =@ %a (%a)@ in@\n\n\
-        \       %a @])@]%a" format_var_camel_case scope_var format_struct_name
-        scope_def.scope_body.scope_body_input_struct format_struct_name
-        scope_def.scope_body.scope_body_output_struct format_var scope_input_var
-        format_var scope_var format_fun_call_input
-        scope_def.scope_body.scope_body_input_struct format_fun_call_res
-        scope_def.scope_body.scope_body_output_struct (format_scopes ctx)
-        scope_next
+        "@\n@\n@[<hov 2> %a =@\n Js.wrap_callback@ (fun %a -> %a)@]%a"
+        fmt_meth_name () format_var scope_input_var fmt_fun_call ()
+        (format_scopes ctx) scope_next
 
   let format_program
       (fmt : Format.formatter)
