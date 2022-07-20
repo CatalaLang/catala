@@ -20,8 +20,6 @@ type t
 (** A position in the source code is a file, as well as begin and end location
     of the form col:line *)
 
-(** Custom visitor for the [Pos.marked] type *)
-
 (**{2 Constructor and getters}*)
 
 val from_lpos : Lexing.position * Lexing.position -> t
@@ -52,44 +50,5 @@ val retrieve_loc_text : t -> string
 (** Open the file corresponding to the position and retrieves the text concerned
     by the position *)
 
-(**{2 AST markings}*)
-
-type 'a marked = 'a * t
-(** Everything related to the source code should keep its position stored, to
-    improve error messages *)
-
 val no_pos : t
 (** Placeholder position *)
-
-val mark : t -> 'a -> 'a marked
-val unmark : 'a marked -> 'a
-val get_position : 'a marked -> t
-val map_under_mark : ('a -> 'b) -> 'a marked -> 'b marked
-val same_pos_as : 'a -> 'b marked -> 'a marked
-val unmark_option : 'a marked option -> 'a option
-
-val compare_marked : ('a -> 'a -> int) -> 'a marked -> 'a marked -> int
-(** Compares two marked values {b ignoring positions} *)
-
-(** Visitors *)
-
-class ['self] marked_map :
-  object ('self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
-            ; .. >
-
-    method visit_marked :
-      'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
-  end
-
-class ['self] marked_iter :
-  object ('self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
-            ; .. >
-
-    method visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
-  end

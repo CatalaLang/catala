@@ -20,7 +20,7 @@ jobs:
           ./french_law/python/setup_env.sh
       - name: Install dependencies
         run: |
-          opam exec -- make dependencies pygments
+          OPAMCONFIRMLEVEL=unsafe-yes opam exec -- make dependencies pygments
       - name: Check promoted files
         run: |
           opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote

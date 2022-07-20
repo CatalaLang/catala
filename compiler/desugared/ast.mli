@@ -52,44 +52,40 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (**{2 Expressions}*)
 type location =
-  | ScopeVar of ScopeVar.t Pos.marked * StateName.t option
+  | ScopeVar of ScopeVar.t Marked.pos * StateName.t option
   | SubScopeVar of
       Scopelang.Ast.ScopeName.t
-      * Scopelang.Ast.SubScopeName.t Pos.marked
-      * ScopeVar.t Pos.marked
+      * Scopelang.Ast.SubScopeName.t Marked.pos
+      * ScopeVar.t Marked.pos
 
-module LocationSet : Set.S with type elt = location Pos.marked
+module LocationSet : Set.S with type elt = location Marked.pos
 
+type marked_expr = expr Marked.pos
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax*)
-type expr =
+
+and expr =
   | ELocation of location
-  | EVar of expr Bindlib.var Pos.marked
+  | EVar of expr Bindlib.var
   | EStruct of
-      Scopelang.Ast.StructName.t
-      * expr Pos.marked Scopelang.Ast.StructFieldMap.t
+      Scopelang.Ast.StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
   | EStructAccess of
-      expr Pos.marked
-      * Scopelang.Ast.StructFieldName.t
-      * Scopelang.Ast.StructName.t
+      marked_expr * Scopelang.Ast.StructFieldName.t * Scopelang.Ast.StructName.t
   | EEnumInj of
-      expr Pos.marked
-      * Scopelang.Ast.EnumConstructor.t
-      * Scopelang.Ast.EnumName.t
+      marked_expr * Scopelang.Ast.EnumConstructor.t * Scopelang.Ast.EnumName.t
   | EMatch of
-      expr Pos.marked
+      marked_expr
       * Scopelang.Ast.EnumName.t
-      * expr Pos.marked Scopelang.Ast.EnumConstructorMap.t
+      * marked_expr Scopelang.Ast.EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
-      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked
-      * Scopelang.Ast.typ Pos.marked list
-  | EApp of expr Pos.marked * expr Pos.marked list
+      (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list
+  | EApp of marked_expr * marked_expr list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
-  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
-  | EArray of expr Pos.marked list
-  | ErrorOnEmpty of expr Pos.marked
+  | EDefault of marked_expr list * marked_expr * marked_expr
+  | EIfThenElse of marked_expr * marked_expr * marked_expr
+  | EArray of marked_expr list
+  | ErrorOnEmpty of marked_expr
 
 module ExprMap : Map.S with type key = expr
 
@@ -98,7 +94,7 @@ module ExprMap : Map.S with type key = expr
 module Var : sig
   type t = expr Bindlib.var
 
-  val make : string Pos.marked -> t
+  val make : string -> t
   val compare : t -> t -> int
 end
 
@@ -106,55 +102,54 @@ module VarMap : Map.S with type key = Var.t
 
 type vars = expr Bindlib.mvar
 
-val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
+val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 
 val make_abs :
   vars ->
-  expr Pos.marked Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  Scopelang.Ast.typ Marked.pos list ->
   Pos.t ->
-  Scopelang.Ast.typ Pos.marked list ->
-  Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_app :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box list ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box list ->
   Pos.t ->
-  expr Pos.marked Bindlib.box
+  expr Marked.pos Bindlib.box
 
 val make_let_in :
   Var.t ->
-  Scopelang.Ast.typ Pos.marked ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box
+  Scopelang.Ast.typ Marked.pos ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box ->
+  expr Marked.pos Bindlib.box
 
 (** {2 Rules and scopes}*)
 
 type rule = {
   rule_id : RuleName.t;
-  rule_just : expr Pos.marked Bindlib.box;
-  rule_cons : expr Pos.marked Bindlib.box;
-  rule_parameter : (Var.t * Scopelang.Ast.typ Pos.marked) option;
-  rule_exception_to_rules : RuleSet.t Pos.marked;
+  rule_just : expr Marked.pos Bindlib.box;
+  rule_cons : expr Marked.pos Bindlib.box;
+  rule_parameter : (Var.t * Scopelang.Ast.typ Marked.pos) option;
+  rule_exception_to_rules : RuleSet.t Marked.pos;
 }
 
 module Rule : Set.OrderedType with type t = rule
 
-val empty_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
-val always_false_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
+val empty_rule : Pos.t -> Scopelang.Ast.typ Marked.pos option -> rule
+val always_false_rule : Pos.t -> Scopelang.Ast.typ Marked.pos option -> rule
 
-type assertion = expr Pos.marked Bindlib.box
+type assertion = expr Marked.pos Bindlib.box
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 
 type meta_assertion =
-  | FixedBy of reference_typ Pos.marked
-  | VariesWith of unit * variation_typ Pos.marked option
+  | FixedBy of reference_typ Marked.pos
+  | VariesWith of unit * variation_typ Marked.pos option
 
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
-  scope_def_typ : Scopelang.Ast.typ Pos.marked;
+  scope_def_typ : Scopelang.Ast.typ Marked.pos;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
   scope_def_label_groups : RuleSet.t LabelMap.t;
@@ -179,5 +174,5 @@ type program = {
 
 (** {1 Helpers} *)
 
-val locations_used : expr Pos.marked -> LocationSet.t
+val locations_used : expr Marked.pos -> LocationSet.t
 val free_variables : rule RuleMap.t -> Pos.t ScopeDefMap.t

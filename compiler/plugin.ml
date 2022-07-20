@@ -20,7 +20,9 @@ type 'ast gen = {
   apply : string option -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
 }
 
-type t = Lcalc of Lcalc.Ast.program gen | Scalc of Scalc.Ast.program gen
+type t =
+  | Lcalc of Dcalc.Ast.untyped Lcalc.Ast.program gen
+  | Scalc of Scalc.Ast.program gen
 
 let name = function Lcalc { name; _ } | Scalc { name; _ } -> name
 let backend_plugins : (string, t) Hashtbl.t = Hashtbl.create 17

@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,11 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Scope language to default calculus translator *)
-
-val translate_program :
-  Ast.program -> Dcalc.Ast.untyped Dcalc.Ast.program * Dependency.TVertex.t list
-(** Usage [translate_program p] returns a tuple [(new_program, types_list)]
-    where [new_program] is the map of translated scopes. Finally, [types_list]
-    is a list of all types (structs and enums) used in the program, correctly
-    ordered with respect to inter-types dependency. *)
+val closure_conversion : 'm Ast.program -> 'm Ast.program Bindlib.box
+(** Warning/todo: no effort was yet made to ensure correct propagation of type
+    annotations in the typed case *)

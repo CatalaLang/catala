@@ -17,8 +17,8 @@
 open Utils
 open Ast
 
-let typ_needs_parens (e : typ Pos.marked) : bool =
-  match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
+let typ_needs_parens (e : typ) : bool =
+  match e with TArrow _ | TArray _ -> true | _ -> false
 
 let is_uppercase (x : CamomileLibraryDefault.Camomile.UChar.t) : bool =
   try
@@ -41,7 +41,7 @@ let format_uid_list
        (fun fmt info ->
          Format.fprintf fmt "%a"
            (Utils.Cli.format_with_style
-              (if begins_with_uppercase (Pos.unmark info) then
+              (if begins_with_uppercase (Marked.unmark info) then
                [ANSITerminal.red]
               else []))
            (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
@@ -79,23 +79,21 @@ let format_enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) :
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
-let rec format_typ
-    (ctx : Ast.decl_ctx)
-    (fmt : Format.formatter)
-    (typ : typ Pos.marked) : unit =
+let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ) :
+    unit =
   let format_typ = format_typ ctx in
-  let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked) =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
-  match Pos.unmark typ with
+  match typ with
   | TLit l -> Format.fprintf fmt "%a" format_tlit l
   | TTuple (ts, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " format_operator "*")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
-      ts
+      (List.map Marked.unmark ts)
   | TTuple (_args, Some s) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" Ast.StructName.format_t s
       format_punctuation "{"
@@ -106,7 +104,9 @@ let rec format_typ
            Format.fprintf fmt "%a%a%a%a@ %a" format_punctuation "\""
              StructFieldName.format_t field format_punctuation "\""
              format_punctuation ":" format_typ typ))
-      (StructMap.find s ctx.ctx_structs)
+      (List.map
+         (fun (c, t) -> c, Marked.unmark t)
+         (StructMap.find s ctx.ctx_structs))
       format_punctuation "}"
   | TEnum (_, e) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" Ast.EnumName.format_t e
@@ -117,19 +117,21 @@ let rec format_typ
          (fun fmt (case, typ) ->
            Format.fprintf fmt "%a%a@ %a" format_enum_constructor case
              format_punctuation ":" format_typ typ))
-      (EnumMap.find e ctx.ctx_enums)
+      (List.map
+         (fun (c, t) -> c, Marked.unmark t)
+         (EnumMap.find e ctx.ctx_enums))
       format_punctuation "]"
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens t1
-      format_operator "→" format_typ t2
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens
+      (Marked.unmark t1) format_operator "→" format_typ (Marked.unmark t2)
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_base_type "array" format_typ
-      t1
+      (Marked.unmark t1)
   | TAny -> format_base_type fmt "any"
 
 (* (EmileRolley) NOTE: seems to be factorizable with Lcalc.Print.format_lit. *)
-let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
-  match Pos.unmark l with
+let format_lit (fmt : Format.formatter) (l : lit) : unit =
+  match l with
   | LBool b -> format_lit_style fmt (string_of_bool b)
   | LInt i -> format_lit_style fmt (Runtime.integer_to_string i)
   | LEmptyError -> format_lit_style fmt "∅ "
@@ -158,9 +160,9 @@ let format_op_kind (fmt : Format.formatter) (k : op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
+let format_binop (fmt : Format.formatter) (op : binop) : unit =
   format_operator fmt
-    (match Pos.unmark op with
+    (match op with
     | Add k -> Format.asprintf "+%a" format_op_kind k
     | Sub k -> Format.asprintf "-%a" format_op_kind k
     | Mult k -> Format.asprintf "*%a" format_op_kind k
@@ -178,8 +180,8 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
     | Map -> "map"
     | Filter -> "filter")
 
-let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
-  match Pos.unmark op with Fold -> format_keyword fmt "fold"
+let format_ternop (fmt : Format.formatter) (op : ternop) : unit =
+  match op with Fold -> format_keyword fmt "fold"
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "@<2>%s"
@@ -189,9 +191,9 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
     | EndCall -> Utils.Cli.with_style [ANSITerminal.yellow] "← "
     | PosRecordIfTrueBool -> Utils.Cli.with_style [ANSITerminal.green] "☛ ")
 
-let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
+let format_unop (fmt : Format.formatter) (op : unop) : unit =
   Format.fprintf fmt "%s"
-    (match Pos.unmark op with
+    (match op with
     | Minus _ -> "-"
     | Not -> "~"
     | Log (entry, infos) ->
@@ -208,26 +210,26 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     | RoundMoney -> "round_money"
     | RoundDecimal -> "round_decimal")
 
-let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
+let needs_parens (e : 'm marked_expr) : bool =
+  match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
-let format_var (fmt : Format.formatter) (v : Var.t) : unit =
+let format_var (fmt : Format.formatter) (v : 'm Ast.var) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 let rec format_expr
     ?(debug : bool = false)
     (ctx : Ast.decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Pos.marked) : unit =
+    (e : 'm marked_expr) : unit =
   let format_expr = format_expr ~debug ctx in
-  let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
+  let format_with_parens (fmt : Format.formatter) (e : 'm marked_expr) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" format_punctuation "(" format_expr e
         format_punctuation ")"
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Pos.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
+  match Marked.unmark e with
+  | EVar v -> Format.fprintf fmt "%a" format_var v
   | ETuple (es, None) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "("
       (Format.pp_print_list
@@ -274,10 +276,12 @@ let rec format_expr
            Format.fprintf fmt "@[<hov 2>%a %a%a@ %a@]" format_punctuation "|"
              format_enum_constructor c format_punctuation ":" format_expr e))
       (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
-  | ELit l -> format_lit fmt (Pos.same_pos_as l e)
-  | EApp ((EAbs ((binder, _), taus), _), args) ->
+  | ELit l -> format_lit fmt l
+  | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau =
+      List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus
+    in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "%a%a"
       (Format.pp_print_list
@@ -288,9 +292,11 @@ let rec format_expr
              (format_typ ctx) tau format_punctuation "=" format_expr arg
              format_keyword "in"))
       xs_tau_arg format_expr body
-  | EAbs ((binder, _), taus) ->
+  | EAbs (binder, taus) ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau =
+      List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus
+    in
     Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" format_punctuation
       "λ"
       (Format.pp_print_list
@@ -300,16 +306,16 @@ let rec format_expr
              format_punctuation ":" (format_typ ctx) tau format_punctuation ")"))
       xs_tau format_punctuation "→" format_expr body
   | EApp ((EOp (Binop ((Ast.Map | Ast.Filter) as op)), _), [arg1; arg2]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos)
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop op
       format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      format_binop (op, Pos.no_pos) format_with_parens arg2
+      format_binop op format_with_parens arg2
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     format_expr fmt arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
-      format_with_parens arg1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop op format_with_parens
+      arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
@@ -320,9 +326,9 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" format_keyword "if"
       format_expr e1 format_keyword "then" format_expr e2 format_keyword "else"
       format_expr e3
-  | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
-  | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
-  | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop op
+  | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop op
+  | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop op
   | EDefault (exceptions, just, cons) ->
     if List.length exceptions = 0 then
       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" format_punctuation "⟨"
@@ -348,10 +354,13 @@ let format_scope
     ?(debug : bool = false)
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    ((n, s) : Ast.ScopeName.t * Ast.expr scope_body) =
+    ((n, s) : Ast.ScopeName.t * ('m Ast.expr, 'm) scope_body) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
     Ast.ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox
        (Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
           ~make_let_in:Ast.make_let_in ~box_expr:Ast.box_expr ctx s
-          (Pos.get_position (Ast.ScopeName.get_info n))))
+          (Ast.map_mark
+             (fun _ -> Marked.get_mark (Ast.ScopeName.get_info n))
+             (fun ty -> ty)
+             (Ast.get_scope_body_mark s))))

@@ -18,13 +18,13 @@
 
 open Utils
 
-val evaluate_expr : Ast.decl_ctx -> Ast.expr Pos.marked -> Ast.expr Pos.marked
+val evaluate_expr : Ast.decl_ctx -> 'm Ast.marked_expr -> 'm Ast.marked_expr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program :
   Ast.decl_ctx ->
-  Ast.expr Pos.marked ->
-  (Uid.MarkedString.info * Ast.expr Pos.marked) list
+  'm Ast.marked_expr ->
+  (Uid.MarkedString.info * 'm Ast.marked_expr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all

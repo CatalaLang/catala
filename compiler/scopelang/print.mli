@@ -18,12 +18,12 @@ open Utils
 
 val format_var : Format.formatter -> Ast.Var.t -> unit
 val format_location : Format.formatter -> Ast.location -> unit
-val format_typ : Format.formatter -> Ast.typ Pos.marked -> unit
+val format_typ : Format.formatter -> Ast.typ Marked.pos -> unit
 
 val format_expr :
   ?debug:bool (** [true] for debug printing *) ->
   Format.formatter ->
-  Ast.expr Pos.marked ->
+  Ast.expr Marked.pos ->
   unit
 
 val format_scope :

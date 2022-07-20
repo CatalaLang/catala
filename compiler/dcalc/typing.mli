@@ -17,8 +17,16 @@
 (** Typing for the default calculus. Because of the error terms, we perform type
     inference using the classical W algorithm with union-find unification. *)
 
-val infer_type :
-  Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked
+val infer_types :
+  Ast.decl_ctx -> Ast.untyped Ast.marked_expr -> Ast.typed Ast.marked_expr
+(** Infers types everywhere on the given expression, and adds (or replaces) type
+    annotations on each node *)
+
+val infer_type : Ast.decl_ctx -> 'm Ast.marked_expr -> Ast.typ Utils.Marked.pos
+(** Gets the outer type of the given expression, using either the existing
+    annotations or inference *)
 
 val check_type :
-  Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked -> unit
+  Ast.decl_ctx -> 'm Ast.marked_expr -> Ast.typ Utils.Marked.pos -> unit
+
+val infer_types_program : Ast.untyped Ast.program -> Ast.typed Ast.program

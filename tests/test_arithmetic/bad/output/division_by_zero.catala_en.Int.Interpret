@@ -4,7 +4,7 @@ The division operator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
    | 
 10 |   definition i equals 1 / 0
-   |                         ^
+   |                       ^^^^^
    + `Division_by_zero` exception management
    +-+ with integers
 

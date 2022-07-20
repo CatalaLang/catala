@@ -21,7 +21,7 @@ open Ast
 
 (** {1 Helpers and type definitions}*)
 
-type vc_return = expr Pos.marked * typ Pos.marked VarMap.t
+type vc_return = typed marked_expr * typ Marked.pos VarMap.t
 (** The return type of VC generators is the VC expression plus the types of any
     locally free variable inside that expression. *)
 
@@ -29,33 +29,33 @@ type ctx = {
   current_scope_name : ScopeName.t;
   decl : decl_ctx;
   input_vars : Var.t list;
-  scope_variables_typs : typ Pos.marked VarMap.t;
+  scope_variables_typs : typ Marked.pos VarMap.t;
 }
 
-let conjunction (args : vc_return list) (pos : Pos.t) : vc_return =
+let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
     match args with
     | hd :: tl -> hd, tl
-    | [] -> ((ELit (LBool true), pos), VarMap.empty), []
+    | [] -> ((ELit (LBool true), mark), VarMap.empty), []
   in
   List.fold_left
     (fun (acc, acc_ty) (arg, arg_ty) ->
-      ( (EApp ((EOp (Binop And), pos), [arg; acc]), pos),
+      ( (EApp ((EOp (Binop And), mark), [arg; acc]), mark),
         VarMap.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty ))
     acc list
 
-let negation ((arg, arg_ty) : vc_return) (pos : Pos.t) : vc_return =
-  (EApp ((EOp (Unop Not), pos), [arg]), pos), arg_ty
+let negation ((arg, arg_ty) : vc_return) (mark : typed mark) : vc_return =
+  (EApp ((EOp (Unop Not), mark), [arg]), mark), arg_ty
 
-let disjunction (args : vc_return list) (pos : Pos.t) : vc_return =
+let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
     match args with
     | hd :: tl -> hd, tl
-    | [] -> ((ELit (LBool false), pos), VarMap.empty), []
+    | [] -> ((ELit (LBool false), mark), VarMap.empty), []
   in
   List.fold_left
     (fun ((acc, acc_ty) : vc_return) (arg, arg_ty) ->
-      ( (EApp ((EOp (Binop Or), pos), [arg; acc]), pos),
+      ( (EApp ((EOp (Binop Or), mark), [arg; acc]), mark),
         VarMap.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty ))
     acc list
 
@@ -71,26 +71,26 @@ let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
     variables, or [fun () -> e1] for subscope variables. But what we really want
     to analyze is only [e1], so we match this outermost structure explicitely
     and have a clean verification condition generator that only runs on [e1] *)
-let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
-    expr Pos.marked =
-  match Pos.unmark e with
+let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed marked_expr)
+    : typed marked_expr =
+  match Marked.unmark e with
   | ErrorOnEmpty
       ( EDefault
-          ( [(EApp ((EVar (x, _), _), [(ELit LUnit, _)]), _)],
+          ( [(EApp ((EVar x, _), [(ELit LUnit, _)]), _)],
             (ELit (LBool true), _),
             cons ),
         _ )
-    when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
+    when List.exists (fun x' -> Var.eq (Var.t x) x') ctx.input_vars ->
     (* scope variables*)
     cons
-  | EAbs ((binder, _), [(TLit TUnit, _)]) ->
+  | EAbs (binder, [(TLit TUnit, _)]) ->
     (* context sub-scope variables *)
     let _, body = Bindlib.unmbind binder in
     body
   | ErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
   | _ ->
-    Errors.raise_spanned_error (Pos.get_position e)
+    Errors.raise_spanned_error (pos e)
       "Internal error: this expression does not have the structure expected by \
        the VC generator:\n\
        %a"
@@ -103,18 +103,18 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
     [b] such that if [b] is true, then [e] will never return an empty error. It
     also returns a map of all the types of locally free variables inside the
     expression. *)
-let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
+let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed marked_expr) :
     vc_return =
   let out =
-    match Pos.unmark e with
+    match Marked.unmark e with
     | ETuple (args, _) | EArray args ->
       conjunction
         (List.map (generate_vc_must_not_return_empty ctx) args)
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | EMatch (arg, arms, _) ->
       conjunction
         (List.map (generate_vc_must_not_return_empty ctx) (arg :: arms))
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | ETupleAccess (e1, _, _, _)
     | EInj (e1, _, _, _)
     | EAssert e1
@@ -124,13 +124,13 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
       (* Hot take: for a function never to return an empty error when called, it has to do
          so whatever its input. So we universally quantify over the variable of the function
          when inspecting the body, resulting in simply traversing through in the code here. *)
-      let vars, body = Bindlib.unmbind (Pos.unmark binder) in
+      let vars, body = Bindlib.unmbind binder in
       let vc_body_expr, vc_body_ty =
         (generate_vc_must_not_return_empty ctx) body
       in
       ( vc_body_expr,
         List.fold_left
-          (fun acc (var, ty) -> VarMap.add var ty acc)
+          (fun acc (var, ty) -> VarMap.add (Var.t var) ty acc)
           vc_body_ty
           (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
     | EApp (f, args) ->
@@ -138,7 +138,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
          all functions have been checked never to return empty errors. *)
       conjunction
         (List.map (generate_vc_must_not_return_empty ctx) (f :: args))
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | EIfThenElse (e1, e2, e3) ->
       let e1_vc, vc_typ1 = generate_vc_must_not_return_empty ctx e1 in
       let e2_vc, vc_typ2 = generate_vc_must_not_return_empty ctx e2 in
@@ -146,18 +146,19 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
       conjunction
         [
           e1_vc, vc_typ1;
-          ( (EIfThenElse (e1, e2_vc, e3_vc), Pos.get_position e),
+          ( (EIfThenElse (e1, e2_vc, e3_vc), Marked.get_mark e),
             VarMap.union
               (fun _ _ _ -> failwith "should not happen")
               vc_typ2 vc_typ3 );
         ]
-        (Pos.get_position e)
-    | ELit LEmptyError -> Pos.same_pos_as (ELit (LBool false)) e, VarMap.empty
+        (Marked.get_mark e)
+    | ELit LEmptyError ->
+      Marked.same_mark_as (ELit (LBool false)) e, VarMap.empty
     | EVar _
     (* Per default calculus semantics, you cannot call a function with an argument
        that evaluates to the empty error. Thus, all variable evaluate to non-empty-error terms. *)
     | ELit _ | EOp _ ->
-      Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty
+      Marked.same_mark_as (ELit (LBool true)) e, VarMap.empty
     | EDefault (exceptions, just, cons) ->
       (* <e1 ... en | ejust :- econs > never returns empty if and only if:
          - first we look if e1 .. en ejust can return empty;
@@ -181,13 +182,13 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
                             surface language to intermediate representation translation preventing
                             any default terms to appear in justifications.*)
                          vc_just_expr,
-                         (ELit (LBool false), Pos.get_position e) ),
-                     Pos.get_position e ),
+                         (ELit (LBool false), Marked.get_mark e) ),
+                     Marked.get_mark e ),
                    vc_just_ty ));
               ]
-              (Pos.get_position e);
+              (Marked.get_mark e);
           ])
-        (Pos.get_position e)
+        (Marked.get_mark e)
   in
   out
   [@@ocamlformat "wrap-comments=false"]
@@ -196,39 +197,39 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) :
     [b] such that if [b] is true, then [e] will never return a conflict error.
     It also returns a map of all the types of locally free variables inside the
     expression. *)
-let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
-    vc_return =
+let rec generate_vs_must_not_return_confict (ctx : ctx) (e : typed marked_expr)
+    : vc_return =
   let out =
     (* See the code of [generate_vc_must_not_return_empty] for a list of invariants on which this
        function relies on. *)
-    match Pos.unmark e with
+    match Marked.unmark e with
     | ETuple (args, _) | EArray args ->
       conjunction
         (List.map (generate_vs_must_not_return_confict ctx) args)
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | EMatch (arg, arms, _) ->
       conjunction
         (List.map (generate_vs_must_not_return_confict ctx) (arg :: arms))
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | ETupleAccess (e1, _, _, _)
     | EInj (e1, _, _, _)
     | EAssert e1
     | ErrorOnEmpty e1 ->
       generate_vs_must_not_return_confict ctx e1
     | EAbs (binder, typs) ->
-      let vars, body = Bindlib.unmbind (Pos.unmark binder) in
+      let vars, body = Bindlib.unmbind binder in
       let vc_body_expr, vc_body_ty =
         (generate_vs_must_not_return_confict ctx) body
       in
       ( vc_body_expr,
         List.fold_left
-          (fun acc (var, ty) -> VarMap.add var ty acc)
+          (fun acc (var, ty) -> VarMap.add (Var.t var) ty acc)
           vc_body_ty
           (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
     | EApp (f, args) ->
       conjunction
         (List.map (generate_vs_must_not_return_confict ctx) (f :: args))
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | EIfThenElse (e1, e2, e3) ->
       let e1_vc, vc_typ1 = generate_vs_must_not_return_confict ctx e1 in
       let e2_vc, vc_typ2 = generate_vs_must_not_return_confict ctx e2 in
@@ -236,14 +237,14 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
       conjunction
         [
           e1_vc, vc_typ1;
-          ( (EIfThenElse (e1, e2_vc, e3_vc), Pos.get_position e),
+          ( (EIfThenElse (e1, e2_vc, e3_vc), Marked.get_mark e),
             VarMap.union
               (fun _ _ _ -> failwith "should not happen")
               vc_typ2 vc_typ3 );
         ]
-        (Pos.get_position e)
+        (Marked.get_mark e)
     | EVar _ | ELit _ | EOp _ ->
-      Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty
+      Marked.same_mark_as (ELit (LBool true)) e, VarMap.empty
     | EDefault (exceptions, just, cons) ->
       (* <e1 ... en | ejust :- econs > never returns conflict if and only if:
          - neither e1 nor ... nor en nor ejust nor econs return conflict
@@ -258,17 +259,17 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
                       generate_vc_must_not_return_empty ctx e1;
                       generate_vc_must_not_return_empty ctx e2;
                     ]
-                    (Pos.get_position e))
+                    (Marked.get_mark e))
                 (half_product exceptions exceptions))
-             (Pos.get_position e))
-          (Pos.get_position e)
+             (Marked.get_mark e))
+          (Marked.get_mark e)
       in
       let others =
         List.map
           (generate_vs_must_not_return_confict ctx)
           (just :: cons :: exceptions)
       in
-      let out = conjunction (quadratic :: others) (Pos.get_position e) in
+      let out = conjunction (quadratic :: others) (Marked.get_mark e) in
       out
   in
   out
@@ -279,18 +280,18 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) :
 type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
 
 type verification_condition = {
-  vc_guard : expr Pos.marked;
+  vc_guard : typed marked_expr;
   (* should have type bool *)
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
-  vc_variable : Var.t Pos.marked;
-  vc_free_vars_typ : typ Pos.marked VarMap.t;
+  vc_variable : Var.t Marked.pos;
+  vc_free_vars_typ : typ Marked.pos VarMap.t;
 }
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
-    (scope_body_expr : expr scope_body_expr) : ctx * verification_condition list
-    =
+    (scope_body_expr : ('m expr, 'm) scope_body_expr) :
+    ctx * verification_condition list =
   match scope_body_expr with
   | Result _ -> ctx, []
   | ScopeLet scope_let ->
@@ -300,7 +301,7 @@ let rec generate_verification_conditions_scope_body_expr
     let new_ctx, vc_list =
       match scope_let.scope_let_kind with
       | DestructuringInputStruct ->
-        { ctx with input_vars = scope_let_var :: ctx.input_vars }, []
+        { ctx with input_vars = Var.t scope_let_var :: ctx.input_vars }, []
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. But for subscope variable definitions,
@@ -320,14 +321,14 @@ let rec generate_verification_conditions_scope_body_expr
         let vc_list =
           [
             {
-              vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
+              vc_guard = Marked.same_mark_as (Marked.unmark vc_confl) e;
               vc_kind = NoOverlappingExceptions;
               vc_free_vars_typ =
                 VarMap.union
                   (fun _ _ -> failwith "should not happen")
                   ctx.scope_variables_typs vc_confl_typs;
               vc_scope = ctx.current_scope_name;
-              vc_variable = scope_let_var, scope_let.scope_let_pos;
+              vc_variable = Var.t scope_let_var, scope_let.scope_let_pos;
             };
           ]
         in
@@ -343,14 +344,14 @@ let rec generate_verification_conditions_scope_body_expr
               else vc_empty
             in
             {
-              vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
+              vc_guard = Marked.same_mark_as (Marked.unmark vc_empty) e;
               vc_kind = NoEmptyError;
               vc_free_vars_typ =
                 VarMap.union
                   (fun _ _ -> failwith "should not happen")
                   ctx.scope_variables_typs vc_empty_typs;
               vc_scope = ctx.current_scope_name;
-              vc_variable = scope_let_var, scope_let.scope_let_pos;
+              vc_variable = Var.t scope_let_var, scope_let.scope_let_pos;
             }
             :: vc_list
           | _ -> vc_list
@@ -363,7 +364,7 @@ let rec generate_verification_conditions_scope_body_expr
         {
           new_ctx with
           scope_variables_typs =
-            VarMap.add scope_let_var scope_let.scope_let_typ
+            VarMap.add (Var.t scope_let_var) scope_let.scope_let_typ
               new_ctx.scope_variables_typs;
         }
         scope_let_next
@@ -372,7 +373,7 @@ let rec generate_verification_conditions_scope_body_expr
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)
-    (scopes : expr scopes)
+    (scopes : ('m expr, 'm) scopes)
     (s : ScopeName.t option) : verification_condition list =
   match scopes with
   | Nil -> []
@@ -412,7 +413,7 @@ let rec generate_verification_conditions_scopes
     generate_verification_conditions_scopes decl_ctx next s @ vcs
 
 let generate_verification_conditions
-    (p : program)
+    (p : 'm program)
     (s : Dcalc.Ast.ScopeName.t option) : verification_condition list =
   let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
   (* We sort this list by scope name and then variable name to ensure consistent
@@ -422,7 +423,7 @@ let generate_verification_conditions
       let to_str vc =
         Format.asprintf "%s.%s"
           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-          (Bindlib.name_of (Pos.unmark vc.vc_variable))
+          (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable)))
       in
       String.compare (to_str vc1) (to_str vc2))
     vcs

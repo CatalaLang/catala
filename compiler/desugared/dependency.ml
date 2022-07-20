@@ -129,7 +129,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                 Pos.get_position var_info );
+                 Marked.get_mark var_info );
                ( Some
                    ("Used here in the definition of another cycle variable "
                   ^ succ_str ^ ":"),
@@ -257,9 +257,9 @@ let build_exceptions_graph
   let all_rule_sets_pointed_to_by_exceptions : Ast.RuleSet.t list =
     Ast.RuleMap.fold
       (fun _rule_name rule acc ->
-        if Ast.RuleSet.is_empty (Pos.unmark rule.Ast.rule_exception_to_rules)
+        if Ast.RuleSet.is_empty (Marked.unmark rule.Ast.rule_exception_to_rules)
         then acc
-        else Pos.unmark rule.Ast.rule_exception_to_rules :: acc)
+        else Marked.unmark rule.Ast.rule_exception_to_rules :: acc)
       def []
   in
   (* we make sure these sets are either disjoint or equal ; should be a
@@ -278,13 +278,13 @@ let build_exceptions_graph
                 (Seq.map
                    (fun rule ->
                      ( Some "Rule or definition from the first group:",
-                       Pos.get_position (Ast.RuleName.get_info rule) ))
+                       Marked.get_mark (Ast.RuleName.get_info rule) ))
                    (Ast.RuleSet.to_seq rule_set1))
               @ List.of_seq
                   (Seq.map
                      (fun rule ->
                        ( Some "Rule or definition from the second group:",
-                         Pos.get_position (Ast.RuleName.get_info rule) ))
+                         Marked.get_mark (Ast.RuleName.get_info rule) ))
                      (Ast.RuleSet.to_seq rule_set2))
             in
             Errors.raise_multispanned_error spans
@@ -366,7 +366,7 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
                ( Some
                    ("Cyclic exception for definition of variable \"" ^ var_str
                   ^ "\", declared here:"),
-                 Pos.get_position var_info );
+                 Marked.get_mark var_info );
                ( Some
                    ("Used here in the definition of another cyclic exception \
                      for defining \"" ^ var_str ^ "\":"),
