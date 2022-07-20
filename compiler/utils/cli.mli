@@ -118,6 +118,10 @@ val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 val format_with_style :
   ANSITerminal.style list -> Format.formatter -> string -> unit
 
+val call_unstyled : (unit -> 'a) -> 'a
+(** [call_unstyled f] calls the function [f] with the [style_flag] set to false
+    during the execution. *)
+
 val debug_marker : unit -> string
 val error_marker : unit -> string
 val warning_marker : unit -> string
