@@ -19,6 +19,8 @@
 
 open Js_of_ocaml
 
+(** {1 Log events} *)
+
 class type source_position =
   object
     method fileName : Js.js_string Js.t Js.prop
@@ -41,6 +43,22 @@ class type event =
   object
     method data : Js.js_string Js.t Js.prop
   end
+
+class type ['a] event_manager =
+  object
+    method resetLog : ('a, unit -> unit) Js.meth_callback Js.meth
+
+    method retrieveEvents :
+      ('a, unit -> event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+
+    method retrieveRawEvents :
+      ('a, unit -> raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+  end
+
+val event_manager : unit event_manager Js.t
+(** Composable object to retrieve and reset log events. *)
+
+(** {1 Duration} *)
 
 class type duration =
   object

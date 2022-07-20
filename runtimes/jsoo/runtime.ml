@@ -57,3 +57,84 @@ let duration_to_jsoo d =
     val months = months
     val days = days
   end
+
+class type ['a] event_manager =
+  object
+    method resetLog : ('a, unit -> unit) Js.meth_callback Js.meth
+
+    method retrieveEvents :
+      ('a, unit -> event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+
+    method retrieveRawEvents :
+      ('a, unit -> raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+  end
+
+let event_manager : unit event_manager Js.t =
+  object%js
+    method resetLog = Js.wrap_callback R_ocaml.reset_log
+
+    method retrieveEvents =
+      Js.wrap_callback (fun () ->
+          Js.array
+            (Array.of_list
+               (R_ocaml.retrieve_log () |> R_ocaml.EventParser.parse_raw_events
+               |> List.map (fun event ->
+                      object%js
+                        val mutable data =
+                          event |> R_ocaml.yojson_of_event
+                          |> Yojson.Safe.to_string |> Js.string
+                      end))))
+
+    method retrieveRawEvents =
+      Js.wrap_callback (fun () ->
+          Js.array
+            (Array.of_list
+               (List.map
+                  (fun evt ->
+                    object%js
+                      val mutable eventType =
+                        Js.string
+                          (match evt with
+                          | R_ocaml.BeginCall _ -> "Begin call"
+                          | EndCall _ -> "End call"
+                          | VariableDefinition _ -> "Variable definition"
+                          | DecisionTaken _ -> "Decision taken")
+
+                      val mutable information =
+                        Js.array
+                          (Array.of_list
+                             (match evt with
+                             | BeginCall info
+                             | EndCall info
+                             | VariableDefinition (info, _) ->
+                               List.map Js.string info
+                             | DecisionTaken _ -> []))
+
+                      val mutable loggedValueJson =
+                        (match evt with
+                        | VariableDefinition (_, v) -> v
+                        | EndCall _ | BeginCall _ | DecisionTaken _ ->
+                          R_ocaml.unembeddable ())
+                        |> R_ocaml.yojson_of_runtime_value
+                        |> Yojson.Safe.to_string |> Js.string
+
+                      val mutable sourcePosition =
+                        match evt with
+                        | DecisionTaken pos ->
+                          Js.def
+                            (object%js
+                               val mutable fileName = Js.string pos.filename
+                               val mutable startLine = pos.start_line
+                               val mutable endLine = pos.end_line
+                               val mutable startColumn = pos.start_column
+                               val mutable endColumn = pos.end_column
+
+                               val mutable lawHeadings =
+                                 Js.array
+                                   (Array.of_list
+                                      (List.map Js.string pos.law_headings))
+                            end)
+                        | _ -> Js.undefined
+                    end)
+                  (R_ocaml.retrieve_log ()))))
+  end
