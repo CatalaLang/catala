@@ -15,6 +15,7 @@
    the License. *)
 
 open Js_of_ocaml
+module R_ocaml = Runtime_ocaml.Runtime
 
 class type source_position =
   object
@@ -41,10 +42,18 @@ class type event =
 
 class type duration =
   object
-    method years : int Js.prop
-    method months : int Js.prop
-    method days : int Js.prop
+    method years : int Js.readonly_prop
+    method months : int Js.readonly_prop
+    method days : int Js.readonly_prop
   end
 
-(* let duration_of_jsoo d = *)
-(*   Runtime.duration_of_numbers d##.years d##.months d##.days *)
+let duration_of_jsoo d =
+  R_ocaml.duration_of_numbers d##.years d##.months d##.days
+
+let duration_to_jsoo d =
+  let years, months, days = R_ocaml.duration_to_years_months_days d in
+  object%js
+    val years = years
+    val months = months
+    val days = days
+  end

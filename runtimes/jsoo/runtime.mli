@@ -44,10 +44,10 @@ class type event =
 
 class type duration =
   object
-    method years : int Js.prop
-    method months : int Js.prop
-    method days : int Js.prop
+    method years : int Js.readonly_prop
+    method months : int Js.readonly_prop
+    method days : int Js.readonly_prop
   end
 
-(* let duration_of_jsoo d = *)
-(*   Runtime.duration_of_numbers d##.years d##.months d##.days *)
+val duration_of_jsoo : duration Js.t -> Runtime_ocaml.Runtime.duration
+val duration_to_jsoo : Runtime_ocaml.Runtime.duration -> duration Js.t
