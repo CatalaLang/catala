@@ -37,15 +37,15 @@ module To_jsoo = struct
       | TBool -> "bool Js.t"
       | TDate -> "Js.date Js.t")
 
-  let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
+  let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
       unit =
     let format_typ_with_parens
         (fmt : Format.formatter)
-        (t : Dcalc.Ast.typ Pos.marked) =
+        (t : Dcalc.Ast.typ Marked.pos) =
       if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
       else Format.fprintf fmt "%a" format_typ t
     in
-    match Pos.unmark typ with
+    match Marked.unmark typ with
     | TLit l -> Format.fprintf fmt "%a" format_tlit l
     | TTuple (_, Some s) -> Format.fprintf fmt "%a Js.t" format_struct_name s
     | TTuple (_, None) ->
@@ -55,7 +55,7 @@ module To_jsoo = struct
       Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
         format_enum_name e
     | TEnum (_, e) when D.EnumName.compare e option_enum = 0 ->
-      Errors.raise_spanned_error (Pos.get_position typ)
+      Errors.raise_spanned_error (Marked.get_mark typ)
         "Internal Error: found an typing parameter for an eoption type of the \
          wrong lenght."
     | TEnum (_, e) -> Format.fprintf fmt "%a Js.t" format_enum_name e
@@ -177,7 +177,7 @@ module To_jsoo = struct
       (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
       |> to_ascii |> to_lowercase |> To_ocaml.avoid_keywords |> to_camel_case)
 
-  let format_var_camel_case (fmt : Format.formatter) (v : Var.t) : unit =
+  let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
     let lowercase_name =
       Bindlib.name_of v |> to_ascii |> to_lowercase
       |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ ->
@@ -195,8 +195,8 @@ module To_jsoo = struct
       (type_ordering : Scopelang.Dependency.TVertex.t list)
       (fmt : Format.formatter)
       (ctx : D.decl_ctx) : unit =
-    let format_prop_or_meth fmt (struct_field_type : D.typ Pos.marked) =
-      match Pos.unmark struct_field_type with
+    let format_prop_or_meth fmt (struct_field_type : D.typ Marked.pos) =
+      match Marked.unmark struct_field_type with
       | Dcalc.Ast.TArrow _ -> Format.fprintf fmt "Js.meth"
       | _ -> Format.fprintf fmt "Js.readonly_prop"
     in
@@ -270,7 +270,7 @@ module To_jsoo = struct
   let rec format_scopes
       (ctx : Dcalc.Ast.decl_ctx)
       (fmt : Format.formatter)
-      (scopes : expr Dcalc.Ast.scopes) : unit =
+      (scopes : ('expr, 'm) Dcalc.Ast.scopes) : unit =
     let format_fun_call_input fmt struct_name =
       let struct_fields = find_struct struct_name ctx in
       if List.length struct_fields = 0 then Format.fprintf fmt "()"
@@ -278,7 +278,7 @@ module To_jsoo = struct
         Format.fprintf fmt "()"
     in
     let format_typ_to_js fmt typ =
-      match Pos.unmark typ with
+      match Marked.unmark typ with
       | Dcalc.Ast.TLit TUnit -> failwith "todo: TLit TUnit"
       | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.bool"
       | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_to_int"
@@ -329,7 +329,7 @@ module To_jsoo = struct
   let format_program
       (fmt : Format.formatter)
       (module_name : string)
-      (prgm : Lcalc.Ast.program)
+      (prgm : 'm Lcalc.Ast.program)
       (type_ordering : Scopelang.Dependency.TVertex.t list) =
     Cli.style_flag := false;
     Format.fprintf fmt
@@ -385,7 +385,7 @@ let with_temp_file pfx sfx f =
 
 let apply
     (output_file : string option)
-    (prgm : Lcalc.Ast.program)
+    (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
   with_temp_file "catala_jsoo_" ".ml" @@ fun ml_file ->
   File.with_formatter_of_opt_file output_file @@ fun fmt ->
@@ -415,7 +415,7 @@ let apply
 
 let apply'
     (output_file : string option)
-    (prgm : Lcalc.Ast.program)
+    (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
   let filename_without_ext_opt =
     Option.map

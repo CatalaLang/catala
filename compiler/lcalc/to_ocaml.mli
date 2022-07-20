@@ -24,15 +24,15 @@ val avoid_keywords : string -> string
 val find_struct :
   Dcalc.Ast.StructName.t ->
   Dcalc.Ast.decl_ctx ->
-  (Dcalc.Ast.StructFieldName.t * Dcalc.Ast.typ Pos.marked) list
+  (Dcalc.Ast.StructFieldName.t * Dcalc.Ast.typ Marked.pos) list
 
 val find_enum :
   Dcalc.Ast.EnumName.t ->
   Dcalc.Ast.decl_ctx ->
-  (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list
+  (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Marked.pos) list
 
-val typ_needs_parens : Dcalc.Ast.typ Pos.marked -> bool
-val needs_parens : expr Pos.marked -> bool
+val typ_needs_parens : Dcalc.Ast.typ Marked.pos -> bool
+val needs_parens : 'm marked_expr -> bool
 val format_enum_name : Format.formatter -> Dcalc.Ast.EnumName.t -> unit
 
 val format_enum_cons_name :
@@ -46,9 +46,9 @@ val format_struct_field_name :
   unit
 
 val format_to_struct_type : Format.formatter -> Dcalc.Ast.StructName.t -> unit
-val format_lit : Format.formatter -> lit Pos.marked -> unit
+val format_lit : Format.formatter -> lit Marked.pos -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
-val format_var : Format.formatter -> Var.t -> unit
+val format_var : Format.formatter -> 'm var -> unit
 
 val format_program :
   Format.formatter ->
