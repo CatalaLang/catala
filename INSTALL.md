@@ -11,11 +11,11 @@ Start by installing Docker: https://docs.docker.com/get-docker/
 
 Then build the Docker image:
 
-    docker build . -t catala
+    docker build . --target dev-build-context -t catala
 
-Finally, start a `bash` shell inside a new container created from the newly built image:
+Finally, start a shell inside a new container created from the newly built image:
 
-    docker run -it -v $PWD:$PWD -w $PWD --name catala catala bash
+    docker run -it --name catala catala
 
 ### With nix
 
@@ -41,18 +41,20 @@ OCaml's distribution and package manager. Follow the [instructions on the `opam`
 website](https://opam.ocaml.org/doc/Install.html).
 
 Next, you will need to use the correct version of OCaml. Catala has been tested
-with OCaml compiler versions that are at least 4.12.0. To switch to OCaml 4.12.0.,
+with OCaml compiler versions that are at least 4.13.0. To switch to OCaml 4.13.0.,
 just use:
 
-    opam switch 4.12.0
+    opam switch 4.13.0
 
-If you get a `No switch 4.12.0 is currently installed` error message, follow
-the hint and enter `opam switch create 4.12.0`.
+If you get a `No switch 4.13.0 is currently installed` error message, follow
+the hint and enter `opam switch create 4.13.0`.
 
 ## Dependencies
 
-Next, install all the OCaml packages that Catala depend on, as well as some
-git submodules, with
+You can skip this step if you used the *Docker* option above, it is already taken
+care of.
+
+Next, install all the packages that Catala depends on with
 
     make dependencies
 
@@ -61,23 +63,13 @@ This should ensure everything is set up for developing on the Catala compiler!
 **Warning**: this command does not include the `z3` dependency required to enable
 the proof platform feature of Catala. If you wish to enable support for the
 proof platform and the `Proof` command of the Catala compiler, you should
-instead execute `make dependencies-with-ocaml` prior to building the compiler.
+instead execute `make dependencies-with-z3` prior to building the compiler.
 
 Other features of the Catala repository also require the following executables
-to be present
+to be present. On debian, arch or apline-based distributions, the above command
+should already take care of them.
 
     groff virtualenv python3 pip rsync colordiff pygmentize nodejs npm
-
-please install them if they're not here, otherwise you will get some errors.
-On a Debian distribution, this can be
-done with
-
-    sudo apt install python3-dev virtualenv python3-setuptools python3-pip python3-pygments groff rsync colordiff npm nodejs libmpc-dev ninja-build
-    sudo python3 -m pip install --upgrade pip
-
-On ArchLinux :
-
-    sudo pacman -S python-virtualenv groff rsync colordiff nodejs npm
 
 ## Build
 
