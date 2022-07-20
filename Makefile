@@ -16,10 +16,10 @@ K := $(foreach exec,$(EXECUTABLES),\
 				Please install this executable for everything to work smoothly)))
 
 dependencies-ocaml:
-	opam install . ./doc/catala-dev-dependencies.opam --deps-only --with-doc --with-test --yes
+	opam install . ./doc/catala-dev-dependencies.opam --deps-only --with-doc --with-test --update-invariant
 
 dependencies-ocaml-with-z3:
-	opam install . ./doc/catala-dev-dependencies.opam z3 --deps-only --with-doc --with-test --yes
+	opam install . ./doc/catala-dev-dependencies.opam z3 --deps-only --with-doc --with-test --update-invariant
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
@@ -272,10 +272,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 .FORCE:
 
 test_suite: .FORCE
-	$(CLERK) test tests
+	OCAMLRUNPARAM= $(CLERK) test tests
 
 test_examples: .FORCE
-	$(CLERK) test examples
+	OCAMLRUNPARAM= $(CLERK) test examples
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples

@@ -196,9 +196,6 @@ let driver source_file (options : Cli.options) : int =
           end
           else prgm
         in
-        let prgrm_dcalc_expr =
-          Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
-        in
         match backend with
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
@@ -218,13 +215,16 @@ let driver source_file (options : Cli.options) : int =
                        else acc)
                      prgm.scopes) )
           else
+            let prgrm_dcalc_expr =
+              Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
+            in
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_expr prgm.decl_ctx)
               prgrm_dcalc_expr
         | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
           | `Proof | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking...";
-          let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
+          let prgm = Dcalc.Typing.infer_types_program prgm in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Dcalc.Print.format_typ prgm.decl_ctx) typ); *)
           match backend with
@@ -242,6 +242,9 @@ let driver source_file (options : Cli.options) : int =
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
+            let prgrm_dcalc_expr =
+              Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
+            in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
             in
@@ -281,7 +284,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
-              else prgm
+              else Lcalc.Ast.untype_program prgm
             in
             let prgm =
               if options.closure_conversion then (
@@ -378,10 +381,14 @@ let driver source_file (options : Cli.options) : int =
     0
   with
   | Errors.StructuredError (msg, pos) ->
+    let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "%s" (Errors.print_structured_error msg pos);
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
   | Sys_error msg ->
+    let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "System error: %s" msg;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 
 let main () =

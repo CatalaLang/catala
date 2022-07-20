@@ -18,7 +18,7 @@ homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "dune" {>= "2.8"}
-  "ocaml" {>= "4.11.0"}
+  "ocaml" {>= "4.13.0"}
   "ANSITerminal" {>= "0.8.2"}
   "sedlex" {>= "2.4"}
   "menhir" {>= "20200211"}

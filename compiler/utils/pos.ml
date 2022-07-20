@@ -203,8 +203,6 @@ let retrieve_loc_text (pos : t) : string =
              else Cli.with_style blue_style "%*s+-+ " (spaces + (2 * i) - 1) ""))
   with Sys_error _ -> "Location:" ^ to_string pos
 
-type 'a marked = 'a * t
-
 let no_pos : t =
   let zero_pos =
     {
@@ -215,42 +213,3 @@ let no_pos : t =
     }
   in
   { code_pos = zero_pos, zero_pos; law_pos = [] }
-
-let mark pos e : 'a marked = e, pos
-let unmark ((x, _) : 'a marked) : 'a = x
-let get_position ((_, x) : 'a marked) : t = x
-let map_under_mark (f : 'a -> 'b) ((x, y) : 'a marked) : 'b marked = f x, y
-let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = x, y
-
-let compare_marked
-    (cmp : 'a -> 'a -> int)
-    ((x, _) : 'a marked)
-    ((y, _) : 'a marked) : int =
-  cmp x y
-
-let unmark_option (x : 'a marked option) : 'a option =
-  match x with Some x -> Some (unmark x) | None -> None
-
-class ['self] marked_map =
-  object (_self : 'self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
-            ; .. >
-
-    method visit_marked
-        : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked =
-      fun f env x -> same_pos_as (f env (unmark x)) x
-  end
-
-class ['self] marked_iter =
-  object (_self : 'self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
-            ; .. >
-
-    method visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
-        =
-      fun f env x -> f env (unmark x)
-  end
