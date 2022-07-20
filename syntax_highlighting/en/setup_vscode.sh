@@ -1,4 +1,6 @@
-#! /usr/bin/env bash
+#! /usr/bin/env sh
+
+set -eu
 
 FILE=~/.vscode/extensions/catala-en
 SCRIPT=`realpath $0`

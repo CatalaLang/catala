@@ -17,6 +17,7 @@ license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
+  "ocamlfind" {!= "1.9.5"}
   "dune" {>= "2.8"}
   "ocaml" {>= "4.13.0"}
   "ANSITerminal" {>= "0.8.2"}
@@ -39,6 +40,11 @@ depends: [
   "cppo" {>= "1"}
   "alcotest" {with-test & >= "1.5.0"}
   "odoc" {with-doc}
+  "ocamlformat" {cataladevmode & = "0.21.0"}
+  "obelisk" {cataladevmode}
+  "conf-npm" {cataladevmode}
+  "conf-python-3-dev" {cataladevmode}
+  "z3" {catalaz3mode}
 ]
 depopts: ["z3"]
 conflicts: [
@@ -59,3 +65,11 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala.git"
+depexts: [
+  ["groff" "colordiff" "latexmk" "python3-pip" "pandoc"]
+    {cataladevmode & os-family = "debian"}
+  ["groff" "colordiff" "texlive" "py3-pip" "py3-pygments"]
+    {cataladevmode & os-distribution = "alpine"}
+  ["groff" "colordiff" "latex-mk" "python-pygments" "pandoc"]
+    {cataladevmode & os-family = "arch"}
+]

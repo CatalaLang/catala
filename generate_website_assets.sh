@@ -1,9 +1,11 @@
-#! /usr/bin/env bash
+#! /usr/bin/env sh
+
+set -eu
 
 cd "$(dirname "$0")"
 
-if [[ $1 == "" ]]; then
-  echo "USAGE: $1 DST where DST is the directory in which files have to be copied"
+if [ $# -eq 0 ]; then
+  echo "USAGE: \$1 DST where DST is the directory in which files have to be copied"
   exit 1
 fi
 

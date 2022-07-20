@@ -647,7 +647,9 @@ let driver
               Nj.format fmt
                 (add_root_test_build ninja ctx.all_file_names
                    ctx.all_test_builds));
-          let ninja_cmd = "ninja " ^ ninja_flags ^ " test -f " ^ ninja_output in
+          let ninja_cmd =
+            "ninja -f " ^ ninja_output ^ " " ^ ninja_flags ^ " test"
+          in
           Cli.debug_print "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
         with Sys_error e ->
