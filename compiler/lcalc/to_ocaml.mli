@@ -45,7 +45,11 @@ val format_struct_field_name :
   Dcalc.Ast.StructName.t option * Dcalc.Ast.StructFieldName.t ->
   unit
 
-val format_to_struct_type : Format.formatter -> Dcalc.Ast.StructName.t -> unit
+val format_to_module_name :
+  Format.formatter ->
+  [< `Ename of Dcalc.Ast.EnumName.t | `Sname of Dcalc.Ast.StructName.t ] ->
+  unit
+
 val format_lit : Format.formatter -> lit Marked.pos -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val format_var : Format.formatter -> 'm var -> unit
