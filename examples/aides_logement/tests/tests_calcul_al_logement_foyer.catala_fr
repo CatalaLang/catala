@@ -12,6 +12,7 @@ champ d'application CasTest1:
   définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
     -- type : TypeLogementFoyer.RésidenceSociale
     -- date_conventionnement : |2020-01-01|
+    -- construit_application_loi_1957_12_III: faux
     -- location : Location {
           -- bailleur: Bailleur {
             -- type_bailleur: BailleurSocial

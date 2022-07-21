@@ -121,6 +121,7 @@ déclaration structure LogementFoyer:
   donnée date_conventionnement contenu date
   donnée location contenu Location
   donnée remplit_conditions_r832_21 contenu booléen
+  donnée construit_application_loi_1957_12_III contenu booléen
 
 déclaration structure InformationsCalculAPLLogementFoyer:
   donnée redevance contenu argent
@@ -199,7 +200,7 @@ déclaration énumération Parenté:
   -- CollatéralDeuxièmeTroisièmeDegré
 
 déclaration structure AutrePersonneÀCharge:
-  donnée âge contenu durée
+  donnée date_naissance contenu date
   donnée ressources contenu argent
   donnée ascendant_descendant_collatéral_deuxième_troisième_degré
     contenu booléen
@@ -213,7 +214,7 @@ déclaration énumération PersonneÀCharge:
   -- AutrePersonneÀCharge contenu AutrePersonneÀCharge
 
 déclaration énumération DateDeNaissanceOuMoisDeGrossesse:
-  -- DernierJourMoisPrécédantDateDeNaissance contenu date
+  -- DateDeNaissance contenu date
   -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse
   -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse
 
@@ -275,7 +276,8 @@ déclaration énumération InformationsCalculAPL:
 
 ```catala-metadata
 déclaration structure PersonneVivantHabituellementAuFoyer:
-  donnée durée_résidence_durant_période_r_822_3_1 contenu durée
+  donnée durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
+    contenu booléen
   donnée ressources contenu argent
 
 déclaration énumération PaiementLogementDistinctProfessionnel:
@@ -314,12 +316,12 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   # Différentes conditions pour l'éligibilité
   interne condition_prêt condition dépend de Prêt
   interne condition_nationalité condition
-  interne condition_logement_résidence_principale condition
+  contexte condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
   interne condition_logement_surface_minimale_sans_seuil_m_carrés
     contenu entier
-  interne condition_logement_surface condition
+  contexte condition_logement_surface condition
   interne condition_non_ouverture_l822_8 condition
   interne condition_non_ouverture_l822_9_decence_logement condition
   interne condition_non_ouverture_l822_10_peuplement_logement condition
@@ -913,6 +915,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     RésidentLogementFoyer contenu (LogementFoyer {
       -- type: RésidenceSociale
       -- date_conventionnement: |2022-01-01|
+      -- construit_application_loi_1957_12_III: faux
       -- location: Location {
         -- bailleur: Bailleur {
           -- type_bailleur: BailleurSocial

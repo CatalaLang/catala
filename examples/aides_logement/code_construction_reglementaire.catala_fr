@@ -83,8 +83,6 @@ applicables à ces catégories de prêts et le droit à l'allocation de logement
 est éteint à compter de l'ouverture du droit à l'aide personnalisée.
 
 ```catala
-# TODO juridique: quelle est la différence entre "allocation de logement" et
-# "aide personnalisée".
 # Hypothèse : peut-être que cet article est une disposition de transition avec
 # la période où les allocations de logement n'étaient pas fusionnées en aide
 # personnalisée au logement.
@@ -142,13 +140,17 @@ droit à celle-ci.
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
-    personne.durée_résidence_durant_période_r_822_3_1 >=^ 6 mois
-# TODO informatique et juridique: la comparaison avec 6 mois est ambiguë!
-# Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
-# des différentes périodes mentionnées et en forçant l'utilisateur à bien
-# remplir toutes ses périodes de résidence mais cela rendrait le formulaire
-# plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
-# comme celui utilisé à la CNAF.
+    personne.durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
+  # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
+  # des différentes périodes mentionnées et en forçant l'utilisateur à bien
+  # remplir toutes ses périodes de résidence mais cela rendrait le formulaire
+  # plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
+  # comme celui utilisé à la CNAF. On pourrait également laisser l'utilisateur
+  # spécifier une durée en jours mais cela aurait deux inconvénients :
+  # premièrement c'est une intrusion dans la vie privée du potentiel
+  # bénéficiaire (cette information serait nécéssaire en cas de contrôle mais
+  # pas dans tous les cas), et deuxièmement la comparaison d'un nombre de jours
+  # avec "6 mois" est computationellement ambiguë.
 ```
 
 NOTA:
@@ -1172,16 +1174,18 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
         parent.parenté = Ascendant et
-        parent.AutrePersonneÀCharge.ressources <=€ plafond_individuel_l815_9_sécu *€ 1,25 et
+        parent.AutrePersonneÀCharge.ressources <=€
+          plafond_individuel_l815_9_sécu *€ 1,25 et
         (
-          (parent.AutrePersonneÀCharge.âge >=^ âge_l351_8_1_sécu ou
-          # TODO informatique: changer la comparaison de durées par rapport
-          # à la comparaison avec la date de naissance plus la durée de l'âge.
-            (parent.titulaire_allocation_personne_âgée et
-              parent.AutrePersonneÀCharge.âge >=^ 65 an)
+          (parent.AutrePersonneÀCharge.date_naissance +@
+            âge_l351_8_1_sécu <=@ date_courante ou
+              (parent.titulaire_allocation_personne_âgée et
+                parent.AutrePersonneÀCharge.date_naissance +@ 65 an <=@
+                  date_courante)
           ) ou
-          (parent.AutrePersonneÀCharge.âge >=^ âge_l161_17_2_sécu et
-            parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
+          (parent.AutrePersonneÀCharge.date_naissance +@
+            âge_l161_17_2_sécu <=@ date_courante et
+              parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
         )
   conséquence rempli
 
@@ -2135,8 +2139,9 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       (selon date_naissance_ou_grossesse sous forme
       -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse: faux
       -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse: vrai
-      -- DernierJourMoisPrécédantDateDeNaissance de date_naissance:
-        date_courante <=@ date_naissance +@ 2 an)
+      -- DateDeNaissance de date_naissance:
+        date_courante <=@
+          ((premier_jour_du_mois de (date_naissance +@ 2 an))) +@ (-1 jour))
     )
   conséquence rempli
 
@@ -4823,8 +4828,14 @@ application du III de l'article 12 de la loi n° 57-908 du 7 août 1957 tendant
 à favoriser la construction de logements et les équipements collectifs.
 
 ```catala
-# TODO informatique: dépend du refactoring pour dégager les règles communes
-# d'éligibilité aux aides personnelles au logement. Ceci est une exception.
+champ d'application ÉligibilitéAllocationLogement sous condition
+  selon ménage.logement.mode_occupation sous forme
+    -- RésidentLogementFoyer de logement_foyer:
+      logement_foyer.construit_application_loi_1957_12_III
+    -- n'importe quel: faux:
+
+  règle éligibilité_commune.condition_logement_résidence_principale rempli
+  règle éligibilité_commune.condition_logement_surface rempli
 ```
 
 ####### Article D842-15 | LEGIARTI000038878655

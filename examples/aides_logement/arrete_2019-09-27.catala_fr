@@ -616,10 +616,6 @@ Par personne supplémentaire à charge	                   430	  379     346
 # l'avènement de l'euro mais pour le calcul des APL en euros il faut
 # que la mensualité plafond soit exprimée en euros. Donc nous convertissons.
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  # TODO juridique: trouver le décret ou la loi qui définit ce taux de
-  #  conversion.
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
-
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
@@ -3120,10 +3116,6 @@ pour les prestations dues à compter du 1er janvier 2020.
 # Selon DGALN/DHUP/FE4 en date du 01/06/2022, la bonne valeur est "287,27"
 # qui provient de l'article 2 de l'arrêté du 20 décembre 2002 relatif à la
 # revalorisation des aides au logement
-
-champ d'application CalculAllocationLogementAccessionPropriété:
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
-
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
   date_courante >=@ |2020-01-01|:
 

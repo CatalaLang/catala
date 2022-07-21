@@ -263,3 +263,17 @@ Article 1er : Le pourvoi du ministre du logement et de l'habitat durable est rej
 
 Article 2 : La présente décision sera notifiée au ministre de la cohésion
 des territoires, à M. A... B...et à la caisse d'allocations familiales des Côtes-d'Armor.
+
+# Règlement (CE) n°2866/98 du conseil du 31 décembre 1998 concernant les taux de conversion entre l'euro et les monnaies des États membres adoptant l'euro
+
+## Article premier
+
+1 euro = 6,55957 francs français
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
+
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
+```

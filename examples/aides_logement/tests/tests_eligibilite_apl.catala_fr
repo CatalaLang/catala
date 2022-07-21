@@ -78,7 +78,7 @@ champ d'application Exemple1 :
    -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
    -- enfant_à_naître_après_quatrième_mois_grossesse: faux
    -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-     PlusDeTroisEnfants contenu (DernierJourMoisPrécédantDateDeNaissance contenu |2014-08-30|)
+     PlusDeTroisEnfants contenu (DateDeNaissance contenu |2012-01-01|)
   }
   définition éligibilité.demandeur égal à Demandeur {
     -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
@@ -199,5 +199,5 @@ catala Interpret -s Exemple1
 ```
 
 ```catala-test {id="Typecheck"}
-catala Typecheck 
+catala Typecheck
 ```
