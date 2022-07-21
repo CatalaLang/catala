@@ -9,8 +9,10 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
+from this import d
 from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, f_div, sign  # type: ignore
 import datetime
+import calendar
 import dateutil.relativedelta
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union, Any
 from functools import reduce
@@ -505,6 +507,14 @@ def date_of_numbers(year: int, month: int, day: int) -> Date:
 
 def date_of_datetime(d: datetime.date) -> Date:
     return Date(d)
+
+
+def first_day_of_month(d: Date) -> Date:
+    return Date(datetime.date(d.value.year, d.value.month, 1))
+
+
+def last_day_of_month(d: Date) -> Date:
+    return Date(datetime.date(d.value.year, d.value.month, calendar.monthrange(d.value.year, d.value.month)[1]))
 
 # ---------
 # Durations

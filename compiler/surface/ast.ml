@@ -305,6 +305,8 @@ type builtin_expression =
   | GetDay
   | GetMonth
   | GetYear
+  | LastDayOfMonth
+  | FirstDayOfMonth
   | RoundMoney
   | RoundDecimal
 [@@deriving

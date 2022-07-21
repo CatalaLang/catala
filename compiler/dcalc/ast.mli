@@ -101,6 +101,8 @@ type unop =
   | GetDay
   | GetMonth
   | GetYear
+  | FirstDayOfMonth
+  | LastDayOfMonth
   | RoundMoney
   | RoundDecimal
 

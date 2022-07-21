@@ -237,7 +237,7 @@ let make_none m =
 let make_some e =
   let m = Marked.get_mark @@ Bindlib.unbox e in
   let mark = Marked.mark m in
-  let+ e = e in
+  let+ e in
   mark
   @@ EInj
        (e, 1, option_enum, [D.TLit D.TUnit, D.mark_pos m; D.TAny, D.mark_pos m])
@@ -248,7 +248,7 @@ let make_some e =
 let make_matchopt_with_abs_arms arg e_none e_some =
   let m = Marked.get_mark @@ Bindlib.unbox arg in
   let mark = Marked.mark m in
-  let+ arg = arg and+ e_none = e_none and+ e_some = e_some in
+  let+ arg and+ e_none and+ e_some in
   mark @@ EMatch (arg, [e_none; e_some], option_enum)
 
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression

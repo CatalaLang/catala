@@ -603,6 +603,14 @@ let rec translate_op
       failwith
         "[Z3 encoding] GetYear operator only supported in comparisons with \
          literal"
+    | FirstDayOfMonth ->
+      failwith
+        "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
+         with literal"
+    | LastDayOfMonth ->
+      failwith
+        "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
+         with literal"
     | RoundDecimal ->
       failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
     | RoundMoney ->

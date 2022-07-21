@@ -135,6 +135,8 @@
 #define MR_GetMonth "acc", 0xE8, "s_mois"
 #define MS_GetYear "accès_année"
 #define MR_GetYear "acc", 0xE8, "s_ann", 0xE9, "e"
+#define MS_FirstDayOfMonth "premier_jour_du_mois"
+#define MS_LastDayOfMonth "dernier_jour_du_mois"
 
 (* Directives *)
 

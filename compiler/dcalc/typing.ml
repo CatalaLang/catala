@@ -199,6 +199,8 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
   | A.Unop A.GetDay -> arr dat it
   | A.Unop A.GetMonth -> arr dat it
   | A.Unop A.GetYear -> arr dat it
+  | A.Unop A.FirstDayOfMonth -> arr dat dat
+  | A.Unop A.LastDayOfMonth -> arr dat dat
   | A.Unop A.RoundMoney -> arr mt mt
   | A.Unop A.RoundDecimal -> arr rt rt
   | A.Unop A.IntToRat -> arr it rt
@@ -221,7 +223,7 @@ let ( and+ ) x1 x2 = Bindlib.box_pair x1 x2
 let bmap (f : 'a -> 'b Bindlib.box) (es : 'a list) : 'b list Bindlib.box =
   List.fold_right
     (fun e acc ->
-      let+ e' = f e and+ acc = acc in
+      let+ e' = f e and+ acc in
       e' :: acc)
     es (Bindlib.box [])
 
@@ -231,7 +233,7 @@ let bmap2 (f : 'a -> 'b -> 'c Bindlib.box) (es : 'a list) (xs : 'b list) :
     'c list Bindlib.box =
   List.fold_right2
     (fun e x acc ->
-      let+ e' = f e x and+ acc = acc in
+      let+ e' = f e x and+ acc in
       e' :: acc)
     es xs (Bindlib.box [])
 
@@ -347,7 +349,7 @@ let rec typecheck_expr_bottom_up
         (Bindlib.unbox (Bindlib.box_apply (List.map ty) args'))
         t_ret
     in
-    let+ e1' = typecheck_expr_bottom_up ctx env e1 and+ args' = args' in
+    let+ e1' = typecheck_expr_bottom_up ctx env e1 and+ args' in
     unify ctx e (ty e1') t_func;
     mark (EApp (e1', args')) t_ret
   | A.EOp op as e1 -> Bindlib.box @@ mark e1 (op_type (Marked.mark pos_e op))
@@ -359,8 +361,8 @@ let rec typecheck_expr_bottom_up
     in
     let cons' = typecheck_expr_bottom_up ctx env cons in
     let tau = box_ty cons' in
-    let+ just' = just'
-    and+ cons' = cons'
+    let+ just'
+    and+ cons'
     and+ excepts' =
       bmap (fun except -> typecheck_expr_top_down ctx env tau except) excepts
     in
@@ -373,9 +375,7 @@ let rec typecheck_expr_bottom_up
     in
     let et' = typecheck_expr_bottom_up ctx env et in
     let tau = box_ty et' in
-    let+ cond' = cond'
-    and+ et' = et'
-    and+ ef' = typecheck_expr_top_down ctx env tau ef in
+    let+ cond' and+ et' and+ ef' = typecheck_expr_top_down ctx env tau ef in
     mark (A.EIfThenElse (cond', et', ef')) tau
   | A.EAssert e1 ->
     let+ e1' =
@@ -483,7 +483,7 @@ and typecheck_expr_top_down
         e1
     in
     let t_ret = unionfind_make ~pos:e (TAny (Any.fresh ())) in
-    let+ e1' = e1'
+    let+ e1'
     and+ es' =
       bmap2
         (fun es' enum_t ->

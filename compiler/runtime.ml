@@ -130,6 +130,16 @@ let date_of_numbers (year : int) (month : int) (day : int) : date =
 
 let date_to_string (d : date) : string = CalendarLib.Printer.Date.to_string d
 
+let first_day_of_month (d : date) : date =
+  date_of_numbers (CalendarLib.Date.year d)
+    (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+    1
+
+let last_day_of_month (d : date) : date =
+  date_of_numbers (CalendarLib.Date.year d)
+    (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+    (CalendarLib.Date.days_in_month d)
+
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
   CalendarLib.Date.Period.make year month day
 

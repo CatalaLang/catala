@@ -123,6 +123,10 @@
 #define MR_GetMonth "dost", 0x0119, "p_miesi", 0x0105, "c"
 #define MS_GetYear "dostęp_rok"
 #define MR_GetYear "dost", 0x0119, "p_rok"
+#define MS_FirstDayOfMonth "pierwszy_dzień_miesiąca"
+#define MR_FirstDayOfMonth "pierwszy_dzie", 0x144, "_miesi", 0x0105, "ca"
+#define MS_LastDayOfMonth "ostatni_dzień_miesiąca"
+#define MR_LastDayOfMonth "ostatni_dzie", 0x144, "_miesi", 0x0105, "ca"
 
 (* Directives *)
 

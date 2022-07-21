@@ -242,6 +242,12 @@ module R = Re.Pcre
 #ifndef MR_GetYear
   #define MR_GetYear MS_GetYear
 #endif
+#ifndef MR_FirstDayOfMonth
+  #define MR_FirstDayOfMonth MS_FirstDayOfMonth
+#endif
+#ifndef MR_LastDayOfMonth
+  #define MR_LastDayOfMonth MS_LastDayOfMonth
+#endif
 #ifndef MR_INPUT
   #define MR_INPUT MS_INPUT
 #endif
@@ -333,6 +339,8 @@ let lex_builtin (s : string) : Ast.builtin_expression option =
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear
+  | MR_FirstDayOfMonth -> Some FirstDayOfMonth
+  | MR_LastDayOfMonth -> Some LastDayOfMonth
   | MR_RoundMoney, eof -> Some RoundMoney
   | MR_RoundDecimal, eof -> Some RoundDecimal
   | _ -> None

@@ -107,6 +107,8 @@
 #define MS_GetDay "get_day"
 #define MS_GetMonth "get_month"
 #define MS_GetYear "get_year"
+#define MS_FirstDayOfMonth "first_day_of_month"
+#define MS_LastDayOfMonth "last_day_of_month"
 
 (* Directives *)
 

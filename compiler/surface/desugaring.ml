@@ -869,6 +869,12 @@ let rec translate_expr
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetMonth), pos)
   | Builtin GetYear ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetYear), pos)
+  | Builtin FirstDayOfMonth ->
+    Bindlib.box
+      (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.FirstDayOfMonth), pos)
+  | Builtin LastDayOfMonth ->
+    Bindlib.box
+      (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.LastDayOfMonth), pos)
   | Builtin RoundMoney ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RoundMoney), pos)
   | Builtin RoundDecimal ->
