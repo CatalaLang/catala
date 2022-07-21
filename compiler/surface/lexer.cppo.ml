@@ -588,10 +588,26 @@ let rec lex_code (lexbuf : lexbuf) : token =
       Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
       L.update_acc lexbuf;
       MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
-  | Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
+  | Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2) ->
     let rex =
       Re.(compile @@ whole_string @@ seq [
-          group (rep1 digit);
+          group (repn digit 4 None);
+          char '-';
+          group (repn digit 2 None);
+          char '-';
+          group (repn digit 2 None);
+        ])
+    in
+    let date_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
+    DATE_LITERAL (
+      int_of_string (date_parts 1),
+      int_of_string (date_parts 2),
+      int_of_string (date_parts 3)
+    )
+  | Opt '-', Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
+    let rex =
+      Re.(compile @@ whole_string @@ seq [
+          group (seq [opt (char '-') ; rep1 digit]);
           char MC_DECIMAL_SEPARATOR;
           group (rep digit)
         ]) in
@@ -766,7 +782,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Name of variable *)
       L.update_acc lexbuf;
       IDENT (Utf8.lexeme lexbuf)
-  | Plus digit ->
+  | Opt '-', Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;
       INT_LITERAL (Utf8.lexeme lexbuf)

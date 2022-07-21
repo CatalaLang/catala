@@ -314,9 +314,9 @@ type builtin_expression =
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]
 
 type literal_date = {
-  literal_date_day : (int[@opaque]) Marked.pos;
-  literal_date_month : (int[@opaque]) Marked.pos;
-  literal_date_year : (int[@opaque]) Marked.pos;
+  literal_date_day : (int[@opaque]);
+  literal_date_month : (int[@opaque]);
+  literal_date_year : (int[@opaque]);
 }
 [@@deriving
   visitors
