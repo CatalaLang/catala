@@ -32,10 +32,10 @@ module To_jsoo = struct
   let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =
     Dcalc.Print.format_base_type fmt
       (match l with
-      | TUnit -> "unit" (* TODO: is it the best?*)
+      | TUnit -> "'a Js.opt"
       | TInt -> "int"
       | TRat -> "float"
-      | TMoney -> "float"
+      | TMoney -> "int"
       | TDuration -> "string"
       | TBool -> "bool Js.t"
       | TDate -> "Js.date Js.t")
@@ -66,8 +66,43 @@ module To_jsoo = struct
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
     | TAny -> Format.fprintf fmt "Js.Unsafe.any Js.t"
     | TArrow (t1, t2) ->
-      Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1
-        format_typ_with_parens t2
+      Format.fprintf fmt "(@[<hov 2>%a, @ %a@]) Js.meth_callback"
+        format_typ_with_parens t1 format_typ_with_parens t2
+
+  let rec format_typ_to_jsoo fmt typ =
+    match Marked.unmark typ with
+    | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.bool"
+    | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_to_int"
+    | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_to_float"
+    | Dcalc.Ast.TLit TMoney ->
+      Format.fprintf fmt "integer_to_int %@%@ money_to_cents"
+    | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
+    | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_to_jsoo"
+    | Dcalc.Ast.TEnum (_, ename) ->
+      Format.fprintf fmt "%a_to_jsoo" format_enum_name ename
+    | Dcalc.Ast.TTuple (_, Some sname) ->
+      Format.fprintf fmt "%a_to_jsoo" format_struct_name sname
+    | Dcalc.Ast.TArray t ->
+      Format.fprintf fmt "Js.array %@%@ Array.map %a" format_typ_to_jsoo t
+    | Dcalc.Ast.TAny | Dcalc.Ast.TTuple (_, None) ->
+      Format.fprintf fmt "Js.Unsafe.inject"
+    | _ -> Format.fprintf fmt ""
+
+  let rec format_typ_of_jsoo fmt typ =
+    match Marked.unmark typ with
+    | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.to_bool"
+    | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_of_int"
+    | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_of_float"
+    | Dcalc.Ast.TLit TMoney -> Format.fprintf fmt "money_of_units_int"
+    | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
+    | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_of_jsoo"
+    | Dcalc.Ast.TEnum (_, ename) ->
+      Format.fprintf fmt "%a_of_jsoo" format_enum_name ename
+    | Dcalc.Ast.TTuple (_, Some sname) ->
+      Format.fprintf fmt "%a_of_jsoo" format_struct_name sname
+    | Dcalc.Ast.TArray t ->
+      Format.fprintf fmt "Array.map %a %@%@ Js.to_array" format_typ_of_jsoo t
+    | _ -> Format.fprintf fmt ""
 
   let to_camel_case (s : string) : string =
     String.split_on_char '_' s
@@ -110,55 +145,164 @@ module To_jsoo = struct
       let fmt_module_struct_name fmt _ =
         To_ocaml.format_to_module_name fmt (`Sname struct_name)
       in
+      let fmt_to_jsoo fmt _ =
+        Format.fprintf fmt "%a"
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+             (fun fmt (struct_field, struct_field_type) ->
+               match Marked.unmark struct_field_type with
+               | Dcalc.Ast.TArrow (t1, t2) ->
+                 Format.fprintf fmt
+                   "method %a@ =@ Js.wrap_meth_callback@ (@[<hov 2>fun input ->@\n\
+                    %a (%a.%a (%a input))@])"
+                   format_struct_field_name_camel_case struct_field
+                   format_typ_to_jsoo t2 fmt_struct_name ()
+                   format_struct_field_name (None, struct_field)
+                   format_typ_of_jsoo t1
+               | _ ->
+                 Format.fprintf fmt "val %a@ =@ %a %a.%a"
+                   format_struct_field_name_camel_case struct_field
+                   format_typ_to_jsoo struct_field_type fmt_struct_name ()
+                   format_struct_field_name (None, struct_field)))
+          struct_fields
+      in
+      let fmt_of_jsoo fmt _ =
+        Format.fprintf fmt "%a"
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
+             (fun fmt (struct_field, struct_field_type) ->
+               match Marked.unmark struct_field_type with
+               | Dcalc.Ast.TArrow _ ->
+                 Format.fprintf fmt
+                   "%a = failwith \"the function %a translation isn't \
+                    supported yet..\""
+                   format_struct_field_name (None, struct_field)
+                   format_struct_field_name (None, struct_field)
+               | _ ->
+                 Format.fprintf fmt "%a@ =@ %a %a##.%a" format_struct_field_name
+                   (None, struct_field) format_typ_of_jsoo struct_field_type
+                   fmt_struct_name () format_struct_field_name_camel_case
+                   struct_field))
+          struct_fields
+      in
+      let fmt_conv_funs fmt _ =
+        Format.fprintf fmt
+          "let %a_to_jsoo (%a : %a.t) : %a Js.t = object%%js@\n\
+           @[<hov 2>%a@]@\n\
+           end@\n\
+           let %a_of_jsoo (%a : %a Js.t) : %a.t = {@[<hov 2>%a@]}"
+          fmt_struct_name () fmt_struct_name () fmt_module_struct_name ()
+          fmt_struct_name () fmt_to_jsoo () fmt_struct_name () fmt_struct_name
+          () fmt_struct_name () fmt_module_struct_name () fmt_of_jsoo ()
+      in
+
       if List.length struct_fields = 0 then
         Format.fprintf fmt
           "class type %a =@ object end@\n\
-           let %a_to_jsoo (_ : %a.t) : %a Js.t = object%%js end\n\
+           let %a_to_jsoo (_ : %a.t) : %a Js.t = object%%js end@\n\
            let %a_of_jsoo (_ : %a Js.t) : %a.t = ()" fmt_struct_name ()
           fmt_struct_name () fmt_module_struct_name () fmt_struct_name ()
           fmt_struct_name () fmt_struct_name () fmt_module_struct_name ()
       else
         Format.fprintf fmt
-          "class type %a =@\n@[<hov 2>object@ @[<hov 2>@ @ %a@]@\nend@]@\n"
+          "class type %a =@\n@[<hov 2>object@ @[<hov 2>@ @ %a@]@\nend@]@\n%a@\n"
           fmt_struct_name ()
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun _fmt (struct_field, struct_field_type) ->
-               Format.fprintf fmt "method %a:@ %a %a"
-                 format_struct_field_name_camel_case struct_field format_typ
-                 struct_field_type format_prop_or_meth struct_field_type))
-          struct_fields
+               match Marked.unmark struct_field_type with
+               (* | Dcalc.Ast.TArrow _ -> *)
+               (*   Format.fprintf fmt *)
+               (*     "(* NOTE: the %a method is ignored for now.*)" *)
+               (*     format_struct_field_name_camel_case struct_field *)
+               | _ ->
+                 Format.fprintf fmt "method %a:@ %a %a"
+                   format_struct_field_name_camel_case struct_field format_typ
+                   struct_field_type format_prop_or_meth struct_field_type))
+          struct_fields fmt_conv_funs ()
       (* if !Cli.trace_flag then *)
       (*   format_struct_embedding fmt (struct_name, struct_fields) *)
     in
-    let format_enum_decl fmt (enum_name, enum_cons) =
-      if List.length enum_cons = 0 then
-        (* TODO: should ne be possible no?*)
-        Format.fprintf fmt
-          "class type %a =@ object end @\n\
-           let %a_to_jsoo (_ : %a.t) : %a Js.t = object%%js end@\n\
-           let %a_of_jsoo (_ : %a Js.t) : %a.t = ()" format_enum_name enum_name
-          format_enum_name enum_name To_ocaml.format_to_module_name
-          (`Ename enum_name) format_enum_name enum_name format_enum_name
-          enum_name format_enum_name enum_name To_ocaml.format_to_module_name
-          (`Ename enum_name)
-      else
-        Format.fprintf fmt
-          "class type %a =@\n\
-           @[<hov 2>object@ @[<hov 2>@ @ method kind : Js.js_string Js.t \
-           Js.readonly_prop@\n\
-           @[<v 2>(** Expects one of:@\n\
-           %a *)@\n\
-           @\n\
-           @]method args : Js.Unsafe.any_js_array Js.t Js.readonly_prop@\n\
-           @]@\n\
-           end@]@\n"
-          format_enum_name enum_name
+    let format_enum_decl
+        fmt
+        (enum_name, (enum_cons : (D.EnumConstructor.t * D.typ Marked.pos) list))
+        =
+      let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
+      let fmt_module_enum_name fmt _ =
+        To_ocaml.format_to_module_name fmt (`Ename enum_name)
+      in
+      let _fmt_enum_args fmt ts =
+        Format.fprintf fmt "(%s)"
+          (List.init (List.length ts) (fun i -> "arg" ^ string_of_int i)
+          |> String.concat ",")
+      in
+
+      let fmt_to_jsoo fmt _ =
+        Format.fprintf fmt "%a"
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-             (fun _fmt (enum_cons, _) ->
-               Format.fprintf fmt "- \"%a\"" format_enum_cons_name enum_cons))
+             (fun fmt (cname, typ) ->
+               match Marked.unmark typ with
+               | Dcalc.Ast.TLit _ ->
+                 Format.fprintf fmt
+                   "| %a arg -> object%%js@[<hov 2>@\n\
+                    val kind = Js.string \"%a\"@\n\
+                    val args = Js.Unsafe.coerce (Js.Unsafe.inject (0, %a arg \
+                    ))@]@\n\
+                    end"
+                   format_enum_cons_name cname format_enum_cons_name cname
+                   format_typ_to_jsoo typ
+               | _ -> failwith "TODO: support constructor arguments"))
           enum_cons
+      in
+      let fmt_of_jsoo fmt _ =
+        Format.fprintf fmt
+          "match %a##.kind |> Js.to_string with@\n\
+           %a@\n\
+           | cons -> failwith (Printf.sprintf \"Unexpected '%%s' kind for the \
+           enumeration '%a.t'\" cons)"
+          fmt_enum_name ()
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+             (fun fmt (cname, typ) ->
+               match Marked.unmark typ with
+               | Dcalc.Ast.TLit _ ->
+                 Format.fprintf fmt
+                   "| \"%a\" ->@\n\
+                   \ let arg = Js.Unsafe.get %a##.args 2 in@\n\
+                    %a.%a (%a arg)" format_enum_cons_name cname fmt_enum_name ()
+                   fmt_module_enum_name () format_enum_cons_name cname
+                   format_typ_to_jsoo typ
+               | _ -> failwith "TODO: support constructor arguments"))
+          enum_cons fmt_module_enum_name ()
+      in
+
+      let fmt_conv_funs fmt _ =
+        Format.fprintf fmt
+          "let %a_to_jsoo : %a.t -> %a Js.t = function@\n\
+           @[<hov 2>%a@]@\n\
+           let %a_of_jsoo (%a : %a Js.t) : %a.t = @[<hov 2>%a@]" fmt_enum_name
+          () fmt_module_enum_name () fmt_enum_name () fmt_to_jsoo ()
+          fmt_enum_name () fmt_enum_name () fmt_enum_name ()
+          fmt_module_enum_name () fmt_of_jsoo ()
+      in
+      Format.fprintf fmt
+        "class type %a =@\n\
+         @[<hov 2>object@ @[<hov 2>@ @ method kind : Js.js_string Js.t \
+         Js.readonly_prop@\n\
+         @[<v 2>(** Expects one of:@\n\
+         %a *)@\n\
+         @\n\
+         @]method args : Js.Unsafe.any_js_array Js.t Js.readonly_prop@\n\
+         @]@\n\
+         end@]@\n\
+         %a@\n"
+        format_enum_name enum_name
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           (fun _fmt (enum_cons, _) ->
+             Format.fprintf fmt "- \"%a\"" format_enum_cons_name enum_cons))
+        enum_cons fmt_conv_funs ()
       (* if !Cli.trace_flag then format_enum_embedding fmt (enum_name,
          enum_cons) *)
     in
@@ -191,20 +335,6 @@ module To_jsoo = struct
       (ctx : Dcalc.Ast.decl_ctx)
       (fmt : Format.formatter)
       (scopes : ('expr, 'm) Dcalc.Ast.scopes) : unit =
-    let format_typ_to_js fmt typ =
-      match Marked.unmark typ with
-      | Dcalc.Ast.TLit TUnit -> failwith "todo: TLit TUnit"
-      | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.bool"
-      | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_to_int"
-      | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_to_float"
-      | Dcalc.Ast.TLit TMoney -> Format.fprintf fmt "money_to_float"
-      | Dcalc.Ast.TLit TDuration ->
-        Format.fprintf fmt "Js.string %@%@ duration_to_string"
-      | Dcalc.Ast.TLit TDate -> failwith "todo: TLit TDate"
-      | _ ->
-        (* todo: format_typ_coerce *)
-        Format.fprintf fmt ""
-    in
     let _format_fun_call_res fmt struct_name =
       let struct_fields = find_struct struct_name ctx in
       Format.fprintf fmt "(@[<hov 2> object%%js@\n%a@\nend@])"
@@ -212,8 +342,8 @@ module To_jsoo = struct
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun _ (struct_field, struct_field_type) ->
              Format.fprintf fmt "val %a =@ %a result.%a"
-               format_struct_field_name_camel_case struct_field format_typ_to_js
-               struct_field_type format_struct_field_name
+               format_struct_field_name_camel_case struct_field
+               format_typ_to_jsoo struct_field_type format_struct_field_name
                (Some struct_name, struct_field)))
         struct_fields
     in
@@ -289,6 +419,7 @@ let apply
   File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
       To_ocaml.format_program fmt prgm type_ordering;
+      File.ocamlformat_file_opt output_file;
       let module_name =
         match filename_without_ext_opt with
         | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
@@ -303,10 +434,6 @@ let apply
           Cli.debug_print "Writing JSOO API code to %s..."
             (Option.value ~default:"stdout" jsoo_output_file_opt);
           To_jsoo.format_program fmt module_name prgm type_ordering;
-          match jsoo_output_file_opt with
-          | Some f ->
-            if Sys.command (Printf.sprintf "ocamlformat %s -i" f) <> 0 then
-              failwith "jsoo err"
-          | None -> ()))
+          File.ocamlformat_file_opt jsoo_output_file_opt))
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply

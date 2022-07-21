@@ -44,18 +44,18 @@ class type event =
     method data : Js.js_string Js.t Js.prop
   end
 
-class type ['a] event_manager =
+class type event_manager =
   object
-    method resetLog : ('a, unit -> unit) Js.meth_callback Js.meth
+    method resetLog : (unit, unit) Js.meth_callback Js.meth
 
     method retrieveEvents :
-      ('a, unit -> event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+      (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
 
     method retrieveRawEvents :
-      ('a, unit -> raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+      (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
   end
 
-val event_manager : unit event_manager Js.t
+val event_manager : event_manager Js.t
 (** Composable object to retrieve and reset log events. *)
 
 (** {1 Duration} *)

@@ -67,23 +67,23 @@ let date_to_jsoo d =
   let days = R_ocaml.integer_to_int (R_ocaml.day_of_month_of_date d) in
   new%js Js.date_day years months days
 
-class type ['a] event_manager =
+class type event_manager =
   object
-    method resetLog : ('a, unit -> unit) Js.meth_callback Js.meth
+    method resetLog : (unit, unit) Js.meth_callback Js.meth
 
     method retrieveEvents :
-      ('a, unit -> event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+      (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
 
     method retrieveRawEvents :
-      ('a, unit -> raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+      (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
   end
 
-let event_manager : unit event_manager Js.t =
+let event_manager : event_manager Js.t =
   object%js
-    method resetLog = Js.wrap_callback R_ocaml.reset_log
+    method resetLog = Js.wrap_meth_callback R_ocaml.reset_log
 
     method retrieveEvents =
-      Js.wrap_callback (fun () ->
+      Js.wrap_meth_callback (fun () ->
           Js.array
             (Array.of_list
                (R_ocaml.retrieve_log () |> R_ocaml.EventParser.parse_raw_events
@@ -95,7 +95,7 @@ let event_manager : unit event_manager Js.t =
                       end))))
 
     method retrieveRawEvents =
-      Js.wrap_callback (fun () ->
+      Js.wrap_meth_callback (fun () ->
           Js.array
             (Array.of_list
                (List.map
