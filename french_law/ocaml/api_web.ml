@@ -156,78 +156,8 @@ let _ =
            : (allocations_familiales_input Js.t -> float) Js.callback =
          Js.wrap_callback (fun input ->
              let result =
-               AF.interface_allocations_familiales
-                 {
-                   AF.InterfaceAllocationsFamilialesIn
-                   .i_personne_charge_effective_permanente_est_parent_in =
-                     Js.to_bool
-                       input##.personneQuiAssumeLaChargeEffectivePermanenteEstParent;
-                   AF.InterfaceAllocationsFamilialesIn
-                   .i_personne_charge_effective_permanente_remplit_titre_I_in =
-                     Js.to_bool
-                       input##.personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale;
-                   AF.InterfaceAllocationsFamilialesIn.i_date_courante_in =
-                     date_of_numbers
-                       input##.currentDate##getUTCFullYear
-                       input##.currentDate##getUTCMonth
-                       input##.currentDate##getUTCDate;
-                   AF.InterfaceAllocationsFamilialesIn.i_enfants_in =
-                     Array.map
-                       (fun (child : enfant_entree Js.t) ->
-                         {
-                           AF.EnfantEntree
-                           .d_a_deja_ouvert_droit_aux_allocations_familiales =
-                             Js.to_bool
-                               child##.aDejaOuvertDroitAuxAllocationsFamiliales;
-                           AF.EnfantEntree.d_identifiant =
-                             integer_of_int child##.id;
-                           AF.EnfantEntree.d_date_de_naissance =
-                             date_of_numbers
-                               child##.dateNaissance##getUTCFullYear
-                               child##.dateNaissance##getUTCMonth
-                               child##.dateNaissance##getUTCDate;
-                           AF.EnfantEntree.d_prise_en_charge =
-                             (match Js.to_string child##.priseEnCharge with
-                             | "Effective et permanente" ->
-                               EffectiveEtPermanente ()
-                             | "Garde alternée, allocataire unique" ->
-                               GardeAlterneeAllocataireUnique ()
-                             | "Garde alternée, partage des allocations" ->
-                               GardeAlterneePartageAllocations ()
-                             | "Confié aux service sociaux, allocation versée \
-                                à la famille" ->
-                               ServicesSociauxAllocationVerseeALaFamille ()
-                             | "Confié aux service sociaux, allocation versée \
-                                aux services sociaux" ->
-                               ServicesSociauxAllocationVerseeAuxServicesSociaux
-                                 ()
-                             | _ -> failwith "Unknown prise en charge");
-                           AF.EnfantEntree.d_remuneration_mensuelle =
-                             money_of_units_int child##.remunerationMensuelle;
-                           AF.EnfantEntree
-                           .d_beneficie_titre_personnel_aide_personnelle_logement =
-                             Js.to_bool
-                               child##.beneficieTitrePersonnelAidePersonnelleAuLogement;
-                         })
-                       (Js.to_array input##.children);
-                   AF.InterfaceAllocationsFamilialesIn.i_ressources_menage_in =
-                     money_of_units_int input##.income;
-                   AF.InterfaceAllocationsFamilialesIn.i_residence_in =
-                     (match Js.to_string input##.residence with
-                     | "Métropole" -> AF.Metropole ()
-                     | "Guyane" -> AF.Guyane ()
-                     | "Guadeloupe" -> AF.Guadeloupe ()
-                     | "Martinique" -> AF.Martinique ()
-                     | "La Réunion" -> AF.LaReunion ()
-                     | "Saint Barthélemy" -> AF.SaintBarthelemy ()
-                     | "Saint Pierre et Miquelon" -> AF.SaintPierreEtMiquelon ()
-                     | "Saint Martin" -> AF.SaintMartin ()
-                     | "Mayotte" -> AF.Mayotte ()
-                     | _ -> failwith "unknown collectivite!");
-                   AF.InterfaceAllocationsFamilialesIn
-                   .i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
-                     Js.to_bool input##.avaitEnfantAChargeAvant1erJanvier2012;
-                 }
+               AF_web.#interfaceAllocationsFamiliales
+                 input
              in
              money_to_float
                result.AF.InterfaceAllocationsFamilialesOut.i_montant_verse_out)

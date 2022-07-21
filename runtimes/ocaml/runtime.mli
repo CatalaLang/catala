@@ -209,6 +209,10 @@ val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
 
 val money_of_cents_string : string -> money
 val money_of_units_int : int -> money
+
+val money_of_decimal : decimal -> money
+(** Warning: rounds to nearest cent. *)
+
 val money_of_cents_integer : integer -> money
 val money_to_float : money -> float
 val money_to_string : money -> string

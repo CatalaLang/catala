@@ -1,6 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Louis Gesbert <louis.gesbert@inria.fr>.
+   and social benefits computation rules. Copyright (C) 2020 Inria,
+   contributors: Emile Rolley <emile.rolley@tuta.io>, Louis Gesbert
+   <louis.gesbert@inria.fr>.
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -35,7 +36,7 @@ module To_jsoo = struct
       | TUnit -> "'a Js.opt"
       | TInt -> "int"
       | TRat -> "float"
-      | TMoney -> "int"
+      | TMoney -> "float"
       | TDuration -> "string"
       | TBool -> "bool Js.t"
       | TDate -> "Js.date Js.t")
@@ -74,8 +75,7 @@ module To_jsoo = struct
     | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.bool"
     | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_to_int"
     | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_to_float"
-    | Dcalc.Ast.TLit TMoney ->
-      Format.fprintf fmt "integer_to_int %@%@ money_to_cents"
+    | Dcalc.Ast.TLit TMoney -> Format.fprintf fmt "money_to_float"
     | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
     | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_to_jsoo"
     | Dcalc.Ast.TEnum (_, ename) ->
@@ -93,7 +93,8 @@ module To_jsoo = struct
     | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.to_bool"
     | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_of_int"
     | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_of_float"
-    | Dcalc.Ast.TLit TMoney -> Format.fprintf fmt "money_of_units_int"
+    | Dcalc.Ast.TLit TMoney ->
+      Format.fprintf fmt "money_of_decimal %@%@ decimal_of_float"
     | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
     | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_of_jsoo"
     | Dcalc.Ast.TEnum (_, ename) ->
@@ -174,8 +175,8 @@ module To_jsoo = struct
                match Marked.unmark struct_field_type with
                | Dcalc.Ast.TArrow _ ->
                  Format.fprintf fmt
-                   "%a = failwith \"the function %a translation isn't \
-                    supported yet..\""
+                   "%a = failwith \"The function '%a' translation isn't yet \
+                    supported...\""
                    format_struct_field_name (None, struct_field)
                    format_struct_field_name (None, struct_field)
                | _ ->
@@ -209,19 +210,11 @@ module To_jsoo = struct
           fmt_struct_name ()
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-             (fun _fmt (struct_field, struct_field_type) ->
-               match Marked.unmark struct_field_type with
-               (* | Dcalc.Ast.TArrow _ -> *)
-               (*   Format.fprintf fmt *)
-               (*     "(* NOTE: the %a method is ignored for now.*)" *)
-               (*     format_struct_field_name_camel_case struct_field *)
-               | _ ->
-                 Format.fprintf fmt "method %a:@ %a %a"
-                   format_struct_field_name_camel_case struct_field format_typ
-                   struct_field_type format_prop_or_meth struct_field_type))
+             (fun fmt (struct_field, struct_field_type) ->
+               Format.fprintf fmt "method %a:@ %a %a"
+                 format_struct_field_name_camel_case struct_field format_typ
+                 struct_field_type format_prop_or_meth struct_field_type))
           struct_fields fmt_conv_funs ()
-      (* if !Cli.trace_flag then *)
-      (*   format_struct_embedding fmt (struct_name, struct_fields) *)
     in
     let format_enum_decl
         fmt
@@ -231,28 +224,24 @@ module To_jsoo = struct
       let fmt_module_enum_name fmt _ =
         To_ocaml.format_to_module_name fmt (`Ename enum_name)
       in
-      let _fmt_enum_args fmt ts =
-        Format.fprintf fmt "(%s)"
-          (List.init (List.length ts) (fun i -> "arg" ^ string_of_int i)
-          |> String.concat ",")
-      in
-
       let fmt_to_jsoo fmt _ =
         Format.fprintf fmt "%a"
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
                match Marked.unmark typ with
-               | Dcalc.Ast.TLit _ ->
+               | Dcalc.Ast.TTuple (_, None) ->
+                 Cli.error_print
+                   "Tuples aren't supported yet in the conversion to JS"
+               | _ ->
                  Format.fprintf fmt
                    "| %a arg -> object%%js@[<hov 2>@\n\
                     val kind = Js.string \"%a\"@\n\
-                    val args = Js.Unsafe.coerce (Js.Unsafe.inject (0, %a arg \
-                    ))@]@\n\
+                    val payload = Js.Unsafe.coerce (Js.Unsafe.inject (%a \
+                    arg))@]@\n\
                     end"
                    format_enum_cons_name cname format_enum_cons_name cname
-                   format_typ_to_jsoo typ
-               | _ -> failwith "TODO: support constructor arguments"))
+                   format_typ_to_jsoo typ))
           enum_cons
       in
       let fmt_of_jsoo fmt _ =
@@ -266,14 +255,19 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
                match Marked.unmark typ with
-               | Dcalc.Ast.TLit _ ->
+               | Dcalc.Ast.TTuple (_, None) ->
+                 Cli.error_print
+                   "Tuples aren't yet supported in the conversion to JS..."
+               | Dcalc.Ast.TLit TUnit ->
+                 Format.fprintf fmt "| \"%a\" ->@\n%a.%a ()"
+                   format_enum_cons_name cname fmt_module_enum_name ()
+                   format_enum_cons_name cname
+               | _ ->
                  Format.fprintf fmt
-                   "| \"%a\" ->@\n\
-                   \ let arg = Js.Unsafe.get %a##.args 2 in@\n\
-                    %a.%a (%a arg)" format_enum_cons_name cname fmt_enum_name ()
-                   fmt_module_enum_name () format_enum_cons_name cname
-                   format_typ_to_jsoo typ
-               | _ -> failwith "TODO: support constructor arguments"))
+                   "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.get %a##.payload 0))"
+                   format_enum_cons_name cname fmt_module_enum_name ()
+                   format_enum_cons_name cname format_typ_to_jsoo typ
+                   fmt_enum_name ()))
           enum_cons fmt_module_enum_name ()
       in
 
@@ -293,18 +287,16 @@ module To_jsoo = struct
          @[<v 2>(** Expects one of:@\n\
          %a *)@\n\
          @\n\
-         @]method args : Js.Unsafe.any_js_array Js.t Js.readonly_prop@\n\
+         @]method payload : Js.Unsafe.any Js.t Js.readonly_prop@\n\
          @]@\n\
          end@]@\n\
          %a@\n"
         format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _fmt (enum_cons, _) ->
+           (fun fmt (enum_cons, _) ->
              Format.fprintf fmt "- \"%a\"" format_enum_cons_name enum_cons))
         enum_cons fmt_conv_funs ()
-      (* if !Cli.trace_flag then format_enum_embedding fmt (enum_name,
-         enum_cons) *)
     in
     let is_in_type_ordering s =
       List.exists
@@ -331,55 +323,61 @@ module To_jsoo = struct
           Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
       (type_ordering @ scope_structs)
 
-  let rec format_scopes
+  let fmt_input_struct_name fmt (scope_def : ('a expr, 'm) D.scope_def) =
+    format_struct_name fmt scope_def.scope_body.scope_body_input_struct
+
+  let fmt_output_struct_name fmt (scope_def : ('a expr, 'm) D.scope_def) =
+    format_struct_name fmt scope_def.scope_body.scope_body_output_struct
+
+  let rec format_scopes_to_fun
       (ctx : Dcalc.Ast.decl_ctx)
       (fmt : Format.formatter)
-      (scopes : ('expr, 'm) Dcalc.Ast.scopes) : unit =
-    let _format_fun_call_res fmt struct_name =
-      let struct_fields = find_struct struct_name ctx in
-      Format.fprintf fmt "(@[<hov 2> object%%js@\n%a@\nend@])"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _ (struct_field, struct_field_type) ->
-             Format.fprintf fmt "val %a =@ %a result.%a"
-               format_struct_field_name_camel_case struct_field
-               format_typ_to_jsoo struct_field_type format_struct_field_name
-               (Some struct_name, struct_field)))
-        struct_fields
-    in
+      (scopes : ('expr, 'm) Dcalc.Ast.scopes) =
     match scopes with
     | Dcalc.Ast.Nil -> ()
     | Dcalc.Ast.ScopeDef scope_def ->
-      let scope_input_var, _scope_body_expr =
-        Bindlib.unbind scope_def.scope_body.scope_body_expr
-      in
       let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-      let fmt_input_struct_name fmt _ =
-        format_struct_name fmt scope_def.scope_body.scope_body_input_struct
-      in
-      let fmt_output_struct_name fmt _ =
-        format_struct_name fmt scope_def.scope_body.scope_body_output_struct
-      in
-      let fmt_meth_name fmt _ =
-        Format.fprintf fmt "method %a : (%a -> %a) Js.callback"
-          format_var_camel_case scope_var fmt_input_struct_name ()
-          fmt_output_struct_name ()
-      in
       let fmt_fun_call fmt _ =
         Format.fprintf fmt "%a |> %a_of_jsoo |> %a |> %a_to_jsoo"
-          fmt_input_struct_name () fmt_input_struct_name () format_var scope_var
-          fmt_output_struct_name ()
+          fmt_input_struct_name scope_def fmt_input_struct_name scope_def
+          format_var scope_var fmt_output_struct_name scope_def
       in
-      Format.fprintf fmt
-        "@\n@\n@[<hov 2> %a =@\n Js.wrap_callback@ (fun %a -> %a)@]%a"
-        fmt_meth_name () format_var scope_input_var fmt_fun_call ()
-        (format_scopes ctx) scope_next
+      Format.fprintf fmt "@\n@\nlet %a (%a : %a Js.t) : %a Js.t =@\n%a@\n%a"
+        format_var scope_var fmt_input_struct_name scope_def
+        fmt_input_struct_name scope_def fmt_output_struct_name scope_def
+        fmt_fun_call () (format_scopes_to_fun ctx) scope_next
+
+  let rec format_scopes_to_callbacks
+      (ctx : Dcalc.Ast.decl_ctx)
+      (fmt : Format.formatter)
+      (scopes : ('expr, 'm) Dcalc.Ast.scopes) : unit =
+    match scopes with
+    | Dcalc.Ast.Nil -> ()
+    | Dcalc.Ast.ScopeDef scope_def ->
+      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
+      let fmt_meth_name fmt _ =
+        Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
+          format_var_camel_case scope_var fmt_input_struct_name scope_def
+          fmt_output_struct_name scope_def
+      in
+      Format.fprintf fmt "@\n@\n@[<hov 2> %a =@\n Js.wrap_callback@ %a@]%a"
+        fmt_meth_name () format_var scope_var
+        (format_scopes_to_callbacks ctx)
+        scope_next
 
   let format_program
       (fmt : Format.formatter)
       (module_name : string)
       (prgm : 'm Lcalc.Ast.program)
       (type_ordering : Scopelang.Dependency.TVertex.t list) =
+    let fmt_lib_name fmt _ =
+      Format.fprintf fmt "%sLib"
+        (List.nth (String.split_on_char ' ' module_name) 1
+        |> String.split_on_char '_'
+        |> List.map String.capitalize_ascii
+        |> String.concat "")
+    in
+
     Cli.call_unstyled (fun _ ->
         Format.fprintf fmt
           "(** This file has been generated by the Catala compiler, do not \
@@ -394,13 +392,16 @@ module To_jsoo = struct
            @\n\
            (* Generated API *)\n\n\
            %a@\n\
+           %a@\n\
            @\n\n\
-          \  let _ =@ @[<hov 2> Js.export_all@\n\
+          \  let _ =@ @[<hov 2> Js.export \"%a\"@\n\
            (object%%js@ @[\n\
-          \       val eventsManager = Runtime_jsoo.Runtime.event_manager@\n\n\
-           %a@]end)@]@?"
+           %a@]@\n\
+           end)@]@?"
           module_name (format_ctx type_ordering) prgm.decl_ctx
-          (format_scopes prgm.decl_ctx)
+          (format_scopes_to_fun prgm.decl_ctx)
+          prgm.scopes fmt_lib_name ()
+          (format_scopes_to_callbacks prgm.decl_ctx)
           prgm.scopes)
 end
 

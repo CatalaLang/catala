@@ -44,6 +44,9 @@ let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
 let money_of_cents_integer (cents : integer) : money = cents
 let money_to_float (m : money) : float = Z.to_float m /. 100.
 
+let money_of_decimal (d : decimal) : money =
+  Q.to_bigint (Q.mul d (Q.of_int 100))
+
 let money_to_string (m : money) : string =
   Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
 

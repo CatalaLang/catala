@@ -50,5 +50,5 @@ let ocamlformat_file_opt = function
   | Some f ->
     Cli.debug_print "Formatting %s..." f;
     if Sys.command (Printf.sprintf "ocamlformat %s -i" f) <> 0 then
-      failwith ("Internal error: ocamlformat failed on " ^ f)
+      Cli.error_print "Internal error: ocamlformat failed on %s" f
   | None -> ()
