@@ -338,7 +338,8 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Compiling program into OCaml...";
                 Cli.debug_print "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
-                Lcalc.To_ocaml.format_program fmt prgm type_ordering
+                Lcalc.To_ocaml.format_program fmt prgm type_ordering;
+                File.ocamlformat_file_opt output_file
               | `Plugin (Plugin.Lcalc p) ->
                 let output_file, _ = get_output ~ext:p.Plugin.extension () in
                 Cli.debug_print "Compiling program through backend \"%s\"..."

@@ -45,3 +45,10 @@ let with_formatter_of_opt_file filename_opt f =
   match filename_opt with
   | None -> finally (fun () -> flush stdout) (fun () -> f Format.std_formatter)
   | Some filename -> with_formatter_of_file filename f
+
+let ocamlformat_file_opt = function
+  | Some f ->
+    Cli.debug_print "Formatting %s..." f;
+    if Sys.command (Printf.sprintf "ocamlformat %s -i" f) <> 0 then
+      failwith ("Internal error: ocamlformat failed on " ^ f)
+  | None -> ()
