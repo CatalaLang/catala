@@ -225,7 +225,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
     Errors.raise_spanned_error (Marked.get_mark typ)
       "Internal Error: found an typing parameter for an eoption type of the \
        wrong lenght."
-  | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
+  | TEnum (_ts, e) -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1
       format_typ_with_parens t2
@@ -315,7 +315,8 @@ let rec format_expr
       Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
         (Some s, fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
+    Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name (`Ename en)
+      format_enum_cons_name
       (fst (List.nth (find_enum en ctx) n))
       format_with_parens e
   | EMatch (e, es, e_name) ->
@@ -323,7 +324,8 @@ let rec format_expr
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
          (fun fmt (e, c) ->
-           Format.fprintf fmt "%a %a" format_enum_cons_name c
+           Format.fprintf fmt "%a.%a %a" format_to_module_name (`Ename e_name)
+             format_enum_cons_name c
              (fun fmt e ->
                match Marked.unmark e with
                | EAbs (binder, _) ->
@@ -444,15 +446,15 @@ let format_enum_embedding
     ((enum_name, enum_cases) :
       D.EnumName.t * (D.EnumConstructor.t * D.typ Marked.pos) list) =
   if List.length enum_cases = 0 then
-    Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n"
-      format_enum_name enum_name format_enum_name enum_name
+    Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
+      format_to_module_name (`Ename enum_name) format_enum_name enum_name
   else
     Format.fprintf fmt
-      "@[<hov 2>let embed_%a (x: %a) : runtime_value =@ Enum([\"%a\"],@ @[<hov \
-       2>match x with@ %a@])@]@\n\
+      "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Enum([\"%a\"],@ \
+       @[<hov 2>match x with@ %a@])@]@\n\
        @\n"
-      format_enum_name enum_name format_enum_name enum_name D.EnumName.format_t
-      enum_name
+      format_enum_name enum_name format_to_module_name (`Ename enum_name)
+      D.EnumName.format_t enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
@@ -488,17 +490,15 @@ let format_ctx
       format_struct_embedding fmt (struct_name, struct_fields)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    if List.length enum_cons = 0 then
-      Format.fprintf fmt "type %a = unit@\n@\n" format_enum_name enum_name
-    else
-      Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n@\n" format_enum_name
-        enum_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _fmt (enum_cons, enum_cons_type) ->
-             Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons
-               format_typ enum_cons_type))
-        enum_cons;
+    Format.fprintf fmt
+      "module %a = struct@\n@[<hov 2>@ type t =@\n@[<hov 2>  %a@]@\nend@]@\n"
+      format_to_module_name (`Ename enum_name)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun _fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons
+             format_typ enum_cons_type))
+      enum_cons;
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
