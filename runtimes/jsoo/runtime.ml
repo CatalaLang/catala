@@ -58,6 +58,15 @@ let duration_to_jsoo d =
     val days = days
   end
 
+let date_of_jsoo d =
+  R_ocaml.date_of_numbers d##getUTCFullYear d##getUTCMonth d##getUTCDate
+
+let date_to_jsoo d =
+  let years = R_ocaml.integer_to_int (R_ocaml.year_of_date d) in
+  let months = R_ocaml.integer_to_int (R_ocaml.month_number_of_date d) in
+  let days = R_ocaml.integer_to_int (R_ocaml.day_of_month_of_date d) in
+  new%js Js.date_day years months days
+
 class type ['a] event_manager =
   object
     method resetLog : ('a, unit -> unit) Js.meth_callback Js.meth
