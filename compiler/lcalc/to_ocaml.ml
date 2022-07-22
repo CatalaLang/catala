@@ -228,7 +228,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
   | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
     Errors.raise_spanned_error (Marked.get_mark typ)
       "Internal Error: found an typing parameter for an eoption type of the \
-       wrong lenght."
+       wrong length."
   | TEnum (_ts, e) -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1

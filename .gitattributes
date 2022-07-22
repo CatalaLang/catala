@@ -4,5 +4,6 @@
 *.hints linguist-generated
 french_law/js/french_law.js binary linguist-generated
 french_law/ocaml/law_source/allocations_familiales.ml binary linguist-generated
+french_law/ocaml/law_source/allocations_familiales_api_web.ml binary linguist-generated
 french_law/ocaml/law_source/unit_tests/tests_allocations_famiales.ml binary linguist-generated
 french_law/python/src/allocations_familiales.py binary linguist-generated

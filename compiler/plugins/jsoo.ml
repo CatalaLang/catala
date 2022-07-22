@@ -61,7 +61,7 @@ module To_jsoo = struct
     | TEnum (_, e) when D.EnumName.compare e option_enum = 0 ->
       Errors.raise_spanned_error (Marked.get_mark typ)
         "Internal Error: found an typing parameter for an eoption type of the \
-         wrong lenght."
+         wrong length."
     | TEnum (_, e) -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
