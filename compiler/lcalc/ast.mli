@@ -66,10 +66,7 @@ and 'm expr =
   | ERaise of except
   | ECatch of 'm marked_expr * except * 'm marked_expr
 
-type 'm program = {
-  decl_ctx : Dcalc.Ast.decl_ctx;
-  scopes : ('m expr, 'm) Dcalc.Ast.scopes;
-}
+type 'm program = ('m expr, 'm) Dcalc.Ast.program_generic
 
 (** {1 Variable helpers} *)
 

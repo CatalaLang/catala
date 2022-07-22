@@ -224,7 +224,12 @@ type ('expr, 'm) scope_def = {
 
 and ('expr, 'm) scopes = Nil | ScopeDef of ('expr, 'm) scope_def
 
-type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
+type ('expr, 'm) program_generic = {
+  decl_ctx : decl_ctx;
+  scopes : ('expr, 'm) scopes;
+}
+
+type 'm program = ('m expr, 'm) program_generic
 
 let no_mark (type m) : m mark -> m mark = function
   | Untyped _ -> Untyped { pos = Pos.no_pos }
@@ -781,7 +786,12 @@ let rec find_scope name vars = function
     let var, next = Bindlib.unbind scope_next in
     find_scope name (var :: vars) next
 
-let build_whole_program_expr (p : 'm program) (main_scope : ScopeName.t) =
+let build_whole_program_expr
+    ~(box_expr : ('expr, 'm) box_expr_sig)
+    ~(make_abs : ('expr, 'm) make_abs_sig)
+    ~(make_let_in : ('expr, 'm) make_let_in_sig)
+    (p : ('expr, 'm) program_generic)
+    (main_scope : ScopeName.t) : ('expr, 'm) marked Bindlib.box =
   let _, main_scope_body = find_scope main_scope [] p.scopes in
   unfold_scopes ~box_expr ~make_abs ~make_let_in p.decl_ctx p.scopes
     (get_scope_body_mark main_scope_body)

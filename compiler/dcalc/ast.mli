@@ -222,7 +222,12 @@ type ('expr, 'm) scope_def = {
     lets. This permit us to use bindlib variables for scopes names. *)
 and ('expr, 'm) scopes = Nil | ScopeDef of ('expr, 'm) scope_def
 
-type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
+type ('expr, 'm) program_generic = {
+  decl_ctx : decl_ctx;
+  scopes : ('expr, 'm) scopes;
+}
+
+type 'm program = ('m expr, 'm) program_generic
 
 (** {1 Helpers} *)
 
@@ -528,7 +533,12 @@ val unfold_scopes :
   ('expr, 'm) marked Bindlib.box
 
 val build_whole_program_expr :
-  'm program -> ScopeName.t -> 'm marked_expr Bindlib.box
+  box_expr:('expr, 'm) box_expr_sig ->
+  make_abs:('expr, 'm) make_abs_sig ->
+  make_let_in:('expr, 'm) make_let_in_sig ->
+  ('expr, 'm) program_generic ->
+  ScopeName.t ->
+  ('expr, 'm) marked Bindlib.box
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)

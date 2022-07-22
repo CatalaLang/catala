@@ -52,10 +52,7 @@ and 'm expr =
   | ERaise of except
   | ECatch of 'm marked_expr * except * 'm marked_expr
 
-type 'm program = {
-  decl_ctx : Dcalc.Ast.decl_ctx;
-  scopes : ('m expr, 'm) Dcalc.Ast.scopes;
-}
+type 'm program = ('m expr, 'm) Dcalc.Ast.program_generic
 
 (* <copy-paste from dcalc/ast.ml> *)
 
@@ -158,11 +155,11 @@ let untype_expr e =
 let untype_program prg =
   {
     prg with
-    scopes =
+    D.scopes =
       Bindlib.unbox
         (D.map_exprs_in_scopes
            ~f:(fun e -> Bindlib.box (untype_expr e))
-           ~varf:translate_var prg.scopes);
+           ~varf:translate_var prg.D.scopes);
   }
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)

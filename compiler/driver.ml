@@ -216,7 +216,10 @@ let driver source_file (options : Cli.options) : int =
                      prgm.scopes) )
           else
             let prgrm_dcalc_expr =
-              Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
+              Bindlib.unbox
+                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
+                   ~make_abs:Dcalc.Ast.make_abs
+                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_expr prgm.decl_ctx)
@@ -243,7 +246,10 @@ let driver source_file (options : Cli.options) : int =
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
-              Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
+              Bindlib.unbox
+                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
+                   ~make_abs:Dcalc.Ast.make_abs
+                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
             in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
@@ -313,15 +319,15 @@ let driver source_file (options : Cli.options) : int =
                            else acc)
                          prgm.scopes) )
               else
-                ignore
-                  (Dcalc.Ast.fold_left_scope_defs ~init:0
-                     ~f:(fun i scope_def _ ->
-                       Format.fprintf fmt "%s%a"
-                         (if i = 0 then "" else "\n")
-                         (Lcalc.Print.format_scope prgm.decl_ctx)
-                         (scope_uid, scope_def.scope_body);
-                       i + 1)
-                     prgm.scopes)
+                let prgrm_lcalc_expr =
+                  Bindlib.unbox
+                    (Dcalc.Ast.build_whole_program_expr
+                       ~box_expr:Lcalc.Ast.box_expr ~make_abs:Lcalc.Ast.make_abs
+                       ~make_let_in:Lcalc.Ast.make_let_in prgm scope_uid)
+                in
+                Format.fprintf fmt "%a\n"
+                  (Lcalc.Print.format_expr prgm.decl_ctx)
+                  prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with
               | `OCaml ->
