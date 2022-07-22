@@ -34,11 +34,11 @@ champ d'application CasTest1:
     PersonnesÂgéesSelon3DeD842_16
   assertion calcul.équivalence_loyer = 206,40€
   assertion calcul.loyer_minimal = 124,64 €
-  assertion calcul.coefficient_prise_en_charge = 0,61
+  assertion calcul.coefficient_prise_en_charge = 0,6
   définition montant égal à
     calcul.traitement_aide_finale  de
     calcul.aide_finale_formule
-  assertion montant = 77,39 €
+  assertion montant = 76,38 €
 ```
 
 ```catala-test {id="CasTest1.Interpret"}

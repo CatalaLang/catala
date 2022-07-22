@@ -3279,11 +3279,8 @@ Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition coefficient_prise_en_charge_d832_10 état arrondi égal à
-    # Attention : bien que le texte dise bien d'arrondir "par défaut", qui
-    # s'oppose normalement à l'arrondi par excès et qui désigne donc une
-    # troncature, le bureau DGALN/DHUP/FE4 nous a indiqué le 19/07/2022 qu'il
-    # fallait ici produire un arrondi "traditionnel", et donc au plus proche.
-    (arrondi_décimal de (coefficient_prise_en_charge_d832_10 *. 100,0)) /. 100,0
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 -. 0,005)
+      *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_10 état seuil égal à
     si coefficient_prise_en_charge_d832_10 >=. 0,95 alors 0,95 sinon
       coefficient_prise_en_charge_d832_10
@@ -3956,11 +3953,8 @@ calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état arrondi égal à
-    # Attention : bien que le texte dise bien d'arrondir "par défaut", qui
-    # s'oppose normalement à l'arrondi par excès et qui désigne donc une
-    # troncature, le bureau DGALN/DHUP/FE4 nous a indiqué le 19/07/2022 qu'il
-    # fallait ici produire un arrondi "traditionnel", et donc au plus proche.
-    (arrondi_décimal de (coefficient_prise_en_charge_d832_25 *. 100,0)) /. 100,0
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
+      *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil égal à
     si coefficient_prise_en_charge_d832_25 >=. 0,95 alors 0,95 sinon
       coefficient_prise_en_charge_d832_25
@@ -4044,11 +4038,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   sous condition
     condition_2_du_832_25
   conséquence égal à
-    # Attention : bien que le texte dise bien d'arrondir "par défaut", qui
-    # s'oppose normalement à l'arrondi par excès et qui désigne donc une
-    # troncature, le bureau DGALN/DHUP/FE4 nous a indiqué le 19/07/2022 qu'il
-    # fallait ici produire un arrondi "traditionnel", et donc au plus proche.
-    (arrondi_décimal de (coefficient_prise_en_charge_d832_25 *. 100,0)) /. 100,0
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
+      *. 100,0)) /. 100,0
   exception définition coefficient_prise_en_charge_d832_25 état seuil
   sous condition
     condition_2_du_832_25

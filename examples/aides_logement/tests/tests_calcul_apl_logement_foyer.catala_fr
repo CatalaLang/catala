@@ -32,7 +32,7 @@ champ d'application CasTest1:
   assertion calcul.coefficient_r_d832_25 = 1217,26 €
   assertion calcul.coefficient_multiplicateur_d832_25 = 13393,40 €
   assertion calcul.n_nombre_parts_d832_25 = 1,8
-  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,42
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,41
   assertion calcul.plafond_équivalence_loyer_éligible = 450,57 €
   assertion calcul.équivalence_loyer_minimale = 318,12 €
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -183,11 +183,11 @@ champ d'application CasTest5:
   assertion calcul.équivalence_loyer_éligible = 350 €
   assertion calcul.plafond_équivalence_loyer_éligible = 446,30€
   assertion calcul.équivalence_loyer_minimale = 124,64 €
-  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,61
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,6
   définition montant égal à
     calcul.traitement_aide_finale de
     calcul.aide_finale_formule
-  assertion montant = 131,66 €
+  assertion montant = 129,65 €
 ```
 
 ```catala-test {id="CasTest1.Interpret"}
