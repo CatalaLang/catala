@@ -195,6 +195,12 @@ FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
 $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales_api_web.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales_api_web.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales_api_web.ml $@
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml
+
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement_api_web.ml:
+	CATALA_OPTS="$(CATALA_OPTS) -t" $(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement_api_web.ml
+	cp -f $(AIDES_LOGEMENT_DIR)/aides_logement_api_web.ml $@
+	cp -f $(AIDES_LOGEMENT_DIR)/aides_logement.ml $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement.ml
 
 $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
@@ -203,7 +209,8 @@ $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.m
 #> generate_french_law_library_ocaml	: Generates the French law library OCaml sources from Catala
 generate_french_law_library_ocaml: plugins \
 	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales_api_web.ml \
-	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml \
+	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement_api_web.ml
 	$(MAKE) format
 
 #> build_french_law_library_ocaml		: Builds the OCaml French law library

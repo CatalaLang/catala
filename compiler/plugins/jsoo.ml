@@ -114,9 +114,11 @@ module To_jsoo = struct
   let format_struct_field_name_camel_case
       (fmt : Format.formatter)
       (v : Dcalc.Ast.StructFieldName.t) : unit =
-    Format.fprintf fmt "%s"
-      (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-      |> to_ascii |> to_lowercase |> To_ocaml.avoid_keywords |> to_camel_case)
+    let s =
+      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
+      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
+    in
+    Format.fprintf fmt "%s" s
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
     let lowercase_name =
@@ -266,7 +268,7 @@ module To_jsoo = struct
                  Format.fprintf fmt
                    "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.get %a##.payload 0))"
                    format_enum_cons_name cname fmt_module_enum_name ()
-                   format_enum_cons_name cname format_typ_to_jsoo typ
+                   format_enum_cons_name cname format_typ_of_jsoo typ
                    fmt_enum_name ()))
           enum_cons fmt_module_enum_name ()
       in
