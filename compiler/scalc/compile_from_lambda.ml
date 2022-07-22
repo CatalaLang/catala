@@ -323,7 +323,7 @@ let rec translate_scope_body_expr
 
 let translate_program (p : 'm L.program) : A.program =
   {
-    decl_ctx = p.L.decl_ctx;
+    decl_ctx = p.D.decl_ctx;
     scopes =
       (let _, new_scopes =
          D.fold_left_scope_defs
@@ -364,7 +364,7 @@ let translate_program (p : 'm L.program) : A.program =
                                    (D.StructMap.find
                                       scope_def.D.scope_body
                                         .D.scope_body_input_struct
-                                      p.L.decl_ctx.ctx_structs),
+                                      p.D.decl_ctx.ctx_structs),
                                  Some
                                    scope_def.D.scope_body
                                      .D.scope_body_input_struct ),
@@ -382,7 +382,7 @@ let translate_program (p : 'm L.program) : A.program =
                  L.VarMap.singleton L.handle_default
                    (A.TopLevelName.fresh ("handle_default", Pos.no_pos))),
                [] )
-           p.L.scopes
+           p.D.scopes
        in
        List.rev new_scopes);
   }

@@ -15,22 +15,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Re-initialize python dependencies
-        run: |
-          ./french_law/python/setup_env.sh
-      - name: Install dependencies
-        run: |
-          OPAMCONFIRMLEVEL=unsafe-yes opam exec -- make dependencies pygments
-      - name: Check promoted files
-        run: |
-          opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
-      - name: Make all
-        run: |
-          OCAMLRUNPARAM=b opam exec -- make all
-      - name: Forward result from promotion check
-        run: |
-          if [ -e bad-promote ]; then
-            echo "[ERROR] Some promoted files were not up-to-date";
-            cat promotion.out;
-            exit 1
-          fi
+      - name: Prepare container with all dependencies
+        run: git archive HEAD | docker build - --target dev-build-context
+      - name: Run builds, checks and tests
+        run: git archive HEAD | docker build -

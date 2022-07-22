@@ -1,5 +1,6 @@
-#! /usr/bin/env bash
-set -euo pipefail
+#! /usr/bin/env sh
+
+set -eu
 
 cd "$(dirname "$0")"
 python3 -m venv env

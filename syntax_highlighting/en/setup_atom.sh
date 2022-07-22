@@ -1,4 +1,6 @@
-#! /usr/bin/env bash
+#! /usr/bin/env sh
+
+set -eu
 
 FILE=~/.atom/packages/catala_en
 SCRIPT=`realpath $0`

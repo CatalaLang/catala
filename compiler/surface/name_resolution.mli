@@ -32,7 +32,6 @@ type unique_rulename =
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
   label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
-  label_groups : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t;
 }
 
 type scope_context = {
@@ -136,13 +135,6 @@ val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Marked.pos
 (** Retrieves the type of a scope definition from the context *)
 
 val is_def_cond : context -> Desugared.Ast.ScopeDef.t -> bool
-
-val label_groups :
-  context ->
-  Scopelang.Ast.ScopeName.t ->
-  Desugared.Ast.ScopeDef.t ->
-  Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t
-
 val is_type_cond : Ast.typ Marked.pos -> bool
 
 val add_def_local_var : context -> ident -> context * Desugared.Ast.Var.t

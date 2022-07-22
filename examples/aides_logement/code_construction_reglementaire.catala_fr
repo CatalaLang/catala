@@ -1855,7 +1855,7 @@ d'un mois à compter de la date de remboursement du solde du prêt.
 Pour les ménages mentionnés au 1° de l'article D. 823-9, le montant mensuel de l'aide
 est calculé selon la formule suivante :
 
-$$\text{Af} = \text{L} + \text{C}-\text{Pp}$$
+$$\textrm{Af} = \textrm{L} + \textrm{C}-\textrm{Pp}$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
@@ -1996,7 +1996,7 @@ La participation personnelle du ménage, mentionnée au 4° de l'article D. 823-
 la somme d'une participation minimale et d'une participation au titre des ressources
 du ménage, calculée selon la formule suivante :
 
-$$\text{Pp} = \text{P0} + \text{Tp}* (\text{R}-\text{R0})$$
+$$\textrm{Pp} = \textrm{P0} + \textrm{Tp}* (\textrm{R}-\textrm{R0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
@@ -3142,7 +3142,7 @@ ou les titulaires d'un contrat de location-accession conclu dans les conditions 
 au 6° de l'article L. 831-1, le montant mensuel de l'aide est calculé selon la formule et
 les modalités suivantes :
 
-$$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
+$$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
@@ -3258,7 +3258,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 Le coefficient " K ", mentionné au 2° de l'article D. 832-10, est ainsi calculé selon la formule
 et les modalités suivantes :
 
-$$\text{K} =  0,95 - \frac{\text{R}}{\text{cm} \times \text{N}}$$
+$$\textrm{K} =  0,95 - \frac{\textrm{R}}{\textrm{cm} \times \textrm{N}}$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
@@ -3797,7 +3797,7 @@ sous réserve que les autres conditions d'ouverture du droit soient réunies à 
 Pour les ménages résidant dans un logement-foyer mentionné à l'article R. 832-22, le montant
 mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
-$$\text{Af} = \text{K} \times (\text{E}-\text{E0})$$
+$$\textrm{Af} = \textrm{K} \times (\textrm{E}-\textrm{E0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
@@ -3935,7 +3935,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 1°
 
-$$\text{K} = 0,95 - \frac{\text{R} - \text{r} \times \text{N}}{\text{cm} \times \text{N}}$$
+$$\textrm{K} = 0,95 - \frac{\textrm{R} - \textrm{r} \times \textrm{N}}{\textrm{cm} \times \textrm{N}}$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
@@ -4019,7 +4019,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 2°
 
-$$\text{K} = 0,90 - \frac{\text{R}}{\text{cm} \times \text{N}}$$
+$$\textrm{K} = 0,90 - \frac{\textrm{R}}{\textrm{cm} \times \textrm{N}}$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
@@ -4441,7 +4441,7 @@ champ d'application ÉligibilitéAllocationLogement:
 Pour les ménages mentionnés à l'article R. 842-5, le montant mensuel de l'allocation est
 calculé selon la formule et les modalités suivantes :
 
-$$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
+$$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
@@ -4846,7 +4846,7 @@ d'un logement-foyer défini à l'article L. 633-1 pour lesquels le montant mensu
 de l'aide est calculé selon les modalités précisées au 1° de l'article D. 823-9,
 le montant mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
-$$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
+$$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:

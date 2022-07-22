@@ -126,12 +126,20 @@ val make_let_in :
 
 (** {2 Rules and scopes}*)
 
+type exception_situation =
+  | BaseCase
+  | ExceptionToLabel of LabelName.t Marked.pos
+  | ExceptionToRule of RuleName.t Marked.pos
+
+type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
+
 type rule = {
   rule_id : RuleName.t;
   rule_just : expr Marked.pos Bindlib.box;
   rule_cons : expr Marked.pos Bindlib.box;
   rule_parameter : (Var.t * Scopelang.Ast.typ Marked.pos) option;
-  rule_exception_to_rules : RuleSet.t Marked.pos;
+  rule_exception : exception_situation;
+  rule_label : label_situation;
 }
 
 module Rule : Set.OrderedType with type t = rule
@@ -152,7 +160,6 @@ type scope_def = {
   scope_def_typ : Scopelang.Ast.typ Marked.pos;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
-  scope_def_label_groups : RuleSet.t LabelMap.t;
 }
 
 type var_or_states = WholeVar | States of StateName.t list

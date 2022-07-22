@@ -13,9 +13,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up OCaml
-        uses: avsm/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-compiler: 4.11.x
+          ocaml-compiler: 4.13.x
           dune-cache: true
 
       - name: Install external dependencies
@@ -29,7 +29,7 @@ jobs:
           ./french_law/python/setup_env.sh
       - name: Install OCaml dependencies
         run: |
-          make dependencies-ocaml-with-z3
+          OPAMCONFIRMLEVEL=unsafe-yes make dependencies-ocaml-with-z3
       - name: Make build
         run: |
           OCAMLRUNPARAM=b opam exec -- make build

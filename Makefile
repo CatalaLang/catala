@@ -10,28 +10,30 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html python3 colordiff node pygmentize node npm ninja pandoc
+EXECUTABLES = groff python3 colordiff node pygmentize node npm ninja pandoc
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
+OPAM = opam --cli=2.1
+
 dependencies-ocaml:
-	opam install . ./doc/catala-dev-dependencies.opam --deps-only --with-doc --with-test --update-invariant
+	$(OPAM) pin . --no-action
+	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 dependencies-ocaml-with-z3:
-	opam install . ./doc/catala-dev-dependencies.opam z3 --deps-only --with-doc --with-test --update-invariant
+	$(OPAM) pin . --no-action
+	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
 
-init-submodules:
-	git submodule update --init
-
-
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
-dependencies: dependencies-ocaml dependencies-js init-submodules
+dependencies: dependencies-ocaml dependencies-js
 
-dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js init-submodules
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js
 
 ##########################################
 # Catala compiler rules
@@ -303,8 +305,7 @@ grammar.html: $(COMPILER_DIR)/surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: $(COMPILER_DIR)/utils/cli.ml
-	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
-	| tac | sed "1,20d" | tac > $@
+	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | groff -P -l -P -r -mandoc -Thtml > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
 website-assets: doc js_build literate_examples grammar.html catala.html build_french_law_library_js
@@ -315,7 +316,7 @@ website-assets: doc js_build literate_examples grammar.html catala.html build_fr
 
 #> all					: Run all make commands
 all: \
-	build js_build doc website-assets\
+	build js_build doc \
 	tests \
 	plugins \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
@@ -323,7 +324,8 @@ all: \
 	build_french_law_library_js \
 	bench_js \
 	generate_french_law_library_python type_french_law_library_python\
-	bench_python
+	bench_python \
+	website-assets
 
 
 #> clean					: Clean build artifacts

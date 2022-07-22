@@ -240,8 +240,17 @@ module ExceptionVertex = struct
   let equal x y = compare x y = 0
 end
 
+module EdgeExceptions = struct
+  type t = Pos.t list
+
+  let compare = compare
+  let default = [Pos.no_pos]
+end
+
 module ExceptionsDependencies =
-  Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (ExceptionVertex) (Edge)
+  Graph.Persistent.Digraph.ConcreteBidirectionalLabeled
+    (ExceptionVertex)
+    (EdgeExceptions)
 (** Module of the graph, provided by OCamlGraph. [x -> y] if [y] is an exception
     to [x] *)
 
@@ -250,95 +259,190 @@ module ExceptionsSCC = Graph.Components.Make (ExceptionsDependencies)
 
 (** {2 Graph computations} *)
 
+type exception_edge = {
+  label_from : Ast.LabelName.t;
+  label_to : Ast.LabelName.t;
+  edge_positions : Pos.t list;
+}
+
 let build_exceptions_graph
     (def : Ast.rule Ast.RuleMap.t)
     (def_info : Ast.ScopeDef.t) : ExceptionsDependencies.t =
-  (* first we collect all the rule sets referred by exceptions *)
-  let all_rule_sets_pointed_to_by_exceptions : Ast.RuleSet.t list =
+  (* First we partition the definitions into groups bearing the same label. To
+     handle the rules that were not labeled by the user, we create implicit
+     labels. *)
+
+  (* All the rules of the form [definition x ...] are base case with no explicit
+     label, so they should share this implicit label. *)
+  let base_case_implicit_label =
+    Ast.LabelName.fresh ("base_case", Pos.no_pos)
+  in
+  (* When declaring [exception definition x ...], it means there is a unique
+     rule [R] to which this can be an exception to. So we give a unique label to
+     all the rules that are implicitly exceptions to rule [R]. *)
+  let exception_to_rule_implicit_labels : Ast.LabelName.t Ast.RuleMap.t =
     Ast.RuleMap.fold
-      (fun _rule_name rule acc ->
-        if Ast.RuleSet.is_empty (Marked.unmark rule.Ast.rule_exception_to_rules)
-        then acc
-        else Marked.unmark rule.Ast.rule_exception_to_rules :: acc)
+      (fun _ rule_from exception_to_rule_implicit_labels ->
+        match rule_from.Ast.rule_exception with
+        | Ast.ExceptionToRule (rule_to, _) -> (
+          match
+            Ast.RuleMap.find_opt rule_to exception_to_rule_implicit_labels
+          with
+          | Some _ ->
+            (* we already created the label *) exception_to_rule_implicit_labels
+          | None ->
+            Ast.RuleMap.add rule_to
+              (Ast.LabelName.fresh
+                 ( "exception_to_"
+                   ^ Marked.unmark (Ast.RuleName.get_info rule_to),
+                   Pos.no_pos ))
+              exception_to_rule_implicit_labels)
+        | _ -> exception_to_rule_implicit_labels)
+      def Ast.RuleMap.empty
+  in
+  (* When declaring [exception foo_l definition x ...], the rule is exception to
+     all the rules sharing label [foo_l]. So we give a unique label to all the
+     rules that are implicitly exceptions to rule [foo_l]. *)
+  let exception_to_label_implicit_labels : Ast.LabelName.t Ast.LabelMap.t =
+    Ast.RuleMap.fold
+      (fun _ rule_from
+           (exception_to_label_implicit_labels : Ast.LabelName.t Ast.LabelMap.t) ->
+        match rule_from.Ast.rule_exception with
+        | Ast.ExceptionToLabel (label_to, _) -> (
+          match
+            Ast.LabelMap.find_opt label_to exception_to_label_implicit_labels
+          with
+          | Some _ ->
+            (* we already created the label *)
+            exception_to_label_implicit_labels
+          | None ->
+            Ast.LabelMap.add label_to
+              (Ast.LabelName.fresh
+                 ( "exception_to_"
+                   ^ Marked.unmark (Ast.LabelName.get_info label_to),
+                   Pos.no_pos ))
+              exception_to_label_implicit_labels)
+        | _ -> exception_to_label_implicit_labels)
+      def Ast.LabelMap.empty
+  in
+
+  (* Now we have all the labels necessary to partition our rules into sets, each
+     one corresponding to a label relating to the structure of the exception
+     DAG. *)
+  let label_to_rule_sets =
+    Ast.RuleMap.fold
+      (fun rule_name rule rule_sets ->
+        let label_of_rule =
+          match rule.Ast.rule_label with
+          | Ast.ExplicitlyLabeled (l, _) -> l
+          | Ast.Unlabeled -> (
+            match rule.Ast.rule_exception with
+            | BaseCase -> base_case_implicit_label
+            | ExceptionToRule (r, _) ->
+              Ast.RuleMap.find r exception_to_rule_implicit_labels
+            | ExceptionToLabel (l', _) ->
+              Ast.LabelMap.find l' exception_to_label_implicit_labels)
+        in
+        Ast.LabelMap.update label_of_rule
+          (fun rule_set ->
+            match rule_set with
+            | None -> Some (Ast.RuleSet.singleton rule_name)
+            | Some rule_set -> Some (Ast.RuleSet.add rule_name rule_set))
+          rule_sets)
+      def Ast.LabelMap.empty
+  in
+  let find_label_of_rule (r : Ast.RuleName.t) : Ast.LabelName.t =
+    fst
+      (Ast.LabelMap.choose
+         (Ast.LabelMap.filter
+            (fun _ rule_set -> Ast.RuleSet.mem r rule_set)
+            label_to_rule_sets))
+  in
+  (* Next, we collect the exception edges between those groups of rules referred
+     by their labels. This is also at this step that we check consistency of the
+     edges as they are declared at each rule but should be the same for all the
+     rules of the same group. *)
+  let exception_edges : exception_edge list =
+    Ast.RuleMap.fold
+      (fun rule_name rule exception_edges ->
+        let label_from = find_label_of_rule rule_name in
+        let label_to_and_pos =
+          match rule.Ast.rule_exception with
+          | Ast.BaseCase -> None
+          | Ast.ExceptionToRule (r', pos) -> Some (find_label_of_rule r', pos)
+          | Ast.ExceptionToLabel (l', pos) -> Some (l', pos)
+        in
+        match label_to_and_pos with
+        | None -> exception_edges
+        | Some (label_to, edge_pos) -> (
+          let other_edges_originating_from_same_label =
+            List.filter
+              (fun edge -> Ast.LabelName.compare edge.label_from label_from = 0)
+              exception_edges
+          in
+          (* We check the consistency*)
+          if Ast.LabelName.compare label_from label_to = 0 then
+            Errors.raise_spanned_error edge_pos
+              "Cannot define rule as an exception to itself";
+          List.iter
+            (fun edge ->
+              if Ast.LabelName.compare edge.label_to label_to <> 0 then
+                Errors.raise_multispanned_error
+                  (( Some
+                       "This declaration contradicts another exception \
+                        declarations:",
+                     edge_pos )
+                  :: List.map
+                       (fun pos ->
+                         Some "Here is another exception declaration:", pos)
+                       edge.edge_positions)
+                  "The declaration of exceptions are inconsistent for variable \
+                   %a."
+                  Ast.ScopeDef.format_t def_info)
+            other_edges_originating_from_same_label;
+          (* Now we add the edge to the list*)
+          let existing_edge =
+            List.find_opt
+              (fun edge ->
+                Ast.LabelName.compare edge.label_from label_from = 0
+                && Ast.LabelName.compare edge.label_to label_to = 0)
+              exception_edges
+          in
+          match existing_edge with
+          | None ->
+            { label_from; label_to; edge_positions = [edge_pos] }
+            :: exception_edges
+          | Some existing_edge ->
+            {
+              label_from;
+              label_to;
+              edge_positions = edge_pos :: existing_edge.edge_positions;
+            }
+            :: List.filter (fun edge -> edge <> existing_edge) exception_edges))
       def []
   in
-  (* we make sure these sets are either disjoint or equal ; should be a
-     syntactic invariant since you currently can't assign two labels to a single
-     rule but an extra check is valuable since this is a required invariant for
-     the graph to be sound *)
-  List.iter
-    (fun rule_set1 ->
-      List.iter
-        (fun rule_set2 ->
-          if Ast.RuleSet.equal rule_set1 rule_set2 then ()
-          else if Ast.RuleSet.disjoint rule_set1 rule_set2 then ()
-          else
-            let spans =
-              List.of_seq
-                (Seq.map
-                   (fun rule ->
-                     ( Some "Rule or definition from the first group:",
-                       Marked.get_mark (Ast.RuleName.get_info rule) ))
-                   (Ast.RuleSet.to_seq rule_set1))
-              @ List.of_seq
-                  (Seq.map
-                     (fun rule ->
-                       ( Some "Rule or definition from the second group:",
-                         Marked.get_mark (Ast.RuleName.get_info rule) ))
-                     (Ast.RuleSet.to_seq rule_set2))
-            in
-            Errors.raise_multispanned_error spans
-              "Definitions or rules grouped by different labels overlap, \
-               whereas these groups shoule be disjoint")
-        all_rule_sets_pointed_to_by_exceptions)
-    all_rule_sets_pointed_to_by_exceptions;
-  (* Then we add the exception graph vertices by taking all those sets of rules
-     pointed to by exceptions, and adding the remaining rules not pointed as
-     separate singleton set vertices *)
+  (* We've got the vertices and the edges, let's build the graph! *)
   let g =
-    List.fold_left
-      (fun g rule_set -> ExceptionsDependencies.add_vertex g rule_set)
-      ExceptionsDependencies.empty all_rule_sets_pointed_to_by_exceptions
-  in
-  let g =
-    Ast.RuleMap.fold
-      (fun (rule_name : Ast.RuleName.t) _ g ->
-        if
-          List.exists
-            (fun rule_set_pointed_to_by_exceptions ->
-              Ast.RuleSet.mem rule_name rule_set_pointed_to_by_exceptions)
-            all_rule_sets_pointed_to_by_exceptions
-        then g
-        else
-          ExceptionsDependencies.add_vertex g (Ast.RuleSet.singleton rule_name))
-      def g
+    Ast.LabelMap.fold
+      (fun _label rule_set g -> ExceptionsDependencies.add_vertex g rule_set)
+      label_to_rule_sets ExceptionsDependencies.empty
   in
   (* then we add the edges *)
   let g =
-    Ast.RuleMap.fold
-      (fun rule_name rule g ->
-        (* Right now, exceptions can only consist of one rule, we may want to
-           relax that constraint later in the development of Catala. *)
-        let exception_to_ruleset, pos = rule.Ast.rule_exception_to_rules in
-        if Ast.RuleSet.is_empty exception_to_ruleset then g
-          (* we don't add an edge*)
-        else if ExceptionsDependencies.mem_vertex g exception_to_ruleset then
-          if exception_to_ruleset = Ast.RuleSet.singleton rule_name then
-            Errors.raise_spanned_error pos
-              "Cannot define rule as an exception to itself"
-          else
-            let edge =
-              ExceptionsDependencies.E.create
-                (Ast.RuleSet.singleton rule_name)
-                pos exception_to_ruleset
-            in
-            ExceptionsDependencies.add_edge_e g edge
-        else
-          Errors.raise_spanned_error pos
-            "This rule has been declared as an exception to an incorrect \
-             label: this label is not attached to a definition of \"%a\""
-            Ast.ScopeDef.format_t def_info)
-      def g
+    List.fold_left
+      (fun g edge ->
+        let rule_group_from =
+          Ast.LabelMap.find edge.label_from label_to_rule_sets
+        in
+        let rule_group_to =
+          Ast.LabelMap.find edge.label_to label_to_rule_sets
+        in
+        let edge =
+          ExceptionsDependencies.E.create rule_group_from edge.edge_positions
+            rule_group_to
+        in
+        ExceptionsDependencies.add_edge_e g edge)
+      g exception_edges
   in
   g
 
@@ -370,7 +474,7 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
                ( Some
                    ("Used here in the definition of another cyclic exception \
                      for defining \"" ^ var_str ^ "\":"),
-                 edge_pos );
+                 List.hd edge_pos );
              ])
            scc)
     in
