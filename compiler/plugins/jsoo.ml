@@ -27,7 +27,7 @@ open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
 let name = "jsoo"
-let extension = ".js"
+let extension = ".ml"
 
 module To_jsoo = struct
   let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =

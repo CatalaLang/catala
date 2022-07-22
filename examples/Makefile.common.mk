@@ -9,6 +9,8 @@ CURR_DIR=examples/$(shell basename $(shell pwd))/
 CATALA=cd ../../; _build/default/compiler/catala.exe \
 	$(CATALA_OPTS) --language=$(CATALA_LANG)
 
+PLUGIN_DIR=_build/default/compiler/plugins
+
 help : ../Makefile.common.mk
 	@sed -n 's/^#> //p' $<
 
@@ -29,6 +31,14 @@ help : ../Makefile.common.mk
 	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
 		OCaml \
+		$(CURR_DIR)$<
+
+#> <target_file>_api_web.ml	 : Compiles the file to OCaml + genereates the API web
+%_api_web.ml: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $(CURR_DIR)$<
+	$(CATALA) \
+		jsoo \
+		--plugin-dir=$(PLUGIN_DIR) \
 		$(CURR_DIR)$<
 
 #> <target_file>.py			: Compiles the file to Python

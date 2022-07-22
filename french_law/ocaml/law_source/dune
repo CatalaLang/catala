@@ -1,4 +1,6 @@
 (library
  (name law_source)
  (public_name french_law.law_source)
- (libraries catala.runtime))
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries catala.runtime_ocaml catala.runtime_jsoo js_of_ocaml))

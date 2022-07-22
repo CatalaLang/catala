@@ -8,7 +8,7 @@
  (name jsoo)
  (modes plugin)
  (modules jsoo)
- (libraries catala.driver catala.runtime))
+ (libraries catala.driver))
 
 (documentation
  (package catala)
