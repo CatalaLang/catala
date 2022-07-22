@@ -506,7 +506,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : EnfantLePlusAgeIn.t) :
                (fun (acc_ : _) (item_ : _) ->
                  if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
                {
-                 Enfant.identifiant = ~-!(integer_of_string "1");
+                 Enfant.identifiant = integer_of_string "-1";
                  Enfant.obligation_scolaire =
                    SituationObligationScolaire.Pendant ();
                  Enfant.remuneration_mensuelle = money_of_cents_string "0";
