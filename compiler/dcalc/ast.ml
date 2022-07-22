@@ -18,6 +18,7 @@
 [@@@ocaml.warning "-7-34"]
 
 open Utils
+module Runtime = Runtime_ocaml.Runtime
 
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info =
   Uid.Make (Uid.MarkedString) ()

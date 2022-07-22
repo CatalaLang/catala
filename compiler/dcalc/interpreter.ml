@@ -18,6 +18,7 @@
 
 open Utils
 module A = Ast
+module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
 

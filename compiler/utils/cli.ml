@@ -361,6 +361,13 @@ let format_with_style (styles : ANSITerminal.style list) fmt (str : string) =
       (ANSITerminal.sprintf styles "%s" str)
   else Format.pp_print_string fmt str
 
+let call_unstyled f =
+  let prev = !style_flag in
+  style_flag := false;
+  let res = f () in
+  style_flag := prev;
+  res
+
 let time_marker () =
   let new_time = Unix.gettimeofday () in
   let old_time = !time in

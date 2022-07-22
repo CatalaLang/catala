@@ -7,7 +7,13 @@
 (library
  (name clerk_driver)
  (public_name clerk.driver)
- (libraries catala.runtime catala.utils ninja_utils cmdliner re ANSITerminal)
+ (libraries
+  catala.runtime_ocaml
+  catala.utils
+  ninja_utils
+  cmdliner
+  re
+  ANSITerminal)
  (modules clerk_driver))
 
 (executable

@@ -15,6 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(** The OCaml runtime. *)
+
 (** {1 Types} *)
 
 type money
@@ -256,7 +258,11 @@ val last_day_of_month : date -> date
 (**{2 Durations} *)
 
 val duration_of_numbers : int -> int -> int -> duration
+(** Usage : [duration_of_numbers year mounth day]. *)
+
 val duration_to_years_months_days : duration -> int * int * int
+(**{2 Times} *)
+
 val duration_to_string : duration -> string
 
 (**{1 Defaults} *)

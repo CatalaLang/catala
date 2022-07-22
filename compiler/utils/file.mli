@@ -40,3 +40,7 @@ val with_formatter_of_opt_file : string option -> (Format.formatter -> 'a) -> 'a
 (** [with_formatter_of_opt_file filename_opt f] manages the formatter created
     from the file [filename_opt] if there is some (see
     {!with_formatter_of_file}), otherwise, uses the [Format.std_formatter]. *)
+
+(** {2 Utility functions on files} *)
+
+val ocamlformat_file_opt : string option -> unit

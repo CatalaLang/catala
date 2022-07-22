@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+module Runtime = Runtime_ocaml.Runtime
 
 (** Abstract syntax tree for the lambda calculus *)
 

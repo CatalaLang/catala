@@ -45,6 +45,9 @@ let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
 let money_of_cents_integer (cents : integer) : money = cents
 let money_to_float (m : money) : float = Z.to_float m /. 100.
 
+let money_of_decimal (d : decimal) : money =
+  Q.to_bigint (Q.mul d (Q.of_int 100))
+
 let money_to_string (m : money) : string =
   Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
 
@@ -55,9 +58,6 @@ let money_round (m : money) : money =
   (* If [m] is negative, [cents] will also be negative. *)
   if Z.(abs cents < of_int 50) then Z.(units * of_int 100)
   else Z.((units + of_int (sign units)) * of_int 100)
-
-let money_of_decimal (d : decimal) : money =
-  Q.to_bigint (Q.mul d (Q.of_int 100))
 
 let decimal_of_string (d : string) : decimal = Q.of_string d
 let decimal_to_float (d : decimal) : float = Q.to_float d

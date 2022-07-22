@@ -146,32 +146,27 @@ let avoid_keywords (s : string) : string =
   else s
 
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
-  unit =
-Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-|> to_ascii
-|> to_lowercase
-|> avoid_keywords
-|> Format.fprintf fmt "%s"
-[@@ocamlformat "disable"]
-
-let format_to_struct_type (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
   Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-  |> to_ascii
-  |> to_lowercase
-  |> avoid_keywords
-  |> String.split_on_char '_'
+  |> to_ascii |> to_lowercase |> avoid_keywords |> Format.fprintf fmt "%s"
+
+let format_to_module_name
+    (fmt : Format.formatter)
+    (name : [< `Ename of D.EnumName.t | `Sname of D.StructName.t ]) =
+  (match name with
+  | `Ename v -> Format.asprintf "%a" D.EnumName.format_t v
+  | `Sname v -> Format.asprintf "%a" D.StructName.format_t v)
+  |> to_ascii |> to_lowercase |> avoid_keywords |> String.split_on_char '_'
   |> List.map String.capitalize_ascii
-  |> String.concat ""
-  |> Format.fprintf fmt "%s"
-  [@@ocamlformat "disable"]
+  |> String.concat "" |> Format.fprintf fmt "%s"
 
 let format_struct_field_name
     (fmt : Format.formatter)
     ((sname_opt, v) :
       Dcalc.Ast.StructName.t option * Dcalc.Ast.StructFieldName.t) : unit =
   (match sname_opt with
-  | Some sname -> Format.fprintf fmt "%a.%s" format_to_struct_type sname
+  | Some sname ->
+    Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
   | None -> Format.fprintf fmt "%s")
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v)))
@@ -211,7 +206,6 @@ let typ_needs_parens (e : Dcalc.Ast.typ Marked.pos) : bool =
 
 let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
     unit =
-  let format_typ = format_typ in
   let format_typ_with_parens
       (fmt : Format.formatter)
       (t : Dcalc.Ast.typ Marked.pos) =
@@ -226,15 +220,16 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          format_typ_with_parens)
       ts
-  | TTuple (_, Some s) -> Format.fprintf fmt "%a.t" format_to_struct_type s
+  | TTuple (_, Some s) ->
+    Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
   | TEnum ([t], e) when D.EnumName.compare e Ast.option_enum = 0 ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
       format_enum_name e
   | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
     Errors.raise_spanned_error (Marked.get_mark typ)
       "Internal Error: found an typing parameter for an eoption type of the \
-       wrong lenght."
-  | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
+       wrong length."
+  | TEnum (_ts, e) -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1
       format_typ_with_parens t2
@@ -324,16 +319,17 @@ let rec format_expr
       Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
         (Some s, fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
-    Format.fprintf fmt "@[<hov 2>(%a@ %a:@ %a)@]" format_enum_cons_name
+    Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name (`Ename en)
+      format_enum_cons_name
       (fst (List.nth (find_enum en ctx) n))
-      format_with_parens e format_enum_name en
+      format_with_parens e
   | EMatch (e, es, e_name) ->
-    Format.fprintf fmt "@[<hov 2>match@ (%a:@ %a)@]@ with@\n%a"
-      format_with_parens e format_enum_name e_name
+    Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
          (fun fmt (e, c) ->
-           Format.fprintf fmt "%a %a" format_enum_cons_name c
+           Format.fprintf fmt "%a.%a %a" format_to_module_name (`Ename e_name)
+             format_enum_cons_name c
              (fun fmt e ->
                match Marked.unmark e with
                | EAbs (binder, _) ->
@@ -432,13 +428,13 @@ let format_struct_embedding
       D.StructName.t * (D.StructFieldName.t * D.typ Marked.pos) list) =
   if List.length struct_fields = 0 then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
-      format_struct_name struct_name format_to_struct_type struct_name
+      format_struct_name struct_name format_to_module_name (`Sname struct_name)
   else
     Format.fprintf fmt
       "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Struct([\"%a\"],@ \
        @[<hov 2>[%a]@])@]@\n\
        @\n"
-      format_struct_name struct_name format_to_struct_type struct_name
+      format_struct_name struct_name format_to_module_name (`Sname struct_name)
       D.StructName.format_t struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
@@ -454,15 +450,15 @@ let format_enum_embedding
     ((enum_name, enum_cases) :
       D.EnumName.t * (D.EnumConstructor.t * D.typ Marked.pos) list) =
   if List.length enum_cases = 0 then
-    Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n"
-      format_enum_name enum_name format_enum_name enum_name
+    Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
+      format_to_module_name (`Ename enum_name) format_enum_name enum_name
   else
     Format.fprintf fmt
-      "@[<hov 2>let embed_%a (x: %a) : runtime_value =@ Enum([\"%a\"],@ @[<hov \
-       2>match x with@ %a@])@]@\n\
+      "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Enum([\"%a\"],@ \
+       @[<hov 2>match x with@ %a@])@]@\n\
        @\n"
-      format_enum_name enum_name format_enum_name enum_name D.EnumName.format_t
-      enum_name
+      format_enum_name enum_name format_to_module_name (`Ename enum_name)
+      D.EnumName.format_t enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
@@ -479,7 +475,7 @@ let format_ctx
     if List.length struct_fields = 0 then
       Format.fprintf fmt
         "module %a = struct@\n@[<hov 2>@  type t = unit\nend@] @\n"
-        format_to_struct_type struct_name
+        format_to_module_name (`Sname struct_name)
     else
       Format.fprintf fmt
         "module %a = struct@\n\
@@ -487,7 +483,7 @@ let format_ctx
          @[<hov 2>  %a@]@\n\
          }\n\
          end@]@\n"
-        format_to_struct_type struct_name
+        format_to_module_name (`Sname struct_name)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun _fmt (struct_field, struct_field_type) ->
@@ -498,17 +494,15 @@ let format_ctx
       format_struct_embedding fmt (struct_name, struct_fields)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    if List.length enum_cons = 0 then
-      Format.fprintf fmt "type %a = unit@\n@\n" format_enum_name enum_name
-    else
-      Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n@\n" format_enum_name
-        enum_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _fmt (enum_cons, enum_cons_type) ->
-             Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons
-               format_typ enum_cons_type))
-        enum_cons;
+    Format.fprintf fmt
+      "module %a = struct@\n@[<hov 2>@ type t =@\n@[<hov 2>  %a@]@\nend@]@\n"
+      format_to_module_name (`Ename enum_name)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun _fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons
+             format_typ enum_cons_type))
+      enum_cons;
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
@@ -564,9 +558,10 @@ let rec format_scopes
     in
     let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
     Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a.t) : %a.t =@\n%a@]%a"
-      format_var scope_var format_var scope_input_var format_to_struct_type
-      scope_def.scope_body.scope_body_input_struct format_to_struct_type
-      scope_def.scope_body.scope_body_output_struct
+      format_var scope_var format_var scope_input_var format_to_module_name
+      (`Sname scope_def.scope_body.scope_body_input_struct)
+      format_to_module_name
+      (`Sname scope_def.scope_body.scope_body_output_struct)
       (format_scope_body_expr ctx)
       scope_body_expr (format_scopes ctx) scope_next
 
@@ -574,13 +569,15 @@ let format_program
     (fmt : Format.formatter)
     (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  Cli.style_flag := false;
-  Format.fprintf fmt
-    "(** This file has been generated by the Catala compiler, do not edit! *)@\n\
-     @\n\
-     open Runtime@\n\
-     @\n\
-     [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
-     @\n\
-     %a%a@?"
-    (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx) p.scopes
+  Cli.call_unstyled (fun _ ->
+      Format.fprintf fmt
+        "(** This file has been generated by the Catala compiler, do not edit! \
+         *)@\n\
+         @\n\
+         open Runtime_ocaml.Runtime@\n\
+         @\n\
+         [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
+         @\n\
+         %a%a@?"
+        (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx)
+        p.scopes)
