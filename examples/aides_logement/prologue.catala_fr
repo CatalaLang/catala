@@ -62,8 +62,8 @@ déclaration structure Propriétaire:
   donnée prêt contenu Prêt
 
 déclaration énumération TypeTravauxLogementD832_15:
-  -- SurLocauxNonHabitation
-  -- SurLogementExistant
+  -- TravauxPourAcquisitionD832_15_1
+  -- TravauxSurLogementDéjàAcquisD832_15_2
   -- PasDeTravaux
 
 déclaration énumération TypeTravauxLogementR842_5:
@@ -107,12 +107,21 @@ déclaration structure TrancheRevenu:
   donnée bas contenu argent
   donnée taux contenu décimal
 
+déclaration énumération LimiteTrancheDécimal:
+  -- Revenu contenu décimal
+  -- Infini
+
+déclaration structure TrancheRevenuDécimal:
+  donnée haut contenu LimiteTrancheDécimal
+  donnée bas contenu décimal
+  donnée taux contenu décimal
+
 déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
   donnée date_conventionnement contenu date
   donnée location contenu Location
   donnée remplit_conditions_r832_21 contenu booléen
-  donnée pour_jeunes_travailleurs_III_12_loi_1957 contenu booléen
+  donnée construit_application_loi_1957_12_III contenu booléen
 
 déclaration structure InformationsCalculAPLLogementFoyer:
   donnée redevance contenu argent
@@ -191,7 +200,7 @@ déclaration énumération Parenté:
   -- CollatéralDeuxièmeTroisièmeDegré
 
 déclaration structure AutrePersonneÀCharge:
-  donnée âge contenu durée
+  donnée date_naissance contenu date
   donnée ressources contenu argent
   donnée ascendant_descendant_collatéral_deuxième_troisième_degré
     contenu booléen
@@ -205,7 +214,7 @@ déclaration énumération PersonneÀCharge:
   -- AutrePersonneÀCharge contenu AutrePersonneÀCharge
 
 déclaration énumération DateDeNaissanceOuMoisDeGrossesse:
-  -- DernierJourMoisPrécédantDateDeNaissance contenu date
+  -- DateDeNaissance contenu date
   -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse
   -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse
 
@@ -267,7 +276,8 @@ déclaration énumération InformationsCalculAPL:
 
 ```catala-metadata
 déclaration structure PersonneVivantHabituellementAuFoyer:
-  donnée durée_résidence_durant_période_r_822_3_1 contenu durée
+  donnée durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
+    contenu booléen
   donnée ressources contenu argent
 
 déclaration énumération PaiementLogementDistinctProfessionnel:
@@ -306,12 +316,12 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   # Différentes conditions pour l'éligibilité
   interne condition_prêt condition dépend de Prêt
   interne condition_nationalité condition
-  interne condition_logement_résidence_principale condition
+  contexte condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
   interne condition_logement_surface_minimale_sans_seuil_m_carrés
     contenu entier
-  interne condition_logement_surface condition
+  contexte condition_logement_surface condition
   interne condition_non_ouverture_l822_8 condition
   interne condition_non_ouverture_l822_9_decence_logement condition
   interne condition_non_ouverture_l822_10_peuplement_logement condition
@@ -540,7 +550,7 @@ déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   sortie montant contenu argent dépend de argent
 ```
 
-### Calcul du montant de l'aide personnelle au logement
+### Calcul du montant de l'aide personnalisée au logement
 
 #### Secteur locatif
 
@@ -600,6 +610,25 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 #### Secteur logement-foyer
 
 ```catala-metadata
+déclaration champ d'application CalculÉquivalenceLoyerMinimale:
+  entrée ressources_ménage_arrondies contenu argent
+  entrée condition_2_du_832_25 contenu booléen
+  entrée n_nombre_parts_d832_25 contenu décimal
+
+  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
+  interne tranches_revenus_d832_26_multipliées contenu
+    collection TrancheRevenuDécimal
+  interne montant_forfaitaire_d832_26 contenu argent
+
+  sortie montant contenu argent
+
+déclaration champ d'application CalculNombrePartLogementFoyer:
+  entrée condition_2_du_832_25 contenu booléen
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+
+  sortie n_nombre_parts_d832_25 contenu décimal
+
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   entrée mode_occupation contenu ModeOccupation
   entrée ressources_ménage_arrondies contenu argent
@@ -613,19 +642,20 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
 
   sortie coefficient_multiplicateur_d832_25 contenu argent
   sortie coefficient_r_d832_25 contenu argent
-  sortie n_nombre_parts_d832_25 contenu décimal
-  interne équivalence_loyer_éligible contenu argent
+  contexte sortie n_nombre_parts_d832_25 contenu décimal
+  sortie équivalence_loyer_éligible contenu argent
   sortie plafond_équivalence_loyer_éligible contenu argent
   interne abattement_dépense_nette_minimale_d832_27
     contenu argent dépend de argent
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
   interne montant_forfaitaire_d832_24 contenu argent
-  interne montant_forfaitaire_d832_26 contenu argent
   interne montant_forfaitaire_d832_27 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
-  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
-  interne tranches_revenus_d832_26_multipliées contenu collection TrancheRevenu
+  sortie équivalence_loyer_minimale contenu argent
 
+  calcul_nombre_parts champ d'application CalculNombrePartLogementFoyer
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
@@ -633,7 +663,6 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     état formule
     état arrondi
     état seuil
-  sortie équivalence_minimale_loyer contenu argent
 
   sortie aide_finale_formule contenu argent
   sortie traitement_aide_finale contenu argent dépend de argent
@@ -649,6 +678,13 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 #### Secteur accession à la propriété
 
 ```catala-metadata
+déclaration champ d'application CalculNombrePartsAccessionPropriété:
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+
+  sortie n_nombre_parts_d832_11 contenu décimal
+
+
 déclaration champ d'application
   CalculAidePersonnaliséeLogementAccessionPropriété:
   entrée mensualité_principale contenu argent
@@ -661,20 +697,19 @@ déclaration champ d'application
   entrée date_entrée_logement contenu date
   entrée copropriété contenu booléen
   entrée situation_r822_11_13_17 contenu booléen
-  entrée équivalence_minimale_loyer contenu argent
   entrée zone contenu ZoneDHabitation
   entrée type_prêt contenu TypePrêt
   entrée ancienneté_logement contenu NeufOuAncien
   entrée date_courante contenu date
 
-  interne mensualité_éligible contenu argent
-  interne mensualité_minimale contenu argent
+  sortie mensualité_éligible contenu argent
+  sortie mensualité_minimale contenu argent
   interne plafond_mensualité_d832_10_3 contenu argent
     état base
     état copropriétaires
   interne calcul_plafond_mensualité_d832_10_3 contenu argent dépend de date
   interne n_nombre_parts_d832_11 contenu décimal
-  interne coefficient_prise_en_charge_d832_10 contenu décimal
+  sortie coefficient_prise_en_charge_d832_10 contenu décimal
     état formule
     état arrondi
     état seuil
@@ -693,6 +728,9 @@ déclaration champ d'application
   interne taux_tranche_supérieure_d832_15_1 contenu décimal
   interne taux_francs_vers_euros contenu décimal
 
+  calcul_nombre_parts champ d'application CalculNombrePartsAccessionPropriété
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
@@ -794,7 +832,8 @@ champ d'application CalculAllocationLogementLocatif:
   définition calcul_apl_locatif.logement_est_chambre égal à
     logement_est_chambre
   définition
-    calcul_apl_locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    calcul_apl_locatif.
+      âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à
     âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   définition calcul_apl_locatif.type_aide égal à
@@ -850,10 +889,13 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne coefficient_d842_11 contenu décimal
   interne coefficient_d842_12 contenu décimal
 
+  calcul_nombre_parts champ d'application CalculNombrePartsAccessionPropriété
   calcul_apl_logement_foyer champ d'application
     CalculAidePersonnaliséeLogementFoyer
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
 
   sortie aide_finale_formule contenu argent
 
@@ -873,7 +915,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     RésidentLogementFoyer contenu (LogementFoyer {
       -- type: RésidenceSociale
       -- date_conventionnement: |2022-01-01|
-      -- pour_jeunes_travailleurs_III_12_loi_1957: faux
+      -- construit_application_loi_1957_12_III: faux
       -- location: Location {
         -- bailleur: Bailleur {
           -- type_bailleur: BailleurSocial
@@ -924,10 +966,13 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   sortie montant_forfaitaire_charges contenu argent
   sortie loyer_minimal contenu argent
 
+  calcul_nombre_parts champ d'application CalculNombrePartLogementFoyer
   calcul_apl_logement_foyer champ d'application
     CalculAidePersonnaliséeLogementFoyer
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
+  calcul_équivalence_loyer_minimale champ d'application
+    CalculÉquivalenceLoyerMinimale
 
   sortie aide_finale_formule contenu argent
   sortie traitement_aide_finale contenu argent dépend de argent
@@ -1083,7 +1128,9 @@ champ d'application CalculetteAidesAuLogement:
     ménage.situation_familiale
   définition calcul_allocation_logement.situation_familiale égal à
     ménage.situation_familiale
-  définition calcul_aide_personnalisée_logement.nombre_personnes_à_charge égal à
+  définition
+    calcul_aide_personnalisée_logement.nombre_personnes_à_charge
+  égal à
     éligibilité_aide_personnalisée_logement.
       nombre_personnes_à_charge_prises_en_compte
   définition calcul_allocation_logement.nombre_personnes_à_charge égal à

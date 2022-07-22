@@ -126,9 +126,6 @@ unit_literal:
 | MONTH { (Month, Pos.from_lpos $sloc) }
 | DAY { (Day, Pos.from_lpos $sloc) }
 
-date_int:
-| d = INT_LITERAL { (int_of_string d, Pos.from_lpos $sloc) }
-
 literal:
 | l = num_literal u = option(unit_literal) {
   (LNumber (l, u), Pos.from_lpos $sloc)
@@ -140,7 +137,8 @@ literal:
     money_amount_cents = cents;
   }, Pos.from_lpos $sloc)
 }
-| VERTICAL y = date_int MINUS m = date_int MINUS d = date_int VERTICAL {
+| VERTICAL d = DATE_LITERAL VERTICAL {
+  let (y,m,d) = d in
   (LDate {
     literal_date_year = y;
     literal_date_month = m;

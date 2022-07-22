@@ -9,8 +9,10 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
+from this import d
 from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, f_div, sign  # type: ignore
 import datetime
+import calendar
 import dateutil.relativedelta
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union, Any
 from functools import reduce
@@ -407,6 +409,13 @@ def money_round(m: Money) -> Money:
     else:
         return (res + sign(res)) * 100
 
+
+def money_of_decimal(m: Decimal) -> Money:
+    """
+    Warning: rounds to nearest cent.
+    """
+    return Money(mpz(m.value))
+
 # --------
 # Decimals
 # --------
@@ -436,6 +445,10 @@ def decimal_round(q: Decimal) -> Decimal:
     # Implements the workaround by
     # https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
     return f_div(2*q.numerator + q.denominator, 2*q.denominator)  # type:ignore
+
+
+def decimal_of_money(m: Money) -> Decimal:
+    return Decimal(f_div(mpq(m.value), mpq(100)))
 
 # --------
 # Integers
@@ -494,6 +507,14 @@ def date_of_numbers(year: int, month: int, day: int) -> Date:
 
 def date_of_datetime(d: datetime.date) -> Date:
     return Date(d)
+
+
+def first_day_of_month(d: Date) -> Date:
+    return Date(datetime.date(d.value.year, d.value.month, 1))
+
+
+def last_day_of_month(d: Date) -> Date:
+    return Date(datetime.date(d.value.year, d.value.month, calendar.monthrange(d.value.year, d.value.month)[1]))
 
 # ---------
 # Durations

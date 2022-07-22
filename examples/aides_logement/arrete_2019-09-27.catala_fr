@@ -294,8 +294,11 @@ défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,3
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition participation_minimale égal à
-    si loyer_éligible *€ 8,5% >=€ 35,39 € alors
-      loyer_éligible *€ 8,5%
+    si
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16)
+        *€ 8,5% >=€ 35,39 €
+    alors
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16) *€ 8,5%
     sinon
       35,39 €
 ```
@@ -613,10 +616,6 @@ Par personne supplémentaire à charge	                   430	  379     346
 # l'avènement de l'euro mais pour le calcul des APL en euros il faut
 # que la mensualité plafond soit exprimée en euros. Donc nous convertissons.
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  # TODO juridique: trouver le décret ou la loi qui définit ce taux de
-  #  conversion.
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
-
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
@@ -2565,7 +2564,7 @@ du 1er octobre 2021.
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété sous condition
   date_courante >=@ |2021-10-01|:
 
-  définition montant_forfaitaire_charges_d832_10 égal à
+  étiquette base définition montant_forfaitaire_charges_d832_10 égal à
     54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
@@ -2643,13 +2642,13 @@ Majoration par personne à charge 12,29
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
   sous condition date_courante >=@ |2021-10-01|:
-   exception définition montant_forfaitaire_charges_d832_10 sous condition
-     copropriété
-   conséquence égal à
-    (selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 27,10€
-      -- Couple: 54,22€) +€
-    12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    exception base définition montant_forfaitaire_charges_d832_10 sous condition
+      copropriété
+    conséquence égal à
+     (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 27,10€
+       -- Couple: 54,22€) +€
+     12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -2826,30 +2825,38 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26 égal à [
-    TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
     TrancheRevenu {
-      -- haut: Revenu contenu 2678,71€
+      -- haut: LimiteTranche.Revenu contenu 1948,10€
+      -- bas: 0€
+      -- taux: 4%
+    };
+    TrancheRevenu {
+      -- haut: LimiteTranche.Revenu contenu 2678,71€
       -- bas: 1948,10€
       -- taux: 10,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 3896,18€
+      -- haut: LimiteTranche.Revenu contenu 3896,18€
       -- bas: 2678,71€
       -- taux: 21,60%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 5 357,44€
+      -- haut: LimiteTranche.Revenu contenu 5 357,44€
       -- bas: 3896,18€
       -- taux: 26,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 6 331,29€
+      -- haut: LimiteTranche.Revenu contenu 6 331,29€
       -- bas: 5 357,44€
       -- taux: 32%
     };
-    TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
+    TrancheRevenu {
+      -- haut: LimiteTranche.Infini
+      -- bas: 6 331,29€
+      -- taux: 48%
+    }
   ]
 
   # Cette exception ne figure pas dans le texte de l'arrête mais cette absence
@@ -2860,23 +2867,31 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   exception définition tranches_revenus_d832_26 sous condition
     condition_2_du_832_25
   conséquence égal à [
-    TrancheRevenu { -- haut: Revenu contenu 1423,03€  -- bas: 0€ -- taux: 0%};
     TrancheRevenu {
-      -- haut: Revenu contenu 2047,61€
+      -- haut: LimiteTranche.Revenu contenu 1423,03€
+      -- bas: 0€
+      -- taux: 0%
+    };
+    TrancheRevenu {
+      -- haut: LimiteTranche.Revenu contenu 2047,61€
       -- bas: 1423,03€
       -- taux: 2,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 2629,85€
+      -- haut: LimiteTranche.Revenu contenu 2629,85€
       -- bas: 2047,61€
       -- taux: 20,80%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 4095,05€
+      -- haut: LimiteTranche.Revenu contenu 4095,05€
       -- bas: 2629,85€
       -- taux: 23,20%
     };
-    TrancheRevenu { -- haut: Infini  -- bas: 4095,05€ -- taux: 32,80%}
+    TrancheRevenu {
+      -- haut: LimiteTranche.Infini
+      -- bas: 4095,05€
+      -- taux: 32,80%
+    }
   ]
 ```
 
@@ -2884,7 +2899,7 @@ II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas so
 fixés respectivement à 45,57 et 76,32.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition montant_forfaitaire_d832_26 égal à
     si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
 ```
@@ -3101,10 +3116,6 @@ pour les prestations dues à compter du 1er janvier 2020.
 # Selon DGALN/DHUP/FE4 en date du 01/06/2022, la bonne valeur est "287,27"
 # qui provient de l'article 2 de l'arrêté du 20 décembre 2002 relatif à la
 # revalorisation des aides au logement
-
-champ d'application CalculAllocationLogementAccessionPropriété:
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
-
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
   date_courante >=@ |2020-01-01|:
 

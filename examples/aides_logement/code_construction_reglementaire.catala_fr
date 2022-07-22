@@ -83,8 +83,6 @@ applicables à ces catégories de prêts et le droit à l'allocation de logement
 est éteint à compter de l'ouverture du droit à l'aide personnalisée.
 
 ```catala
-# TODO juridique: quelle est la différence entre "allocation de logement" et
-# "aide personnalisée".
 # Hypothèse : peut-être que cet article est une disposition de transition avec
 # la période où les allocations de logement n'étaient pas fusionnées en aide
 # personnalisée au logement.
@@ -142,13 +140,17 @@ droit à celle-ci.
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
-    personne.durée_résidence_durant_période_r_822_3_1 >=^ 6 mois
-# TODO informatique et juridique: la comparaison avec 6 mois est ambiguë!
-# Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
-# des différentes périodes mentionnées et en forçant l'utilisateur à bien
-# remplir toutes ses périodes de résidence mais cela rendrait le formulaire
-# plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
-# comme celui utilisé à la CNAF.
+    personne.durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
+  # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
+  # des différentes périodes mentionnées et en forçant l'utilisateur à bien
+  # remplir toutes ses périodes de résidence mais cela rendrait le formulaire
+  # plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
+  # comme celui utilisé à la CNAF. On pourrait également laisser l'utilisateur
+  # spécifier une durée en jours mais cela aurait deux inconvénients :
+  # premièrement c'est une intrusion dans la vie privée du potentiel
+  # bénéficiaire (cette information serait nécéssaire en cas de contrôle mais
+  # pas dans tous les cas), et deuxièmement la comparaison d'un nombre de jours
+  # avec "6 mois" est computationellement ambiguë.
 ```
 
 NOTA:
@@ -1172,15 +1174,18 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
         parent.parenté = Ascendant et
-        parent.AutrePersonneÀCharge.ressources <=€ plafond_individuel_l815_9_sécu *€ 1,25 et
+        parent.AutrePersonneÀCharge.ressources <=€
+          plafond_individuel_l815_9_sécu *€ 1,25 et
         (
-          (parent.AutrePersonneÀCharge.âge >=^ âge_l351_8_1_sécu ou
-          # TODO informatique: changer l'encodage de âge vers un entier
-            (parent.titulaire_allocation_personne_âgée et
-              parent.AutrePersonneÀCharge.âge >=^ 65 an)
+          (parent.AutrePersonneÀCharge.date_naissance +@
+            âge_l351_8_1_sécu <=@ date_courante ou
+              (parent.titulaire_allocation_personne_âgée et
+                parent.AutrePersonneÀCharge.date_naissance +@ 65 an <=@
+                  date_courante)
           ) ou
-          (parent.AutrePersonneÀCharge.âge >=^ âge_l161_17_2_sécu et
-            parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
+          (parent.AutrePersonneÀCharge.date_naissance +@
+            âge_l161_17_2_sécu <=@ date_courante et
+              parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
         )
   conséquence rempli
 
@@ -2134,8 +2139,9 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       (selon date_naissance_ou_grossesse sous forme
       -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse: faux
       -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse: vrai
-      -- DernierJourMoisPrécédantDateDeNaissance de date_naissance:
-        date_courante <=@ date_naissance +@ 2 an)
+      -- DateDeNaissance de date_naissance:
+        date_courante <=@
+          ((premier_jour_du_mois de (date_naissance +@ 2 an))) +@ (-1 jour))
     )
   conséquence rempli
 
@@ -3273,8 +3279,6 @@ Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition coefficient_prise_en_charge_d832_10 état arrondi égal à
-    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
-    # à partir d'un arrondi au plus proche à l'unité.
     (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 -. 0,005)
       *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_10 état seuil égal à
@@ -3323,7 +3327,7 @@ majoration par personne à charge supplémentaire              0,5
 ------------------------------------------------------------ ---
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculNombrePartsAccessionPropriété:
   définition n_nombre_parts_d832_11 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -3341,6 +3345,14 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
       ( 4,3 +. (0,5 *. (entier_vers_décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
+
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  définition n_nombre_parts_d832_11 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_11
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
 ```
 
 ####### Article D832-12 | LEGIARTI000039048893
@@ -3481,25 +3493,48 @@ se situent les ressources ;
 
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_minimale sous condition
-    type_travaux_logement sous forme SurLocauxNonHabitation
+    type_travaux_logement sous forme TravauxPourAcquisitionD832_15_1 ou
+    # Comment interpetéter le R832-5 dans
+    # le cas d'un prêt conventionné D331-63 alinéa 3° où le prêt finance
+    # l'acquisition d'un logement existant sans travaux et donc sans
+    # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
+    # peut-on nous confirmer que le montant de la mensualité minimale est bien
+    # calculée selon l'alinéa 1° de D832-15 ?
+    # Réponse de DGALN/DHUP/FE4 le 25/05/2022:
+    # "Le demandeur est éligible à l’APL qui est calculée selon l’alinéa 1°
+    #  du D832-15. Le 2° ne concerne que les travaux d’amélioration."
+    # La réponse à notre question est bien oui pour les deux items,
+    # d'où la ligne ci-dessous.
+    type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
   conséquence égal à
-    # Pour la tranche supérieure
-    (si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
-      n_nombre_parts_d832_11 >=€ 0€
-    alors
-      (ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
-        n_nombre_parts_d832_11) *€
-      taux_tranche_supérieure_d832_15_1
-    sinon 0 €) +€
-    # Pour la tranche inférieure
-    (si ressources_ménage_arrondies -€ montant_limite_tranches_d832_15_1 *€
-      n_nombre_parts_d832_11 <=€ 0€
-    alors
-      ressources_ménage_arrondies *€ taux_tranche_inférieure_d832_15_1
-    sinon
-      (montant_limite_tranches_d832_15_1 *€
-        taux_tranche_inférieure_d832_15_1))
-    *€ (1,0/.12,0)
+    # Selon un mail de DGALN/DHUP/FE4 du 19/07/2022, il nest nécessaire pour le
+    # calcul de cette mensualité minimale de garder une précision infinie
+    # durant toutes les étapes du calcul. En Catala, nous utilisons donc le type
+    # décimal plutôt que argent qui arrondi systématiquement au centime près
+    # à chaque étape de calcul.
+    décimal_vers_argent de (
+      ((si
+        # Pour la tranche supérieure
+        argent_vers_décimal de ressources_ménage_arrondies >=.
+          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+            n_nombre_parts_d832_11)
+      alors
+        ((argent_vers_décimal de ressources_ménage_arrondies -.
+          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+          n_nombre_parts_d832_11)) *. taux_tranche_supérieure_d832_15_1)
+      sinon 0,0) +.
+      (si
+        # Pour la tranche inférieure
+        argent_vers_décimal de ressources_ménage_arrondies <=.
+          argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+            n_nombre_parts_d832_11
+      alors
+        argent_vers_décimal de ressources_ménage_arrondies *.
+          taux_tranche_inférieure_d832_15_1
+      sinon
+        ((argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
+          n_nombre_parts_d832_11) *.
+            taux_tranche_inférieure_d832_15_1))) /. 12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
 
@@ -3509,40 +3544,18 @@ mensualité minimale " L0 " se substitue à l'équivalence minimale de loyer et 
 charges " E0 ".
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogement:
-  # Ce calcul marche car l'équivalence minimale de loyers ne dépend que
-  # de la situation familiale et des ressources du ménage. Afin de bien
-  # avoir le premier alinéa du D832-26 et non le second, il nous faut remettre
-  # à zéro la condition_2_du_832_25 qui contrôle dans le champ d'application
-  # CalculAidePersonnaliséeLogementFoyer comment l'équivalence minimale de loyer
-  # est calculée.
-
-  définition logement_foyer.condition_2_du_832_25 sous condition
-    catégorie_calcul_apl sous forme AccessionPropriété
-  conséquence égal à faux
-
-  # TODO recherche: citer cette structure de calcul comme un bon cas d'usage
-  # de la fonctionnalité "contexte" de Catala.
-  définition accession_propriété.équivalence_minimale_loyer égal à
-    logement_foyer.équivalence_minimale_loyer
-
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_minimale sous condition
-    type_travaux_logement sous forme SurLogementExistant ou
-    # Comment interpetéter le R832-5 dans
-    # le cas d'un prêt conventionné D331-63 alinéa 3° où le prêt finance
-    # l'acquisition d'un logement existant sans travaux et donc sans
-    # amélioration; le demandeur est-il éligible à l'APL de ce cas et si oui,
-    # peut-on nous confirmer que le montant de la mensualité minimale est bien
-    # calculée selon l'alinéa 2° de D832-15 ?
-    # Réponse de DGALN/DHUP/FE4 le 25/05/2022:
-    # "Le demandeur est éligible à l’APL qui est calculée selon l’alinéa 1°
-    #  du D832-15. Le 2° ne concerne que les travaux d’amélioration."
-    # La réponse à notre question est bien oui pour les deux items,
-    # d'où la ligne ci-dessous.
-    type_travaux_logement sous forme TypeTravauxLogementD832_15.PasDeTravaux
+    type_travaux_logement sous forme TravauxSurLogementDéjàAcquisD832_15_2
   conséquence égal à
-    équivalence_minimale_loyer
+    calcul_équivalence_loyer_minimale.montant
+
+  # Mettre la condition à "faux" permet d'activer le premier alinéa de D832-26
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à faux
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+    égal à ressources_ménage_arrondies
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    n_nombre_parts_d832_11
 ```
 
 ####### Article D832-16 | LEGIARTI000041477280
@@ -3685,6 +3698,10 @@ déclaration énumération TypeLogementFoyer:
   -- LogementPersonnesÂgéesOuHandicapées
   -- RésidenceSociale
   -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995
+  -- Autre # TODO juridique: confirmer la présence de ce variant autre
+           # qui correspond aux logement mentionnés au R832-21, bien que
+           # la formulation de R832-20 semble impliquer que seuls les 3
+           # variants du dessus existent.
 ```
 
 ######## Article R832-21 | LEGIARTI000039048891
@@ -3782,10 +3799,10 @@ $$\textrm{Af} = \textrm{K} \times (\textrm{E}-\textrm{E0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale_formule égal à
-    si (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+    si (équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
       coefficient_prise_en_charge_d832_25 <€ 0 €
     alors 0 € sinon
-      ((équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+      ((équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
       coefficient_prise_en_charge_d832_25)
 ```
 
@@ -3811,6 +3828,18 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 4° " E0 " est l'équivalence de loyer et de charges locatives minimale ; elle est calculée selon
 les dispositions de l'article D. 832-26.
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  définition équivalence_loyer_minimale égal à
+    calcul_équivalence_loyer_minimale.montant
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à
+    condition_2_du_832_25
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+    égal à ressources_ménage_arrondies
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    n_nombre_parts_d832_25
+```
 
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
 
@@ -3924,8 +3953,6 @@ calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état arrondi égal à
-    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
-    # à partir d'un arrondi au plus proche à l'unité.
     (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
       *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil égal à
@@ -3954,7 +3981,7 @@ majoration par personne à charge supplémentaire	              0,5
 ------------------------------------------------------------- ---
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculNombrePartLogementFoyer:
   définition n_nombre_parts_d832_25 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -3972,6 +3999,16 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
       ( 4,3 +. (0,5 *. (entier_vers_décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
+
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_nombre_parts.condition_2_du_832_25 égal à
+    condition_2_du_832_25
+  définition n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_25
 ```
 
 2°
@@ -4001,8 +4038,6 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   sous condition
     condition_2_du_832_25
   conséquence égal à
-    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
-    # à partir d'un arrondi au plus proche à l'unité.
     (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
       *. 100,0)) /. 100,0
   exception définition coefficient_prise_en_charge_d832_25 état seuil
@@ -4032,7 +4067,7 @@ majoration par personne à charge supplémentaire	             0,5
 ------------------------------------------------------------ ---
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculNombrePartLogementFoyer:
   exception définition n_nombre_parts_d832_25 sous condition
     condition_2_du_832_25
   conséquence égal à
@@ -4063,34 +4098,52 @@ de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfait
 nombre de parts " N ", le total étant divisé par douze.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+# Selon un mail de DGALN/DHUP/FE4 du 19/07/2022, il nest nécessaire pour le
+# calcul de cette équivalence de loyer de garder une précision infinie durant
+# toutes les étapes du calcul. En Catala, nous utilisons donc le type
+# décimal plutôt que argent qui arrondi systématiquement au centime près
+# à chaque étape de calcul.
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26_multipliées égal à
     application pour tranche dans tranches_revenus_d832_26 de
-      TrancheRevenu {
-        -- haut: (selon tranche.haut sous forme
-          -- Infini: Infini
-          -- Revenu de tranche_haut:
-            Revenu contenu (tranche_haut *€ n_nombre_parts_d832_25))
-        -- bas: tranche.bas *€ n_nombre_parts_d832_25
-        -- taux: tranche.taux
+      TrancheRevenuDécimal {
+        -- haut: (selon tranche.TrancheRevenu.haut sous forme
+          -- LimiteTranche.Infini: LimiteTrancheDécimal.Infini
+          -- LimiteTranche.Revenu de tranche_haut:
+            LimiteTrancheDécimal.Revenu contenu
+              ((argent_vers_décimal de tranche_haut) *. n_nombre_parts_d832_25))
+        -- bas: argent_vers_décimal de tranche.TrancheRevenu.bas *.
+          n_nombre_parts_d832_25
+        -- taux: tranche.TrancheRevenu.taux
       }
 
-  définition équivalence_minimale_loyer égal à
-    (((somme argent pour tranche dans tranches_revenus_d832_26_multipliées de
-      (si ressources_ménage_arrondies <=€ tranche.bas
-      alors 0€
-      sinon
-        (selon tranche.haut sous forme
-        -- Revenu de tranche_haut:
-          (si ressources_ménage_arrondies >=€ tranche_haut
-          alors
-            (tranche_haut -€ tranche.bas) *€ tranche.taux
-          sinon
-            ((ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux))
-        -- Infini:
-          (ressources_ménage_arrondies -€ tranche.bas) *€ tranche.taux)
-      ))) +€
-    montant_forfaitaire_d832_26 *€ n_nombre_parts_d832_25) *€ (1,0 /. 12,0)
+  définition montant égal à
+    décimal_vers_argent de (
+      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
+        (si
+          argent_vers_décimal de ressources_ménage_arrondies <=.
+            tranche.TrancheRevenuDécimal.bas
+        alors 0,0
+        sinon
+          (selon tranche.TrancheRevenuDécimal.haut sous forme
+          -- LimiteTrancheDécimal.Revenu de tranche_haut:
+            (si
+              argent_vers_décimal de ressources_ménage_arrondies >=.
+                tranche_haut
+            alors
+              (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux
+            sinon
+              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+                tranche.TrancheRevenuDécimal.bas) *.
+                  tranche.TrancheRevenuDécimal.taux))
+          -- LimiteTrancheDécimal.Infini:
+            (argent_vers_décimal de ressources_ménage_arrondies -.
+              tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux)
+        ))) +.
+      argent_vers_décimal de montant_forfaitaire_d832_26 *.
+        n_nombre_parts_d832_25) /. 12,0)
 ```
 
 Toutefois, pour les logements-foyers de jeunes travailleurs et pour les résidences sociales
@@ -4100,8 +4153,35 @@ multipliées par le nombre de parts " N " défini au d du 2° de l'article D. 83
 est majoré d'un montant forfaitaire, le total étant alors divisé par douze.
 
 ```catala
-# Contrairement au texte de loi, nous avons factorisé le code (définition de
-# n_nombre_parts_d832_25 avec case de base et exception pour le 1° et 2°).
+champ d'application CalculÉquivalenceLoyerMinimale:
+  exception définition montant sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    décimal_vers_argent de (
+      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
+        (si
+          argent_vers_décimal de ressources_ménage_arrondies <=.
+            tranche.TrancheRevenuDécimal.bas
+        alors 0,0
+        sinon
+          (selon tranche.TrancheRevenuDécimal.haut sous forme
+          -- LimiteTrancheDécimal.Revenu de tranche_haut:
+            (si
+              argent_vers_décimal de ressources_ménage_arrondies >=.
+                tranche_haut
+            alors
+              (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux
+            sinon
+              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+                tranche.TrancheRevenuDécimal.bas) *.
+                  tranche.TrancheRevenuDécimal.taux))
+          -- LimiteTrancheDécimal.Infini:
+            (argent_vers_décimal de ressources_ménage_arrondies -.
+              tranche.TrancheRevenuDécimal.bas) *.
+                tranche.TrancheRevenuDécimal.taux)
+        ))) +.
+      argent_vers_décimal de montant_forfaitaire_d832_26) /. 12,0)
 ```
 
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle
@@ -4377,6 +4457,13 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   # foyer prenne bien le 2° du D832-25 et non pas le 1°.
   définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à
     vrai
+  # Attention ! Le calcul de K dépend également du nombre de parts N, qui
+  # est différent selon que l'on soit en secteur accession-propriété ou
+  # en secteur logement-foyer. Ici, nous sommes en secteur accession
+  # propriété donc il faut que le nombre de parts pris en compte pour le calcul
+  # soit le nombre de parts accession-propriété.
+  définition calcul_apl_logement_foyer.n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_11
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
@@ -4405,7 +4492,18 @@ l'article D. 832-26, dans lesquelles elle se substitue à " E0 ".
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition mensualité_minimale égal à
-    calcul_apl_logement_foyer.équivalence_minimale_loyer
+    calcul_équivalence_loyer_minimale.montant
+
+  # Mettre la condition à "faux" permet d'activer le deuxième alinéa de D832-26
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à vrai
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+  égal à ressources_ménage_arrondies
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_11
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
 ```
 
 Ce résultat, ainsi calculé, est minoré d'un montant fixé forfaitairement par arrêté.
@@ -4721,8 +4819,14 @@ application du III de l'article 12 de la loi n° 57-908 du 7 août 1957 tendant
 à favoriser la construction de logements et les équipements collectifs.
 
 ```catala
-# TODO informatique: dépend du refactoring pour dégager les règles communes
-# d'éligibilité aux aides personnelles au logement. Ceci est une exception.
+champ d'application ÉligibilitéAllocationLogement sous condition
+  selon ménage.logement.mode_occupation sous forme
+    -- RésidentLogementFoyer de logement_foyer:
+      logement_foyer.construit_application_loi_1957_12_III
+    -- n'importe quel: faux:
+
+  règle éligibilité_commune.condition_logement_résidence_principale rempli
+  règle éligibilité_commune.condition_logement_surface rempli
 ```
 
 ####### Article D842-15 | LEGIARTI000038878655
@@ -4784,10 +4888,20 @@ champ d'application CalculAllocationLogementFoyer:
   # En définissant comme vraie la condition du 2° de D832-25, on accède
   # logiquement aux disposition du deuxième alinéa de D832-26 (voir le jeu
   # des renvois).
+  définition calcul_équivalence_loyer_minimale.condition_2_du_832_25 égal à vrai
+  définition calcul_équivalence_loyer_minimale.ressources_ménage_arrondies
+    égal à ressources_ménage_arrondies
 
-  définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à vrai
+  définition calcul_nombre_parts.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
+   situation_familiale_calcul_apl
+  définition calcul_nombre_parts.condition_2_du_832_25 égal à vrai
+
+  définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
+    calcul_nombre_parts.n_nombre_parts_d832_25
   définition loyer_minimal égal à
-    calcul_apl_logement_foyer.équivalence_minimale_loyer
+    calcul_équivalence_loyer_minimale.montant
 ```
 
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.

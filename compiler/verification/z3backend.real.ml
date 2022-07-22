@@ -591,6 +591,12 @@ let rec translate_op
     | IntToRat ->
       failwith
         "[Z3 encoding] application of unary operator IntToRat not supported"
+    | MoneyToRat ->
+      failwith
+        "[Z3 encoding] application of unary operator MoneyToRat not supported"
+    | RatToMoney ->
+      failwith
+        "[Z3 encoding] application of unary operator RatToMoney not supported"
     | GetDay ->
       failwith
         "[Z3 encoding] application of unary operator GetDay not supported"
@@ -601,6 +607,14 @@ let rec translate_op
       failwith
         "[Z3 encoding] GetYear operator only supported in comparisons with \
          literal"
+    | FirstDayOfMonth ->
+      failwith
+        "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
+         with literal"
+    | LastDayOfMonth ->
+      failwith
+        "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
+         with literal"
     | RoundDecimal ->
       failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
     | RoundMoney ->

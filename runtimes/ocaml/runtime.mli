@@ -229,6 +229,7 @@ val decimal_of_integer : integer -> decimal
 val decimal_of_float : float -> decimal
 val decimal_to_float : decimal -> float
 val decimal_round : decimal -> decimal
+val decimal_of_money : money -> decimal
 
 (**{2 Integers} *)
 
@@ -250,6 +251,9 @@ val date_of_numbers : int -> int -> int -> date
 (** Usage: [date_of_numbers year month day]
 
     @raise ImpossibleDate *)
+
+val first_day_of_month : date -> date
+val last_day_of_month : date -> date
 
 (**{2 Durations} *)
 

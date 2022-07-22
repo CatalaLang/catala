@@ -9,8 +9,9 @@ déclaration champ d'application CasTest1 :
 
 champ d'application CasTest1:
   définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
-    -- type : LogementPersonnesÂgéesOuHandicapées
+    -- type : TypeLogementFoyer.Autre
     -- date_conventionnement : |2022-01-01|
+    -- construit_application_loi_1957_12_III: faux
     -- location : Location {
           -- bailleur: Bailleur {
             -- type_bailleur: BailleurSocial
@@ -20,8 +21,7 @@ champ d'application CasTest1:
             -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
           }
         }
-    -- remplit_conditions_r832_21 : faux
-    -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
+    -- remplit_conditions_r832_21 : vrai
   })
   définition calcul.redevance égal à 360 €
   définition calcul.ressources_ménage_arrondies égal à 15 000€
@@ -34,7 +34,7 @@ champ d'application CasTest1:
   assertion calcul.n_nombre_parts_d832_25 = 1,8
   assertion calcul.coefficient_prise_en_charge_d832_25 = 0,41
   assertion calcul.plafond_équivalence_loyer_éligible = 450,57 €
-  assertion calcul.équivalence_minimale_loyer = 318,13 €
+  assertion calcul.équivalence_loyer_minimale = 318,12 €
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
   assertion montant = 12,06 €
 
@@ -44,8 +44,9 @@ déclaration champ d'application CasTest2 :
 
 champ d'application CasTest2:
   définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
-    -- type : LogementPersonnesÂgéesOuHandicapées
+    -- type : TypeLogementFoyer.Autre
     -- date_conventionnement : |2022-01-01|
+    -- construit_application_loi_1957_12_III: faux
     -- location : Location {
           -- bailleur: Bailleur {
             -- type_bailleur: BailleurSocial
@@ -55,8 +56,7 @@ champ d'application CasTest2:
             -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
           }
         }
-    -- remplit_conditions_r832_21 : faux
-    -- pour_jeunes_travailleurs_III_12_loi_1957 : faux
+    -- remplit_conditions_r832_21 : vrai
   })
   définition calcul.redevance égal à 360 €
   définition calcul.ressources_ménage_arrondies égal à 15 000€
@@ -68,10 +68,126 @@ champ d'application CasTest2:
     PersonnesÂgéesSelon3DeD842_16
   assertion calcul.équivalence_loyer = 320,73 €
   assertion calcul.montant_forfaitaire_charges = 54,22 €
-  assertion calcul.loyer_minimal = 311,15 €
+  assertion calcul.loyer_minimal = 307,96 €
   assertion calcul.coefficient_prise_en_charge = 0,43
+  définition montant égal à
+    calcul.traitement_aide_finale de
+    calcul.aide_finale_formule
+  assertion montant = 23,12 €
+```
+
+```catala
+# Tiré de la page 34 de
+# https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=34
+déclaration champ d'application CasTest3 :
+  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  sortie montant contenu argent
+
+champ d'application CasTest3:
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
+    -- type : TypeLogementFoyer.Autre
+    -- date_conventionnement : |2020-01-01|
+    -- construit_application_loi_1957_12_III: faux
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
+        }
+    -- remplit_conditions_r832_21 : vrai
+  })
+  définition calcul.redevance égal à 350 €
+  définition calcul.ressources_ménage_arrondies égal à 7 500€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.zone égal à Zone1
+  définition calcul.date_courante égal à |2021-09-15|
+  assertion calcul.équivalence_loyer_éligible = 350 €
+  assertion calcul.plafond_équivalence_loyer_éligible = 444,43€
+  assertion calcul.équivalence_loyer_minimale = 98,95 €
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,64
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
-  assertion montant = 22,11 €
+  assertion montant = 154,78 €
+```
+
+
+```catala
+# Transmis par DGALN/DHUP/FE4 le 14/07/2022
+déclaration champ d'application CasTest4 :
+  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  sortie montant contenu argent
+
+champ d'application CasTest4:
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
+    -- type : TypeLogementFoyer.Autre
+    -- date_conventionnement : |2020-01-01|
+    -- construit_application_loi_1957_12_III: faux
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
+        }
+    -- remplit_conditions_r832_21 : vrai
+  })
+  définition calcul.redevance égal à 350 €
+  définition calcul.ressources_ménage_arrondies égal à 7 500€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.zone égal à Zone1
+  définition calcul.date_courante égal à |2022-05-01|
+  assertion calcul.équivalence_loyer_éligible = 350 €
+  assertion calcul.plafond_équivalence_loyer_éligible = 446,30€
+  assertion calcul.équivalence_loyer_minimale = 98,95 €
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,64
+  définition montant égal à
+    calcul.traitement_aide_finale de
+    calcul.aide_finale_formule
+  assertion montant = 154,78 €
+```
+
+```catala
+# Transmis par DGALN/DHUP/FE4 le 14/07/2022
+déclaration champ d'application CasTest5 :
+  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  sortie montant contenu argent
+
+champ d'application CasTest5:
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
+    -- type : TypeLogementFoyer.RésidenceSociale
+    -- date_conventionnement : |2020-01-01|
+    -- construit_application_loi_1957_12_III: faux
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
+        }
+    -- remplit_conditions_r832_21 : vrai
+  })
+  définition calcul.redevance égal à 350 €
+  définition calcul.ressources_ménage_arrondies égal à 7 500€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.zone égal à Zone1
+  définition calcul.date_courante égal à |2022-05-01|
+  assertion calcul.équivalence_loyer_éligible = 350 €
+  assertion calcul.plafond_équivalence_loyer_éligible = 446,30€
+  assertion calcul.équivalence_loyer_minimale = 124,64 €
+  assertion calcul.coefficient_prise_en_charge_d832_25 = 0,6
+  définition montant égal à
+    calcul.traitement_aide_finale de
+    calcul.aide_finale_formule
+  assertion montant = 129,65 €
 ```
 
 ```catala-test {id="CasTest1.Interpret"}
@@ -80,4 +196,16 @@ catala Interpret -s CasTest1
 
 ```catala-test {id="CasTest2.Interpret"}
 catala Interpret -s CasTest2
+```
+
+```catala-test {id="CasTest3.Interpret"}
+catala Interpret -s CasTest3
+```
+
+```catala-test {id="CasTest4.Interpret"}
+catala Interpret -s CasTest4
+```
+
+```catala-test {id="CasTest5.Interpret"}
+catala Interpret -s CasTest5
 ```

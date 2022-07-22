@@ -32,6 +32,7 @@
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
 %token<string> INT_LITERAL
+%token<int * int * int> DATE_LITERAL
 %token TRUE FALSE
 %token<string * string> DECIMAL_LITERAL
 %token<string * string> MONEY_AMOUNT
