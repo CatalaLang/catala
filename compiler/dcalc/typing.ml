@@ -201,9 +201,13 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
   | A.Unop A.GetDay -> arr dat it
   | A.Unop A.GetMonth -> arr dat it
   | A.Unop A.GetYear -> arr dat it
+  | A.Unop A.FirstDayOfMonth -> arr dat dat
+  | A.Unop A.LastDayOfMonth -> arr dat dat
   | A.Unop A.RoundMoney -> arr mt mt
   | A.Unop A.RoundDecimal -> arr rt rt
   | A.Unop A.IntToRat -> arr it rt
+  | A.Unop A.MoneyToRat -> arr mt rt
+  | A.Unop A.RatToMoney -> arr rt mt
   | Binop (Mult KDate) | Binop (Div KDate) | Unop (Minus KDate) ->
     Errors.raise_spanned_error pos "This operator is not available!"
 

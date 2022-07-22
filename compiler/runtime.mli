@@ -209,6 +209,10 @@ val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
 
 val money_of_cents_string : string -> money
 val money_of_units_int : int -> money
+
+val money_of_decimal : decimal -> money
+(** Warning: rounds to nearest cent. *)
+
 val money_of_cents_integer : integer -> money
 val money_to_float : money -> float
 val money_to_string : money -> string
@@ -223,6 +227,7 @@ val decimal_of_integer : integer -> decimal
 val decimal_of_float : float -> decimal
 val decimal_to_float : decimal -> float
 val decimal_round : decimal -> decimal
+val decimal_of_money : money -> decimal
 
 (**{2 Integers} *)
 
@@ -244,6 +249,9 @@ val date_of_numbers : int -> int -> int -> date
 (** Usage: [date_of_numbers year month day]
 
     @raise ImpossibleDate *)
+
+val first_day_of_month : date -> date
+val last_day_of_month : date -> date
 
 (**{2 Durations} *)
 

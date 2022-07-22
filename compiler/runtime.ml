@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(* An integer number of cents *)
 type money = Z.t
 type integer = Z.t
 type decimal = Q.t
@@ -54,6 +55,9 @@ let money_round (m : money) : money =
   (* If [m] is negative, [cents] will also be negative. *)
   if Z.(abs cents < of_int 50) then Z.(units * of_int 100)
   else Z.((units + of_int (sign units)) * of_int 100)
+
+let money_of_decimal (d : decimal) : money =
+  Q.to_bigint (Q.mul d (Q.of_int 100))
 
 let decimal_of_string (d : string) : decimal = Q.of_string d
 let decimal_to_float (d : decimal) : float = Q.to_float d
@@ -104,6 +108,9 @@ let decimal_round (q : decimal) : decimal =
   let d = Q.den q in
   Q.of_bigint Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d))
 
+let decimal_of_money (m : money) : decimal =
+  Q.div (Q.of_bigint m) (Q.of_int 100)
+
 let integer_of_string (s : string) : integer = Z.of_string s
 let integer_to_string (i : integer) : string = Z.to_string i
 let integer_to_int (i : integer) : int = Z.to_int i
@@ -122,6 +129,16 @@ let date_of_numbers (year : int) (month : int) (day : int) : date =
   try CalendarLib.Date.make year month day with _ -> raise ImpossibleDate
 
 let date_to_string (d : date) : string = CalendarLib.Printer.Date.to_string d
+
+let first_day_of_month (d : date) : date =
+  date_of_numbers (CalendarLib.Date.year d)
+    (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+    1
+
+let last_day_of_month (d : date) : date =
+  date_of_numbers (CalendarLib.Date.year d)
+    (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+    (CalendarLib.Date.days_in_month d)
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
   CalendarLib.Date.Period.make year month day

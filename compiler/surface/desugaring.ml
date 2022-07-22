@@ -221,21 +221,17 @@ let rec translate_expr
         Errors.raise_spanned_error pos
           "Impossible to specify decimal amounts of days, months or years"
       | LDate date ->
-        if Marked.unmark date.literal_date_month > 12 then
-          Errors.raise_spanned_error
-            (Marked.get_mark date.literal_date_month)
+        if date.literal_date_month > 12 then
+          Errors.raise_spanned_error pos
             "There is an error in this date: the month number is bigger than 12";
-        if Marked.unmark date.literal_date_day > 31 then
-          Errors.raise_spanned_error
-            (Marked.get_mark date.literal_date_day)
+        if date.literal_date_day > 31 then
+          Errors.raise_spanned_error pos
             "There is an error in this date: the day number is bigger than 31";
         Desugared.Ast.ELit
           (Dcalc.Ast.LDate
              (try
-                Runtime.date_of_numbers
-                  (Marked.unmark date.literal_date_year)
-                  (Marked.unmark date.literal_date_month)
-                  (Marked.unmark date.literal_date_day)
+                Runtime.date_of_numbers date.literal_date_year
+                  date.literal_date_month date.literal_date_day
               with Runtime.ImpossibleDate ->
                 Errors.raise_spanned_error pos
                   "There is an error in this date, it does not correspond to a \
@@ -857,6 +853,10 @@ let rec translate_expr
       f collection init
   | Builtin IntToDec ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.IntToRat), pos)
+  | Builtin MoneyToDec ->
+    Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.MoneyToRat), pos)
+  | Builtin DecToMoney ->
+    Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RatToMoney), pos)
   | Builtin Cardinal ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.Length), pos)
   | Builtin GetDay ->
@@ -865,6 +865,12 @@ let rec translate_expr
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetMonth), pos)
   | Builtin GetYear ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetYear), pos)
+  | Builtin FirstDayOfMonth ->
+    Bindlib.box
+      (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.FirstDayOfMonth), pos)
+  | Builtin LastDayOfMonth ->
+    Bindlib.box
+      (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.LastDayOfMonth), pos)
   | Builtin RoundMoney ->
     Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RoundMoney), pos)
   | Builtin RoundDecimal ->

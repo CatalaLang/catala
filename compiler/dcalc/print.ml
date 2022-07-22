@@ -204,9 +204,13 @@ let format_unop (fmt : Format.formatter) (op : unop) : unit =
         infos
     | Length -> "length"
     | IntToRat -> "int_to_rat"
+    | MoneyToRat -> "money_to_rat"
+    | RatToMoney -> "rat_to_money"
     | GetDay -> "get_day"
     | GetMonth -> "get_month"
     | GetYear -> "get_year"
+    | FirstDayOfMonth -> "first_day_of_month"
+    | LastDayOfMonth -> "last_day_of_month"
     | RoundMoney -> "round_money"
     | RoundDecimal -> "round_decimal")
 

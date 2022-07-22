@@ -125,12 +125,18 @@
 #define MR_RoundDecimal "arrondi_d", 0xE9, "cimal"
 #define MS_IntToDec "entier_vers_décimal"
 #define MR_IntToDec "entier_vers_d", 0xE9, "cimal"
+#define MS_MoneyToDec "argent_vers_décimal"
+#define MR_MoneyToDec "argent_vers_d", 0xE9, "cimal"
+#define MS_DecToMoney "décimal_vers_argent"
+#define MR_DecToMoney "d", 0xE9, "cimal_vers_argent"
 #define MS_GetDay "accès_jour"
 #define MR_GetDay "acc", 0xE8, "s_jour"
 #define MS_GetMonth "accès_mois"
 #define MR_GetMonth "acc", 0xE8, "s_mois"
 #define MS_GetYear "accès_année"
 #define MR_GetYear "acc", 0xE8, "s_ann", 0xE9, "e"
+#define MS_FirstDayOfMonth "premier_jour_du_mois"
+#define MS_LastDayOfMonth "dernier_jour_du_mois"
 
 (* Directives *)
 

@@ -95,9 +95,13 @@ type unop =
   | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
+  | MoneyToRat
+  | RatToMoney
   | GetDay
   | GetMonth
   | GetYear
+  | FirstDayOfMonth
+  | LastDayOfMonth
   | RoundMoney
   | RoundDecimal
 

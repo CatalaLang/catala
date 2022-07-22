@@ -117,9 +117,13 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Marked.pos) : unit
        match"
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
+  | MoneyToRat -> Format.fprintf fmt "%s" "decimal_of_money"
+  | RatToMoney -> Format.fprintf fmt "%s" "money_of_decimal"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
   | GetMonth -> Format.fprintf fmt "%s" "month_number_of_date"
   | GetYear -> Format.fprintf fmt "%s" "year_of_date"
+  | FirstDayOfMonth -> Format.fprintf fmt "%s" "first_day_of_month"
+  | LastDayOfMonth -> Format.fprintf fmt "%s" "last_day_of_month"
   | RoundMoney -> Format.fprintf fmt "%s" "money_round"
   | RoundDecimal -> Format.fprintf fmt "%s" "decimal_round"
 
@@ -320,11 +324,12 @@ let rec format_expr
       Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
         (Some s, fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
+    Format.fprintf fmt "@[<hov 2>(%a@ %a:@ %a)@]" format_enum_cons_name
       (fst (List.nth (find_enum en ctx) n))
-      format_with_parens e
+      format_with_parens e format_enum_name en
   | EMatch (e, es, e_name) ->
-    Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
+    Format.fprintf fmt "@[<hov 2>match@ (%a:@ %a)@]@ with@\n%a"
+      format_with_parens e format_enum_name e_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
          (fun fmt (e, c) ->

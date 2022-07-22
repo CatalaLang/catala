@@ -1,0 +1,46 @@
+> Inclusion: ../aides_logement.catala_fr
+
+# Tests
+
+```catala
+# Transmis par DGALN/DHUP/FE4 le 14/07/2022
+déclaration champ d'application CasTest1 :
+  calcul champ d'application CalculAllocationLogementFoyer
+  sortie montant contenu argent
+
+champ d'application CasTest1:
+  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
+    -- type : TypeLogementFoyer.RésidenceSociale
+    -- date_conventionnement : |2020-01-01|
+    -- construit_application_loi_1957_12_III: faux
+    -- location : Location {
+          -- bailleur: Bailleur {
+            -- type_bailleur: BailleurSocial
+            -- respecte_convention_titre_V: vrai
+            -- respecte_convention_titre_II: vrai
+            -- construit_amélioré_conditions_l831_1_4: vrai
+            -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
+          }
+        }
+    -- remplit_conditions_r832_21 : vrai
+  })
+  définition calcul.redevance égal à 350 €
+  définition calcul.ressources_ménage_arrondies égal à 7 500€
+  définition calcul.nombre_personnes_à_charge égal à 0
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
+  définition calcul.zone égal à Zone1
+  définition calcul.date_courante égal à |2022-05-01|
+  définition calcul.catégorie_équivalence_loyer_d842_16 égal à
+    PersonnesÂgéesSelon3DeD842_16
+  assertion calcul.équivalence_loyer = 206,40€
+  assertion calcul.loyer_minimal = 124,64 €
+  assertion calcul.coefficient_prise_en_charge = 0,6
+  définition montant égal à
+    calcul.traitement_aide_finale  de
+    calcul.aide_finale_formule
+  assertion montant = 76,38 €
+```
+
+```catala-test {id="CasTest1.Interpret"}
+catala Interpret -s CasTest1
+```
