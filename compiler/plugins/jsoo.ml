@@ -33,11 +33,11 @@ module To_jsoo = struct
   let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =
     Dcalc.Print.format_base_type fmt
       (match l with
-      | TUnit -> "'a Js.opt"
+      | TUnit -> "unit"
       | TInt -> "int"
       | TRat -> "float"
       | TMoney -> "float"
-      | TDuration -> "string"
+      | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
       | TDate -> "Js.date Js.t")
 

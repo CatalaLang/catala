@@ -2839,10 +2839,10 @@ class type eligibilite_aides_personnelle_logement_in =
     method dateCouranteIn : Js.date Js.t Js.readonly_prop
 
     method conditionLogementResidencePrincipaleIn :
-      ('a Js.opt, bool Js.t) Js.meth_callback Js.meth
+      (unit, bool Js.t) Js.meth_callback Js.meth
 
     method conditionLogementSurfaceIn :
-      ('a Js.opt, bool Js.t) Js.meth_callback Js.meth
+      (unit, bool Js.t) Js.meth_callback Js.meth
   end
 
 let eligibilite_aides_personnelle_logement_in_to_jsoo
@@ -3843,8 +3843,8 @@ class type calcul_aide_personnalisee_logement_foyer_in =
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
     method dateCouranteIn : Js.date Js.t Js.readonly_prop
     method redevanceIn : float Js.readonly_prop
-    method condition2Du83225In : ('a Js.opt, bool Js.t) Js.meth_callback Js.meth
-    method nNombrePartsD83225In : ('a Js.opt, float) Js.meth_callback Js.meth
+    method condition2Du83225In : (unit, bool Js.t) Js.meth_callback Js.meth
+    method nNombrePartsD83225In : (unit, float) Js.meth_callback Js.meth
   end
 
 let calcul_aide_personnalisee_logement_foyer_in_to_jsoo
@@ -4938,7 +4938,8 @@ let calcul_allocation_logement_in_of_jsoo
 
 class type ouverture_droits_retraite_out =
   object
-    method ageOuvertureDroitOut : string Js.readonly_prop
+    method ageOuvertureDroitOut :
+      Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
   end
 
 let ouverture_droits_retraite_out_to_jsoo
