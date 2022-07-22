@@ -104,10 +104,10 @@ val map_expr_top_down :
 (** See [Dcalc.Ast.map_expr_top_down] *)
 
 val map_expr_marks :
-  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
+  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box
 (** See [Dcalc.Ast.map_expr_marks] *)
 
-val untype_expr : 'm marked_expr -> Dcalc.Ast.untyped marked_expr
+val untype_expr : 'm marked_expr -> Dcalc.Ast.untyped marked_expr Bindlib.box
 val untype_program : 'm program -> Dcalc.Ast.untyped program
 
 (** {1 Boxed constructors} *)

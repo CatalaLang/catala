@@ -146,8 +146,7 @@ let rec map_expr_top_down ~f e =
   map_expr () ~f:(fun () -> map_expr_top_down ~f) (f e)
 
 let map_expr_marks ~f e =
-  Bindlib.unbox
-  @@ map_expr_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
+  map_expr_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
 
 let untype_expr e =
   map_expr_marks ~f:(fun m -> Untyped { pos = D.mark_pos m }) e
@@ -158,7 +157,7 @@ let untype_program prg =
     D.scopes =
       Bindlib.unbox
         (D.map_exprs_in_scopes
-           ~f:(fun e -> Bindlib.box (untype_expr e))
+           ~f:(fun e -> untype_expr e)
            ~varf:translate_var prg.D.scopes);
   }
 
