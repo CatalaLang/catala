@@ -50,13 +50,13 @@ let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
     Format.fprintf fmt "money_of_cents_string@ \"%s\""
       (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
-    Format.fprintf fmt "date_of_numbers %d %d %d"
+    Format.fprintf fmt "date_of_numbers (%d) (%d) (%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))
       (Runtime.integer_to_int (Runtime.month_number_of_date d))
       (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
   | LDuration d ->
     let years, months, days = Runtime.duration_to_years_months_days d in
-    Format.fprintf fmt "duration_of_numbers %d %d %d" years months days
+    Format.fprintf fmt "duration_of_numbers (%d) (%d) (%d)" years months days
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
@@ -100,10 +100,13 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     uids
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
+  let sanitize_quotes = Re.compile (Re.char '"') in
   Format.fprintf fmt "@[<hov 2>[%a]@]"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-       (fun fmt info -> Format.fprintf fmt "\"%s\"" info))
+       (fun fmt info ->
+         Format.fprintf fmt "\"%s\""
+           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
 let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Marked.pos) : unit
@@ -128,22 +131,19 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Marked.pos) : unit
   | RoundDecimal -> Format.fprintf fmt "%s" "decimal_round"
 
 let avoid_keywords (s : string) : string =
-  if
-    match s with
-    (* list taken from
-       http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
-    | "and" | "as" | "assert" | "asr" | "begin" | "class" | "constraint" | "do"
-    | "done" | "downto" | "else" | "end" | "exception" | "external" | "false"
-    | "for" | "fun" | "function" | "functor" | "if" | "in" | "include"
-    | "inherit" | "initializer" | "land" | "lazy" | "let" | "lor" | "lsl"
-    | "lsr" | "lxor" | "match" | "method" | "mod" | "module" | "mutable" | "new"
-    | "nonrec" | "object" | "of" | "open" | "or" | "private" | "rec" | "sig"
-    | "struct" | "then" | "to" | "true" | "try" | "type" | "val" | "virtual"
-    | "when" | "while" | "with" ->
-      true
-    | _ -> false
-  then s ^ "_"
-  else s
+  match s with
+  (* list taken from
+     http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
+  | "and" | "as" | "assert" | "asr" | "begin" | "class" | "constraint" | "do"
+  | "done" | "downto" | "else" | "end" | "exception" | "external" | "false"
+  | "for" | "fun" | "function" | "functor" | "if" | "in" | "include" | "inherit"
+  | "initializer" | "land" | "lazy" | "let" | "lor" | "lsl" | "lsr" | "lxor"
+  | "match" | "method" | "mod" | "module" | "mutable" | "new" | "nonrec"
+  | "object" | "of" | "open" | "or" | "private" | "rec" | "sig" | "struct"
+  | "then" | "to" | "true" | "try" | "type" | "val" | "virtual" | "when"
+  | "while" | "with" ->
+    s ^ "_user"
+  | _ -> s
 
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
