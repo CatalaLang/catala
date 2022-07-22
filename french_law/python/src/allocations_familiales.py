@@ -537,7 +537,7 @@ def enfant_le_plus_age(enfant_le_plus_age_in: EnfantLePlusAgeIn):
             else:
                 return item
         temp_le_plus_age_1 = list_fold_left(temp_le_plus_age,
-                                            Enfant(identifiant=- integer_of_string("1"),
+                                            Enfant(identifiant=integer_of_string("-1"),
                                                    obligation_scolaire=SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
                                                                                                    Unit()),
                                                    remuneration_mensuelle=money_of_cents_string(

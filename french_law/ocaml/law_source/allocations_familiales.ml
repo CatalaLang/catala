@@ -499,12 +499,14 @@ let enfant_le_plus_age (enfant_le_plus_age_in : EnfantLePlusAgeIn.t) :
                (fun (acc_ : _) (item_ : _) ->
                  if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
                {
-                 Enfant.identifiant = ~-!(integer_of_string "1");
-                 Enfant.obligation_scolaire = Pendant ();
+                 Enfant.identifiant = integer_of_string "-1";
+                 Enfant.obligation_scolaire =
+                   (Pendant () : situation_obligation_scolaire);
                  Enfant.remuneration_mensuelle = money_of_cents_string "0";
                  Enfant.date_de_naissance = date_of_numbers 1900 1 1;
                  Enfant.age = integer_of_string "0";
-                 Enfant.prise_en_charge = EffectiveEtPermanente ();
+                 Enfant.prise_en_charge =
+                   (EffectiveEtPermanente () : prise_en_charge);
                  Enfant.a_deja_ouvert_droit_aux_allocations_familiales = false;
                  Enfant.beneficie_titre_personnel_aide_personnelle_logement =
                    false;
@@ -556,12 +558,15 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2019 1 1
                      && date_courante_ <=@ date_of_numbers 2019 12 31
-                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion ()
-                        || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon ())))
+                     && (residence_ = (Metropole () : collectivite)
+                        || residence_ = (Guadeloupe () : collectivite)
+                        || residence_ = (Guyane () : collectivite)
+                        || residence_ = (Martinique () : collectivite)
+                        || residence_ = (LaReunion () : collectivite)
+                        || residence_ = (SaintBarthelemy () : collectivite)
+                        || residence_ = (SaintMartin () : collectivite)
+                        || residence_
+                           = (SaintPierreEtMiquelon () : collectivite))))
                  (fun (_ : _) -> money_of_cents_string "1003"));
              (fun (_ : _) ->
                handle_default [||]
@@ -584,7 +589,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2019 1 1
                      && date_courante_ <=@ date_of_numbers 2019 12 31
-                     && residence_ = Mayotte ()))
+                     && residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) -> money_of_cents_string "757"));
              (fun (_ : _) ->
                handle_default [||]
@@ -607,12 +612,15 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2020 1 1
                      && date_courante_ <=@ date_of_numbers 2020 12 31
-                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion ()
-                        || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon ())))
+                     && (residence_ = (Metropole () : collectivite)
+                        || residence_ = (Guadeloupe () : collectivite)
+                        || residence_ = (Guyane () : collectivite)
+                        || residence_ = (Martinique () : collectivite)
+                        || residence_ = (LaReunion () : collectivite)
+                        || residence_ = (SaintBarthelemy () : collectivite)
+                        || residence_ = (SaintMartin () : collectivite)
+                        || residence_
+                           = (SaintPierreEtMiquelon () : collectivite))))
                  (fun (_ : _) -> money_of_cents_string "1015"));
              (fun (_ : _) ->
                handle_default [||]
@@ -635,7 +643,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2020 1 1
                      && date_courante_ <=@ date_of_numbers 2020 12 31
-                     && residence_ = Mayotte ()))
+                     && residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) -> money_of_cents_string "766"));
              (fun (_ : _) ->
                handle_default [||]
@@ -658,12 +666,15 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2021 1 1
                      && date_courante_ <=@ date_of_numbers 2021 12 31
-                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion ()
-                        || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon ())))
+                     && (residence_ = (Metropole () : collectivite)
+                        || residence_ = (Guadeloupe () : collectivite)
+                        || residence_ = (Guyane () : collectivite)
+                        || residence_ = (Martinique () : collectivite)
+                        || residence_ = (LaReunion () : collectivite)
+                        || residence_ = (SaintBarthelemy () : collectivite)
+                        || residence_ = (SaintMartin () : collectivite)
+                        || residence_
+                           = (SaintPierreEtMiquelon () : collectivite))))
                  (fun (_ : _) -> money_of_cents_string "1025"));
              (fun (_ : _) ->
                handle_default [||]
@@ -686,7 +697,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2021 1 1
                      && date_courante_ <=@ date_of_numbers 2021 12 31
-                     && residence_ = Mayotte ()))
+                     && residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) -> money_of_cents_string "774"));
              (fun (_ : _) ->
                handle_default [||]
@@ -709,12 +720,15 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2022 1 1
                      && date_courante_ <=@ date_of_numbers 2022 4 30
-                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion ()
-                        || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon ())))
+                     && (residence_ = (Metropole () : collectivite)
+                        || residence_ = (Guadeloupe () : collectivite)
+                        || residence_ = (Guyane () : collectivite)
+                        || residence_ = (Martinique () : collectivite)
+                        || residence_ = (LaReunion () : collectivite)
+                        || residence_ = (SaintBarthelemy () : collectivite)
+                        || residence_ = (SaintMartin () : collectivite)
+                        || residence_
+                           = (SaintPierreEtMiquelon () : collectivite))))
                  (fun (_ : _) -> money_of_cents_string "1057"));
              (fun (_ : _) ->
                handle_default [||]
@@ -737,7 +751,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2022 1 1
                      && date_courante_ <=@ date_of_numbers 2022 4 30
-                     && residence_ = Mayotte ()))
+                     && residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) -> money_of_cents_string "798"));
              (fun (_ : _) ->
                handle_default [||]
@@ -760,12 +774,15 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2022 5 1
                      && date_courante_ <=@ date_of_numbers 2022 12 31
-                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion ()
-                        || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon ())))
+                     && (residence_ = (Metropole () : collectivite)
+                        || residence_ = (Guadeloupe () : collectivite)
+                        || residence_ = (Guyane () : collectivite)
+                        || residence_ = (Martinique () : collectivite)
+                        || residence_ = (LaReunion () : collectivite)
+                        || residence_ = (SaintBarthelemy () : collectivite)
+                        || residence_ = (SaintMartin () : collectivite)
+                        || residence_
+                           = (SaintPierreEtMiquelon () : collectivite))))
                  (fun (_ : _) -> money_of_cents_string "1085"));
              (fun (_ : _) ->
                handle_default [||]
@@ -788,7 +805,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      }
                      (date_courante_ >=@ date_of_numbers 2022 5 1
                      && date_courante_ <=@ date_of_numbers 2022 12 31
-                     && residence_ = Mayotte ()))
+                     && residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) -> money_of_cents_string "819"));
            |]
            (fun (_ : _) -> false)
@@ -1112,10 +1129,12 @@ let prestations_familiales
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (residence_ = Guadeloupe () || residence_ = Guyane ()
-                    || residence_ = Martinique () || residence_ = LaReunion ()
-                     || residence_ = SaintBarthelemy ()
-                     || residence_ = SaintMartin ()))
+                     (residence_ = (Guadeloupe () : collectivite)
+                     || residence_ = (Guyane () : collectivite)
+                     || residence_ = (Martinique () : collectivite)
+                     || residence_ = (LaReunion () : collectivite)
+                     || residence_ = (SaintBarthelemy () : collectivite)
+                     || residence_ = (SaintMartin () : collectivite)))
                  (fun (_ : _) -> true));
            |]
            (fun (_ : _) ->
@@ -1254,16 +1273,25 @@ let prestations_familiales
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (((match param_.Enfant.obligation_scolaire with
+                         (((match
+                              (param_.Enfant.obligation_scolaire
+                                : situation_obligation_scolaire)
+                            with
                            | Avant _ -> true
                            | Pendant _ -> false
                            | Apres _ -> false)
-                          || (match param_.Enfant.obligation_scolaire with
+                          || (match
+                                (param_.Enfant.obligation_scolaire
+                                  : situation_obligation_scolaire)
+                              with
                              | Avant _ -> false
                              | Pendant _ -> true
                              | Apres _ -> false)
                           ||
-                          match param_.Enfant.obligation_scolaire with
+                          match
+                            (param_.Enfant.obligation_scolaire
+                              : situation_obligation_scolaire)
+                          with
                           | Avant _ -> false
                           | Pendant _ -> false
                           | Apres _ -> true)
@@ -1398,7 +1426,8 @@ let prestations_familiales
                                              ];
                                          }
                                          ((match
-                                             param_.Enfant.obligation_scolaire
+                                             (param_.Enfant.obligation_scolaire
+                                               : situation_obligation_scolaire)
                                            with
                                           | Avant _ -> false
                                           | Pendant _ -> false
@@ -1430,13 +1459,17 @@ let prestations_familiales
                                        ];
                                    }
                                    ((match
-                                       param_.Enfant.obligation_scolaire
+                                       (param_.Enfant.obligation_scolaire
+                                         : situation_obligation_scolaire)
                                      with
                                     | Avant _ -> true
                                     | Pendant _ -> false
                                     | Apres _ -> false)
                                    ||
-                                   match param_.Enfant.obligation_scolaire with
+                                   match
+                                     (param_.Enfant.obligation_scolaire
+                                       : situation_obligation_scolaire)
+                                   with
                                    | Avant _ -> false
                                    | Pendant _ -> true
                                    | Apres _ -> false))
@@ -1563,7 +1596,9 @@ let allocations_familiales
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_.Enfant.prise_en_charge with
+                         (match
+                            (param_.Enfant.prise_en_charge : prise_en_charge)
+                          with
                          | GardeAlterneePartageAllocations _ -> true
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1571,7 +1606,7 @@ let allocations_familiales
                          | ServicesSociauxAllocationVerseeAuxServicesSociaux _
                            ->
                            false))
-                     (fun (_ : _) -> Partagee ()));
+                     (fun (_ : _) : prise_en_compte -> Partagee ()));
                  (fun (_ : _) ->
                    handle_default [||]
                      (fun (_ : _) ->
@@ -1594,7 +1629,9 @@ let allocations_familiales
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_.Enfant.prise_en_charge with
+                         (match
+                            (param_.Enfant.prise_en_charge : prise_en_charge)
+                          with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1602,7 +1639,7 @@ let allocations_familiales
                          | ServicesSociauxAllocationVerseeAuxServicesSociaux _
                            ->
                            true))
-                     (fun (_ : _) -> Zero ()));
+                     (fun (_ : _) : prise_en_compte -> Zero ()));
                  (fun (_ : _) ->
                    handle_default
                      [|
@@ -1633,7 +1670,10 @@ let allocations_familiales
                                            "Code de la sécurité sociale";
                                          ];
                                      }
-                                     (match param_.Enfant.prise_en_charge with
+                                     (match
+                                        (param_.Enfant.prise_en_charge
+                                          : prise_en_charge)
+                                      with
                                      | GardeAlterneePartageAllocations _ ->
                                        false
                                      | GardeAlterneeAllocataireUnique _ -> false
@@ -1644,7 +1684,7 @@ let allocations_familiales
                                      | ServicesSociauxAllocationVerseeAuxServicesSociaux
                                          _ ->
                                        false))
-                                 (fun (_ : _) -> Complete ()));
+                                 (fun (_ : _) : prise_en_compte -> Complete ()));
                            |]
                            (fun (_ : _) ->
                              log_decision_taken
@@ -1667,7 +1707,10 @@ let allocations_familiales
                                      "Code de la sécurité sociale";
                                    ];
                                }
-                               (match param_.Enfant.prise_en_charge with
+                               (match
+                                  (param_.Enfant.prise_en_charge
+                                    : prise_en_charge)
+                                with
                                | GardeAlterneePartageAllocations _ -> false
                                | GardeAlterneeAllocataireUnique _ -> true
                                | EffectiveEtPermanente _ -> false
@@ -1676,7 +1719,7 @@ let allocations_familiales
                                | ServicesSociauxAllocationVerseeAuxServicesSociaux
                                    _ ->
                                  false))
-                           (fun (_ : _) -> Complete ()));
+                           (fun (_ : _) : prise_en_compte -> Complete ()));
                      |]
                      (fun (_ : _) ->
                        log_decision_taken
@@ -1698,7 +1741,9 @@ let allocations_familiales
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_.Enfant.prise_en_charge with
+                         (match
+                            (param_.Enfant.prise_en_charge : prise_en_charge)
+                          with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> true
@@ -1706,7 +1751,7 @@ let allocations_familiales
                          | ServicesSociauxAllocationVerseeAuxServicesSociaux _
                            ->
                            false))
-                     (fun (_ : _) -> Complete ()));
+                     (fun (_ : _) : prise_en_compte -> Complete ()));
                |]
                (fun (_ : _) -> false)
                (fun (_ : _) -> raise EmptyError)
@@ -1773,7 +1818,9 @@ let allocations_familiales
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_.Enfant.prise_en_charge with
+                         (match
+                            (param_.Enfant.prise_en_charge : prise_en_charge)
+                          with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1781,7 +1828,8 @@ let allocations_familiales
                          | ServicesSociauxAllocationVerseeAuxServicesSociaux _
                            ->
                            true))
-                     (fun (_ : _) -> AllocationVerseeAuxServicesSociaux ()));
+                     (fun (_ : _) : versement_allocations ->
+                       AllocationVerseeAuxServicesSociaux ()));
                  (fun (_ : _) ->
                    handle_default
                      [|
@@ -1817,7 +1865,8 @@ let allocations_familiales
                                                ];
                                            }
                                            (match
-                                              param_.Enfant.prise_en_charge
+                                              (param_.Enfant.prise_en_charge
+                                                : prise_en_charge)
                                             with
                                            | GardeAlterneePartageAllocations _
                                              ->
@@ -1831,7 +1880,8 @@ let allocations_familiales
                                            | ServicesSociauxAllocationVerseeAuxServicesSociaux
                                                _ ->
                                              false))
-                                       (fun (_ : _) -> Normal ()));
+                                       (fun (_ : _) : versement_allocations ->
+                                         Normal ()));
                                  |]
                                  (fun (_ : _) ->
                                    log_decision_taken
@@ -1855,7 +1905,10 @@ let allocations_familiales
                                            "Code de la sécurité sociale";
                                          ];
                                      }
-                                     (match param_.Enfant.prise_en_charge with
+                                     (match
+                                        (param_.Enfant.prise_en_charge
+                                          : prise_en_charge)
+                                      with
                                      | GardeAlterneePartageAllocations _ -> true
                                      | GardeAlterneeAllocataireUnique _ -> false
                                      | EffectiveEtPermanente _ -> false
@@ -1865,7 +1918,8 @@ let allocations_familiales
                                      | ServicesSociauxAllocationVerseeAuxServicesSociaux
                                          _ ->
                                        false))
-                                 (fun (_ : _) -> Normal ()));
+                                 (fun (_ : _) : versement_allocations ->
+                                   Normal ()));
                            |]
                            (fun (_ : _) ->
                              log_decision_taken
@@ -1888,7 +1942,10 @@ let allocations_familiales
                                      "Code de la sécurité sociale";
                                    ];
                                }
-                               (match param_.Enfant.prise_en_charge with
+                               (match
+                                  (param_.Enfant.prise_en_charge
+                                    : prise_en_charge)
+                                with
                                | GardeAlterneePartageAllocations _ -> false
                                | GardeAlterneeAllocataireUnique _ -> true
                                | EffectiveEtPermanente _ -> false
@@ -1897,7 +1954,7 @@ let allocations_familiales
                                | ServicesSociauxAllocationVerseeAuxServicesSociaux
                                    _ ->
                                  false))
-                           (fun (_ : _) -> Normal ()));
+                           (fun (_ : _) : versement_allocations -> Normal ()));
                      |]
                      (fun (_ : _) ->
                        log_decision_taken
@@ -1919,7 +1976,9 @@ let allocations_familiales
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_.Enfant.prise_en_charge with
+                         (match
+                            (param_.Enfant.prise_en_charge : prise_en_charge)
+                          with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> true
@@ -1927,7 +1986,7 @@ let allocations_familiales
                          | ServicesSociauxAllocationVerseeAuxServicesSociaux _
                            ->
                            false))
-                     (fun (_ : _) -> Normal ()));
+                     (fun (_ : _) : versement_allocations -> Normal ()));
                |]
                (fun (_ : _) -> false)
                (fun (_ : _) -> raise EmptyError)
@@ -2180,7 +2239,8 @@ let allocations_familiales
                    ];
                }
                true)
-           (fun (_ : _) -> AllocationsFamiliales ()))
+           (fun (_ : _) : element_prestations_familiales ->
+             AllocationsFamiliales ()))
     with EmptyError ->
       raise
         (NoValueProvided
@@ -3199,7 +3259,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2011 1 1
                            && date_courante_ <=@ date_of_numbers 2011 12 31))
                        (fun (_ : _) ->
@@ -3228,7 +3288,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2012 1 1
                            && date_courante_ <=@ date_of_numbers 2012 12 31))
                        (fun (_ : _) ->
@@ -3257,7 +3317,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2013 1 1
                            && date_courante_ <=@ date_of_numbers 2013 12 31))
                        (fun (_ : _) ->
@@ -3286,7 +3346,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2014 1 1
                            && date_courante_ <=@ date_of_numbers 2014 12 31))
                        (fun (_ : _) ->
@@ -3315,7 +3375,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2015 1 1
                            && date_courante_ <=@ date_of_numbers 2015 12 31))
                        (fun (_ : _) ->
@@ -3344,7 +3404,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2016 1 1
                            && date_courante_ <=@ date_of_numbers 2016 12 31))
                        (fun (_ : _) ->
@@ -3373,7 +3433,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2017 1 1
                            && date_courante_ <=@ date_of_numbers 2017 12 31))
                        (fun (_ : _) ->
@@ -3402,7 +3462,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2018 1 1
                            && date_courante_ <=@ date_of_numbers 2018 12 31))
                        (fun (_ : _) ->
@@ -3431,7 +3491,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2019 1 1
                            && date_courante_ <=@ date_of_numbers 2019 12 31))
                        (fun (_ : _) ->
@@ -3460,7 +3520,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()
+                           (residence_ = (Mayotte () : collectivite)
                            && date_courante_ >=@ date_of_numbers 2020 1 1
                            && date_courante_ <=@ date_of_numbers 2020 12 31))
                        (fun (_ : _) ->
@@ -3591,21 +3651,22 @@ let allocations_familiales
                  acc_
                  +&
                  match
-                   log_end_call
-                     ["AllocationsFamiliales"; "prise_en_compte"]
-                     (log_variable_definition
-                        ["AllocationsFamiliales"; "prise_en_compte"; "output"]
-                        embed_prise_en_compte
-                        ((log_begin_call
-                            ["AllocationsFamiliales"; "prise_en_compte"]
-                            prise_en_compte_)
-                           (log_variable_definition
-                              [
-                                "AllocationsFamiliales";
-                                "prise_en_compte";
-                                "input";
-                              ]
-                              embed_enfant enfant_)))
+                   (log_end_call
+                      ["AllocationsFamiliales"; "prise_en_compte"]
+                      (log_variable_definition
+                         ["AllocationsFamiliales"; "prise_en_compte"; "output"]
+                         embed_prise_en_compte
+                         ((log_begin_call
+                             ["AllocationsFamiliales"; "prise_en_compte"]
+                             prise_en_compte_)
+                            (log_variable_definition
+                               [
+                                 "AllocationsFamiliales";
+                                 "prise_en_compte";
+                                 "input";
+                               ]
+                               embed_enfant enfant_)))
+                     : prise_en_compte)
                  with
                  | Complete _ -> decimal_of_string "1."
                  | Partagee _ -> decimal_of_string "0.5"
@@ -3661,7 +3722,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2011 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2011 12 31
@@ -3697,7 +3758,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2012 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2012 12 31
@@ -3733,7 +3794,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2013 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2013 12 31
@@ -3769,7 +3830,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2014 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2014 12 31
@@ -3805,7 +3866,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2015 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2015 12 31
@@ -3841,7 +3902,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2016 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2016 12 31
@@ -3877,7 +3938,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2017 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2017 12 31
@@ -3913,7 +3974,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2018 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2018 12 31
@@ -3949,7 +4010,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2019 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2019 12 31
@@ -3985,7 +4046,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2020 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2020 12 31
@@ -4021,8 +4082,8 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
-                                && avait_enfant_a_charge_avant_1er_janvier_2012_
+                                 (residence_ = (Mayotte () : collectivite)
+                                 && avait_enfant_a_charge_avant_1er_janvier_2012_
                                  ))
                              (fun (_ : _) ->
                                if
@@ -4052,7 +4113,7 @@ let allocations_familiales
                            "Dispositions spéciales relatives à Mayotte";
                          ];
                      }
-                     (residence_ = Mayotte ()))
+                     (residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) ->
                    if
                      array_length
@@ -4163,7 +4224,7 @@ let allocations_familiales
                                               à Mayotte";
                                            ];
                                        }
-                                       (residence_ = Mayotte ()
+                                       (residence_ = (Mayotte () : collectivite)
                                        && array_length
                                             enfants_a_charge_droit_ouvert_prestation_familiale_
                                           >=! integer_of_string "1"))
@@ -4856,7 +4917,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2011 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2011 12 31))
@@ -4889,7 +4950,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2012 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2012 12 31))
@@ -4922,7 +4983,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2013 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2013 12 31))
@@ -4955,7 +5016,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2014 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2014 12 31))
@@ -4988,7 +5049,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2015 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2015 12 31))
@@ -5021,7 +5082,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2016 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2016 12 31))
@@ -5054,7 +5115,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2017 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2017 12 31))
@@ -5087,7 +5148,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2018 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2018 12 31))
@@ -5120,7 +5181,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2019 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2019 12 31))
@@ -5153,7 +5214,7 @@ let allocations_familiales
                                         Mayotte";
                                      ];
                                  }
-                                 (residence_ = Mayotte ()
+                                 (residence_ = (Mayotte () : collectivite)
                                  && date_courante_ >=@ date_of_numbers 2020 1 1
                                  && date_courante_
                                     <=@ date_of_numbers 2020 12 31))
@@ -5186,7 +5247,7 @@ let allocations_familiales
                            "Dispositions spéciales relatives à Mayotte";
                          ];
                      }
-                     (residence_ = Mayotte ()))
+                     (residence_ = (Mayotte () : collectivite)))
                  (fun (_ : _) ->
                    if
                      array_length
@@ -5719,7 +5780,7 @@ let allocations_familiales
                                  "Dispositions spéciales relatives à Mayotte";
                                ];
                            }
-                           (residence_ = Mayotte ()))
+                           (residence_ = (Mayotte () : collectivite)))
                        (fun (_ : _) ->
                          montant_initial_base_premier_enfant_
                          +$ montant_initial_base_deuxieme_enfant_
@@ -6192,21 +6253,22 @@ let allocations_familiales
                             embed_enfant param_)))
                  *$
                  match
-                   log_end_call
-                     ["AllocationsFamiliales"; "prise_en_compte"]
-                     (log_variable_definition
-                        ["AllocationsFamiliales"; "prise_en_compte"; "output"]
-                        embed_prise_en_compte
-                        ((log_begin_call
-                            ["AllocationsFamiliales"; "prise_en_compte"]
-                            prise_en_compte_)
-                           (log_variable_definition
-                              [
-                                "AllocationsFamiliales";
-                                "prise_en_compte";
-                                "input";
-                              ]
-                              embed_enfant param_)))
+                   (log_end_call
+                      ["AllocationsFamiliales"; "prise_en_compte"]
+                      (log_variable_definition
+                         ["AllocationsFamiliales"; "prise_en_compte"; "output"]
+                         embed_prise_en_compte
+                         ((log_begin_call
+                             ["AllocationsFamiliales"; "prise_en_compte"]
+                             prise_en_compte_)
+                            (log_variable_definition
+                               [
+                                 "AllocationsFamiliales";
+                                 "prise_en_compte";
+                                 "input";
+                               ]
+                               embed_enfant param_)))
+                     : prise_en_compte)
                  with
                  | Complete _ -> decimal_of_string "1."
                  | Partagee _ -> decimal_of_string "0.5"
@@ -6585,13 +6647,13 @@ let interface_allocations_familiales
                       enfant_.EnfantEntree.d_date_de_naissance
                       +@ duration_of_numbers 3 0 0
                       >=@ i_date_courante_
-                     then Avant ()
+                     then (Avant () : situation_obligation_scolaire)
                      else if
                      enfant_.EnfantEntree.d_date_de_naissance
                      +@ duration_of_numbers 16 0 0
                      >=@ i_date_courante_
-                    then Pendant ()
-                     else Apres ());
+                    then (Pendant () : situation_obligation_scolaire)
+                     else (Apres () : situation_obligation_scolaire));
                    Enfant.remuneration_mensuelle =
                      enfant_.EnfantEntree.d_remuneration_mensuelle;
                    Enfant.date_de_naissance =
