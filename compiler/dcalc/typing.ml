@@ -68,11 +68,13 @@ let rec unify
     (t1 : typ Marked.pos UnionFind.elem)
     (t2 : typ Marked.pos UnionFind.elem) : unit =
   let unify = unify ctx in
-  (* Cli.debug_print (Format.asprintf "Unifying %a and %a" (format_typ ctx) t1
-     (format_typ ctx) t2); *)
+  (* Cli.debug_format "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
+     t2; *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
-  let raise_type_error () = raise (Type_error (A.untype_expr e, t1, t2)) in
+  let raise_type_error () =
+    raise (Type_error (Bindlib.unbox (A.untype_expr e), t1, t2))
+  in
   let repr =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
     | TLit tl1, TLit tl2 when tl1 = tl2 -> None
@@ -240,8 +242,8 @@ let rec typecheck_expr_bottom_up
     (ctx : Ast.decl_ctx)
     (env : env)
     (e : 'm A.marked_expr) : A.inferring A.marked_expr Bindlib.box =
-  (* Cli.debug_format "Looking for type of %a"
-   *    (Print.format_expr ~debug:true ctx) e; *)
+  (* Cli.debug_format "Looking for type of %a" (Print.format_expr ~debug:true
+     ctx) e; *)
   let pos_e = A.pos e in
   let mark (e : A.inferring A.expr) uf =
     Marked.mark (A.Inferring { A.uf; pos = pos_e }) e
@@ -256,7 +258,7 @@ let rec typecheck_expr_bottom_up
       mark v' t
     | None ->
       Errors.raise_spanned_error (A.pos e)
-        "Variable %S not found in the current context." (Bindlib.name_of v)
+        "Variable %s not found in the current context." (Bindlib.name_of v)
   end
   | A.ELit (LBool _) as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TBool)
   | A.ELit (LInt _) as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TInt)
@@ -399,14 +401,13 @@ and typecheck_expr_top_down
     (env : env)
     (tau : typ Marked.pos UnionFind.elem)
     (e : 'm A.marked_expr) : A.inferring A.marked_expr Bindlib.box =
-  (* Cli.debug_format "Propagating type %a for expr %a"
-   *   (format_typ ctx) tau
-   *   (exprug:true ctx) e; *)
+  (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
+     (Print.format_expr ctx) e; *)
   let pos_e = A.pos e in
   let mark e = Marked.mark (A.Inferring { uf = tau; pos = pos_e }) e in
   let unify_and_mark (e : A.inferring A.expr) tau' =
     let e = Marked.mark (A.Inferring { uf = tau'; pos = pos_e }) e in
-    unify ctx (A.untype_expr e) tau tau';
+    unify ctx (Bindlib.unbox (A.untype_expr e)) tau tau';
     e
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
@@ -418,7 +419,7 @@ and typecheck_expr_top_down
       unify_and_mark v' tau'
     | None ->
       Errors.raise_spanned_error (A.pos e)
-        "Variable %S not found in the current context" (Bindlib.name_of v)
+        "Variable %s not found in the current context" (Bindlib.name_of v)
   end
   | A.ELit (LBool _) as e1 ->
     Bindlib.box @@ unify_and_mark e1 (unionfind_make (TLit TBool))
@@ -577,7 +578,7 @@ let get_ty_mark (A.Inferring { uf; pos }) =
 
 (* Infer the type of an expression *)
 let infer_types (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
-    Ast.typed Ast.marked_expr =
+    Ast.typed Ast.marked_expr Bindlib.box =
   A.map_expr_marks ~f:get_ty_mark
   @@ Bindlib.unbox
   @@ wrap ctx (typecheck_expr_bottom_up ctx A.VarMap.empty) e
@@ -586,7 +587,7 @@ let infer_type (type m) ctx (e : m A.marked_expr) =
   match Marked.get_mark e with
   | A.Typed { ty; _ } -> ty
   | A.Inferring { uf; _ } -> typ_to_ast uf
-  | A.Untyped _ -> A.ty (infer_types ctx e)
+  | A.Untyped _ -> A.ty (Bindlib.unbox (infer_types ctx e))
 
 (** Typechecks an expression given an expected type *)
 let check_type

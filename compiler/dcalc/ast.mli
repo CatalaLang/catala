@@ -251,7 +251,7 @@ val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
 val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
-val untype_expr : 'm marked_expr -> untyped marked_expr
+val untype_expr : 'm marked_expr -> untyped marked_expr Bindlib.box
 val untype_program : 'm program -> untyped program
 
 (** {2 Boxed constructors} *)
@@ -367,7 +367,7 @@ val map_expr_top_down :
     but not yet the marks in the subtrees. *)
 
 val map_expr_marks :
-  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
+  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box
 
 val fold_left_scope_lets :
   f:('a -> ('expr, 'm) scope_let -> 'expr Bindlib.var -> 'a) ->

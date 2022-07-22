@@ -316,7 +316,7 @@ website-assets: doc js_build literate_examples grammar.html catala.html build_fr
 
 #> all					: Run all make commands
 all: \
-	build js_build doc website-assets\
+	build js_build doc \
 	tests \
 	plugins \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
@@ -324,7 +324,8 @@ all: \
 	build_french_law_library_js \
 	bench_js \
 	generate_french_law_library_python type_french_law_library_python\
-	bench_python
+	bench_python \
+	website-assets
 
 
 #> clean					: Clean build artifacts

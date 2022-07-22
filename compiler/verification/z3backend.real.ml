@@ -430,7 +430,7 @@ let rec translate_op
              (Print.format_expr ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
-                   List.map untype_expr args ),
+                   List.map (fun arg -> Bindlib.unbox (untype_expr arg)) args ),
                Untyped { pos = Pos.no_pos } ))
     in
 
@@ -521,7 +521,9 @@ let rec translate_op
                (Print.format_expr ctx.ctx_decl)
                ( EApp
                    ( (EOp op, Untyped { pos = Pos.no_pos }),
-                     List.map untype_expr args ),
+                     List.map
+                       (fun arg -> arg |> untype_expr |> Bindlib.unbox)
+                       args ),
                  Untyped { pos = Pos.no_pos } ))
       in
 
@@ -571,7 +573,9 @@ let rec translate_op
              (Print.format_expr ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
-                   List.map untype_expr args ),
+                   List.map
+                     (fun arg -> arg |> untype_expr |> Bindlib.unbox)
+                     args ),
                Untyped { pos = Pos.no_pos } ))
     in
 
