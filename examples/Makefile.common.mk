@@ -33,7 +33,7 @@ help : ../Makefile.common.mk
 		OCaml \
 		$(CURR_DIR)$<
 
-#> <target_file>_api_web.ml	 : Compiles the file to OCaml + genereates the API web
+#> <target_file>_api_web.ml	 : Compiles the file to OCaml + generates the API web
 %_api_web.ml: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
