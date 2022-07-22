@@ -270,12 +270,20 @@ end
 
 type vars = expr Bindlib.mvar
 
+type exception_situation =
+  | BaseCase
+  | ExceptionToLabel of LabelName.t Marked.pos
+  | ExceptionToRule of RuleName.t Marked.pos
+
+type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
+
 type rule = {
   rule_id : RuleName.t;
   rule_just : expr Marked.pos Bindlib.box;
   rule_cons : expr Marked.pos Bindlib.box;
   rule_parameter : (Var.t * Scopelang.Ast.typ Marked.pos) option;
-  rule_exception_to_rules : RuleSet.t Marked.pos;
+  rule_exception : exception_situation;
+  rule_label : label_situation;
 }
 
 module Rule = struct
@@ -323,8 +331,9 @@ let empty_rule
       (match have_parameter with
       | Some typ -> Some (Var.make "dummy", typ)
       | None -> None);
-    rule_exception_to_rules = RuleSet.empty, pos;
+    rule_exception = BaseCase;
     rule_id = RuleName.fresh ("empty", pos);
+    rule_label = Unlabeled;
   }
 
 let always_false_rule
@@ -337,8 +346,9 @@ let always_false_rule
       (match have_parameter with
       | Some typ -> Some (Var.make "dummy", typ)
       | None -> None);
-    rule_exception_to_rules = RuleSet.empty, pos;
+    rule_exception = BaseCase;
     rule_id = RuleName.fresh ("always_false", pos);
+    rule_label = Unlabeled;
   }
 
 type assertion = expr Marked.pos Bindlib.box
@@ -354,7 +364,6 @@ type scope_def = {
   scope_def_typ : Scopelang.Ast.typ Marked.pos;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
-  scope_def_label_groups : RuleSet.t LabelMap.t;
 }
 
 type var_or_states = WholeVar | States of StateName.t list

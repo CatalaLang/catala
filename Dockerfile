@@ -44,7 +44,7 @@ RUN opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
 RUN opam exec -- make build
 
 # Check tests & all alt targets
-RUN OCAMLRUNPARAM=b opam exec -- make all
+RUN OCAMLRUNPARAM=b opam exec -- make all -B
 
 # Forward results of promotion check
 RUN if [ -e bad-promote ]; then \

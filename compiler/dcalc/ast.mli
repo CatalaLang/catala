@@ -222,7 +222,12 @@ type ('expr, 'm) scope_def = {
     lets. This permit us to use bindlib variables for scopes names. *)
 and ('expr, 'm) scopes = Nil | ScopeDef of ('expr, 'm) scope_def
 
-type 'm program = { decl_ctx : decl_ctx; scopes : ('m expr, 'm) scopes }
+type ('expr, 'm) program_generic = {
+  decl_ctx : decl_ctx;
+  scopes : ('expr, 'm) scopes;
+}
+
+type 'm program = ('m expr, 'm) program_generic
 
 (** {1 Helpers} *)
 
@@ -251,7 +256,7 @@ val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
 val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
-val untype_expr : 'm marked_expr -> untyped marked_expr
+val untype_expr : 'm marked_expr -> untyped marked_expr Bindlib.box
 val untype_program : 'm program -> untyped program
 
 (** {2 Boxed constructors} *)
@@ -367,7 +372,7 @@ val map_expr_top_down :
     but not yet the marks in the subtrees. *)
 
 val map_expr_marks :
-  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr
+  f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box
 
 val fold_left_scope_lets :
   f:('a -> ('expr, 'm) scope_let -> 'expr Bindlib.var -> 'a) ->
@@ -528,7 +533,12 @@ val unfold_scopes :
   ('expr, 'm) marked Bindlib.box
 
 val build_whole_program_expr :
-  'm program -> ScopeName.t -> 'm marked_expr Bindlib.box
+  box_expr:('expr, 'm) box_expr_sig ->
+  make_abs:('expr, 'm) make_abs_sig ->
+  make_let_in:('expr, 'm) make_let_in_sig ->
+  ('expr, 'm) program_generic ->
+  ScopeName.t ->
+  ('expr, 'm) marked Bindlib.box
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)

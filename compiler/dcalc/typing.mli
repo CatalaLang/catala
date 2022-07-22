@@ -18,7 +18,9 @@
     inference using the classical W algorithm with union-find unification. *)
 
 val infer_types :
-  Ast.decl_ctx -> Ast.untyped Ast.marked_expr -> Ast.typed Ast.marked_expr
+  Ast.decl_ctx ->
+  Ast.untyped Ast.marked_expr ->
+  Ast.typed Ast.marked_expr Bindlib.box
 (** Infers types everywhere on the given expression, and adds (or replaces) type
     annotations on each node *)
 

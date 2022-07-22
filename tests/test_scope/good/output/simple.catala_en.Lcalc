@@ -1,0 +1,8 @@
+let Foo_29 : Foo_in{} → Foo_out{"bar_out": integer} =
+  λ (Foo_in_30: Foo_in{}) →
+    let bar_31 : integer =
+      try
+        handle_default_0 [] (λ (__32: any) → true) (λ (__33: any) → 0)
+        with EmptyError -> raise NoValueProvided in
+    Foo_out {"bar_out": bar_31} in
+Foo_29

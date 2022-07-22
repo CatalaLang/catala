@@ -15,6 +15,7 @@
    the License. *)
 open Utils
 open Ast
+module D = Dcalc.Ast
 
 let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x y = Bindlib.box_pair x y
@@ -102,7 +103,7 @@ let iota_optimizations (p : 'm program) : 'm program =
   let new_scopes =
     Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
   in
-  { p with scopes = Bindlib.unbox new_scopes }
+  { p with D.scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
    of beta-optimization as future work since its produce code that is harder to
