@@ -35,8 +35,8 @@ module To_jsoo = struct
       (match l with
       | TUnit -> "unit"
       | TInt -> "int"
-      | TRat -> "float"
-      | TMoney -> "float"
+      | TRat -> "Js.number Js.t"
+      | TMoney -> "Js.number Js.t"
       | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
       | TDate -> "Js.date Js.t")
@@ -74,8 +74,10 @@ module To_jsoo = struct
     match Marked.unmark typ with
     | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.bool"
     | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_to_int"
-    | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_to_float"
-    | Dcalc.Ast.TLit TMoney -> Format.fprintf fmt "money_to_float"
+    | Dcalc.Ast.TLit TRat ->
+      Format.fprintf fmt "Js.number_of_float %@%@ decimal_to_float"
+    | Dcalc.Ast.TLit TMoney ->
+      Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
     | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
     | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_to_jsoo"
     | Dcalc.Ast.TEnum (_, ename) ->
@@ -83,7 +85,8 @@ module To_jsoo = struct
     | Dcalc.Ast.TTuple (_, Some sname) ->
       Format.fprintf fmt "%a_to_jsoo" format_struct_name sname
     | Dcalc.Ast.TArray t ->
-      Format.fprintf fmt "Js.array %@%@ Array.map %a" format_typ_to_jsoo t
+      Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)"
+        format_typ_to_jsoo t
     | Dcalc.Ast.TAny | Dcalc.Ast.TTuple (_, None) ->
       Format.fprintf fmt "Js.Unsafe.inject"
     | _ -> Format.fprintf fmt ""
@@ -92,9 +95,11 @@ module To_jsoo = struct
     match Marked.unmark typ with
     | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.to_bool"
     | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_of_int"
-    | Dcalc.Ast.TLit TRat -> Format.fprintf fmt "decimal_of_float"
+    | Dcalc.Ast.TLit TRat ->
+      Format.fprintf fmt "decimal_of_float %@%@ Js.float_of_number"
     | Dcalc.Ast.TLit TMoney ->
-      Format.fprintf fmt "money_of_decimal %@%@ decimal_of_float"
+      Format.fprintf fmt
+        "money_of_decimal %@%@ decimal_of_float %@%@ Js.float_of_number"
     | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
     | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_of_jsoo"
     | Dcalc.Ast.TEnum (_, ename) ->
@@ -102,7 +107,8 @@ module To_jsoo = struct
     | Dcalc.Ast.TTuple (_, Some sname) ->
       Format.fprintf fmt "%a_of_jsoo" format_struct_name sname
     | Dcalc.Ast.TArray t ->
-      Format.fprintf fmt "Array.map %a %@%@ Js.to_array" format_typ_of_jsoo t
+      Format.fprintf fmt "Array.map (fun x -> %a x) %@%@ Js.to_array"
+        format_typ_of_jsoo t
     | _ -> Format.fprintf fmt ""
 
   let to_camel_case (s : string) : string =
@@ -266,7 +272,7 @@ module To_jsoo = struct
                    format_enum_cons_name cname
                | _ ->
                  Format.fprintf fmt
-                   "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.get %a##.payload 0))"
+                   "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.coerce %a##.payload))"
                    format_enum_cons_name cname fmt_module_enum_name ()
                    format_enum_cons_name cname format_typ_of_jsoo typ
                    fmt_enum_name ()))

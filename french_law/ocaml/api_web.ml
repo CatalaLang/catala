@@ -19,6 +19,8 @@ open Js_of_ocaml
 open Law_source
 module AF = Allocations_familiales
 module AF_web = Allocations_familiales_api_web
+module AL = Aides_logement
+module AL_web = Aides_logement_api_web
 
 let _ =
   Js.export_all
@@ -31,7 +33,17 @@ let _ =
              let result =
                interface_allocations_familiales_in
                |> AF_web.interface_allocations_familiales
-               |> AF_web.interface_allocations_familiales_out_of_jsoo
              in
-             Runtime_ocaml.Runtime.money_to_float result.i_montant_verse_out)
+             result##.iMontantVerseOut)
+
+       method computeAidesAuLogement
+           : (AL_web.calculette_aides_au_logement_garde_alternee_in -> float)
+             Js.callback =
+         Js.wrap_callback (fun calculette_aides_au_logement_garde_alternee_in ->
+             let result :
+                 AL_web.calculette_aides_au_logement_garde_alternee_out Js.t =
+               calculette_aides_au_logement_garde_alternee_in
+               |> AL_web.calculette_aides_au_logement_garde_alternee
+             in
+             result##.aideFinaleOut)
     end)
