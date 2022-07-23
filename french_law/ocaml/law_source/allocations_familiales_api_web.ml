@@ -359,7 +359,7 @@ let collectivite_of_jsoo (collectivite : collectivite Js.t) : Collectivite.t =
 class type enfant_entree =
   object
     method dIdentifiant : int Js.readonly_prop
-    method dRemunerationMensuelle : float Js.readonly_prop
+    method dRemunerationMensuelle : Js.number Js.t Js.readonly_prop
     method dDateDeNaissance : Js.date Js.t Js.readonly_prop
     method dPriseEnCharge : prise_en_charge Js.t Js.readonly_prop
 
@@ -376,7 +376,8 @@ let enfant_entree_to_jsoo (enfant_entree : EnfantEntree.t) : enfant_entree Js.t
     val dIdentifiant = integer_to_int enfant_entree.d_identifiant
 
     val dRemunerationMensuelle =
-      money_to_float enfant_entree.d_remuneration_mensuelle
+      Js.number_of_float
+      @@ money_to_float enfant_entree.d_remuneration_mensuelle
 
     val dDateDeNaissance = date_to_jsoo enfant_entree.d_date_de_naissance
     val dPriseEnCharge = prise_en_charge_to_jsoo enfant_entree.d_prise_en_charge
@@ -394,8 +395,8 @@ let enfant_entree_of_jsoo (enfant_entree : enfant_entree Js.t) : EnfantEntree.t
   {
     d_identifiant = integer_of_int enfant_entree##.dIdentifiant;
     d_remuneration_mensuelle =
-      money_of_decimal
-      @@ decimal_of_float enfant_entree##.dRemunerationMensuelle;
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number enfant_entree##.dRemunerationMensuelle;
     d_date_de_naissance = date_of_jsoo enfant_entree##.dDateDeNaissance;
     d_prise_en_charge = prise_en_charge_of_jsoo enfant_entree##.dPriseEnCharge;
     d_a_deja_ouvert_droit_aux_allocations_familiales =
@@ -411,7 +412,7 @@ class type enfant =
     method obligationScolaire :
       situation_obligation_scolaire Js.t Js.readonly_prop
 
-    method remunerationMensuelle : float Js.readonly_prop
+    method remunerationMensuelle : Js.number Js.t Js.readonly_prop
     method dateDeNaissance : Js.date Js.t Js.readonly_prop
     method age : int Js.readonly_prop
     method priseEnCharge : prise_en_charge Js.t Js.readonly_prop
@@ -428,7 +429,9 @@ let enfant_to_jsoo (enfant : Enfant.t) : enfant Js.t =
     val obligationScolaire =
       situation_obligation_scolaire_to_jsoo enfant.obligation_scolaire
 
-    val remunerationMensuelle = money_to_float enfant.remuneration_mensuelle
+    val remunerationMensuelle =
+      Js.number_of_float @@ money_to_float enfant.remuneration_mensuelle
+
     val dateDeNaissance = date_to_jsoo enfant.date_de_naissance
     val age = integer_to_int enfant.age
     val priseEnCharge = prise_en_charge_to_jsoo enfant.prise_en_charge
@@ -446,7 +449,8 @@ let enfant_of_jsoo (enfant : enfant Js.t) : Enfant.t =
     obligation_scolaire =
       situation_obligation_scolaire_of_jsoo enfant##.obligationScolaire;
     remuneration_mensuelle =
-      money_of_decimal @@ decimal_of_float enfant##.remunerationMensuelle;
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number enfant##.remunerationMensuelle;
     date_de_naissance = date_of_jsoo enfant##.dateDeNaissance;
     age = integer_of_int enfant##.age;
     prise_en_charge = prise_en_charge_of_jsoo enfant##.priseEnCharge;
@@ -602,19 +606,21 @@ let enfant_le_plus_age_in_to_jsoo (enfant_le_plus_age_in : EnfantLePlusAgeIn.t)
     : enfant_le_plus_age_in Js.t =
   object%js
     val enfantsIn =
-      Js.array @@ Array.map enfant_to_jsoo enfant_le_plus_age_in.enfants_in
+      Js.array
+      @@ Array.map (fun x -> enfant_to_jsoo x) enfant_le_plus_age_in.enfants_in
   end
 
 let enfant_le_plus_age_in_of_jsoo
     (enfant_le_plus_age_in : enfant_le_plus_age_in Js.t) : EnfantLePlusAgeIn.t =
   {
     enfants_in =
-      Array.map enfant_of_jsoo @@ Js.to_array enfant_le_plus_age_in##.enfantsIn;
+      Array.map (fun x -> enfant_of_jsoo x)
+      @@ Js.to_array enfant_le_plus_age_in##.enfantsIn;
   }
 
 class type allocations_familiales_out =
   object
-    method montantVerseOut : float Js.readonly_prop
+    method montantVerseOut : Js.number Js.t Js.readonly_prop
   end
 
 let allocations_familiales_out_to_jsoo
@@ -622,7 +628,8 @@ let allocations_familiales_out_to_jsoo
     allocations_familiales_out Js.t =
   object%js
     val montantVerseOut =
-      money_to_float allocations_familiales_out.montant_verse_out
+      Js.number_of_float
+      @@ money_to_float allocations_familiales_out.montant_verse_out
   end
 
 let allocations_familiales_out_of_jsoo
@@ -630,8 +637,8 @@ let allocations_familiales_out_of_jsoo
     AllocationsFamilialesOut.t =
   {
     montant_verse_out =
-      money_of_decimal
-      @@ decimal_of_float allocations_familiales_out##.montantVerseOut;
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number allocations_familiales_out##.montantVerseOut;
   }
 
 class type allocations_familiales_in =
@@ -642,7 +649,7 @@ class type allocations_familiales_in =
     method personneChargeEffectivePermanenteRemplitTitreIIn :
       bool Js.t Js.readonly_prop
 
-    method ressourcesMenageIn : float Js.readonly_prop
+    method ressourcesMenageIn : Js.number Js.t Js.readonly_prop
     method residenceIn : collectivite Js.t Js.readonly_prop
     method dateCouranteIn : Js.date Js.t Js.readonly_prop
     method enfantsAChargeIn : enfant Js.t Js.js_array Js.t Js.readonly_prop
@@ -664,7 +671,8 @@ let allocations_familiales_in_to_jsoo
           .personne_charge_effective_permanente_remplit_titre_I_in
 
     val ressourcesMenageIn =
-      money_to_float allocations_familiales_in.ressources_menage_in
+      Js.number_of_float
+      @@ money_to_float allocations_familiales_in.ressources_menage_in
 
     val residenceIn =
       collectivite_to_jsoo allocations_familiales_in.residence_in
@@ -673,7 +681,9 @@ let allocations_familiales_in_to_jsoo
 
     val enfantsAChargeIn =
       Js.array
-      @@ Array.map enfant_to_jsoo allocations_familiales_in.enfants_a_charge_in
+      @@ Array.map
+           (fun x -> enfant_to_jsoo x)
+           allocations_familiales_in.enfants_a_charge_in
 
     val avaitEnfantAChargeAvant1erJanvier2012In =
       Js.bool
@@ -692,12 +702,12 @@ let allocations_familiales_in_of_jsoo
       Js.to_bool
         allocations_familiales_in##.personneChargeEffectivePermanenteRemplitTitreIIn;
     ressources_menage_in =
-      money_of_decimal
-      @@ decimal_of_float allocations_familiales_in##.ressourcesMenageIn;
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number allocations_familiales_in##.ressourcesMenageIn;
     residence_in = collectivite_of_jsoo allocations_familiales_in##.residenceIn;
     date_courante_in = date_of_jsoo allocations_familiales_in##.dateCouranteIn;
     enfants_a_charge_in =
-      Array.map enfant_of_jsoo
+      Array.map (fun x -> enfant_of_jsoo x)
       @@ Js.to_array allocations_familiales_in##.enfantsAChargeIn;
     avait_enfant_a_charge_avant_1er_janvier_2012_in =
       Js.to_bool
@@ -706,18 +716,20 @@ let allocations_familiales_in_of_jsoo
 
 class type smic_out =
   object
-    method brutHoraireOut : float Js.readonly_prop
+    method brutHoraireOut : Js.number Js.t Js.readonly_prop
   end
 
 let smic_out_to_jsoo (smic_out : SmicOut.t) : smic_out Js.t =
   object%js
-    val brutHoraireOut = money_to_float smic_out.brut_horaire_out
+    val brutHoraireOut =
+      Js.number_of_float @@ money_to_float smic_out.brut_horaire_out
   end
 
 let smic_out_of_jsoo (smic_out : smic_out Js.t) : SmicOut.t =
   {
     brut_horaire_out =
-      money_of_decimal @@ decimal_of_float smic_out##.brutHoraireOut;
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number smic_out##.brutHoraireOut;
   }
 
 class type smic_in =
@@ -740,7 +752,7 @@ let smic_in_of_jsoo (smic_in : smic_in Js.t) : SmicIn.t =
 
 class type base_mensuelle_allocations_familiales_out =
   object
-    method montantOut : float Js.readonly_prop
+    method montantOut : Js.number Js.t Js.readonly_prop
   end
 
 let base_mensuelle_allocations_familiales_out_to_jsoo
@@ -749,7 +761,8 @@ let base_mensuelle_allocations_familiales_out_to_jsoo
     base_mensuelle_allocations_familiales_out Js.t =
   object%js
     val montantOut =
-      money_to_float base_mensuelle_allocations_familiales_out.montant_out
+      Js.number_of_float
+      @@ money_to_float base_mensuelle_allocations_familiales_out.montant_out
   end
 
 let base_mensuelle_allocations_familiales_out_of_jsoo
@@ -758,8 +771,9 @@ let base_mensuelle_allocations_familiales_out_of_jsoo
     BaseMensuelleAllocationsFamilialesOut.t =
   {
     montant_out =
-      money_of_decimal
-      @@ decimal_of_float base_mensuelle_allocations_familiales_out##.montantOut;
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number
+           base_mensuelle_allocations_familiales_out##.montantOut;
   }
 
 class type base_mensuelle_allocations_familiales_in =
@@ -787,7 +801,7 @@ let base_mensuelle_allocations_familiales_in_of_jsoo
 
 class type interface_allocations_familiales_out =
   object
-    method iMontantVerseOut : float Js.readonly_prop
+    method iMontantVerseOut : Js.number Js.t Js.readonly_prop
   end
 
 let interface_allocations_familiales_out_to_jsoo
@@ -795,7 +809,8 @@ let interface_allocations_familiales_out_to_jsoo
     : interface_allocations_familiales_out Js.t =
   object%js
     val iMontantVerseOut =
-      money_to_float interface_allocations_familiales_out.i_montant_verse_out
+      Js.number_of_float
+      @@ money_to_float interface_allocations_familiales_out.i_montant_verse_out
   end
 
 let interface_allocations_familiales_out_of_jsoo
@@ -804,8 +819,8 @@ let interface_allocations_familiales_out_of_jsoo
     InterfaceAllocationsFamilialesOut.t =
   {
     i_montant_verse_out =
-      money_of_decimal
-      @@ decimal_of_float
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number
            interface_allocations_familiales_out##.iMontantVerseOut;
   }
 
@@ -813,7 +828,7 @@ class type interface_allocations_familiales_in =
   object
     method iDateCouranteIn : Js.date Js.t Js.readonly_prop
     method iEnfantsIn : enfant_entree Js.t Js.js_array Js.t Js.readonly_prop
-    method iRessourcesMenageIn : float Js.readonly_prop
+    method iRessourcesMenageIn : Js.number Js.t Js.readonly_prop
     method iResidenceIn : collectivite Js.t Js.readonly_prop
 
     method iPersonneChargeEffectivePermanenteEstParentIn :
@@ -834,11 +849,14 @@ let interface_allocations_familiales_in_to_jsoo
 
     val iEnfantsIn =
       Js.array
-      @@ Array.map enfant_entree_to_jsoo
+      @@ Array.map
+           (fun x -> enfant_entree_to_jsoo x)
            interface_allocations_familiales_in.i_enfants_in
 
     val iRessourcesMenageIn =
-      money_to_float interface_allocations_familiales_in.i_ressources_menage_in
+      Js.number_of_float
+      @@ money_to_float
+           interface_allocations_familiales_in.i_ressources_menage_in
 
     val iResidenceIn =
       collectivite_to_jsoo interface_allocations_familiales_in.i_residence_in
@@ -867,11 +885,11 @@ let interface_allocations_familiales_in_of_jsoo
     i_date_courante_in =
       date_of_jsoo interface_allocations_familiales_in##.iDateCouranteIn;
     i_enfants_in =
-      Array.map enfant_entree_of_jsoo
+      Array.map (fun x -> enfant_entree_of_jsoo x)
       @@ Js.to_array interface_allocations_familiales_in##.iEnfantsIn;
     i_ressources_menage_in =
-      money_of_decimal
-      @@ decimal_of_float
+      money_of_decimal @@ decimal_of_float
+      @@ Js.float_of_number
            interface_allocations_familiales_in##.iRessourcesMenageIn;
     i_residence_in =
       collectivite_of_jsoo interface_allocations_familiales_in##.iResidenceIn;
