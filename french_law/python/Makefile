@@ -1,4 +1,7 @@
-SOURCES=../../runtimes/python/catala/src/catala/runtime.py src/allocations_familiales.py main.py src/api.py
+SOURCES=../../runtimes/python/catala/src/catala/runtime.py \
+  src/allocations_familiales.py \
+  src/aides_logement.py \
+  main.py src/api.py
 
 dependencies:
 	pip install -r requirements.txt
