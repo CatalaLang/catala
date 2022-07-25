@@ -1,0 +1,10 @@
+## Test
+
+```catala
+declaration scope Foo2:
+  output bar content integer
+```
+
+```catala-test {id="foo_2_scalc"}
+catala Scalc -s Foo2 -O -t
+```
