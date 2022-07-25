@@ -249,9 +249,14 @@ $(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
 
+$(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py:
+	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.py
+	cp -f $(AIDES_LOGEMENT_DIR)/aides_logement.py $@
+
 #> generate_french_law_library_python	: Generates the French law library Python sources from Catala
 generate_french_law_library_python:\
-	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py
+	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py \
+	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) format
 
