@@ -20,6 +20,8 @@ module L = Lcalc.Ast
 module TopLevelName = Uid.Make (Uid.MarkedString) ()
 module LocalName = Uid.Make (Uid.MarkedString) ()
 
+let dead_value = LocalName.fresh ("dead_value", Pos.no_pos)
+
 type expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t

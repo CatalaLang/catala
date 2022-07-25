@@ -614,6 +614,13 @@ def no_input() -> Callable[[Unit], Alpha]:
         raise EmptyError
     return closure
 
+
+# This value is used for the Python code generation to trump mypy and forcing
+# it to accept dead code. Indeed, when raising an exception during a variable
+# definition, mypy complains that the later dead code will not know what
+# this variable was. So we give this variable a dead value.
+dead_value: Any = 0
+
 # =======
 # Logging
 # =======

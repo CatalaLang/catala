@@ -242,7 +242,18 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
     let s_e_try = translate_statements ctxt e_try in
     let s_e_catch = translate_statements ctxt e_catch in
     [A.STryExcept (s_e_try, except, s_e_catch), D.pos block_expr]
-  | L.ERaise except -> [A.SRaise except, D.pos block_expr]
+  | L.ERaise except ->
+    (* Before raising the exception, we still give a dummy definition to the
+       current variable so that tools like mypy don't complain. *)
+    (match ctxt.inside_definition_of with
+    | None -> []
+    | Some x ->
+      [
+        ( A.SLocalDef
+            ((x, D.pos block_expr), (Ast.EVar Ast.dead_value, D.pos block_expr)),
+          D.pos block_expr );
+      ])
+    @ [A.SRaise except, D.pos block_expr]
   | _ -> (
     let e_stmts, new_e = translate_expr ctxt block_expr in
     e_stmts

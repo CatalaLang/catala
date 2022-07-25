@@ -9,5 +9,5 @@ scope Foo:
 ```
 
 ```catala-test {id="Lcalc"}
-catala Lcalc
+catala Lcalc -s Foo
 ```
