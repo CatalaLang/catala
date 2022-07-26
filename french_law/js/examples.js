@@ -194,8 +194,12 @@ function run_computation_AL(log) {
   console.log(result);
 }
 
-run_computation_AF(false);
-run_computation_AL(false);
+try {
+  run_computation_AF(false);
+  run_computation_AL(false);
+} catch (error) {
+  console.log(error.message);
+}
 process.exit(0);
 
 // suite
