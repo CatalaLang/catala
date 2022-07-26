@@ -360,7 +360,7 @@ class type enfant_entree =
   object
     method dIdentifiant : int Js.readonly_prop
     method dRemunerationMensuelle : Js.number Js.t Js.readonly_prop
-    method dDateDeNaissance : Js.date Js.t Js.readonly_prop
+    method dDateDeNaissance : Js.js_string Js.t Js.readonly_prop
     method dPriseEnCharge : prise_en_charge Js.t Js.readonly_prop
 
     method dADejaOuvertDroitAuxAllocationsFamiliales :
@@ -413,7 +413,7 @@ class type enfant =
       situation_obligation_scolaire Js.t Js.readonly_prop
 
     method remunerationMensuelle : Js.number Js.t Js.readonly_prop
-    method dateDeNaissance : Js.date Js.t Js.readonly_prop
+    method dateDeNaissance : Js.js_string Js.t Js.readonly_prop
     method age : int Js.readonly_prop
     method priseEnCharge : prise_en_charge Js.t Js.readonly_prop
     method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
@@ -511,7 +511,7 @@ let prestations_familiales_out_of_jsoo
 
 class type prestations_familiales_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
 
     method prestationCouranteIn :
       element_prestations_familiales Js.t Js.readonly_prop
@@ -651,7 +651,7 @@ class type allocations_familiales_in =
 
     method ressourcesMenageIn : Js.number Js.t Js.readonly_prop
     method residenceIn : collectivite Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method enfantsAChargeIn : enfant Js.t Js.js_array Js.t Js.readonly_prop
     method avaitEnfantAChargeAvant1erJanvier2012In : bool Js.t Js.readonly_prop
   end
@@ -734,7 +734,7 @@ let smic_out_of_jsoo (smic_out : smic_out Js.t) : SmicOut.t =
 
 class type smic_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method residenceIn : collectivite Js.t Js.readonly_prop
   end
 
@@ -778,7 +778,7 @@ let base_mensuelle_allocations_familiales_out_of_jsoo
 
 class type base_mensuelle_allocations_familiales_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let base_mensuelle_allocations_familiales_in_to_jsoo
@@ -826,7 +826,7 @@ let interface_allocations_familiales_out_of_jsoo
 
 class type interface_allocations_familiales_in =
   object
-    method iDateCouranteIn : Js.date Js.t Js.readonly_prop
+    method iDateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method iEnfantsIn : enfant_entree Js.t Js.js_array Js.t Js.readonly_prop
     method iRessourcesMenageIn : Js.number Js.t Js.readonly_prop
     method iResidenceIn : collectivite Js.t Js.readonly_prop

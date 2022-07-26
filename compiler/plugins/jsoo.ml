@@ -39,7 +39,7 @@ module To_jsoo = struct
       | TMoney -> "Js.number Js.t"
       | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
-      | TDate -> "Js.date Js.t")
+      | TDate -> "Js.js_string Js.t")
 
   let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
       unit =
