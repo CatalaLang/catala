@@ -67,6 +67,7 @@
 #define MS_FIXED "fixed"
 #define MS_BY "by"
 #define MS_RULE "rule"
+#define MS_LET "let"
 #define MS_EXISTS "exists"
 #define MS_IN "in"
 #define MS_SUCH "such"

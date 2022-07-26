@@ -352,6 +352,9 @@ let (pos, i,e1) = i_in_e1 in
 | IF e1 = expression THEN e2 = expression ELSE e3 = expression {
   (IfThenElse (e1, e2, e3), Pos.from_lpos $sloc)
 }
+| LET id = ident DEFINED_AS e1 = expression IN e2 = expression {
+  (LetIn (id, e1, e2), Pos.from_lpos $sloc)
+}
 | e = logical_expression { e }
 
 condition:

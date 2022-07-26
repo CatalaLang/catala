@@ -117,7 +117,7 @@ let disambiguate_constructor
 (** Usage: [translate_expr scope ctxt expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
-    disambiguate the scope and subscopes variables than occur in the expresion *)
+    disambiguate the scope and subscopes variables than occur in the expression *)
 let rec translate_expr
     (scope : Scopelang.Ast.ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
@@ -367,6 +367,17 @@ let rec translate_expr
     Bindlib.box_apply2
       (fun f arg -> Desugared.Ast.EApp (f, [arg]), pos)
       (rec_helper f) (rec_helper arg)
+  | LetIn (x, e1, e2) ->
+    let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
+    let tau = Scopelang.Ast.TAny, Marked.get_mark x in
+    let fn =
+      Desugared.Ast.make_abs [| v |]
+        (translate_expr scope inside_definition_of ctxt e2)
+        [tau] pos
+    in
+    Bindlib.box_apply2
+      (fun fn arg -> Desugared.Ast.(EApp (fn, [arg]), pos))
+      fn (rec_helper e1)
   | StructLit (s_name, fields) ->
     let s_uid =
       try Desugared.Ast.IdentMap.find (Marked.unmark s_name) ctxt.struct_idmap

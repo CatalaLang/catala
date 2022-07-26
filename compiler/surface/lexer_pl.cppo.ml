@@ -71,7 +71,9 @@
 #define MS_FIXED "staloprzecinkowa"
 #define MS_BY "przez"
 #define MS_RULE "zasada"
+#define MS_LET "niech"
 #define MS_EXISTS "istnieje"
+(* "in" or "w" ? *)
 #define MS_IN "in"
 #define MS_SUCH "takie ze"
 #define MR_SUCH "takie", space_plus, "ze"
