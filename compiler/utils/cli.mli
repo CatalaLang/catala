@@ -81,9 +81,12 @@ val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
+(** The usual auto/always/never option argument *)
+type when_enum = Auto | Always | Never
+
 type options = {
   debug : bool;
-  unstyled : bool;
+  color : when_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;

@@ -94,11 +94,26 @@ let file =
 let debug =
   Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information.")
 
+type when_enum = Auto | Always | Never
+
+let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
+
+let color =
+  Arg.(
+    value
+    & opt ~vopt:Always when_opt Auto
+    & info ["color"]
+        ~doc:
+          "Allow output of colored and styled text. If set to $(i,auto), \
+           enabled when the standard output is to a terminal.")
+
 let unstyled =
   Arg.(
     value & flag
     & info ["unstyled"; "u"]
-        ~doc:"Removes styling (colors, etc.) from terminal output.")
+        ~doc:
+          "Removes styling (colors, etc.) from terminal output. Equivalent to \
+           $(b,--color=never)")
 
 let optimize =
   Arg.(value & flag & info ["optimize"; "O"] ~doc:"Run compiler optimizations.")
@@ -200,7 +215,7 @@ let output =
 
 type options = {
   debug : bool;
-  unstyled : bool;
+  color : when_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;
@@ -219,6 +234,7 @@ type options = {
 let options =
   let make
       debug
+      color
       unstyled
       wrap_weaved_output
       avoid_exceptions
@@ -235,7 +251,7 @@ let options =
       print_only_law : options =
     {
       debug;
-      unstyled;
+      color = (if unstyled then Never else color);
       wrap_weaved_output;
       avoid_exceptions;
       backend;
@@ -252,8 +268,8 @@ let options =
     }
   in
   Term.(
-    const make $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
-    $ closure_conversion $ backend $ plugins_dirs $ language
+    const make $ debug $ color $ unstyled $ wrap_weaved_output
+    $ avoid_exceptions $ closure_conversion $ backend $ plugins_dirs $ language
     $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize
     $ ex_scope $ output $ print_only_law)
 
@@ -261,7 +277,11 @@ let catala_t f = Term.(const f $ file $ options)
 
 let set_option_globals options : unit =
   debug_flag := options.debug;
-  style_flag := not options.unstyled;
+  (style_flag :=
+     match options.color with
+     | Always -> true
+     | Never -> false
+     | Auto -> Unix.isatty Unix.stdout);
   trace_flag := options.trace;
   optimize_flag := options.optimize;
   disable_counterexamples := options.disable_counterexamples;
