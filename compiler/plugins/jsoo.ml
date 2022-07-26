@@ -414,9 +414,11 @@ module To_jsoo = struct
 end
 
 let apply
-    (output_file : string option)
+    ~(output_file : string option)
+    ~(scope : string option)
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
+  let _ = scope in
   let filename_without_ext_opt =
     Option.map
       (fun f -> Filename.basename f |> String.split_on_char '.' |> List.hd)

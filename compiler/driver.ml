@@ -345,7 +345,8 @@ let driver source_file (options : Cli.options) : int =
                   p.Plugin.name;
                 Cli.debug_print "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
-                p.Plugin.apply output_file prgm type_ordering
+                p.Plugin.apply ~output_file ~scope:options.ex_scope prgm
+                  type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
                 let prgm = Scalc.Compile_from_lambda.translate_program prgm in
                 match backend with
@@ -383,7 +384,8 @@ let driver source_file (options : Cli.options) : int =
                     p.Plugin.name;
                   Cli.debug_print "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
-                  p.Plugin.apply output_file prgm type_ordering)))))));
+                  p.Plugin.apply ~output_file ~scope:options.ex_scope prgm
+                    type_ordering)))))));
     0
   with
   | Errors.StructuredError (msg, pos) ->
