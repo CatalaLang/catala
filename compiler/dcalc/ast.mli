@@ -18,96 +18,7 @@
 (** Abstract syntax tree of the default calculus intermediate representation *)
 
 open Utils
-module Runtime = Runtime_ocaml.Runtime
-module ScopeName : Uid.Id with type info = Uid.MarkedString.info
-module StructName : Uid.Id with type info = Uid.MarkedString.info
-module StructFieldName : Uid.Id with type info = Uid.MarkedString.info
-module StructMap : Map.S with type key = StructName.t
-module EnumName : Uid.Id with type info = Uid.MarkedString.info
-module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info
-module EnumMap : Map.S with type key = EnumName.t
-
-(** Abstract syntax tree for the default calculus *)
-
-(** {1 Abstract syntax tree} *)
-
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
-
-type marked_typ = typ Marked.pos
-
-and typ =
-  | TLit of typ_lit
-  | TTuple of marked_typ list * StructName.t option
-  | TEnum of marked_typ list * EnumName.t
-  | TArrow of marked_typ * marked_typ
-  | TArray of marked_typ
-  | TAny
-
-type date = Runtime.date
-type duration = Runtime.duration
-
-type lit =
-  | LBool of bool
-  | LEmptyError
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
-  | LUnit
-  | LDate of date
-  | LDuration of duration
-
-type op_kind =
-  | KInt
-  | KRat
-  | KMoney
-  | KDate
-  | KDuration  (** All ops don't have a KDate and KDuration. *)
-
-type ternop = Fold
-
-type binop =
-  | And
-  | Or
-  | Xor
-  | Add of op_kind
-  | Sub of op_kind
-  | Mult of op_kind
-  | Div of op_kind
-  | Lt of op_kind
-  | Lte of op_kind
-  | Gt of op_kind
-  | Gte of op_kind
-  | Eq
-  | Neq
-  | Map
-  | Concat
-  | Filter
-
-type log_entry =
-  | VarDef of typ
-      (** During code generation, we need to know the type of the variable being
-          logged for embedding *)
-  | BeginCall
-  | EndCall
-  | PosRecordIfTrueBool
-
-type unop =
-  | Not
-  | Minus of op_kind
-  | Log of log_entry * Utils.Uid.MarkedString.info list
-  | Length
-  | IntToRat
-  | MoneyToRat
-  | RatToMoney
-  | GetDay
-  | GetMonth
-  | GetYear
-  | FirstDayOfMonth
-  | LastDayOfMonth
-  | RoundMoney
-  | RoundDecimal
-
-type operator = Ternop of ternop | Binop of binop | Unop of unop
+include module type of Astgen
 
 (** Contains some structures used for type inference *)
 module Infer : sig
@@ -142,32 +53,10 @@ type _ mark =
   | Typed : typed -> typed mark
   | Inferring : inferring -> inferring mark
 
+type 'm expr = (dcalc, 'm mark) gexpr
+and 'm marked_expr = (dcalc, 'm mark) marked_gexpr
+
 type ('a, 'm) marked = ('a, 'm mark) Marked.t
-
-type 'm marked_expr = ('m expr, 'm) marked
-
-(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
-    library, based on higher-order abstract syntax*)
-and 'm expr =
-  | EVar of 'm expr Bindlib.var
-  | ETuple of 'm marked_expr list * StructName.t option
-      (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of 'm marked_expr * int * StructName.t option * marked_typ list
-      (** The [MarkedString.info] is the former struct field name *)
-  | EInj of 'm marked_expr * int * EnumName.t * marked_typ list
-      (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of 'm marked_expr * 'm marked_expr list * EnumName.t
-      (** The [MarkedString.info] is the former enum case name *)
-  | EArray of 'm marked_expr list
-  | ELit of lit
-  | EAbs of
-      (('m expr, 'm marked_expr) Bindlib.mbinder[@opaque]) * marked_typ list
-  | EApp of 'm marked_expr * 'm marked_expr list
-  | EAssert of 'm marked_expr
-  | EOp of operator
-  | EDefault of 'm marked_expr list * 'm marked_expr * 'm marked_expr
-  | EIfThenElse of 'm marked_expr * 'm marked_expr * 'm marked_expr
-  | ErrorOnEmpty of 'm marked_expr
 
 (** {3 Expression annotations ([Marked.t])} *)
 
@@ -441,6 +330,7 @@ val map_exprs_in_scopes :
 (** {2 Variables} *)
 
 type 'm var = 'm expr Bindlib.var
+type 'm vars = 'm expr Bindlib.mvar
 
 val new_var : string -> 'm var
 
@@ -469,8 +359,6 @@ val free_vars_expr : 'm marked_expr -> VarSet.t
 val free_vars_scope_body_expr : ('m expr, 'm) scope_body_expr -> VarSet.t
 val free_vars_scope_body : ('m expr, 'm) scope_body -> VarSet.t
 val free_vars_scopes : ('m expr, 'm) scopes -> VarSet.t
-
-(* type vars = expr Bindlib.mvar *)
 
 val make_var : ('m var, 'm) marked -> 'm marked_expr Bindlib.box
 

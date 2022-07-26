@@ -15,98 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-[@@@ocaml.warning "-7-34"]
-
 open Utils
-module Runtime = Runtime_ocaml.Runtime
-
-module ScopeName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module StructName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
-
-module EnumName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
-
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
-
-type marked_typ = typ Marked.pos
-
-and typ =
-  | TLit of typ_lit
-  | TTuple of marked_typ list * StructName.t option
-  | TEnum of marked_typ list * EnumName.t
-  | TArrow of marked_typ * marked_typ
-  | TArray of marked_typ
-  | TAny
-
-type date = Runtime.date
-type duration = Runtime.duration
-type integer = Runtime.integer
-type decimal = Runtime.decimal
-type money = Runtime.money
-
-type lit =
-  | LBool of bool
-  | LEmptyError
-  | LInt of integer
-  | LRat of decimal
-  | LMoney of money
-  | LUnit
-  | LDate of date
-  | LDuration of duration
-
-type op_kind = KInt | KRat | KMoney | KDate | KDuration
-type ternop = Fold
-
-type binop =
-  | And
-  | Or
-  | Xor
-  | Add of op_kind
-  | Sub of op_kind
-  | Mult of op_kind
-  | Div of op_kind
-  | Lt of op_kind
-  | Lte of op_kind
-  | Gt of op_kind
-  | Gte of op_kind
-  | Eq
-  | Neq
-  | Map
-  | Concat
-  | Filter
-
-type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool
-
-type unop =
-  | Not
-  | Minus of op_kind
-  | Log of log_entry * Utils.Uid.MarkedString.info list
-  | Length
-  | IntToRat
-  | MoneyToRat
-  | RatToMoney
-  | GetDay
-  | GetMonth
-  | GetYear
-  | FirstDayOfMonth
-  | LastDayOfMonth
-  | RoundMoney
-  | RoundDecimal
-
-type operator = Ternop of ternop | Binop of binop | Unop of unop
+include Astgen
 
 (** Some structures used for type inference *)
 module Infer = struct
@@ -167,28 +77,10 @@ type _ mark =
   | Typed : typed -> typed mark
   | Inferring : inferring -> inferring mark
 
+type 'm expr = (dcalc, 'm mark) gexpr
+and 'm marked_expr = (dcalc, 'm mark) marked_gexpr
+
 type ('a, 'm) marked = ('a, 'm mark) Marked.t
-
-type 'm marked_expr = ('m expr, 'm) marked
-
-and 'm expr =
-  | EVar of 'm expr Bindlib.var
-  | ETuple of 'm marked_expr list * StructName.t option
-  | ETupleAccess of
-      'm marked_expr * int * StructName.t option * typ Marked.pos list
-  | EInj of 'm marked_expr * int * EnumName.t * typ Marked.pos list
-  | EMatch of 'm marked_expr * 'm marked_expr list * EnumName.t
-  | EArray of 'm marked_expr list
-  | ELit of lit
-  | EAbs of
-      (('m expr, 'm marked_expr) Bindlib.mbinder[@opaque]) * typ Marked.pos list
-  | EApp of 'm marked_expr * 'm marked_expr list
-  | EAssert of 'm marked_expr
-  | EOp of operator
-  | EDefault of 'm marked_expr list * 'm marked_expr * 'm marked_expr
-  | EIfThenElse of 'm marked_expr * 'm marked_expr * 'm marked_expr
-  | ErrorOnEmpty of 'm marked_expr
-
 type typed_expr = typed marked_expr
 type struct_ctx = (StructFieldName.t * typ Marked.pos) list StructMap.t
 type enum_ctx = (EnumConstructor.t * typ Marked.pos) list EnumMap.t
@@ -501,7 +393,6 @@ let rec free_vars_scopes (scopes : ('m expr, 'm) scopes) : VarSet.t =
     VarSet.union
       (VarSet.remove (Var.t v) (free_vars_scopes next))
       (free_vars_scope_body body)
-(* type vars = expr Bindlib.mvar *)
 
 let make_var ((x, mark) : ('m expr Bindlib.var, 'm) marked) :
     'm marked_expr Bindlib.box =

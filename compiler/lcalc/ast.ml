@@ -15,43 +15,13 @@
    the License. *)
 
 open Utils
-module Runtime = Runtime_ocaml.Runtime
+include Astgen
 module D = Dcalc.Ast
 
-type lit =
-  | LBool of bool
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
-  | LUnit
-  | LDate of Runtime.date
-  | LDuration of Runtime.duration
-
-type except = ConflictError | EmptyError | NoValueProvided | Crash
 type 'm mark = 'm D.mark
 
-type 'm marked_expr = ('m expr, 'm) D.marked
-
-and 'm expr =
-  | EVar of 'm expr Bindlib.var
-  | ETuple of 'm marked_expr list * D.StructName.t option
-      (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of
-      'm marked_expr * int * D.StructName.t option * D.typ Marked.pos list
-      (** The [MarkedString.info] is the former struct field name *)
-  | EInj of 'm marked_expr * int * D.EnumName.t * D.typ Marked.pos list
-      (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of 'm marked_expr * 'm marked_expr list * D.EnumName.t
-      (** The [MarkedString.info] is the former enum case name *)
-  | EArray of 'm marked_expr list
-  | ELit of lit
-  | EAbs of ('m expr, 'm marked_expr) Bindlib.mbinder * D.typ Marked.pos list
-  | EApp of 'm marked_expr * 'm marked_expr list
-  | EAssert of 'm marked_expr
-  | EOp of D.operator
-  | EIfThenElse of 'm marked_expr * 'm marked_expr * 'm marked_expr
-  | ERaise of except
-  | ECatch of 'm marked_expr * except * 'm marked_expr
+type 'm expr = (lcalc, 'm mark) gexpr
+and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
 type 'm program = ('m expr, 'm) Dcalc.Ast.program_generic
 

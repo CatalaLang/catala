@@ -15,57 +15,16 @@
    the License. *)
 
 open Utils
-module Runtime = Runtime_ocaml.Runtime
+include module type of Astgen
 
 (** Abstract syntax tree for the lambda calculus *)
 
 (** {1 Abstract syntax tree} *)
 
-(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
-    library, based on higher-order abstract syntax*)
-
-type lit =
-  | LBool of bool
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
-  | LUnit
-  | LDate of Runtime.date
-  | LDuration of Runtime.duration
-
-type except = ConflictError | EmptyError | NoValueProvided | Crash
 type 'm mark = 'm Dcalc.Ast.mark
 
-type 'm marked_expr = ('m expr, 'm) Dcalc.Ast.marked
-
-and 'm expr =
-  | EVar of 'm expr Bindlib.var
-  | ETuple of 'm marked_expr list * Dcalc.Ast.StructName.t option
-      (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of
-      'm marked_expr
-      * int
-      * Dcalc.Ast.StructName.t option
-      * Dcalc.Ast.typ Marked.pos list
-      (** The [MarkedString.info] is the former struct field name *)
-  | EInj of
-      'm marked_expr
-      * int
-      * Dcalc.Ast.EnumName.t
-      * Dcalc.Ast.typ Marked.pos list
-      (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of 'm marked_expr * 'm marked_expr list * Dcalc.Ast.EnumName.t
-      (** The [MarkedString.info] is the former enum case name *)
-  | EArray of 'm marked_expr list
-  | ELit of lit
-  | EAbs of
-      ('m expr, 'm marked_expr) Bindlib.mbinder * Dcalc.Ast.typ Marked.pos list
-  | EApp of 'm marked_expr * 'm marked_expr list
-  | EAssert of 'm marked_expr
-  | EOp of Dcalc.Ast.operator
-  | EIfThenElse of 'm marked_expr * 'm marked_expr * 'm marked_expr
-  | ERaise of except
-  | ECatch of 'm marked_expr * except * 'm marked_expr
+type 'm expr = (lcalc, 'm mark) gexpr
+and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
 type 'm program = ('m expr, 'm) Dcalc.Ast.program_generic
 
