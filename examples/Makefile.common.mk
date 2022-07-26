@@ -37,7 +37,7 @@ help : ../Makefile.common.mk
 %_api_web.ml: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
-		jsoo \
+		web \
 		--plugin-dir=$(PLUGIN_DIR) \
 		$(CURR_DIR)$<
 

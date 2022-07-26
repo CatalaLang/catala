@@ -5,9 +5,9 @@
  (libraries catala.driver))
 
 (executable
- (name jsoo)
+ (name web)
  (modes plugin)
- (modules jsoo)
+ (modules web)
  (libraries catala.driver))
 
 (documentation

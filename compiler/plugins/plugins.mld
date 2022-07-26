@@ -41,11 +41,6 @@ This trivial example registers a plugin that uses the [scalc] format as input.
 It simply calls the code of the built-in Python backend, and should be no
 different to using the normal Catala Python output mode.
 
-{2 jsoo example}
+{2 Web example}
 
-This slightly more involved plugin reads the [lcalc] format, applies the code of
-the [OCaml] backend normally, but then calls the [ocamlc] and [js_of_ocaml]
-compiler successively on the output in order to give a Javascript output.
-
-Note that this output remains a library, it won't provide user-facing features,
-and no efforts are made to make it callable from normal JavaScript code.
+TODO: write the doc

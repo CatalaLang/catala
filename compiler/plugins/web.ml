@@ -26,7 +26,7 @@ open Lcalc.Backends
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
-let name = "jsoo"
+let name = "web"
 let extension = ".ml"
 
 module To_jsoo = struct
@@ -413,12 +413,19 @@ module To_jsoo = struct
           prgm.scopes)
 end
 
+module To_json = struct
+  let format_program
+      (fmt : Format.formatter)
+      (_prgm : 'm Lcalc.Ast.program)
+      (_type_ordering : Scopelang.Dependency.TVertex.t list) =
+    Cli.call_unstyled (fun _ -> Format.fprintf fmt "{@[<hov 2> TODO @]}")
+end
+
 let apply
     ~(output_file : string option)
     ~(scope : string option)
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
-  let _ = scope in
   let filename_without_ext_opt =
     Option.map
       (fun f -> Filename.basename f |> String.split_on_char '.' |> List.hd)
@@ -430,21 +437,34 @@ let apply
   File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
       To_ocaml.format_program fmt prgm type_ordering;
-      File.ocamlformat_file_opt output_file;
-      let module_name =
-        match filename_without_ext_opt with
-        | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
-        | None -> ""
-      in
-      let jsoo_output_file_opt =
-        Option.map
-          (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
-          filename_without_ext_opt
-      in
-      File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt ->
-          Cli.debug_print "Writing JSOO API code to %s..."
-            (Option.value ~default:"stdout" jsoo_output_file_opt);
-          To_jsoo.format_program fmt module_name prgm type_ordering;
-          File.ocamlformat_file_opt jsoo_output_file_opt))
+      File.ocamlformat_file_opt output_file);
+
+  let module_name =
+    match filename_without_ext_opt with
+    | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
+    | None -> ""
+  in
+  let jsoo_output_file_opt =
+    Option.map
+      (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
+      filename_without_ext_opt
+  in
+  File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt ->
+      Cli.debug_print "Writing JSOO API code to %s..."
+        (Option.value ~default:"stdout" jsoo_output_file_opt);
+      To_jsoo.format_program fmt module_name prgm type_ordering;
+      File.ocamlformat_file_opt jsoo_output_file_opt);
+  match scope with
+  | Some s ->
+    (* NOTE: Will needs to have the ui_schema + defs too.*)
+    let json_file = Filename.concat dirname (s ^ "_schema.json") in
+    File.with_formatter_of_file json_file (fun fmt ->
+        Cli.debug_print
+          "Writing JSON schema corresponding to the scope '%s' to the file \
+           %s..."
+          s
+          (Option.value ~default:"stdout" output_file);
+        To_json.format_program fmt prgm type_ordering)
+  | None -> ()
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply
