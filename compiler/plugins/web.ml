@@ -15,9 +15,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This file demonstrates the use of backend plugins for Catala. It's a simple
-    wrapper on top of the OCaml backend that calls js_of_ocaml on the generated
-    code. Not for production use. *)
+(** Catala plugin for generating web APIs.
+
+    It generates:
+
+    - the OCaml code,
+    - the associated [js_of_ocaml] wrapper,
+    - if a scope is specified in the options, the JSON schema used to build the
+      web form. *)
 
 open Utils
 open Lcalc
@@ -414,11 +419,70 @@ module To_jsoo = struct
 end
 
 module To_json = struct
+  let rec find_scope_def (target_name : string) :
+      ('m expr, 'm) D.scopes -> ('m expr, 'm) D.scope_def option = function
+    | D.Nil -> None
+    | D.ScopeDef scope_def ->
+      let name =
+        Format.asprintf "%a" D.ScopeName.format_t scope_def.scope_name
+      in
+      if name = target_name then Some scope_def
+      else
+        let _, next_scope = Bindlib.unbind scope_def.scope_next in
+        find_scope_def target_name next_scope
+
+  let fmt_definitions
+      (ctx : D.decl_ctx)
+      (fmt : Format.formatter)
+      (scope_def : ('m expr, 'm) D.scope_def) =
+    let rec collect_required_type_defs_from_scope_input
+        (input_struct : D.StructName.t) : D.marked_typ list =
+      let rec collect (acc : D.marked_typ list) (t : D.marked_typ) :
+          D.marked_typ list =
+        match Marked.unmark t with
+        | D.TTuple (_, Some s) ->
+          (* Scope's input is a struct. *)
+          (t :: acc) @ collect_required_type_defs_from_scope_input s
+        | D.TEnum _ -> t :: acc
+        | D.TArray t -> collect acc t
+        | _ -> acc
+      in
+      find_struct input_struct ctx
+      |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
+    in
+
+    scope_def.scope_body.scope_body_input_struct
+    |> collect_required_type_defs_from_scope_input
+    |> List.iter (fun struct_field_type ->
+           Printf.printf "required type: %s\n"
+           @@
+           match Marked.unmark struct_field_type with
+           | D.TTuple (_, Some s) -> Format.asprintf "%a" format_struct_name s
+           | D.TEnum (_, e) -> Format.asprintf "%a" format_enum_name e
+           | _ -> "");
+    Format.fprintf fmt "TODO"
+
+  let fmt_properties fmt _ = Format.fprintf fmt "TODO"
+
   let format_program
       (fmt : Format.formatter)
-      (_prgm : 'm Lcalc.Ast.program)
+      (scope : string)
+      (prgm : 'm Lcalc.Ast.program)
       (_type_ordering : Scopelang.Dependency.TVertex.t list) =
-    Cli.call_unstyled (fun _ -> Format.fprintf fmt "{@[<hov 2> TODO @]}")
+    match find_scope_def scope prgm.scopes with
+    | None -> Cli.error_print "Internal error: scope '%s' not found." scope
+    | Some scope_def ->
+      Cli.call_unstyled (fun _ ->
+          Format.fprintf fmt
+            "{@[<hov 2>@\n\
+             \"type\": \"object\",@\n\
+             \"definitions\": {%a@\n\
+             },@\n\
+             \"properties\": {%a@\n\
+             }@]@\n\
+             }"
+            (fmt_definitions prgm.decl_ctx)
+            scope_def fmt_properties ())
 end
 
 let apply
@@ -434,37 +498,41 @@ let apply
   let dirname =
     match output_file with Some f -> Filename.dirname f | None -> ""
   in
-  File.with_formatter_of_opt_file output_file (fun fmt ->
-      Cli.trace_flag := true;
-      To_ocaml.format_program fmt prgm type_ordering;
-      File.ocamlformat_file_opt output_file);
 
-  let module_name =
-    match filename_without_ext_opt with
-    | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
-    | None -> ""
-  in
-  let jsoo_output_file_opt =
-    Option.map
-      (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
-      filename_without_ext_opt
-  in
-  File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt ->
-      Cli.debug_print "Writing JSOO API code to %s..."
-        (Option.value ~default:"stdout" jsoo_output_file_opt);
-      To_jsoo.format_program fmt module_name prgm type_ordering;
-      File.ocamlformat_file_opt jsoo_output_file_opt);
+  (* File.with_formatter_of_opt_file output_file (fun fmt -> *)
+  (*     Cli.trace_flag := true; *)
+  (*     To_ocaml.format_program fmt prgm type_ordering; *)
+  (*     File.ocamlformat_file_opt output_file); *)
+  (* let module_name = *)
+  (*   match filename_without_ext_opt with *)
+  (*   | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name) *)
+  (*   | None -> "" *)
+  (* in *)
+  (* let jsoo_output_file_opt = *)
+  (*   Option.map *)
+  (*     (fun f -> Filename.concat dirname (f ^ "_api_web.ml")) *)
+  (*     filename_without_ext_opt *)
+  (* in *)
+  (* File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt -> *)
+  (*     Cli.debug_print "Writing JSOO API code to %s..." *)
+  (*       (Option.value ~default:"stdout" jsoo_output_file_opt); *)
+  (*     To_jsoo.format_program fmt module_name prgm type_ordering; *)
+  (*     File.ocamlformat_file_opt jsoo_output_file_opt); *)
   match scope with
   | Some s ->
     (* NOTE: Will needs to have the ui_schema + defs too.*)
-    let json_file = Filename.concat dirname (s ^ "_schema.json") in
-    File.with_formatter_of_file json_file (fun fmt ->
+    let json_file_opt =
+      Option.map
+        (fun f -> Filename.concat dirname (f ^ "_schema.json"))
+        filename_without_ext_opt
+    in
+    File.with_formatter_of_opt_file json_file_opt (fun fmt ->
         Cli.debug_print
           "Writing JSON schema corresponding to the scope '%s' to the file \
            %s..."
           s
           (Option.value ~default:"stdout" output_file);
-        To_json.format_program fmt prgm type_ordering)
+        To_json.format_program fmt s prgm type_ordering)
   | None -> ()
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply
