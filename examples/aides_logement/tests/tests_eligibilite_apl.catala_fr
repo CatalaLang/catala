@@ -68,7 +68,6 @@ champ d'application Exemple1 :
      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
      -- usufruit : ParentOuAutre.Autre
      -- logement_decent_l89_462 : vrai
-     -- loyers_l823_3 : 700€
      -- surface_m_carrés : 80
      -- est_ancien_l831_2 : faux
      -- situé_commune_déséquilibre_l831_2 : faux
@@ -121,7 +120,6 @@ champ d'application Exemple1 :
 #     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
 #     -- usufruit : ParentOuAutre.Autre
 #     -- logement_decent_l89_462 : vrai
-#     -- loyers_l823_3 : 750€
 #     -- surface_m_carrés : 25
 #   }
 #   -- nombre_autres_occupants_logement: 0
@@ -171,7 +169,6 @@ champ d'application Exemple1 :
 #     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
 #     -- usufruit : ParentOuAutre.Autre
 #     -- logement_decent_l89_462 : vrai
-#     -- loyers_l823_3 : 750€
 #     -- surface_m_carrés : 25
 #   }
 #   -- nombre_autres_occupants_logement: 0

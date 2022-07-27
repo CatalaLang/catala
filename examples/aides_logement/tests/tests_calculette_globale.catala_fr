@@ -69,7 +69,6 @@ champ d'application Exemple1 :
      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
      -- usufruit : ParentOuAutre.Autre
      -- logement_decent_l89_462 : vrai
-     -- loyers_l823_3 : 700€
      -- surface_m_carrés : 80
      -- est_ancien_l831_2 : faux
      -- situé_commune_déséquilibre_l831_2 : faux
