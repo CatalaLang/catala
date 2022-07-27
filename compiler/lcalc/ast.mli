@@ -23,6 +23,8 @@ include module type of Astgen
 
 type 'm mark = 'm Dcalc.Ast.mark
 
+type lit = lcalc glit
+
 type 'm expr = (lcalc, 'm mark) gexpr
 and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 

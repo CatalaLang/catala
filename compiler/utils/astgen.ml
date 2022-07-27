@@ -55,16 +55,6 @@ and typ =
 type date = Runtime.date
 type duration = Runtime.duration
 
-type lit =
-  | LBool of bool
-  | LEmptyError (* Fixme: exclude for lcalc *)
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
-  | LUnit
-  | LDate of date
-  | LDuration of duration
-
 type op_kind =
   | KInt
   | KRat
@@ -124,13 +114,23 @@ type dcalc = [ `Dcalc ]
 type lcalc = [ `Lcalc ]
 type scalc = [ `Scalc ]
 
+type 'a glit =
+  | LBool: bool -> 'a glit
+  | LEmptyError: [< desugared | scopelang | dcalc ] glit
+  | LInt: Runtime.integer -> 'a glit
+  | LRat: Runtime.decimal -> 'a glit
+  | LMoney: Runtime.money -> 'a glit
+  | LUnit: 'a glit
+  | LDate: date -> 'a glit
+  | LDuration: duration -> 'a glit
+
 type ('a, 'm) marked_gexpr = (('a, 'm) gexpr, 'm) Marked.t
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax *)
 and ('a, 'm) gexpr =
   (* Constructors common to all ASTs *)
-  | ELit : lit -> ('a, 'm) gexpr
+  | ELit : 'a glit -> ('a, 'm) gexpr
   | EApp : ('a, 'm) marked_gexpr * ('a, 'm) marked_gexpr list -> ('a, 'm) gexpr
   | EOp : operator -> ('a, 'm) gexpr
   | EArray : ('a, 'm) marked_gexpr list -> ('a, 'm) gexpr

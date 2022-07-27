@@ -53,6 +53,7 @@ type _ mark =
   | Typed : typed -> typed mark
   | Inferring : inferring -> inferring mark
 
+type lit = dcalc glit
 type 'm expr = (dcalc, 'm mark) gexpr
 and 'm marked_expr = (dcalc, 'm mark) marked_gexpr
 

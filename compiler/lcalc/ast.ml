@@ -20,6 +20,8 @@ module D = Dcalc.Ast
 
 type 'm mark = 'm D.mark
 
+type lit = lcalc glit
+
 type 'm expr = (lcalc, 'm mark) gexpr
 and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
