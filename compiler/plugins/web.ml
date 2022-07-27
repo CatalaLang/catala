@@ -34,14 +34,29 @@ module D = Dcalc.Ast
 let name = "web"
 let extension = ".ml"
 
+let to_camel_case (s : string) : string =
+  String.split_on_char '_' s
+  |> (function hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
+  |> String.concat ""
+
+let format_struct_field_name_camel_case
+    (fmt : Format.formatter)
+    (v : Dcalc.Ast.StructFieldName.t) : unit =
+  let s =
+    Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
+    |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
+  in
+  Format.fprintf fmt "%s" s
+
+(** Contains all format functions used to generating the [js_of_ocaml] wrapper
+    of the corresponding Catala program. *)
 module To_jsoo = struct
   let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =
     Dcalc.Print.format_base_type fmt
       (match l with
       | TUnit -> "unit"
       | TInt -> "int"
-      | TRat -> "Js.number Js.t"
-      | TMoney -> "Js.number Js.t"
+      | TRat | TMoney -> "Js.number Js.t"
       | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
       | TDate -> "Js.js_string Js.t")
@@ -115,21 +130,6 @@ module To_jsoo = struct
       Format.fprintf fmt "Array.map (fun x -> %a x) %@%@ Js.to_array"
         format_typ_of_jsoo t
     | _ -> Format.fprintf fmt ""
-
-  let to_camel_case (s : string) : string =
-    String.split_on_char '_' s
-    |> (function
-         | hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
-    |> String.concat ""
-
-  let format_struct_field_name_camel_case
-      (fmt : Format.formatter)
-      (v : Dcalc.Ast.StructFieldName.t) : unit =
-    let s =
-      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
-    in
-    Format.fprintf fmt "%s" s
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
     let lowercase_name =
@@ -418,6 +418,8 @@ module To_jsoo = struct
           prgm.scopes)
 end
 
+(** Contains all format functions used to format a Lcalc Catala program
+    representation to a JSON schema describing the corresponding web form. *)
 module To_json = struct
   let rec find_scope_def (target_name : string) :
       ('m expr, 'm) D.scopes -> ('m expr, 'm) D.scope_def option = function
@@ -430,6 +432,45 @@ module To_json = struct
       else
         let _, next_scope = Bindlib.unbind scope_def.scope_next in
         find_scope_def target_name next_scope
+
+  let fmt_tlit fmt (tlit : D.typ_lit) =
+    match tlit with
+    | TUnit -> Format.fprintf fmt "\"type\": \"null\",@\n\"default\": null"
+    | TInt | TRat -> Format.fprintf fmt "\"type\": \"number\""
+    | TMoney -> Format.fprintf fmt "\"type\": \"number\",@\n\"minimum\": 0"
+    | TBool -> Format.fprintf fmt "\"type\": \"boolean\",@\n\"default\": false"
+    | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
+    | TDuration -> failwith "TODO: tlit duration"
+
+  let rec fmt_type fmt (typ : D.marked_typ) =
+    match Marked.unmark typ with
+    | D.TLit tlit -> fmt_tlit fmt tlit
+    | D.TTuple (_, Some sname) ->
+      Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_struct_name
+        sname
+    | D.TEnum (_, ename) ->
+      Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_enum_name ename
+    | D.TArray t ->
+      Format.fprintf fmt
+        "\"type\": \"array\",@\n\
+         \"default\": [],@\n\
+         @[<hov 2>\"items\": {@\n\
+         %a@]@\n\
+         }"
+        fmt_type t
+    | _ -> ()
+
+  let fmt_struct_properties
+      (ctx : D.decl_ctx)
+      (fmt : Format.formatter)
+      (sname : D.StructName.t) =
+    Format.fprintf fmt "%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+         (fun fmt (field_name, field_type) ->
+           Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
+             format_struct_field_name_camel_case field_name fmt_type field_type))
+      (find_struct sname ctx)
 
   let fmt_definitions
       (ctx : D.decl_ctx)
@@ -450,19 +491,80 @@ module To_json = struct
       find_struct input_struct ctx
       |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
     in
+    let fmt_enum_properties fmt ename =
+      let enum_def = find_enum ename ctx in
+      Format.fprintf fmt
+        "@[<hov 2>\"kind\": {@\n\
+         \"type\": \"string\",@\n\
+         @[<hov 2>\"anyOf\": [@\n\
+         %a@]@\n\
+         ]@],@\n\
+         @[<hov 2>\"allOf\": [@\n\
+         %a@]@\n\
+         ]@]@\n\
+         }"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+           (fun fmt (enum_cons, _) ->
+             Format.fprintf fmt
+               "@[<hov 2>{@\n\
+                \"type\": \"string\",@\n\
+                \"enum\": [@ \"%a\"@ ]@]@\n\
+                }"
+               format_enum_cons_name enum_cons))
+        enum_def
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+           (fun fmt (enum_cons, payload_type) ->
+             Format.fprintf fmt
+               "@[<hov 2>{@\n\
+                @[<hov 2>\"if\": {@\n\
+                @[<hov 2>\"properties\": {@\n\
+                @[<hov 2>\"kind\": {@\n\
+                \"const\": \"%a\"@]@\n\
+                }@]@\n\
+                }@]@\n\
+                },@\n\
+                @[<hov 2>\"then\": {@\n\
+                @[<hov 2>\"properties\": {@\n\
+                @[<hov 2>\"payload\": {@\n\
+                %a@]@\n\
+                }@]@\n\
+                }@]@\n\
+                }@]@\n\
+                }"
+               format_enum_cons_name enum_cons fmt_type payload_type))
+        enum_def
+    in
 
-    scope_def.scope_body.scope_body_input_struct
-    |> collect_required_type_defs_from_scope_input
-    |> List.iter (fun struct_field_type ->
-           Printf.printf "required type: %s\n"
-           @@
-           match Marked.unmark struct_field_type with
-           | D.TTuple (_, Some s) -> Format.asprintf "%a" format_struct_name s
-           | D.TEnum (_, e) -> Format.asprintf "%a" format_enum_name e
-           | _ -> "");
-    Format.fprintf fmt "TODO"
-
-  let fmt_properties fmt _ = Format.fprintf fmt "TODO"
+    Format.fprintf fmt "@\n%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+         (fun fmt typ ->
+           match Marked.unmark typ with
+           | D.TTuple (_, Some sname) ->
+             Format.fprintf fmt
+               "@[<hov 2>\"%a\": {@\n\
+                \"type\": \"object\",@\n\
+                @[<hov 2>\"properties\": {@\n\
+                %a@]@\n\
+                }@]@\n\
+                }"
+               format_struct_name sname
+               (fmt_struct_properties ctx)
+               sname
+           | D.TEnum (_, ename) ->
+             Format.fprintf fmt
+               "@[<hov 2>\"%a\": {@\n\
+                \"type\": \"object\",@\n\
+                @[<hov 2>\"properties\": {@\n\
+                %a@]@\n\
+                }@]@\n\
+                }"
+               format_enum_name ename fmt_enum_properties ename
+           | _ -> ()))
+      (collect_required_type_defs_from_scope_input
+         scope_def.scope_body.scope_body_input_struct)
 
   let format_program
       (fmt : Format.formatter)
@@ -476,13 +578,16 @@ module To_json = struct
           Format.fprintf fmt
             "{@[<hov 2>@\n\
              \"type\": \"object\",@\n\
-             \"definitions\": {%a@\n\
+             \"@[<hov 2>definitions\": {%a@]@\n\
              },@\n\
-             \"properties\": {%a@\n\
+             \"@[<hov 2>properties\": {@\n\
+             %a@]@\n\
              }@]@\n\
              }"
             (fmt_definitions prgm.decl_ctx)
-            scope_def fmt_properties ())
+            scope_def
+            (fmt_struct_properties prgm.decl_ctx)
+            scope_def.scope_body.scope_body_input_struct)
 end
 
 let apply
@@ -499,25 +604,26 @@ let apply
     match output_file with Some f -> Filename.dirname f | None -> ""
   in
 
-  (* File.with_formatter_of_opt_file output_file (fun fmt -> *)
-  (*     Cli.trace_flag := true; *)
-  (*     To_ocaml.format_program fmt prgm type_ordering; *)
-  (*     File.ocamlformat_file_opt output_file); *)
-  (* let module_name = *)
-  (*   match filename_without_ext_opt with *)
-  (*   | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name) *)
-  (*   | None -> "" *)
-  (* in *)
-  (* let jsoo_output_file_opt = *)
-  (*   Option.map *)
-  (*     (fun f -> Filename.concat dirname (f ^ "_api_web.ml")) *)
-  (*     filename_without_ext_opt *)
-  (* in *)
-  (* File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt -> *)
-  (*     Cli.debug_print "Writing JSOO API code to %s..." *)
-  (*       (Option.value ~default:"stdout" jsoo_output_file_opt); *)
-  (*     To_jsoo.format_program fmt module_name prgm type_ordering; *)
-  (*     File.ocamlformat_file_opt jsoo_output_file_opt); *)
+  File.with_formatter_of_opt_file output_file (fun fmt ->
+      Cli.trace_flag := true;
+      To_ocaml.format_program fmt prgm type_ordering;
+      File.ocamlformat_file_opt output_file);
+  let module_name =
+    match filename_without_ext_opt with
+    | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
+    | None -> ""
+  in
+  let jsoo_output_file_opt =
+    Option.map
+      (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
+      filename_without_ext_opt
+  in
+
+  File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt ->
+      Cli.debug_print "Writing JSOO API code to %s..."
+        (Option.value ~default:"stdout" jsoo_output_file_opt);
+      To_jsoo.format_program fmt module_name prgm type_ordering;
+      File.ocamlformat_file_opt jsoo_output_file_opt);
   match scope with
   | Some s ->
     (* NOTE: Will needs to have the ui_schema + defs too.*)
@@ -526,6 +632,7 @@ let apply
         (fun f -> Filename.concat dirname (f ^ "_schema.json"))
         filename_without_ext_opt
     in
+
     File.with_formatter_of_opt_file json_file_opt (fun fmt ->
         Cli.debug_print
           "Writing JSON schema corresponding to the scope '%s' to the file \
