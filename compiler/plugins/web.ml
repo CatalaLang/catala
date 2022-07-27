@@ -436,8 +436,10 @@ module To_json = struct
   let fmt_tlit fmt (tlit : D.typ_lit) =
     match tlit with
     | TUnit -> Format.fprintf fmt "\"type\": \"null\",@\n\"default\": null"
-    | TInt | TRat -> Format.fprintf fmt "\"type\": \"number\""
-    | TMoney -> Format.fprintf fmt "\"type\": \"number\",@\n\"minimum\": 0"
+    | TInt | TRat -> Format.fprintf fmt "\"type\": \"number\",@\n\"default\": 0"
+    | TMoney ->
+      Format.fprintf fmt
+        "\"type\": \"number\",@\n\"minimum\": 0,@\n\"default\": 0"
     | TBool -> Format.fprintf fmt "\"type\": \"boolean\",@\n\"default\": false"
     | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
     | TDuration -> failwith "TODO: tlit duration"
@@ -476,6 +478,13 @@ module To_json = struct
       (ctx : D.decl_ctx)
       (fmt : Format.formatter)
       (scope_def : ('m expr, 'm) D.scope_def) =
+    let get_name t =
+      match Marked.unmark t with
+      | D.TTuple (_, Some sname) ->
+        Format.asprintf "%a" format_struct_name sname
+      | D.TEnum (_, ename) -> Format.asprintf "%a" format_enum_name ename
+      | _ -> failwith "unreachable: only structs and enums are collected."
+    in
     let rec collect_required_type_defs_from_scope_input
         (input_struct : D.StructName.t) : D.marked_typ list =
       let rec collect (acc : D.marked_typ list) (t : D.marked_typ) :
@@ -484,34 +493,32 @@ module To_json = struct
         | D.TTuple (_, Some s) ->
           (* Scope's input is a struct. *)
           (t :: acc) @ collect_required_type_defs_from_scope_input s
-        | D.TEnum _ -> t :: acc
+        | D.TEnum (ts, _) -> List.fold_left collect (t :: acc) ts
         | D.TArray t -> collect acc t
         | _ -> acc
       in
       find_struct input_struct ctx
       |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
+      |> List.sort_uniq (fun t t' -> String.compare (get_name t) (get_name t'))
     in
     let fmt_enum_properties fmt ename =
       let enum_def = find_enum ename ctx in
       Format.fprintf fmt
         "@[<hov 2>\"kind\": {@\n\
          \"type\": \"string\",@\n\
-         @[<hov 2>\"anyOf\": [@\n\
+         @[<hov 2>\"enum\": [@\n\
          %a@]@\n\
-         ]@],@\n\
+         ]@]@\n\
+         }@\n\
+         },@\n\
          @[<hov 2>\"allOf\": [@\n\
          %a@]@\n\
          ]@]@\n\
          }"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (enum_cons, _) ->
-             Format.fprintf fmt
-               "@[<hov 2>{@\n\
-                \"type\": \"string\",@\n\
-                \"enum\": [@ \"%a\"@ ]@]@\n\
-                }"
-               format_enum_cons_name enum_cons))
+             Format.fprintf fmt "\"%a\"" format_enum_cons_name enum_cons))
         enum_def
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
@@ -558,9 +565,7 @@ module To_json = struct
                "@[<hov 2>\"%a\": {@\n\
                 \"type\": \"object\",@\n\
                 @[<hov 2>\"properties\": {@\n\
-                %a@]@\n\
-                }@]@\n\
-                }"
+                %a@]@]@\n"
                format_enum_name ename fmt_enum_properties ename
            | _ -> ()))
       (collect_required_type_defs_from_scope_input

@@ -63,8 +63,12 @@ doc:
 install:
 	dune build @install
 
-#> plugins				: Builds the demonstration plugins
-plugins:
+#> runtimes				: Builds the OCaml and js_of_ocaml runtimes
+runtimes:
+	dune build runtimes/
+
+#> plugins				: Builds the compiler backend plugins
+plugins: runtimes
 	dune build compiler/plugins/
 	@echo "define CATALA_PLUGINS=_build/default/compiler/plugins to test the plugins"
 
@@ -330,6 +334,7 @@ website-assets: doc js_build literate_examples grammar.html catala.html build_fr
 all: \
 	build js_build doc \
 	tests \
+	runtimes \
 	plugins \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
 	tests_ocaml bench_ocaml \
