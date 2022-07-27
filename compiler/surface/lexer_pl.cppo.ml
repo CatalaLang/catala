@@ -29,6 +29,7 @@
 #define MS_INCREASING "rosnacy"
 #define MS_OF "z"
 #define MS_COLLECTION "kolekcja"
+#define MS_CONTAINS "contains"
 #define MS_ENUM "enumeracja"
 #define MS_INTEGER "calkowita"
 #define MS_MONEY "pieniądze"

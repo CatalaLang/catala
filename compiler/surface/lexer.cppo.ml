@@ -59,6 +59,9 @@ module R = Re.Pcre
 #ifndef MR_COLLECTION
   #define MR_COLLECTION MS_COLLECTION
 #endif
+#ifndef MR_CONTAINS
+  #define MR_CONTAINS MS_CONTAINS
+#endif
 #ifndef MR_ENUM
   #define MR_ENUM MS_ENUM
 #endif
@@ -270,6 +273,7 @@ let token_list : (string * token) list =
     (MS_INCREASING, INCREASING);
     (MS_OF, OF);
     (MS_COLLECTION, COLLECTION);
+    (MS_CONTAINS, CONTAINS);
     (MS_ENUM, ENUM);
     (MS_INTEGER, INTEGER);
     (MS_MONEY, MONEY);
@@ -410,6 +414,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_COLLECTION ->
       L.update_acc lexbuf;
       COLLECTION
+  | MR_CONTAINS ->
+      L.update_acc lexbuf;
+      CONTAINS
   | MR_ENUM ->
       L.update_acc lexbuf;
       ENUM
