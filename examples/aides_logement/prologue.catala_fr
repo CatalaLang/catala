@@ -172,7 +172,6 @@ déclaration structure Logement:
   donnée loué_ou_sous_loué_à_des_tiers contenu LouéOuSousLouéÀDesTiers
   donnée usufruit contenu ParentOuAutre
   donnée logement_decent_l89_462 contenu booléen
-  donnée loyers_l823_3 contenu argent
   donnée surface_m_carrés contenu entier
   donnée est_ancien_l831_2 contenu booléen
   donnée situé_commune_déséquilibre_l831_2 contenu booléen

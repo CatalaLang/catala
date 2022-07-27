@@ -2690,7 +2690,6 @@ class type logement =
 
     method usufruit : parent_ou_autre Js.t Js.readonly_prop
     method logementDecentL89462 : bool Js.t Js.readonly_prop
-    method loyersL8233 : Js.number Js.t Js.readonly_prop
     method surfaceMCarres : int Js.readonly_prop
     method estAncienL8312 : bool Js.t Js.readonly_prop
     method situeCommuneDesequilibreL8312 : bool Js.t Js.readonly_prop
@@ -2713,10 +2712,6 @@ let logement_to_jsoo (logement : Logement.t) : logement Js.t =
 
     val usufruit = parent_ou_autre_to_jsoo logement.usufruit
     val logementDecentL89462 = Js.bool logement.logement_decent_l89_462
-
-    val loyersL8233 =
-      Js.number_of_float @@ money_to_float logement.loyers_l823_3
-
     val surfaceMCarres = integer_to_int logement.surface_m_carres
     val estAncienL8312 = Js.bool logement.est_ancien_l831_2
 
@@ -2737,9 +2732,6 @@ let logement_of_jsoo (logement : logement Js.t) : Logement.t =
       loue_ou_sous_loue_a_des_tiers_of_jsoo logement##.loueOuSousLoueADesTiers;
     usufruit = parent_ou_autre_of_jsoo logement##.usufruit;
     logement_decent_l89_462 = Js.to_bool logement##.logementDecentL89462;
-    loyers_l823_3 =
-      money_of_decimal @@ decimal_of_float
-      @@ Js.float_of_number logement##.loyersL8233;
     surface_m_carres = integer_of_int logement##.surfaceMCarres;
     est_ancien_l831_2 = Js.to_bool logement##.estAncienL8312;
     situe_commune_desequilibre_l831_2 =
