@@ -29,6 +29,7 @@
 #define MS_INCREASING "increasing"
 #define MS_OF "of"
 #define MS_COLLECTION "collection"
+#define MS_CONTAINS "contains"
 #define MS_ENUM "enumeration"
 #define MS_INTEGER "integer"
 #define MS_MONEY "money"

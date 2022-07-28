@@ -37,6 +37,7 @@
 #define MS_INCREASING "croissant"
 #define MS_OF "de"
 #define MS_COLLECTION "collection"
+#define MS_CONTAINS "contient"
 #define MS_ENUM "énumération"
 #define MR_ENUM 0xE9, "num", 0xE9, "ration"
 #define MS_INTEGER "entier"
