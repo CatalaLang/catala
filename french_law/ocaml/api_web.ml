@@ -17,58 +17,35 @@
 
 open Js_of_ocaml
 open Law_source
+open Runtime_jsoo.Runtime
 module AF = Allocations_familiales
 module AF_web = Allocations_familiales_api_web
 module AL = Aides_logement
 module AL_web = Aides_logement_api_web
 
-let throw_no_value_provided_error
-    (position : Runtime_ocaml.Runtime.source_position) : 'a =
-  let msg =
-    Js.string
-      (Format.asprintf
-         "No rule applies in the given context to give a value to the variable \
-          declared in file %s, position %d:%d--%d:%d."
-         position.filename position.start_line position.start_column
-         position.end_line position.end_column)
-  in
-  Js.Js_error.raise_
-    (Js.Js_error.of_error
-       (object%js
-          val mutable name = Js.string "NoValueProvided"
-          val mutable message = msg
-          val mutable stack = Js.Optdef.empty
-          method toString = msg
-       end))
-
 let _ =
   Js.export_all
     (object%js
-       val eventsManager = Runtime_jsoo.Runtime.event_manager
+       val eventsManager = event_manager
 
        method computeAllocationsFamiliales
            : (AF_web.interface_allocations_familiales_in -> float) Js.callback =
          Js.wrap_callback (fun interface_allocations_familiales_in ->
-             try
-               let result =
-                 interface_allocations_familiales_in
-                 |> AF_web.interface_allocations_familiales
-               in
-               result##.iMontantVerseOut
-             with Runtime_ocaml.Runtime.NoValueProvided position ->
-               throw_no_value_provided_error position)
+             execute_or_throw_no_value_provided_error (fun () ->
+                 let result =
+                   interface_allocations_familiales_in
+                   |> AF_web.interface_allocations_familiales
+                 in
+                 result##.iMontantVerseOut))
 
        method computeAidesAuLogement
            : (AL_web.calculette_aides_au_logement_garde_alternee_in -> float)
              Js.callback =
          Js.wrap_callback (fun calculette_aides_au_logement_garde_alternee_in ->
-             try
-               let result :
-                   AL_web.calculette_aides_au_logement_garde_alternee_out Js.t =
-                 calculette_aides_au_logement_garde_alternee_in
-                 |> AL_web.calculette_aides_au_logement_garde_alternee
-               in
-               result##.aideFinaleOut
-             with Runtime_ocaml.Runtime.NoValueProvided position ->
-               throw_no_value_provided_error position)
+             execute_or_throw_no_value_provided_error (fun () ->
+                 let result =
+                   calculette_aides_au_logement_garde_alternee_in
+                   |> AL_web.calculette_aides_au_logement_garde_alternee
+                 in
+                 result##.aideFinaleOut))
     end)

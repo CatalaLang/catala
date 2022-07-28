@@ -88,7 +88,7 @@ class type event_manager =
   end
 
 val event_manager : event_manager Js.t
-(** Composable JS object to retrieve and reset log events. *)
+(** JS object usable to retrieve and reset log events. *)
 
 (** {1 Duration} *)
 
@@ -107,3 +107,10 @@ val duration_to_jsoo : Runtime_ocaml.Runtime.duration -> duration Js.t
 
 val date_of_jsoo : Js.date Js.t -> Runtime_ocaml.Runtime.date
 val date_to_jsoo : Runtime_ocaml.Runtime.date -> Js.date Js.t
+
+(** {1 Error management} *)
+
+val execute_or_throw_no_value_provided_error : (unit -> 'a) -> 'a
+(** [execute_or_throw_no_value_provided_error f] calls [f ()] and propagates the
+    {!Runtime_ocaml.Runtime.NoValueProvided} exception by raising a JS error if
+    needed.*)
