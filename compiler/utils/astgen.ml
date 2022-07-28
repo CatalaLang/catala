@@ -40,6 +40,8 @@ module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
 (** {1 Abstract syntax tree} *)
 
+(** {2 Types} *)
+
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type marked_typ = typ Marked.pos
@@ -51,6 +53,8 @@ and typ =
   | TArrow of marked_typ * marked_typ
   | TArray of marked_typ
   | TAny
+
+(** {2 Constants and operators} *)
 
 type date = Runtime.date
 type duration = Runtime.duration
@@ -108,82 +112,182 @@ type unop =
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 type except = ConflictError | EmptyError | NoValueProvided | Crash
+
+(** {2 Generic expressions} *)
+
+(** Define a common base type for the expressions in most passes of the compiler *)
+
 type desugared = [ `Desugared ]
 type scopelang = [ `Scopelang ]
 type dcalc = [ `Dcalc ]
 type lcalc = [ `Lcalc ]
 type scalc = [ `Scalc ]
+type any = [ desugared | scopelang | dcalc | lcalc | scalc ]
 
+(** Literals are the same throughout compilation except for the [LEmptyError]
+    case which is eliminated midway through. *)
 type 'a glit =
-  | LBool: bool -> 'a glit
-  | LEmptyError: [< desugared | scopelang | dcalc ] glit
-  | LInt: Runtime.integer -> 'a glit
-  | LRat: Runtime.decimal -> 'a glit
-  | LMoney: Runtime.money -> 'a glit
-  | LUnit: 'a glit
-  | LDate: date -> 'a glit
-  | LDuration: duration -> 'a glit
+  | LBool : bool -> 'a glit
+  | LEmptyError : [< desugared | scopelang | dcalc ] glit
+  | LInt : Runtime.integer -> 'a glit
+  | LRat : Runtime.decimal -> 'a glit
+  | LMoney : Runtime.money -> 'a glit
+  | LUnit : 'a glit
+  | LDate : date -> 'a glit
+  | LDuration : duration -> 'a glit
 
-type ('a, 'm) marked_gexpr = (('a, 'm) gexpr, 'm) Marked.t
+type ('a, 't) marked_gexpr = (('a, 't) gexpr, 't) Marked.t
+(** General expressions: groups all expression cases of the different ASTs, and
+    uses a GADT to eliminate irrelevant cases for each one. The ['t] annotations
+    are also totally unconstrained at this point. The dcalc exprs, for example,
+    are then defined with [type expr = dcalc gexpr] plus the annotations. *)
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax *)
-and ('a, 'm) gexpr =
+and ('a, 't) gexpr =
   (* Constructors common to all ASTs *)
-  | ELit : 'a glit -> ('a, 'm) gexpr
-  | EApp : ('a, 'm) marked_gexpr * ('a, 'm) marked_gexpr list -> ('a, 'm) gexpr
-  | EOp : operator -> ('a, 'm) gexpr
-  | EArray : ('a, 'm) marked_gexpr list -> ('a, 'm) gexpr
+  | ELit : 'a glit -> ('a, 't) gexpr
+  | EApp : ('a, 't) marked_gexpr * ('a, 't) marked_gexpr list -> ('a, 't) gexpr
+  | EOp : operator -> ('a, 't) gexpr
+  | EArray : ('a, 't) marked_gexpr list -> ('a, 't) gexpr
   (* All but statement calculus *)
   | EVar :
-      ('a, 'm) gexpr Bindlib.var
-      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 'm) gexpr
+      ('a, 't) gexpr Bindlib.var
+      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
   | EAbs :
-      (('a, 'm) gexpr, ('a, 'm) marked_gexpr) Bindlib.mbinder
+      (('a, 't) gexpr, ('a, 't) marked_gexpr) Bindlib.mbinder
       * typ Marked.pos list
-      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 'm) gexpr
+      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
   | EIfThenElse :
-      ('a, 'm) marked_gexpr * ('a, 'm) marked_gexpr * ('a, 'm) marked_gexpr
-      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 'm) gexpr
+      ('a, 't) marked_gexpr * ('a, 't) marked_gexpr * ('a, 't) marked_gexpr
+      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
   (* (* Early stages *) | ELocation: location -> ([< desugared | scopelang ] as
-     'a, 'm) gexpr | EStruct: StructName.t * ('a, 'm) marked_gexpr
-     StructFieldMap.t -> ([< desugared | scopelang ] as 'a, 'm) gexpr |
-     EStructAccess: ('a, 'm) marked_gexpr * StructFieldName.t * StructName.t ->
-     ([< desugared | scopelang ] as 'a, 'm) gexpr | EEnumInj: ('a, 'm)
-     marked_gexpr * EnumConstructor.t * EnumName.t -> ([< desugared | scopelang ]
-     as 'a, 'm) gexpr | EMatchS: ('a, 'm) marked_gexpr * EnumName.t * ('a, 'm)
-     marked_gexpr EnumConstructorMap.t -> ([< desugared | scopelang ] as 'a, 'm)
+     'a, 't) gexpr | EStruct: StructName.t * ('a, 't) marked_gexpr
+     StructFieldMap.t -> ([< desugared | scopelang ] as 'a, 't) gexpr |
+     EStructAccess: ('a, 't) marked_gexpr * StructFieldName.t * StructName.t ->
+     ([< desugared | scopelang ] as 'a, 't) gexpr | EEnumInj: ('a, 't)
+     marked_gexpr * EnumConstructor.t * EnumName.t -> ([< desugared | scopelang
+     ] as 'a, 't) gexpr | EMatchS: ('a, 't) marked_gexpr * EnumName.t * ('a, 't)
+     marked_gexpr EnumConstructorMap.t -> ([< desugared | scopelang ] as 'a, 't)
      gexpr *)
-  (* Default terms *)
-  | EDefault :
-      ('a, 'm) marked_gexpr list * ('a, 'm) marked_gexpr * ('a, 'm) marked_gexpr
-      -> (([< desugared | scopelang | dcalc ] as 'a), 'm) gexpr
-  | ErrorOnEmpty :
-      ('a, 'm) marked_gexpr
-      -> (([< desugared | scopelang | dcalc ] as 'a), 'm) gexpr
   (* Lambda-like *)
   | ETuple :
-      ('a, 'm) marked_gexpr list * StructName.t option
-      -> (([< dcalc | lcalc ] as 'a), 'm) gexpr
+      ('a, 't) marked_gexpr list * StructName.t option
+      -> (([< dcalc | lcalc ] as 'a), 't) gexpr
   | ETupleAccess :
-      ('a, 'm) marked_gexpr * int * StructName.t option * typ Marked.pos list
-      -> (([< dcalc | lcalc ] as 'a), 'm) gexpr
+      ('a, 't) marked_gexpr * int * StructName.t option * typ Marked.pos list
+      -> (([< dcalc | lcalc ] as 'a), 't) gexpr
   | EInj :
-      ('a, 'm) marked_gexpr * int * EnumName.t * typ Marked.pos list
-      -> (([< dcalc | lcalc ] as 'a), 'm) gexpr
+      ('a, 't) marked_gexpr * int * EnumName.t * typ Marked.pos list
+      -> (([< dcalc | lcalc ] as 'a), 't) gexpr
   | EMatch :
-      ('a, 'm) marked_gexpr * ('a, 'm) marked_gexpr list * EnumName.t
-      -> (([< dcalc | lcalc ] as 'a), 'm) gexpr
-  | EAssert : ('a, 'm) marked_gexpr -> (([< dcalc | lcalc ] as 'a), 'm) gexpr
+      ('a, 't) marked_gexpr * ('a, 't) marked_gexpr list * EnumName.t
+      -> (([< dcalc | lcalc ] as 'a), 't) gexpr
+  | EAssert : ('a, 't) marked_gexpr -> (([< dcalc | lcalc ] as 'a), 't) gexpr
+  (* Default terms *)
+  | EDefault :
+      ('a, 't) marked_gexpr list * ('a, 't) marked_gexpr * ('a, 't) marked_gexpr
+      -> (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr
+  | ErrorOnEmpty :
+      ('a, 't) marked_gexpr
+      -> (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr
   (* Lambda calculus with exceptions *)
-  | ERaise : except -> ((lcalc as 'a), 'm) gexpr
+  | ERaise : except -> ((lcalc as 'a), 't) gexpr
   | ECatch :
-      ('a, 'm) marked_gexpr * except * ('a, 'm) marked_gexpr
-      -> ((lcalc as 'a), 'm) gexpr
+      ('a, 't) marked_gexpr * except * ('a, 't) marked_gexpr
+      -> ((lcalc as 'a), 't) gexpr
 
 (* (\* Statement calculus *\)
- * | ESVar: LocalName.t -> (scalc as 'a, 'm) gexpr
- * | ESStruct: ('a, 'm) marked_gexpr list * StructName.t -> (scalc as 'a, 'm) gexpr
- * | ESStructFieldAccess: ('a, 'm) marked_gexpr * StructFieldName.t * StructName.t -> (scalc as 'a, 'm) gexpr
- * | ESInj: ('a, 'm) marked_gexpr * EnumConstructor.t * EnumName.t -> (scalc as 'a, 'm) gexpr
- * | ESFunc: TopLevelName.t -> (scalc as 'a, 'm) gexpr *)
+ * | ESVar: LocalName.t -> (scalc as 'a, 't) gexpr
+ * | ESStruct: ('a, 't) marked_gexpr list * StructName.t -> (scalc as 'a, 't) gexpr
+ * | ESStructFieldAccess: ('a, 't) marked_gexpr * StructFieldName.t * StructName.t -> (scalc as 'a, 't) gexpr
+ * | ESInj: ('a, 't) marked_gexpr * EnumConstructor.t * EnumName.t -> (scalc as 'a, 't) gexpr
+ * | ESFunc: TopLevelName.t -> (scalc as 'a, 't) gexpr *)
+
+(** {2 Markings} *)
+
+type untyped = { pos : Pos.t } [@@ocaml.unboxed]
+type typed = { pos : Pos.t; ty : marked_typ }
+(* type inferring = { pos : Pos.t; uf : Infer.unionfind_typ } *)
+
+(** The generic type of AST markings. Using a GADT allows functions to be
+    polymorphic in the marking, but still do transformations on types when
+    appropriate. Expected to fill the ['t] parameter of [gexpr] and
+    [marked_gexpr] *)
+type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
+(* | Inferring : inferring -> inferring mark *)
+
+type ('a, 'm) marked = ('a, 'm mark) Marked.t
+
+(** Useful for errors and printing, for example *)
+type any_marked_expr =
+  | AnyExpr : ([< any ], 'm mark) marked_gexpr -> any_marked_expr
+
+(** {2 Higher-level program structure} *)
+
+(** Constructs scopes and programs on top of expressions. We may use the [gexpr]
+    type above at some point, but at the moment this is polymorphic in the types
+    of the expressions. Their markings are constrained to belong to the [mark]
+    GADT defined above. *)
+
+(** This kind annotation signals that the let-binding respects a structural
+    invariant. These invariants concern the shape of the expression in the
+    let-binding, and are documented below. *)
+type scope_let_kind =
+  | DestructuringInputStruct  (** [let x = input.field]*)
+  | ScopeVarDefinition  (** [let x = error_on_empty e]*)
+  | SubScopeVarDefinition
+      (** [let s.x = fun _ -> e] or [let s.x = error_on_empty e] for input-only
+          subscope variables. *)
+  | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
+  | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
+  | Assertion  (** [let _ = assert e]*)
+
+type ('expr, 'm) scope_let = {
+  scope_let_kind : scope_let_kind;
+  scope_let_typ : marked_typ;
+  scope_let_expr : ('expr, 'm) marked;
+  scope_let_next : ('expr, ('expr, 'm) scope_body_expr) Bindlib.binder;
+  scope_let_pos : Pos.t;
+}
+(** This type is parametrized by the expression type so it can be reused in
+    later intermediate representations. *)
+
+(** A scope let-binding has all the information necessary to make a proper
+    let-binding expression, plus an annotation for the kind of the let-binding
+    that comes from the compilation of a {!module: Scopelang.Ast} statement. *)
+and ('expr, 'm) scope_body_expr =
+  | Result of ('expr, 'm) marked
+  | ScopeLet of ('expr, 'm) scope_let
+
+type ('expr, 'm) scope_body = {
+  scope_body_input_struct : StructName.t;
+  scope_body_output_struct : StructName.t;
+  scope_body_expr : ('expr, ('expr, 'm) scope_body_expr) Bindlib.binder;
+}
+(** Instead of being a single expression, we give a little more ad-hoc structure
+    to the scope body by decomposing it in an ordered list of let-bindings, and
+    a result expression that uses the let-binded variables. The first binder is
+    the argument of type [scope_body_input_struct]. *)
+
+type ('expr, 'm) scope_def = {
+  scope_name : ScopeName.t;
+  scope_body : ('expr, 'm) scope_body;
+  scope_next : ('expr, ('expr, 'm) scopes) Bindlib.binder;
+}
+
+(** Finally, we do the same transformation for the whole program for the kinded
+    lets. This permit us to use bindlib variables for scopes names. *)
+and ('expr, 'm) scopes = Nil | ScopeDef of ('expr, 'm) scope_def
+
+type struct_ctx = (StructFieldName.t * marked_typ) list StructMap.t
+
+type decl_ctx = {
+  ctx_enums : (EnumConstructor.t * marked_typ) list EnumMap.t;
+  ctx_structs : struct_ctx;
+}
+
+type ('expr, 'm) program_generic = {
+  decl_ctx : decl_ctx;
+  scopes : ('expr, 'm) scopes;
+}

@@ -23,7 +23,8 @@ module type Backend = sig
 
   type backend_context
 
-  val make_context : decl_ctx -> typ Marked.pos VarMap.t -> backend_context
+  val make_context :
+    decl_ctx -> (typed expr, typ Marked.pos) Var.Map.t -> backend_context
 
   type vc_encoding
 
@@ -37,7 +38,9 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context -> 'm Dcalc.Ast.marked_expr -> backend_context * vc_encoding
+    backend_context ->
+    Astgen.typed Dcalc.Ast.marked_expr ->
+    backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -45,12 +48,15 @@ module type BackendIO = sig
 
   type backend_context
 
-  val make_context : decl_ctx -> typ Marked.pos VarMap.t -> backend_context
+  val make_context :
+    decl_ctx -> (Astgen.typed expr, typ Marked.pos) Var.Map.t -> backend_context
 
   type vc_encoding
 
   val translate_expr :
-    backend_context -> 'm Dcalc.Ast.marked_expr -> backend_context * vc_encoding
+    backend_context ->
+    Astgen.typed Dcalc.Ast.marked_expr ->
+    backend_context * vc_encoding
 
   type model
 
@@ -95,12 +101,12 @@ module MakeBackendIO (B : Backend) = struct
       Format.asprintf "%s This variable never returns an empty error"
         (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable))))
+           (Bindlib.name_of (Marked.unmark vc.vc_variable)))
     | Conditions.NoOverlappingExceptions ->
       Format.asprintf "%s No two exceptions to ever overlap for this variable"
         (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable))))
+           (Bindlib.name_of (Marked.unmark vc.vc_variable)))
 
   let print_negative_result
       (vc : Conditions.verification_condition)
@@ -112,14 +118,14 @@ module MakeBackendIO (B : Backend) = struct
         Format.asprintf "%s This variable might return an empty error:\n%s"
           (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
              (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-             (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable))))
+             (Bindlib.name_of (Marked.unmark vc.vc_variable)))
           (Pos.retrieve_loc_text (Marked.get_mark vc.vc_variable))
       | Conditions.NoOverlappingExceptions ->
         Format.asprintf
           "%s At least two exceptions overlap for this variable:\n%s"
           (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
              (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-             (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable))))
+             (Bindlib.name_of (Marked.unmark vc.vc_variable)))
           (Pos.retrieve_loc_text (Marked.get_mark vc.vc_variable))
     in
     let counterexample : string option =
@@ -178,6 +184,6 @@ module MakeBackendIO (B : Backend) = struct
       Cli.error_print "%s The translation to Z3 failed:\n%s"
         (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Var.get (Marked.unmark vc.vc_variable))))
+           (Bindlib.name_of (Marked.unmark vc.vc_variable)))
         msg
 end

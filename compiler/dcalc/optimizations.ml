@@ -18,7 +18,7 @@ open Utils
 open Ast
 
 type partial_evaluation_ctx = {
-  var_values : typed marked_expr Ast.VarMap.t;
+  var_values : (typed expr, typed marked_expr) Var.Map.t;
   decl_ctx : decl_ctx;
 }
 
@@ -184,7 +184,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
     Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) (rec_helper e1)
 
 let optimize_expr (decl_ctx : decl_ctx) (e : 'm marked_expr) =
-  partial_evaluation { var_values = VarMap.empty; decl_ctx } e
+  partial_evaluation { var_values = Var.Map.empty; decl_ctx } e
 
 let rec scope_lets_map
     (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
@@ -250,6 +250,6 @@ let program_map
 let optimize_program (p : 'm program) : untyped program =
   Bindlib.unbox
     (program_map partial_evaluation
-       { var_values = VarMap.empty; decl_ctx = p.decl_ctx }
+       { var_values = Var.Map.empty; decl_ctx = p.decl_ctx }
        p)
   |> untype_program

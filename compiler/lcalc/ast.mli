@@ -21,8 +21,6 @@ include module type of Astgen
 
 (** {1 Abstract syntax tree} *)
 
-type 'm mark = 'm Dcalc.Ast.mark
-
 type lit = lcalc glit
 
 type 'm expr = (lcalc, 'm mark) gexpr
@@ -32,23 +30,8 @@ type 'm program = ('m expr, 'm) Dcalc.Ast.program_generic
 
 (** {1 Variable helpers} *)
 
-type 'm var = 'm expr Bindlib.var
-type 'm vars = 'm expr Bindlib.mvar
-
-module Var : sig
-  type t
-
-  val t : 'm expr Bindlib.var -> t
-  val get : t -> 'm expr Bindlib.var
-  val compare : t -> t -> int
-end
-
-module VarMap : Map.S with type key = Var.t
-module VarSet : Set.S with type elt = Var.t
-
-val new_var : string -> 'm var
-
-type 'm binder = ('m expr, 'm marked_expr) Bindlib.binder
+type 'm var = 'm expr Var.t
+type 'm vars = 'm expr Var.vars
 
 (** {2 Program traversal} *)
 
@@ -207,5 +190,5 @@ val box_expr : 'm marked_expr -> 'm marked_expr Bindlib.box
 
 (** {1 Special symbols} *)
 
-val handle_default : Var.t
-val handle_default_opt : Var.t
+val handle_default : untyped var
+val handle_default_opt : untyped var

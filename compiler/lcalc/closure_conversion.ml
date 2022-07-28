@@ -21,12 +21,12 @@ module D = Dcalc.Ast
 (** TODO: This version is not yet debugged and ought to be specialized when
     Lcalc has more structure. *)
 
-type ctx = { name_context : string; globally_bound_vars : VarSet.t }
+type 'm ctx = { name_context : string; globally_bound_vars : 'm expr Var.Set.t }
 
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
     http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
-let closure_conversion_expr (type m) (ctx : ctx) (e : m marked_expr) :
+let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
     m marked_expr Bindlib.box =
   let module MVarSet = Set.Make (struct
     type t = m var
@@ -39,7 +39,7 @@ let closure_conversion_expr (type m) (ctx : ctx) (e : m marked_expr) :
       ( Bindlib.box_apply
           (fun new_v -> new_v, Marked.get_mark e)
           (Bindlib.box_var v),
-        if VarSet.mem (Var.t v) ctx.globally_bound_vars then MVarSet.empty
+        if Var.Set.mem v ctx.globally_bound_vars then MVarSet.empty
         else MVarSet.singleton v )
     | ETuple (args, s) ->
       let new_args, free_vars =
@@ -138,9 +138,9 @@ let closure_conversion_expr (type m) (ctx : ctx) (e : m marked_expr) :
       in
       let extra_vars_list = MVarSet.elements extra_vars in
       (* x1, ..., xn *)
-      let code_var = new_var ctx.name_context in
+      let code_var = Var.make ctx.name_context in
       (* code *)
-      let inner_c_var = new_var "env" in
+      let inner_c_var = Var.make "env" in
       let any_ty = Dcalc.Ast.TAny, binder_pos in
       let new_closure_body =
         make_multiple_let_in
@@ -200,8 +200,7 @@ let closure_conversion_expr (type m) (ctx : ctx) (e : m marked_expr) :
           (fun new_e2 -> EApp ((EOp op, pos_op), new_e2), Marked.get_mark e)
           (Bindlib.box_list new_args),
         free_vars )
-    | EApp ((EVar v, v_pos), args)
-      when VarSet.mem (Var.t v) ctx.globally_bound_vars ->
+    | EApp ((EVar v, v_pos), args) when Var.Set.mem v ctx.globally_bound_vars ->
       (* This corresponds to a scope call, which we don't want to transform*)
       let new_args, free_vars =
         List.fold_right
@@ -217,8 +216,8 @@ let closure_conversion_expr (type m) (ctx : ctx) (e : m marked_expr) :
         free_vars )
     | EApp (e1, args) ->
       let new_e1, free_vars = aux e1 in
-      let env_var = new_var "env" in
-      let code_var = new_var "code" in
+      let env_var = Var.make "env" in
+      let code_var = Var.make "code" in
       let new_args, free_vars =
         List.fold_right
           (fun arg (new_args, free_vars) ->
@@ -286,7 +285,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
         let scope_input_var, scope_body_expr =
           Bindlib.unbind scope.scope_body.scope_body_expr
         in
-        let global_vars = VarSet.add (Var.t scope_var) global_vars in
+        let global_vars = Var.Set.add scope_var global_vars in
         let ctx =
           {
             name_context =
@@ -320,7 +319,10 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
                  new_scope_body_expr
                  (Bindlib.bind_var scope_var next))),
           global_vars ))
-      ~init:(Fun.id, VarSet.of_list [handle_default; handle_default_opt])
+      ~init:
+        ( Fun.id,
+          Var.Set.of_list
+            (List.map Var.translate [handle_default; handle_default_opt]) )
       p.scopes
   in
   Bindlib.box_apply

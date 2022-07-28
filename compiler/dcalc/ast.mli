@@ -19,112 +19,30 @@
 
 open Utils
 include module type of Astgen
-
-(** Contains some structures used for type inference *)
-module Infer : sig
-  module Any : Utils.Uid.Id with type info = unit
-
-  type unionfind_typ = typ Marked.pos UnionFind.elem
-  (** We do not reuse {!type: typ} because we have to include a new [TAny]
-      variant. Indeed, error terms can have any type and this has to be captured
-      by the type sytem. *)
-
-  and typ =
-    | TLit of typ_lit
-    | TArrow of unionfind_typ * unionfind_typ
-    | TTuple of unionfind_typ list * StructName.t option
-    | TEnum of unionfind_typ list * EnumName.t
-    | TArray of unionfind_typ
-    | TAny of Any.t
-
-  val typ_to_ast : unionfind_typ -> marked_typ
-  val ast_to_typ : marked_typ -> unionfind_typ
-end
-
-type untyped = { pos : Pos.t } [@@unboxed]
-type typed = { pos : Pos.t; ty : marked_typ }
-type inferring = { pos : Pos.t; uf : Infer.unionfind_typ }
-
-(** The generic type of AST markings. Using a GADT allows functions to be
-    polymorphic in the marking, but still do transformations on types when
-    appropriate *)
-type _ mark =
-  | Untyped : untyped -> untyped mark
-  | Typed : typed -> typed mark
-  | Inferring : inferring -> inferring mark
+include module type of Astgen_utils
 
 type lit = dcalc glit
+
 type 'm expr = (dcalc, 'm mark) gexpr
 and 'm marked_expr = (dcalc, 'm mark) marked_gexpr
-
-type ('a, 'm) marked = ('a, 'm mark) Marked.t
-
-(** {3 Expression annotations ([Marked.t])} *)
-
-type typed_expr = typed marked_expr
-type struct_ctx = (StructFieldName.t * marked_typ) list StructMap.t
-type enum_ctx = (EnumConstructor.t * marked_typ) list EnumMap.t
-type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
-type 'm binder = ('m expr, 'm marked_expr) Bindlib.binder
-
-(** This kind annotation signals that the let-binding respects a structural
-    invariant. These invariants concern the shape of the expression in the
-    let-binding, and are documented below. *)
-type scope_let_kind =
-  | DestructuringInputStruct  (** [let x = input.field]*)
-  | ScopeVarDefinition  (** [let x = error_on_empty e]*)
-  | SubScopeVarDefinition
-      (** [let s.x = fun _ -> e] or [let s.x = error_on_empty e] for input-only
-          subscope variables. *)
-  | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
-  | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
-  | Assertion  (** [let _ = assert e]*)
-
-type ('expr, 'm) scope_let = {
-  scope_let_kind : scope_let_kind;
-  scope_let_typ : marked_typ;
-  scope_let_expr : ('expr, 'm) marked;
-  scope_let_next : ('expr, ('expr, 'm) scope_body_expr) Bindlib.binder;
-  scope_let_pos : Pos.t;
-}
-(** This type is parametrized by the expression type so it can be reused in
-    later intermediate representations. *)
-
-(** A scope let-binding has all the information necessary to make a proper
-    let-binding expression, plus an annotation for the kind of the let-binding
-    that comes from the compilation of a {!module: Scopelang.Ast} statement. *)
-and ('expr, 'm) scope_body_expr =
-  | Result of ('expr, 'm) marked
-  | ScopeLet of ('expr, 'm) scope_let
-
-type ('expr, 'm) scope_body = {
-  scope_body_input_struct : StructName.t;
-  scope_body_output_struct : StructName.t;
-  scope_body_expr : ('expr, ('expr, 'm) scope_body_expr) Bindlib.binder;
-}
-(** Instead of being a single expression, we give a little more ad-hoc structure
-    to the scope body by decomposing it in an ordered list of let-bindings, and
-    a result expression that uses the let-binded variables. The first binder is
-    the argument of type [scope_body_input_struct]. *)
-
-type ('expr, 'm) scope_def = {
-  scope_name : ScopeName.t;
-  scope_body : ('expr, 'm) scope_body;
-  scope_next : ('expr, ('expr, 'm) scopes) Bindlib.binder;
-}
-
-(** Finally, we do the same transformation for the whole program for the kinded
-    lets. This permit us to use bindlib variables for scopes names. *)
-and ('expr, 'm) scopes = Nil | ScopeDef of ('expr, 'm) scope_def
-
-type ('expr, 'm) program_generic = {
-  decl_ctx : decl_ctx;
-  scopes : ('expr, 'm) scopes;
-}
 
 type 'm program = ('m expr, 'm) program_generic
 
 (** {1 Helpers} *)
+
+(** {2 Variables} *)
+
+type 'm var = 'm expr Var.t
+type 'm vars = 'm expr Var.vars
+
+val free_vars_expr : 'm marked_expr -> 'm expr Var.Set.t
+
+val free_vars_scope_body_expr :
+  ('m expr, 'm) scope_body_expr -> 'm expr Var.Set.t
+
+val free_vars_scope_body : ('m expr, 'm) scope_body -> 'm expr Var.Set.t
+val free_vars_scopes : ('m expr, 'm) scopes -> 'm expr Var.Set.t
+val make_var : ('m var, 'm) marked -> 'm marked_expr Bindlib.box
 
 (** {2 Manipulation of marks} *)
 
@@ -268,100 +186,6 @@ val map_expr_top_down :
 
 val map_expr_marks :
   f:('m1 mark -> 'm2 mark) -> 'm1 marked_expr -> 'm2 marked_expr Bindlib.box
-
-val fold_left_scope_lets :
-  f:('a -> ('expr, 'm) scope_let -> 'expr Bindlib.var -> 'a) ->
-  init:'a ->
-  ('expr, 'm) scope_body_expr ->
-  'a
-(** Usage:
-    [fold_left_scope_lets ~f:(fun acc scope_let scope_let_var -> ...) ~init scope_lets],
-    where [scope_let_var] is the variable bound to the scope let in the next
-    scope lets to be examined. *)
-
-val fold_right_scope_lets :
-  f:(('expr1, 'm1) scope_let -> 'expr1 Bindlib.var -> 'a -> 'a) ->
-  init:(('expr1, 'm1) marked -> 'a) ->
-  ('expr1, 'm1) scope_body_expr ->
-  'a
-(** Usage:
-    [fold_right_scope_lets ~f:(fun scope_let scope_let_var acc -> ...) ~init scope_lets],
-    where [scope_let_var] is the variable bound to the scope let in the next
-    scope lets to be examined (which are before in the program order). *)
-
-val map_exprs_in_scope_lets :
-  f:(('expr1, 'm1) marked -> ('expr2, 'm2) marked Bindlib.box) ->
-  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
-  ('expr1, 'm1) scope_body_expr ->
-  ('expr2, 'm2) scope_body_expr Bindlib.box
-
-val fold_left_scope_defs :
-  f:('a -> ('expr1, 'm1) scope_def -> 'expr1 Bindlib.var -> 'a) ->
-  init:'a ->
-  ('expr1, 'm1) scopes ->
-  'a
-(** Usage:
-    [fold_left_scope_defs ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined. *)
-
-val fold_right_scope_defs :
-  f:(('expr1, 'm1) scope_def -> 'expr1 Bindlib.var -> 'a -> 'a) ->
-  init:'a ->
-  ('expr1, 'm1) scopes ->
-  'a
-(** Usage:
-    [fold_right_scope_defs ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined (which are before in the program order). *)
-
-val map_scope_defs :
-  f:(('expr, 'm) scope_def -> ('expr, 'm) scope_def Bindlib.box) ->
-  ('expr, 'm) scopes ->
-  ('expr, 'm) scopes Bindlib.box
-
-val map_exprs_in_scopes :
-  f:(('expr1, 'm1) marked -> ('expr2, 'm2) marked Bindlib.box) ->
-  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
-  ('expr1, 'm1) scopes ->
-  ('expr2, 'm2) scopes Bindlib.box
-(** This is the main map visitor for all the expressions inside all the scopes
-    of the program. *)
-
-(** {2 Variables} *)
-
-type 'm var = 'm expr Bindlib.var
-type 'm vars = 'm expr Bindlib.mvar
-
-val new_var : string -> 'm var
-
-val translate_var : 'm1 var -> 'm2 var
-(** used to convert between e.g. [untyped expr var] into a [typed expr var] *)
-
-module Var : sig
-  type t
-
-  val t : 'm expr Bindlib.var -> t
-  (** Hides the marking type parameter annotation behind an existential type so
-      that variables can be stored in non-polymorphic sets and maps *)
-
-  val get : t -> 'm expr Bindlib.var
-  (** Be careful with this, it breaks the type abstraction by casting the
-      existential type annotation. See [!Bindlib.copy_var] for more detail. *)
-
-  val compare : t -> t -> int
-  val eq : t -> t -> bool
-end
-
-module VarMap : Map.S with type key = Var.t
-module VarSet : Set.S with type elt = Var.t
-
-val free_vars_expr : 'm marked_expr -> VarSet.t
-val free_vars_scope_body_expr : ('m expr, 'm) scope_body_expr -> VarSet.t
-val free_vars_scope_body : ('m expr, 'm) scope_body -> VarSet.t
-val free_vars_scopes : ('m expr, 'm) scopes -> VarSet.t
-
-val make_var : ('m var, 'm) marked -> 'm marked_expr Bindlib.box
 
 (** {2 Boxed term constructors} *)
 

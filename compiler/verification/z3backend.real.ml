@@ -26,20 +26,20 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : typ Marked.pos VarMap.t;
+  ctx_var : (typed expr, typ Marked.pos) Var.Map.t;
   (* A map from Catala variables to their types, needed to create Z3 expressions
      of the right sort *)
-  ctx_funcdecl : FuncDecl.func_decl VarMap.t;
+  ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
   (* A map from Catala function names (represented as variables) to Z3 function
      declarations, used to only define once functions in Z3 queries *)
-  ctx_z3vars : Var.t StringMap.t;
+  ctx_z3vars : typed var StringMap.t;
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
   ctx_z3datatypes : Sort.sort EnumMap.t;
   (* A map from Catala enumeration names to the corresponding Z3 sort, from
      which we can retrieve constructors and accessors *)
-  ctx_z3matchsubsts : Expr.expr VarMap.t;
+  ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t;
   (* A map from Catala temporary variables, generated when translating a match,
      to the corresponding enum accessor call as a Z3 expression *)
   ctx_z3structs : Sort.sort StructMap.t;
@@ -64,13 +64,13 @@ type context = {
 
 (** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3
     function declaration [fd] to the context **)
-let add_funcdecl (v : Var.t) (fd : FuncDecl.func_decl) (ctx : context) : context
-    =
-  { ctx with ctx_funcdecl = VarMap.add v fd ctx.ctx_funcdecl }
+let add_funcdecl (v : typed var) (fd : FuncDecl.func_decl) (ctx : context) :
+    context =
+  { ctx with ctx_funcdecl = Var.Map.add v fd ctx.ctx_funcdecl }
 
 (** [add_z3var] adds the mapping between [name] and the Catala variable [v] to
     the context **)
-let add_z3var (name : string) (v : Var.t) (ctx : context) : context =
+let add_z3var (name : string) (v : typed var) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
 
 (** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the
@@ -81,8 +81,8 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
 
 (** [add_z3var] adds the mapping between temporary variable [v] and the Z3
     expression [e] representing an accessor application to the context **)
-let add_z3matchsubst (v : Var.t) (e : Expr.expr) (ctx : context) : context =
-  { ctx with ctx_z3matchsubsts = VarMap.add v e ctx.ctx_z3matchsubsts }
+let add_z3matchsubst (v : typed var) (e : Expr.expr) (ctx : context) : context =
+  { ctx with ctx_z3matchsubsts = Var.Map.add v e ctx.ctx_z3matchsubsts }
 
 (** [add_z3struct] adds the mapping between the Catala struct [s] and the
     corresponding Z3 datatype [sort] to the context **)
@@ -223,9 +223,8 @@ let print_model (ctx : context) (model : Model.model) : string =
              let v = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s"
-                  (Bindlib.name_of (Var.get v)))
-               (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
+               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
+               (print_z3model_expr ctx (Var.Map.find v ctx.ctx_var) e)
          else
            (* Declaration d is a function *)
            match Model.get_func_interp model d with
@@ -239,8 +238,7 @@ let print_model (ctx : context) (model : Model.model) : string =
              let v = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s"
-                  (Bindlib.name_of (Var.get v)))
+               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
                (* TODO: Model of a Z3 function should be pretty-printed *)
                (Model.FuncInterp.to_string f)))
     decls
@@ -387,18 +385,18 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
     corresponding to the variable [v]. If no such function declaration exists
     yet, we construct it and add it to the context, thus requiring to return a
     new context *)
-let find_or_create_funcdecl (ctx : context) (v : Var.t) :
+let find_or_create_funcdecl (ctx : context) (v : typed var) :
     context * FuncDecl.func_decl =
-  match VarMap.find_opt v ctx.ctx_funcdecl with
+  match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
   | None -> (
     (* Retrieves the Catala type of the function [v] *)
-    let f_ty = VarMap.find v ctx.ctx_var in
+    let f_ty = Var.Map.find v ctx.ctx_var in
     match Marked.unmark f_ty with
     | TArrow (t1, t2) ->
       let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
-      let name = unique_name (Var.get v) in
+      let name = unique_name v in
       let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ctx in
@@ -631,7 +629,7 @@ and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
     match Marked.unmark e with
     | EAbs (e, _) ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
-      let fresh_v = new_var "arm!tmp" in
+      let fresh_v = Var.make "arm!tmp" in
       let fresh_e = EVar fresh_v in
 
       (* Invariant: Catala enums always have exactly one argument *)
@@ -639,7 +637,7 @@ and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
       let proj = Expr.mk_app ctx.ctx_z3 accessor [head] in
       (* The fresh variable should be substituted by a projection into the enum
          in the body, we add this to the context *)
-      let ctx = add_z3matchsubst (Var.t fresh_v) proj ctx in
+      let ctx = add_z3matchsubst fresh_v proj ctx in
 
       let body = Bindlib.msubst e [| fresh_e |] in
       translate_expr ctx body
@@ -649,12 +647,12 @@ and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
 
   match Marked.unmark vc with
   | EVar v -> (
-    match VarMap.find_opt (Var.t v) ctx.ctx_z3matchsubsts with
+    match Var.Map.find_opt v ctx.ctx_z3matchsubsts with
     | None ->
       (* We are in the standard case, where this is a true Catala variable *)
-      let t = VarMap.find (Var.t v) ctx.ctx_var in
+      let t = Var.Map.find v ctx.ctx_var in
       let name = unique_name v in
-      let ctx = add_z3var name (Var.t v) ctx in
+      let ctx = add_z3var name v ctx in
       let ctx, ty = translate_typ ctx (Marked.unmark t) in
       let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
       let ctx =
@@ -726,7 +724,7 @@ and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
     match Marked.unmark head with
     | EOp op -> translate_op ctx op args
     | EVar v ->
-      let ctx, fd = find_or_create_funcdecl ctx (Var.t v) in
+      let ctx, fd = find_or_create_funcdecl ctx v in
       (* Fold_right to preserve the order of the arguments: The head argument is
          appended at the head *)
       let ctx, z3_args =
@@ -804,7 +802,8 @@ module Backend = struct
 
   let make_context
       (decl_ctx : decl_ctx)
-      (free_vars_typ : typ Marked.pos VarMap.t) : backend_context =
+      (free_vars_typ : (typed expr, typ Marked.pos) Var.Map.t) : backend_context
+      =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])
       @ ["proof", "false"]
@@ -815,10 +814,10 @@ module Backend = struct
       ctx_z3 = z3_ctx;
       ctx_decl = decl_ctx;
       ctx_var = free_vars_typ;
-      ctx_funcdecl = VarMap.empty;
+      ctx_funcdecl = Var.Map.empty;
       ctx_z3vars = StringMap.empty;
       ctx_z3datatypes = EnumMap.empty;
-      ctx_z3matchsubsts = VarMap.empty;
+      ctx_z3matchsubsts = Var.Map.empty;
       ctx_z3structs = StructMap.empty;
       ctx_z3unit = z3unit;
       ctx_z3constraints = [];

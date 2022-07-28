@@ -18,7 +18,7 @@ open Utils
 module D = Dcalc.Ast
 module A = Ast
 
-type 'm ctx = 'm A.var D.VarMap.t
+type 'm ctx = ('m D.expr, 'm A.expr Var.t) Var.Map.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
@@ -35,7 +35,7 @@ let translate_lit (l : D.lit) : 'm A.expr =
 
 let thunk_expr (e : 'm A.marked_expr Bindlib.box) (mark : 'm A.mark) :
     'm A.marked_expr Bindlib.box =
-  let dummy_var = A.new_var "_" in
+  let dummy_var = Var.make "_" in
   A.make_abs [| dummy_var |] e [D.TAny, D.mark_pos mark] mark
 
 let rec translate_default
@@ -51,7 +51,7 @@ let rec translate_default
   in
   let exceptions =
     A.make_app
-      (A.make_var (A.Var.get A.handle_default, mark_default))
+      (A.make_var (Var.translate A.handle_default, mark_default))
       [
         A.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just) mark_default;
@@ -64,7 +64,7 @@ let rec translate_default
 and translate_expr (ctx : 'm ctx) (e : 'm D.marked_expr) :
     'm A.marked_expr Bindlib.box =
   match Marked.unmark e with
-  | D.EVar v -> A.make_var (D.VarMap.find (D.Var.t v) ctx, Marked.get_mark e)
+  | D.EVar v -> A.make_var (Var.Map.find v ctx, Marked.get_mark e)
   | D.ETuple (args, s) ->
     A.etuple (List.map (translate_expr ctx) args) s (Marked.get_mark e)
   | D.ETupleAccess (e1, i, s, ts) ->
@@ -96,8 +96,8 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.marked_expr) :
     let ctx, lc_vars =
       Array.fold_right
         (fun var (ctx, lc_vars) ->
-          let lc_var = A.new_var (Bindlib.name_of var) in
-          D.VarMap.add (D.Var.t var) lc_var ctx, lc_var :: lc_vars)
+          let lc_var = Var.make (Bindlib.name_of var) in
+          Var.Map.add var lc_var ctx, lc_var :: lc_vars)
         vars (ctx, [])
     in
     let lc_vars = Array.of_list lc_vars in
@@ -126,11 +126,9 @@ let rec translate_scope_lets
     let old_scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
-    let new_scope_let_var = A.new_var (Bindlib.name_of old_scope_let_var) in
+    let new_scope_let_var = Var.make (Bindlib.name_of old_scope_let_var) in
     let new_scope_let_expr = translate_expr ctx scope_let.scope_let_expr in
-    let new_ctx =
-      D.VarMap.add (D.Var.t old_scope_let_var) new_scope_let_var ctx
-    in
+    let new_ctx = Var.Map.add old_scope_let_var new_scope_let_var ctx in
     let new_scope_next = translate_scope_lets decl_ctx new_ctx scope_let_next in
     let new_scope_next = Bindlib.bind_var new_scope_let_var new_scope_next in
     Bindlib.box_apply2
@@ -154,15 +152,13 @@ let rec translate_scopes
   | ScopeDef scope_def ->
     let old_scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
     let new_scope_var =
-      A.new_var (Marked.unmark (D.ScopeName.get_info scope_def.scope_name))
+      Var.make (Marked.unmark (D.ScopeName.get_info scope_def.scope_name))
     in
     let old_scope_input_var, scope_body_expr =
       Bindlib.unbind scope_def.scope_body.scope_body_expr
     in
-    let new_scope_input_var = A.new_var (Bindlib.name_of old_scope_input_var) in
-    let new_ctx =
-      D.VarMap.add (D.Var.t old_scope_input_var) new_scope_input_var ctx
-    in
+    let new_scope_input_var = Var.make (Bindlib.name_of old_scope_input_var) in
+    let new_ctx = Var.Map.add old_scope_input_var new_scope_input_var ctx in
     let new_scope_body_expr =
       translate_scope_lets decl_ctx new_ctx scope_body_expr
     in
@@ -181,7 +177,7 @@ let rec translate_scopes
           })
         new_scope_body_expr
     in
-    let new_ctx = D.VarMap.add (D.Var.t old_scope_var) new_scope_var new_ctx in
+    let new_ctx = Var.Map.add old_scope_var new_scope_var new_ctx in
     let scope_next =
       Bindlib.bind_var new_scope_var
         (translate_scopes decl_ctx new_ctx scope_next)
@@ -199,6 +195,6 @@ let rec translate_scopes
 let translate_program (prgm : 'm D.program) : 'm A.program =
   {
     scopes =
-      Bindlib.unbox (translate_scopes prgm.decl_ctx D.VarMap.empty prgm.scopes);
+      Bindlib.unbox (translate_scopes prgm.decl_ctx Var.Map.empty prgm.scopes);
     decl_ctx = prgm.decl_ctx;
   }
