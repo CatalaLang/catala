@@ -147,3 +147,23 @@ let event_manager : event_manager Js.t =
                     end)
                   (R_ocaml.retrieve_log ()))))
   end
+
+let execute_or_throw_no_value_provided_error f =
+  try f ()
+  with R_ocaml.NoValueProvided pos ->
+    let msg =
+      Js.string
+        (Format.asprintf
+           "No rule applies in the given context to give a value to the \
+            variable declared in file %s, position %d:%d--%d:%d."
+           pos.filename pos.start_line pos.start_column pos.end_line
+           pos.end_column)
+    in
+    Js.Js_error.raise_
+      (Js.Js_error.of_error
+         (object%js
+            val mutable name = Js.string "NoValueProvided"
+            val mutable message = msg
+            val mutable stack = Js.Optdef.empty
+            method toString = msg
+         end))
