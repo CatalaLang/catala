@@ -233,23 +233,16 @@ run_french_law_library_ocaml_tests: build_french_law_library_ocaml
 # JSON schemas
 #-----------------------------------------
 
-french_law/json_schemas/allocations_familiales_schema.json:
-	CATALA_OPTS="$(CATALA_OPTS) -t" \
-				SCOPE=InterfaceAllocationsFamiliales \
-				$(MAKE) -C \
-				$(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales_schema.json
-
-french_law/json_schemas/aides_logement_schema.json:
+#> generate_french_law_json_schemas	: Generates the French law library JSON schemas
+generate_french_law_json_schemas: plugins
 	CATALA_OPTS="$(CATALA_OPTS) -t" \
 				SCOPE=CalculetteAidesAuLogementGardeAlternée \
 				$(MAKE) -C \
 				$(AIDES_LOGEMENT_DIR) aides_logement_schema.json
-
-#> generate_french_law_json_schemas	: Generates the French law library JSON schemas
-generate_french_law_json_schemas: plugins \
-	french_law/json_schemas/allocations_familiales_schema.json \
-	french_law/json_schemas/aides_logement_schema.json
-
+	CATALA_OPTS="$(CATALA_OPTS) -t" \
+				SCOPE=InterfaceAllocationsFamiliales \
+				$(MAKE) -C \
+				$(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales_schema.json
 #-----------------------------------------
 # JS
 #-----------------------------------------
