@@ -5,9 +5,15 @@
  (libraries catala.driver))
 
 (executable
- (name web)
+ (name api_web)
  (modes plugin)
- (modules web)
+ (modules api_web)
+ (libraries catala.driver))
+
+(executable
+ (name json_schema)
+ (modes plugin)
+ (modules json_schema)
  (libraries catala.driver))
 
 (documentation

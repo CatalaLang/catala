@@ -41,6 +41,28 @@ val with_formatter_of_opt_file : string option -> (Format.formatter -> 'a) -> 'a
     from the file [filename_opt] if there is some (see
     {!with_formatter_of_file}), otherwise, uses the [Format.std_formatter]. *)
 
+val get_out_channel :
+  source_file:Pos.input_file ->
+  output_file:string option ->
+  ?ext:string ->
+  unit ->
+  string option * ((out_channel -> 'a) -> 'a)
+(** [get_output ~source_file ~output_file ?ext ()] returns the infered filename
+    and its corresponding [with_out_channel] function. If the [output_file] is
+    equal to [Some "-"] returns a wrapper around [stdout]. *)
+
+val get_formatter_of_out_channel :
+  source_file:Pos.input_file ->
+  output_file:string option ->
+  ?ext:string ->
+  unit ->
+  string option * ((Format.formatter -> 'a) -> 'a)
+(** [get_output_format ~source_file ~output_file ?ext ()] returns the infered
+    filename and its corresponding [with_formatter_of_out_channel] function. If
+    the [output_file] is equal to [Some "-"] returns a wrapper around [stdout]. *)
+
 (** {2 Utility functions on files} *)
 
 val ocamlformat_file_opt : string option -> unit
+(** [ocamlformat_file_opt filename_opt] runs [ocamlformat] on the file
+    [filename_opt] if there is some, otherwise, does nothing. *)

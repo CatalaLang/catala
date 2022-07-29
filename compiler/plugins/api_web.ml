@@ -20,9 +20,7 @@
     It generates:
 
     - the OCaml code,
-    - the associated [js_of_ocaml] wrapper,
-    - if a scope is specified in the options, the JSON schema used to build the
-      web form. *)
+    - the associated [js_of_ocaml] wrapper. *)
 
 open Utils
 open Lcalc
@@ -31,26 +29,27 @@ open Lcalc.Backends
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
-let name = "web"
+let name = "api_web"
 let extension = ".ml"
-
-let to_camel_case (s : string) : string =
-  String.split_on_char '_' s
-  |> (function hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
-  |> String.concat ""
-
-let format_struct_field_name_camel_case
-    (fmt : Format.formatter)
-    (v : Dcalc.Ast.StructFieldName.t) : unit =
-  let s =
-    Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-    |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
-  in
-  Format.fprintf fmt "%s" s
 
 (** Contains all format functions used to generating the [js_of_ocaml] wrapper
     of the corresponding Catala program. *)
 module To_jsoo = struct
+  let to_camel_case (s : string) : string =
+    String.split_on_char '_' s
+    |> (function
+         | hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
+    |> String.concat ""
+
+  let format_struct_field_name_camel_case
+      (fmt : Format.formatter)
+      (v : Dcalc.Ast.StructFieldName.t) : unit =
+    let s =
+      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
+      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
+    in
+    Format.fprintf fmt "%s" s
+
   let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =
     Dcalc.Print.format_base_type fmt
       (match l with
@@ -380,15 +379,18 @@ module To_jsoo = struct
 
   let format_program
       (fmt : Format.formatter)
-      (module_name : string)
+      (module_name : string option)
       (prgm : 'm Lcalc.Ast.program)
       (type_ordering : Scopelang.Dependency.TVertex.t list) =
     let fmt_lib_name fmt _ =
       Format.fprintf fmt "%sLib"
-        (List.nth (String.split_on_char ' ' module_name) 1
-        |> String.split_on_char '_'
-        |> List.map String.capitalize_ascii
-        |> String.concat "")
+        (Option.fold ~none:""
+           ~some:(fun name ->
+             List.nth (String.split_on_char ' ' name) 1
+             |> String.split_on_char '_'
+             |> List.map String.capitalize_ascii
+             |> String.concat "")
+           module_name)
     in
 
     Cli.call_unstyled (fun _ ->
@@ -411,240 +413,59 @@ module To_jsoo = struct
            (object%%js@ @[\n\
            %a@]@\n\
            end)@]@?"
-          module_name (format_ctx type_ordering) prgm.decl_ctx
+          (Option.fold ~none:"" ~some:(fun name -> name) module_name)
+          (format_ctx type_ordering) prgm.decl_ctx
           (format_scopes_to_fun prgm.decl_ctx)
           prgm.scopes fmt_lib_name ()
           (format_scopes_to_callbacks prgm.decl_ctx)
           prgm.scopes)
 end
 
-(** Contains all format functions used to format a Lcalc Catala program
-    representation to a JSON schema describing the corresponding web form. *)
-module To_json = struct
-  let rec find_scope_def (target_name : string) :
-      ('m expr, 'm) D.scopes -> ('m expr, 'm) D.scope_def option = function
-    | D.Nil -> None
-    | D.ScopeDef scope_def ->
-      let name =
-        Format.asprintf "%a" D.ScopeName.format_t scope_def.scope_name
-      in
-      if name = target_name then Some scope_def
-      else
-        let _, next_scope = Bindlib.unbind scope_def.scope_next in
-        find_scope_def target_name next_scope
-
-  let fmt_tlit fmt (tlit : D.typ_lit) =
-    match tlit with
-    | TUnit -> Format.fprintf fmt "\"type\": \"null\",@\n\"default\": null"
-    | TInt | TRat -> Format.fprintf fmt "\"type\": \"number\",@\n\"default\": 0"
-    | TMoney ->
-      Format.fprintf fmt
-        "\"type\": \"number\",@\n\"minimum\": 0,@\n\"default\": 0"
-    | TBool -> Format.fprintf fmt "\"type\": \"boolean\",@\n\"default\": false"
-    | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
-    | TDuration -> failwith "TODO: tlit duration"
-
-  let rec fmt_type fmt (typ : D.marked_typ) =
-    match Marked.unmark typ with
-    | D.TLit tlit -> fmt_tlit fmt tlit
-    | D.TTuple (_, Some sname) ->
-      Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_struct_name
-        sname
-    | D.TEnum (_, ename) ->
-      Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_enum_name ename
-    | D.TArray t ->
-      Format.fprintf fmt
-        "\"type\": \"array\",@\n\
-         \"default\": [],@\n\
-         @[<hov 2>\"items\": {@\n\
-         %a@]@\n\
-         }"
-        fmt_type t
-    | _ -> ()
-
-  let fmt_struct_properties
-      (ctx : D.decl_ctx)
-      (fmt : Format.formatter)
-      (sname : D.StructName.t) =
-    Format.fprintf fmt "%a"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-         (fun fmt (field_name, field_type) ->
-           Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
-             format_struct_field_name_camel_case field_name fmt_type field_type))
-      (find_struct sname ctx)
-
-  let fmt_definitions
-      (ctx : D.decl_ctx)
-      (fmt : Format.formatter)
-      (scope_def : ('m expr, 'm) D.scope_def) =
-    let get_name t =
-      match Marked.unmark t with
-      | D.TTuple (_, Some sname) ->
-        Format.asprintf "%a" format_struct_name sname
-      | D.TEnum (_, ename) -> Format.asprintf "%a" format_enum_name ename
-      | _ -> failwith "unreachable: only structs and enums are collected."
-    in
-    let rec collect_required_type_defs_from_scope_input
-        (input_struct : D.StructName.t) : D.marked_typ list =
-      let rec collect (acc : D.marked_typ list) (t : D.marked_typ) :
-          D.marked_typ list =
-        match Marked.unmark t with
-        | D.TTuple (_, Some s) ->
-          (* Scope's input is a struct. *)
-          (t :: acc) @ collect_required_type_defs_from_scope_input s
-        | D.TEnum (ts, _) -> List.fold_left collect (t :: acc) ts
-        | D.TArray t -> collect acc t
-        | _ -> acc
-      in
-      find_struct input_struct ctx
-      |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
-      |> List.sort_uniq (fun t t' -> String.compare (get_name t) (get_name t'))
-    in
-    let fmt_enum_properties fmt ename =
-      let enum_def = find_enum ename ctx in
-      Format.fprintf fmt
-        "@[<hov 2>\"kind\": {@\n\
-         \"type\": \"string\",@\n\
-         @[<hov 2>\"enum\": [@\n\
-         %a@]@\n\
-         ]@]@\n\
-         }@\n\
-         },@\n\
-         @[<hov 2>\"allOf\": [@\n\
-         %a@]@\n\
-         ]@]@\n\
-         }"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt (enum_cons, _) ->
-             Format.fprintf fmt "\"%a\"" format_enum_cons_name enum_cons))
-        enum_def
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-           (fun fmt (enum_cons, payload_type) ->
-             Format.fprintf fmt
-               "@[<hov 2>{@\n\
-                @[<hov 2>\"if\": {@\n\
-                @[<hov 2>\"properties\": {@\n\
-                @[<hov 2>\"kind\": {@\n\
-                \"const\": \"%a\"@]@\n\
-                }@]@\n\
-                }@]@\n\
-                },@\n\
-                @[<hov 2>\"then\": {@\n\
-                @[<hov 2>\"properties\": {@\n\
-                @[<hov 2>\"payload\": {@\n\
-                %a@]@\n\
-                }@]@\n\
-                }@]@\n\
-                }@]@\n\
-                }"
-               format_enum_cons_name enum_cons fmt_type payload_type))
-        enum_def
-    in
-
-    Format.fprintf fmt "@\n%a"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-         (fun fmt typ ->
-           match Marked.unmark typ with
-           | D.TTuple (_, Some sname) ->
-             Format.fprintf fmt
-               "@[<hov 2>\"%a\": {@\n\
-                \"type\": \"object\",@\n\
-                @[<hov 2>\"properties\": {@\n\
-                %a@]@\n\
-                }@]@\n\
-                }"
-               format_struct_name sname
-               (fmt_struct_properties ctx)
-               sname
-           | D.TEnum (_, ename) ->
-             Format.fprintf fmt
-               "@[<hov 2>\"%a\": {@\n\
-                \"type\": \"object\",@\n\
-                @[<hov 2>\"properties\": {@\n\
-                %a@]@]@\n"
-               format_enum_name ename fmt_enum_properties ename
-           | _ -> ()))
-      (collect_required_type_defs_from_scope_input
-         scope_def.scope_body.scope_body_input_struct)
-
-  let format_program
-      (fmt : Format.formatter)
-      (scope : string)
-      (prgm : 'm Lcalc.Ast.program)
-      (_type_ordering : Scopelang.Dependency.TVertex.t list) =
-    match find_scope_def scope prgm.scopes with
-    | None -> Cli.error_print "Internal error: scope '%s' not found." scope
-    | Some scope_def ->
-      Cli.call_unstyled (fun _ ->
-          Format.fprintf fmt
-            "{@[<hov 2>@\n\
-             \"type\": \"object\",@\n\
-             \"@[<hov 2>definitions\": {%a@]@\n\
-             },@\n\
-             \"@[<hov 2>properties\": {@\n\
-             %a@]@\n\
-             }@]@\n\
-             }"
-            (fmt_definitions prgm.decl_ctx)
-            scope_def
-            (fmt_struct_properties prgm.decl_ctx)
-            scope_def.scope_body.scope_body_input_struct)
-end
-
 let apply
+    ~(source_file : Pos.input_file)
     ~(output_file : string option)
-    ~(scope : string option)
+    ~scope
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
-  let filename_without_ext_opt =
-    Option.map
-      (fun f -> Filename.basename f |> String.split_on_char '.' |> List.hd)
-      output_file
+  ignore scope;
+  let output_file, with_formatter =
+    File.get_formatter_of_out_channel ~source_file ~output_file ~ext:extension
+      ()
   in
-  let dirname =
-    match output_file with Some f -> Filename.dirname f | None -> ""
-  in
-
-  File.with_formatter_of_opt_file output_file (fun fmt ->
+  with_formatter (fun fmt ->
       Cli.trace_flag := true;
+      Cli.debug_print "Writing OCaml code to %s..."
+        (Option.value ~default:"stdout" output_file);
       To_ocaml.format_program fmt prgm type_ordering;
       File.ocamlformat_file_opt output_file);
+
+  let filename_without_ext =
+    match output_file with
+    | Some "-" -> output_file
+    | Some f -> Some (Filename.basename f |> Filename.remove_extension)
+    | None -> None
+  in
+  let jsoo_output_file, with_formatter =
+    File.get_formatter_of_out_channel ~source_file
+      ~output_file:
+        (Option.map
+           (fun name ->
+             if "-" = name then "-"
+             else Filename.remove_extension name ^ "_api_web.ml")
+           output_file)
+      ~ext:"_api_web.ml" ()
+  in
   let module_name =
-    match filename_without_ext_opt with
-    | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
-    | None -> ""
-  in
-  let jsoo_output_file_opt =
     Option.map
-      (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
-      filename_without_ext_opt
+      (fun name -> Printf.sprintf "open %s" (String.capitalize_ascii name))
+      filename_without_ext
   in
-
-  File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt ->
+  Cli.log_print "module_name: %s\n"
+  @@ Option.fold ~none:"none" ~some:(fun s -> s) module_name;
+  with_formatter (fun fmt ->
       Cli.debug_print "Writing JSOO API code to %s..."
-        (Option.value ~default:"stdout" jsoo_output_file_opt);
+        (Option.value ~default:"stdout" jsoo_output_file);
       To_jsoo.format_program fmt module_name prgm type_ordering;
-      File.ocamlformat_file_opt jsoo_output_file_opt);
-  match scope with
-  | Some s ->
-    (* NOTE: Will needs to have the ui_schema + defs too.*)
-    let json_file_opt =
-      Option.map
-        (fun f -> Filename.concat dirname (f ^ "_schema.json"))
-        filename_without_ext_opt
-    in
-
-    File.with_formatter_of_opt_file json_file_opt (fun fmt ->
-        Cli.debug_print
-          "Writing JSON schema corresponding to the scope '%s' to the file \
-           %s..."
-          s
-          (Option.value ~default:"stdout" output_file);
-        To_json.format_program fmt s prgm type_ordering)
-  | None -> ()
+      File.ocamlformat_file_opt jsoo_output_file)
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply

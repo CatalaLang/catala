@@ -17,6 +17,7 @@
 (** {2 catala-facing API} *)
 
 type 'ast plugin_apply_fun_typ =
+  source_file:Utils.Pos.input_file ->
   output_file:string option ->
   scope:string option ->
   'ast ->

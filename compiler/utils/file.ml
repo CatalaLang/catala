@@ -46,9 +46,24 @@ let with_formatter_of_opt_file filename_opt f =
   | None -> finally (fun () -> flush stdout) (fun () -> f Format.std_formatter)
   | Some filename -> with_formatter_of_file filename f
 
+let get_out_channel ~source_file ~output_file ?ext () =
+  match output_file, ext with
+  | Some "-", _ | None, None -> None, fun f -> f stdout
+  | Some f, _ -> Some f, with_out_channel f
+  | None, Some ext ->
+    let src =
+      match source_file with Pos.FileName f -> f | Pos.Contents _ -> "a"
+    in
+    let f = Filename.remove_extension src ^ ext in
+    Some f, with_out_channel f
+
+let get_formatter_of_out_channel ~source_file ~output_file ?ext () =
+  let f, with_ = get_out_channel ~source_file ~output_file ?ext () in
+  f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel oc fmt)
+
 let ocamlformat_file_opt = function
-  | Some f ->
+  | Some f when "-" <> f ->
     Cli.debug_print "Formatting %s..." f;
     if Sys.command (Printf.sprintf "ocamlformat %s -i" f) <> 0 then
       Cli.error_print "Internal error: ocamlformat failed on %s" f
-  | None -> ()
+  | _ -> ()
