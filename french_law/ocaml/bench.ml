@@ -92,11 +92,11 @@ let run_test () =
     incr num_successful;
     total_amount := Float.add !total_amount amount
   with
-  | (Runtime.NoValueProvided _ | Runtime.ConflictError) as err ->
+  | (Runtime.NoValueProvided _ | Runtime.ConflictError _) as err ->
     Format.printf "%s\n%a\nincome: %d\ncurrent_date: %s\nresidence: %a\n"
       (match err with
       | Runtime.NoValueProvided _ -> "No value provided somewhere!"
-      | Runtime.ConflictError -> "Conflict error!"
+      | Runtime.ConflictError _ -> "Conflict error!"
       | _ -> failwith "impossible")
       (Format.pp_print_list (fun fmt child ->
            Format.fprintf fmt
@@ -113,7 +113,7 @@ let run_test () =
       (Runtime.date_to_string current_date)
       format_residence residence;
     exit (-1)
-  | Runtime.AssertionFailed -> ()
+  | Runtime.AssertionFailed _ -> ()
 
 let bench =
   Random.init (int_of_float (Unix.time ()));

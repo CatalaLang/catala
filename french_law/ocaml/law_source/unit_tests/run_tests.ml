@@ -6,7 +6,7 @@ let try_test msg test =
     Format.printf "%s %s\n"
       (ANSITerminal.sprintf [ANSITerminal.green] "PASS")
       (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
-  with Runtime_ocaml.Runtime.AssertionFailed ->
+  with Runtime_ocaml.Runtime.AssertionFailed _ ->
     failure := true;
     Format.printf "%s %s\n"
       (ANSITerminal.sprintf [ANSITerminal.red] "FAIL")
