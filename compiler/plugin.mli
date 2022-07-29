@@ -16,10 +16,18 @@
 
 (** {2 catala-facing API} *)
 
+type 'ast plugin_apply_fun_typ =
+  source_file:Utils.Pos.input_file ->
+  output_file:string option ->
+  scope:string option ->
+  'ast ->
+  Scopelang.Dependency.TVertex.t list ->
+  unit
+
 type 'ast gen = {
   name : string;
   extension : string;
-  apply : string option -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
+  apply : 'ast plugin_apply_fun_typ;
 }
 
 type t =
@@ -41,19 +49,13 @@ module PluginAPI : sig
   val register_lcalc :
     name:string ->
     extension:string ->
-    (string option ->
-    Dcalc.Ast.untyped Lcalc.Ast.program ->
-    Scopelang.Dependency.TVertex.t list ->
-    unit) ->
+    Dcalc.Ast.untyped Lcalc.Ast.program plugin_apply_fun_typ ->
     unit
 
   val register_scalc :
     name:string ->
     extension:string ->
-    (string option ->
-    Scalc.Ast.program ->
-    Scopelang.Dependency.TVertex.t list ->
-    unit) ->
+    Scalc.Ast.program plugin_apply_fun_typ ->
     unit
 end
 

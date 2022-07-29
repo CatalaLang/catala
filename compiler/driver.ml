@@ -81,20 +81,12 @@ let driver source_file (options : Cli.options) : int =
       Surface.Parser_driver.parse_top_level_file source_file language
     in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
-    let get_output ?ext () =
-      match options.output_file, ext with
-      | Some "-", _ | None, None -> None, fun f -> f stdout
-      | Some f, _ -> Some f, File.with_out_channel f
-      | None, Some ext ->
-        let src =
-          match source_file with FileName f -> f | Contents _ -> "a"
-        in
-        let f = Filename.remove_extension src ^ ext in
-        Some f, File.with_out_channel f
+    let get_output ?ext =
+      File.get_out_channel ~source_file ~output_file:options.output_file ?ext
     in
-    let get_output_format ?ext () =
-      let f, with_ = get_output ?ext () in
-      f, fun f -> with_ (fun oc -> File.with_formatter_of_out_channel oc f)
+    let get_output_format ?ext =
+      File.get_formatter_of_out_channel ~source_file
+        ~output_file:options.output_file ?ext
     in
     (match backend with
     | `Makefile ->
@@ -340,12 +332,11 @@ let driver source_file (options : Cli.options) : int =
                   (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
               | `Plugin (Plugin.Lcalc p) ->
-                let output_file, _ = get_output ~ext:p.Plugin.extension () in
+                let output_file, _ = get_output_format ~ext:".ml" () in
                 Cli.debug_print "Compiling program through backend \"%s\"..."
                   p.Plugin.name;
-                Cli.debug_print "Writing to %s..."
-                  (Option.value ~default:"stdout" output_file);
-                p.Plugin.apply output_file prgm type_ordering
+                p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
+                  prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
                 let prgm = Scalc.Compile_from_lambda.translate_program prgm in
                 match backend with
@@ -383,7 +374,8 @@ let driver source_file (options : Cli.options) : int =
                     p.Plugin.name;
                   Cli.debug_print "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
-                  p.Plugin.apply output_file prgm type_ordering)))))));
+                  p.Plugin.apply ~source_file ~output_file
+                    ~scope:options.ex_scope prgm type_ordering)))))));
     0
   with
   | Errors.StructuredError (msg, pos) ->

@@ -47,6 +47,11 @@ let events = frenchLaw.eventsManager.retrieveEvents(0)
 
 > **Important**: you need to give an arbitrary value as argument.
 
+### Date and time
+
+Date values are encoded to JS string according the [ISO8601
+format](https://www.iso.org/iso-8601-date-and-time-format.html): 'YYYY-MM-DD'.
+
 ### API functions
 
 The `french_law.js` library exposes for each Catala program available in
@@ -72,31 +77,33 @@ An example of use:
 var frenchLaw = require("french_law.js");
 
 let amount = frenchLaw.computeAllocationsFamiliales({
-  iDateCouranteIn: new Date("2020-05-20"),
-  iEnfantIn: [
+  iDateCouranteIn: "2020-04-20",
+  iEnfantsIn: [
     {
       dIdentifiant: 0,
-      dRemunerationMensuelle: 0.0,
-      dDateDeNaissance: new Date("2003-03-02"),
-      dPriseEnCharge: "EffectiveEtPermanente",
+      dRemunerationMensuelle: 0,
+      dDateDeNaissance: "2003-02-02",
+      dPriseEnCharge: { kind: "EffectiveEtPermanente", payload: null },
       dADejaOuvertDroitAuxAllocationsFamiliales: true,
       dBeneficieTitrePersonnelAidePersonnelleLogement: false,
     },
     {
-
       dIdentifiant: 1,
-      dRemunerationMensuelle: 330.0,
-      dDateDeNaissance: new Date("2013-10-30"),
-      dPriseEnCharge: "GardeAlterneePartageAllocations",
+      dRemunerationMensuelle: 300,
+      dDateDeNaissance: "2013-09-30",
+      dPriseEnCharge: {
+        kind: "GardeAlterneePartageAllocations",
+        payload: null,
+      },
       dADejaOuvertDroitAuxAllocationsFamiliales: true,
       dBeneficieTitrePersonnelAidePersonnelleLogement: false,
     },
   ],
-  iRessourcesMenageIn: 30000.0,
-  iResidenceIn: "Metropole",
+  iRessourcesMenageIn: 30000,
+  iResidenceIn: { kind: "Metropole", payload: null },
   iPersonneChargeEffectivePermanenteEstParentIn: true,
   iPersonneChargeEffectivePermanenteRemplitTitreIIn: true,
-  iAvaitEnfantAChargeAvant1erJanvier2012In: true,
+  iAvaitEnfantAChargeAvant1erJanvier2012In: false,
 });
 ```
 
@@ -110,6 +117,10 @@ Notably, the `dPriseEnCharge` variable for each child expects a value among:
 > See `../ocaml/law_source/allocations_familiales_api_web.ml` for more
 > information about data types.
 
+##### Aides logement
+
+> TODO: add information about `aides_logement_api_web.ml`.
+
 ### Sub libraries
 
 All declared types and scopes of a Catala program are available in JavaScript
@@ -121,4 +132,8 @@ var frenchLaw = require("french_law.js");
 // Allocations familiales
 // corresponding to the file: `../ocaml/law_source/allocations_familiales_api_web.ml
 var allocationsFamiliales = frenchLaw.AllocationsFamilialesLib
+
+// APL
+// corresponding to the file: `../ocaml/law_source/aides_logement_api_web.ml
+var aidesLogement = frenchLaw.AidesLogementLib
 ```

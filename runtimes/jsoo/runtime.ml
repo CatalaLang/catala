@@ -59,13 +59,18 @@ let duration_to_jsoo d =
   end
 
 let date_of_jsoo d =
-  R_ocaml.date_of_numbers d##getUTCFullYear d##getUTCMonth d##getUTCDate
+  let d = Js.to_string d in
+  let d =
+    if String.contains d 'T' then d |> String.split_on_char 'T' |> List.hd
+    else d
+  in
+  match String.split_on_char '-' d with
+  | [year; month; day] ->
+    R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
+      (int_of_string day)
+  | _ -> failwith "date_of_jsoo: invalid date"
 
-let date_to_jsoo d =
-  let years = R_ocaml.integer_to_int (R_ocaml.year_of_date d) in
-  let months = R_ocaml.integer_to_int (R_ocaml.month_number_of_date d) in
-  let days = R_ocaml.integer_to_int (R_ocaml.day_of_month_of_date d) in
-  new%js Js.date_day years months days
+let date_to_jsoo d = Js.string @@ R_ocaml.date_to_string d
 
 class type event_manager =
   object

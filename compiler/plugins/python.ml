@@ -23,7 +23,9 @@
 let name = "python-plugin"
 let extension = ".py"
 
-let apply output_file prgm type_ordering =
+let apply ~source_file ~output_file ~scope prgm type_ordering =
+  ignore source_file;
+  ignore scope;
   Utils.File.with_formatter_of_opt_file output_file @@ fun fmt ->
   Scalc.To_python.format_program fmt prgm type_ordering
 

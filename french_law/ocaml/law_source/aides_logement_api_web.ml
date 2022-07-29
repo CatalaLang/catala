@@ -1711,7 +1711,7 @@ let bailleur_of_jsoo (bailleur : bailleur Js.t) : Bailleur.t =
 class type pret =
   object
     method typePret : type_pret Js.t Js.readonly_prop
-    method dateSignature : Js.date Js.t Js.readonly_prop
+    method dateSignature : Js.js_string Js.t Js.readonly_prop
     method titulairePret : titulaire_pret Js.t Js.readonly_prop
   end
 
@@ -1821,7 +1821,7 @@ let tranche_revenu_decimal_of_jsoo
 
 class type autre_personne_a_charge =
   object
-    method dateNaissance : Js.date Js.t Js.readonly_prop
+    method dateNaissance : Js.js_string Js.t Js.readonly_prop
     method ressources : Js.number Js.t Js.readonly_prop
 
     method ascendantDescendantCollateralDeuxiemeTroisiemeDegre :
@@ -1976,7 +1976,7 @@ class type enfant_prestations_familiales =
       situation_obligation_scolaire Js.t Js.readonly_prop
 
     method remunerationMensuelle : Js.number Js.t Js.readonly_prop
-    method dateDeNaissance : Js.date Js.t Js.readonly_prop
+    method dateDeNaissance : Js.js_string Js.t Js.readonly_prop
     method age : int Js.readonly_prop
     method priseEnCharge : prise_en_charge_enfant Js.t Js.readonly_prop
     method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
@@ -2053,7 +2053,7 @@ class type enfant_a_charge =
       bool Js.t Js.readonly_prop
 
     method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
-    method dateDeNaissance : Js.date Js.t Js.readonly_prop
+    method dateDeNaissance : Js.js_string Js.t Js.readonly_prop
     method remunerationMensuelle : Js.number Js.t Js.readonly_prop
 
     method obligationScolaire :
@@ -2162,7 +2162,7 @@ class type demandeur =
       bool Js.t Js.readonly_prop
 
     method ageDemandeur : int Js.readonly_prop
-    method dateNaissance : Js.date Js.t Js.readonly_prop
+    method dateNaissance : Js.js_string Js.t Js.readonly_prop
     method contratDeTravail : type_contrat_travail Js.t Js.readonly_prop
     method nationalite : nationalite Js.t Js.readonly_prop
     method patrimoine : patrimoine Js.t Js.readonly_prop
@@ -2276,8 +2276,8 @@ class type informations_calcul_a_p_l_accession_propriete =
   object
     method mensualitePrincipale : Js.number Js.t Js.readonly_prop
     method chargesMensuellesPret : Js.number Js.t Js.readonly_prop
-    method dateSignaturePret : Js.date Js.t Js.readonly_prop
-    method dateEntreeLogement : Js.date Js.t Js.readonly_prop
+    method dateSignaturePret : Js.js_string Js.t Js.readonly_prop
+    method dateEntreeLogement : Js.js_string Js.t Js.readonly_prop
 
     method typeTravauxLogementD83215 :
       type_travaux_logement_d832_15 Js.t Js.readonly_prop
@@ -2512,7 +2512,7 @@ let informations_calcul_a_p_l_locatif_of_jsoo
 class type logement_foyer =
   object
     method typeUser : type_logement_foyer Js.t Js.readonly_prop
-    method dateConventionnement : Js.date Js.t Js.readonly_prop
+    method dateConventionnement : Js.js_string Js.t Js.readonly_prop
     method location : location Js.t Js.readonly_prop
     method remplitConditionsR83221 : bool Js.t Js.readonly_prop
     method construitApplicationLoi195712III : bool Js.t Js.readonly_prop
@@ -2825,7 +2825,7 @@ let menage_of_jsoo (menage : menage Js.t) : Menage.t =
 
 class type eligibilite_aides_personnelle_logement_out =
   object
-    method dateCouranteOut : Js.date Js.t Js.readonly_prop
+    method dateCouranteOut : Js.js_string Js.t Js.readonly_prop
     method eligibiliteOut : bool Js.t Js.readonly_prop
     method nombrePersonnesAChargePrisesEnCompteOut : int Js.readonly_prop
 
@@ -2892,7 +2892,7 @@ class type eligibilite_aides_personnelle_logement_in =
   object
     method menageIn : menage Js.t Js.readonly_prop
     method demandeurIn : demandeur Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
 
     method conditionLogementResidencePrincipaleIn :
       (unit, bool Js.t) Js.meth_callback Js.meth
@@ -2951,7 +2951,7 @@ let eligibilite_aides_personnelle_logement_in_of_jsoo
 
 class type eligibilite_aide_personnalisee_logement_out =
   object
-    method dateCouranteOut : Js.date Js.t Js.readonly_prop
+    method dateCouranteOut : Js.js_string Js.t Js.readonly_prop
     method eligibiliteOut : bool Js.t Js.readonly_prop
     method nombrePersonnesAChargePrisesEnCompteOut : int Js.readonly_prop
 
@@ -3005,7 +3005,7 @@ class type eligibilite_aide_personnalisee_logement_in =
   object
     method menageIn : menage Js.t Js.readonly_prop
     method demandeurIn : demandeur Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let eligibilite_aide_personnalisee_logement_in_to_jsoo
@@ -3088,7 +3088,7 @@ let eligibilite_allocation_logement_out_of_jsoo
 
 class type eligibilite_allocation_logement_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method menageIn : menage Js.t Js.readonly_prop
     method demandeurIn : demandeur Js.t Js.readonly_prop
     method beneficieAidePersonnaliseeLogementIn : bool Js.t Js.readonly_prop
@@ -3166,10 +3166,10 @@ let eligibilite_prime_de_demenagement_out_of_jsoo
 
 class type eligibilite_prime_de_demenagement_in =
   object
-    method dateEmmenagementIn : Js.date Js.t Js.readonly_prop
+    method dateEmmenagementIn : Js.js_string Js.t Js.readonly_prop
     method menageIn : menage Js.t Js.readonly_prop
     method demandeurIn : demandeur Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
 
     method depensesJustifieesReellementEngageesIn :
       Js.number Js.t Js.readonly_prop
@@ -3265,7 +3265,7 @@ class type ressources_aides_personnelle_logement_in =
       bool Js.t Js.readonly_prop
 
     method demandeurPoursuitDesEtudesIn : bool Js.t Js.readonly_prop
-    method dateDemandeOuReexamenDroitIn : Js.date Js.t Js.readonly_prop
+    method dateDemandeOuReexamenDroitIn : Js.js_string Js.t Js.readonly_prop
 
     method paiementLogementDistinctProfessionnelIn :
       paiement_logement_distinct_professionnel Js.t Js.readonly_prop
@@ -3429,7 +3429,7 @@ let contributions_sociales_aides_personnelle_logement_out_of_jsoo
 
 class type contributions_sociales_aides_personnelle_logement_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let contributions_sociales_aides_personnelle_logement_in_to_jsoo
@@ -3559,7 +3559,7 @@ class type calcul_aide_personnalisee_logement_locatif_in =
     method beneficiaireAideAdulteOuEnfantHandicapesIn :
       bool Js.t Js.readonly_prop
 
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn : int Js.readonly_prop
 
     method situationFamilialeCalculAplIn :
@@ -3949,7 +3949,7 @@ class type calcul_aide_personnalisee_logement_foyer_in =
       situation_familiale_calcul_a_p_l Js.t Js.readonly_prop
 
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method redevanceIn : Js.number Js.t Js.readonly_prop
     method condition2Du83225In : (unit, bool Js.t) Js.meth_callback Js.meth
 
@@ -4199,15 +4199,15 @@ class type calcul_aide_personnalisee_logement_accession_propriete_in =
     method typeTravauxLogementIn :
       type_travaux_logement_d832_15 Js.t Js.readonly_prop
 
-    method dateSignaturePretIn : Js.date Js.t Js.readonly_prop
+    method dateSignaturePretIn : Js.js_string Js.t Js.readonly_prop
     method localHabitePremiereFoisBeneficiaireIn : bool Js.t Js.readonly_prop
-    method dateEntreeLogementIn : Js.date Js.t Js.readonly_prop
+    method dateEntreeLogementIn : Js.js_string Js.t Js.readonly_prop
     method coproprieteIn : bool Js.t Js.readonly_prop
     method situationR822111317In : bool Js.t Js.readonly_prop
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
     method typePretIn : type_pret Js.t Js.readonly_prop
     method ancienneteLogementIn : neuf_ou_ancien Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let calcul_aide_personnalisee_logement_accession_propriete_in_to_jsoo
@@ -4391,7 +4391,7 @@ class type calcul_aide_personnalisee_logement_in =
     method situationFamilialeIn : situation_familiale Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn : int Js.readonly_prop
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let calcul_aide_personnalisee_logement_in_to_jsoo
@@ -4513,7 +4513,7 @@ class type calcul_allocation_logement_locatif_in =
     method beneficiaireAideAdulteOuEnfantHandicapesIn :
       bool Js.t Js.readonly_prop
 
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn : int Js.readonly_prop
 
     method situationFamilialeCalculAplIn :
@@ -4695,16 +4695,16 @@ class type calcul_allocation_logement_accession_propriete_in =
       situation_familiale_calcul_a_p_l Js.t Js.readonly_prop
 
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method mensualitePrincipaleIn : Js.number Js.t Js.readonly_prop
     method situationR822111317In : bool Js.t Js.readonly_prop
-    method dateSignaturePretIn : Js.date Js.t Js.readonly_prop
+    method dateSignaturePretIn : Js.js_string Js.t Js.readonly_prop
 
     method typeTravauxLogementIn :
       type_travaux_logement_r842_5 Js.t Js.readonly_prop
 
     method localHabitePremiereFoisBeneficiaireIn : bool Js.t Js.readonly_prop
-    method dateEntreeLogementIn : Js.date Js.t Js.readonly_prop
+    method dateEntreeLogementIn : Js.js_string Js.t Js.readonly_prop
     method chargesMensuellesPretIn : Js.number Js.t Js.readonly_prop
     method coproprieteIn : bool Js.t Js.readonly_prop
   end
@@ -4919,7 +4919,7 @@ class type calcul_allocation_logement_foyer_in =
       situation_familiale_calcul_a_p_l Js.t Js.readonly_prop
 
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
 
     method categorieEquivalenceLoyerD84216In :
       categorie_equivalence_loyer_allocation_logement_foyer Js.t
@@ -5043,7 +5043,7 @@ class type calcul_allocation_logement_in =
     method situationFamilialeIn : situation_familiale Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn : int Js.readonly_prop
     method zoneIn : zone_d_habitation Js.t Js.readonly_prop
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method typeAideIn : type_aides_personnelle_logement Js.t Js.readonly_prop
   end
 
@@ -5130,7 +5130,7 @@ let ouverture_droits_retraite_out_of_jsoo
 
 class type ouverture_droits_retraite_in =
   object
-    method dateNaissanceAssureIn : Js.date Js.t Js.readonly_prop
+    method dateNaissanceAssureIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let ouverture_droits_retraite_in_to_jsoo
@@ -5296,7 +5296,7 @@ class type calculette_aides_au_logement_in =
     method informationsCalculIn :
       informations_calcul_a_p_l Js.t Js.readonly_prop
 
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method ressourcesMenagePrisesEnCompteIn : Js.number Js.t Js.readonly_prop
   end
 
@@ -5382,7 +5382,7 @@ class type calculette_aides_au_logement_garde_alternee_in =
     method informationsCalculIn :
       informations_calcul_a_p_l Js.t Js.readonly_prop
 
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method ressourcesMenagePrisesEnCompteIn : Js.number Js.t Js.readonly_prop
   end
 
@@ -5463,7 +5463,7 @@ let base_mensuelle_allocations_familiales_out_of_jsoo
 
 class type base_mensuelle_allocations_familiales_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
   end
 
 let base_mensuelle_allocations_familiales_in_to_jsoo
@@ -5504,7 +5504,7 @@ let smic_out_of_jsoo (smic_out : smic_out Js.t) : SmicOut.t =
 
 class type smic_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
     method residenceIn : collectivite Js.t Js.readonly_prop
   end
 
@@ -5576,7 +5576,7 @@ let eligibilite_prestations_familiales_out_of_jsoo
 
 class type eligibilite_prestations_familiales_in =
   object
-    method dateCouranteIn : Js.date Js.t Js.readonly_prop
+    method dateCouranteIn : Js.js_string Js.t Js.readonly_prop
 
     method prestationCouranteIn :
       element_prestations_familiales Js.t Js.readonly_prop

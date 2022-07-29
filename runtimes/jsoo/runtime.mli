@@ -105,8 +105,12 @@ val duration_to_jsoo : Runtime_ocaml.Runtime.duration -> duration Js.t
 
 (** {1 Date conversion} *)
 
-val date_of_jsoo : Js.date Js.t -> Runtime_ocaml.Runtime.date
-val date_to_jsoo : Runtime_ocaml.Runtime.date -> Js.date Js.t
+(** Date values are encoded to a string in the
+    {{:https://www.iso.org/iso-8601-date-and-time-format.html} ISO8601 format}:
+    'YYYY-MM-DD'. *)
+
+val date_of_jsoo : Js.js_string Js.t -> Runtime_ocaml.Runtime.date
+val date_to_jsoo : Runtime_ocaml.Runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 

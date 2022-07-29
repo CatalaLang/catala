@@ -15,9 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This file demonstrates the use of backend plugins for Catala. It's a simple
-    wrapper on top of the OCaml backend that calls js_of_ocaml on the generated
-    code. Not for production use. *)
+(** Catala plugin for generating web APIs. It generates OCaml code before the
+    the associated [js_of_ocaml] wrapper. *)
 
 open Utils
 open Lcalc
@@ -26,20 +25,36 @@ open Lcalc.Backends
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
-let name = "jsoo"
+let name = "api_web"
 let extension = ".ml"
 
+(** Contains all format functions used to generating the [js_of_ocaml] wrapper
+    of the corresponding Catala program. *)
 module To_jsoo = struct
+  let to_camel_case (s : string) : string =
+    String.split_on_char '_' s
+    |> (function
+         | hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
+    |> String.concat ""
+
+  let format_struct_field_name_camel_case
+      (fmt : Format.formatter)
+      (v : Dcalc.Ast.StructFieldName.t) : unit =
+    let s =
+      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
+      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
+    in
+    Format.fprintf fmt "%s" s
+
   let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =
     Dcalc.Print.format_base_type fmt
       (match l with
       | TUnit -> "unit"
       | TInt -> "int"
-      | TRat -> "Js.number Js.t"
-      | TMoney -> "Js.number Js.t"
+      | TRat | TMoney -> "Js.number Js.t"
       | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
-      | TDate -> "Js.date Js.t")
+      | TDate -> "Js.js_string Js.t")
 
   let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
       unit =
@@ -110,21 +125,6 @@ module To_jsoo = struct
       Format.fprintf fmt "Array.map (fun x -> %a x) %@%@ Js.to_array"
         format_typ_of_jsoo t
     | _ -> Format.fprintf fmt ""
-
-  let to_camel_case (s : string) : string =
-    String.split_on_char '_' s
-    |> (function
-         | hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
-    |> String.concat ""
-
-  let format_struct_field_name_camel_case
-      (fmt : Format.formatter)
-      (v : Dcalc.Ast.StructFieldName.t) : unit =
-    let s =
-      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
-    in
-    Format.fprintf fmt "%s" s
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
     let lowercase_name =
@@ -375,15 +375,18 @@ module To_jsoo = struct
 
   let format_program
       (fmt : Format.formatter)
-      (module_name : string)
+      (module_name : string option)
       (prgm : 'm Lcalc.Ast.program)
       (type_ordering : Scopelang.Dependency.TVertex.t list) =
     let fmt_lib_name fmt _ =
       Format.fprintf fmt "%sLib"
-        (List.nth (String.split_on_char ' ' module_name) 1
-        |> String.split_on_char '_'
-        |> List.map String.capitalize_ascii
-        |> String.concat "")
+        (Option.fold ~none:""
+           ~some:(fun name ->
+             List.nth (String.split_on_char ' ' name) 1
+             |> String.split_on_char '_'
+             |> List.map String.capitalize_ascii
+             |> String.concat "")
+           module_name)
     in
 
     Cli.call_unstyled (fun _ ->
@@ -406,7 +409,8 @@ module To_jsoo = struct
            (object%%js@ @[\n\
            %a@]@\n\
            end)@]@?"
-          module_name (format_ctx type_ordering) prgm.decl_ctx
+          (Option.fold ~none:"" ~some:(fun name -> name) module_name)
+          (format_ctx type_ordering) prgm.decl_ctx
           (format_scopes_to_fun prgm.decl_ctx)
           prgm.scopes fmt_lib_name ()
           (format_scopes_to_callbacks prgm.decl_ctx)
@@ -414,35 +418,46 @@ module To_jsoo = struct
 end
 
 let apply
-    (output_file : string option)
+    ~(source_file : Pos.input_file)
+    ~(output_file : string option)
+    ~scope
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
-  let filename_without_ext_opt =
-    Option.map
-      (fun f -> Filename.basename f |> String.split_on_char '.' |> List.hd)
-      output_file
-  in
-  let dirname =
-    match output_file with Some f -> Filename.dirname f | None -> ""
-  in
+  ignore scope;
+  ignore type_ordering;
   File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
+      Cli.debug_print "Writing OCaml code to %s..."
+        (Option.value ~default:"stdout" output_file);
       To_ocaml.format_program fmt prgm type_ordering;
-      File.ocamlformat_file_opt output_file;
-      let module_name =
-        match filename_without_ext_opt with
-        | Some name -> Printf.sprintf "open %s" (String.capitalize_ascii name)
-        | None -> ""
-      in
-      let jsoo_output_file_opt =
-        Option.map
-          (fun f -> Filename.concat dirname (f ^ "_api_web.ml"))
-          filename_without_ext_opt
-      in
-      File.with_formatter_of_opt_file jsoo_output_file_opt (fun fmt ->
-          Cli.debug_print "Writing JSOO API code to %s..."
-            (Option.value ~default:"stdout" jsoo_output_file_opt);
-          To_jsoo.format_program fmt module_name prgm type_ordering;
-          File.ocamlformat_file_opt jsoo_output_file_opt))
+      File.ocamlformat_file_opt output_file);
+
+  let output_file, filename_without_ext =
+    match output_file with
+    | Some "-" -> output_file, output_file
+    | Some f ->
+      output_file, Some (Filename.basename f |> Filename.remove_extension)
+    | None -> Some "-", None
+  in
+  let jsoo_output_file, with_formatter =
+    File.get_formatter_of_out_channel ~source_file
+      ~output_file:
+        (Option.map
+           (fun name ->
+             if "-" = name then "-"
+             else Filename.remove_extension name ^ "_api_web.ml")
+           output_file)
+      ~ext:"_api_web.ml" ()
+  in
+  let module_name =
+    Option.map
+      (fun name -> Printf.sprintf "open %s" (String.capitalize_ascii name))
+      filename_without_ext
+  in
+  with_formatter (fun fmt ->
+      Cli.debug_print "Writing JSOO API code to %s..."
+        (Option.value ~default:"stdout" jsoo_output_file);
+      To_jsoo.format_program fmt module_name prgm type_ordering;
+      File.ocamlformat_file_opt jsoo_output_file)
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply
