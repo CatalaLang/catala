@@ -435,7 +435,7 @@ let allocation_familiales_avril2008
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 77;
              start_column = 10;
              end_line = 77;
@@ -447,8 +447,7 @@ let allocation_familiales_avril2008
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 78;
                  start_column = 14;
                  end_line = 78;
@@ -470,7 +469,7 @@ let allocation_familiales_avril2008
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 77;
                 start_column = 10;
                 end_line = 77;
@@ -498,7 +497,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : EnfantLePlusAgeIn.t) :
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 81;
              start_column = 10;
              end_line = 81;
@@ -510,7 +509,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : EnfantLePlusAgeIn.t) :
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 12;
                  start_column = 14;
                  end_line = 12;
@@ -542,7 +541,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : EnfantLePlusAgeIn.t) :
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 81;
                 start_column = 10;
                 end_line = 81;
@@ -563,7 +562,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+             filename = "./../smic/smic.catala_fr";
              start_line = 11;
              start_column = 10;
              end_line = 11;
@@ -575,8 +574,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -588,8 +586,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 29;
                        start_column = 5;
                        end_line = 38;
@@ -616,8 +613,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -629,8 +625,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 47;
                        start_column = 5;
                        end_line = 49;
@@ -650,8 +645,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -663,8 +657,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 68;
                        start_column = 5;
                        end_line = 77;
@@ -691,8 +684,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -704,8 +696,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 86;
                        start_column = 5;
                        end_line = 88;
@@ -725,8 +716,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -738,8 +728,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 107;
                        start_column = 5;
                        end_line = 116;
@@ -766,8 +755,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -779,8 +767,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 125;
                        start_column = 5;
                        end_line = 127;
@@ -800,8 +787,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -813,8 +799,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 146;
                        start_column = 5;
                        end_line = 155;
@@ -841,8 +826,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -854,8 +838,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 165;
                        start_column = 5;
                        end_line = 167;
@@ -875,8 +858,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -888,8 +870,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 186;
                        start_column = 5;
                        end_line = 195;
@@ -916,8 +897,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   filename = "./../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -929,8 +909,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/../smic/smic.catala_fr";
+                       filename = "./../smic/smic.catala_fr";
                        start_line = 204;
                        start_column = 5;
                        end_line = 206;
@@ -954,8 +933,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/allocations_familiales/../smic/smic.catala_fr";
+                filename = "./../smic/smic.catala_fr";
                 start_line = 11;
                 start_column = 10;
                 end_line = 11;
@@ -982,7 +960,7 @@ let base_mensuelle_allocations_familiales
          handle_default
            {
              filename =
-               "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+               "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
              start_line = 6;
              start_column = 10;
              end_line = 6;
@@ -995,7 +973,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -1008,7 +986,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 28;
                        start_column = 5;
                        end_line = 29;
@@ -1030,7 +1008,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -1043,7 +1021,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 48;
                        start_column = 5;
                        end_line = 49;
@@ -1067,7 +1045,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -1080,7 +1058,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 64;
                        start_column = 5;
                        end_line = 65;
@@ -1104,7 +1082,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -1117,7 +1095,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 82;
                        start_column = 5;
                        end_line = 83;
@@ -1145,7 +1123,7 @@ let base_mensuelle_allocations_familiales
            (NoValueProvided
               {
                 filename =
-                  "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                  "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                 start_line = 6;
                 start_column = 10;
                 end_line = 6;
@@ -1175,7 +1153,7 @@ let prestations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 61;
              start_column = 10;
              end_line = 61;
@@ -1187,8 +1165,7 @@ let prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 21;
                  start_column = 14;
                  end_line = 21;
@@ -1210,7 +1187,7 @@ let prestations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 61;
                 start_column = 10;
                 end_line = 61;
@@ -1228,7 +1205,7 @@ let prestations_familiales
         embed_date
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 66;
              start_column = 3;
              end_line = 66;
@@ -1240,7 +1217,7 @@ let prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 70;
                  start_column = 14;
                  end_line = 70;
@@ -1258,7 +1235,7 @@ let prestations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+             filename = "./../smic/smic.catala_fr";
              start_line = 9;
              start_column = 10;
              end_line = 9;
@@ -1274,7 +1251,7 @@ let prestations_familiales
         embed_collectivite
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 66;
              start_column = 3;
              end_line = 66;
@@ -1286,7 +1263,7 @@ let prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 69;
                  start_column = 14;
                  end_line = 69;
@@ -1304,7 +1281,7 @@ let prestations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+             filename = "./../smic/smic.catala_fr";
              start_line = 10;
              start_column = 10;
              end_line = 10;
@@ -1330,7 +1307,7 @@ let prestations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 62;
              start_column = 10;
              end_line = 62;
@@ -1342,8 +1319,7 @@ let prestations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 62;
                    start_column = 10;
                    end_line = 62;
@@ -1359,8 +1335,7 @@ let prestations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                       filename = "./securite_sociale_L.catala_fr";
                        start_line = 354;
                        start_column = 5;
                        end_line = 359;
@@ -1388,7 +1363,7 @@ let prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 62;
                  start_column = 10;
                  end_line = 62;
@@ -1406,7 +1381,7 @@ let prestations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 62;
                 start_column = 10;
                 end_line = 62;
@@ -1424,7 +1399,7 @@ let prestations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 60;
              start_column = 11;
              end_line = 60;
@@ -1436,8 +1411,7 @@ let prestations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 60;
                    start_column = 11;
                    end_line = 60;
@@ -1453,8 +1427,7 @@ let prestations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                       filename = "./securite_sociale_R.catala_fr";
                        start_line = 216;
                        start_column = 18;
                        end_line = 216;
@@ -1478,8 +1451,7 @@ let prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 31;
                  start_column = 14;
                  end_line = 31;
@@ -1503,7 +1475,7 @@ let prestations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 60;
                 start_column = 11;
                 end_line = 60;
@@ -1523,7 +1495,7 @@ let prestations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 59;
                  start_column = 10;
                  end_line = 59;
@@ -1539,8 +1511,7 @@ let prestations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 59;
                        start_column = 10;
                        end_line = 59;
@@ -1556,8 +1527,7 @@ let prestations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 68;
                            start_column = 5;
                            end_line = 71;
@@ -1593,8 +1563,7 @@ let prestations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 59;
                      start_column = 10;
                      end_line = 59;
@@ -1612,8 +1581,7 @@ let prestations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 59;
                     start_column = 10;
                     end_line = 59;
@@ -1629,7 +1597,7 @@ let prestations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 59;
                 start_column = 10;
                 end_line = 59;
@@ -1649,7 +1617,7 @@ let prestations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 58;
                  start_column = 10;
                  end_line = 58;
@@ -1665,8 +1633,7 @@ let prestations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 58;
                        start_column = 10;
                        end_line = 58;
@@ -1682,8 +1649,7 @@ let prestations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 58;
                              start_column = 10;
                              end_line = 58;
@@ -1699,8 +1665,7 @@ let prestations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/autres_codes.catala_fr";
+                                 filename = "./autres_codes.catala_fr";
                                  start_line = 24;
                                  start_column = 5;
                                  end_line = 24;
@@ -1730,8 +1695,7 @@ let prestations_familiales
                      (fun (_ : _) ->
                        handle_default
                          {
-                           filename =
-                             "examples/allocations_familiales/prologue.catala_fr";
+                           filename = "./prologue.catala_fr";
                            start_line = 58;
                            start_column = 10;
                            end_line = 58;
@@ -1747,8 +1711,7 @@ let prestations_familiales
                            (fun (_ : _) ->
                              handle_default
                                {
-                                 filename =
-                                   "examples/allocations_familiales/prologue.catala_fr";
+                                 filename = "./prologue.catala_fr";
                                  start_line = 58;
                                  start_column = 10;
                                  end_line = 58;
@@ -1764,8 +1727,7 @@ let prestations_familiales
                                  (fun (_ : _) ->
                                    handle_default
                                      {
-                                       filename =
-                                         "examples/allocations_familiales/prologue.catala_fr";
+                                       filename = "./prologue.catala_fr";
                                        start_line = 58;
                                        start_column = 10;
                                        end_line = 58;
@@ -1782,7 +1744,7 @@ let prestations_familiales
                                        log_decision_taken
                                          {
                                            filename =
-                                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                             "./securite_sociale_L.catala_fr";
                                            start_line = 60;
                                            start_column = 5;
                                            end_line = 62;
@@ -1821,8 +1783,7 @@ let prestations_familiales
                                (fun (_ : _) ->
                                  log_decision_taken
                                    {
-                                     filename =
-                                       "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                     filename = "./securite_sociale_L.catala_fr";
                                      start_line = 49;
                                      start_column = 5;
                                      end_line = 50;
@@ -1864,8 +1825,7 @@ let prestations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 58;
                      start_column = 10;
                      end_line = 58;
@@ -1883,8 +1843,7 @@ let prestations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 58;
                     start_column = 10;
                     end_line = 58;
@@ -1900,7 +1859,7 @@ let prestations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 58;
                 start_column = 10;
                 end_line = 58;
@@ -1957,7 +1916,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 98;
                  start_column = 11;
                  end_line = 98;
@@ -1973,8 +1932,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 98;
                        start_column = 11;
                        end_line = 98;
@@ -1990,8 +1948,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 214;
                            start_column = 5;
                            end_line = 214;
@@ -2024,8 +1981,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 98;
                        start_column = 11;
                        end_line = 98;
@@ -2041,8 +1997,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 253;
                            start_column = 5;
                            end_line = 254;
@@ -2075,8 +2030,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 98;
                        start_column = 11;
                        end_line = 98;
@@ -2092,8 +2046,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 98;
                              start_column = 11;
                              end_line = 98;
@@ -2109,8 +2062,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                handle_default
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/prologue.catala_fr";
+                                   filename = "./prologue.catala_fr";
                                    start_line = 98;
                                    start_column = 11;
                                    end_line = 98;
@@ -2127,7 +2079,7 @@ let allocations_familiales
                                    log_decision_taken
                                      {
                                        filename =
-                                         "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                         "./securite_sociale_L.catala_fr";
                                        start_line = 263;
                                        start_column = 5;
                                        end_line = 264;
@@ -2167,8 +2119,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                 filename = "./securite_sociale_L.catala_fr";
                                  start_line = 204;
                                  start_column = 5;
                                  end_line = 204;
@@ -2205,8 +2156,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 184;
                            start_column = 5;
                            end_line = 184;
@@ -2243,8 +2193,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 98;
                     start_column = 11;
                     end_line = 98;
@@ -2260,7 +2209,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 98;
                 start_column = 11;
                 end_line = 98;
@@ -2280,7 +2229,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 99;
                  start_column = 11;
                  end_line = 99;
@@ -2296,8 +2245,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 99;
                        start_column = 11;
                        end_line = 99;
@@ -2313,8 +2261,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 258;
                            start_column = 5;
                            end_line = 259;
@@ -2349,8 +2296,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 99;
                        start_column = 11;
                        end_line = 99;
@@ -2366,8 +2312,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 99;
                              start_column = 11;
                              end_line = 99;
@@ -2383,8 +2328,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                handle_default
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/prologue.catala_fr";
+                                   filename = "./prologue.catala_fr";
                                    start_line = 99;
                                    start_column = 11;
                                    end_line = 99;
@@ -2400,8 +2344,7 @@ let allocations_familiales
                                    (fun (_ : _) ->
                                      handle_default
                                        {
-                                         filename =
-                                           "examples/allocations_familiales/prologue.catala_fr";
+                                         filename = "./prologue.catala_fr";
                                          start_line = 99;
                                          start_column = 11;
                                          end_line = 99;
@@ -2418,7 +2361,7 @@ let allocations_familiales
                                          log_decision_taken
                                            {
                                              filename =
-                                               "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                               "./securite_sociale_L.catala_fr";
                                              start_line = 269;
                                              start_column = 5;
                                              end_line = 270;
@@ -2466,7 +2409,7 @@ let allocations_familiales
                                    log_decision_taken
                                      {
                                        filename =
-                                         "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                         "./securite_sociale_L.catala_fr";
                                        start_line = 218;
                                        start_column = 5;
                                        end_line = 218;
@@ -2506,8 +2449,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                 filename = "./securite_sociale_L.catala_fr";
                                  start_line = 208;
                                  start_column = 5;
                                  end_line = 208;
@@ -2544,8 +2486,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 188;
                            start_column = 5;
                            end_line = 188;
@@ -2582,8 +2523,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 99;
                     start_column = 11;
                     end_line = 99;
@@ -2599,7 +2539,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 99;
                 start_column = 11;
                 end_line = 99;
@@ -2617,7 +2557,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 146;
              start_column = 11;
              end_line = 146;
@@ -2629,8 +2569,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 291;
                  start_column = 14;
                  end_line = 291;
@@ -2652,7 +2591,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 146;
                 start_column = 11;
                 end_line = 146;
@@ -2670,7 +2609,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 148;
              start_column = 11;
              end_line = 148;
@@ -2682,8 +2621,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 64;
                  start_column = 14;
                  end_line = 64;
@@ -2705,7 +2643,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 148;
                 start_column = 11;
                 end_line = 148;
@@ -2742,7 +2680,7 @@ let allocations_familiales
         embed_date
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 143;
              start_column = 3;
              end_line = 143;
@@ -2754,7 +2692,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 160;
                  start_column = 14;
                  end_line = 160;
@@ -2773,7 +2711,7 @@ let allocations_familiales
         (NoValueProvided
            {
              filename =
-               "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+               "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
              start_line = 5;
              start_column = 10;
              end_line = 5;
@@ -2805,7 +2743,7 @@ let allocations_familiales
         embed_date
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 140;
              start_column = 3;
              end_line = 140;
@@ -2817,7 +2755,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 156;
                  start_column = 14;
                  end_line = 156;
@@ -2835,7 +2773,7 @@ let allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 63;
              start_column = 10;
              end_line = 63;
@@ -2852,7 +2790,7 @@ let allocations_familiales
         embed_element_prestations_familiales
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 140;
              start_column = 3;
              end_line = 140;
@@ -2864,7 +2802,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 154;
                  start_column = 14;
                  end_line = 154;
@@ -2883,7 +2821,7 @@ let allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 64;
              start_column = 10;
              end_line = 64;
@@ -2899,7 +2837,7 @@ let allocations_familiales
         embed_collectivite
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 140;
              start_column = 3;
              end_line = 140;
@@ -2911,7 +2849,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 158;
                  start_column = 14;
                  end_line = 158;
@@ -2929,7 +2867,7 @@ let allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 65;
              start_column = 10;
              end_line = 65;
@@ -2980,7 +2918,7 @@ let allocations_familiales
         (embed_array embed_enfant)
         (handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 142;
              start_column = 3;
              end_line = 142;
@@ -2992,7 +2930,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 33;
                  start_column = 14;
                  end_line = 33;
@@ -3005,7 +2943,7 @@ let allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 80;
              start_column = 10;
              end_line = 80;
@@ -3034,7 +2972,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 147;
                  start_column = 11;
                  end_line = 147;
@@ -3050,8 +2988,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 147;
                        start_column = 11;
                        end_line = 147;
@@ -3067,8 +3004,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                           filename = "./securite_sociale_R.catala_fr";
                            start_line = 83;
                            start_column = 19;
                            end_line = 83;
@@ -3094,8 +3030,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                     filename = "./securite_sociale_R.catala_fr";
                      start_line = 56;
                      start_column = 14;
                      end_line = 56;
@@ -3117,8 +3052,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 147;
                     start_column = 11;
                     end_line = 147;
@@ -3134,7 +3068,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 147;
                 start_column = 11;
                 end_line = 147;
@@ -3155,7 +3089,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 96;
              start_column = 11;
              end_line = 96;
@@ -3167,8 +3101,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                 filename = "./securite_sociale_L.catala_fr";
                  start_line = 75;
                  start_column = 14;
                  end_line = 75;
@@ -3204,7 +3137,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 96;
                 start_column = 11;
                 end_line = 96;
@@ -3224,7 +3157,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 149;
                  start_column = 11;
                  end_line = 149;
@@ -3240,8 +3173,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/epilogue.catala_fr";
+                     filename = "./epilogue.catala_fr";
                      start_line = 34;
                      start_column = 14;
                      end_line = 34;
@@ -3254,8 +3186,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 149;
                     start_column = 11;
                     end_line = 149;
@@ -3271,7 +3202,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 149;
                 start_column = 11;
                 end_line = 149;
@@ -3289,7 +3220,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 151;
              start_column = 11;
              end_line = 151;
@@ -3301,8 +3232,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 151;
                    start_column = 11;
                    end_line = 151;
@@ -3318,8 +3248,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 151;
                          start_column = 11;
                          end_line = 151;
@@ -3335,8 +3264,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 30;
                              start_column = 5;
                              end_line = 30;
@@ -3366,8 +3294,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 151;
                          start_column = 11;
                          end_line = 151;
@@ -3383,8 +3310,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 63;
                              start_column = 5;
                              end_line = 63;
@@ -3414,8 +3340,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 151;
                          start_column = 11;
                          end_line = 151;
@@ -3431,8 +3356,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 96;
                              start_column = 5;
                              end_line = 96;
@@ -3462,8 +3386,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 151;
                          start_column = 11;
                          end_line = 151;
@@ -3479,8 +3402,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 132;
                              start_column = 5;
                              end_line = 132;
@@ -3512,8 +3434,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 311;
                  start_column = 14;
                  end_line = 311;
@@ -3540,7 +3461,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 151;
                 start_column = 11;
                 end_line = 151;
@@ -3558,7 +3479,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 150;
              start_column = 11;
              end_line = 150;
@@ -3570,8 +3491,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 150;
                    start_column = 11;
                    end_line = 150;
@@ -3587,8 +3507,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 150;
                          start_column = 11;
                          end_line = 150;
@@ -3604,8 +3523,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 23;
                              start_column = 5;
                              end_line = 23;
@@ -3635,8 +3553,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 150;
                          start_column = 11;
                          end_line = 150;
@@ -3652,8 +3569,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 56;
                              start_column = 5;
                              end_line = 56;
@@ -3683,8 +3599,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 150;
                          start_column = 11;
                          end_line = 150;
@@ -3700,8 +3615,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 89;
                              start_column = 5;
                              end_line = 89;
@@ -3731,8 +3645,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 150;
                          start_column = 11;
                          end_line = 150;
@@ -3748,8 +3661,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 116;
                              start_column = 5;
                              end_line = 116;
@@ -3781,8 +3693,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 301;
                  start_column = 14;
                  end_line = 301;
@@ -3809,7 +3720,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 150;
                 start_column = 11;
                 end_line = 150;
@@ -3827,7 +3738,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 133;
              start_column = 11;
              end_line = 133;
@@ -3839,8 +3750,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 133;
                    start_column = 11;
                    end_line = 133;
@@ -3856,8 +3766,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 133;
                          start_column = 11;
                          end_line = 133;
@@ -3873,8 +3782,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                             filename = "./securite_sociale_L.catala_fr";
                              start_line = 426;
                              start_column = 5;
                              end_line = 427;
@@ -3903,8 +3811,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/epilogue.catala_fr";
+                       filename = "./epilogue.catala_fr";
                        start_line = 31;
                        start_column = 9;
                        end_line = 31;
@@ -3917,7 +3824,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 133;
                  start_column = 11;
                  end_line = 133;
@@ -3935,7 +3842,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 133;
                 start_column = 11;
                 end_line = 133;
@@ -3955,7 +3862,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 121;
                  start_column = 11;
                  end_line = 121;
@@ -3971,8 +3878,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 121;
                        start_column = 11;
                        end_line = 121;
@@ -3988,8 +3894,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 121;
                              start_column = 11;
                              end_line = 121;
@@ -4005,8 +3910,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                 filename = "./securite_sociale_L.catala_fr";
                                  start_line = 420;
                                  start_column = 6;
                                  end_line = 421;
@@ -4035,8 +3939,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 119;
                            start_column = 5;
                            end_line = 125;
@@ -4086,8 +3989,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 121;
                      start_column = 11;
                      end_line = 121;
@@ -4105,8 +4007,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 121;
                     start_column = 11;
                     end_line = 121;
@@ -4122,7 +4023,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 121;
                 start_column = 11;
                 end_line = 121;
@@ -4143,7 +4044,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 118;
              start_column = 11;
              end_line = 118;
@@ -4155,8 +4056,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/decrets_divers.catala_fr";
+                 filename = "./decrets_divers.catala_fr";
                  start_line = 195;
                  start_column = 14;
                  end_line = 195;
@@ -4185,7 +4085,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 118;
                 start_column = 11;
                 end_line = 118;
@@ -4203,7 +4103,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 117;
              start_column = 11;
              end_line = 117;
@@ -4215,8 +4115,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 117;
                    start_column = 11;
                    end_line = 117;
@@ -4232,8 +4131,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4249,8 +4147,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 409;
                              start_column = 5;
                              end_line = 409;
@@ -4276,8 +4173,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4293,8 +4189,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 416;
                              start_column = 5;
                              end_line = 416;
@@ -4320,8 +4215,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4337,8 +4231,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 423;
                              start_column = 5;
                              end_line = 423;
@@ -4364,8 +4257,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4381,8 +4273,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 430;
                              start_column = 5;
                              end_line = 430;
@@ -4408,8 +4299,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4425,8 +4315,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 437;
                              start_column = 5;
                              end_line = 437;
@@ -4452,8 +4341,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4469,8 +4357,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 444;
                              start_column = 5;
                              end_line = 444;
@@ -4496,8 +4383,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4513,8 +4399,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 451;
                              start_column = 5;
                              end_line = 451;
@@ -4540,8 +4425,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4557,8 +4441,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 458;
                              start_column = 5;
                              end_line = 458;
@@ -4584,8 +4467,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4601,8 +4483,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 465;
                              start_column = 5;
                              end_line = 465;
@@ -4628,8 +4509,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 117;
                          start_column = 11;
                          end_line = 117;
@@ -4645,8 +4525,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 472;
                              start_column = 5;
                              end_line = 472;
@@ -4676,8 +4555,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/decrets_divers.catala_fr";
+                 filename = "./decrets_divers.catala_fr";
                  start_line = 186;
                  start_column = 14;
                  end_line = 186;
@@ -4701,7 +4579,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 117;
                 start_column = 11;
                 end_line = 117;
@@ -4719,7 +4597,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 111;
              start_column = 11;
              end_line = 111;
@@ -4731,8 +4609,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 162;
                  start_column = 14;
                  end_line = 162;
@@ -4756,7 +4633,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 111;
                 start_column = 11;
                 end_line = 111;
@@ -4774,7 +4651,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 110;
              start_column = 11;
              end_line = 110;
@@ -4786,8 +4663,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 142;
                  start_column = 14;
                  end_line = 142;
@@ -4835,7 +4711,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 110;
                 start_column = 11;
                 end_line = 110;
@@ -4853,7 +4729,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 106;
              start_column = 11;
              end_line = 106;
@@ -4865,8 +4741,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 106;
                    start_column = 11;
                    end_line = 106;
@@ -4882,8 +4757,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 106;
                          start_column = 11;
                          end_line = 106;
@@ -4899,8 +4773,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -4916,8 +4789,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 250;
                                    start_column = 5;
                                    end_line = 251;
@@ -4950,8 +4822,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -4967,8 +4838,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 258;
                                    start_column = 5;
                                    end_line = 259;
@@ -5001,8 +4871,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5018,8 +4887,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 266;
                                    start_column = 5;
                                    end_line = 267;
@@ -5052,8 +4920,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5069,8 +4936,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 274;
                                    start_column = 5;
                                    end_line = 275;
@@ -5103,8 +4969,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5120,8 +4985,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 282;
                                    start_column = 5;
                                    end_line = 283;
@@ -5154,8 +5018,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5171,8 +5034,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 290;
                                    start_column = 5;
                                    end_line = 291;
@@ -5205,8 +5067,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5222,8 +5083,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 298;
                                    start_column = 5;
                                    end_line = 299;
@@ -5256,8 +5116,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5273,8 +5132,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 306;
                                    start_column = 5;
                                    end_line = 307;
@@ -5307,8 +5165,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5324,8 +5181,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 314;
                                    start_column = 5;
                                    end_line = 315;
@@ -5358,8 +5214,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5375,8 +5230,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 322;
                                    start_column = 5;
                                    end_line = 323;
@@ -5409,8 +5263,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 106;
                                start_column = 11;
                                end_line = 106;
@@ -5426,8 +5279,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 330;
                                    start_column = 5;
                                    end_line = 330;
@@ -5459,8 +5311,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/decrets_divers.catala_fr";
+                       filename = "./decrets_divers.catala_fr";
                        start_line = 167;
                        start_column = 14;
                        end_line = 167;
@@ -5484,8 +5335,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 106;
                    start_column = 11;
                    end_line = 106;
@@ -5501,8 +5351,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 362;
                        start_column = 5;
                        end_line = 363;
@@ -5528,8 +5377,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 359;
                  start_column = 29;
                  end_line = 359;
@@ -5551,7 +5399,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 106;
                 start_column = 11;
                 end_line = 106;
@@ -5569,7 +5417,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 104;
              start_column = 11;
              end_line = 104;
@@ -5581,8 +5429,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 104;
                    start_column = 11;
                    end_line = 104;
@@ -5598,8 +5445,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 104;
                          start_column = 11;
                          end_line = 104;
@@ -5615,8 +5461,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 104;
                                start_column = 11;
                                end_line = 104;
@@ -5632,8 +5477,7 @@ let allocations_familiales
                                (fun (_ : _) ->
                                  handle_default
                                    {
-                                     filename =
-                                       "examples/allocations_familiales/prologue.catala_fr";
+                                     filename = "./prologue.catala_fr";
                                      start_line = 104;
                                      start_column = 11;
                                      end_line = 104;
@@ -5649,8 +5493,7 @@ let allocations_familiales
                                    (fun (_ : _) ->
                                      log_decision_taken
                                        {
-                                         filename =
-                                           "examples/allocations_familiales/decrets_divers.catala_fr";
+                                         filename = "./decrets_divers.catala_fr";
                                          start_line = 159;
                                          start_column = 6;
                                          end_line = 159;
@@ -5674,8 +5517,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                   filename = "./securite_sociale_L.catala_fr";
                                    start_line = 406;
                                    start_column = 5;
                                    end_line = 407;
@@ -5707,8 +5549,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                       filename = "./securite_sociale_L.catala_fr";
                        start_line = 101;
                        start_column = 5;
                        end_line = 101;
@@ -5732,7 +5573,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 104;
                  start_column = 11;
                  end_line = 104;
@@ -5750,7 +5591,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 104;
                 start_column = 11;
                 end_line = 104;
@@ -5770,7 +5611,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 126;
                  start_column = 11;
                  end_line = 126;
@@ -5786,8 +5627,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 126;
                        start_column = 11;
                        end_line = 126;
@@ -5803,8 +5643,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 126;
                              start_column = 11;
                              end_line = 126;
@@ -5820,8 +5659,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                 filename = "./securite_sociale_L.catala_fr";
                                  start_line = 313;
                                  start_column = 5;
                                  end_line = 315;
@@ -5872,8 +5710,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                           filename = "./securite_sociale_L.catala_fr";
                            start_line = 299;
                            start_column = 5;
                            end_line = 300;
@@ -5946,8 +5783,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 126;
                      start_column = 11;
                      end_line = 126;
@@ -5965,8 +5801,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 126;
                     start_column = 11;
                     end_line = 126;
@@ -5982,7 +5817,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 126;
                 start_column = 11;
                 end_line = 126;
@@ -6002,7 +5837,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 135;
                  start_column = 11;
                  end_line = 135;
@@ -6018,8 +5853,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 135;
                        start_column = 11;
                        end_line = 135;
@@ -6035,8 +5869,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 135;
                              start_column = 11;
                              end_line = 135;
@@ -6052,8 +5885,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                handle_default
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/prologue.catala_fr";
+                                   filename = "./prologue.catala_fr";
                                    start_line = 135;
                                    start_column = 11;
                                    end_line = 135;
@@ -6070,7 +5902,7 @@ let allocations_familiales
                                    log_decision_taken
                                      {
                                        filename =
-                                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                                         "./securite_sociale_D.catala_fr";
                                        start_line = 173;
                                        start_column = 5;
                                        end_line = 174;
@@ -6104,8 +5936,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                                 filename = "./securite_sociale_D.catala_fr";
                                  start_line = 165;
                                  start_column = 5;
                                  end_line = 166;
@@ -6139,8 +5970,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                     filename = "./securite_sociale_D.catala_fr";
                      start_line = 179;
                      start_column = 14;
                      end_line = 179;
@@ -6162,8 +5992,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 135;
                     start_column = 11;
                     end_line = 135;
@@ -6179,7 +6008,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 135;
                 start_column = 11;
                 end_line = 135;
@@ -6197,7 +6026,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 122;
              start_column = 11;
              end_line = 122;
@@ -6209,8 +6038,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 122;
                    start_column = 11;
                    end_line = 122;
@@ -6226,8 +6054,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 218;
                        start_column = 5;
                        end_line = 218;
@@ -6249,8 +6076,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 122;
                    start_column = 11;
                    end_line = 122;
@@ -6266,8 +6092,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 232;
                        start_column = 5;
                        end_line = 233;
@@ -6290,8 +6115,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 122;
                    start_column = 11;
                    end_line = 122;
@@ -6307,8 +6131,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 246;
                        start_column = 5;
                        end_line = 246;
@@ -6334,7 +6157,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 122;
                 start_column = 11;
                 end_line = 122;
@@ -6352,7 +6175,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 108;
              start_column = 11;
              end_line = 108;
@@ -6364,8 +6187,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 108;
                    start_column = 11;
                    end_line = 108;
@@ -6381,8 +6203,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 43;
                        start_column = 14;
                        end_line = 43;
@@ -6414,8 +6235,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 108;
                    start_column = 11;
                    end_line = 108;
@@ -6431,8 +6251,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 84;
                        start_column = 14;
                        end_line = 84;
@@ -6465,8 +6284,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 108;
                    start_column = 11;
                    end_line = 108;
@@ -6482,8 +6300,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                       filename = "./securite_sociale_D.catala_fr";
                        start_line = 122;
                        start_column = 14;
                        end_line = 122;
@@ -6519,7 +6336,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 108;
                 start_column = 11;
                 end_line = 108;
@@ -6537,7 +6354,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 107;
              start_column = 11;
              end_line = 107;
@@ -6549,8 +6366,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 107;
                    start_column = 11;
                    end_line = 107;
@@ -6566,8 +6382,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 107;
                          start_column = 11;
                          end_line = 107;
@@ -6583,8 +6398,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6600,8 +6414,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 338;
                                    start_column = 5;
                                    end_line = 338;
@@ -6631,8 +6444,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6648,8 +6460,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 345;
                                    start_column = 5;
                                    end_line = 345;
@@ -6679,8 +6490,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6696,8 +6506,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 352;
                                    start_column = 5;
                                    end_line = 352;
@@ -6727,8 +6536,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6744,8 +6552,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 359;
                                    start_column = 5;
                                    end_line = 359;
@@ -6775,8 +6582,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6792,8 +6598,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 366;
                                    start_column = 5;
                                    end_line = 366;
@@ -6823,8 +6628,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6840,8 +6644,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 373;
                                    start_column = 5;
                                    end_line = 373;
@@ -6871,8 +6674,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6888,8 +6690,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 380;
                                    start_column = 5;
                                    end_line = 380;
@@ -6919,8 +6720,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6936,8 +6736,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 387;
                                    start_column = 5;
                                    end_line = 387;
@@ -6967,8 +6766,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -6984,8 +6782,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 394;
                                    start_column = 5;
                                    end_line = 394;
@@ -7015,8 +6812,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 107;
                                start_column = 11;
                                end_line = 107;
@@ -7032,8 +6828,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/decrets_divers.catala_fr";
+                                   filename = "./decrets_divers.catala_fr";
                                    start_line = 401;
                                    start_column = 5;
                                    end_line = 401;
@@ -7067,8 +6862,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/decrets_divers.catala_fr";
+                       filename = "./decrets_divers.catala_fr";
                        start_line = 177;
                        start_column = 14;
                        end_line = 177;
@@ -7094,7 +6888,7 @@ let allocations_familiales
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 107;
                  start_column = 11;
                  end_line = 107;
@@ -7110,8 +6904,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 107;
                        start_column = 11;
                        end_line = 107;
@@ -7127,8 +6920,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                           filename = "./securite_sociale_D.catala_fr";
                            start_line = 38;
                            start_column = 14;
                            end_line = 38;
@@ -7155,8 +6947,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 107;
                        start_column = 11;
                        end_line = 107;
@@ -7172,8 +6963,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                           filename = "./securite_sociale_D.catala_fr";
                            start_line = 79;
                            start_column = 14;
                            end_line = 79;
@@ -7201,8 +6991,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 107;
                        start_column = 11;
                        end_line = 107;
@@ -7218,8 +7007,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                           filename = "./securite_sociale_D.catala_fr";
                            start_line = 117;
                            start_column = 14;
                            end_line = 117;
@@ -7250,7 +7038,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 107;
                 start_column = 11;
                 end_line = 107;
@@ -7268,7 +7056,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 109;
              start_column = 11;
              end_line = 109;
@@ -7280,8 +7068,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 128;
                  start_column = 14;
                  end_line = 128;
@@ -7306,7 +7093,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 109;
                 start_column = 11;
                 end_line = 109;
@@ -7326,7 +7113,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 127;
                  start_column = 11;
                  end_line = 127;
@@ -7342,8 +7129,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 127;
                        start_column = 11;
                        end_line = 127;
@@ -7359,8 +7145,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                           filename = "./securite_sociale_D.catala_fr";
                            start_line = 60;
                            start_column = 5;
                            end_line = 60;
@@ -7407,8 +7192,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 127;
                        start_column = 11;
                        end_line = 127;
@@ -7424,8 +7208,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                           filename = "./securite_sociale_D.catala_fr";
                            start_line = 101;
                            start_column = 5;
                            end_line = 101;
@@ -7473,8 +7256,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 127;
                        start_column = 11;
                        end_line = 127;
@@ -7490,8 +7272,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                           filename = "./securite_sociale_D.catala_fr";
                            start_line = 138;
                            start_column = 5;
                            end_line = 138;
@@ -7538,8 +7319,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 127;
                        start_column = 11;
                        end_line = 127;
@@ -7555,8 +7335,7 @@ let allocations_familiales
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/allocations_familiales/epilogue.catala_fr";
+                           filename = "./epilogue.catala_fr";
                            start_line = 28;
                            start_column = 5;
                            end_line = 28;
@@ -7597,8 +7376,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 127;
                     start_column = 11;
                     end_line = 127;
@@ -7614,7 +7392,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 127;
                 start_column = 11;
                 end_line = 127;
@@ -7632,7 +7410,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 123;
              start_column = 11;
              end_line = 123;
@@ -7644,8 +7422,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 197;
                  start_column = 14;
                  end_line = 197;
@@ -7697,7 +7474,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 123;
                 start_column = 11;
                 end_line = 123;
@@ -7715,7 +7492,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 105;
              start_column = 11;
              end_line = 105;
@@ -7727,8 +7504,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 105;
                    start_column = 11;
                    end_line = 105;
@@ -7744,8 +7520,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 105;
                          start_column = 11;
                          end_line = 105;
@@ -7761,8 +7536,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                             filename = "./securite_sociale_D.catala_fr";
                              start_line = 353;
                              start_column = 5;
                              end_line = 354;
@@ -7787,8 +7561,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 105;
                          start_column = 11;
                          end_line = 105;
@@ -7804,8 +7577,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/decrets_divers.catala_fr";
+                             filename = "./decrets_divers.catala_fr";
                              start_line = 151;
                              start_column = 24;
                              end_line = 151;
@@ -7831,8 +7603,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 18;
                  start_column = 14;
                  end_line = 18;
@@ -7856,7 +7627,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 105;
                 start_column = 11;
                 end_line = 105;
@@ -7876,7 +7647,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 128;
                  start_column = 11;
                  end_line = 128;
@@ -7892,8 +7663,7 @@ let allocations_familiales
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename =
-                         "examples/allocations_familiales/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 128;
                        start_column = 11;
                        end_line = 128;
@@ -7909,8 +7679,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 128;
                              start_column = 11;
                              end_line = 128;
@@ -7926,8 +7695,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                                 filename = "./securite_sociale_D.catala_fr";
                                  start_line = 376;
                                  start_column = 5;
                                  end_line = 379;
@@ -7980,8 +7748,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/allocations_familiales/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 128;
                              start_column = 11;
                              end_line = 128;
@@ -7997,8 +7764,7 @@ let allocations_familiales
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                                 filename = "./securite_sociale_D.catala_fr";
                                  start_line = 385;
                                  start_column = 5;
                                  end_line = 388;
@@ -8054,8 +7820,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                     filename = "./securite_sociale_D.catala_fr";
                      start_line = 22;
                      start_column = 14;
                      end_line = 22;
@@ -8102,8 +7867,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 128;
                     start_column = 11;
                     end_line = 128;
@@ -8119,7 +7883,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 128;
                 start_column = 11;
                 end_line = 128;
@@ -8137,7 +7901,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 137;
              start_column = 11;
              end_line = 137;
@@ -8149,8 +7913,7 @@ let allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 137;
                    start_column = 11;
                    end_line = 137;
@@ -8166,8 +7929,7 @@ let allocations_familiales
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename =
-                           "examples/allocations_familiales/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 137;
                          start_column = 11;
                          end_line = 137;
@@ -8183,8 +7945,7 @@ let allocations_familiales
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/allocations_familiales/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 137;
                                start_column = 11;
                                end_line = 137;
@@ -8200,8 +7961,7 @@ let allocations_familiales
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                                   filename = "./securite_sociale_D.catala_fr";
                                    start_line = 275;
                                    start_column = 5;
                                    end_line = 277;
@@ -8234,8 +7994,7 @@ let allocations_familiales
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                             filename = "./securite_sociale_D.catala_fr";
                              start_line = 265;
                              start_column = 5;
                              end_line = 267;
@@ -8269,8 +8028,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 283;
                  start_column = 14;
                  end_line = 283;
@@ -8292,7 +8050,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 137;
                 start_column = 11;
                 end_line = 137;
@@ -8310,7 +8068,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 112;
              start_column = 11;
              end_line = 112;
@@ -8322,8 +8080,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 filename = "./securite_sociale_R.catala_fr";
                  start_line = 125;
                  start_column = 14;
                  end_line = 125;
@@ -8346,7 +8103,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 112;
                 start_column = 11;
                 end_line = 112;
@@ -8366,7 +8123,7 @@ let allocations_familiales
            try
              handle_default
                {
-                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 129;
                  start_column = 11;
                  end_line = 129;
@@ -8382,8 +8139,7 @@ let allocations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                     filename = "./securite_sociale_R.catala_fr";
                      start_line = 187;
                      start_column = 5;
                      end_line = 187;
@@ -8447,8 +8203,7 @@ let allocations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/allocations_familiales/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 129;
                     start_column = 11;
                     end_line = 129;
@@ -8464,7 +8219,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 129;
                 start_column = 11;
                 end_line = 129;
@@ -8482,7 +8237,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 113;
              start_column = 11;
              end_line = 113;
@@ -8494,7 +8249,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 37;
                  start_column = 14;
                  end_line = 37;
@@ -8509,7 +8264,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 113;
                 start_column = 11;
                 end_line = 113;
@@ -8527,7 +8282,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 130;
              start_column = 11;
              end_line = 130;
@@ -8539,7 +8294,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 39;
                  start_column = 14;
                  end_line = 39;
@@ -8584,7 +8339,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 130;
                 start_column = 11;
                 end_line = 130;
@@ -8605,7 +8360,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 134;
              start_column = 11;
              end_line = 134;
@@ -8617,8 +8372,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 187;
                  start_column = 14;
                  end_line = 187;
@@ -8640,7 +8394,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 134;
                 start_column = 11;
                 end_line = 134;
@@ -8661,7 +8415,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 136;
              start_column = 11;
              end_line = 136;
@@ -8673,8 +8427,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 filename = "./securite_sociale_D.catala_fr";
                  start_line = 181;
                  start_column = 14;
                  end_line = 181;
@@ -8714,7 +8467,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 136;
                 start_column = 11;
                 end_line = 136;
@@ -8732,7 +8485,7 @@ let allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 101;
              start_column = 10;
              end_line = 101;
@@ -8744,7 +8497,7 @@ let allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 45;
                  start_column = 14;
                  end_line = 45;
@@ -8763,7 +8516,7 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 101;
                 start_column = 10;
                 end_line = 101;
@@ -8784,8 +8537,7 @@ let allocations_familiales
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/allocations_familiales/securite_sociale_L.catala_fr";
+               filename = "./securite_sociale_L.catala_fr";
                start_line = 230;
                start_column = 5;
                end_line = 234;
@@ -8805,8 +8557,7 @@ let allocations_familiales
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/allocations_familiales/securite_sociale_L.catala_fr";
+             filename = "./securite_sociale_L.catala_fr";
              start_line = 230;
              start_column = 5;
              end_line = 234;
@@ -8865,7 +8616,7 @@ let interface_allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 76;
              start_column = 11;
              end_line = 76;
@@ -8876,7 +8627,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 117;
                  start_column = 14;
                  end_line = 117;
@@ -8927,7 +8678,7 @@ let interface_allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/epilogue.catala_fr";
+                filename = "./epilogue.catala_fr";
                 start_line = 76;
                 start_column = 11;
                 end_line = 76;
@@ -8946,7 +8697,7 @@ let interface_allocations_familiales
         embed_bool
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -8957,8 +8708,7 @@ let interface_allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/epilogue.catala_fr";
+                   filename = "./epilogue.catala_fr";
                    start_line = 77;
                    start_column = 3;
                    end_line = 77;
@@ -8969,8 +8719,7 @@ let interface_allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/epilogue.catala_fr";
+                       filename = "./epilogue.catala_fr";
                        start_line = 93;
                        start_column = 18;
                        end_line = 93;
@@ -8983,7 +8732,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 77;
                  start_column = 3;
                  end_line = 77;
@@ -8996,7 +8745,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 86;
              start_column = 10;
              end_line = 86;
@@ -9016,7 +8765,7 @@ let interface_allocations_familiales
         embed_bool
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -9027,8 +8776,7 @@ let interface_allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/epilogue.catala_fr";
+                   filename = "./epilogue.catala_fr";
                    start_line = 77;
                    start_column = 3;
                    end_line = 77;
@@ -9039,8 +8787,7 @@ let interface_allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/epilogue.catala_fr";
+                       filename = "./epilogue.catala_fr";
                        start_line = 97;
                        start_column = 18;
                        end_line = 97;
@@ -9053,7 +8800,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 77;
                  start_column = 3;
                  end_line = 77;
@@ -9066,7 +8813,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 87;
              start_column = 10;
              end_line = 87;
@@ -9085,7 +8832,7 @@ let interface_allocations_familiales
         embed_money
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -9096,7 +8843,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 88;
                  start_column = 14;
                  end_line = 88;
@@ -9109,7 +8856,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 88;
              start_column = 10;
              end_line = 88;
@@ -9125,7 +8872,7 @@ let interface_allocations_familiales
         embed_collectivite
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -9136,7 +8883,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 89;
                  start_column = 14;
                  end_line = 89;
@@ -9149,7 +8896,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 89;
              start_column = 10;
              end_line = 89;
@@ -9168,7 +8915,7 @@ let interface_allocations_familiales
         embed_date
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -9179,7 +8926,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 86;
                  start_column = 14;
                  end_line = 86;
@@ -9192,7 +8939,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 92;
              start_column = 10;
              end_line = 92;
@@ -9211,7 +8958,7 @@ let interface_allocations_familiales
         (embed_array embed_enfant)
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -9222,7 +8969,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 87;
                  start_column = 14;
                  end_line = 87;
@@ -9235,7 +8982,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 95;
              start_column = 10;
              end_line = 95;
@@ -9255,7 +9002,7 @@ let interface_allocations_familiales
         embed_bool
         (handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 77;
              start_column = 3;
              end_line = 77;
@@ -9266,8 +9013,7 @@ let interface_allocations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/allocations_familiales/epilogue.catala_fr";
+                   filename = "./epilogue.catala_fr";
                    start_line = 77;
                    start_column = 3;
                    end_line = 77;
@@ -9278,8 +9024,7 @@ let interface_allocations_familiales
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/allocations_familiales/epilogue.catala_fr";
+                       filename = "./epilogue.catala_fr";
                        start_line = 101;
                        start_column = 18;
                        end_line = 101;
@@ -9292,7 +9037,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 77;
                  start_column = 3;
                  end_line = 77;
@@ -9305,7 +9050,7 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "examples/allocations_familiales/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 116;
              start_column = 10;
              end_line = 116;
@@ -9358,7 +9103,7 @@ let interface_allocations_familiales
       (try
          handle_default
            {
-             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             filename = "./epilogue.catala_fr";
              start_line = 80;
              start_column = 10;
              end_line = 80;
@@ -9369,7 +9114,7 @@ let interface_allocations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 filename = "./epilogue.catala_fr";
                  start_line = 90;
                  start_column = 14;
                  end_line = 90;
@@ -9382,7 +9127,7 @@ let interface_allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "examples/allocations_familiales/epilogue.catala_fr";
+                filename = "./epilogue.catala_fr";
                 start_line = 80;
                 start_column = 10;
                 end_line = 80;

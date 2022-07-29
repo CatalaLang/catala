@@ -1,0 +1,6 @@
+(rule
+ (targets tests_allocations_familiales.ml)
+ (deps
+  (source_tree .))
+ (action
+  (run catala OCaml -t tests_allocations_familiales.catala_fr)))

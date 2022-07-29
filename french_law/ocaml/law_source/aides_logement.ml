@@ -2686,7 +2686,7 @@ let contributions_sociales_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 547;
              start_column = 11;
              end_line = 547;
@@ -2703,7 +2703,7 @@ let contributions_sociales_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 547;
                    start_column = 11;
                    end_line = 547;
@@ -2720,8 +2720,7 @@ let contributions_sociales_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 37;
                        start_column = 9;
                        end_line = 37;
@@ -2745,7 +2744,7 @@ let contributions_sociales_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 547;
                  start_column = 11;
                  end_line = 547;
@@ -2764,7 +2763,7 @@ let contributions_sociales_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 547;
                 start_column = 11;
                 end_line = 547;
@@ -2785,7 +2784,7 @@ let contributions_sociales_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 546;
              start_column = 11;
              end_line = 546;
@@ -2802,7 +2801,7 @@ let contributions_sociales_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/autres_sources.catala_fr";
+                 filename = "./autres_sources.catala_fr";
                  start_line = 138;
                  start_column = 39;
                  end_line = 138;
@@ -2822,7 +2821,7 @@ let contributions_sociales_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 546;
                 start_column = 11;
                 end_line = 546;
@@ -2845,7 +2844,7 @@ let contributions_sociales_aides_personnelle_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 549;
                  start_column = 10;
                  end_line = 549;
@@ -2862,8 +2861,7 @@ let contributions_sociales_aides_personnelle_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/autres_sources.catala_fr";
+                     filename = "./autres_sources.catala_fr";
                      start_line = 100;
                      start_column = 5;
                      end_line = 100;
@@ -2883,7 +2881,7 @@ let contributions_sociales_aides_personnelle_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 549;
                     start_column = 10;
                     end_line = 549;
@@ -2900,7 +2898,7 @@ let contributions_sociales_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 549;
                 start_column = 10;
                 end_line = 549;
@@ -2921,7 +2919,7 @@ let contributions_sociales_aides_personnelle_logement
         raise
           (NoValueProvided
              {
-               filename = "examples/aides_logement/autres_sources.catala_fr";
+               filename = "./autres_sources.catala_fr";
                start_line = 104;
                start_column = 13;
                end_line = 104;
@@ -2940,7 +2938,7 @@ let contributions_sociales_aides_personnelle_logement
       raise
         (AssertionFailed
            {
-             filename = "examples/aides_logement/autres_sources.catala_fr";
+             filename = "./autres_sources.catala_fr";
              start_line = 104;
              start_column = 13;
              end_line = 104;
@@ -2979,7 +2977,7 @@ let calcul_equivalence_loyer_minimale
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 620;
              start_column = 11;
              end_line = 620;
@@ -2996,8 +2994,7 @@ let calcul_equivalence_loyer_minimale
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2903;
                  start_column = 14;
                  end_line = 2903;
@@ -3019,7 +3016,7 @@ let calcul_equivalence_loyer_minimale
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 620;
                 start_column = 11;
                 end_line = 620;
@@ -3040,7 +3037,7 @@ let calcul_equivalence_loyer_minimale
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 617;
              start_column = 11;
              end_line = 617;
@@ -3057,7 +3054,7 @@ let calcul_equivalence_loyer_minimale
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 617;
                    start_column = 11;
                    end_line = 617;
@@ -3074,8 +3071,7 @@ let calcul_equivalence_loyer_minimale
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 2868;
                        start_column = 5;
                        end_line = 2868;
@@ -3127,8 +3123,7 @@ let calcul_equivalence_loyer_minimale
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2829;
                  start_column = 14;
                  end_line = 2829;
@@ -3185,7 +3180,7 @@ let calcul_equivalence_loyer_minimale
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 617;
                 start_column = 11;
                 end_line = 617;
@@ -3206,7 +3201,7 @@ let calcul_equivalence_loyer_minimale
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 618;
              start_column = 11;
              end_line = 618;
@@ -3223,8 +3218,7 @@ let calcul_equivalence_loyer_minimale
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4107;
                  start_column = 14;
                  end_line = 4107;
@@ -3266,7 +3260,7 @@ let calcul_equivalence_loyer_minimale
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 618;
                 start_column = 11;
                 end_line = 618;
@@ -3287,7 +3281,7 @@ let calcul_equivalence_loyer_minimale
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 622;
              start_column = 10;
              end_line = 622;
@@ -3304,7 +3298,7 @@ let calcul_equivalence_loyer_minimale
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 622;
                    start_column = 10;
                    end_line = 622;
@@ -3321,8 +3315,7 @@ let calcul_equivalence_loyer_minimale
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4158;
                        start_column = 5;
                        end_line = 4158;
@@ -3379,8 +3372,7 @@ let calcul_equivalence_loyer_minimale
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4120;
                  start_column = 14;
                  end_line = 4120;
@@ -3437,7 +3429,7 @@ let calcul_equivalence_loyer_minimale
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 622;
                 start_column = 10;
                 end_line = 622;
@@ -3475,7 +3467,7 @@ let calcul_nombre_part_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 629;
              start_column = 10;
              end_line = 629;
@@ -3492,7 +3484,7 @@ let calcul_nombre_part_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 629;
                    start_column = 10;
                    end_line = 629;
@@ -3509,8 +3501,7 @@ let calcul_nombre_part_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4072;
                        start_column = 5;
                        end_line = 4072;
@@ -3556,8 +3547,7 @@ let calcul_nombre_part_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3985;
                  start_column = 14;
                  end_line = 3985;
@@ -3601,7 +3591,7 @@ let calcul_nombre_part_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 629;
                 start_column = 10;
                 end_line = 629;
@@ -3639,7 +3629,7 @@ let calcul_nombre_parts_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 684;
              start_column = 10;
              end_line = 684;
@@ -3656,8 +3646,7 @@ let calcul_nombre_parts_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3331;
                  start_column = 14;
                  end_line = 3331;
@@ -3698,7 +3687,7 @@ let calcul_nombre_parts_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 684;
                 start_column = 10;
                 end_line = 684;
@@ -3731,7 +3720,7 @@ let ouverture_droits_retraite
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1033;
              start_column = 10;
              end_line = 1033;
@@ -3747,7 +3736,7 @@ let ouverture_droits_retraite
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1033;
                    start_column = 10;
                    end_line = 1033;
@@ -3763,8 +3752,7 @@ let ouverture_droits_retraite
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 119;
                        start_column = 5;
                        end_line = 119;
@@ -3792,7 +3780,7 @@ let ouverture_droits_retraite
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1033;
                    start_column = 10;
                    end_line = 1033;
@@ -3808,8 +3796,7 @@ let ouverture_droits_retraite
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 256;
                        start_column = 5;
                        end_line = 256;
@@ -3836,7 +3823,7 @@ let ouverture_droits_retraite
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1033;
                    start_column = 10;
                    end_line = 1033;
@@ -3852,8 +3839,7 @@ let ouverture_droits_retraite
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 266;
                        start_column = 5;
                        end_line = 267;
@@ -3882,7 +3868,7 @@ let ouverture_droits_retraite
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1033;
                    start_column = 10;
                    end_line = 1033;
@@ -3898,8 +3884,7 @@ let ouverture_droits_retraite
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 276;
                        start_column = 5;
                        end_line = 276;
@@ -3928,7 +3913,7 @@ let ouverture_droits_retraite
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1033;
                    start_column = 10;
                    end_line = 1033;
@@ -3944,8 +3929,7 @@ let ouverture_droits_retraite
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 285;
                        start_column = 5;
                        end_line = 285;
@@ -3974,7 +3958,7 @@ let ouverture_droits_retraite
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1033;
                    start_column = 10;
                    end_line = 1033;
@@ -3990,8 +3974,7 @@ let ouverture_droits_retraite
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 294;
                        start_column = 5;
                        end_line = 294;
@@ -4024,7 +4007,7 @@ let ouverture_droits_retraite
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1033;
                 start_column = 10;
                 end_line = 1033;
@@ -4067,7 +4050,7 @@ let impaye_depense_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1049;
              start_column = 11;
              end_line = 1049;
@@ -4083,8 +4066,7 @@ let impaye_depense_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 2410;
                  start_column = 14;
                  end_line = 2410;
@@ -4118,7 +4100,7 @@ let impaye_depense_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1049;
                 start_column = 11;
                 end_line = 1049;
@@ -4138,7 +4120,7 @@ let impaye_depense_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1050;
              start_column = 11;
              end_line = 1050;
@@ -4154,7 +4136,7 @@ let impaye_depense_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1050;
                    start_column = 11;
                    end_line = 1050;
@@ -4170,7 +4152,7 @@ let impaye_depense_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 1050;
                          start_column = 11;
                          end_line = 1050;
@@ -4187,7 +4169,7 @@ let impaye_depense_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                               "./code_construction_reglementaire.catala_fr";
                              start_line = 2378;
                              start_column = 14;
                              end_line = 2378;
@@ -4213,8 +4195,7 @@ let impaye_depense_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2282;
                        start_column = 14;
                        end_line = 2282;
@@ -4242,7 +4223,7 @@ let impaye_depense_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1050;
                 start_column = 11;
                 end_line = 1050;
@@ -4262,7 +4243,7 @@ let impaye_depense_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1051;
              start_column = 11;
              end_line = 1051;
@@ -4278,7 +4259,7 @@ let impaye_depense_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1051;
                    start_column = 11;
                    end_line = 1051;
@@ -4294,8 +4275,7 @@ let impaye_depense_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2291;
                        start_column = 14;
                        end_line = 2291;
@@ -4326,7 +4306,7 @@ let impaye_depense_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1051;
                    start_column = 11;
                    end_line = 1051;
@@ -4342,8 +4322,7 @@ let impaye_depense_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2387;
                        start_column = 14;
                        end_line = 2387;
@@ -4380,7 +4359,7 @@ let impaye_depense_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1051;
                 start_column = 11;
                 end_line = 1051;
@@ -4400,7 +4379,7 @@ let impaye_depense_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1048;
              start_column = 11;
              end_line = 1048;
@@ -4416,7 +4395,7 @@ let impaye_depense_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1048;
                    start_column = 11;
                    end_line = 1048;
@@ -4432,7 +4411,7 @@ let impaye_depense_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 1048;
                          start_column = 11;
                          end_line = 1048;
@@ -4449,7 +4428,7 @@ let impaye_depense_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                               "./code_construction_reglementaire.catala_fr";
                              start_line = 2268;
                              start_column = 20;
                              end_line = 2268;
@@ -4488,8 +4467,7 @@ let impaye_depense_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2252;
                        start_column = 20;
                        end_line = 2252;
@@ -4524,7 +4502,7 @@ let impaye_depense_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1048;
                    start_column = 11;
                    end_line = 1048;
@@ -4540,7 +4518,7 @@ let impaye_depense_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 1048;
                          start_column = 11;
                          end_line = 1048;
@@ -4557,7 +4535,7 @@ let impaye_depense_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                               "./code_construction_reglementaire.catala_fr";
                              start_line = 2362;
                              start_column = 7;
                              end_line = 2362;
@@ -4596,8 +4574,7 @@ let impaye_depense_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2334;
                        start_column = 7;
                        end_line = 2334;
@@ -4638,7 +4615,7 @@ let impaye_depense_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1048;
                 start_column = 11;
                 end_line = 1048;
@@ -4658,7 +4635,7 @@ let impaye_depense_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1053;
              start_column = 10;
              end_line = 1053;
@@ -4674,7 +4651,7 @@ let impaye_depense_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1053;
                    start_column = 10;
                    end_line = 1053;
@@ -4690,7 +4667,7 @@ let impaye_depense_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 1053;
                          start_column = 10;
                          end_line = 1053;
@@ -4707,7 +4684,7 @@ let impaye_depense_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                               "./code_construction_reglementaire.catala_fr";
                              start_line = 2310;
                              start_column = 14;
                              end_line = 2310;
@@ -4736,8 +4713,7 @@ let impaye_depense_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2247;
                        start_column = 14;
                        end_line = 2247;
@@ -4768,7 +4744,7 @@ let impaye_depense_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1053;
                 start_column = 10;
                 end_line = 1053;
@@ -4799,7 +4775,7 @@ let base_mensuelle_allocations_familiales
          handle_default
            {
              filename =
-               "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+               "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
              start_line = 6;
              start_column = 10;
              end_line = 6;
@@ -4812,7 +4788,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -4825,7 +4801,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 28;
                        start_column = 5;
                        end_line = 29;
@@ -4847,7 +4823,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -4860,7 +4836,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 48;
                        start_column = 5;
                        end_line = 49;
@@ -4884,7 +4860,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -4897,7 +4873,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 64;
                        start_column = 5;
                        end_line = 65;
@@ -4921,7 +4897,7 @@ let base_mensuelle_allocations_familiales
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                     "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                    start_line = 6;
                    start_column = 10;
                    end_line = 6;
@@ -4934,7 +4910,7 @@ let base_mensuelle_allocations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                         "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                        start_line = 82;
                        start_column = 5;
                        end_line = 83;
@@ -4962,7 +4938,7 @@ let base_mensuelle_allocations_familiales
            (NoValueProvided
               {
                 filename =
-                  "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                  "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                 start_line = 6;
                 start_column = 10;
                 end_line = 6;
@@ -4981,8 +4957,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
       (try
          handle_default
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+             filename = "./../prestations_familiales/../smic/smic.catala_fr";
              start_line = 11;
              start_column = 10;
              end_line = 11;
@@ -4995,7 +4970,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5008,7 +4983,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 29;
                        start_column = 5;
                        end_line = 38;
@@ -5036,7 +5011,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5049,7 +5024,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 47;
                        start_column = 5;
                        end_line = 49;
@@ -5070,7 +5045,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5083,7 +5058,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 68;
                        start_column = 5;
                        end_line = 77;
@@ -5111,7 +5086,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5124,7 +5099,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 86;
                        start_column = 5;
                        end_line = 88;
@@ -5145,7 +5120,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5158,7 +5133,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 107;
                        start_column = 5;
                        end_line = 116;
@@ -5186,7 +5161,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5199,7 +5174,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 125;
                        start_column = 5;
                        end_line = 127;
@@ -5220,7 +5195,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5233,7 +5208,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 146;
                        start_column = 5;
                        end_line = 155;
@@ -5261,7 +5236,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5274,7 +5249,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 165;
                        start_column = 5;
                        end_line = 167;
@@ -5295,7 +5270,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5308,7 +5283,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 186;
                        start_column = 5;
                        end_line = 195;
@@ -5336,7 +5311,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                handle_default
                  {
                    filename =
-                     "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                     "./../prestations_familiales/../smic/smic.catala_fr";
                    start_line = 11;
                    start_column = 10;
                    end_line = 11;
@@ -5349,7 +5324,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                         "./../prestations_familiales/../smic/smic.catala_fr";
                        start_line = 204;
                        start_column = 5;
                        end_line = 206;
@@ -5373,8 +5348,7 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                filename = "./../prestations_familiales/../smic/smic.catala_fr";
                 start_line = 11;
                 start_column = 10;
                 end_line = 11;
@@ -5447,7 +5421,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 579;
              start_column = 11;
              end_line = 579;
@@ -5464,8 +5438,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1975;
                  start_column = 14;
                  end_line = 1975;
@@ -5489,7 +5462,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 579;
                 start_column = 11;
                 end_line = 579;
@@ -5510,7 +5483,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 582;
              start_column = 11;
              end_line = 582;
@@ -5527,8 +5500,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 268;
                  start_column = 14;
                  end_line = 268;
@@ -5548,7 +5520,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 582;
                 start_column = 11;
                 end_line = 582;
@@ -5572,7 +5544,7 @@ let calcul_aide_personnalisee_logement_locatif
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 593;
              start_column = 3;
              end_line = 593;
@@ -5589,7 +5561,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 606;
                  start_column = 14;
                  end_line = 606;
@@ -5608,7 +5580,7 @@ let calcul_aide_personnalisee_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 544;
              start_column = 10;
              end_line = 544;
@@ -5651,7 +5623,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 590;
              start_column = 10;
              end_line = 590;
@@ -5668,7 +5640,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 590;
                    start_column = 10;
                    end_line = 590;
@@ -5685,7 +5657,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 590;
                          start_column = 10;
                          end_line = 590;
@@ -5703,8 +5675,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 222;
                              start_column = 14;
                              end_line = 222;
@@ -5758,8 +5729,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 357;
                        start_column = 14;
                        end_line = 357;
@@ -5807,7 +5777,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 590;
                 start_column = 10;
                 end_line = 590;
@@ -5831,7 +5801,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 584;
              start_column = 11;
              end_line = 584;
@@ -5848,7 +5818,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 584;
                    start_column = 11;
                    end_line = 584;
@@ -5865,8 +5835,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 474;
                        start_column = 14;
                        end_line = 474;
@@ -5910,7 +5879,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 584;
                    start_column = 11;
                    end_line = 584;
@@ -5927,7 +5896,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/archives.catala_fr";
+                       filename = "./archives.catala_fr";
                        start_line = 576;
                        start_column = 14;
                        end_line = 576;
@@ -5977,7 +5946,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 584;
                 start_column = 11;
                 end_line = 584;
@@ -5998,7 +5967,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 578;
              start_column = 11;
              end_line = 578;
@@ -6015,7 +5984,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 578;
                    start_column = 11;
                    end_line = 578;
@@ -6032,8 +6001,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 440;
                        start_column = 14;
                        end_line = 440;
@@ -6065,7 +6033,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 578;
                    start_column = 11;
                    end_line = 578;
@@ -6082,7 +6050,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/archives.catala_fr";
+                       filename = "./archives.catala_fr";
                        start_line = 305;
                        start_column = 14;
                        end_line = 305;
@@ -6120,7 +6088,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 578;
                 start_column = 11;
                 end_line = 578;
@@ -6141,7 +6109,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 583;
              start_column = 11;
              end_line = 583;
@@ -6158,8 +6126,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 280;
                  start_column = 14;
                  end_line = 280;
@@ -6186,7 +6153,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 583;
                 start_column = 11;
                 end_line = 583;
@@ -6207,7 +6174,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 588;
              start_column = 10;
              end_line = 588;
@@ -6224,7 +6191,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 588;
                    start_column = 10;
                    end_line = 588;
@@ -6241,7 +6208,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6259,8 +6226,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                             filename = "./arrete_2019-09-27.catala_fr";
                              start_line = 534;
                              start_column = 5;
                              end_line = 535;
@@ -6294,7 +6260,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6312,8 +6278,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                             filename = "./arrete_2019-09-27.catala_fr";
                              start_line = 543;
                              start_column = 5;
                              end_line = 544;
@@ -6347,7 +6312,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6365,8 +6330,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                             filename = "./arrete_2019-09-27.catala_fr";
                              start_line = 552;
                              start_column = 5;
                              end_line = 552;
@@ -6408,7 +6372,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6426,8 +6390,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 350;
                              start_column = 5;
                              end_line = 351;
@@ -6463,7 +6426,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6481,8 +6444,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 359;
                              start_column = 5;
                              end_line = 360;
@@ -6518,7 +6480,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6536,8 +6498,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 368;
                              start_column = 5;
                              end_line = 368;
@@ -6584,7 +6545,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 588;
                    start_column = 10;
                    end_line = 588;
@@ -6601,7 +6562,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 588;
                          start_column = 10;
                          end_line = 588;
@@ -6619,8 +6580,7 @@ let calcul_aide_personnalisee_logement_locatif
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 588;
                                start_column = 10;
                                end_line = 588;
@@ -6638,8 +6598,7 @@ let calcul_aide_personnalisee_logement_locatif
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                                   filename = "./arrete_2019-09-27.catala_fr";
                                    start_line = 189;
                                    start_column = 5;
                                    end_line = 189;
@@ -6671,8 +6630,7 @@ let calcul_aide_personnalisee_logement_locatif
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 588;
                                start_column = 10;
                                end_line = 588;
@@ -6690,8 +6648,7 @@ let calcul_aide_personnalisee_logement_locatif
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
-                                   filename =
-                                     "examples/aides_logement/archives.catala_fr";
+                                   filename = "./archives.catala_fr";
                                    start_line = 128;
                                    start_column = 5;
                                    end_line = 128;
@@ -6730,7 +6687,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -6748,8 +6705,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/aides_logement/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 588;
                              start_column = 10;
                              end_line = 588;
@@ -6767,8 +6723,7 @@ let calcul_aide_personnalisee_logement_locatif
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                                 filename = "./arrete_2019-09-27.catala_fr";
                                  start_line = 182;
                                  start_column = 14;
                                  end_line = 182;
@@ -6797,8 +6752,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/aides_logement/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 588;
                              start_column = 10;
                              end_line = 588;
@@ -6816,8 +6770,7 @@ let calcul_aide_personnalisee_logement_locatif
                            (fun (_ : _) ->
                              log_decision_taken
                                {
-                                 filename =
-                                   "examples/aides_logement/archives.catala_fr";
+                                 filename = "./archives.catala_fr";
                                  start_line = 121;
                                  start_column = 14;
                                  end_line = 121;
@@ -6852,7 +6805,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 588;
                  start_column = 10;
                  end_line = 588;
@@ -6869,7 +6822,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -6887,8 +6840,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 97;
                            start_column = 5;
                            end_line = 98;
@@ -6920,7 +6872,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -6938,8 +6890,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 107;
                            start_column = 5;
                            end_line = 108;
@@ -6971,7 +6922,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -6989,8 +6940,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 117;
                            start_column = 5;
                            end_line = 117;
@@ -7031,7 +6981,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -7049,8 +6999,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/archives.catala_fr";
+                           filename = "./archives.catala_fr";
                            start_line = 37;
                            start_column = 5;
                            end_line = 38;
@@ -7084,7 +7033,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -7102,8 +7051,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/archives.catala_fr";
+                           filename = "./archives.catala_fr";
                            start_line = 47;
                            start_column = 5;
                            end_line = 48;
@@ -7137,7 +7085,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 588;
                        start_column = 10;
                        end_line = 588;
@@ -7155,8 +7103,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/archives.catala_fr";
+                           filename = "./archives.catala_fr";
                            start_line = 57;
                            start_column = 5;
                            end_line = 57;
@@ -7203,7 +7150,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 588;
                 start_column = 10;
                 end_line = 588;
@@ -7227,7 +7174,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 587;
              start_column = 10;
              end_line = 587;
@@ -7244,7 +7191,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 587;
                    start_column = 10;
                    end_line = 587;
@@ -7261,7 +7208,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 587;
                          start_column = 10;
                          end_line = 587;
@@ -7279,8 +7226,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                             filename = "./arrete_2019-09-27.catala_fr";
                              start_line = 577;
                              start_column = 29;
                              end_line = 577;
@@ -7308,7 +7254,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 587;
                          start_column = 10;
                          end_line = 587;
@@ -7326,8 +7272,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 394;
                              start_column = 29;
                              end_line = 394;
@@ -7362,7 +7307,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 587;
                  start_column = 10;
                  end_line = 587;
@@ -7379,7 +7324,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 587;
                        start_column = 10;
                        end_line = 587;
@@ -7397,8 +7342,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 224;
                            start_column = 29;
                            end_line = 224;
@@ -7421,7 +7365,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 587;
                        start_column = 10;
                        end_line = 587;
@@ -7439,8 +7383,7 @@ let calcul_aide_personnalisee_logement_locatif
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/archives.catala_fr";
+                           filename = "./archives.catala_fr";
                            start_line = 163;
                            start_column = 29;
                            end_line = 163;
@@ -7469,7 +7412,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 587;
                 start_column = 10;
                 end_line = 587;
@@ -7490,7 +7433,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 581;
              start_column = 11;
              end_line = 581;
@@ -7507,8 +7450,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 253;
                  start_column = 14;
                  end_line = 253;
@@ -7535,7 +7477,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 581;
                 start_column = 11;
                 end_line = 581;
@@ -7556,7 +7498,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 580;
              start_column = 11;
              end_line = 580;
@@ -7573,8 +7515,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 247;
                  start_column = 14;
                  end_line = 247;
@@ -7601,7 +7542,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 580;
                 start_column = 11;
                 end_line = 580;
@@ -7622,7 +7563,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 573;
              start_column = 11;
              end_line = 573;
@@ -7639,8 +7580,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1880;
                  start_column = 14;
                  end_line = 1880;
@@ -7667,7 +7607,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 573;
                 start_column = 11;
                 end_line = 573;
@@ -7693,7 +7633,7 @@ let calcul_aide_personnalisee_logement_locatif
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 599;
                  start_column = 10;
                  end_line = 599;
@@ -7710,7 +7650,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 599;
                        start_column = 10;
                        end_line = 599;
@@ -7729,7 +7669,7 @@ let calcul_aide_personnalisee_logement_locatif
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 1926;
                            start_column = 5;
                            end_line = 1926;
@@ -7756,8 +7696,7 @@ let calcul_aide_personnalisee_logement_locatif
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 1914;
                      start_column = 14;
                      end_line = 1914;
@@ -7792,7 +7731,7 @@ let calcul_aide_personnalisee_logement_locatif
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 599;
                     start_column = 10;
                     end_line = 599;
@@ -7809,7 +7748,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 599;
                 start_column = 10;
                 end_line = 599;
@@ -7830,7 +7769,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 589;
              start_column = 10;
              end_line = 589;
@@ -7847,7 +7786,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 589;
                    start_column = 10;
                    end_line = 589;
@@ -7864,8 +7803,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 296;
                        start_column = 14;
                        end_line = 296;
@@ -7893,7 +7831,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 589;
                    start_column = 10;
                    end_line = 589;
@@ -7910,7 +7848,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/archives.catala_fr";
+                       filename = "./archives.catala_fr";
                        start_line = 177;
                        start_column = 14;
                        end_line = 177;
@@ -7944,7 +7882,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 589;
                 start_column = 10;
                 end_line = 589;
@@ -7965,7 +7903,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 577;
              start_column = 11;
              end_line = 577;
@@ -7982,7 +7920,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 577;
                    start_column = 11;
                    end_line = 577;
@@ -7999,7 +7937,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 577;
                          start_column = 11;
                          end_line = 577;
@@ -8017,8 +7955,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 256;
                              start_column = 14;
                              end_line = 256;
@@ -8045,8 +7982,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 390;
                        start_column = 14;
                        end_line = 390;
@@ -8074,7 +8010,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 577;
                 start_column = 11;
                 end_line = 577;
@@ -8100,7 +8036,7 @@ let calcul_aide_personnalisee_logement_locatif
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 600;
                  start_column = 10;
                  end_line = 600;
@@ -8117,8 +8053,7 @@ let calcul_aide_personnalisee_logement_locatif
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 1936;
                      start_column = 14;
                      end_line = 1936;
@@ -8200,7 +8135,7 @@ let calcul_aide_personnalisee_logement_locatif
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 600;
                     start_column = 10;
                     end_line = 600;
@@ -8217,7 +8152,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 600;
                 start_column = 10;
                 end_line = 600;
@@ -8238,7 +8173,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 575;
              start_column = 10;
              end_line = 575;
@@ -8255,7 +8190,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 575;
                    start_column = 10;
                    end_line = 575;
@@ -8272,7 +8207,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 575;
                          start_column = 10;
                          end_line = 575;
@@ -8290,8 +8225,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 280;
                              start_column = 14;
                              end_line = 280;
@@ -8328,8 +8262,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 416;
                        start_column = 14;
                        end_line = 416;
@@ -8366,7 +8299,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 575;
                 start_column = 10;
                 end_line = 575;
@@ -8392,7 +8325,7 @@ let calcul_aide_personnalisee_logement_locatif
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 601;
                  start_column = 10;
                  end_line = 601;
@@ -8409,8 +8342,7 @@ let calcul_aide_personnalisee_logement_locatif
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 1951;
                      start_column = 14;
                      end_line = 1951;
@@ -8694,7 +8626,7 @@ let calcul_aide_personnalisee_logement_locatif
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 601;
                     start_column = 10;
                     end_line = 601;
@@ -8711,7 +8643,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 601;
                 start_column = 10;
                 end_line = 601;
@@ -8732,7 +8664,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 576;
              start_column = 10;
              end_line = 576;
@@ -8749,7 +8681,7 @@ let calcul_aide_personnalisee_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 576;
                    start_column = 10;
                    end_line = 576;
@@ -8766,7 +8698,7 @@ let calcul_aide_personnalisee_logement_locatif
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 576;
                          start_column = 10;
                          end_line = 576;
@@ -8784,8 +8716,7 @@ let calcul_aide_personnalisee_logement_locatif
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 287;
                              start_column = 14;
                              end_line = 287;
@@ -8812,8 +8743,7 @@ let calcul_aide_personnalisee_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 423;
                        start_column = 14;
                        end_line = 423;
@@ -8841,7 +8771,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 576;
                 start_column = 10;
                 end_line = 576;
@@ -8867,7 +8797,7 @@ let calcul_aide_personnalisee_logement_locatif
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 602;
                  start_column = 10;
                  end_line = 602;
@@ -8884,8 +8814,7 @@ let calcul_aide_personnalisee_logement_locatif
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_legislatif.catala_fr";
+                     filename = "./code_construction_legislatif.catala_fr";
                      start_line = 823;
                      start_column = 14;
                      end_line = 823;
@@ -8962,7 +8891,7 @@ let calcul_aide_personnalisee_logement_locatif
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 602;
                     start_column = 10;
                     end_line = 602;
@@ -8979,7 +8908,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 602;
                 start_column = 10;
                 end_line = 602;
@@ -9000,7 +8929,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 585;
              start_column = 11;
              end_line = 585;
@@ -9017,8 +8946,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 2032;
                  start_column = 14;
                  end_line = 2032;
@@ -9043,7 +8971,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 585;
                 start_column = 11;
                 end_line = 585;
@@ -9069,7 +8997,7 @@ let calcul_aide_personnalisee_logement_locatif
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 603;
                  start_column = 10;
                  end_line = 603;
@@ -9086,8 +9014,7 @@ let calcul_aide_personnalisee_logement_locatif
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 1984;
                      start_column = 14;
                      end_line = 1984;
@@ -9167,7 +9094,7 @@ let calcul_aide_personnalisee_logement_locatif
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 603;
                     start_column = 10;
                     end_line = 603;
@@ -9184,7 +9111,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 603;
                 start_column = 10;
                 end_line = 603;
@@ -9205,7 +9132,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 591;
              start_column = 10;
              end_line = 591;
@@ -9222,8 +9149,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 2003;
                  start_column = 14;
                  end_line = 2003;
@@ -9250,7 +9176,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 591;
                 start_column = 10;
                 end_line = 591;
@@ -9271,7 +9197,7 @@ let calcul_aide_personnalisee_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 596;
              start_column = 10;
              end_line = 596;
@@ -9288,8 +9214,7 @@ let calcul_aide_personnalisee_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1862;
                  start_column = 14;
                  end_line = 1862;
@@ -9321,7 +9246,7 @@ let calcul_aide_personnalisee_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 596;
                 start_column = 10;
                 end_line = 596;
@@ -9344,8 +9269,7 @@ let calcul_aide_personnalisee_logement_locatif
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1929;
                start_column = 13;
                end_line = 1929;
@@ -9368,8 +9292,7 @@ let calcul_aide_personnalisee_logement_locatif
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1929;
              start_column = 13;
              end_line = 1929;
@@ -9397,8 +9320,7 @@ let calcul_aide_personnalisee_logement_locatif
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_legislatif.catala_fr";
+               filename = "./code_construction_legislatif.catala_fr";
                start_line = 833;
                start_column = 13;
                end_line = 833;
@@ -9418,8 +9340,7 @@ let calcul_aide_personnalisee_logement_locatif
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_legislatif.catala_fr";
+             filename = "./code_construction_legislatif.catala_fr";
              start_line = 833;
              start_column = 13;
              end_line = 833;
@@ -9501,7 +9422,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 643;
              start_column = 10;
              end_line = 643;
@@ -9518,8 +9439,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2796;
                  start_column = 14;
                  end_line = 2796;
@@ -9539,7 +9459,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 643;
                 start_column = 10;
                 end_line = 643;
@@ -9560,7 +9480,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 650;
              start_column = 11;
              end_line = 650;
@@ -9577,8 +9497,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2771;
                  start_column = 14;
                  end_line = 2771;
@@ -9598,7 +9517,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 650;
                 start_column = 11;
                 end_line = 650;
@@ -9619,7 +9538,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 652;
              start_column = 11;
              end_line = 652;
@@ -9636,8 +9555,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2782;
                  start_column = 14;
                  end_line = 2782;
@@ -9657,7 +9575,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 652;
                 start_column = 11;
                 end_line = 652;
@@ -9678,7 +9596,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 640;
              start_column = 12;
              end_line = 640;
@@ -9696,7 +9614,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 640;
                  start_column = 12;
                  end_line = 640;
@@ -9713,8 +9631,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3921;
                      start_column = 14;
                      end_line = 3921;
@@ -9760,7 +9677,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 640;
                 start_column = 12;
                 end_line = 640;
@@ -9784,7 +9701,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 658;
              start_column = 3;
              end_line = 658;
@@ -9801,7 +9718,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 674;
                  start_column = 14;
                  end_line = 674;
@@ -9820,7 +9737,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 544;
              start_column = 10;
              end_line = 544;
@@ -9866,7 +9783,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 646;
              start_column = 10;
              end_line = 646;
@@ -9883,7 +9800,7 @@ let calcul_aide_personnalisee_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 646;
                    start_column = 10;
                    end_line = 646;
@@ -9900,8 +9817,7 @@ let calcul_aide_personnalisee_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 2717;
                        start_column = 14;
                        end_line = 2717;
@@ -9979,7 +9895,7 @@ let calcul_aide_personnalisee_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 646;
                    start_column = 10;
                    end_line = 646;
@@ -9996,7 +9912,7 @@ let calcul_aide_personnalisee_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/archives.catala_fr";
+                       filename = "./archives.catala_fr";
                        start_line = 501;
                        start_column = 14;
                        end_line = 501;
@@ -10080,7 +9996,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 646;
                 start_column = 10;
                 end_line = 646;
@@ -10106,7 +10022,7 @@ let calcul_aide_personnalisee_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 668;
                  start_column = 10;
                  end_line = 668;
@@ -10123,8 +10039,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3848;
                      start_column = 14;
                      end_line = 3848;
@@ -10155,7 +10070,7 @@ let calcul_aide_personnalisee_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 668;
                     start_column = 10;
                     end_line = 668;
@@ -10172,7 +10087,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 668;
                 start_column = 10;
                 end_line = 668;
@@ -10196,7 +10111,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 655;
              start_column = 3;
              end_line = 655;
@@ -10213,8 +10128,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4008;
                  start_column = 14;
                  end_line = 4008;
@@ -10240,7 +10154,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 625;
              start_column = 10;
              end_line = 625;
@@ -10264,7 +10178,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 655;
              start_column = 3;
              end_line = 655;
@@ -10281,8 +10195,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4004;
                  start_column = 14;
                  end_line = 4004;
@@ -10308,7 +10221,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 626;
              start_column = 10;
              end_line = 626;
@@ -10333,7 +10246,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 655;
              start_column = 3;
              end_line = 655;
@@ -10350,8 +10263,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4006;
                  start_column = 14;
                  end_line = 4006;
@@ -10377,7 +10289,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 627;
              start_column = 10;
              end_line = 627;
@@ -10424,7 +10336,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 651;
              start_column = 11;
              end_line = 651;
@@ -10441,8 +10353,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2915;
                  start_column = 14;
                  end_line = 2915;
@@ -10464,7 +10375,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 651;
                 start_column = 11;
                 end_line = 651;
@@ -10488,7 +10399,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 642;
              start_column = 10;
              end_line = 642;
@@ -10505,8 +10416,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2806;
                  start_column = 14;
                  end_line = 2806;
@@ -10528,7 +10438,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 642;
                 start_column = 10;
                 end_line = 642;
@@ -10549,7 +10459,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 645;
              start_column = 10;
              end_line = 645;
@@ -10566,8 +10476,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3822;
                  start_column = 14;
                  end_line = 3822;
@@ -10596,7 +10505,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 645;
                 start_column = 10;
                 end_line = 645;
@@ -10617,7 +10526,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 644;
              start_column = 19;
              end_line = 644;
@@ -10635,7 +10544,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 644;
                  start_column = 19;
                  end_line = 644;
@@ -10652,8 +10561,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4010;
                      start_column = 14;
                      end_line = 4010;
@@ -10679,7 +10587,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 644;
                 start_column = 19;
                 end_line = 644;
@@ -10702,7 +10610,7 @@ let calcul_aide_personnalisee_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 649;
                  start_column = 11;
                  end_line = 649;
@@ -10719,8 +10627,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4206;
                      start_column = 14;
                      end_line = 4206;
@@ -10746,7 +10653,7 @@ let calcul_aide_personnalisee_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 649;
                     start_column = 11;
                     end_line = 649;
@@ -10763,7 +10670,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 649;
                 start_column = 11;
                 end_line = 649;
@@ -10788,7 +10695,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 656;
              start_column = 3;
              end_line = 656;
@@ -10805,8 +10712,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3838;
                  start_column = 14;
                  end_line = 3838;
@@ -10832,7 +10738,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 613;
              start_column = 10;
              end_line = 613;
@@ -10856,7 +10762,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 656;
              start_column = 3;
              end_line = 656;
@@ -10873,8 +10779,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3836;
                  start_column = 14;
                  end_line = 3836;
@@ -10900,7 +10805,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 614;
              start_column = 10;
              end_line = 614;
@@ -10924,7 +10829,7 @@ let calcul_aide_personnalisee_logement_foyer
         embed_decimal
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 656;
              start_column = 3;
              end_line = 656;
@@ -10941,8 +10846,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3840;
                  start_column = 14;
                  end_line = 3840;
@@ -10968,7 +10872,7 @@ let calcul_aide_personnalisee_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 615;
              start_column = 10;
              end_line = 615;
@@ -11018,7 +10922,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 662;
              start_column = 10;
              end_line = 662;
@@ -11035,7 +10939,7 @@ let calcul_aide_personnalisee_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 662;
                    start_column = 10;
                    end_line = 662;
@@ -11052,8 +10956,7 @@ let calcul_aide_personnalisee_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4022;
                        start_column = 5;
                        end_line = 4022;
@@ -11083,8 +10986,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3939;
                  start_column = 14;
                  end_line = 3939;
@@ -11115,7 +11017,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 662;
                 start_column = 10;
                 end_line = 662;
@@ -11141,7 +11043,7 @@ let calcul_aide_personnalisee_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 647;
                  start_column = 11;
                  end_line = 647;
@@ -11158,8 +11060,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4210;
                      start_column = 14;
                      end_line = 4210;
@@ -11240,7 +11141,7 @@ let calcul_aide_personnalisee_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 647;
                     start_column = 11;
                     end_line = 647;
@@ -11257,7 +11158,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 647;
                 start_column = 11;
                 end_line = 647;
@@ -11278,7 +11179,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 653;
              start_column = 10;
              end_line = 653;
@@ -11295,8 +11196,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3834;
                  start_column = 14;
                  end_line = 3834;
@@ -11322,7 +11222,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 653;
                 start_column = 10;
                 end_line = 653;
@@ -11346,7 +11246,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 663;
              start_column = 10;
              end_line = 663;
@@ -11363,7 +11263,7 @@ let calcul_aide_personnalisee_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 663;
                    start_column = 10;
                    end_line = 663;
@@ -11380,8 +11280,7 @@ let calcul_aide_personnalisee_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4039;
                        start_column = 5;
                        end_line = 4039;
@@ -11412,8 +11311,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3955;
                  start_column = 14;
                  end_line = 3955;
@@ -11444,7 +11342,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 663;
                 start_column = 10;
                 end_line = 663;
@@ -11470,7 +11368,7 @@ let calcul_aide_personnalisee_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 669;
                  start_column = 10;
                  end_line = 669;
@@ -11487,8 +11385,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3862;
                      start_column = 14;
                      end_line = 3862;
@@ -11668,7 +11565,7 @@ let calcul_aide_personnalisee_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 669;
                     start_column = 10;
                     end_line = 669;
@@ -11685,7 +11582,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 669;
                 start_column = 10;
                 end_line = 669;
@@ -11709,7 +11606,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 664;
              start_column = 10;
              end_line = 664;
@@ -11726,7 +11623,7 @@ let calcul_aide_personnalisee_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 664;
                    start_column = 10;
                    end_line = 664;
@@ -11743,8 +11640,7 @@ let calcul_aide_personnalisee_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4045;
                        start_column = 5;
                        end_line = 4045;
@@ -11775,8 +11671,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3958;
                  start_column = 14;
                  end_line = 3958;
@@ -11807,7 +11702,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 664;
                 start_column = 10;
                 end_line = 664;
@@ -11833,7 +11728,7 @@ let calcul_aide_personnalisee_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 670;
                  start_column = 10;
                  end_line = 670;
@@ -11850,8 +11745,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3879;
                      start_column = 14;
                      end_line = 3879;
@@ -12135,7 +12029,7 @@ let calcul_aide_personnalisee_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 670;
                     start_column = 10;
                     end_line = 670;
@@ -12152,7 +12046,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 670;
                 start_column = 10;
                 end_line = 670;
@@ -12173,7 +12067,7 @@ let calcul_aide_personnalisee_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 666;
              start_column = 10;
              end_line = 666;
@@ -12190,8 +12084,7 @@ let calcul_aide_personnalisee_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3801;
                  start_column = 14;
                  end_line = 3801;
@@ -12225,7 +12118,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 666;
                 start_column = 10;
                 end_line = 666;
@@ -12251,7 +12144,7 @@ let calcul_aide_personnalisee_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 671;
                  start_column = 10;
                  end_line = 671;
@@ -12268,8 +12161,7 @@ let calcul_aide_personnalisee_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3904;
                      start_column = 14;
                      end_line = 3904;
@@ -12349,7 +12241,7 @@ let calcul_aide_personnalisee_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 671;
                     start_column = 10;
                     end_line = 671;
@@ -12366,7 +12258,7 @@ let calcul_aide_personnalisee_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 671;
                 start_column = 10;
                 end_line = 671;
@@ -12485,7 +12377,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 720;
              start_column = 11;
              end_line = 720;
@@ -12502,8 +12394,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2578;
                  start_column = 14;
                  end_line = 2578;
@@ -12523,7 +12414,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 720;
                 start_column = 11;
                 end_line = 720;
@@ -12547,7 +12438,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 721;
              start_column = 11;
              end_line = 721;
@@ -12564,8 +12455,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2589;
                  start_column = 14;
                  end_line = 2589;
@@ -12585,7 +12475,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 721;
                 start_column = 11;
                 end_line = 721;
@@ -12609,7 +12499,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 723;
              start_column = 11;
              end_line = 723;
@@ -12626,8 +12516,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2598;
                  start_column = 15;
                  end_line = 2598;
@@ -12647,7 +12536,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 723;
                 start_column = 11;
                 end_line = 723;
@@ -12671,7 +12560,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 724;
              start_column = 11;
              end_line = 724;
@@ -12688,8 +12577,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2690;
                  start_column = 14;
                  end_line = 2690;
@@ -12709,7 +12597,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 724;
                 start_column = 11;
                 end_line = 724;
@@ -12733,7 +12621,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 725;
              start_column = 11;
              end_line = 725;
@@ -12750,8 +12638,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2613;
                  start_column = 14;
                  end_line = 2613;
@@ -12771,7 +12658,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 725;
                 start_column = 11;
                 end_line = 725;
@@ -12795,7 +12682,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 726;
              start_column = 11;
              end_line = 726;
@@ -12812,8 +12699,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2614;
                  start_column = 14;
                  end_line = 2614;
@@ -12833,7 +12719,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 726;
                 start_column = 11;
                 end_line = 726;
@@ -12857,7 +12743,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 727;
              start_column = 11;
              end_line = 727;
@@ -12874,8 +12760,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2615;
                  start_column = 14;
                  end_line = 2615;
@@ -12895,7 +12780,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 727;
                 start_column = 11;
                 end_line = 727;
@@ -12919,7 +12804,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 728;
              start_column = 11;
              end_line = 728;
@@ -12936,7 +12821,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/autres_sources.catala_fr";
+                 filename = "./autres_sources.catala_fr";
                  start_line = 275;
                  start_column = 14;
                  end_line = 275;
@@ -12956,7 +12841,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 728;
                 start_column = 11;
                 end_line = 728;
@@ -12980,7 +12865,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 730;
              start_column = 3;
              end_line = 730;
@@ -12997,8 +12882,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3352;
                  start_column = 14;
                  end_line = 3352;
@@ -13021,7 +12905,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 681;
              start_column = 10;
              end_line = 681;
@@ -13046,7 +12930,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 730;
              start_column = 3;
              end_line = 730;
@@ -13063,8 +12947,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3354;
                  start_column = 14;
                  end_line = 3354;
@@ -13087,7 +12970,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 682;
              start_column = 10;
              end_line = 682;
@@ -13136,7 +13019,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 722;
              start_column = 11;
              end_line = 722;
@@ -13153,8 +13036,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 2672;
                  start_column = 14;
                  end_line = 2672;
@@ -13186,7 +13068,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 722;
                 start_column = 11;
                 end_line = 722;
@@ -13210,7 +13092,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 733;
              start_column = 3;
              end_line = 733;
@@ -13227,7 +13109,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 744;
                  start_column = 14;
                  end_line = 744;
@@ -13246,7 +13128,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 544;
              start_column = 10;
              end_line = 544;
@@ -13292,7 +13174,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 719;
              start_column = 11;
              end_line = 719;
@@ -13309,7 +13191,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 719;
                    start_column = 11;
                    end_line = 719;
@@ -13326,7 +13208,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 719;
                          start_column = 11;
                          end_line = 719;
@@ -13344,8 +13226,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                             filename = "./arrete_2019-09-27.catala_fr";
                              start_line = 2646;
                              start_column = 7;
                              end_line = 2646;
@@ -13373,7 +13254,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 719;
                          start_column = 11;
                          end_line = 719;
@@ -13391,8 +13272,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 464;
                              start_column = 7;
                              end_line = 464;
@@ -13427,7 +13307,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 719;
                  start_column = 11;
                  end_line = 719;
@@ -13444,7 +13324,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 719;
                        start_column = 11;
                        end_line = 719;
@@ -13462,8 +13342,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2567;
                            start_column = 29;
                            end_line = 2567;
@@ -13486,7 +13365,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 719;
                        start_column = 11;
                        end_line = 719;
@@ -13504,8 +13383,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/archives.catala_fr";
+                           filename = "./archives.catala_fr";
                            start_line = 429;
                            start_column = 29;
                            end_line = 429;
@@ -13534,7 +13412,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 719;
                 start_column = 11;
                 end_line = 719;
@@ -13560,7 +13438,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 738;
                  start_column = 10;
                  end_line = 738;
@@ -13577,8 +13455,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3194;
                      start_column = 14;
                      end_line = 3194;
@@ -13606,7 +13483,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 738;
                     start_column = 10;
                     end_line = 738;
@@ -13623,7 +13500,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 738;
                 start_column = 10;
                 end_line = 738;
@@ -13647,7 +13524,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 718;
              start_column = 11;
              end_line = 718;
@@ -13664,7 +13541,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 718;
                    start_column = 11;
                    end_line = 718;
@@ -13681,8 +13558,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 3660;
                        start_column = 5;
                        end_line = 3660;
@@ -13705,8 +13581,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3652;
                  start_column = 14;
                  end_line = 3652;
@@ -13734,7 +13609,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 718;
                 start_column = 11;
                 end_line = 718;
@@ -13760,7 +13635,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 709;
                  start_column = 11;
                  end_line = 709;
@@ -13777,7 +13652,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -13795,8 +13670,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 621;
                            start_column = 5;
                            end_line = 624;
@@ -13871,7 +13745,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -13889,8 +13763,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 665;
                            start_column = 5;
                            end_line = 668;
@@ -13965,7 +13838,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -13983,8 +13856,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 710;
                            start_column = 5;
                            end_line = 712;
@@ -14058,7 +13930,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14076,8 +13948,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 753;
                            start_column = 5;
                            end_line = 755;
@@ -14151,7 +14022,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14169,8 +14040,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 804;
                            start_column = 5;
                            end_line = 807;
@@ -14245,7 +14115,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14263,8 +14133,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 848;
                            start_column = 5;
                            end_line = 854;
@@ -14342,7 +14211,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14360,8 +14229,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 895;
                            start_column = 5;
                            end_line = 901;
@@ -14409,7 +14277,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14427,8 +14295,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 927;
                            start_column = 5;
                            end_line = 930;
@@ -14503,7 +14370,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14521,8 +14388,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 971;
                            start_column = 5;
                            end_line = 974;
@@ -14597,7 +14463,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14615,8 +14481,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1016;
                            start_column = 5;
                            end_line = 1019;
@@ -14691,7 +14556,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14709,8 +14574,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1060;
                            start_column = 5;
                            end_line = 1063;
@@ -14785,7 +14649,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14803,8 +14667,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1107;
                            start_column = 5;
                            end_line = 1110;
@@ -14879,7 +14742,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14897,8 +14760,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1150;
                            start_column = 5;
                            end_line = 1153;
@@ -14972,7 +14834,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -14990,8 +14852,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1196;
                            start_column = 5;
                            end_line = 1199;
@@ -15066,7 +14927,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15084,8 +14945,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1239;
                            start_column = 5;
                            end_line = 1242;
@@ -15159,7 +15019,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15177,8 +15037,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1284;
                            start_column = 5;
                            end_line = 1287;
@@ -15252,7 +15111,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15270,8 +15129,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1328;
                            start_column = 5;
                            end_line = 1331;
@@ -15345,7 +15203,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15363,8 +15221,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1373;
                            start_column = 5;
                            end_line = 1376;
@@ -15438,7 +15295,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15456,8 +15313,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1417;
                            start_column = 5;
                            end_line = 1420;
@@ -15531,7 +15387,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15549,8 +15405,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1462;
                            start_column = 5;
                            end_line = 1465;
@@ -15624,7 +15479,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15642,8 +15497,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1506;
                            start_column = 5;
                            end_line = 1509;
@@ -15717,7 +15571,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15735,8 +15589,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1551;
                            start_column = 5;
                            end_line = 1554;
@@ -15810,7 +15663,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15828,8 +15681,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1595;
                            start_column = 5;
                            end_line = 1598;
@@ -15903,7 +15755,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -15921,8 +15773,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1640;
                            start_column = 5;
                            end_line = 1643;
@@ -15996,7 +15847,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16014,8 +15865,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1684;
                            start_column = 5;
                            end_line = 1687;
@@ -16089,7 +15939,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16107,8 +15957,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1729;
                            start_column = 5;
                            end_line = 1732;
@@ -16182,7 +16031,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16200,8 +16049,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1773;
                            start_column = 5;
                            end_line = 1776;
@@ -16275,7 +16123,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16293,8 +16141,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1818;
                            start_column = 5;
                            end_line = 1821;
@@ -16368,7 +16215,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16386,8 +16233,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1862;
                            start_column = 5;
                            end_line = 1865;
@@ -16461,7 +16307,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16479,8 +16325,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1907;
                            start_column = 5;
                            end_line = 1910;
@@ -16554,7 +16399,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16572,8 +16417,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1951;
                            start_column = 5;
                            end_line = 1954;
@@ -16647,7 +16491,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16665,8 +16509,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 1996;
                            start_column = 5;
                            end_line = 1999;
@@ -16740,7 +16583,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16758,8 +16601,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2071;
                            start_column = 5;
                            end_line = 2074;
@@ -16833,7 +16675,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16851,8 +16693,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2118;
                            start_column = 5;
                            end_line = 2121;
@@ -16926,7 +16767,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -16944,8 +16785,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2162;
                            start_column = 5;
                            end_line = 2165;
@@ -17019,7 +16859,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17037,8 +16877,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2207;
                            start_column = 5;
                            end_line = 2210;
@@ -17112,7 +16951,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17130,8 +16969,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2251;
                            start_column = 5;
                            end_line = 2254;
@@ -17205,7 +17043,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17223,8 +17061,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2296;
                            start_column = 5;
                            end_line = 2299;
@@ -17298,7 +17135,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17316,8 +17153,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2340;
                            start_column = 5;
                            end_line = 2343;
@@ -17391,7 +17227,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17409,8 +17245,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2385;
                            start_column = 5;
                            end_line = 2388;
@@ -17484,7 +17319,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17502,8 +17337,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2429;
                            start_column = 5;
                            end_line = 2432;
@@ -17577,7 +17411,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17595,8 +17429,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2474;
                            start_column = 5;
                            end_line = 2476;
@@ -17669,7 +17502,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 709;
                        start_column = 11;
                        end_line = 709;
@@ -17687,8 +17520,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 2517;
                            start_column = 5;
                            end_line = 2519;
@@ -17765,7 +17597,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 709;
                     start_column = 11;
                     end_line = 709;
@@ -17782,7 +17614,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 709;
                 start_column = 11;
                 end_line = 709;
@@ -17806,7 +17638,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 710;
              start_column = 11;
              end_line = 710;
@@ -17823,8 +17655,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3350;
                  start_column = 14;
                  end_line = 3350;
@@ -17847,7 +17678,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 710;
                 start_column = 11;
                 end_line = 710;
@@ -17873,7 +17704,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 715;
                  start_column = 11;
                  end_line = 715;
@@ -17890,7 +17721,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 715;
                        start_column = 11;
                        end_line = 715;
@@ -17909,7 +17740,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 3599;
                            start_column = 5;
                            end_line = 3599;
@@ -17934,8 +17765,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3610;
                      start_column = 14;
                      end_line = 3610;
@@ -17958,7 +17788,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 715;
                     start_column = 11;
                     end_line = 715;
@@ -17975,7 +17805,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 715;
                 start_column = 11;
                 end_line = 715;
@@ -17999,7 +17829,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 707;
              start_column = 10;
              end_line = 707;
@@ -18016,7 +17846,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 707;
                    start_column = 10;
                    end_line = 707;
@@ -18033,8 +17863,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 3437;
                        start_column = 5;
                        end_line = 3437;
@@ -18160,8 +17989,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3417;
                  start_column = 14;
                  end_line = 3417;
@@ -18209,7 +18037,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 707;
                 start_column = 10;
                 end_line = 707;
@@ -18234,7 +18062,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 731;
              start_column = 3;
              end_line = 731;
@@ -18251,8 +18079,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3555;
                  start_column = 14;
                  end_line = 3555;
@@ -18275,7 +18102,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 613;
              start_column = 10;
              end_line = 613;
@@ -18299,7 +18126,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 731;
              start_column = 3;
              end_line = 731;
@@ -18316,8 +18143,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3554;
                  start_column = 14;
                  end_line = 3554;
@@ -18340,7 +18166,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 614;
              start_column = 10;
              end_line = 614;
@@ -18364,7 +18190,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
         embed_decimal
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 731;
              start_column = 3;
              end_line = 731;
@@ -18381,8 +18207,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3557;
                  start_column = 14;
                  end_line = 3557;
@@ -18405,7 +18230,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 615;
              start_column = 10;
              end_line = 615;
@@ -18455,7 +18280,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 712;
              start_column = 10;
              end_line = 712;
@@ -18472,8 +18297,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3265;
                  start_column = 14;
                  end_line = 3265;
@@ -18500,7 +18324,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 712;
                 start_column = 10;
                 end_line = 712;
@@ -18526,7 +18350,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 716;
                  start_column = 11;
                  end_line = 716;
@@ -18543,8 +18367,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3621;
                      start_column = 14;
                      end_line = 3621;
@@ -18624,7 +18447,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 716;
                     start_column = 11;
                     end_line = 716;
@@ -18641,7 +18464,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 716;
                 start_column = 11;
                 end_line = 716;
@@ -18665,7 +18488,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 708;
              start_column = 10;
              end_line = 708;
@@ -18682,7 +18505,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 708;
                    start_column = 10;
                    end_line = 708;
@@ -18699,7 +18522,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 708;
                          start_column = 10;
                          end_line = 708;
@@ -18717,8 +18540,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/archives.catala_fr";
+                             filename = "./archives.catala_fr";
                              start_line = 444;
                              start_column = 14;
                              end_line = 444;
@@ -18745,8 +18567,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 2627;
                        start_column = 14;
                        end_line = 2627;
@@ -18774,7 +18595,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 708;
                 start_column = 10;
                 end_line = 708;
@@ -18798,7 +18619,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 705;
              start_column = 10;
              end_line = 705;
@@ -18815,7 +18636,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 705;
                    start_column = 10;
                    end_line = 705;
@@ -18832,8 +18653,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 3496;
                        start_column = 5;
                        end_line = 3508;
@@ -18895,7 +18715,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 705;
                    start_column = 10;
                    end_line = 705;
@@ -18912,8 +18732,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 3549;
                        start_column = 5;
                        end_line = 3549;
@@ -18946,7 +18765,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 705;
                 start_column = 10;
                 end_line = 705;
@@ -18970,7 +18789,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 713;
              start_column = 10;
              end_line = 713;
@@ -18987,8 +18806,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3281;
                  start_column = 14;
                  end_line = 3281;
@@ -19016,7 +18834,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 713;
                 start_column = 10;
                 end_line = 713;
@@ -19042,7 +18860,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 739;
                  start_column = 10;
                  end_line = 739;
@@ -19059,8 +18877,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3208;
                      start_column = 14;
                      end_line = 3208;
@@ -19237,7 +19054,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 739;
                     start_column = 10;
                     end_line = 739;
@@ -19254,7 +19071,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 739;
                 start_column = 10;
                 end_line = 739;
@@ -19278,7 +19095,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 704;
              start_column = 10;
              end_line = 704;
@@ -19295,8 +19112,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3169;
                  start_column = 14;
                  end_line = 3169;
@@ -19324,7 +19140,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 704;
                 start_column = 10;
                 end_line = 704;
@@ -19348,7 +19164,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 714;
              start_column = 10;
              end_line = 714;
@@ -19365,8 +19181,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3284;
                  start_column = 14;
                  end_line = 3284;
@@ -19394,7 +19209,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 714;
                 start_column = 10;
                 end_line = 714;
@@ -19420,7 +19235,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 740;
                  start_column = 10;
                  end_line = 740;
@@ -19437,8 +19252,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3225;
                      start_column = 14;
                      end_line = 3225;
@@ -19719,7 +19533,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 740;
                     start_column = 10;
                     end_line = 740;
@@ -19736,7 +19550,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 740;
                 start_column = 10;
                 end_line = 740;
@@ -19760,7 +19574,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 736;
              start_column = 10;
              end_line = 736;
@@ -19777,8 +19591,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 3149;
                  start_column = 14;
                  end_line = 3149;
@@ -19811,7 +19624,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 736;
                 start_column = 10;
                 end_line = 736;
@@ -19837,7 +19650,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 741;
                  start_column = 10;
                  end_line = 741;
@@ -19854,8 +19667,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 3250;
                      start_column = 14;
                      end_line = 3250;
@@ -19932,7 +19744,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 741;
                     start_column = 10;
                     end_line = 741;
@@ -19949,7 +19761,7 @@ let calcul_aide_personnalisee_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 741;
                 start_column = 10;
                 end_line = 741;
@@ -20012,7 +19824,7 @@ let eligibilite_aides_personnelle_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 316;
                  start_column = 11;
                  end_line = 316;
@@ -20028,7 +19840,7 @@ let eligibilite_aides_personnelle_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 316;
                      start_column = 11;
                      end_line = 316;
@@ -20046,7 +19858,7 @@ let eligibilite_aides_personnelle_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 316;
                     start_column = 11;
                     end_line = 316;
@@ -20062,7 +19874,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 316;
                 start_column = 11;
                 end_line = 316;
@@ -20085,7 +19897,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 327;
              start_column = 11;
              end_line = 327;
@@ -20101,7 +19913,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 327;
                  start_column = 11;
                  end_line = 327;
@@ -20119,7 +19931,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 327;
                 start_column = 11;
                 end_line = 327;
@@ -20139,7 +19951,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 338;
              start_column = 11;
              end_line = 338;
@@ -20155,8 +19967,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 105;
                  start_column = 14;
                  end_line = 105;
@@ -20179,7 +19990,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 338;
                 start_column = 11;
                 end_line = 338;
@@ -20199,7 +20010,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 339;
              start_column = 11;
              end_line = 339;
@@ -20215,8 +20026,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 106;
                  start_column = 14;
                  end_line = 106;
@@ -20239,7 +20049,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 339;
                 start_column = 11;
                 end_line = 339;
@@ -20259,7 +20069,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 340;
              start_column = 11;
              end_line = 340;
@@ -20275,8 +20085,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 926;
                  start_column = 14;
                  end_line = 926;
@@ -20300,7 +20109,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 340;
                 start_column = 11;
                 end_line = 340;
@@ -20320,7 +20129,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 337;
              start_column = 11;
              end_line = 337;
@@ -20336,8 +20145,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 146;
                  start_column = 14;
                  end_line = 146;
@@ -20370,7 +20178,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 337;
                 start_column = 11;
                 end_line = 337;
@@ -20390,7 +20198,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 336;
              start_column = 11;
              end_line = 336;
@@ -20406,8 +20214,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1034;
                  start_column = 14;
                  end_line = 1034;
@@ -20441,7 +20248,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 336;
                 start_column = 11;
                 end_line = 336;
@@ -20464,7 +20271,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 325;
              start_column = 11;
              end_line = 325;
@@ -20480,7 +20287,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 325;
                    start_column = 11;
                    end_line = 325;
@@ -20496,8 +20303,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 358;
                        start_column = 18;
                        end_line = 358;
@@ -20520,7 +20326,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 325;
                  start_column = 11;
                  end_line = 325;
@@ -20538,7 +20344,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 325;
                 start_column = 11;
                 end_line = 325;
@@ -20558,7 +20364,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 324;
              start_column = 11;
              end_line = 324;
@@ -20574,7 +20380,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 324;
                    start_column = 11;
                    end_line = 324;
@@ -20590,8 +20396,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 344;
                        start_column = 18;
                        end_line = 344;
@@ -20613,7 +20418,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 324;
                  start_column = 11;
                  end_line = 324;
@@ -20631,7 +20436,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 324;
                 start_column = 11;
                 end_line = 324;
@@ -20654,7 +20459,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 321;
              start_column = 11;
              end_line = 321;
@@ -20670,8 +20475,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1045;
                  start_column = 14;
                  end_line = 1045;
@@ -20706,7 +20510,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 321;
                 start_column = 11;
                 end_line = 321;
@@ -20729,7 +20533,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 320;
              start_column = 11;
              end_line = 320;
@@ -20745,7 +20549,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 320;
                    start_column = 11;
                    end_line = 320;
@@ -20761,7 +20565,7 @@ let eligibilite_aides_personnelle_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 320;
                          start_column = 11;
                          end_line = 320;
@@ -20778,7 +20582,7 @@ let eligibilite_aides_personnelle_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 203;
                              start_column = 5;
                              end_line = 207;
@@ -20811,8 +20615,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 197;
                        start_column = 5;
                        end_line = 198;
@@ -20839,7 +20642,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 320;
                  start_column = 11;
                  end_line = 320;
@@ -20857,7 +20660,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 320;
                 start_column = 11;
                 end_line = 320;
@@ -20880,7 +20683,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 318;
              start_column = 12;
              end_line = 318;
@@ -20897,7 +20700,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 318;
                  start_column = 12;
                  end_line = 318;
@@ -20913,7 +20716,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 318;
                        start_column = 12;
                        end_line = 318;
@@ -20929,8 +20732,7 @@ let eligibilite_aides_personnelle_logement
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/code_construction_legislatif.catala_fr";
+                           filename = "./code_construction_legislatif.catala_fr";
                            start_line = 46;
                            start_column = 5;
                            end_line = 46;
@@ -20954,7 +20756,7 @@ let eligibilite_aides_personnelle_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 318;
                      start_column = 12;
                      end_line = 318;
@@ -20972,7 +20774,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 318;
                 start_column = 12;
                 end_line = 318;
@@ -20995,7 +20797,7 @@ let eligibilite_aides_personnelle_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 346;
              start_column = 3;
              end_line = 346;
@@ -21011,8 +20813,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                 filename = "./code_sécurité_sociale.catala_fr";
                  start_line = 123;
                  start_column = 14;
                  end_line = 123;
@@ -21040,7 +20841,7 @@ let eligibilite_aides_personnelle_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1034;
              start_column = 10;
              end_line = 1034;
@@ -21082,7 +20883,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 335;
              start_column = 11;
              end_line = 335;
@@ -21098,8 +20899,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 245;
                  start_column = 14;
                  end_line = 245;
@@ -21125,7 +20925,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 335;
                 start_column = 11;
                 end_line = 335;
@@ -21145,7 +20945,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 317;
              start_column = 11;
              end_line = 317;
@@ -21161,7 +20961,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 317;
                    start_column = 11;
                    end_line = 317;
@@ -21177,8 +20977,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 108;
                        start_column = 5;
                        end_line = 110;
@@ -21205,7 +21004,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 317;
                  start_column = 11;
                  end_line = 317;
@@ -21223,7 +21022,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 317;
                 start_column = 11;
                 end_line = 317;
@@ -21243,7 +21042,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 344;
              start_column = 11;
              end_line = 344;
@@ -21259,7 +21058,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 344;
                    start_column = 11;
                    end_line = 344;
@@ -21275,8 +21074,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 329;
                        start_column = 5;
                        end_line = 330;
@@ -21303,7 +21101,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 344;
                    start_column = 11;
                    end_line = 344;
@@ -21319,8 +21117,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 334;
                        start_column = 5;
                        end_line = 335;
@@ -21347,7 +21144,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 344;
                    start_column = 11;
                    end_line = 344;
@@ -21363,8 +21160,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                       filename = "./code_sécurité_sociale.catala_fr";
                        start_line = 339;
                        start_column = 5;
                        end_line = 340;
@@ -21391,7 +21187,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 344;
                    start_column = 11;
                    end_line = 344;
@@ -21407,8 +21203,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/autres_sources.catala_fr";
+                       filename = "./autres_sources.catala_fr";
                        start_line = 33;
                        start_column = 5;
                        end_line = 34;
@@ -21426,7 +21221,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 344;
                    start_column = 11;
                    end_line = 344;
@@ -21442,8 +21237,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/autres_sources.catala_fr";
+                       filename = "./autres_sources.catala_fr";
                        start_line = 70;
                        start_column = 5;
                        end_line = 71;
@@ -21465,7 +21259,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 344;
                 start_column = 11;
                 end_line = 344;
@@ -21488,7 +21282,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 326;
              start_column = 11;
              end_line = 326;
@@ -21504,7 +21298,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 326;
                    start_column = 11;
                    end_line = 326;
@@ -21520,8 +21314,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 381;
                        start_column = 18;
                        end_line = 381;
@@ -21543,7 +21336,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 326;
                  start_column = 11;
                  end_line = 326;
@@ -21561,7 +21354,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 326;
                 start_column = 11;
                 end_line = 326;
@@ -21584,7 +21377,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 319;
              start_column = 11;
              end_line = 319;
@@ -21600,7 +21393,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 319;
                    start_column = 11;
                    end_line = 319;
@@ -21616,7 +21409,7 @@ let eligibilite_aides_personnelle_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 319;
                          start_column = 11;
                          end_line = 319;
@@ -21632,8 +21425,7 @@ let eligibilite_aides_personnelle_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 319;
                                start_column = 11;
                                end_line = 319;
@@ -21651,7 +21443,7 @@ let eligibilite_aides_personnelle_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                     "./code_construction_legislatif.catala_fr";
                                    start_line = 171;
                                    start_column = 5;
                                    end_line = 177;
@@ -21698,7 +21490,7 @@ let eligibilite_aides_personnelle_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 156;
                              start_column = 5;
                              end_line = 158;
@@ -21732,8 +21524,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 125;
                        start_column = 5;
                        end_line = 131;
@@ -21764,7 +21555,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 319;
                  start_column = 11;
                  end_line = 319;
@@ -21782,7 +21573,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 319;
                 start_column = 11;
                 end_line = 319;
@@ -21802,7 +21593,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 323;
              start_column = 12;
              end_line = 323;
@@ -21819,7 +21610,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 323;
                  start_column = 12;
                  end_line = 323;
@@ -21835,7 +21626,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 323;
                        start_column = 12;
                        end_line = 323;
@@ -21852,7 +21643,7 @@ let eligibilite_aides_personnelle_logement
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 1057;
                            start_column = 5;
                            end_line = 1064;
@@ -21886,7 +21677,7 @@ let eligibilite_aides_personnelle_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 323;
                      start_column = 12;
                      end_line = 323;
@@ -21904,7 +21695,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 323;
                 start_column = 12;
                 end_line = 323;
@@ -21924,7 +21715,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 343;
              start_column = 11;
              end_line = 343;
@@ -21940,8 +21731,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                 filename = "./code_sécurité_sociale.catala_fr";
                  start_line = 125;
                  start_column = 14;
                  end_line = 125;
@@ -21969,7 +21759,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 343;
                 start_column = 11;
                 end_line = 343;
@@ -21989,7 +21779,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 341;
              start_column = 11;
              end_line = 341;
@@ -22005,7 +21795,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 341;
                    start_column = 11;
                    end_line = 341;
@@ -22021,7 +21811,7 @@ let eligibilite_aides_personnelle_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 341;
                          start_column = 11;
                          end_line = 341;
@@ -22037,8 +21827,7 @@ let eligibilite_aides_personnelle_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 341;
                                start_column = 11;
                                end_line = 341;
@@ -22056,7 +21845,7 @@ let eligibilite_aides_personnelle_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                     "./code_construction_legislatif.catala_fr";
                                    start_line = 285;
                                    start_column = 18;
                                    end_line = 285;
@@ -22084,7 +21873,7 @@ let eligibilite_aides_personnelle_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 266;
                              start_column = 18;
                              end_line = 268;
@@ -22117,8 +21906,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 943;
                        start_column = 5;
                        end_line = 943;
@@ -22145,8 +21933,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 249;
                  start_column = 33;
                  end_line = 249;
@@ -22171,7 +21958,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 341;
                 start_column = 11;
                 end_line = 341;
@@ -22191,7 +21978,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 328;
              start_column = 11;
              end_line = 328;
@@ -22207,7 +21994,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 328;
                    start_column = 11;
                    end_line = 328;
@@ -22223,7 +22010,7 @@ let eligibilite_aides_personnelle_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 328;
                          start_column = 11;
                          end_line = 328;
@@ -22240,7 +22027,7 @@ let eligibilite_aides_personnelle_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 72;
                              start_column = 5;
                              end_line = 74;
@@ -22265,8 +22052,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 65;
                        start_column = 5;
                        end_line = 68;
@@ -22290,7 +22076,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 328;
                  start_column = 11;
                  end_line = 328;
@@ -22308,7 +22094,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 328;
                 start_column = 11;
                 end_line = 328;
@@ -22328,7 +22114,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 342;
              start_column = 11;
              end_line = 342;
@@ -22344,8 +22130,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_sécurité_sociale.catala_fr";
+                 filename = "./code_sécurité_sociale.catala_fr";
                  start_line = 163;
                  start_column = 14;
                  end_line = 163;
@@ -22370,7 +22155,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 342;
                 start_column = 11;
                 end_line = 342;
@@ -22390,7 +22175,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 347;
              start_column = 10;
              end_line = 347;
@@ -22406,7 +22191,7 @@ let eligibilite_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 347;
                    start_column = 10;
                    end_line = 347;
@@ -22422,7 +22207,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 357;
                        start_column = 5;
                        end_line = 359;
@@ -22442,7 +22227,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 347;
                  start_column = 10;
                  end_line = 347;
@@ -22460,7 +22245,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 347;
                 start_column = 10;
                 end_line = 347;
@@ -22482,7 +22267,7 @@ let eligibilite_aides_personnelle_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 351;
                  start_column = 10;
                  end_line = 351;
@@ -22498,7 +22283,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 351;
                        start_column = 10;
                        end_line = 351;
@@ -22515,7 +22300,7 @@ let eligibilite_aides_personnelle_logement
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 1173;
                            start_column = 5;
                            end_line = 1189;
@@ -22563,7 +22348,7 @@ let eligibilite_aides_personnelle_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 351;
                      start_column = 10;
                      end_line = 351;
@@ -22581,7 +22366,7 @@ let eligibilite_aides_personnelle_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 351;
                     start_column = 10;
                     end_line = 351;
@@ -22597,7 +22382,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 351;
                 start_column = 10;
                 end_line = 351;
@@ -22622,7 +22407,7 @@ let eligibilite_aides_personnelle_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 329;
                  start_column = 11;
                  end_line = 329;
@@ -22638,7 +22423,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 329;
                        start_column = 11;
                        end_line = 329;
@@ -22654,8 +22439,7 @@ let eligibilite_aides_personnelle_logement
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/aides_logement/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 329;
                              start_column = 11;
                              end_line = 329;
@@ -22672,7 +22456,7 @@ let eligibilite_aides_personnelle_logement
                              log_decision_taken
                                {
                                  filename =
-                                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                                   "./code_construction_reglementaire.catala_fr";
                                  start_line = 1213;
                                  start_column = 4;
                                  end_line = 1219;
@@ -22708,7 +22492,7 @@ let eligibilite_aides_personnelle_logement
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 1194;
                            start_column = 5;
                            end_line = 1194;
@@ -22756,7 +22540,7 @@ let eligibilite_aides_personnelle_logement
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 329;
                        start_column = 11;
                        end_line = 329;
@@ -22773,7 +22557,7 @@ let eligibilite_aides_personnelle_logement
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 1150;
                            start_column = 5;
                            end_line = 1152;
@@ -22801,7 +22585,7 @@ let eligibilite_aides_personnelle_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 329;
                      start_column = 11;
                      end_line = 329;
@@ -22819,7 +22603,7 @@ let eligibilite_aides_personnelle_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 329;
                     start_column = 11;
                     end_line = 329;
@@ -22835,7 +22619,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 329;
                 start_column = 11;
                 end_line = 329;
@@ -22858,7 +22642,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 331;
              start_column = 11;
              end_line = 331;
@@ -22874,8 +22658,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1138;
                  start_column = 14;
                  end_line = 1138;
@@ -22926,7 +22709,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 331;
                 start_column = 11;
                 end_line = 331;
@@ -22949,7 +22732,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 349;
              start_column = 10;
              end_line = 349;
@@ -22965,7 +22748,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 363;
                  start_column = 14;
                  end_line = 363;
@@ -23006,7 +22789,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 349;
                 start_column = 10;
                 end_line = 349;
@@ -23029,7 +22812,7 @@ let eligibilite_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 348;
              start_column = 10;
              end_line = 348;
@@ -23045,7 +22828,7 @@ let eligibilite_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 361;
                  start_column = 14;
                  end_line = 361;
@@ -23063,7 +22846,7 @@ let eligibilite_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 348;
                 start_column = 10;
                 end_line = 348;
@@ -23083,8 +22866,7 @@ let eligibilite_aides_personnelle_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_legislatif.catala_fr";
+               filename = "./code_construction_legislatif.catala_fr";
                start_line = 182;
                start_column = 13;
                end_line = 182;
@@ -23105,8 +22887,7 @@ let eligibilite_aides_personnelle_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_legislatif.catala_fr";
+             filename = "./code_construction_legislatif.catala_fr";
              start_line = 182;
              start_column = 13;
              end_line = 182;
@@ -23130,8 +22911,7 @@ let eligibilite_aides_personnelle_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_legislatif.catala_fr";
+               filename = "./code_construction_legislatif.catala_fr";
                start_line = 181;
                start_column = 13;
                end_line = 181;
@@ -23152,8 +22932,7 @@ let eligibilite_aides_personnelle_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_legislatif.catala_fr";
+             filename = "./code_construction_legislatif.catala_fr";
              start_line = 181;
              start_column = 13;
              end_line = 181;
@@ -23255,7 +23034,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 524;
              start_column = 10;
              end_line = 524;
@@ -23272,7 +23051,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 522;
                  start_column = 46;
                  end_line = 522;
@@ -23291,7 +23070,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 524;
                 start_column = 10;
                 end_line = 524;
@@ -23312,7 +23091,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 528;
              start_column = 11;
              end_line = 528;
@@ -23329,8 +23108,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 21;
                  start_column = 14;
                  end_line = 21;
@@ -23349,7 +23127,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 528;
                 start_column = 11;
                 end_line = 528;
@@ -23370,7 +23148,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 530;
              start_column = 11;
              end_line = 530;
@@ -23387,8 +23165,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 11;
                  start_column = 14;
                  end_line = 11;
@@ -23407,7 +23184,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 530;
                 start_column = 11;
                 end_line = 530;
@@ -23428,7 +23205,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 532;
              start_column = 11;
              end_line = 532;
@@ -23445,7 +23222,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 532;
                  start_column = 51;
                  end_line = 532;
@@ -23464,7 +23241,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 532;
                 start_column = 11;
                 end_line = 532;
@@ -23488,7 +23265,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 526;
              start_column = 11;
              end_line = 526;
@@ -23505,8 +23282,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 129;
                  start_column = 14;
                  end_line = 129;
@@ -23537,7 +23313,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 526;
                 start_column = 11;
                 end_line = 526;
@@ -23558,7 +23334,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 531;
              start_column = 11;
              end_line = 531;
@@ -23575,8 +23351,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 519;
                  start_column = 14;
                  end_line = 519;
@@ -23621,7 +23396,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 531;
                 start_column = 11;
                 end_line = 531;
@@ -23645,7 +23420,7 @@ let ressources_aides_personnelle_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 534;
              start_column = 3;
              end_line = 534;
@@ -23662,8 +23437,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 413;
                  start_column = 14;
                  end_line = 413;
@@ -23689,7 +23463,7 @@ let ressources_aides_personnelle_logement
         (NoValueProvided
            {
              filename =
-               "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+               "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
              start_line = 5;
              start_column = 10;
              end_line = 5;
@@ -23727,7 +23501,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 527;
              start_column = 11;
              end_line = 527;
@@ -23744,8 +23518,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 457;
                  start_column = 14;
                  end_line = 457;
@@ -23776,7 +23549,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 527;
                 start_column = 11;
                 end_line = 527;
@@ -23797,7 +23570,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 537;
              start_column = 10;
              end_line = 537;
@@ -23814,7 +23587,7 @@ let ressources_aides_personnelle_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 537;
                    start_column = 10;
                    end_line = 537;
@@ -23831,8 +23604,7 @@ let ressources_aides_personnelle_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 854;
                        start_column = 6;
                        end_line = 856;
@@ -23866,8 +23638,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 124;
                  start_column = 14;
                  end_line = 124;
@@ -23894,7 +23665,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 537;
                 start_column = 10;
                 end_line = 537;
@@ -23915,7 +23686,7 @@ let ressources_aides_personnelle_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 529;
              start_column = 11;
              end_line = 529;
@@ -23932,8 +23703,7 @@ let ressources_aides_personnelle_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 404;
                  start_column = 14;
                  end_line = 404;
@@ -23966,7 +23736,7 @@ let ressources_aides_personnelle_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 529;
                 start_column = 11;
                 end_line = 529;
@@ -23994,8 +23764,7 @@ let ressources_aides_personnelle_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 142;
                start_column = 13;
                end_line = 143;
@@ -24019,8 +23788,7 @@ let ressources_aides_personnelle_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 142;
              start_column = 13;
              end_line = 143;
@@ -24068,8 +23836,7 @@ let eligibilite_prestations_familiales
       (try
          handle_default
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 44;
              start_column = 10;
              end_line = 44;
@@ -24081,7 +23848,7 @@ let eligibilite_prestations_familiales
              log_decision_taken
                {
                  filename =
-                   "examples/aides_logement/../prestations_familiales/sécurité_sociale_R.catala_fr";
+                   "./../prestations_familiales/sécurité_sociale_R.catala_fr";
                  start_line = 21;
                  start_column = 14;
                  end_line = 21;
@@ -24103,8 +23870,7 @@ let eligibilite_prestations_familiales
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                filename = "./../prestations_familiales/prologue.catala_fr";
                 start_line = 44;
                 start_column = 10;
                 end_line = 44;
@@ -24119,8 +23885,7 @@ let eligibilite_prestations_familiales
         embed_date
         (handle_default
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 49;
              start_column = 3;
              end_line = 49;
@@ -24131,8 +23896,7 @@ let eligibilite_prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                 filename = "./../prestations_familiales/prologue.catala_fr";
                  start_line = 53;
                  start_column = 14;
                  end_line = 53;
@@ -24145,8 +23909,7 @@ let eligibilite_prestations_familiales
       raise
         (NoValueProvided
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+             filename = "./../prestations_familiales/../smic/smic.catala_fr";
              start_line = 9;
              start_column = 10;
              end_line = 9;
@@ -24162,8 +23925,7 @@ let eligibilite_prestations_familiales
         embed_collectivite
         (handle_default
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 49;
              start_column = 3;
              end_line = 49;
@@ -24174,8 +23936,7 @@ let eligibilite_prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                 filename = "./../prestations_familiales/prologue.catala_fr";
                  start_line = 52;
                  start_column = 14;
                  end_line = 52;
@@ -24188,8 +23949,7 @@ let eligibilite_prestations_familiales
       raise
         (NoValueProvided
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+             filename = "./../prestations_familiales/../smic/smic.catala_fr";
              start_line = 10;
              start_column = 10;
              end_line = 10;
@@ -24217,8 +23977,7 @@ let eligibilite_prestations_familiales
       (try
          handle_default
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 45;
              start_column = 10;
              end_line = 45;
@@ -24229,8 +23988,7 @@ let eligibilite_prestations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                   filename = "./../prestations_familiales/prologue.catala_fr";
                    start_line = 45;
                    start_column = 10;
                    end_line = 45;
@@ -24242,7 +24000,7 @@ let eligibilite_prestations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
+                         "./../prestations_familiales/sécurité_sociale_L.catala_fr";
                        start_line = 103;
                        start_column = 5;
                        end_line = 108;
@@ -24270,8 +24028,7 @@ let eligibilite_prestations_familiales
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                 filename = "./../prestations_familiales/prologue.catala_fr";
                  start_line = 45;
                  start_column = 10;
                  end_line = 45;
@@ -24284,8 +24041,7 @@ let eligibilite_prestations_familiales
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                filename = "./../prestations_familiales/prologue.catala_fr";
                 start_line = 45;
                 start_column = 10;
                 end_line = 45;
@@ -24300,8 +24056,7 @@ let eligibilite_prestations_familiales
       (try
          handle_default
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 43;
              start_column = 11;
              end_line = 43;
@@ -24312,8 +24067,7 @@ let eligibilite_prestations_familiales
              (fun (_ : _) ->
                handle_default
                  {
-                   filename =
-                     "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                   filename = "./../prestations_familiales/prologue.catala_fr";
                    start_line = 43;
                    start_column = 11;
                    end_line = 43;
@@ -24325,7 +24079,7 @@ let eligibilite_prestations_familiales
                    log_decision_taken
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/sécurité_sociale_R.catala_fr";
+                         "./../prestations_familiales/sécurité_sociale_R.catala_fr";
                        start_line = 62;
                        start_column = 18;
                        end_line = 62;
@@ -24350,7 +24104,7 @@ let eligibilite_prestations_familiales
              log_decision_taken
                {
                  filename =
-                   "examples/aides_logement/../prestations_familiales/sécurité_sociale_R.catala_fr";
+                   "./../prestations_familiales/sécurité_sociale_R.catala_fr";
                  start_line = 31;
                  start_column = 14;
                  end_line = 31;
@@ -24374,8 +24128,7 @@ let eligibilite_prestations_familiales
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                filename = "./../prestations_familiales/prologue.catala_fr";
                 start_line = 43;
                 start_column = 11;
                 end_line = 43;
@@ -24392,8 +24145,7 @@ let eligibilite_prestations_familiales
            try
              handle_default
                {
-                 filename =
-                   "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                 filename = "./../prestations_familiales/prologue.catala_fr";
                  start_line = 42;
                  start_column = 10;
                  end_line = 42;
@@ -24405,7 +24157,7 @@ let eligibilite_prestations_familiales
                    handle_default
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                         "./../prestations_familiales/prologue.catala_fr";
                        start_line = 42;
                        start_column = 10;
                        end_line = 42;
@@ -24417,7 +24169,7 @@ let eligibilite_prestations_familiales
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
+                             "./../prestations_familiales/sécurité_sociale_L.catala_fr";
                            start_line = 66;
                            start_column = 5;
                            end_line = 69;
@@ -24464,8 +24216,7 @@ let eligibilite_prestations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                     filename = "./../prestations_familiales/prologue.catala_fr";
                      start_line = 42;
                      start_column = 10;
                      end_line = 42;
@@ -24478,8 +24229,7 @@ let eligibilite_prestations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                    filename = "./../prestations_familiales/prologue.catala_fr";
                     start_line = 42;
                     start_column = 10;
                     end_line = 42;
@@ -24490,8 +24240,7 @@ let eligibilite_prestations_familiales
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                filename = "./../prestations_familiales/prologue.catala_fr";
                 start_line = 42;
                 start_column = 10;
                 end_line = 42;
@@ -24508,8 +24257,7 @@ let eligibilite_prestations_familiales
            try
              handle_default
                {
-                 filename =
-                   "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                 filename = "./../prestations_familiales/prologue.catala_fr";
                  start_line = 41;
                  start_column = 10;
                  end_line = 41;
@@ -24521,7 +24269,7 @@ let eligibilite_prestations_familiales
                    handle_default
                      {
                        filename =
-                         "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                         "./../prestations_familiales/prologue.catala_fr";
                        start_line = 41;
                        start_column = 10;
                        end_line = 41;
@@ -24533,7 +24281,7 @@ let eligibilite_prestations_familiales
                          handle_default
                            {
                              filename =
-                               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                               "./../prestations_familiales/prologue.catala_fr";
                              start_line = 41;
                              start_column = 10;
                              end_line = 41;
@@ -24546,7 +24294,7 @@ let eligibilite_prestations_familiales
                                handle_default
                                  {
                                    filename =
-                                     "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                                     "./../prestations_familiales/prologue.catala_fr";
                                    start_line = 41;
                                    start_column = 10;
                                    end_line = 41;
@@ -24559,7 +24307,7 @@ let eligibilite_prestations_familiales
                                    log_decision_taken
                                      {
                                        filename =
-                                         "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
+                                         "./../prestations_familiales/sécurité_sociale_L.catala_fr";
                                        start_line = 58;
                                        start_column = 5;
                                        end_line = 60;
@@ -24599,7 +24347,7 @@ let eligibilite_prestations_familiales
                              log_decision_taken
                                {
                                  filename =
-                                   "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
+                                   "./../prestations_familiales/sécurité_sociale_L.catala_fr";
                                  start_line = 47;
                                  start_column = 5;
                                  end_line = 48;
@@ -24641,8 +24389,7 @@ let eligibilite_prestations_familiales
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                     filename = "./../prestations_familiales/prologue.catala_fr";
                      start_line = 41;
                      start_column = 10;
                      end_line = 41;
@@ -24655,8 +24402,7 @@ let eligibilite_prestations_familiales
              raise
                (NoValueProvided
                   {
-                    filename =
-                      "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                    filename = "./../prestations_familiales/prologue.catala_fr";
                     start_line = 41;
                     start_column = 10;
                     end_line = 41;
@@ -24667,8 +24413,7 @@ let eligibilite_prestations_familiales
          raise
            (NoValueProvided
               {
-                filename =
-                  "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+                filename = "./../prestations_familiales/prologue.catala_fr";
                 start_line = 41;
                 start_column = 10;
                 end_line = 41;
@@ -24756,7 +24501,7 @@ let calcul_allocation_logement_locatif
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -24772,7 +24517,7 @@ let calcul_allocation_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 809;
                    start_column = 3;
                    end_line = 809;
@@ -24788,8 +24533,7 @@ let calcul_allocation_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4278;
                        start_column = 5;
                        end_line = 4278;
@@ -24814,7 +24558,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 816;
                  start_column = 14;
                  end_line = 816;
@@ -24832,7 +24576,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 558;
              start_column = 10;
              end_line = 558;
@@ -24856,7 +24600,7 @@ let calcul_allocation_logement_locatif
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -24872,7 +24616,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 818;
                  start_column = 14;
                  end_line = 818;
@@ -24890,7 +24634,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 559;
              start_column = 10;
              end_line = 559;
@@ -24915,7 +24659,7 @@ let calcul_allocation_logement_locatif
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -24931,7 +24675,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 820;
                  start_column = 14;
                  end_line = 820;
@@ -24949,7 +24693,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 560;
              start_column = 10;
              end_line = 560;
@@ -24970,7 +24714,7 @@ let calcul_allocation_logement_locatif
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -24986,7 +24730,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 823;
                  start_column = 14;
                  end_line = 823;
@@ -25004,7 +24748,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 562;
              start_column = 10;
              end_line = 562;
@@ -25028,7 +24772,7 @@ let calcul_allocation_logement_locatif
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25044,7 +24788,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 825;
                  start_column = 14;
                  end_line = 825;
@@ -25062,7 +24806,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 563;
              start_column = 10;
              end_line = 563;
@@ -25087,7 +24831,7 @@ let calcul_allocation_logement_locatif
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25103,7 +24847,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 827;
                  start_column = 14;
                  end_line = 827;
@@ -25121,7 +24865,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 564;
              start_column = 10;
              end_line = 564;
@@ -25142,7 +24886,7 @@ let calcul_allocation_logement_locatif
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25158,7 +24902,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 829;
                  start_column = 14;
                  end_line = 829;
@@ -25176,7 +24920,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 565;
              start_column = 10;
              end_line = 565;
@@ -25200,7 +24944,7 @@ let calcul_allocation_logement_locatif
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25216,7 +24960,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 831;
                  start_column = 14;
                  end_line = 831;
@@ -25234,7 +24978,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 566;
              start_column = 10;
              end_line = 566;
@@ -25259,7 +25003,7 @@ let calcul_allocation_logement_locatif
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25275,7 +25019,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 834;
                  start_column = 5;
                  end_line = 835;
@@ -25294,7 +25038,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 567;
              start_column = 10;
              end_line = 567;
@@ -25315,7 +25059,7 @@ let calcul_allocation_logement_locatif
         embed_type_aides_personnelle_logement
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25331,7 +25075,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 838;
                  start_column = 14;
                  end_line = 838;
@@ -25349,7 +25093,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 569;
              start_column = 10;
              end_line = 569;
@@ -25370,7 +25114,7 @@ let calcul_allocation_logement_locatif
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25386,7 +25130,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 840;
                  start_column = 14;
                  end_line = 840;
@@ -25404,7 +25148,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 570;
              start_column = 10;
              end_line = 570;
@@ -25428,7 +25172,7 @@ let calcul_allocation_logement_locatif
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 809;
              start_column = 3;
              end_line = 809;
@@ -25444,7 +25188,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 842;
                  start_column = 14;
                  end_line = 842;
@@ -25462,7 +25206,7 @@ let calcul_allocation_logement_locatif
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 571;
              start_column = 10;
              end_line = 571;
@@ -25560,7 +25304,7 @@ let calcul_allocation_logement_locatif
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 813;
                  start_column = 10;
                  end_line = 813;
@@ -25576,7 +25320,7 @@ let calcul_allocation_logement_locatif
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 813;
                        start_column = 10;
                        end_line = 813;
@@ -25593,7 +25337,7 @@ let calcul_allocation_logement_locatif
                        log_decision_taken
                          {
                            filename =
-                             "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                             "./code_construction_reglementaire.catala_fr";
                            start_line = 4346;
                            start_column = 24;
                            end_line = 4346;
@@ -25622,7 +25366,7 @@ let calcul_allocation_logement_locatif
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 847;
                      start_column = 14;
                      end_line = 847;
@@ -25665,7 +25409,7 @@ let calcul_allocation_logement_locatif
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 813;
                     start_column = 10;
                     end_line = 813;
@@ -25681,7 +25425,7 @@ let calcul_allocation_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 813;
                 start_column = 10;
                 end_line = 813;
@@ -25701,7 +25445,7 @@ let calcul_allocation_logement_locatif
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 811;
              start_column = 10;
              end_line = 811;
@@ -25717,7 +25461,7 @@ let calcul_allocation_logement_locatif
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 811;
                    start_column = 10;
                    end_line = 811;
@@ -25733,8 +25477,7 @@ let calcul_allocation_logement_locatif
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4338;
                        start_column = 24;
                        end_line = 4338;
@@ -25773,7 +25516,7 @@ let calcul_allocation_logement_locatif
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 846;
                  start_column = 14;
                  end_line = 846;
@@ -25791,7 +25534,7 @@ let calcul_allocation_logement_locatif
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 811;
                 start_column = 10;
                 end_line = 811;
@@ -25853,7 +25596,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 960;
              start_column = 11;
              end_line = 960;
@@ -25869,8 +25612,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4289;
                  start_column = 14;
                  end_line = 4289;
@@ -25890,7 +25632,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 960;
                 start_column = 11;
                 end_line = 960;
@@ -25910,7 +25652,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 961;
              start_column = 11;
              end_line = 961;
@@ -25926,8 +25668,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4278;
                  start_column = 14;
                  end_line = 4278;
@@ -25947,7 +25688,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 961;
                 start_column = 11;
                 end_line = 961;
@@ -25967,7 +25708,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 962;
              start_column = 11;
              end_line = 962;
@@ -25983,8 +25724,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4379;
                  start_column = 14;
                  end_line = 4379;
@@ -26004,7 +25744,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 962;
                 start_column = 11;
                 end_line = 962;
@@ -26027,7 +25767,7 @@ let calcul_allocation_logement_foyer
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 968;
              start_column = 3;
              end_line = 968;
@@ -26043,8 +25783,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4899;
                  start_column = 14;
                  end_line = 4899;
@@ -26067,7 +25806,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 625;
              start_column = 10;
              end_line = 625;
@@ -26091,7 +25830,7 @@ let calcul_allocation_logement_foyer
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 968;
              start_column = 3;
              end_line = 968;
@@ -26107,8 +25846,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4895;
                  start_column = 14;
                  end_line = 4895;
@@ -26131,7 +25869,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 626;
              start_column = 10;
              end_line = 626;
@@ -26156,7 +25894,7 @@ let calcul_allocation_logement_foyer
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 968;
              start_column = 3;
              end_line = 968;
@@ -26172,8 +25910,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4897;
                  start_column = 14;
                  end_line = 4897;
@@ -26196,7 +25933,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 627;
              start_column = 10;
              end_line = 627;
@@ -26245,7 +25982,7 @@ let calcul_allocation_logement_foyer
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 971;
              start_column = 3;
              end_line = 971;
@@ -26261,7 +25998,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 999;
                  start_column = 14;
                  end_line = 999;
@@ -26279,7 +26016,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 544;
              start_column = 10;
              end_line = 544;
@@ -26325,7 +26062,7 @@ let calcul_allocation_logement_foyer
         embed_mode_occupation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26341,7 +26078,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 985;
                  start_column = 14;
                  end_line = 985;
@@ -26359,7 +26096,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 632;
              start_column = 10;
              end_line = 632;
@@ -26383,7 +26120,7 @@ let calcul_allocation_logement_foyer
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26399,7 +26136,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 989;
                  start_column = 14;
                  end_line = 989;
@@ -26417,7 +26154,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 633;
              start_column = 10;
              end_line = 633;
@@ -26441,7 +26178,7 @@ let calcul_allocation_logement_foyer
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26457,7 +26194,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 991;
                  start_column = 14;
                  end_line = 991;
@@ -26475,7 +26212,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 634;
              start_column = 10;
              end_line = 634;
@@ -26500,7 +26237,7 @@ let calcul_allocation_logement_foyer
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26516,7 +26253,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 993;
                  start_column = 14;
                  end_line = 993;
@@ -26534,7 +26271,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 635;
              start_column = 10;
              end_line = 635;
@@ -26555,7 +26292,7 @@ let calcul_allocation_logement_foyer
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26571,7 +26308,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 995;
                  start_column = 14;
                  end_line = 995;
@@ -26589,7 +26326,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 636;
              start_column = 10;
              end_line = 636;
@@ -26613,7 +26350,7 @@ let calcul_allocation_logement_foyer
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26629,7 +26366,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 997;
                  start_column = 14;
                  end_line = 997;
@@ -26647,7 +26384,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 637;
              start_column = 10;
              end_line = 637;
@@ -26668,7 +26405,7 @@ let calcul_allocation_logement_foyer
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 969;
              start_column = 3;
              end_line = 969;
@@ -26684,7 +26421,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 987;
                  start_column = 14;
                  end_line = 987;
@@ -26702,7 +26439,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 638;
              start_column = 10;
              end_line = 638;
@@ -26726,7 +26463,7 @@ let calcul_allocation_logement_foyer
       embed_bool
       (handle_default
          {
-           filename = "examples/aides_logement/prologue.catala_fr";
+           filename = "./prologue.catala_fr";
            start_line = 969;
            start_column = 3;
            end_line = 969;
@@ -26742,8 +26479,7 @@ let calcul_allocation_logement_foyer
          (fun (_ : _) ->
            log_decision_taken
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 4862;
                start_column = 14;
                end_line = 4862;
@@ -26856,7 +26592,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 965;
              start_column = 10;
              end_line = 965;
@@ -26872,8 +26608,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4265;
                  start_column = 14;
                  end_line = 4265;
@@ -26899,7 +26634,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 965;
                 start_column = 10;
                 end_line = 965;
@@ -26919,7 +26654,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 964;
              start_column = 10;
              end_line = 964;
@@ -26935,7 +26670,7 @@ let calcul_allocation_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 964;
                    start_column = 10;
                    end_line = 964;
@@ -26951,8 +26686,7 @@ let calcul_allocation_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 4307;
                        start_column = 6;
                        end_line = 4307;
@@ -26991,7 +26725,7 @@ let calcul_allocation_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 964;
                    start_column = 10;
                    end_line = 964;
@@ -27007,8 +26741,7 @@ let calcul_allocation_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 4342;
                        start_column = 6;
                        end_line = 4343;
@@ -27047,7 +26780,7 @@ let calcul_allocation_logement_foyer
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 964;
                    start_column = 10;
                    end_line = 964;
@@ -27063,7 +26796,7 @@ let calcul_allocation_logement_foyer
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 964;
                          start_column = 10;
                          end_line = 964;
@@ -27079,8 +26812,7 @@ let calcul_allocation_logement_foyer
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                             filename = "./arrete_2019-09-27.catala_fr";
                              start_line = 4360;
                              start_column = 6;
                              end_line = 4361;
@@ -27120,8 +26852,7 @@ let calcul_allocation_logement_foyer
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 4324;
                        start_column = 6;
                        end_line = 4325;
@@ -27164,7 +26895,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 964;
                 start_column = 10;
                 end_line = 964;
@@ -27189,7 +26920,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 978;
                  start_column = 10;
                  end_line = 978;
@@ -27205,8 +26936,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4911;
                      start_column = 14;
                      end_line = 4911;
@@ -27234,7 +26964,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 978;
                     start_column = 10;
                     end_line = 978;
@@ -27250,7 +26980,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 978;
                 start_column = 10;
                 end_line = 978;
@@ -27274,7 +27004,7 @@ let calcul_allocation_logement_foyer
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 973;
              start_column = 3;
              end_line = 973;
@@ -27290,8 +27020,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4892;
                  start_column = 14;
                  end_line = 4892;
@@ -27314,7 +27043,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 613;
              start_column = 10;
              end_line = 613;
@@ -27338,7 +27067,7 @@ let calcul_allocation_logement_foyer
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 973;
              start_column = 3;
              end_line = 973;
@@ -27354,8 +27083,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4891;
                  start_column = 14;
                  end_line = 4891;
@@ -27378,7 +27106,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 614;
              start_column = 10;
              end_line = 614;
@@ -27402,7 +27130,7 @@ let calcul_allocation_logement_foyer
         embed_decimal
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 973;
              start_column = 3;
              end_line = 973;
@@ -27418,8 +27146,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4901;
                  start_column = 14;
                  end_line = 4901;
@@ -27442,7 +27169,7 @@ let calcul_allocation_logement_foyer
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 615;
              start_column = 10;
              end_line = 615;
@@ -27489,7 +27216,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 963;
              start_column = 10;
              end_line = 963;
@@ -27505,8 +27232,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4865;
                  start_column = 14;
                  end_line = 4865;
@@ -27530,7 +27256,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 963;
                 start_column = 10;
                 end_line = 963;
@@ -27552,7 +27278,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 958;
                  start_column = 11;
                  end_line = 958;
@@ -27568,8 +27294,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 5025;
                      start_column = 14;
                      end_line = 5025;
@@ -27593,7 +27318,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 958;
                     start_column = 11;
                     end_line = 958;
@@ -27609,7 +27334,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 958;
                 start_column = 11;
                 end_line = 958;
@@ -27629,7 +27354,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 966;
              start_column = 10;
              end_line = 966;
@@ -27645,8 +27370,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4903;
                  start_column = 14;
                  end_line = 4903;
@@ -27669,7 +27393,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 966;
                 start_column = 10;
                 end_line = 966;
@@ -27691,7 +27415,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 959;
                  start_column = 11;
                  end_line = 959;
@@ -27707,8 +27431,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 5034;
                      start_column = 14;
                      end_line = 5034;
@@ -27783,7 +27506,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 959;
                     start_column = 11;
                     end_line = 959;
@@ -27799,7 +27522,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 959;
                 start_column = 11;
                 end_line = 959;
@@ -27819,7 +27542,7 @@ let calcul_allocation_logement_foyer
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 976;
              start_column = 10;
              end_line = 976;
@@ -27835,8 +27558,7 @@ let calcul_allocation_logement_foyer
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4844;
                  start_column = 14;
                  end_line = 4844;
@@ -27862,7 +27584,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 976;
                 start_column = 10;
                 end_line = 976;
@@ -27887,7 +27609,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 979;
                  start_column = 10;
                  end_line = 979;
@@ -27903,8 +27625,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4924;
                      start_column = 14;
                      end_line = 4924;
@@ -28081,7 +27802,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 979;
                     start_column = 10;
                     end_line = 979;
@@ -28097,7 +27818,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 979;
                 start_column = 10;
                 end_line = 979;
@@ -28119,7 +27840,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 980;
                  start_column = 10;
                  end_line = 980;
@@ -28135,8 +27856,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4947;
                      start_column = 14;
                      end_line = 4947;
@@ -28213,7 +27933,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 980;
                     start_column = 10;
                     end_line = 980;
@@ -28229,7 +27949,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 980;
                 start_column = 10;
                 end_line = 980;
@@ -28254,7 +27974,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 981;
                  start_column = 10;
                  end_line = 981;
@@ -28270,8 +27990,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4959;
                      start_column = 14;
                      end_line = 4959;
@@ -28552,7 +28271,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 981;
                     start_column = 10;
                     end_line = 981;
@@ -28568,7 +28287,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 981;
                 start_column = 10;
                 end_line = 981;
@@ -28592,7 +28311,7 @@ let calcul_allocation_logement_foyer
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 982;
                  start_column = 10;
                  end_line = 982;
@@ -28608,8 +28327,7 @@ let calcul_allocation_logement_foyer
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4983;
                      start_column = 14;
                      end_line = 4983;
@@ -28686,7 +28404,7 @@ let calcul_allocation_logement_foyer
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 982;
                     start_column = 10;
                     end_line = 982;
@@ -28702,7 +28420,7 @@ let calcul_allocation_logement_foyer
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 982;
                 start_column = 10;
                 end_line = 982;
@@ -28797,7 +28515,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 879;
              start_column = 11;
              end_line = 879;
@@ -28813,8 +28531,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4156;
                  start_column = 14;
                  end_line = 4156;
@@ -28834,7 +28551,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 879;
                 start_column = 11;
                 end_line = 879;
@@ -28854,7 +28571,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 882;
              start_column = 11;
              end_line = 882;
@@ -28870,7 +28587,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/autres_sources.catala_fr";
+                 filename = "./autres_sources.catala_fr";
                  start_line = 278;
                  start_column = 14;
                  end_line = 278;
@@ -28890,7 +28607,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 882;
                 start_column = 11;
                 end_line = 882;
@@ -28913,7 +28630,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 885;
              start_column = 11;
              end_line = 885;
@@ -28929,8 +28646,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4166;
                  start_column = 14;
                  end_line = 4166;
@@ -28950,7 +28666,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 885;
                 start_column = 11;
                 end_line = 885;
@@ -28973,7 +28689,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 886;
              start_column = 11;
              end_line = 886;
@@ -28989,8 +28705,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4218;
                  start_column = 14;
                  end_line = 4218;
@@ -29010,7 +28725,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 886;
                 start_column = 11;
                 end_line = 886;
@@ -29033,7 +28748,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 887;
              start_column = 11;
              end_line = 887;
@@ -29049,8 +28764,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4243;
                  start_column = 14;
                  end_line = 4243;
@@ -29070,7 +28784,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 887;
                 start_column = 11;
                 end_line = 887;
@@ -29090,7 +28804,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 888;
              start_column = 11;
              end_line = 888;
@@ -29106,8 +28820,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4225;
                  start_column = 14;
                  end_line = 4225;
@@ -29127,7 +28840,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 888;
                 start_column = 11;
                 end_line = 888;
@@ -29147,7 +28860,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 889;
              start_column = 11;
              end_line = 889;
@@ -29163,8 +28876,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4236;
                  start_column = 14;
                  end_line = 4236;
@@ -29184,7 +28896,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 889;
                 start_column = 11;
                 end_line = 889;
@@ -29207,7 +28919,7 @@ let calcul_allocation_logement_accession_propriete
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 891;
              start_column = 3;
              end_line = 891;
@@ -29223,8 +28935,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4503;
                  start_column = 14;
                  end_line = 4503;
@@ -29247,7 +28958,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 681;
              start_column = 10;
              end_line = 681;
@@ -29272,7 +28983,7 @@ let calcul_allocation_logement_accession_propriete
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 891;
              start_column = 3;
              end_line = 891;
@@ -29288,8 +28999,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4505;
                  start_column = 14;
                  end_line = 4505;
@@ -29312,7 +29022,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 682;
              start_column = 10;
              end_line = 682;
@@ -29361,7 +29071,7 @@ let calcul_allocation_logement_accession_propriete
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 894;
              start_column = 3;
              end_line = 894;
@@ -29377,7 +29087,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 941;
                  start_column = 14;
                  end_line = 941;
@@ -29395,7 +29105,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 544;
              start_column = 10;
              end_line = 544;
@@ -29441,7 +29151,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 872;
              start_column = 11;
              end_line = 872;
@@ -29457,7 +29167,7 @@ let calcul_allocation_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 872;
                    start_column = 11;
                    end_line = 872;
@@ -29473,8 +29183,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                       filename = "./arrete_2019-09-27.catala_fr";
                        start_line = 4198;
                        start_column = 5;
                        end_line = 4198;
@@ -29503,8 +29212,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4144;
                  start_column = 14;
                  end_line = 4144;
@@ -29530,7 +29238,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 872;
                 start_column = 11;
                 end_line = 872;
@@ -29555,7 +29263,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 902;
                  start_column = 10;
                  end_line = 902;
@@ -29571,8 +29279,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4513;
                      start_column = 14;
                      end_line = 4513;
@@ -29600,7 +29307,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 902;
                     start_column = 10;
                     end_line = 902;
@@ -29616,7 +29323,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 902;
                 start_column = 10;
                 end_line = 902;
@@ -29641,7 +29348,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 877;
                  start_column = 10;
                  end_line = 877;
@@ -29657,7 +29364,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -29673,8 +29380,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3124;
                            start_column = 5;
                            end_line = 3124;
@@ -29785,7 +29491,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -29801,8 +29507,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3170;
                            start_column = 5;
                            end_line = 3170;
@@ -29913,7 +29618,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -29929,8 +29634,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3216;
                            start_column = 5;
                            end_line = 3216;
@@ -30041,7 +29745,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30057,8 +29761,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3262;
                            start_column = 5;
                            end_line = 3262;
@@ -30169,7 +29872,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30185,8 +29888,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3308;
                            start_column = 5;
                            end_line = 3308;
@@ -30297,7 +29999,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30313,8 +30015,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3354;
                            start_column = 5;
                            end_line = 3354;
@@ -30425,7 +30126,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30441,8 +30142,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3400;
                            start_column = 5;
                            end_line = 3400;
@@ -30553,7 +30253,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30569,8 +30269,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3446;
                            start_column = 5;
                            end_line = 3446;
@@ -30680,7 +30379,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30696,8 +30395,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3491;
                            start_column = 5;
                            end_line = 3491;
@@ -30807,7 +30505,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30823,8 +30521,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3538;
                            start_column = 5;
                            end_line = 3538;
@@ -30934,7 +30631,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -30950,8 +30647,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3583;
                            start_column = 5;
                            end_line = 3583;
@@ -31061,7 +30757,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31077,8 +30773,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3628;
                            start_column = 5;
                            end_line = 3628;
@@ -31188,7 +30883,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31204,8 +30899,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3673;
                            start_column = 5;
                            end_line = 3673;
@@ -31315,7 +31009,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31331,8 +31025,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3718;
                            start_column = 5;
                            end_line = 3718;
@@ -31442,7 +31135,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31458,8 +31151,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3763;
                            start_column = 5;
                            end_line = 3763;
@@ -31569,7 +31261,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31585,8 +31277,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3808;
                            start_column = 5;
                            end_line = 3808;
@@ -31696,7 +31387,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31712,8 +31403,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3853;
                            start_column = 5;
                            end_line = 3853;
@@ -31823,7 +31513,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31839,8 +31529,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3898;
                            start_column = 5;
                            end_line = 3898;
@@ -31950,7 +31639,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -31966,8 +31655,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3943;
                            start_column = 5;
                            end_line = 3943;
@@ -32077,7 +31765,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -32093,8 +31781,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 3988;
                            start_column = 5;
                            end_line = 3988;
@@ -32204,7 +31891,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -32220,8 +31907,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 4033;
                            start_column = 5;
                            end_line = 4033;
@@ -32331,7 +32017,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 877;
                        start_column = 10;
                        end_line = 877;
@@ -32347,8 +32033,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 4078;
                            start_column = 5;
                            end_line = 4078;
@@ -32461,7 +32146,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 877;
                     start_column = 10;
                     end_line = 877;
@@ -32477,7 +32162,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 877;
                 start_column = 10;
                 end_line = 877;
@@ -32500,7 +32185,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 881;
              start_column = 11;
              end_line = 881;
@@ -32516,7 +32201,7 @@ let calcul_allocation_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 881;
                    start_column = 11;
                    end_line = 881;
@@ -32532,8 +32217,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4756;
                        start_column = 6;
                        end_line = 4762;
@@ -32590,7 +32274,7 @@ let calcul_allocation_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 881;
                    start_column = 11;
                    end_line = 881;
@@ -32606,8 +32290,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4774;
                        start_column = 5;
                        end_line = 4775;
@@ -32642,7 +32325,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 881;
                 start_column = 11;
                 end_line = 881;
@@ -32664,7 +32347,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 883;
                  start_column = 11;
                  end_line = 883;
@@ -32680,8 +32363,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4697;
                      start_column = 15;
                      end_line = 4697;
@@ -32706,7 +32388,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 883;
                     start_column = 11;
                     end_line = 883;
@@ -32722,7 +32404,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 883;
                 start_column = 11;
                 end_line = 883;
@@ -32747,7 +32429,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 878;
                  start_column = 10;
                  end_line = 878;
@@ -32763,7 +32445,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 878;
                        start_column = 10;
                        end_line = 878;
@@ -32779,8 +32461,7 @@ let calcul_allocation_logement_accession_propriete
                      (fun (_ : _) ->
                        log_decision_taken
                          {
-                           filename =
-                             "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                           filename = "./arrete_2019-09-27.catala_fr";
                            start_line = 4178;
                            start_column = 24;
                            end_line = 4178;
@@ -32854,8 +32535,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                     filename = "./arrete_2019-09-27.catala_fr";
                      start_line = 4122;
                      start_column = 14;
                      end_line = 4122;
@@ -32901,7 +32581,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 878;
                     start_column = 10;
                     end_line = 878;
@@ -32917,7 +32597,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 878;
                 start_column = 10;
                 end_line = 878;
@@ -32940,7 +32620,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 857;
              start_column = 10;
              end_line = 857;
@@ -32956,7 +32636,7 @@ let calcul_allocation_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 857;
                    start_column = 10;
                    end_line = 857;
@@ -32972,8 +32652,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4795;
                        start_column = 5;
                        end_line = 4795;
@@ -32996,8 +32675,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4785;
                  start_column = 14;
                  end_line = 4785;
@@ -33030,7 +32708,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 857;
                 start_column = 10;
                 end_line = 857;
@@ -33052,7 +32730,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 875;
              start_column = 11;
              end_line = 875;
@@ -33068,7 +32746,7 @@ let calcul_allocation_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 875;
                    start_column = 11;
                    end_line = 875;
@@ -33084,8 +32762,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4650;
                        start_column = 5;
                        end_line = 4650;
@@ -33211,8 +32888,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4632;
                  start_column = 14;
                  end_line = 4632;
@@ -33260,7 +32936,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 875;
                 start_column = 11;
                 end_line = 875;
@@ -33284,7 +32960,7 @@ let calcul_allocation_logement_accession_propriete
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 896;
              start_column = 3;
              end_line = 896;
@@ -33300,8 +32976,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4499;
                  start_column = 14;
                  end_line = 4499;
@@ -33324,7 +32999,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 613;
              start_column = 10;
              end_line = 613;
@@ -33348,7 +33023,7 @@ let calcul_allocation_logement_accession_propriete
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 896;
              start_column = 3;
              end_line = 896;
@@ -33364,8 +33039,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4498;
                  start_column = 14;
                  end_line = 4498;
@@ -33388,7 +33062,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 614;
              start_column = 10;
              end_line = 614;
@@ -33412,7 +33086,7 @@ let calcul_allocation_logement_accession_propriete
         embed_decimal
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 896;
              start_column = 3;
              end_line = 896;
@@ -33428,8 +33102,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4501;
                  start_column = 14;
                  end_line = 4501;
@@ -33452,7 +33125,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 615;
              start_column = 10;
              end_line = 615;
@@ -33502,7 +33175,7 @@ let calcul_allocation_logement_accession_propriete
         embed_mode_occupation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33518,7 +33191,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 908;
                  start_column = 14;
                  end_line = 908;
@@ -33556,7 +33229,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 632;
              start_column = 10;
              end_line = 632;
@@ -33580,7 +33253,7 @@ let calcul_allocation_logement_accession_propriete
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33596,7 +33269,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 931;
                  start_column = 14;
                  end_line = 931;
@@ -33614,7 +33287,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 633;
              start_column = 10;
              end_line = 633;
@@ -33638,7 +33311,7 @@ let calcul_allocation_logement_accession_propriete
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33654,7 +33327,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 933;
                  start_column = 14;
                  end_line = 933;
@@ -33672,7 +33345,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 634;
              start_column = 10;
              end_line = 634;
@@ -33697,7 +33370,7 @@ let calcul_allocation_logement_accession_propriete
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33713,7 +33386,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 935;
                  start_column = 14;
                  end_line = 935;
@@ -33731,7 +33404,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 635;
              start_column = 10;
              end_line = 635;
@@ -33755,7 +33428,7 @@ let calcul_allocation_logement_accession_propriete
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33771,7 +33444,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 937;
                  start_column = 14;
                  end_line = 937;
@@ -33789,7 +33462,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 636;
              start_column = 10;
              end_line = 636;
@@ -33813,7 +33486,7 @@ let calcul_allocation_logement_accession_propriete
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33829,7 +33502,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 939;
                  start_column = 14;
                  end_line = 939;
@@ -33847,7 +33520,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 637;
              start_column = 10;
              end_line = 637;
@@ -33871,7 +33544,7 @@ let calcul_allocation_logement_accession_propriete
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 892;
              start_column = 3;
              end_line = 892;
@@ -33887,7 +33560,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 929;
                  start_column = 14;
                  end_line = 929;
@@ -33905,7 +33578,7 @@ let calcul_allocation_logement_accession_propriete
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 638;
              start_column = 10;
              end_line = 638;
@@ -33929,7 +33602,7 @@ let calcul_allocation_logement_accession_propriete
       embed_bool
       (handle_default
          {
-           filename = "examples/aides_logement/prologue.catala_fr";
+           filename = "./prologue.catala_fr";
            start_line = 892;
            start_column = 3;
            end_line = 892;
@@ -33945,8 +33618,7 @@ let calcul_allocation_logement_accession_propriete
          (fun (_ : _) ->
            log_decision_taken
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 4458;
                start_column = 14;
                end_line = 4458;
@@ -33976,7 +33648,7 @@ let calcul_allocation_logement_accession_propriete
       embed_decimal
       (handle_default
          {
-           filename = "examples/aides_logement/prologue.catala_fr";
+           filename = "./prologue.catala_fr";
            start_line = 892;
            start_column = 3;
            end_line = 892;
@@ -33992,8 +33664,7 @@ let calcul_allocation_logement_accession_propriete
          (fun (_ : _) ->
            log_decision_taken
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 4465;
                start_column = 14;
                end_line = 4465;
@@ -34100,7 +33771,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 880;
              start_column = 11;
              end_line = 880;
@@ -34116,7 +33787,7 @@ let calcul_allocation_logement_accession_propriete
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 880;
                    start_column = 11;
                    end_line = 880;
@@ -34132,8 +33803,7 @@ let calcul_allocation_logement_accession_propriete
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 4731;
                        start_column = 7;
                        end_line = 4734;
@@ -34185,8 +33855,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4719;
                  start_column = 14;
                  end_line = 4719;
@@ -34209,7 +33878,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 880;
                 start_column = 11;
                 end_line = 880;
@@ -34229,7 +33898,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 871;
              start_column = 11;
              end_line = 871;
@@ -34245,8 +33914,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4479;
                  start_column = 14;
                  end_line = 4479;
@@ -34272,7 +33940,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 871;
                 start_column = 11;
                 end_line = 871;
@@ -34292,7 +33960,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 873;
              start_column = 11;
              end_line = 873;
@@ -34308,8 +33976,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4494;
                  start_column = 14;
                  end_line = 4494;
@@ -34332,7 +33999,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 873;
                 start_column = 11;
                 end_line = 873;
@@ -34355,7 +34022,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 874;
              start_column = 11;
              end_line = 874;
@@ -34371,8 +34038,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4468;
                  start_column = 14;
                  end_line = 4468;
@@ -34396,7 +34062,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 874;
                 start_column = 11;
                 end_line = 874;
@@ -34421,7 +34087,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 884;
                  start_column = 11;
                  end_line = 884;
@@ -34437,8 +34103,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4708;
                      start_column = 14;
                      end_line = 4708;
@@ -34516,7 +34181,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 884;
                     start_column = 11;
                     end_line = 884;
@@ -34532,7 +34197,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 884;
                 start_column = 11;
                 end_line = 884;
@@ -34552,7 +34217,7 @@ let calcul_allocation_logement_accession_propriete
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 899;
              start_column = 10;
              end_line = 899;
@@ -34568,8 +34233,7 @@ let calcul_allocation_logement_accession_propriete
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4439;
                  start_column = 14;
                  end_line = 4439;
@@ -34595,7 +34259,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 899;
                 start_column = 10;
                 end_line = 899;
@@ -34620,7 +34284,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 903;
                  start_column = 10;
                  end_line = 903;
@@ -34636,8 +34300,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4527;
                      start_column = 14;
                      end_line = 4527;
@@ -34814,7 +34477,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 903;
                     start_column = 10;
                     end_line = 903;
@@ -34830,7 +34493,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 903;
                 start_column = 10;
                 end_line = 903;
@@ -34855,7 +34518,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 904;
                  start_column = 10;
                  end_line = 904;
@@ -34871,8 +34534,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4546;
                      start_column = 14;
                      end_line = 4546;
@@ -35153,7 +34815,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 904;
                     start_column = 10;
                     end_line = 904;
@@ -35169,7 +34831,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 904;
                 start_column = 10;
                 end_line = 904;
@@ -35194,7 +34856,7 @@ let calcul_allocation_logement_accession_propriete
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 905;
                  start_column = 10;
                  end_line = 905;
@@ -35210,8 +34872,7 @@ let calcul_allocation_logement_accession_propriete
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4569;
                      start_column = 14;
                      end_line = 4569;
@@ -35288,7 +34949,7 @@ let calcul_allocation_logement_accession_propriete
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 905;
                     start_column = 10;
                     end_line = 905;
@@ -35304,7 +34965,7 @@ let calcul_allocation_logement_accession_propriete
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 905;
                 start_column = 10;
                 end_line = 905;
@@ -35368,7 +35029,7 @@ let calcul_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 762;
              start_column = 11;
              end_line = 762;
@@ -35385,8 +35046,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1416;
                  start_column = 14;
                  end_line = 1416;
@@ -35419,7 +35079,7 @@ let calcul_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 762;
                 start_column = 11;
                 end_line = 762;
@@ -35440,7 +35100,7 @@ let calcul_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 756;
              start_column = 10;
              end_line = 756;
@@ -35457,8 +35117,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 2041;
                  start_column = 14;
                  end_line = 2041;
@@ -35486,7 +35145,7 @@ let calcul_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 756;
                 start_column = 10;
                 end_line = 756;
@@ -35507,7 +35166,7 @@ let calcul_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 763;
              start_column = 11;
              end_line = 763;
@@ -35524,8 +35183,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 71;
                  start_column = 14;
                  end_line = 71;
@@ -35558,7 +35216,7 @@ let calcul_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 763;
                 start_column = 11;
                 end_line = 763;
@@ -35582,7 +35240,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -35599,8 +35257,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1537;
                  start_column = 14;
                  end_line = 1537;
@@ -35630,7 +35287,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 689;
              start_column = 10;
              end_line = 689;
@@ -35654,7 +35311,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -35671,8 +35328,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1476;
                  start_column = 14;
                  end_line = 1476;
@@ -35695,7 +35351,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 690;
              start_column = 10;
              end_line = 690;
@@ -35719,7 +35375,7 @@ let calcul_aide_personnalisee_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -35736,8 +35392,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1482;
                  start_column = 14;
                  end_line = 1482;
@@ -35760,7 +35415,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 691;
              start_column = 10;
              end_line = 691;
@@ -35785,7 +35440,7 @@ let calcul_aide_personnalisee_logement
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -35802,8 +35457,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1494;
                  start_column = 14;
                  end_line = 1494;
@@ -35826,7 +35480,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 692;
              start_column = 10;
              end_line = 692;
@@ -35851,7 +35505,7 @@ let calcul_aide_personnalisee_logement
         embed_type_travaux_logement_d832_15
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -35868,8 +35522,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1542;
                  start_column = 14;
                  end_line = 1542;
@@ -35901,7 +35554,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 693;
              start_column = 10;
              end_line = 693;
@@ -35925,7 +35578,7 @@ let calcul_aide_personnalisee_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -35942,8 +35595,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1548;
                  start_column = 14;
                  end_line = 1548;
@@ -35973,7 +35625,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 694;
              start_column = 10;
              end_line = 694;
@@ -35997,7 +35649,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36014,8 +35666,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1553;
                  start_column = 14;
                  end_line = 1553;
@@ -36045,7 +35696,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 695;
              start_column = 10;
              end_line = 695;
@@ -36069,7 +35720,7 @@ let calcul_aide_personnalisee_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36086,8 +35737,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1559;
                  start_column = 14;
                  end_line = 1559;
@@ -36117,7 +35767,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 696;
              start_column = 10;
              end_line = 696;
@@ -36138,7 +35788,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36155,8 +35805,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1564;
                  start_column = 14;
                  end_line = 1564;
@@ -36184,7 +35833,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 697;
              start_column = 10;
              end_line = 697;
@@ -36208,7 +35857,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36225,8 +35874,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1569;
                  start_column = 14;
                  end_line = 1569;
@@ -36256,7 +35904,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 698;
              start_column = 10;
              end_line = 698;
@@ -36277,7 +35925,7 @@ let calcul_aide_personnalisee_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36294,8 +35942,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1486;
                  start_column = 14;
                  end_line = 1486;
@@ -36318,7 +35965,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 699;
              start_column = 10;
              end_line = 699;
@@ -36339,7 +35986,7 @@ let calcul_aide_personnalisee_logement
         embed_type_pret
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36356,8 +36003,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1574;
                  start_column = 14;
                  end_line = 1574;
@@ -36385,7 +36031,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 700;
              start_column = 10;
              end_line = 700;
@@ -36409,7 +36055,7 @@ let calcul_aide_personnalisee_logement
         embed_neuf_ou_ancien
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36426,8 +36072,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1580;
                  start_column = 14;
                  end_line = 1580;
@@ -36457,7 +36102,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 701;
              start_column = 10;
              end_line = 701;
@@ -36478,7 +36123,7 @@ let calcul_aide_personnalisee_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 767;
              start_column = 3;
              end_line = 767;
@@ -36495,8 +36140,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1489;
                  start_column = 14;
                  end_line = 1489;
@@ -36519,7 +36163,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 702;
              start_column = 10;
              end_line = 702;
@@ -36622,7 +36266,7 @@ let calcul_aide_personnalisee_logement
         embed_mode_occupation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -36639,8 +36283,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1496;
                  start_column = 14;
                  end_line = 1496;
@@ -36663,7 +36306,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 632;
              start_column = 10;
              end_line = 632;
@@ -36687,7 +36330,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -36704,8 +36347,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1474;
                  start_column = 14;
                  end_line = 1474;
@@ -36728,7 +36370,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 633;
              start_column = 10;
              end_line = 633;
@@ -36752,7 +36394,7 @@ let calcul_aide_personnalisee_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -36769,8 +36411,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1480;
                  start_column = 14;
                  end_line = 1480;
@@ -36793,7 +36434,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 634;
              start_column = 10;
              end_line = 634;
@@ -36818,7 +36459,7 @@ let calcul_aide_personnalisee_logement
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -36835,8 +36476,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1492;
                  start_column = 14;
                  end_line = 1492;
@@ -36859,7 +36499,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 635;
              start_column = 10;
              end_line = 635;
@@ -36880,7 +36520,7 @@ let calcul_aide_personnalisee_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -36897,8 +36537,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1485;
                  start_column = 14;
                  end_line = 1485;
@@ -36921,7 +36560,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 636;
              start_column = 10;
              end_line = 636;
@@ -36942,7 +36581,7 @@ let calcul_aide_personnalisee_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -36959,8 +36598,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1488;
                  start_column = 14;
                  end_line = 1488;
@@ -36983,7 +36621,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 637;
              start_column = 10;
              end_line = 637;
@@ -37004,7 +36642,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 766;
              start_column = 3;
              end_line = 766;
@@ -37021,8 +36659,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1587;
                  start_column = 14;
                  end_line = 1587;
@@ -37051,7 +36688,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 638;
              start_column = 10;
              end_line = 638;
@@ -37163,7 +36800,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37180,8 +36817,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1499;
                  start_column = 14;
                  end_line = 1499;
@@ -37211,7 +36847,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 558;
              start_column = 10;
              end_line = 558;
@@ -37235,7 +36871,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37252,8 +36888,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1473;
                  start_column = 14;
                  end_line = 1473;
@@ -37276,7 +36911,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 559;
              start_column = 10;
              end_line = 559;
@@ -37300,7 +36935,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37317,8 +36952,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1504;
                  start_column = 14;
                  end_line = 1504;
@@ -37348,7 +36982,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 560;
              start_column = 10;
              end_line = 560;
@@ -37369,7 +37003,7 @@ let calcul_aide_personnalisee_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37386,8 +37020,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1487;
                  start_column = 14;
                  end_line = 1487;
@@ -37410,7 +37043,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 562;
              start_column = 10;
              end_line = 562;
@@ -37431,7 +37064,7 @@ let calcul_aide_personnalisee_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37448,8 +37081,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1478;
                  start_column = 14;
                  end_line = 1478;
@@ -37472,7 +37104,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 563;
              start_column = 10;
              end_line = 563;
@@ -37497,7 +37129,7 @@ let calcul_aide_personnalisee_logement
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37514,8 +37146,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1490;
                  start_column = 14;
                  end_line = 1490;
@@ -37538,7 +37169,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 564;
              start_column = 10;
              end_line = 564;
@@ -37559,7 +37190,7 @@ let calcul_aide_personnalisee_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37576,8 +37207,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1484;
                  start_column = 14;
                  end_line = 1484;
@@ -37600,7 +37230,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 565;
              start_column = 10;
              end_line = 565;
@@ -37621,7 +37251,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37638,8 +37268,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1510;
                  start_column = 14;
                  end_line = 1510;
@@ -37667,7 +37296,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 566;
              start_column = 10;
              end_line = 566;
@@ -37692,7 +37321,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37709,8 +37338,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1523;
                  start_column = 5;
                  end_line = 1523;
@@ -37740,7 +37368,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 567;
              start_column = 10;
              end_line = 567;
@@ -37761,7 +37389,7 @@ let calcul_aide_personnalisee_logement
         embed_type_aides_personnelle_logement
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37778,8 +37406,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1530;
                  start_column = 14;
                  end_line = 1530;
@@ -37802,7 +37429,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 569;
              start_column = 10;
              end_line = 569;
@@ -37823,7 +37450,7 @@ let calcul_aide_personnalisee_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37840,8 +37467,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1516;
                  start_column = 14;
                  end_line = 1516;
@@ -37869,7 +37495,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 570;
              start_column = 10;
              end_line = 570;
@@ -37892,7 +37518,7 @@ let calcul_aide_personnalisee_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 765;
              start_column = 3;
              end_line = 765;
@@ -37909,8 +37535,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1531;
                  start_column = 14;
                  end_line = 1531;
@@ -37940,7 +37565,7 @@ let calcul_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 571;
              start_column = 10;
              end_line = 571;
@@ -38036,7 +37661,7 @@ let calcul_aide_personnalisee_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 771;
                  start_column = 10;
                  end_line = 771;
@@ -38053,8 +37678,7 @@ let calcul_aide_personnalisee_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 1429;
                      start_column = 14;
                      end_line = 1429;
@@ -38158,7 +37782,7 @@ let calcul_aide_personnalisee_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 771;
                     start_column = 10;
                     end_line = 771;
@@ -38175,7 +37799,7 @@ let calcul_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 771;
                 start_column = 10;
                 end_line = 771;
@@ -38196,7 +37820,7 @@ let calcul_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 770;
              start_column = 10;
              end_line = 770;
@@ -38213,8 +37837,7 @@ let calcul_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1424;
                  start_column = 14;
                  end_line = 1424;
@@ -38243,7 +37866,7 @@ let calcul_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 770;
                 start_column = 10;
                 end_line = 770;
@@ -38275,8 +37898,7 @@ let calcul_aide_personnalisee_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1469;
                start_column = 5;
                end_line = 1471;
@@ -38298,8 +37920,7 @@ let calcul_aide_personnalisee_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1469;
              start_column = 5;
              end_line = 1471;
@@ -38335,8 +37956,7 @@ let calcul_aide_personnalisee_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1465;
                start_column = 5;
                end_line = 1467;
@@ -38358,8 +37978,7 @@ let calcul_aide_personnalisee_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1465;
              start_column = 5;
              end_line = 1467;
@@ -38395,8 +38014,7 @@ let calcul_aide_personnalisee_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1461;
                start_column = 5;
                end_line = 1463;
@@ -38418,8 +38036,7 @@ let calcul_aide_personnalisee_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1461;
              start_column = 5;
              end_line = 1463;
@@ -38475,7 +38092,7 @@ let eligibilite_prime_de_demenagement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 486;
              start_column = 11;
              end_line = 486;
@@ -38491,8 +38108,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 2148;
                  start_column = 14;
                  end_line = 2148;
@@ -38515,7 +38131,7 @@ let eligibilite_prime_de_demenagement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 486;
                 start_column = 11;
                 end_line = 486;
@@ -38535,7 +38151,7 @@ let eligibilite_prime_de_demenagement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 483;
              start_column = 11;
              end_line = 483;
@@ -38551,7 +38167,7 @@ let eligibilite_prime_de_demenagement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 483;
                    start_column = 11;
                    end_line = 483;
@@ -38567,8 +38183,7 @@ let eligibilite_prime_de_demenagement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2127;
                        start_column = 5;
                        end_line = 2132;
@@ -38605,7 +38220,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 483;
                  start_column = 11;
                  end_line = 483;
@@ -38623,7 +38238,7 @@ let eligibilite_prime_de_demenagement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 483;
                 start_column = 11;
                 end_line = 483;
@@ -38646,7 +38261,7 @@ let eligibilite_prime_de_demenagement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 490;
              start_column = 3;
              end_line = 490;
@@ -38662,7 +38277,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 500;
                  start_column = 14;
                  end_line = 500;
@@ -38681,7 +38296,7 @@ let eligibilite_prime_de_demenagement
         (NoValueProvided
            {
              filename =
-               "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+               "./../base_mensuelle_allocations_familiales/bmaf.catala_fr";
              start_line = 5;
              start_column = 10;
              end_line = 5;
@@ -38719,7 +38334,7 @@ let eligibilite_prime_de_demenagement
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 489;
              start_column = 3;
              end_line = 489;
@@ -38735,7 +38350,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 496;
                  start_column = 14;
                  end_line = 496;
@@ -38753,7 +38368,7 @@ let eligibilite_prime_de_demenagement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 311;
              start_column = 10;
              end_line = 311;
@@ -38773,7 +38388,7 @@ let eligibilite_prime_de_demenagement
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 489;
              start_column = 3;
              end_line = 489;
@@ -38789,7 +38404,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 497;
                  start_column = 14;
                  end_line = 497;
@@ -38807,7 +38422,7 @@ let eligibilite_prime_de_demenagement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 312;
              start_column = 10;
              end_line = 312;
@@ -38827,7 +38442,7 @@ let eligibilite_prime_de_demenagement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 489;
              start_column = 3;
              end_line = 489;
@@ -38843,7 +38458,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 498;
                  start_column = 14;
                  end_line = 498;
@@ -38861,7 +38476,7 @@ let eligibilite_prime_de_demenagement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 313;
              start_column = 17;
              end_line = 313;
@@ -38949,7 +38564,7 @@ let eligibilite_prime_de_demenagement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 484;
              start_column = 11;
              end_line = 484;
@@ -38965,7 +38580,7 @@ let eligibilite_prime_de_demenagement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 484;
                    start_column = 11;
                    end_line = 484;
@@ -38981,8 +38596,7 @@ let eligibilite_prime_de_demenagement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                       filename = "./code_construction_reglementaire.catala_fr";
                        start_line = 2136;
                        start_column = 6;
                        end_line = 2144;
@@ -39028,7 +38642,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 484;
                  start_column = 11;
                  end_line = 484;
@@ -39046,7 +38660,7 @@ let eligibilite_prime_de_demenagement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 484;
                 start_column = 11;
                 end_line = 484;
@@ -39066,7 +38680,7 @@ let eligibilite_prime_de_demenagement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 487;
              start_column = 11;
              end_line = 487;
@@ -39082,8 +38696,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 4394;
                  start_column = 14;
                  end_line = 4394;
@@ -39132,7 +38745,7 @@ let eligibilite_prime_de_demenagement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 487;
                 start_column = 11;
                 end_line = 487;
@@ -39152,7 +38765,7 @@ let eligibilite_prime_de_demenagement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 485;
              start_column = 11;
              end_line = 485;
@@ -39168,7 +38781,7 @@ let eligibilite_prime_de_demenagement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 485;
                    start_column = 11;
                    end_line = 485;
@@ -39184,8 +38797,7 @@ let eligibilite_prime_de_demenagement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 556;
                        start_column = 5;
                        end_line = 559;
@@ -39211,7 +38823,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 485;
                  start_column = 11;
                  end_line = 485;
@@ -39229,7 +38841,7 @@ let eligibilite_prime_de_demenagement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 485;
                 start_column = 11;
                 end_line = 485;
@@ -39249,7 +38861,7 @@ let eligibilite_prime_de_demenagement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 493;
              start_column = 10;
              end_line = 493;
@@ -39265,8 +38877,7 @@ let eligibilite_prime_de_demenagement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 2174;
                  start_column = 14;
                  end_line = 2174;
@@ -39292,7 +38903,7 @@ let eligibilite_prime_de_demenagement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 493;
                 start_column = 10;
                 end_line = 493;
@@ -39335,7 +38946,7 @@ let eligibilite_aide_personnalisee_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 392;
                  start_column = 11;
                  end_line = 392;
@@ -39351,7 +38962,7 @@ let eligibilite_aide_personnalisee_logement
                  (fun (_ : _) ->
                    handle_default
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 392;
                        start_column = 11;
                        end_line = 392;
@@ -39367,8 +38978,7 @@ let eligibilite_aide_personnalisee_logement
                        (fun (_ : _) ->
                          handle_default
                            {
-                             filename =
-                               "examples/aides_logement/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 392;
                              start_column = 11;
                              end_line = 392;
@@ -39384,8 +38994,7 @@ let eligibilite_aide_personnalisee_logement
                              (fun (_ : _) ->
                                handle_default
                                  {
-                                   filename =
-                                     "examples/aides_logement/prologue.catala_fr";
+                                   filename = "./prologue.catala_fr";
                                    start_line = 392;
                                    start_column = 11;
                                    end_line = 392;
@@ -39403,7 +39012,7 @@ let eligibilite_aide_personnalisee_logement
                                    log_decision_taken
                                      {
                                        filename =
-                                         "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                                         "./code_construction_reglementaire.catala_fr";
                                        start_line = 3085;
                                        start_column = 5;
                                        end_line = 3088;
@@ -39450,7 +39059,7 @@ let eligibilite_aide_personnalisee_logement
                              log_decision_taken
                                {
                                  filename =
-                                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                                   "./code_construction_reglementaire.catala_fr";
                                  start_line = 3050;
                                  start_column = 5;
                                  end_line = 3052;
@@ -39498,7 +39107,7 @@ let eligibilite_aide_personnalisee_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 392;
                      start_column = 11;
                      end_line = 392;
@@ -39516,7 +39125,7 @@ let eligibilite_aide_personnalisee_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 392;
                     start_column = 11;
                     end_line = 392;
@@ -39532,7 +39141,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 392;
                 start_column = 11;
                 end_line = 392;
@@ -39554,7 +39163,7 @@ let eligibilite_aide_personnalisee_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 393;
                  start_column = 11;
                  end_line = 393;
@@ -39570,7 +39179,7 @@ let eligibilite_aide_personnalisee_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename = "examples/aides_logement/prologue.catala_fr";
+                     filename = "./prologue.catala_fr";
                      start_line = 393;
                      start_column = 11;
                      end_line = 393;
@@ -39588,7 +39197,7 @@ let eligibilite_aide_personnalisee_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 393;
                     start_column = 11;
                     end_line = 393;
@@ -39604,7 +39213,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 393;
                 start_column = 11;
                 end_line = 393;
@@ -39624,7 +39233,7 @@ let eligibilite_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 391;
              start_column = 11;
              end_line = 391;
@@ -39640,7 +39249,7 @@ let eligibilite_aide_personnalisee_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 391;
                    start_column = 11;
                    end_line = 391;
@@ -39656,7 +39265,7 @@ let eligibilite_aide_personnalisee_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 391;
                          start_column = 11;
                          end_line = 391;
@@ -39672,8 +39281,7 @@ let eligibilite_aide_personnalisee_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 391;
                                start_column = 11;
                                end_line = 391;
@@ -39691,7 +39299,7 @@ let eligibilite_aide_personnalisee_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                     "./code_construction_legislatif.catala_fr";
                                    start_line = 756;
                                    start_column = 5;
                                    end_line = 769;
@@ -39750,7 +39358,7 @@ let eligibilite_aide_personnalisee_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 737;
                              start_column = 5;
                              end_line = 742;
@@ -39784,8 +39392,7 @@ let eligibilite_aide_personnalisee_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 733;
                        start_column = 31;
                        end_line = 733;
@@ -39806,7 +39413,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 391;
                  start_column = 11;
                  end_line = 391;
@@ -39824,7 +39431,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 391;
                 start_column = 11;
                 end_line = 391;
@@ -39844,7 +39451,7 @@ let eligibilite_aide_personnalisee_logement
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 395;
              start_column = 3;
              end_line = 395;
@@ -39860,7 +39467,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 404;
                  start_column = 14;
                  end_line = 404;
@@ -39878,7 +39485,7 @@ let eligibilite_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 311;
              start_column = 10;
              end_line = 311;
@@ -39900,7 +39507,7 @@ let eligibilite_aide_personnalisee_logement
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 395;
              start_column = 3;
              end_line = 395;
@@ -39916,7 +39523,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 405;
                  start_column = 14;
                  end_line = 405;
@@ -39934,7 +39541,7 @@ let eligibilite_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 312;
              start_column = 10;
              end_line = 312;
@@ -39957,7 +39564,7 @@ let eligibilite_aide_personnalisee_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 395;
              start_column = 3;
              end_line = 395;
@@ -39973,7 +39580,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 406;
                  start_column = 14;
                  end_line = 406;
@@ -39991,7 +39598,7 @@ let eligibilite_aide_personnalisee_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 313;
              start_column = 17;
              end_line = 313;
@@ -40079,7 +39686,7 @@ let eligibilite_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 390;
              start_column = 11;
              end_line = 390;
@@ -40095,7 +39702,7 @@ let eligibilite_aide_personnalisee_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 390;
                    start_column = 11;
                    end_line = 390;
@@ -40111,7 +39718,7 @@ let eligibilite_aide_personnalisee_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 390;
                          start_column = 11;
                          end_line = 390;
@@ -40127,8 +39734,7 @@ let eligibilite_aide_personnalisee_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 390;
                                start_column = 11;
                                end_line = 390;
@@ -40146,7 +39752,7 @@ let eligibilite_aide_personnalisee_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                     "./code_construction_legislatif.catala_fr";
                                    start_line = 661;
                                    start_column = 5;
                                    end_line = 671;
@@ -40196,7 +39802,7 @@ let eligibilite_aide_personnalisee_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 684;
                              start_column = 5;
                              end_line = 695;
@@ -40247,8 +39853,7 @@ let eligibilite_aide_personnalisee_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 634;
                        start_column = 5;
                        end_line = 641;
@@ -40286,7 +39891,7 @@ let eligibilite_aide_personnalisee_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 390;
                    start_column = 11;
                    end_line = 390;
@@ -40302,7 +39907,7 @@ let eligibilite_aide_personnalisee_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 390;
                          start_column = 11;
                          end_line = 390;
@@ -40318,8 +39923,7 @@ let eligibilite_aide_personnalisee_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 390;
                                start_column = 11;
                                end_line = 390;
@@ -40336,8 +39940,7 @@ let eligibilite_aide_personnalisee_logement
                                (fun (_ : _) ->
                                  handle_default
                                    {
-                                     filename =
-                                       "examples/aides_logement/prologue.catala_fr";
+                                     filename = "./prologue.catala_fr";
                                      start_line = 390;
                                      start_column = 11;
                                      end_line = 390;
@@ -40355,7 +39958,7 @@ let eligibilite_aide_personnalisee_logement
                                      log_decision_taken
                                        {
                                          filename =
-                                           "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                                           "./code_construction_reglementaire.catala_fr";
                                          start_line = 3758;
                                          start_column = 5;
                                          end_line = 3763;
@@ -40403,7 +40006,7 @@ let eligibilite_aide_personnalisee_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                     "./code_construction_legislatif.catala_fr";
                                    start_line = 718;
                                    start_column = 5;
                                    end_line = 721;
@@ -40467,7 +40070,7 @@ let eligibilite_aide_personnalisee_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 613;
                              start_column = 5;
                              end_line = 616;
@@ -40525,7 +40128,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 390;
                  start_column = 11;
                  end_line = 390;
@@ -40543,7 +40146,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 390;
                 start_column = 11;
                 end_line = 390;
@@ -40566,7 +40169,7 @@ let eligibilite_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 399;
              start_column = 10;
              end_line = 399;
@@ -40582,7 +40185,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 410;
                  start_column = 14;
                  end_line = 410;
@@ -40601,7 +40204,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 399;
                 start_column = 10;
                 end_line = 399;
@@ -40624,7 +40227,7 @@ let eligibilite_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 398;
              start_column = 10;
              end_line = 398;
@@ -40640,7 +40243,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 408;
                  start_column = 14;
                  end_line = 408;
@@ -40659,7 +40262,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 398;
                 start_column = 10;
                 end_line = 398;
@@ -40679,7 +40282,7 @@ let eligibilite_aide_personnalisee_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 397;
              start_column = 10;
              end_line = 397;
@@ -40695,7 +40298,7 @@ let eligibilite_aide_personnalisee_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 397;
                    start_column = 10;
                    end_line = 397;
@@ -40711,8 +40314,7 @@ let eligibilite_aide_personnalisee_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 584;
                        start_column = 5;
                        end_line = 586;
@@ -40733,7 +40335,7 @@ let eligibilite_aide_personnalisee_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 397;
                  start_column = 10;
                  end_line = 397;
@@ -40751,7 +40353,7 @@ let eligibilite_aide_personnalisee_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 397;
                 start_column = 10;
                 end_line = 397;
@@ -40804,7 +40406,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 433;
              start_column = 11;
              end_line = 433;
@@ -40820,8 +40422,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4241;
                  start_column = 14;
                  end_line = 4241;
@@ -40842,7 +40443,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 433;
                 start_column = 11;
                 end_line = 433;
@@ -40864,7 +40465,7 @@ let eligibilite_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 435;
              start_column = 3;
              end_line = 435;
@@ -40880,7 +40481,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 450;
                  start_column = 14;
                  end_line = 450;
@@ -40898,8 +40499,7 @@ let eligibilite_allocation_logement
       raise
         (NoValueProvided
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 46;
              start_column = 10;
              end_line = 46;
@@ -40918,7 +40518,7 @@ let eligibilite_allocation_logement
         embed_element_prestations_familiales
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 435;
              start_column = 3;
              end_line = 435;
@@ -40934,7 +40534,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 451;
                  start_column = 14;
                  end_line = 451;
@@ -40953,8 +40553,7 @@ let eligibilite_allocation_logement
       raise
         (NoValueProvided
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 47;
              start_column = 10;
              end_line = 47;
@@ -40969,7 +40568,7 @@ let eligibilite_allocation_logement
         embed_collectivite
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 435;
              start_column = 3;
              end_line = 435;
@@ -40985,7 +40584,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 455;
                  start_column = 14;
                  end_line = 455;
@@ -41003,8 +40602,7 @@ let eligibilite_allocation_logement
       raise
         (NoValueProvided
            {
-             filename =
-               "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
+             filename = "./../prestations_familiales/prologue.catala_fr";
              start_line = 48;
              start_column = 10;
              end_line = 48;
@@ -41056,7 +40654,7 @@ let eligibilite_allocation_logement
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 436;
              start_column = 3;
              end_line = 436;
@@ -41072,7 +40670,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 457;
                  start_column = 14;
                  end_line = 457;
@@ -41090,7 +40688,7 @@ let eligibilite_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 311;
              start_column = 10;
              end_line = 311;
@@ -41110,7 +40708,7 @@ let eligibilite_allocation_logement
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 436;
              start_column = 3;
              end_line = 436;
@@ -41126,7 +40724,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 458;
                  start_column = 14;
                  end_line = 458;
@@ -41144,7 +40742,7 @@ let eligibilite_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 312;
              start_column = 10;
              end_line = 312;
@@ -41164,7 +40762,7 @@ let eligibilite_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 436;
              start_column = 3;
              end_line = 436;
@@ -41180,7 +40778,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 459;
                  start_column = 14;
                  end_line = 459;
@@ -41198,7 +40796,7 @@ let eligibilite_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 313;
              start_column = 17;
              end_line = 313;
@@ -41222,7 +40820,7 @@ let eligibilite_allocation_logement
       embed_bool
       (handle_default
          {
-           filename = "examples/aides_logement/prologue.catala_fr";
+           filename = "./prologue.catala_fr";
            start_line = 436;
            start_column = 3;
            end_line = 436;
@@ -41238,7 +40836,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 436;
                  start_column = 3;
                  end_line = 436;
@@ -41254,8 +40852,7 @@ let eligibilite_allocation_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4828;
                      start_column = 9;
                      end_line = 4828;
@@ -41287,7 +40884,7 @@ let eligibilite_allocation_logement
          (fun (_ : _) ->
            log_decision_taken
              {
-               filename = "examples/aides_logement/prologue.catala_fr";
+               filename = "./prologue.catala_fr";
                start_line = 436;
                start_column = 3;
                end_line = 436;
@@ -41312,7 +40909,7 @@ let eligibilite_allocation_logement
       embed_bool
       (handle_default
          {
-           filename = "examples/aides_logement/prologue.catala_fr";
+           filename = "./prologue.catala_fr";
            start_line = 436;
            start_column = 3;
            end_line = 436;
@@ -41328,7 +40925,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 436;
                  start_column = 3;
                  end_line = 436;
@@ -41344,8 +40941,7 @@ let eligibilite_allocation_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 4829;
                      start_column = 9;
                      end_line = 4829;
@@ -41377,7 +40973,7 @@ let eligibilite_allocation_logement
          (fun (_ : _) ->
            log_decision_taken
              {
-               filename = "examples/aides_logement/prologue.catala_fr";
+               filename = "./prologue.catala_fr";
                start_line = 436;
                start_column = 3;
                end_line = 436;
@@ -41451,7 +41047,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 432;
              start_column = 11;
              end_line = 432;
@@ -41467,7 +41063,7 @@ let eligibilite_allocation_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 432;
                    start_column = 11;
                    end_line = 432;
@@ -41483,8 +41079,7 @@ let eligibilite_allocation_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 1136;
                        start_column = 5;
                        end_line = 1136;
@@ -41507,7 +41102,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 432;
                  start_column = 11;
                  end_line = 432;
@@ -41525,7 +41120,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 432;
                 start_column = 11;
                 end_line = 432;
@@ -41545,7 +41140,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 429;
              start_column = 11;
              end_line = 429;
@@ -41561,7 +41156,7 @@ let eligibilite_allocation_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 429;
                    start_column = 11;
                    end_line = 429;
@@ -41577,7 +41172,7 @@ let eligibilite_allocation_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 429;
                          start_column = 11;
                          end_line = 429;
@@ -41593,8 +41188,7 @@ let eligibilite_allocation_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 429;
                                start_column = 11;
                                end_line = 429;
@@ -41610,8 +41204,7 @@ let eligibilite_allocation_logement
                                (fun (_ : _) ->
                                  handle_default
                                    {
-                                     filename =
-                                       "examples/aides_logement/prologue.catala_fr";
+                                     filename = "./prologue.catala_fr";
                                      start_line = 429;
                                      start_column = 11;
                                      end_line = 429;
@@ -41629,7 +41222,7 @@ let eligibilite_allocation_logement
                                      log_decision_taken
                                        {
                                          filename =
-                                           "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                                           "./code_construction_reglementaire.catala_fr";
                                          start_line = 4418;
                                          start_column = 5;
                                          end_line = 4426;
@@ -41708,7 +41301,7 @@ let eligibilite_allocation_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                                     "./code_construction_reglementaire.catala_fr";
                                    start_line = 4399;
                                    start_column = 5;
                                    end_line = 4406;
@@ -41780,7 +41373,7 @@ let eligibilite_allocation_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                               "./code_construction_reglementaire.catala_fr";
                              start_line = 4380;
                              start_column = 5;
                              end_line = 4389;
@@ -41862,7 +41455,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 429;
                  start_column = 11;
                  end_line = 429;
@@ -41880,7 +41473,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 429;
                 start_column = 11;
                 end_line = 429;
@@ -41903,7 +41496,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 444;
              start_column = 10;
              end_line = 444;
@@ -41919,7 +41512,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 469;
                  start_column = 14;
                  end_line = 469;
@@ -41938,7 +41531,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 444;
                 start_column = 10;
                 end_line = 444;
@@ -41961,7 +41554,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 443;
              start_column = 10;
              end_line = 443;
@@ -41977,7 +41570,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 467;
                  start_column = 14;
                  end_line = 467;
@@ -41996,7 +41589,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 443;
                 start_column = 10;
                 end_line = 443;
@@ -42016,7 +41609,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 440;
              start_column = 10;
              end_line = 440;
@@ -42032,8 +41625,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 856;
                  start_column = 14;
                  end_line = 856;
@@ -42056,7 +41648,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 440;
                 start_column = 10;
                 end_line = 440;
@@ -42079,7 +41671,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 431;
              start_column = 11;
              end_line = 431;
@@ -42095,7 +41687,7 @@ let eligibilite_allocation_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 431;
                    start_column = 11;
                    end_line = 431;
@@ -42111,7 +41703,7 @@ let eligibilite_allocation_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 431;
                          start_column = 11;
                          end_line = 431;
@@ -42127,8 +41719,7 @@ let eligibilite_allocation_logement
                          (fun (_ : _) ->
                            handle_default
                              {
-                               filename =
-                                 "examples/aides_logement/prologue.catala_fr";
+                               filename = "./prologue.catala_fr";
                                start_line = 431;
                                start_column = 11;
                                end_line = 431;
@@ -42144,8 +41735,7 @@ let eligibilite_allocation_logement
                                (fun (_ : _) ->
                                  handle_default
                                    {
-                                     filename =
-                                       "examples/aides_logement/prologue.catala_fr";
+                                     filename = "./prologue.catala_fr";
                                      start_line = 431;
                                      start_column = 11;
                                      end_line = 431;
@@ -42162,8 +41752,7 @@ let eligibilite_allocation_logement
                                      (fun (_ : _) ->
                                        handle_default
                                          {
-                                           filename =
-                                             "examples/aides_logement/prologue.catala_fr";
+                                           filename = "./prologue.catala_fr";
                                            start_line = 431;
                                            start_column = 11;
                                            end_line = 431;
@@ -42182,7 +41771,7 @@ let eligibilite_allocation_logement
                                            log_decision_taken
                                              {
                                                filename =
-                                                 "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                                 "./code_construction_legislatif.catala_fr";
                                                start_line = 1018;
                                                start_column = 5;
                                                end_line = 1022;
@@ -42232,8 +41821,7 @@ let eligibilite_allocation_logement
                                    (fun (_ : _) ->
                                      handle_default
                                        {
-                                         filename =
-                                           "examples/aides_logement/prologue.catala_fr";
+                                         filename = "./prologue.catala_fr";
                                          start_line = 431;
                                          start_column = 11;
                                          end_line = 431;
@@ -42251,8 +41839,7 @@ let eligibilite_allocation_logement
                                          (fun (_ : _) ->
                                            handle_default
                                              {
-                                               filename =
-                                                 "examples/aides_logement/prologue.catala_fr";
+                                               filename = "./prologue.catala_fr";
                                                start_line = 431;
                                                start_column = 11;
                                                end_line = 431;
@@ -42272,7 +41859,7 @@ let eligibilite_allocation_logement
                                                  handle_default
                                                    {
                                                      filename =
-                                                       "examples/aides_logement/prologue.catala_fr";
+                                                       "./prologue.catala_fr";
                                                      start_line = 431;
                                                      start_column = 11;
                                                      end_line = 431;
@@ -42293,7 +41880,7 @@ let eligibilite_allocation_logement
                                                      log_decision_taken
                                                        {
                                                          filename =
-                                                           "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                                           "./code_construction_legislatif.catala_fr";
                                                          start_line = 995;
                                                          start_column = 5;
                                                          end_line = 1006;
@@ -42356,7 +41943,7 @@ let eligibilite_allocation_logement
                                                log_decision_taken
                                                  {
                                                    filename =
-                                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                                     "./code_construction_legislatif.catala_fr";
                                                    start_line = 978;
                                                    start_column = 5;
                                                    end_line = 979;
@@ -42425,7 +42012,7 @@ let eligibilite_allocation_logement
                                log_decision_taken
                                  {
                                    filename =
-                                     "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                     "./code_construction_legislatif.catala_fr";
                                    start_line = 937;
                                    start_column = 5;
                                    end_line = 964;
@@ -42564,7 +42151,7 @@ let eligibilite_allocation_logement
                          log_decision_taken
                            {
                              filename =
-                               "examples/aides_logement/code_construction_legislatif.catala_fr";
+                               "./code_construction_legislatif.catala_fr";
                              start_line = 902;
                              start_column = 5;
                              end_line = 926;
@@ -42678,8 +42265,7 @@ let eligibilite_allocation_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 883;
                        start_column = 5;
                        end_line = 887;
@@ -42711,7 +42297,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 431;
                  start_column = 11;
                  end_line = 431;
@@ -42729,7 +42315,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 431;
                 start_column = 11;
                 end_line = 431;
@@ -42749,7 +42335,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 441;
              start_column = 10;
              end_line = 441;
@@ -42765,7 +42351,7 @@ let eligibilite_allocation_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 441;
                    start_column = 10;
                    end_line = 441;
@@ -42781,8 +42367,7 @@ let eligibilite_allocation_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename =
-                         "examples/aides_logement/code_construction_legislatif.catala_fr";
+                       filename = "./code_construction_legislatif.catala_fr";
                        start_line = 1148;
                        start_column = 5;
                        end_line = 1151;
@@ -42814,8 +42399,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 1049;
                  start_column = 14;
                  end_line = 1049;
@@ -42846,7 +42430,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 441;
                 start_column = 10;
                 end_line = 441;
@@ -42866,7 +42450,7 @@ let eligibilite_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 442;
              start_column = 10;
              end_line = 442;
@@ -42882,7 +42466,7 @@ let eligibilite_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 462;
                  start_column = 14;
                  end_line = 462;
@@ -42903,7 +42487,7 @@ let eligibilite_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 442;
                 start_column = 10;
                 end_line = 442;
@@ -42965,7 +42549,7 @@ let calcul_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1017;
              start_column = 11;
              end_line = 1017;
@@ -42982,8 +42566,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1395;
                  start_column = 14;
                  end_line = 1395;
@@ -43016,7 +42599,7 @@ let calcul_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1017;
                 start_column = 11;
                 end_line = 1017;
@@ -43037,7 +42620,7 @@ let calcul_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1010;
              start_column = 10;
              end_line = 1010;
@@ -43054,8 +42637,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 4871;
                  start_column = 14;
                  end_line = 4871;
@@ -43082,7 +42664,7 @@ let calcul_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1010;
                 start_column = 10;
                 end_line = 1010;
@@ -43103,7 +42685,7 @@ let calcul_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1018;
              start_column = 11;
              end_line = 1018;
@@ -43120,8 +42702,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/arrete_2019-09-27.catala_fr";
+                 filename = "./arrete_2019-09-27.catala_fr";
                  start_line = 81;
                  start_column = 14;
                  end_line = 81;
@@ -43154,7 +42735,7 @@ let calcul_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1018;
                 start_column = 11;
                 end_line = 1018;
@@ -43178,7 +42759,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43195,8 +42776,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1610;
                  start_column = 14;
                  end_line = 1610;
@@ -43219,7 +42799,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 855;
              start_column = 10;
              end_line = 855;
@@ -43242,7 +42822,7 @@ let calcul_allocation_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43259,8 +42839,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1616;
                  start_column = 14;
                  end_line = 1616;
@@ -43283,7 +42862,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 858;
              start_column = 10;
              end_line = 858;
@@ -43307,7 +42886,7 @@ let calcul_allocation_logement
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43324,8 +42903,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1628;
                  start_column = 14;
                  end_line = 1628;
@@ -43348,7 +42926,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 859;
              start_column = 10;
              end_line = 859;
@@ -43368,7 +42946,7 @@ let calcul_allocation_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43385,8 +42963,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1620;
                  start_column = 14;
                  end_line = 1620;
@@ -43409,7 +42986,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 860;
              start_column = 10;
              end_line = 860;
@@ -43429,7 +43006,7 @@ let calcul_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43446,8 +43023,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1623;
                  start_column = 14;
                  end_line = 1623;
@@ -43470,7 +43046,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 861;
              start_column = 10;
              end_line = 861;
@@ -43492,7 +43068,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43509,8 +43085,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1681;
                  start_column = 14;
                  end_line = 1681;
@@ -43540,7 +43115,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 862;
              start_column = 10;
              end_line = 862;
@@ -43563,7 +43138,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43580,8 +43155,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1713;
                  start_column = 14;
                  end_line = 1713;
@@ -43611,7 +43185,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 863;
              start_column = 10;
              end_line = 863;
@@ -43631,7 +43205,7 @@ let calcul_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43648,8 +43222,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1692;
                  start_column = 14;
                  end_line = 1692;
@@ -43679,7 +43252,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 864;
              start_column = 10;
              end_line = 864;
@@ -43702,7 +43275,7 @@ let calcul_allocation_logement
         embed_type_travaux_logement_r842_5
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43719,8 +43292,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1686;
                  start_column = 14;
                  end_line = 1686;
@@ -43752,7 +43324,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 865;
              start_column = 10;
              end_line = 865;
@@ -43775,7 +43347,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43792,8 +43364,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1697;
                  start_column = 14;
                  end_line = 1697;
@@ -43823,7 +43394,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 866;
              start_column = 10;
              end_line = 866;
@@ -43843,7 +43414,7 @@ let calcul_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43860,8 +43431,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1703;
                  start_column = 14;
                  end_line = 1703;
@@ -43891,7 +43461,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 867;
              start_column = 10;
              end_line = 867;
@@ -43914,7 +43484,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -43931,8 +43501,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1718;
                  start_column = 14;
                  end_line = 1718;
@@ -43963,7 +43532,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 868;
              start_column = 10;
              end_line = 868;
@@ -43983,7 +43552,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1022;
              start_column = 3;
              end_line = 1022;
@@ -44000,8 +43569,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1708;
                  start_column = 14;
                  end_line = 1708;
@@ -44029,7 +43597,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 869;
              start_column = 10;
              end_line = 869;
@@ -44108,7 +43676,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44125,8 +43693,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1724;
                  start_column = 14;
                  end_line = 1724;
@@ -44155,7 +43722,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 948;
              start_column = 10;
              end_line = 948;
@@ -44175,7 +43742,7 @@ let calcul_allocation_logement
         embed_mode_occupation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44192,8 +43759,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1630;
                  start_column = 14;
                  end_line = 1630;
@@ -44216,7 +43782,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 949;
              start_column = 10;
              end_line = 949;
@@ -44239,7 +43805,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44256,8 +43822,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1608;
                  start_column = 14;
                  end_line = 1608;
@@ -44280,7 +43845,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 950;
              start_column = 10;
              end_line = 950;
@@ -44300,7 +43865,7 @@ let calcul_allocation_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44317,8 +43882,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1614;
                  start_column = 14;
                  end_line = 1614;
@@ -44341,7 +43905,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 951;
              start_column = 10;
              end_line = 951;
@@ -44365,7 +43929,7 @@ let calcul_allocation_logement
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44382,8 +43946,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1626;
                  start_column = 14;
                  end_line = 1626;
@@ -44406,7 +43969,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 952;
              start_column = 10;
              end_line = 952;
@@ -44426,7 +43989,7 @@ let calcul_allocation_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44443,8 +44006,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1619;
                  start_column = 14;
                  end_line = 1619;
@@ -44467,7 +44029,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 953;
              start_column = 10;
              end_line = 953;
@@ -44487,7 +44049,7 @@ let calcul_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44504,8 +44066,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1622;
                  start_column = 14;
                  end_line = 1622;
@@ -44528,7 +44089,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 954;
              start_column = 10;
              end_line = 954;
@@ -44552,7 +44113,7 @@ let calcul_allocation_logement
         embed_categorie_equivalence_loyer_allocation_logement_foyer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1021;
              start_column = 3;
              end_line = 1021;
@@ -44569,8 +44130,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1729;
                  start_column = 14;
                  end_line = 1729;
@@ -44604,7 +44164,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 955;
              start_column = 10;
              end_line = 955;
@@ -44678,7 +44238,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -44695,8 +44255,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1633;
                  start_column = 14;
                  end_line = 1633;
@@ -44726,7 +44285,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 790;
              start_column = 10;
              end_line = 790;
@@ -44746,7 +44305,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -44763,8 +44322,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1607;
                  start_column = 14;
                  end_line = 1607;
@@ -44787,7 +44345,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 791;
              start_column = 10;
              end_line = 791;
@@ -44810,7 +44368,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -44827,8 +44385,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1638;
                  start_column = 14;
                  end_line = 1638;
@@ -44858,7 +44415,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 792;
              start_column = 10;
              end_line = 792;
@@ -44878,7 +44435,7 @@ let calcul_allocation_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -44895,8 +44452,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1621;
                  start_column = 14;
                  end_line = 1621;
@@ -44919,7 +44475,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 794;
              start_column = 10;
              end_line = 794;
@@ -44939,7 +44495,7 @@ let calcul_allocation_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -44956,8 +44512,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1612;
                  start_column = 14;
                  end_line = 1612;
@@ -44980,7 +44535,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 795;
              start_column = 10;
              end_line = 795;
@@ -45001,7 +44556,7 @@ let calcul_allocation_logement
         embed_situation_familiale_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45018,8 +44573,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1624;
                  start_column = 14;
                  end_line = 1624;
@@ -45042,7 +44596,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 796;
              start_column = 10;
              end_line = 796;
@@ -45062,7 +44616,7 @@ let calcul_allocation_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45079,8 +44633,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1618;
                  start_column = 14;
                  end_line = 1618;
@@ -45103,7 +44656,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 797;
              start_column = 10;
              end_line = 797;
@@ -45123,7 +44676,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45140,8 +44693,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1644;
                  start_column = 14;
                  end_line = 1644;
@@ -45169,7 +44721,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 798;
              start_column = 10;
              end_line = 798;
@@ -45193,7 +44745,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45210,8 +44762,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1657;
                  start_column = 5;
                  end_line = 1657;
@@ -45241,7 +44792,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 799;
              start_column = 10;
              end_line = 799;
@@ -45261,7 +44812,7 @@ let calcul_allocation_logement
         embed_type_aides_personnelle_logement
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45278,8 +44829,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1664;
                  start_column = 14;
                  end_line = 1664;
@@ -45302,7 +44852,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 801;
              start_column = 10;
              end_line = 801;
@@ -45322,7 +44872,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45339,8 +44889,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1650;
                  start_column = 14;
                  end_line = 1650;
@@ -45368,7 +44917,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 802;
              start_column = 10;
              end_line = 802;
@@ -45388,7 +44937,7 @@ let calcul_allocation_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45405,8 +44954,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1665;
                  start_column = 14;
                  end_line = 1665;
@@ -45436,7 +44984,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 803;
              start_column = 10;
              end_line = 803;
@@ -45456,7 +45004,7 @@ let calcul_allocation_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45473,8 +45021,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1670;
                  start_column = 14;
                  end_line = 1670;
@@ -45502,7 +45049,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 806;
              start_column = 10;
              end_line = 806;
@@ -45522,7 +45069,7 @@ let calcul_allocation_logement
         embed_changement_logement_d842_4
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1020;
              start_column = 3;
              end_line = 1020;
@@ -45539,8 +45086,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1675;
                  start_column = 14;
                  end_line = 1675;
@@ -45570,7 +45116,7 @@ let calcul_allocation_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 807;
              start_column = 10;
              end_line = 807;
@@ -45640,7 +45186,7 @@ let calcul_allocation_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1026;
                  start_column = 10;
                  end_line = 1026;
@@ -45657,8 +45203,7 @@ let calcul_allocation_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                     filename = "./code_construction_reglementaire.catala_fr";
                      start_line = 1408;
                      start_column = 14;
                      end_line = 1408;
@@ -45762,7 +45307,7 @@ let calcul_allocation_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 1026;
                     start_column = 10;
                     end_line = 1026;
@@ -45779,7 +45324,7 @@ let calcul_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1026;
                 start_column = 10;
                 end_line = 1026;
@@ -45800,7 +45345,7 @@ let calcul_allocation_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1025;
              start_column = 10;
              end_line = 1025;
@@ -45817,8 +45362,7 @@ let calcul_allocation_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                 filename = "./code_construction_reglementaire.catala_fr";
                  start_line = 1403;
                  start_column = 14;
                  end_line = 1403;
@@ -45847,7 +45391,7 @@ let calcul_allocation_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1025;
                 start_column = 10;
                 end_line = 1025;
@@ -45879,8 +45423,7 @@ let calcul_allocation_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1603;
                start_column = 5;
                end_line = 1605;
@@ -45902,8 +45445,7 @@ let calcul_allocation_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1603;
              start_column = 5;
              end_line = 1605;
@@ -45939,8 +45481,7 @@ let calcul_allocation_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1599;
                start_column = 5;
                end_line = 1601;
@@ -45962,8 +45503,7 @@ let calcul_allocation_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1599;
              start_column = 5;
              end_line = 1601;
@@ -45999,8 +45539,7 @@ let calcul_allocation_logement
         raise
           (NoValueProvided
              {
-               filename =
-                 "examples/aides_logement/code_construction_reglementaire.catala_fr";
+               filename = "./code_construction_reglementaire.catala_fr";
                start_line = 1595;
                start_column = 5;
                end_line = 1597;
@@ -46022,8 +45561,7 @@ let calcul_allocation_logement
       raise
         (AssertionFailed
            {
-             filename =
-               "examples/aides_logement/code_construction_reglementaire.catala_fr";
+             filename = "./code_construction_reglementaire.catala_fr";
              start_line = 1595;
              start_column = 5;
              end_line = 1597;
@@ -46077,7 +45615,7 @@ let calculette_aides_au_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1079;
              start_column = 3;
              end_line = 1079;
@@ -46089,7 +45627,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1105;
                  start_column = 14;
                  end_line = 1105;
@@ -46103,7 +45641,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 423;
              start_column = 10;
              end_line = 423;
@@ -46123,7 +45661,7 @@ let calculette_aides_au_logement
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1079;
              start_column = 3;
              end_line = 1079;
@@ -46135,7 +45673,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1097;
                  start_column = 14;
                  end_line = 1097;
@@ -46149,7 +45687,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 424;
              start_column = 10;
              end_line = 424;
@@ -46172,7 +45710,7 @@ let calculette_aides_au_logement
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1079;
              start_column = 3;
              end_line = 1079;
@@ -46184,7 +45722,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1101;
                  start_column = 14;
                  end_line = 1101;
@@ -46198,7 +45736,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 425;
              start_column = 10;
              end_line = 425;
@@ -46222,7 +45760,7 @@ let calculette_aides_au_logement
         embed_bool
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1079;
              start_column = 3;
              end_line = 1079;
@@ -46234,8 +45772,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 1066;
                  start_column = 5;
                  end_line = 1066;
@@ -46256,7 +45793,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 426;
              start_column = 10;
              end_line = 426;
@@ -46280,7 +45817,7 @@ let calculette_aides_au_logement
         embed_informations_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1079;
              start_column = 3;
              end_line = 1079;
@@ -46292,7 +45829,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1107;
                  start_column = 14;
                  end_line = 1107;
@@ -46306,7 +45843,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 427;
              start_column = 10;
              end_line = 427;
@@ -46374,7 +45911,7 @@ let calculette_aides_au_logement
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1076;
              start_column = 3;
              end_line = 1076;
@@ -46386,7 +45923,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1095;
                  start_column = 14;
                  end_line = 1095;
@@ -46400,7 +45937,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 386;
              start_column = 10;
              end_line = 386;
@@ -46423,7 +45960,7 @@ let calculette_aides_au_logement
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1076;
              start_column = 3;
              end_line = 1076;
@@ -46435,7 +45972,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1099;
                  start_column = 14;
                  end_line = 1099;
@@ -46449,7 +45986,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 387;
              start_column = 10;
              end_line = 387;
@@ -46472,7 +46009,7 @@ let calculette_aides_au_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1076;
              start_column = 3;
              end_line = 1076;
@@ -46484,7 +46021,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1103;
                  start_column = 14;
                  end_line = 1103;
@@ -46498,7 +46035,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 388;
              start_column = 17;
              end_line = 388;
@@ -46562,7 +46099,7 @@ let calculette_aides_au_logement
         embed_mode_occupation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46574,7 +46111,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1120;
                  start_column = 14;
                  end_line = 1120;
@@ -46588,7 +46125,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1006;
              start_column = 10;
              end_line = 1006;
@@ -46613,7 +46150,7 @@ let calculette_aides_au_logement
         embed_informations_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46625,7 +46162,7 @@ let calculette_aides_au_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1085;
                    start_column = 3;
                    end_line = 1085;
@@ -46637,7 +46174,7 @@ let calculette_aides_au_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 1085;
                          start_column = 3;
                          end_line = 1085;
@@ -46651,8 +46188,7 @@ let calculette_aides_au_logement
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 1116;
                              start_column = 14;
                              end_line = 1116;
@@ -46669,7 +46205,7 @@ let calculette_aides_au_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 1112;
                        start_column = 14;
                        end_line = 1112;
@@ -46686,7 +46222,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1007;
              start_column = 10;
              end_line = 1007;
@@ -46710,7 +46246,7 @@ let calculette_aides_au_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46722,7 +46258,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1124;
                  start_column = 14;
                  end_line = 1124;
@@ -46736,7 +46272,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1008;
              start_column = 10;
              end_line = 1008;
@@ -46761,7 +46297,7 @@ let calculette_aides_au_logement
         embed_situation_familiale
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46773,7 +46309,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1128;
                  start_column = 14;
                  end_line = 1128;
@@ -46787,7 +46323,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1011;
              start_column = 10;
              end_line = 1011;
@@ -46811,7 +46347,7 @@ let calculette_aides_au_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46823,7 +46359,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1135;
                  start_column = 14;
                  end_line = 1135;
@@ -46838,7 +46374,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1012;
              start_column = 10;
              end_line = 1012;
@@ -46859,7 +46395,7 @@ let calculette_aides_au_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46871,7 +46407,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1139;
                  start_column = 14;
                  end_line = 1139;
@@ -46885,7 +46421,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1013;
              start_column = 10;
              end_line = 1013;
@@ -46908,7 +46444,7 @@ let calculette_aides_au_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46920,7 +46456,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1143;
                  start_column = 14;
                  end_line = 1143;
@@ -46934,7 +46470,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1014;
              start_column = 10;
              end_line = 1014;
@@ -46956,7 +46492,7 @@ let calculette_aides_au_logement
         embed_type_aides_personnelle_logement
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1085;
              start_column = 3;
              end_line = 1085;
@@ -46968,8 +46504,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 1082;
                  start_column = 14;
                  end_line = 1082;
@@ -46999,7 +46534,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1015;
              start_column = 10;
              end_line = 1015;
@@ -47063,7 +46598,7 @@ let calculette_aides_au_logement
         embed_mode_occupation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47075,7 +46610,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1118;
                  start_column = 14;
                  end_line = 1118;
@@ -47089,7 +46624,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 751;
              start_column = 10;
              end_line = 751;
@@ -47114,7 +46649,7 @@ let calculette_aides_au_logement
         embed_type_aides_personnelle_logement
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47126,8 +46661,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 1080;
                  start_column = 14;
                  end_line = 1080;
@@ -47149,7 +46683,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 752;
              start_column = 10;
              end_line = 752;
@@ -47174,7 +46708,7 @@ let calculette_aides_au_logement
         embed_informations_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47186,7 +46720,7 @@ let calculette_aides_au_logement
              (fun (_ : _) ->
                handle_default
                  {
-                   filename = "examples/aides_logement/prologue.catala_fr";
+                   filename = "./prologue.catala_fr";
                    start_line = 1082;
                    start_column = 3;
                    end_line = 1082;
@@ -47198,7 +46732,7 @@ let calculette_aides_au_logement
                    (fun (_ : _) ->
                      handle_default
                        {
-                         filename = "examples/aides_logement/prologue.catala_fr";
+                         filename = "./prologue.catala_fr";
                          start_line = 1082;
                          start_column = 3;
                          end_line = 1082;
@@ -47212,8 +46746,7 @@ let calculette_aides_au_logement
                        (fun (_ : _) ->
                          log_decision_taken
                            {
-                             filename =
-                               "examples/aides_logement/prologue.catala_fr";
+                             filename = "./prologue.catala_fr";
                              start_line = 1114;
                              start_column = 14;
                              end_line = 1114;
@@ -47230,7 +46763,7 @@ let calculette_aides_au_logement
                  (fun (_ : _) ->
                    log_decision_taken
                      {
-                       filename = "examples/aides_logement/prologue.catala_fr";
+                       filename = "./prologue.catala_fr";
                        start_line = 1110;
                        start_column = 14;
                        end_line = 1110;
@@ -47247,7 +46780,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 753;
              start_column = 10;
              end_line = 753;
@@ -47272,7 +46805,7 @@ let calculette_aides_au_logement
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47284,7 +46817,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1122;
                  start_column = 14;
                  end_line = 1122;
@@ -47298,7 +46831,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 754;
              start_column = 10;
              end_line = 754;
@@ -47323,7 +46856,7 @@ let calculette_aides_au_logement
         embed_situation_familiale
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47335,7 +46868,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1126;
                  start_column = 14;
                  end_line = 1126;
@@ -47349,7 +46882,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 757;
              start_column = 10;
              end_line = 757;
@@ -47374,7 +46907,7 @@ let calculette_aides_au_logement
         embed_integer
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47386,7 +46919,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1131;
                  start_column = 5;
                  end_line = 1131;
@@ -47401,7 +46934,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 758;
              start_column = 10;
              end_line = 758;
@@ -47422,7 +46955,7 @@ let calculette_aides_au_logement
         embed_zone_d_habitation
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47434,7 +46967,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1137;
                  start_column = 14;
                  end_line = 1137;
@@ -47448,7 +46981,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 759;
              start_column = 10;
              end_line = 759;
@@ -47472,7 +47005,7 @@ let calculette_aides_au_logement
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1082;
              start_column = 3;
              end_line = 1082;
@@ -47484,7 +47017,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1141;
                  start_column = 14;
                  end_line = 1141;
@@ -47498,7 +47031,7 @@ let calculette_aides_au_logement
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 760;
              start_column = 10;
              end_line = 760;
@@ -47562,7 +47095,7 @@ let calculette_aides_au_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1091;
              start_column = 10;
              end_line = 1091;
@@ -47574,7 +47107,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1146;
                  start_column = 14;
                  end_line = 1146;
@@ -47589,7 +47122,7 @@ let calculette_aides_au_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1091;
                 start_column = 10;
                 end_line = 1091;
@@ -47605,7 +47138,7 @@ let calculette_aides_au_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1088;
              start_column = 10;
              end_line = 1088;
@@ -47617,8 +47150,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 1071;
                  start_column = 14;
                  end_line = 1071;
@@ -47648,7 +47180,7 @@ let calculette_aides_au_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1088;
                 start_column = 10;
                 end_line = 1088;
@@ -47666,7 +47198,7 @@ let calculette_aides_au_logement
            try
              handle_default
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1090;
                  start_column = 10;
                  end_line = 1090;
@@ -47678,8 +47210,7 @@ let calculette_aides_au_logement
                (fun (_ : _) ->
                  log_decision_taken
                    {
-                     filename =
-                       "examples/aides_logement/code_construction_legislatif.catala_fr";
+                     filename = "./code_construction_legislatif.catala_fr";
                      start_line = 1109;
                      start_column = 14;
                      end_line = 1109;
@@ -47865,7 +47396,7 @@ let calculette_aides_au_logement
              raise
                (NoValueProvided
                   {
-                    filename = "examples/aides_logement/prologue.catala_fr";
+                    filename = "./prologue.catala_fr";
                     start_line = 1090;
                     start_column = 10;
                     end_line = 1090;
@@ -47877,7 +47408,7 @@ let calculette_aides_au_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1090;
                 start_column = 10;
                 end_line = 1090;
@@ -47893,7 +47424,7 @@ let calculette_aides_au_logement
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1089;
              start_column = 10;
              end_line = 1089;
@@ -47905,8 +47436,7 @@ let calculette_aides_au_logement
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename =
-                   "examples/aides_logement/code_construction_legislatif.catala_fr";
+                 filename = "./code_construction_legislatif.catala_fr";
                  start_line = 1092;
                  start_column = 14;
                  end_line = 1092;
@@ -47994,7 +47524,7 @@ let calculette_aides_au_logement
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1089;
                 start_column = 10;
                 end_line = 1089;
@@ -48048,7 +47578,7 @@ let calculette_aides_au_logement_garde_alternee
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1166;
              start_column = 11;
              end_line = 1166;
@@ -48062,7 +47592,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1202;
                  start_column = 14;
                  end_line = 1202;
@@ -48109,7 +47639,7 @@ let calculette_aides_au_logement_garde_alternee
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1166;
                 start_column = 11;
                 end_line = 1166;
@@ -48128,7 +47658,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1170;
              start_column = 3;
              end_line = 1170;
@@ -48142,7 +47672,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1177;
                  start_column = 14;
                  end_line = 1177;
@@ -48159,7 +47689,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1066;
              start_column = 10;
              end_line = 1066;
@@ -48175,7 +47705,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1170;
              start_column = 3;
              end_line = 1170;
@@ -48189,7 +47719,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1179;
                  start_column = 14;
                  end_line = 1179;
@@ -48206,7 +47736,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1067;
              start_column = 10;
              end_line = 1067;
@@ -48225,7 +47755,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_informations_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1170;
              start_column = 3;
              end_line = 1170;
@@ -48239,7 +47769,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1181;
                  start_column = 14;
                  end_line = 1181;
@@ -48256,7 +47786,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1068;
              start_column = 10;
              end_line = 1068;
@@ -48272,7 +47802,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1170;
              start_column = 3;
              end_line = 1170;
@@ -48286,7 +47816,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1183;
                  start_column = 14;
                  end_line = 1183;
@@ -48303,7 +47833,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1069;
              start_column = 10;
              end_line = 1069;
@@ -48322,7 +47852,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1170;
              start_column = 3;
              end_line = 1170;
@@ -48336,7 +47866,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1185;
                  start_column = 14;
                  end_line = 1185;
@@ -48353,7 +47883,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1074;
              start_column = 10;
              end_line = 1074;
@@ -48412,7 +47942,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_menage
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1171;
              start_column = 3;
              end_line = 1171;
@@ -48426,7 +47956,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1187;
                  start_column = 14;
                  end_line = 1187;
@@ -48443,7 +47973,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1066;
              start_column = 10;
              end_line = 1066;
@@ -48462,7 +47992,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_demandeur
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1171;
              start_column = 3;
              end_line = 1171;
@@ -48476,7 +48006,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1189;
                  start_column = 14;
                  end_line = 1189;
@@ -48493,7 +48023,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1067;
              start_column = 10;
              end_line = 1067;
@@ -48513,7 +48043,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_informations_calcul_a_p_l
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1171;
              start_column = 3;
              end_line = 1171;
@@ -48527,7 +48057,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1191;
                  start_column = 14;
                  end_line = 1191;
@@ -48544,7 +48074,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1068;
              start_column = 10;
              end_line = 1068;
@@ -48563,7 +48093,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_date
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1171;
              start_column = 3;
              end_line = 1171;
@@ -48577,7 +48107,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1193;
                  start_column = 14;
                  end_line = 1193;
@@ -48594,7 +48124,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1069;
              start_column = 10;
              end_line = 1069;
@@ -48614,7 +48144,7 @@ let calculette_aides_au_logement_garde_alternee
         embed_money
         (handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1171;
              start_column = 3;
              end_line = 1171;
@@ -48628,7 +48158,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1196;
                  start_column = 5;
                  end_line = 1196;
@@ -48645,7 +48175,7 @@ let calculette_aides_au_logement_garde_alternee
       raise
         (NoValueProvided
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1074;
              start_column = 10;
              end_line = 1074;
@@ -48704,7 +48234,7 @@ let calculette_aides_au_logement_garde_alternee
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1173;
              start_column = 10;
              end_line = 1173;
@@ -48718,7 +48248,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1233;
                  start_column = 14;
                  end_line = 1233;
@@ -48735,7 +48265,7 @@ let calculette_aides_au_logement_garde_alternee
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1173;
                 start_column = 10;
                 end_line = 1173;
@@ -48757,7 +48287,7 @@ let calculette_aides_au_logement_garde_alternee
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1167;
              start_column = 11;
              end_line = 1167;
@@ -48771,7 +48301,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/prologue.catala_fr";
+                 filename = "./prologue.catala_fr";
                  start_line = 1200;
                  start_column = 14;
                  end_line = 1200;
@@ -48789,7 +48319,7 @@ let calculette_aides_au_logement_garde_alternee
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1167;
                 start_column = 11;
                 end_line = 1167;
@@ -48808,7 +48338,7 @@ let calculette_aides_au_logement_garde_alternee
       (try
          handle_default
            {
-             filename = "examples/aides_logement/prologue.catala_fr";
+             filename = "./prologue.catala_fr";
              start_line = 1174;
              start_column = 10;
              end_line = 1174;
@@ -48822,7 +48352,7 @@ let calculette_aides_au_logement_garde_alternee
            (fun (_ : _) ->
              log_decision_taken
                {
-                 filename = "examples/aides_logement/autres_sources.catala_fr";
+                 filename = "./autres_sources.catala_fr";
                  start_line = 235;
                  start_column = 14;
                  end_line = 235;
@@ -48878,7 +48408,7 @@ let calculette_aides_au_logement_garde_alternee
          raise
            (NoValueProvided
               {
-                filename = "examples/aides_logement/prologue.catala_fr";
+                filename = "./prologue.catala_fr";
                 start_line = 1174;
                 start_column = 10;
                 end_line = 1174;

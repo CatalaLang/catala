@@ -1,6 +1,6 @@
-(dirs runtimes compiler french_law build_system)
+(dirs runtimes compiler french_law build_system examples)
 
-(data_only_dirs tests examples syntax_highlighting)
+(data_only_dirs tests syntax_highlighting)
 
 (alias
  (name exec)

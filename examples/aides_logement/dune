@@ -1,0 +1,12 @@
+(rule
+ (targets aides_logement.ml aides_logement_api_web.ml)
+ (deps
+  (source_tree ..)
+  ../../compiler/plugins/api_web%{ext_plugin})
+ (action
+  (run
+   catala
+   api_web
+   -t
+   --plugin-dir=../../compiler/plugins
+   aides_logement.catala_fr)))

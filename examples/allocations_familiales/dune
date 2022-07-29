@@ -1,0 +1,12 @@
+(rule
+ (targets allocations_familiales.ml allocations_familiales_api_web.ml)
+ (deps
+  (source_tree ..)
+  ../../compiler/plugins/api_web%{ext_plugin})
+ (action
+  (run
+   catala
+   api_web
+   -t
+   --plugin-dir=../../compiler/plugins
+   allocations_familiales.catala_fr)))
