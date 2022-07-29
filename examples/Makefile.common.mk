@@ -37,8 +37,17 @@ help : ../Makefile.common.mk
 %_api_web.ml: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
-		web \
+		api_web \
 		--plugin-dir=$(PLUGIN_DIR) \
+		$(CURR_DIR)$<
+
+#> SCOPE=<ScopeName> <target_file>_api_web.ml	 : Generates the JSON schema
+%_schema.json: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $(CURR_DIR)$<
+	$(CATALA) \
+		json_schema \
+		--plugin-dir=$(PLUGIN_DIR) \
+		-s $(SCOPE) \
 		$(CURR_DIR)$<
 
 #> <target_file>.py			: Compiles the file to Python
@@ -87,6 +96,8 @@ clean:
 		_minted-$(SRC:.catala_$(CATALA_LANG)=) \
 		$(SRC:.catala_$(CATALA_LANG)=.html) \
 		$(SRC:.catala_$(CATALA_LANG)=.ml) \
+		$(SRC:.catala_$(CATALA_LANG)=_api_web.ml) \
+		$(SRC:.catala_$(CATALA_LANG)=_schema.json)
 
 include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 

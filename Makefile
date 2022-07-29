@@ -44,11 +44,13 @@ BUILD_SYSTEM_DIR=build_system
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
-	dune build $(COMPILER_DIR)/catala.exe $(BUILD_SYSTEM_DIR)/clerk.exe
+	dune build \
+		$(COMPILER_DIR)/catala.exe \
+		$(COMPILER_DIR)/plugins/ \
+		$(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> build					: Builds the Catala compiler
-build: parser-messages format
-	dune build $(COMPILER_DIR)/catala.exe $(BUILD_SYSTEM_DIR)/clerk.exe
+build: parser-messages format build_dev
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
@@ -67,7 +69,7 @@ install:
 runtimes:
 	dune build runtimes/
 
-#> plugins				: Builds the compiler backend plugins
+#> plugins					: Builds the compiler backend plugins
 plugins: runtimes
 	dune build compiler/plugins/
 	@echo "define CATALA_PLUGINS=_build/default/compiler/plugins to test the plugins"
@@ -227,6 +229,26 @@ run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
 run_french_law_library_ocaml_tests: build_french_law_library_ocaml
 	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
+#-----------------------------------------
+# JSON schemas
+#-----------------------------------------
+
+french_law/json_schemas/allocations_familiales_schema.json:
+	CATALA_OPTS="$(CATALA_OPTS) -t" \
+				SCOPE=InterfaceAllocationsFamiliales \
+				$(MAKE) -C \
+				$(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales_schema.json
+
+french_law/json_schemas/aides_logement_schema.json:
+	CATALA_OPTS="$(CATALA_OPTS) -t" \
+				SCOPE=CalculetteAidesAuLogementGardeAlternée \
+				$(MAKE) -C \
+				$(AIDES_LOGEMENT_DIR) aides_logement_schema.json
+
+#> generate_french_law_json_schemas	: Generates the French law library JSON schemas
+generate_french_law_json_schemas: plugins \
+	french_law/json_schemas/allocations_familiales_schema.json \
+	french_law/json_schemas/aides_logement_schema.json
 
 #-----------------------------------------
 # JS
@@ -242,6 +264,8 @@ build_french_law_library_js: generate_french_law_library_ocaml format
 	dune build --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
 	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
 
+#> build_french_law_library_web_api	: Builds the web API of the French law library
+build_french_law_library_web_api: build_french_law_library_js generate_french_law_json_schemas
 
 #-----------------------------------------
 # Python
@@ -324,7 +348,7 @@ catala.html: $(COMPILER_DIR)/utils/cli.ml
 	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | groff -P -l -P -r -mandoc -Thtml > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
-website-assets: doc js_build literate_examples grammar.html catala.html build_french_law_library_js
+website-assets: js_build literate_examples grammar.html catala.html build_french_law_library_web_api doc
 
 ##########################################
 # Misceallenous

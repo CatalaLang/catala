@@ -7,12 +7,12 @@ var suite = new Benchmark.Suite();
 
 function run_computation_AF(log) {
   var result = Law.computeAllocationsFamiliales({
-    iDateCouranteIn: new Date(Date.UTC(2020, 04, 20)),
+    iDateCouranteIn: "2020-04-20",
     iEnfantsIn: [
       {
         dIdentifiant: 0,
         dRemunerationMensuelle: 0,
-        dDateDeNaissance: new Date(Date.UTC(2003, 02, 02)),
+        dDateDeNaissance: "2003-02-02",
         dPriseEnCharge: { kind: "EffectiveEtPermanente", payload: null },
         dADejaOuvertDroitAuxAllocationsFamiliales: true,
         dBeneficieTitrePersonnelAidePersonnelleLogement: false,
@@ -20,7 +20,7 @@ function run_computation_AF(log) {
       {
         dIdentifiant: 1,
         dRemunerationMensuelle: 300,
-        dDateDeNaissance: new Date(Date.UTC(2013, 09, 30)),
+        dDateDeNaissance: "2013-09-30",
         dPriseEnCharge: {
           kind: "GardeAlterneePartageAllocations",
           payload: null,
@@ -45,12 +45,12 @@ function run_computation_AF(log) {
     );
   }
   Law.eventsManager.resetLog();
-  console.log(result);
+  console.log("Family benefits mounthly amount:", result, "€");
 }
 
 function run_computation_AL(log) {
   var result = Law.computeAidesAuLogement({
-    dateCouranteIn: new Date(Date.UTC(2022, 01, 01)),
+    dateCouranteIn: "2022-01-01",
     menageIn: {
       prestationsRecues: [
         { kind: "AllocationSoutienEnfantHandicape", payload: null },
@@ -59,7 +59,7 @@ function run_computation_AL(log) {
       ],
       situationFamiliale: {
         kind: "Maries",
-        payload: new Date(Date.UTC(2010, 11, 26)),
+        payload: "2010-11-26",
       },
       personnesACharge: [
         {
@@ -70,7 +70,7 @@ function run_computation_AL(log) {
             age: 19,
             identifiant: 0,
             aDejaOuvertDroitAuxAllocationsFamiliales: true,
-            dateDeNaissance: new Date(Date.UTC(2003, 01, 01)),
+            dateDeNaissance: "2003-01-01",
             remunerationMensuelle: 0,
             obligationScolaire: { kind: "Apres", payload: null },
             situationGardeAlternee: {
@@ -87,7 +87,7 @@ function run_computation_AL(log) {
             age: 11,
             identifiant: 1,
             aDejaOuvertDroitAuxAllocationsFamiliales: true,
-            dateDeNaissance: new Date(Date.UTC(2011, 01, 01)),
+            dateDeNaissance: "2011-01-01",
             remunerationMensuelle: 0,
             obligationScolaire: { kind: "Pendant", payload: null },
             situationGardeAlternee: {
@@ -104,7 +104,7 @@ function run_computation_AL(log) {
             age: 8,
             identifiant: 2,
             aDejaOuvertDroitAuxAllocationsFamiliales: true,
-            dateDeNaissance: new Date(Date.UTC(2014, 01, 01)),
+            dateDeNaissance: "2014-01-01",
             remunerationMensuelle: 0,
             obligationScolaire: { kind: "Pendant", payload: null },
             situationGardeAlternee: {
@@ -147,7 +147,7 @@ function run_computation_AL(log) {
         kind: "PlusDeTroisEnfants",
         payload: {
           kind: "DateDeNaissance",
-          payload: new Date(Date.UTC(2014, 09, 15)),
+          payload: "2014-09-15",
         },
       },
     },
@@ -155,7 +155,7 @@ function run_computation_AL(log) {
       personneHebergeeCentreSoinLL162223SecuriteSociale: false,
       satisfaitConditionsL5122CodeSecuriteSociale: true,
       ageDemandeur: 52,
-      dateNaissance: new Date(Date.UTC(1970, 05, 02)),
+      dateNaissance: "1970-05-02",
       contratDeTravail: { kind: "CDI", payload: null },
       nationalite: { kind: "Francaise", payload: null },
       patrimoine: {
@@ -191,7 +191,7 @@ function run_computation_AL(log) {
     );
   }
   Law.eventsManager.resetLog();
-  console.log(result);
+  console.log("Housing benefits mounthly amount:", result, "€");
 }
 
 try {

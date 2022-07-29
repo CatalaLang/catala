@@ -1,7 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria,
-   contributors: Emile Rolley <emile.rolley@tuta.io>, Louis Gesbert
-   <louis.gesbert@inria.fr>.
+   contributors: Emile Rolley <emile.rolley@tuta.io>.
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +15,7 @@
    the License. *)
 
 (** Catala plugin for generating {{:https://json-schema.org} JSON schemas} used
-    to build forms. *)
+    to build forms for the Catala website. *)
 
 let name = "json_schema"
 let extension = "_schema.json"
@@ -226,14 +225,11 @@ let apply
     ~(scope : string option)
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
+  ignore source_file;
   ignore type_ordering;
-  let output_file, with_formatter =
-    File.get_formatter_of_out_channel ~source_file ~output_file ~ext:extension
-      ()
-  in
   match scope with
   | Some s ->
-    with_formatter (fun fmt ->
+    File.with_formatter_of_opt_file output_file (fun fmt ->
         Cli.debug_print
           "Writing JSON schema corresponding to the scope '%s' to the file \
            %s..."

@@ -15,12 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Catala plugin for generating web APIs.
-
-    It generates:
-
-    - the OCaml code,
-    - the associated [js_of_ocaml] wrapper. *)
+(** Catala plugin for generating web APIs. It generates OCaml code before the
+    the associated [js_of_ocaml] wrapper. *)
 
 open Utils
 open Lcalc
@@ -428,22 +424,20 @@ let apply
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
   ignore scope;
-  let output_file, with_formatter =
-    File.get_formatter_of_out_channel ~source_file ~output_file ~ext:extension
-      ()
-  in
-  with_formatter (fun fmt ->
+  ignore type_ordering;
+  File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
       Cli.debug_print "Writing OCaml code to %s..."
         (Option.value ~default:"stdout" output_file);
       To_ocaml.format_program fmt prgm type_ordering;
       File.ocamlformat_file_opt output_file);
 
-  let filename_without_ext =
+  let output_file, filename_without_ext =
     match output_file with
-    | Some "-" -> output_file
-    | Some f -> Some (Filename.basename f |> Filename.remove_extension)
-    | None -> None
+    | Some "-" -> output_file, output_file
+    | Some f ->
+      output_file, Some (Filename.basename f |> Filename.remove_extension)
+    | None -> Some "-", None
   in
   let jsoo_output_file, with_formatter =
     File.get_formatter_of_out_channel ~source_file
@@ -460,8 +454,6 @@ let apply
       (fun name -> Printf.sprintf "open %s" (String.capitalize_ascii name))
       filename_without_ext
   in
-  Cli.log_print "module_name: %s\n"
-  @@ Option.fold ~none:"none" ~some:(fun s -> s) module_name;
   with_formatter (fun fmt ->
       Cli.debug_print "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);

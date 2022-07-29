@@ -35,3 +35,5 @@ scp syntax_highlighting/en/ace/mode-catala_en.js $1/playground/
 scp syntax_highlighting/fr/ace/mode-catala_fr.js $1/playground/
 # TODO: Polish ACE syntax highlighting
 scp french_law/js/french_law.js $1/french_law.js
+scp examples/allocations_familiales/allocations_familiales_schema.json $1/
+scp examples/aides_logement/aides_logement_schema.json $1/
