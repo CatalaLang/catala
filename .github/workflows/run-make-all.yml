@@ -18,4 +18,7 @@ jobs:
       - name: Prepare container with all dependencies
         run: git archive HEAD | docker build - --target dev-build-context
       - name: Run builds, checks and tests
-        run: git archive HEAD | docker build -
+        run: git archive HEAD | docker build - --force-rm -t catalalang/catala:${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+      - name: Cleanup Docker image
+        if: ${{ github.ref != 'refs/heads/master' }}
+        run: docker image rm catalalang/catala:${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
