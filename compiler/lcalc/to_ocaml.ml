@@ -261,7 +261,14 @@ let needs_parens (e : 'm marked_expr) : bool =
 
 let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
   match Marked.unmark exc with
-  | ConflictError -> Format.fprintf fmt "ConflictError"
+  | ConflictError ->
+    let pos = Marked.get_mark exc in
+    Format.fprintf fmt
+      "(ConflictError@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
+       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+      (Pos.get_law_info pos)
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | Crash -> Format.fprintf fmt "Crash"
   | NoValueProvided ->
@@ -398,6 +405,24 @@ let rec format_expr
   | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
       format_with_parens arg1
+  | EApp ((EVar x, pos), args)
+    when Ast.Var.compare (Ast.Var.t x) Ast.handle_default = 0
+         || Ast.Var.compare (Ast.Var.t x) Ast.handle_default_opt = 0 ->
+    Format.fprintf fmt
+      "@[<hov 2>%a@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
+       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
+      format_var x
+      (Pos.get_file (D.mark_pos pos))
+      (Pos.get_start_line (D.mark_pos pos))
+      (Pos.get_start_column (D.mark_pos pos))
+      (Pos.get_end_line (D.mark_pos pos))
+      (Pos.get_end_column (D.mark_pos pos))
+      format_string_list
+      (Pos.get_law_info (D.mark_pos pos))
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         format_with_parens)
+      args
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
       (Format.pp_print_list
@@ -413,8 +438,17 @@ let rec format_expr
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EAssert e' ->
     Format.fprintf fmt
-      "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
+      "@[<hov 2>if @ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \
+       2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ end_line=%d; \
+       end_column=%d;@ law_headings=%a}@])@]"
       format_with_parens e'
+      (Pos.get_file (D.pos e'))
+      (Pos.get_start_line (D.pos e'))
+      (Pos.get_start_column (D.pos e'))
+      (Pos.get_end_line (D.pos e'))
+      (Pos.get_end_column (D.pos e'))
+      format_string_list
+      (Pos.get_law_info (D.pos e'))
   | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception (exc, D.pos e)
   | ECatch (e1, exc, e2) ->
     Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens

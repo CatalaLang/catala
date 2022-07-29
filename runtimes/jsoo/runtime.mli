@@ -110,7 +110,9 @@ val date_to_jsoo : Runtime_ocaml.Runtime.date -> Js.date Js.t
 
 (** {1 Error management} *)
 
-val execute_or_throw_no_value_provided_error : (unit -> 'a) -> 'a
-(** [execute_or_throw_no_value_provided_error f] calls [f ()] and propagates the
-    {!Runtime_ocaml.Runtime.NoValueProvided} exception by raising a JS error if
+val execute_or_throw_error : (unit -> 'a) -> 'a
+(** [execute_or_throw_error f] calls [f ()] and propagates the
+    {!Runtime_ocaml.Runtime.NoValueProvided},
+    {!Runtime_ocaml.Runtime.ConflictError}
+    {!Runtime_ocaml.Runtime.AssertionFailed} exceptions by raising a JS error if
     needed.*)
