@@ -21,6 +21,8 @@ module TopLevelName = Uid.Make (Uid.MarkedString) ()
 module LocalName = Uid.Make (Uid.MarkedString) ()
 
 let dead_value = LocalName.fresh ("dead_value", Pos.no_pos)
+let handle_default = TopLevelName.fresh ("handle_default", Pos.no_pos)
+let handle_default_opt = TopLevelName.fresh ("handle_default_opt", Pos.no_pos)
 
 type expr =
   | EVar of LocalName.t

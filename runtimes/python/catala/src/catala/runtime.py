@@ -358,16 +358,24 @@ class EmptyError(Exception):
 
 
 class AssertionFailed(Exception):
-    pass
+    def __init__(self, source_position: SourcePosition) -> None:
+        self.source_position = SourcePosition
 
 
 class ConflictError(Exception):
-    pass
+    def __init__(self, source_position: SourcePosition) -> None:
+        self.source_position = SourcePosition
 
 
 class NoValueProvided(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
         self.source_position = SourcePosition
+
+
+class AssertionFailure(Exception):
+    def __init__(self, source_position: SourcePosition) -> None:
+        self.source_position = SourcePosition
+
 
 # ============================
 # Constructors and conversions
@@ -558,6 +566,7 @@ def list_length(l: List[Alpha]) -> Integer:
 
 
 def handle_default(
+    pos: SourcePosition,
     exceptions: List[Callable[[Unit], Alpha]],
     just: Callable[[Unit], Alpha],
     cons: Callable[[Unit], Alpha]
@@ -574,7 +583,7 @@ def handle_default(
         elif not (acc is None) and new_val is None:
             pass  # acc stays the same
         elif not (acc is None) and not (new_val is None):
-            raise ConflictError
+            raise ConflictError(pos)
     if acc is None:
         if just(Unit()):
             return cons(Unit())
@@ -585,6 +594,7 @@ def handle_default(
 
 
 def handle_default_opt(
+    pos: SourcePosition,
     exceptions: List[Optional[Any]],
     just: Optional[bool],
     cons: Optional[Alpha]
@@ -596,7 +606,7 @@ def handle_default_opt(
         elif not (acc is None) and exception is None:
             pass  # acc stays the same
         elif not (acc is None) and not (exception is None):
-            raise ConflictError
+            raise ConflictError(pos)
     if acc is None:
         if just is None:
             return None

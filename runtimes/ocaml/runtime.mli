@@ -40,8 +40,8 @@ type 'a eoption = ENone of unit | ESome of 'a
 (** {1 Exceptions} *)
 
 exception EmptyError
-exception AssertionFailed
-exception ConflictError
+exception AssertionFailed of source_position
+exception ConflictError of source_position
 exception UncomparableDurations
 exception IndivisableDurations
 exception ImpossibleDate
@@ -267,12 +267,17 @@ val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
 
-val handle_default : (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
+val handle_default :
+  source_position -> (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
 (** @raise EmptyError
     @raise ConflictError *)
 
 val handle_default_opt :
-  'a eoption array -> bool eoption -> 'a eoption -> 'a eoption
+  source_position ->
+  'a eoption array ->
+  bool eoption ->
+  'a eoption ->
+  'a eoption
 (** @raise ConflictError *)
 
 val no_input : unit -> 'a

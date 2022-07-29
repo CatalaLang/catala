@@ -433,7 +433,17 @@ let allocation_familiales_avril2008
       ["AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3"]
       embed_integer
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 77;
+             start_column = 10;
+             end_line = 77;
+             end_column = 37;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -486,7 +496,17 @@ let enfant_le_plus_age (enfant_le_plus_age_in : EnfantLePlusAgeIn.t) :
       ["EnfantLePlusÂgé"; "le_plus_âgé"]
       embed_enfant
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 81;
+             start_column = 10;
+             end_line = 81;
+             end_column = 21;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -542,9 +562,29 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
     log_variable_definition ["Smic"; "brut_horaire"] embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+             start_line = 11;
+             start_column = 10;
+             end_line = 11;
+             end_column = 22;
+             law_headings =
+               ["Prologue"; "Montant du salaire minimum de croissance"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -574,7 +614,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                         || residence_ = Collectivite.SaintPierreEtMiquelon ())))
                  (fun (_ : _) -> money_of_cents_string "1003"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -597,7 +648,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      && residence_ = Collectivite.Mayotte ()))
                  (fun (_ : _) -> money_of_cents_string "757"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -627,7 +689,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                         || residence_ = Collectivite.SaintPierreEtMiquelon ())))
                  (fun (_ : _) -> money_of_cents_string "1015"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -650,7 +723,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      && residence_ = Collectivite.Mayotte ()))
                  (fun (_ : _) -> money_of_cents_string "766"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -680,7 +764,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                         || residence_ = Collectivite.SaintPierreEtMiquelon ())))
                  (fun (_ : _) -> money_of_cents_string "1025"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -703,7 +798,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      && residence_ = Collectivite.Mayotte ()))
                  (fun (_ : _) -> money_of_cents_string "774"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -733,7 +839,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                         || residence_ = Collectivite.SaintPierreEtMiquelon ())))
                  (fun (_ : _) -> money_of_cents_string "1057"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -756,7 +873,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                      && residence_ = Collectivite.Mayotte ()))
                  (fun (_ : _) -> money_of_cents_string "798"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -786,7 +914,18 @@ let smic (smic_in : SmicIn.t) : SmicOut.t =
                         || residence_ = Collectivite.SaintPierreEtMiquelon ())))
                  (fun (_ : _) -> money_of_cents_string "1085"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line = 11;
+                   start_column = 10;
+                   end_line = 11;
+                   end_column = 22;
+                   law_headings =
+                     ["Prologue"; "Montant du salaire minimum de croissance"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -841,9 +980,30 @@ let base_mensuelle_allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename =
+               "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+             start_line = 6;
+             start_column = 10;
+             end_line = 6;
+             end_column = 17;
+             law_headings =
+               ["Montant de la base mensuelle des allocations familiales"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                   start_line = 6;
+                   start_column = 10;
+                   end_line = 6;
+                   end_column = 17;
+                   law_headings =
+                     ["Montant de la base mensuelle des allocations familiales"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -867,7 +1027,18 @@ let base_mensuelle_allocations_familiales
                      && date_courante_ <@ date_of_numbers 2020 4 1))
                  (fun (_ : _) -> money_of_cents_string "41316"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                   start_line = 6;
+                   start_column = 10;
+                   end_line = 6;
+                   end_column = 17;
+                   law_headings =
+                     ["Montant de la base mensuelle des allocations familiales"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -893,7 +1064,18 @@ let base_mensuelle_allocations_familiales
                      && date_courante_ <@ date_of_numbers 2021 4 1))
                  (fun (_ : _) -> money_of_cents_string "41440"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                   start_line = 6;
+                   start_column = 10;
+                   end_line = 6;
+                   end_column = 17;
+                   law_headings =
+                     ["Montant de la base mensuelle des allocations familiales"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -919,7 +1101,18 @@ let base_mensuelle_allocations_familiales
                      && date_courante_ <@ date_of_numbers 2022 4 1))
                  (fun (_ : _) -> money_of_cents_string "41481"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                   start_line = 6;
+                   start_column = 10;
+                   end_line = 6;
+                   end_column = 17;
+                   law_headings =
+                     ["Montant de la base mensuelle des allocations familiales"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -980,7 +1173,17 @@ let prestations_familiales
       ["PrestationsFamiliales"; "âge_l512_3_2"]
       embed_integer
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 61;
+             start_column = 10;
+             end_line = 61;
+             end_column = 22;
+             law_headings =
+               ["Prestations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -1023,7 +1226,17 @@ let prestations_familiales
       log_variable_definition
         ["PrestationsFamiliales"; "smic.date_courante"]
         embed_date
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 66;
+             start_column = 3;
+             end_line = 66;
+             end_column = 7;
+             law_headings =
+               ["Prestations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -1059,7 +1272,17 @@ let prestations_familiales
       log_variable_definition
         ["PrestationsFamiliales"; "smic.résidence"]
         embed_collectivite
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 66;
+             start_column = 3;
+             end_line = 66;
+             end_column = 7;
+             law_headings =
+               ["Prestations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -1106,9 +1329,33 @@ let prestations_familiales
       embed_bool
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 62;
+             start_column = 10;
+             end_line = 62;
+             end_column = 33;
+             law_headings =
+               ["Prestations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 62;
+                   start_column = 10;
+                   end_line = 62;
+                   end_column = 33;
+                   law_headings =
+                     [
+                       "Prestations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -1176,9 +1423,33 @@ let prestations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 60;
+             start_column = 11;
+             end_line = 60;
+             end_column = 27;
+             law_headings =
+               ["Prestations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 60;
+                   start_column = 11;
+                   end_line = 60;
+                   end_column = 27;
+                   law_headings =
+                     [
+                       "Prestations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -1251,9 +1522,37 @@ let prestations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 59;
+                 start_column = 10;
+                 end_line = 59;
+                 end_column = 29;
+                 law_headings =
+                   [
+                     "Prestations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 59;
+                       start_column = 10;
+                       end_line = 59;
+                       end_column = 29;
+                       law_headings =
+                         [
+                           "Prestations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -1349,12 +1648,54 @@ let prestations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 58;
+                 start_column = 10;
+                 end_line = 58;
+                 end_column = 22;
+                 law_headings =
+                   [
+                     "Prestations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 58;
+                       start_column = 10;
+                       end_line = 58;
+                       end_column = 22;
+                       law_headings =
+                         [
+                           "Prestations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
-                         handle_default [||]
+                         handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 58;
+                             start_column = 10;
+                             end_line = 58;
+                             end_column = 22;
+                             law_headings =
+                               [
+                                 "Prestations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
+                           [||]
                            (fun (_ : _) ->
                              log_decision_taken
                                {
@@ -1388,12 +1729,55 @@ let prestations_familiales
                      (fun (_ : _) -> true)
                      (fun (_ : _) ->
                        handle_default
+                         {
+                           filename =
+                             "examples/allocations_familiales/prologue.catala_fr";
+                           start_line = 58;
+                           start_column = 10;
+                           end_line = 58;
+                           end_column = 22;
+                           law_headings =
+                             [
+                               "Prestations familiales";
+                               "Champs d'applications";
+                               "Prologue";
+                             ];
+                         }
                          [|
                            (fun (_ : _) ->
                              handle_default
+                               {
+                                 filename =
+                                   "examples/allocations_familiales/prologue.catala_fr";
+                                 start_line = 58;
+                                 start_column = 10;
+                                 end_line = 58;
+                                 end_column = 22;
+                                 law_headings =
+                                   [
+                                     "Prestations familiales";
+                                     "Champs d'applications";
+                                     "Prologue";
+                                   ];
+                               }
                                [|
                                  (fun (_ : _) ->
-                                   handle_default [||]
+                                   handle_default
+                                     {
+                                       filename =
+                                         "examples/allocations_familiales/prologue.catala_fr";
+                                       start_line = 58;
+                                       start_column = 10;
+                                       end_line = 58;
+                                       end_column = 22;
+                                       law_headings =
+                                         [
+                                           "Prestations familiales";
+                                           "Champs d'applications";
+                                           "Prologue";
+                                         ];
+                                     }
+                                     [||]
                                      (fun (_ : _) ->
                                        log_decision_taken
                                          {
@@ -1572,9 +1956,37 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 98;
+                 start_column = 11;
+                 end_line = 98;
+                 end_column = 26;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 98;
+                       start_column = 11;
+                       end_line = 98;
+                       end_column = 26;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -1610,7 +2022,22 @@ let allocations_familiales
                            false))
                      (fun (_ : _) -> PriseEnCompte.Partagee ()));
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 98;
+                       start_column = 11;
+                       end_line = 98;
+                       end_column = 26;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -1647,12 +2074,55 @@ let allocations_familiales
                      (fun (_ : _) -> PriseEnCompte.Zero ()));
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 98;
+                       start_column = 11;
+                       end_line = 98;
+                       end_column = 26;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
                          handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 98;
+                             start_column = 11;
+                             end_line = 98;
+                             end_column = 26;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
                            [|
                              (fun (_ : _) ->
-                               handle_default [||]
+                               handle_default
+                                 {
+                                   filename =
+                                     "examples/allocations_familiales/prologue.catala_fr";
+                                   start_line = 98;
+                                   start_column = 11;
+                                   end_line = 98;
+                                   end_column = 26;
+                                   law_headings =
+                                     [
+                                       "Allocations familiales";
+                                       "Champs d'applications";
+                                       "Prologue";
+                                     ];
+                                 }
+                                 [||]
                                  (fun (_ : _) ->
                                    log_decision_taken
                                      {
@@ -1809,9 +2279,37 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 99;
+                 start_column = 11;
+                 end_line = 99;
+                 end_column = 20;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 99;
+                       start_column = 11;
+                       end_line = 99;
+                       end_column = 20;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -1850,15 +2348,72 @@ let allocations_familiales
                          ()));
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 99;
+                       start_column = 11;
+                       end_line = 99;
+                       end_column = 20;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
                          handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 99;
+                             start_column = 11;
+                             end_line = 99;
+                             end_column = 20;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
                            [|
                              (fun (_ : _) ->
                                handle_default
+                                 {
+                                   filename =
+                                     "examples/allocations_familiales/prologue.catala_fr";
+                                   start_line = 99;
+                                   start_column = 11;
+                                   end_line = 99;
+                                   end_column = 20;
+                                   law_headings =
+                                     [
+                                       "Allocations familiales";
+                                       "Champs d'applications";
+                                       "Prologue";
+                                     ];
+                                 }
                                  [|
                                    (fun (_ : _) ->
-                                     handle_default [||]
+                                     handle_default
+                                       {
+                                         filename =
+                                           "examples/allocations_familiales/prologue.catala_fr";
+                                         start_line = 99;
+                                         start_column = 11;
+                                         end_line = 99;
+                                         end_column = 20;
+                                         law_headings =
+                                           [
+                                             "Allocations familiales";
+                                             "Champs d'applications";
+                                             "Prologue";
+                                           ];
+                                       }
+                                       [||]
                                        (fun (_ : _) ->
                                          log_decision_taken
                                            {
@@ -2060,7 +2615,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "nombre_enfants_l521_1"]
       embed_integer
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 146;
+             start_column = 11;
+             end_line = 146;
+             end_column = 32;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2103,7 +2668,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3"]
       embed_integer
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 148;
+             start_column = 11;
+             end_line = 148;
+             end_column = 41;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2165,7 +2740,17 @@ let allocations_familiales
       log_variable_definition
         ["AllocationsFamiliales"; "bmaf.date_courante"]
         embed_date
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 143;
+             start_column = 3;
+             end_line = 143;
+             end_column = 7;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2218,7 +2803,17 @@ let allocations_familiales
       log_variable_definition
         ["AllocationsFamiliales"; "prestations_familiales.date_courante"]
         embed_date
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 140;
+             start_column = 3;
+             end_line = 140;
+             end_column = 25;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2255,7 +2850,17 @@ let allocations_familiales
       log_variable_definition
         ["AllocationsFamiliales"; "prestations_familiales.prestation_courante"]
         embed_element_prestations_familiales
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 140;
+             start_column = 3;
+             end_line = 140;
+             end_column = 25;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2292,7 +2897,17 @@ let allocations_familiales
       log_variable_definition
         ["AllocationsFamiliales"; "prestations_familiales.résidence"]
         embed_collectivite
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 140;
+             start_column = 3;
+             end_line = 140;
+             end_column = 25;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2363,7 +2978,17 @@ let allocations_familiales
       log_variable_definition
         ["AllocationsFamiliales"; "enfant_le_plus_âgé.enfants"]
         (embed_array embed_enfant)
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 142;
+             start_column = 3;
+             end_line = 142;
+             end_column = 21;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2408,9 +3033,37 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 147;
+                 start_column = 11;
+                 end_line = 147;
+                 end_column = 38;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 147;
+                       start_column = 11;
+                       end_line = 147;
+                       end_column = 38;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -2500,7 +3153,17 @@ let allocations_familiales
       ]
       (embed_array embed_enfant)
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 96;
+             start_column = 11;
+             end_line = 96;
+             end_column = 61;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -2559,7 +3222,21 @@ let allocations_familiales
       (try
          fun (param_ : Enfant.t) ->
            try
-             handle_default [||]
+             handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 149;
+                 start_column = 11;
+                 end_line = 149;
+                 end_column = 33;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
+               [||]
                (fun (_ : _) ->
                  log_decision_taken
                    {
@@ -2611,12 +3288,50 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 151;
+             start_column = 11;
+             end_line = 151;
+             end_column = 28;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 151;
+                   start_column = 11;
+                   end_line = 151;
+                   end_column = 28;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 151;
+                         start_column = 11;
+                         end_line = 151;
+                         end_column = 28;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2649,7 +3364,22 @@ let allocations_familiales
                                  (array_length
                                     enfants_a_charge_droit_ouvert_prestation_familiale_)));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 151;
+                         start_column = 11;
+                         end_line = 151;
+                         end_column = 28;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2682,7 +3412,22 @@ let allocations_familiales
                                  (array_length
                                     enfants_a_charge_droit_ouvert_prestation_familiale_)));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 151;
+                         start_column = 11;
+                         end_line = 151;
+                         end_column = 28;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2715,7 +3460,22 @@ let allocations_familiales
                                  (array_length
                                     enfants_a_charge_droit_ouvert_prestation_familiale_)));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 151;
+                         start_column = 11;
+                         end_line = 151;
+                         end_column = 28;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2797,12 +3557,50 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 150;
+             start_column = 11;
+             end_line = 150;
+             end_column = 27;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 150;
+                   start_column = 11;
+                   end_line = 150;
+                   end_column = 27;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 150;
+                         start_column = 11;
+                         end_line = 150;
+                         end_column = 27;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2835,7 +3633,22 @@ let allocations_familiales
                                  (array_length
                                     enfants_a_charge_droit_ouvert_prestation_familiale_)));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 150;
+                         start_column = 11;
+                         end_line = 150;
+                         end_column = 27;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2868,7 +3681,22 @@ let allocations_familiales
                                  (array_length
                                     enfants_a_charge_droit_ouvert_prestation_familiale_)));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 150;
+                         start_column = 11;
+                         end_line = 150;
+                         end_column = 27;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2901,7 +3729,22 @@ let allocations_familiales
                                  (array_length
                                     enfants_a_charge_droit_ouvert_prestation_familiale_)));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 150;
+                         start_column = 11;
+                         end_line = 150;
+                         end_column = 27;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -2983,12 +3826,50 @@ let allocations_familiales
       embed_bool
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 133;
+             start_column = 11;
+             end_line = 133;
+             end_column = 34;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 133;
+                   start_column = 11;
+                   end_line = 133;
+                   end_column = 34;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 133;
+                         start_column = 11;
+                         end_line = 133;
+                         end_column = 34;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3073,12 +3954,54 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 121;
+                 start_column = 11;
+                 end_line = 121;
+                 end_column = 35;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 121;
+                       start_column = 11;
+                       end_line = 121;
+                       end_column = 35;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
-                         handle_default [||]
+                         handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 121;
+                             start_column = 11;
+                             end_line = 121;
+                             end_column = 35;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
+                           [||]
                            (fun (_ : _) ->
                              log_decision_taken
                                {
@@ -3218,7 +4141,17 @@ let allocations_familiales
       ]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 118;
+             start_column = 11;
+             end_line = 118;
+             end_column = 64;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -3269,12 +4202,50 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 117;
+             start_column = 11;
+             end_line = 117;
+             end_column = 56;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 117;
+                   start_column = 11;
+                   end_line = 117;
+                   end_column = 56;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3303,7 +4274,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.0463"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3332,7 +4318,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.0539"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3361,7 +4362,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.0615"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3390,7 +4406,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.069"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3419,7 +4450,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.0766"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3448,7 +4494,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.0842"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3477,7 +4538,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.0918"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3506,7 +4582,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.1089"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3535,7 +4626,22 @@ let allocations_familiales
                          then bmaf_dot_montant_ *$ decimal_of_string "0.1259"
                          else money_of_cents_string "0"));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 117;
+                         start_column = 11;
+                         end_line = 117;
+                         end_column = 56;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -3611,7 +4717,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "nombre_total_enfants"]
       embed_decimal
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 111;
+             start_column = 11;
+             end_line = 111;
+             end_column = 31;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -3656,7 +4772,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "nombre_moyen_enfants"]
       embed_decimal
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 110;
+             start_column = 11;
+             end_line = 110;
+             end_column = 31;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -3726,15 +4852,67 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 106;
+             start_column = 11;
+             end_line = 106;
+             end_column = 46;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 106;
+                   start_column = 11;
+                   end_line = 106;
+                   end_column = 46;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
                      handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 106;
+                         start_column = 11;
+                         end_line = 106;
+                         end_column = 46;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
                        [|
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3770,7 +4948,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.145"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3806,7 +4999,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.1393"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3842,7 +5050,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.1335"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3878,7 +5101,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.1278"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3914,7 +5152,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.122"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3950,7 +5203,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.1163"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -3986,7 +5254,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.1105"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -4022,7 +5305,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.0976"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -4058,7 +5356,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.0847"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -4094,7 +5407,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.0717"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 106;
+                               start_column = 11;
+                               end_line = 106;
+                               end_column = 46;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -4154,7 +5482,22 @@ let allocations_familiales
                    then bmaf_dot_montant_ *$ decimal_of_string "0.0588"
                    else money_of_cents_string "0"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 106;
+                   start_column = 11;
+                   end_line = 106;
+                   end_column = 46;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4225,18 +5568,84 @@ let allocations_familiales
       embed_bool
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 104;
+             start_column = 11;
+             end_line = 104;
+             end_column = 28;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 104;
+                   start_column = 11;
+                   end_line = 104;
+                   end_column = 28;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
                      handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 104;
+                         start_column = 11;
+                         end_line = 104;
+                         end_column = 28;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
                        [|
                          (fun (_ : _) ->
                            handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 104;
+                               start_column = 11;
+                               end_line = 104;
+                               end_column = 28;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
                              [|
                                (fun (_ : _) ->
-                                 handle_default [||]
+                                 handle_default
+                                   {
+                                     filename =
+                                       "examples/allocations_familiales/prologue.catala_fr";
+                                     start_line = 104;
+                                     start_column = 11;
+                                     end_line = 104;
+                                     end_column = 28;
+                                     law_headings =
+                                       [
+                                         "Allocations familiales";
+                                         "Champs d'applications";
+                                         "Prologue";
+                                       ];
+                                   }
+                                   [||]
                                    (fun (_ : _) ->
                                      log_decision_taken
                                        {
@@ -4360,12 +5769,54 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 126;
+                 start_column = 11;
+                 end_line = 126;
+                 end_column = 34;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 126;
+                       start_column = 11;
+                       end_line = 126;
+                       end_column = 34;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
-                         handle_default [||]
+                         handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 126;
+                             start_column = 11;
+                             end_line = 126;
+                             end_column = 34;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
+                           [||]
                            (fun (_ : _) ->
                              log_decision_taken
                                {
@@ -4550,15 +6001,71 @@ let allocations_familiales
          fun (param_ : money) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 135;
+                 start_column = 11;
+                 end_line = 135;
+                 end_column = 31;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 135;
+                       start_column = 11;
+                       end_line = 135;
+                       end_column = 31;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
                          handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 135;
+                             start_column = 11;
+                             end_line = 135;
+                             end_column = 31;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
                            [|
                              (fun (_ : _) ->
-                               handle_default [||]
+                               handle_default
+                                 {
+                                   filename =
+                                     "examples/allocations_familiales/prologue.catala_fr";
+                                   start_line = 135;
+                                   start_column = 11;
+                                   end_line = 135;
+                                   end_column = 31;
+                                   law_headings =
+                                     [
+                                       "Allocations familiales";
+                                       "Champs d'applications";
+                                       "Prologue";
+                                     ];
+                                 }
+                                 [||]
                                  (fun (_ : _) ->
                                    log_decision_taken
                                      {
@@ -4689,9 +6196,33 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 122;
+             start_column = 11;
+             end_line = 122;
+             end_column = 47;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 122;
+                   start_column = 11;
+                   end_line = 122;
+                   end_column = 47;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4716,7 +6247,22 @@ let allocations_familiales
                  (fun (_ : _) ->
                    bmaf_dot_montant_ *$ decimal_of_string "0.20234"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 122;
+                   start_column = 11;
+                   end_line = 122;
+                   end_column = 47;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4742,7 +6288,22 @@ let allocations_familiales
                  (fun (_ : _) ->
                    bmaf_dot_montant_ *$ decimal_of_string "0.10117"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 122;
+                   start_column = 11;
+                   end_line = 122;
+                   end_column = 47;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4790,9 +6351,33 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 108;
+             start_column = 11;
+             end_line = 108;
+             end_column = 56;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 108;
+                   start_column = 11;
+                   end_line = 108;
+                   end_column = 56;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4827,7 +6412,22 @@ let allocations_familiales
                           -! integer_of_string "2")
                    else money_of_cents_string "0"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 108;
+                   start_column = 11;
+                   end_line = 108;
+                   end_column = 56;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4863,7 +6463,22 @@ let allocations_familiales
                           -! integer_of_string "2")
                    else money_of_cents_string "0"));
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 108;
+                   start_column = 11;
+                   end_line = 108;
+                   end_column = 56;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -4921,15 +6536,67 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 107;
+             start_column = 11;
+             end_line = 107;
+             end_column = 47;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 107;
+                   start_column = 11;
+                   end_line = 107;
+                   end_column = 47;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
                      handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 107;
+                         start_column = 11;
+                         end_line = 107;
+                         end_column = 47;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
                        [|
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -4962,7 +6629,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.232"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -4995,7 +6677,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2379"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5028,7 +6725,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2437"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5061,7 +6773,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2496"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5094,7 +6821,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2555"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5127,7 +6869,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2613"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5160,7 +6917,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2672"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5193,7 +6965,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2804"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5226,7 +7013,22 @@ let allocations_familiales
                                  bmaf_dot_montant_ *$ decimal_of_string "0.2936"
                                else money_of_cents_string "0"));
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 107;
+                               start_column = 11;
+                               end_line = 107;
+                               end_column = 47;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -5291,9 +7093,37 @@ let allocations_familiales
            (fun (_ : _) -> true)
            (fun (_ : _) ->
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 107;
+                 start_column = 11;
+                 end_line = 107;
+                 end_column = 47;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 107;
+                       start_column = 11;
+                       end_line = 107;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5323,7 +7153,22 @@ let allocations_familiales
                        then bmaf_dot_montant_ *$ decimal_of_string "0.32"
                        else money_of_cents_string "0"));
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 107;
+                       start_column = 11;
+                       end_line = 107;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5354,7 +7199,22 @@ let allocations_familiales
                        then bmaf_dot_montant_ *$ decimal_of_string "0.16"
                        else money_of_cents_string "0"));
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 107;
+                       start_column = 11;
+                       end_line = 107;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5406,7 +7266,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "rapport_enfants_total_moyen"]
       embed_decimal
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 109;
+             start_column = 11;
+             end_line = 109;
+             end_column = 38;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -5455,9 +7325,37 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 127;
+                 start_column = 11;
+                 end_line = 127;
+                 end_column = 47;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 127;
+                       start_column = 11;
+                       end_line = 127;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5507,7 +7405,22 @@ let allocations_familiales
                      (fun (_ : _) ->
                        bmaf_dot_montant_ *$ decimal_of_string "0.16"));
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 127;
+                       start_column = 11;
+                       end_line = 127;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5558,7 +7471,22 @@ let allocations_familiales
                      (fun (_ : _) ->
                        bmaf_dot_montant_ *$ decimal_of_string "0.08"));
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 127;
+                       start_column = 11;
+                       end_line = 127;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5608,7 +7536,22 @@ let allocations_familiales
                      (fun (_ : _) ->
                        bmaf_dot_montant_ *$ decimal_of_string "0.04"));
                  (fun (_ : _) ->
-                   handle_default [||]
+                   handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 127;
+                       start_column = 11;
+                       end_line = 127;
+                       end_column = 47;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
+                     [||]
                      (fun (_ : _) ->
                        log_decision_taken
                          {
@@ -5687,7 +7630,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "montant_versé_forfaitaire"]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 123;
+             start_column = 11;
+             end_line = 123;
+             end_column = 36;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -5761,12 +7714,50 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 105;
+             start_column = 11;
+             end_line = 105;
+             end_column = 31;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 105;
+                   start_column = 11;
+                   end_line = 105;
+                   end_column = 31;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 105;
+                         start_column = 11;
+                         end_line = 105;
+                         end_column = 31;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -5794,7 +7785,22 @@ let allocations_familiales
                               = integer_of_string "1"))
                        (fun (_ : _) -> montant_initial_base_premier_enfant_));
                    (fun (_ : _) ->
-                     handle_default [||]
+                     handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 105;
+                         start_column = 11;
+                         end_line = 105;
+                         end_column = 31;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
+                       [||]
                        (fun (_ : _) ->
                          log_decision_taken
                            {
@@ -5869,12 +7875,54 @@ let allocations_familiales
          fun (param_ : Enfant.t) ->
            try
              handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 128;
+                 start_column = 11;
+                 end_line = 128;
+                 end_column = 37;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
                [|
                  (fun (_ : _) ->
                    handle_default
+                     {
+                       filename =
+                         "examples/allocations_familiales/prologue.catala_fr";
+                       start_line = 128;
+                       start_column = 11;
+                       end_line = 128;
+                       end_column = 37;
+                       law_headings =
+                         [
+                           "Allocations familiales";
+                           "Champs d'applications";
+                           "Prologue";
+                         ];
+                     }
                      [|
                        (fun (_ : _) ->
-                         handle_default [||]
+                         handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 128;
+                             start_column = 11;
+                             end_line = 128;
+                             end_column = 37;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
+                           [||]
                            (fun (_ : _) ->
                              log_decision_taken
                                {
@@ -5930,7 +7978,22 @@ let allocations_familiales
                            (fun (_ : _) ->
                              bmaf_dot_montant_ *$ decimal_of_string "0.0369"));
                        (fun (_ : _) ->
-                         handle_default [||]
+                         handle_default
+                           {
+                             filename =
+                               "examples/allocations_familiales/prologue.catala_fr";
+                             start_line = 128;
+                             start_column = 11;
+                             end_line = 128;
+                             end_column = 37;
+                             law_headings =
+                               [
+                                 "Allocations familiales";
+                                 "Champs d'applications";
+                                 "Prologue";
+                               ];
+                           }
+                           [||]
                            (fun (_ : _) ->
                              log_decision_taken
                                {
@@ -6073,15 +8136,67 @@ let allocations_familiales
       embed_money
       (try
          handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 137;
+             start_column = 11;
+             end_line = 137;
+             end_column = 52;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
            [|
              (fun (_ : _) ->
                handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/prologue.catala_fr";
+                   start_line = 137;
+                   start_column = 11;
+                   end_line = 137;
+                   end_column = 52;
+                   law_headings =
+                     [
+                       "Allocations familiales";
+                       "Champs d'applications";
+                       "Prologue";
+                     ];
+                 }
                  [|
                    (fun (_ : _) ->
                      handle_default
+                       {
+                         filename =
+                           "examples/allocations_familiales/prologue.catala_fr";
+                         start_line = 137;
+                         start_column = 11;
+                         end_line = 137;
+                         end_column = 52;
+                         law_headings =
+                           [
+                             "Allocations familiales";
+                             "Champs d'applications";
+                             "Prologue";
+                           ];
+                       }
                        [|
                          (fun (_ : _) ->
-                           handle_default [||]
+                           handle_default
+                             {
+                               filename =
+                                 "examples/allocations_familiales/prologue.catala_fr";
+                               start_line = 137;
+                               start_column = 11;
+                               end_line = 137;
+                               end_column = 52;
+                               law_headings =
+                                 [
+                                   "Allocations familiales";
+                                   "Champs d'applications";
+                                   "Prologue";
+                                 ];
+                             }
+                             [||]
                              (fun (_ : _) ->
                                log_decision_taken
                                  {
@@ -6193,7 +8308,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "montant_avec_garde_alternée_base"]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 112;
+             start_column = 11;
+             end_line = 112;
+             end_column = 43;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6239,7 +8364,21 @@ let allocations_familiales
       (try
          fun (param_ : Enfant.t) ->
            try
-             handle_default [||]
+             handle_default
+               {
+                 filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line = 129;
+                 start_column = 11;
+                 end_line = 129;
+                 end_column = 49;
+                 law_headings =
+                   [
+                     "Allocations familiales";
+                     "Champs d'applications";
+                     "Prologue";
+                   ];
+               }
+               [||]
                (fun (_ : _) ->
                  log_decision_taken
                    {
@@ -6341,7 +8480,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "montant_versé_base"]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 113;
+             start_column = 11;
+             end_line = 113;
+             end_column = 29;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6376,7 +8525,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "montant_versé_majoration"]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 130;
+             start_column = 11;
+             end_line = 130;
+             end_column = 35;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6444,7 +8603,17 @@ let allocations_familiales
       ]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 134;
+             start_column = 11;
+             end_line = 134;
+             end_column = 58;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6490,7 +8659,17 @@ let allocations_familiales
       ]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 136;
+             start_column = 11;
+             end_line = 136;
+             end_column = 59;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6551,7 +8730,17 @@ let allocations_familiales
       ["AllocationsFamiliales"; "montant_versé"]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/prologue.catala_fr";
+             start_line = 101;
+             start_column = 10;
+             end_line = 101;
+             end_column = 23;
+             law_headings =
+               ["Allocations familiales"; "Champs d'applications"; "Prologue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6612,7 +8801,26 @@ let allocations_familiales
                  ];
              })
     then ()
-    else raise AssertionFailed
+    else
+      raise
+        (AssertionFailed
+           {
+             filename =
+               "examples/allocations_familiales/securite_sociale_L.catala_fr";
+             start_line = 230;
+             start_column = 5;
+             end_line = 234;
+             end_column = 6;
+             law_headings =
+               [
+                 "Article L521-2";
+                 "Chapitre 1er : Allocations familiales";
+                 "Titre 2 : Prestations générales d'entretien";
+                 "Livre 5 : Prestations familiales et prestations assimilées";
+                 "Partie législative";
+                 "Code de la sécurité sociale";
+               ];
+           })
   in
   { AllocationsFamilialesOut.montant_verse_out = montant_verse_ }
 
@@ -6655,7 +8863,16 @@ let interface_allocations_familiales
       ["InterfaceAllocationsFamiliales"; "enfants_à_charge"]
       (embed_array embed_enfant)
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 76;
+             start_column = 11;
+             end_line = 76;
+             end_column = 27;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6728,9 +8945,27 @@ let interface_allocations_familiales
         ]
         embed_bool
         (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/epilogue.catala_fr";
+                   start_line = 77;
+                   start_column = 3;
+                   end_line = 77;
+                   end_column = 25;
+                   law_headings = ["Interface du programme"; "Épilogue"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -6780,9 +9015,27 @@ let interface_allocations_familiales
         ]
         embed_bool
         (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/epilogue.catala_fr";
+                   start_line = 77;
+                   start_column = 3;
+                   end_line = 77;
+                   end_column = 25;
+                   law_headings = ["Interface du programme"; "Épilogue"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -6830,7 +9083,16 @@ let interface_allocations_familiales
           "allocations_familiales.ressources_ménage";
         ]
         embed_money
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6861,7 +9123,16 @@ let interface_allocations_familiales
       log_variable_definition
         ["InterfaceAllocationsFamiliales"; "allocations_familiales.résidence"]
         embed_collectivite
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6895,7 +9166,16 @@ let interface_allocations_familiales
           "allocations_familiales.date_courante";
         ]
         embed_date
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6929,7 +9209,16 @@ let interface_allocations_familiales
           "allocations_familiales.enfants_à_charge";
         ]
         (embed_array embed_enfant)
-        (handle_default [||]
+        (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {
@@ -6965,9 +9254,27 @@ let interface_allocations_familiales
         ]
         embed_bool
         (handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 77;
+             start_column = 3;
+             end_line = 77;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
            [|
              (fun (_ : _) ->
-               handle_default [||]
+               handle_default
+                 {
+                   filename =
+                     "examples/allocations_familiales/epilogue.catala_fr";
+                   start_line = 77;
+                   start_column = 3;
+                   end_line = 77;
+                   end_column = 25;
+                   law_headings = ["Interface du programme"; "Épilogue"];
+                 }
+                 [||]
                  (fun (_ : _) ->
                    log_decision_taken
                      {
@@ -7049,7 +9356,16 @@ let interface_allocations_familiales
       ["InterfaceAllocationsFamiliales"; "i_montant_versé"]
       embed_money
       (try
-         handle_default [||]
+         handle_default
+           {
+             filename = "examples/allocations_familiales/epilogue.catala_fr";
+             start_line = 80;
+             start_column = 10;
+             end_line = 80;
+             end_column = 25;
+             law_headings = ["Interface du programme"; "Épilogue"];
+           }
+           [||]
            (fun (_ : _) ->
              log_decision_taken
                {

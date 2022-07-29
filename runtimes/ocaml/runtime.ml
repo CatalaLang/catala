@@ -33,8 +33,8 @@ type source_position = {
 [@@deriving yojson_of]
 
 exception EmptyError
-exception AssertionFailed
-exception ConflictError
+exception AssertionFailed of source_position
+exception ConflictError of source_position
 exception UncomparableDurations
 exception IndivisableDurations
 exception ImpossibleDate
@@ -508,8 +508,13 @@ module EventParser = struct
 end
 
 let handle_default :
-      'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =
- fun exceptions just cons ->
+      'a.
+      source_position ->
+      (unit -> 'a) array ->
+      (unit -> bool) ->
+      (unit -> 'a) ->
+      'a =
+ fun pos exceptions just cons ->
   let except =
     Array.fold_left
       (fun acc except ->
@@ -517,7 +522,7 @@ let handle_default :
         match acc, new_val with
         | None, _ -> new_val
         | Some _, None -> acc
-        | Some _, Some _ -> raise ConflictError)
+        | Some _, Some _ -> raise (ConflictError pos))
       None exceptions
   in
   match except with
@@ -525,6 +530,7 @@ let handle_default :
   | None -> if just () then cons () else raise EmptyError
 
 let handle_default_opt
+    (pos : source_position)
     (exceptions : 'a eoption array)
     (just : bool eoption)
     (cons : 'a eoption) : 'a eoption =
@@ -534,7 +540,7 @@ let handle_default_opt
         match acc, except with
         | ENone _, _ -> except
         | ESome _, ENone _ -> acc
-        | ESome _, ESome _ -> raise ConflictError)
+        | ESome _, ESome _ -> raise (ConflictError pos))
       (ENone ()) exceptions
   in
   match except with

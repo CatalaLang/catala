@@ -31,7 +31,7 @@ let _ =
        method computeAllocationsFamiliales
            : (AF_web.interface_allocations_familiales_in -> float) Js.callback =
          Js.wrap_callback (fun interface_allocations_familiales_in ->
-             execute_or_throw_no_value_provided_error (fun () ->
+             execute_or_throw_error (fun () ->
                  let result =
                    interface_allocations_familiales_in
                    |> AF_web.interface_allocations_familiales
@@ -42,7 +42,7 @@ let _ =
            : (AL_web.calculette_aides_au_logement_garde_alternee_in -> float)
              Js.callback =
          Js.wrap_callback (fun calculette_aides_au_logement_garde_alternee_in ->
-             execute_or_throw_no_value_provided_error (fun () ->
+             execute_or_throw_error (fun () ->
                  let result =
                    calculette_aides_au_logement_garde_alternee_in
                    |> AL_web.calculette_aides_au_logement_garde_alternee

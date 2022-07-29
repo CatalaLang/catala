@@ -387,11 +387,8 @@ let translate_program (p : 'm L.program) : A.program =
                :: new_scopes ))
            ~init:
              ( (if !Cli.avoid_exceptions_flag then
-                L.VarMap.singleton L.handle_default_opt
-                  (A.TopLevelName.fresh ("handle_default_opt", Pos.no_pos))
-               else
-                 L.VarMap.singleton L.handle_default
-                   (A.TopLevelName.fresh ("handle_default", Pos.no_pos))),
+                L.VarMap.singleton L.handle_default_opt A.handle_default_opt
+               else L.VarMap.singleton L.handle_default A.handle_default),
                [] )
            p.D.scopes
        in
