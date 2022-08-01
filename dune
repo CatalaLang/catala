@@ -2,13 +2,23 @@
 
 (data_only_dirs tests syntax_highlighting)
 
+(copy_files compiler/surface/grammar.html)
+
+(rule
+ (action
+  (with-stdout-to
+   catala.html
+   (pipe-stdout
+    (run catala --help=groff)
+    (run groff -P -l -P -r -mandoc -Thtml)))))
+
 (alias
  (name exec)
  (deps compiler/catala.exe build_system/clerk.exe))
 
 (rule
  (alias runtest)
- (package clerk)
+ (package catala)
  (deps
   (source_tree tests))
  (action
@@ -16,7 +26,7 @@
 
 (rule
  (alias runtest)
- (package clerk)
+ (package catala)
  (deps
   (source_tree examples))
  (action

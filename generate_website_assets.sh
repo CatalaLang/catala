@@ -21,8 +21,8 @@ rsync $BUILD/examples/us_tax_code/us_tax_code.html $1/
 rsync $BUILD/examples/tutorial_en/tutorial_en.html $1/
 rsync $BUILD/examples/tutoriel_fr/tutoriel_fr.html $1/
 
-rsync grammar.html $1/
-rsync catala.html $1/
+rsync $BUILD/grammar.html $1/
+rsync $BUILD/catala.html $1/
 
 rsync $BUILD/french_law/js/french_law.js $1/french_law.js
 rsync $BUILD/examples/allocations_familiales/allocations_familiales_schema.json $1/

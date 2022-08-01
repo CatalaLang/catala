@@ -38,6 +38,11 @@
  (merge_into parser)
  (flags --external-tokens Tokens --table --explain))
 
+(rule
+ (target grammar.html)
+ (action
+  (run obelisk html -o %{target} %{dep:parser.mly})))
+
 (documentation
  (package catala)
  (mld_files surface))

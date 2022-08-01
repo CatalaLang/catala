@@ -247,9 +247,8 @@ run_french_law_library_benchmark_js: build_french_law_library_js
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
-build_french_law_library_js: generate_french_law_library_ocaml format
-	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
-	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
+build_french_law_library_js:
+	dune build $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
 
 #> build_french_law_library_web_api	: Builds the web API of the French law library
 build_french_law_library_web_api: build_french_law_library_js generate_french_law_json_schemas
@@ -335,14 +334,14 @@ tests/%: .FORCE
 # Website assets
 ##########################################
 
-grammar.html: $(COMPILER_DIR)/surface/parser.mly
-	obelisk html -o $@ $<
+WEBSITE_ASSETS = grammar.html catala.html
 
-catala.html: $(COMPILER_DIR)/utils/cli.ml
-	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | groff -P -l -P -r -mandoc -Thtml > $@
+$(addprefix _build/default/,$(WEBSITE_ASSETS)):
+	dune build $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
-website-assets: js_build literate_examples grammar.html catala.html build_french_law_library_web_api doc
+website-assets: js_build literate_examples build_french_law_library_web_api doc
+	dune build $(WEBSITE_ASSETS)
 
 ##########################################
 # Misceallenous
@@ -387,10 +386,12 @@ help_catala:
 ##########################################
 # Special targets
 ##########################################
-.PHONY: inspect clean all literate_examples english allocations_familiales \
-	pygments install build_dev build doc format dependencies \
-	dependencies-ocaml catala.html help parser-messages plugins \
-	generate_french_law_json_schemas generate_french_law_library_python \
-	generate_french_law_library_ocaml \
-	run_french_law_library_benchmark_python \
-	run_french_law_library_benchmark_js run_french_law_library_ocaml_tests
+.PHONY: inspect clean all literate_examples english allocations_familiales	\
+	pygments install build_dev build doc format dependencies		\
+	dependencies-ocaml catala.html help parser-messages plugins		\
+	generate_french_law_json_schemas generate_french_law_library_python	\
+	generate_french_law_library_ocaml					\
+	run_french_law_library_benchmark_python					\
+	run_french_law_library_benchmark_js run_french_law_library_ocaml_tests	\
+	build_french_law_library_js build_french_law_library_web_api		\
+	build_french_law_library_ocaml
