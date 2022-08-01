@@ -3,6 +3,8 @@ help : Makefile
 
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
+export DUNE_PROFILE ?= release
+
 # Export all variables to sub-make
 export
 
@@ -54,8 +56,8 @@ build: parser-messages format build_dev
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
-	dune build $(COMPILER_DIR)/catala.bc.js --profile release
-	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js --profile release
+	dune build $(COMPILER_DIR)/catala.bc.js
+	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js
 
 #> doc					: Generates the HTML OCaml documentation
 doc:
@@ -246,7 +248,7 @@ run_french_law_library_benchmark_js: build_french_law_library_js
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: generate_french_law_library_ocaml format
-	dune build --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
+	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
 	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
 
 #> build_french_law_library_web_api	: Builds the web API of the French law library
