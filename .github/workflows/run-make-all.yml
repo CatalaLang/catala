@@ -11,6 +11,9 @@ jobs:
     # The type of runner that the job will run on
     runs-on: self-hosted
 
+    env:
+      IMAGE_TAG: ${{ github.head_ref || github.ref_name }}
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout code
@@ -18,7 +21,26 @@ jobs:
       - name: Prepare container with all dependencies
         run: git archive HEAD | docker build - --target dev-build-context
       - name: Run builds, checks and tests
-        run: git archive HEAD | docker build - --force-rm -t catalalang/catala:${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+        run: git archive HEAD | docker build - --force-rm -t catalalang/catala-build:${IMAGE_TAG}
       - name: Cleanup Docker image
         if: ${{ github.ref != 'refs/heads/master' }}
-        run: docker image rm catalalang/catala:${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+        run: docker image rm catalalang/catala-build:${IMAGE_TAG}
+      - name: Build architecture-independent artifacts
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          RELEASE_TAG=$(git describe --tags)
+          mkdir -p artifacts
+          docker run --rm catalalang/catala-build:${IMAGE_TAG} sh -uexc '
+              dune build --profile=release french_law compiler/catala.bc.js >&2
+              mv _build/default/compiler.catala.bc.js catala_${RELEASE_TAG}_node.js >&2
+              tar c -h catala_${RELEASE_TAG}_node.js french_law
+            ' | tar vx -C artifacts
+      - name: Build static binaries
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: ./build_release.sh -C artifacts
+      - name: Publish artifacts
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Catala artifacts
+          path: artifacts/*
