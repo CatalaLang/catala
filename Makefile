@@ -260,6 +260,11 @@ build_french_law_library_web_api: build_french_law_library_js generate_french_la
 
 FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
 
+PY_VIRTUALENV = $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate
+
+$(PY_VIRTUALENV):
+	@error "Python virtualenv not initialised, you need to run $(FRENCH_LAW_PYTHON_LIB_DIR)/setup_env.sh"
+
 $(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py:
 	CATALA_OPTS="$(CATALA_OPTS) -O" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
@@ -269,19 +274,21 @@ $(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py:
 	cp -f $(AIDES_LOGEMENT_DIR)/aides_logement.py $@
 
 #> generate_french_law_library_python	: Generates the French law library Python sources from Catala
-generate_french_law_library_python:\
+generate_french_law_library_python: $(PY_VIRTUALENV) \
 	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py \
 	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py
-	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+	. $(PY_VIRTUALENV) ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) format
 
 #> type_french_law_library_python		: Types the French law library Python sources with mypy
-type_french_law_library_python: generate_french_law_library_python
-	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+type_french_law_library_python: $(PY_VIRTUALENV) \
+  generate_french_law_library_python
+	. $(PY_VIRTUALENV) ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
 
-run_french_law_library_benchmark_python: type_french_law_library_python
-	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+run_french_law_library_benchmark_python: $(PY_VIRTUALENV) \
+  type_french_law_library_python
+	. $(PY_VIRTUALENV) ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
 
 ##########################################
