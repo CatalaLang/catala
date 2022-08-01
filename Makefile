@@ -266,7 +266,7 @@ FRENCH_LAW_LIBRARY_PYTHON = \
 PY_VIRTUALENV = $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate
 
 $(PY_VIRTUALENV):
-	@error "Python virtualenv not initialised, you need to run $(FRENCH_LAW_PYTHON_LIB_DIR)/setup_env.sh"
+	@$(if $(wildcard $(PY_VIRTUALENV)),,$(error "Python virtualenv not initialised, you need to run $(FRENCH_LAW_PYTHON_LIB_DIR)/setup_env.sh"))
 
 $(FRENCH_LAW_LIBRARY_PYTHON):
 	dune build $@
@@ -353,7 +353,7 @@ all: \
 	tests_ocaml bench_ocaml \
 	build_french_law_library_js \
 	bench_js \
-	generate_french_law_library_python type_french_law_library_python\
+	generate_french_law_library_python type_french_law_library_python \
 	bench_python \
 	website-assets
 
@@ -361,6 +361,7 @@ all: \
 #> clean					: Clean build artifacts
 clean:
 	dune clean
+	rm -rf artifacts
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
 	$(MAKE) -C $(US_TAX_CODE_DIR) clean
 	$(MAKE) -C $(TUTORIEL_FR_DIR) clean
