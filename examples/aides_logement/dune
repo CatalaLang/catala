@@ -10,3 +10,17 @@
    -t
    --plugin-dir=../../compiler/plugins
    aides_logement.catala_fr)))
+
+(rule
+ (targets aides_logement_schema.json)
+ (deps
+  (source_tree ..)
+  ../../compiler/plugins/json_schema%{ext_plugin})
+ (action
+  (run
+   catala
+   json_schema
+   -t
+   --plugin-dir=../../compiler/plugins
+   "--scope=CalculetteAidesAuLogementGardeAltern\195\169e"
+   aides_logement.catala_fr)))

@@ -82,11 +82,11 @@ check-promoted:
 	dune build @update-parser-messages @fmt
 
 compiler/surface/parser.messages: compiler/surface/tokens.mly compiler/surface/parser.mly
-	dune build @update-parser-messages --auto-promote || true
+	-dune build @update-parser-messages --auto-promote
 parser-messages: compiler/surface/parser.messages
 
 format:
-	dune build @fmt --auto-promote 2>/dev/null || true
+	-dune build @fmt --auto-promote 2>/dev/null
 
 ##########################################
 # Syntax highlighting rules
@@ -196,48 +196,45 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 # OCaml
 #-----------------------------------------
 
-FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
+FRENCH_LAW_OCAML_LIB_DIR = french_law/ocaml
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales_api_web.ml:
-	dune build $@
+FRENCH_LAW_LIBRARY_OCAML = \
+  $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales_api_web.ml \
+  $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml \
+  $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement_api_web.ml
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement_api_web.ml:
-	dune build $@
-
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
+$(addprefix _build/default/,$(FRENCH_LAW_LIBRARY_OCAML)) :
 	dune build $@
 
 #> generate_french_law_library_ocaml	: Generates the French law library OCaml sources from Catala
-generate_french_law_library_ocaml: plugins \
-	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales_api_web.ml \
-	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml \
-	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement_api_web.ml
-	$(MAKE) format
+generate_french_law_library_ocaml:
+	dune build $(FRENCH_LAW_LIBRARY_OCAML)
 
 #> build_french_law_library_ocaml		: Builds the OCaml French law library
-build_french_law_library_ocaml: generate_french_law_library_ocaml format
+build_french_law_library_ocaml:
 	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
 
-run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
+run_french_law_library_benchmark_ocaml:
 	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
 
-run_french_law_library_ocaml_tests: build_french_law_library_ocaml
+run_french_law_library_ocaml_tests:
 	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
 #-----------------------------------------
 # JSON schemas
 #-----------------------------------------
 
+JSON_SCHEMAS = \
+  $(AIDES_LOGEMENT_DIR)/aides_logement_schema.json \
+  $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales_schema.json
+
 #> generate_french_law_json_schemas	: Generates the French law library JSON schemas
-generate_french_law_json_schemas: plugins
-	CATALA_OPTS="$(CATALA_OPTS) -t" \
-				SCOPE=CalculetteAidesAuLogementGardeAlternée \
-				$(MAKE) -C \
-				$(AIDES_LOGEMENT_DIR) aides_logement_schema.json
-	CATALA_OPTS="$(CATALA_OPTS) -t" \
-				SCOPE=InterfaceAllocationsFamiliales \
-				$(MAKE) -C \
-				$(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales_schema.json
+$(addprefix _build/default/,$(JSON_SCHEMAS)):
+	dune build $@
+
+generate_french_law_json_schemas:
+	dune build $(JSON_SCHEMAS)
+
 #-----------------------------------------
 # JS
 #-----------------------------------------
@@ -381,6 +378,10 @@ help_catala:
 ##########################################
 # Special targets
 ##########################################
-.PHONY: inspect clean all literate_examples english allocations_familiales pygments \
-	install build_dev build doc format dependencies dependencies-ocaml \
-	catala.html help parser-messages plugins
+.PHONY: inspect clean all literate_examples english allocations_familiales \
+	pygments install build_dev build doc format dependencies \
+	dependencies-ocaml catala.html help parser-messages plugins \
+	generate_french_law_json_schemas generate_french_law_library_python \
+	generate_french_law_library_ocaml \
+	run_french_law_library_benchmark_python \
+	run_french_law_library_benchmark_js run_french_law_library_ocaml_tests
