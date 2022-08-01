@@ -332,7 +332,9 @@ let driver source_file (options : Cli.options) : int =
                   (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
               | `Plugin (Plugin.Lcalc p) ->
-                let output_file, _ = get_output_format ~ext:".ml" () in
+                let output_file, _ =
+                  get_output_format ~ext:p.Plugin.extension ()
+                in
                 Cli.debug_print "Compiling program through backend \"%s\"..."
                   p.Plugin.name;
                 p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
