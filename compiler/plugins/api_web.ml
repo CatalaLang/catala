@@ -424,7 +424,6 @@ let apply
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
   ignore scope;
-  ignore type_ordering;
   File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
       Cli.debug_print "Writing OCaml code to %s..."

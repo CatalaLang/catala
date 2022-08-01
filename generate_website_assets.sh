@@ -1,22 +1,29 @@
 #! /usr/bin/env sh
 
-set -eu
+set -eux
 
 cd "$(dirname "$0")"
 
-if [ $# -eq 0 ]; then
+if [ $# -ne 1 ]; then
   echo "USAGE: \$1 DST where DST is the directory in which files have to be copied"
   exit 1
 fi
 
-rsync -a _build/default/_doc/_html/ $1/ocaml_docs/
-scp examples/allocations_familiales/allocations_familiales.html $1/
-scp examples/aides_logement/aides_logement.html $1/
-scp examples/us_tax_code/us_tax_code.html $1/
-scp examples/tutorial_en/tutorial_en.html $1/
-scp examples/tutoriel_fr/tutoriel_fr.html $1/
-scp grammar.html $1/
-scp catala.html $1/
-scp french_law/js/french_law.js $1/french_law.js
-scp examples/allocations_familiales/allocations_familiales_schema.json $1/
-scp examples/aides_logement/aides_logement_schema.json $1/
+mkdir -p $1/playground
+
+BUILD=_build/default
+
+rsync -a $BUILD/_doc/_html/ $1/ocaml_docs/
+
+rsync $BUILD/examples/allocations_familiales/allocations_familiales.html $1/
+rsync $BUILD/examples/aides_logement/aides_logement.html $1/
+rsync $BUILD/examples/us_tax_code/us_tax_code.html $1/
+rsync $BUILD/examples/tutorial_en/tutorial_en.html $1/
+rsync $BUILD/examples/tutoriel_fr/tutoriel_fr.html $1/
+
+rsync grammar.html $1/
+rsync catala.html $1/
+
+rsync $BUILD/french_law/js/french_law.js $1/french_law.js
+rsync $BUILD/examples/allocations_familiales/allocations_familiales_schema.json $1/
+rsync $BUILD/examples/aides_logement/aides_logement_schema.json $1/
