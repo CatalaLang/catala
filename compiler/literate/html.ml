@@ -75,6 +75,7 @@ let wrap_html
   Format.fprintf fmt
     "<head>\n\
      <style>\n\
+     summary { cursor: pointer; font-style: italic; }\n\
      %s\n\
      </style>\n\
      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
@@ -158,6 +159,10 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
 
 (** {1 Weaving} *)
 
+let sanitize_html_href str =
+  str |> Ubase.from_utf8
+  |> R.substitute ~rex:(R.regexp "[' '°]") ~subst:(function _ -> "%20")
+
 let rec law_structure_to_html
     (language : C.backend_lang)
     (print_only_law : bool)
@@ -178,22 +183,46 @@ let rec law_structure_to_html
   | A.CodeBlock _ -> ()
   | A.LawHeading (heading, children) ->
     let h_number = heading.law_heading_precedence + 1 in
-    Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n"
-      h_number
+    let h_name = Marked.unmark heading.law_heading_name in
+    let fmt_details_open fmt () =
+      if 2 = h_number then
+        Format.fprintf fmt "<details><summary>%s</summary>" h_name
+    in
+    let fmt_details_close fmt () =
+      if 2 >= h_number then Format.fprintf fmt "</details>"
+    in
+    Format.fprintf fmt
+      "%a<h%d class='law-heading' id=\"%s\"><a href=\"%s\">%s</a></h%d>@\n%a"
+      fmt_details_close () h_number
+      (sanitize_html_href h_name)
       (match heading.law_heading_id, language with
       | Some id, Fr ->
         let ltime = Unix.localtime (Unix.time ()) in
         P.sprintf "https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
           (1900 + ltime.Unix.tm_year)
           (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
-      | _ -> "#")
-      (pre_html (Marked.unmark heading.law_heading_name))
-      h_number;
+      | _ -> "#" ^ sanitize_html_href h_name)
+      (pre_html h_name) h_number fmt_details_open ();
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
       (law_structure_to_html language print_only_law)
       fmt children
   | A.LawInclude _ -> ()
+
+let fmt_toc fmt (items : A.law_structure list) =
+  Format.fprintf fmt "@[<v 2><ol class=\"toc\">@\n%a@\n@]</ol>"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+       (fun fmt item ->
+         match item with
+         | A.LawHeading (heading, _children) ->
+           let h_name = Marked.unmark heading.law_heading_name in
+           Format.fprintf fmt
+             "<li class=\"toc-item\"><a href=\"#%s\">%s</a></li>"
+             (sanitize_html_href h_name)
+             h_name
+         | _ -> ()))
+    items
 
 (** {1 API} *)
 
@@ -202,7 +231,16 @@ let ast_to_html
     ~(print_only_law : bool)
     (fmt : Format.formatter)
     (program : A.program) : unit =
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (law_structure_to_html language print_only_law)
-    fmt program.program_items
+  let toc =
+    match language with
+    | C.Fr -> "Sommaire"
+    | C.En -> "Table of contents"
+    | C.Pl -> "Spis treści."
+  in
+
+  Format.fprintf fmt "<h1>%s</h1>\n%a\n%a" toc fmt_toc program.program_items
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+       (fun fmt ->
+         Format.fprintf fmt "%a" (law_structure_to_html language print_only_law)))
+    program.program_items
