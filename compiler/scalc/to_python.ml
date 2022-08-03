@@ -193,9 +193,13 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
   | TAny -> Format.fprintf fmt "Any"
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
-  s |> to_ascii |> to_snake_case
+  s
+  |> to_ascii
+  |> to_snake_case
   |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
-  |> to_ascii |> avoid_keywords |> Format.fprintf fmt "%s"
+  |> to_ascii
+  |> avoid_keywords
+  |> Format.fprintf fmt "%s"
 
 module StringMap = Map.Make (String)
 module IntMap = Map.Make (Int)

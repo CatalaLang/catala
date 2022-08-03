@@ -42,7 +42,10 @@ module To_jsoo = struct
       (v : Dcalc.Ast.StructFieldName.t) : unit =
     let s =
       Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-      |> to_ascii |> to_snake_case |> avoid_keywords |> to_camel_case
+      |> to_ascii
+      |> to_snake_case
+      |> avoid_keywords
+      |> to_camel_case
     in
     Format.fprintf fmt "%s" s
 
@@ -128,10 +131,14 @@ module To_jsoo = struct
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
     let lowercase_name =
-      Bindlib.name_of v |> to_ascii |> to_snake_case
+      Bindlib.name_of v
+      |> to_ascii
+      |> to_snake_case
       |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ ->
              "_dot_")
-      |> to_ascii |> avoid_keywords |> to_camel_case
+      |> to_ascii
+      |> avoid_keywords
+      |> to_camel_case
     in
     if
       List.mem lowercase_name ["handle_default"; "handle_default_opt"]

@@ -464,7 +464,8 @@ let translate_rule
     let a_name =
       Marked.map_under_mark
         (fun str ->
-          str ^ "."
+          str
+          ^ "."
           ^ Marked.unmark (Ast.ScopeVar.get_info (Marked.unmark subs_var)))
         (Ast.SubScopeName.get_info (Marked.unmark subs_index))
     in

@@ -109,7 +109,8 @@ let color =
 
 let unstyled =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["unstyled"; "u"]
         ~doc:
           "Removes styling (colors, etc.) from terminal output. Equivalent to \
@@ -120,7 +121,8 @@ let optimize =
 
 let trace_opt =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["trace"; "t"]
         ~doc:
           "Displays a trace of the interpreter's computation or generates \
@@ -128,25 +130,29 @@ let trace_opt =
 
 let avoid_exceptions =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["avoid_exceptions"]
         ~doc:"Compiles the default calculus without exceptions")
 
 let closure_conversion =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["closure_conversion"]
         ~doc:"Performs closure conversion on the lambda calculus")
 
 let wrap_weaved_output =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["wrap"; "w"]
         ~doc:"Wraps literate programming output with a minimal preamble.")
 
 let print_only_law =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["print_only_law"]
         ~doc:
           "In literate programming output, skip all code and metadata sections \
@@ -189,7 +195,8 @@ let max_prec_digits_opt =
 
 let disable_counterexamples_opt =
   Arg.(
-    value & flag
+    value
+    & flag
     & info
         ["disable_counterexamples"]
         ~doc:
@@ -268,10 +275,23 @@ let options =
     }
   in
   Term.(
-    const make $ debug $ color $ unstyled $ wrap_weaved_output
-    $ avoid_exceptions $ closure_conversion $ backend $ plugins_dirs $ language
-    $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize
-    $ ex_scope $ output $ print_only_law)
+    const make
+    $ debug
+    $ color
+    $ unstyled
+    $ wrap_weaved_output
+    $ avoid_exceptions
+    $ closure_conversion
+    $ backend
+    $ plugins_dirs
+    $ language
+    $ max_prec_digits_opt
+    $ trace_opt
+    $ disable_counterexamples_opt
+    $ optimize
+    $ ex_scope
+    $ output
+    $ print_only_law)
 
 let catala_t f = Term.(const f $ file $ options)
 
@@ -432,7 +452,9 @@ let concat_with_line_depending_prefix_and_suffix
     let out, _ =
       List.fold_left
         (fun (acc, i) s ->
-          ( (acc ^ prefix i ^ s
+          ( (acc
+            ^ prefix i
+            ^ s
             ^ if i = List.length ss - 1 then "" else suffix i),
             i + 1 ))
         ((prefix 0 ^ hd ^ if 0 = List.length ss - 1 then "" else suffix 0), 1)

@@ -24,7 +24,8 @@ module Nj = Ninja_utils
 
 let files_or_folders =
   Arg.(
-    non_empty & pos_right 0 file []
+    non_empty
+    & pos_right 0 file []
     & info [] ~docv:"FILE(S)" ~doc:"File(s) or folder(s) to process")
 
 let command =
@@ -38,7 +39,8 @@ let debug =
 
 let reset_test_outputs =
   Arg.(
-    value & flag
+    value
+    & flag
     & info ["r"; "reset"]
         ~doc:
           "Used with the `test` command, resets the test output to whatever is \
@@ -88,8 +90,16 @@ let catala_opts =
 
 let clerk_t f =
   Term.(
-    const f $ files_or_folders $ command $ catalac $ catala_opts $ makeflags
-    $ debug $ scope $ reset_test_outputs $ ninja_output)
+    const f
+    $ files_or_folders
+    $ command
+    $ catalac
+    $ catala_opts
+    $ makeflags
+    $ debug
+    $ scope
+    $ reset_test_outputs
+    $ ninja_output)
 
 let version = "0.5.0"
 
@@ -336,7 +346,8 @@ let collect_all_ninja_build
           let expected_output_file =
             expected_output.output_dir
             ^ Filename.basename expected_output.tested_filename
-            ^ "." ^ expected_output.id
+            ^ "."
+            ^ expected_output.id
           in
           let vars =
             [
@@ -392,7 +403,8 @@ let add_root_test_build
     (all_file_names : string list)
     (all_test_builds : string) : ninja =
   let file_names_str =
-    List.hd all_file_names ^ ""
+    List.hd all_file_names
+    ^ ""
     ^ List.fold_left
         (fun acc name -> acc ^ "; " ^ name)
         "" (List.tl all_file_names)
@@ -440,9 +452,11 @@ let get_catala_files_in_folder (dir : string) : string list =
           false
       in
       if f_is_dir then
-        readdir_sort f |> Array.to_list
+        readdir_sort f
+        |> Array.to_list
         |> List.map (Filename.concat f)
-        |> List.append fs |> loop result
+        |> List.append fs
+        |> loop result
       else loop (f :: result) fs
     | [] -> result
   in

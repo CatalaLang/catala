@@ -101,7 +101,8 @@ let driver source_file (options : Cli.options) : int =
       let output_file, with_output = get_output ~ext:".d" () in
       Cli.debug_print "Writing list of dependencies to %s..."
         (Option.value ~default:"stdout" output_file);
-      with_output @@ fun oc ->
+      with_output
+      @@ fun oc ->
       Printf.fprintf oc "%s:\\\n%s\n%s:"
         (String.concat "\\\n"
            (Option.value ~default:"stdout" output_file
@@ -165,7 +166,8 @@ let driver source_file (options : Cli.options) : int =
       match backend with
       | `Scopelang ->
         let _output_file, with_output = get_output_format () in
-        with_output @@ fun fmt ->
+        with_output
+        @@ fun fmt ->
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.format_scope ~debug:options.debug)
@@ -191,7 +193,8 @@ let driver source_file (options : Cli.options) : int =
         match backend with
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
-          with_output @@ fun fmt ->
+          with_output
+          @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
@@ -295,7 +298,8 @@ let driver source_file (options : Cli.options) : int =
             match backend with
             | `Lcalc ->
               let _output_file, with_output = get_output_format () in
-              with_output @@ fun fmt ->
+              with_output
+              @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
                   (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
@@ -326,7 +330,8 @@ let driver source_file (options : Cli.options) : int =
                 let output_file, with_output =
                   get_output_format ~ext:".ml" ()
                 in
-                with_output @@ fun fmt ->
+                with_output
+                @@ fun fmt ->
                 Cli.debug_print "Compiling program into OCaml...";
                 Cli.debug_print "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
@@ -344,7 +349,8 @@ let driver source_file (options : Cli.options) : int =
                 match backend with
                 | `Scalc ->
                   let _output_file, with_output = get_output_format () in
-                  with_output @@ fun fmt ->
+                  with_output
+                  @@ fun fmt ->
                   if Option.is_some options.ex_scope then
                     Format.fprintf fmt "%a\n"
                       (Scalc.Print.format_scope ~debug:options.debug
@@ -367,7 +373,8 @@ let driver source_file (options : Cli.options) : int =
                   Cli.debug_print "Compiling program into Python...";
                   Cli.debug_print "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
-                  with_output @@ fun fmt ->
+                  with_output
+                  @@ fun fmt ->
                   Scalc.To_python.format_program fmt prgm type_ordering
                 | `Plugin (Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->

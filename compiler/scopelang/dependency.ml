@@ -103,7 +103,8 @@ let check_for_cycle_in_scope (g : SDependencies.t) : unit =
                  Marked.get_mark var_info );
                ( Some
                    ("Used here in the definition of another cycle variable "
-                  ^ succ_str ^ ":"),
+                   ^ succ_str
+                   ^ ":"),
                  edge_pos );
              ])
            scc)
@@ -254,7 +255,8 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
                 Marked.get_mark var_info );
               ( Some
                   ("Used here in the definition of another cycle type "
-                 ^ succ_str ^ ":"),
+                  ^ succ_str
+                  ^ ":"),
                 edge_pos );
             ])
           scc)

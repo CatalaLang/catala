@@ -160,7 +160,8 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
 (** {1 Weaving} *)
 
 let sanitize_html_href str =
-  str |> Ubase.from_utf8
+  str
+  |> Ubase.from_utf8
   |> R.substitute ~rex:(R.regexp "[' '°]") ~subst:(function _ -> "%20")
 
 let rec law_structure_to_html

@@ -222,7 +222,8 @@ let option_enum_config : (D.EnumConstructor.t * D.typ Marked.pos) list =
 let make_none m =
   let mark = Marked.mark m in
   let tunit = D.TLit D.TUnit, D.mark_pos m in
-  Bindlib.box @@ mark
+  Bindlib.box
+  @@ mark
   @@ EInj
        ( Marked.mark
            (D.map_mark (fun pos -> pos) (fun _ -> tunit) m)

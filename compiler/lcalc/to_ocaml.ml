@@ -148,7 +148,10 @@ let avoid_keywords (s : string) : string =
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
   Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-  |> to_ascii |> to_snake_case |> avoid_keywords |> Format.fprintf fmt "%s"
+  |> to_ascii
+  |> to_snake_case
+  |> avoid_keywords
+  |> Format.fprintf fmt "%s"
 
 let format_to_module_name
     (fmt : Format.formatter)
@@ -156,9 +159,13 @@ let format_to_module_name
   (match name with
   | `Ename v -> Format.asprintf "%a" D.EnumName.format_t v
   | `Sname v -> Format.asprintf "%a" D.StructName.format_t v)
-  |> to_ascii |> to_snake_case |> avoid_keywords |> String.split_on_char '_'
+  |> to_ascii
+  |> to_snake_case
+  |> avoid_keywords
+  |> String.split_on_char '_'
   |> List.map String.capitalize_ascii
-  |> String.concat "" |> Format.fprintf fmt "%s"
+  |> String.concat ""
+  |> Format.fprintf fmt "%s"
 
 let format_struct_field_name
     (fmt : Format.formatter)
