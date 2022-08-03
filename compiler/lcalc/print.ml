@@ -17,18 +17,6 @@
 open Utils
 open Ast
 
-let is_uppercase (x : CamomileLibraryDefault.Camomile.UChar.t) : bool =
-  try
-    match CamomileLibraryDefault.Camomile.UCharInfo.general_category x with
-    | `Ll -> false
-    | `Lu -> true
-    | _ -> false
-  with _ -> true
-
-let begins_with_uppercase (s : string) : bool =
-  let first_letter = CamomileLibraryDefault.Camomile.UTF8.get s 0 in
-  is_uppercase first_letter
-
 (** {b Note:} (EmileRolley) seems to be factorizable with
     Dcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =

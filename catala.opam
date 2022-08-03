@@ -21,7 +21,6 @@ depends: [
   "benchmark" {>= "1.6"}
   "bindlib" {>= "5.0.1"}
   "calendar" {>= "2.04"}
-  "camomile" {>= "1.0.2"}
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
   "dune" {>= "2.8"}

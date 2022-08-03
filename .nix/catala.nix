@@ -1,29 +1,29 @@
 { lib
-, pkgs
-, fetchFromGitHub
-, buildDunePackage
+, alcotest
 , ansiterminal
-, sedlex
-, menhir
-, unionfind
-, bindlib
-, cmdliner_1_1_0
-, re
-, zarith
-, zarith_stubs_js
-, ocamlgraph
-, calendar
-, visitors
 , benchmark
+, bindlib
+, buildDunePackage
+, calendar
+, cmdliner_1_1_0
+, cppo
+, fetchFromGitHub
 , js_of_ocaml
 , js_of_ocaml-ppx
-, camomile
-, cppo
-, ppx_deriving
-, z3
-, alcotest
-, ppx_yojson_conv
+, menhir
 , menhirLib ? null #for nixos-unstable compatibility.
+, ocamlgraph
+, pkgs
+, ppx_deriving
+, ppx_yojson_conv
+, re
+, sedlex
+, ubase
+, unionfind
+, visitors
+, z3
+, zarith
+, zarith_stubs_js
 }:
 
 buildDunePackage rec {
@@ -37,34 +37,30 @@ buildDunePackage rec {
   useDune2 = true;
 
   propagatedBuildInputs = [
+    alcotest
     ansiterminal
-    sedlex
-    menhir
-    menhirLib
-    cmdliner_1_1_0
-    re
-    zarith
-    zarith_stubs_js
-    ocamlgraph
-    calendar
-    visitors
     benchmark
+    bindlib
+    calendar
+    camomile
+    cmdliner_1_1_0
+    cppo
     js_of_ocaml
     js_of_ocaml-ppx
-    ppx_yojson_conv
-    camomile
-    cppo
-    z3
-
-
+    menhir
+    menhirLib
+    ocamlgraph
     pkgs.z3
-
     ppx_deriving
-
-    alcotest
-
+    ppx_yojson_conv
+    re
+    sedlex
+    ubase
     unionfind
-    bindlib
+    visitors
+    z3
+    zarith
+    zarith_stubs_js
   ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
   doCheck = true;
 

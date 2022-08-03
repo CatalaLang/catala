@@ -19,9 +19,9 @@
     the associated [js_of_ocaml] wrapper. *)
 
 open Utils
+open String_common
 open Lcalc
 open Lcalc.Ast
-open Lcalc.Backends
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
@@ -42,7 +42,7 @@ module To_jsoo = struct
       (v : Dcalc.Ast.StructFieldName.t) : unit =
     let s =
       Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
+      |> to_ascii |> to_snake_case |> avoid_keywords |> to_camel_case
     in
     Format.fprintf fmt "%s" s
 
@@ -128,14 +128,14 @@ module To_jsoo = struct
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
     let lowercase_name =
-      Bindlib.name_of v |> to_ascii |> to_lowercase
+      Bindlib.name_of v |> to_ascii |> to_snake_case
       |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ ->
              "_dot_")
       |> to_ascii |> avoid_keywords |> to_camel_case
     in
     if
       List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-      || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
+      || begins_with_uppercase (Bindlib.name_of v)
     then Format.fprintf fmt "%s" lowercase_name
     else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
     else Format.fprintf fmt "%s_" lowercase_name
