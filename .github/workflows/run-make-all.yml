@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Prepare container with all dependencies
         run: git archive HEAD | docker build - --target dev-build-context
       - name: Run builds, checks and tests
