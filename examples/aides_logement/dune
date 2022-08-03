@@ -24,3 +24,10 @@
    --plugin-dir=../../compiler/plugins
    "--scope=CalculetteAidesAuLogementGardeAltern\195\169e"
    aides_logement.catala_fr)))
+
+(rule
+ (target aides_logement.py)
+ (deps
+  (source_tree ..))
+ (action
+  (run catala Python -O aides_logement.catala_fr)))

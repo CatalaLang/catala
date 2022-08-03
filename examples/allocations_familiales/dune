@@ -24,3 +24,10 @@
    --plugin-dir=../../compiler/plugins
    --scope=InterfaceAllocationsFamiliales
    allocations_familiales.catala_fr)))
+
+(rule
+ (target allocations_familiales.py)
+ (deps
+  (source_tree ..))
+ (action
+  (run catala Python -O allocations_familiales.catala_fr)))
