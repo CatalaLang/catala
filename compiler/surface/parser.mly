@@ -205,7 +205,7 @@ base_expression:
 | e = primitive_expression WITH c = constructor_binding {
   (TestMatchCase (e, (c, Pos.from_lpos $sloc)), Pos.from_lpos $sloc)
 }
-| e1 = base_expression CONTAINS e2 = primitive_expression {
+| e1 = primitive_expression CONTAINS e2 = base_expression {
   (MemCollection (e2, e1), Pos.from_lpos $sloc)
 }
 
