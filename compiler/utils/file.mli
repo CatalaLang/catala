@@ -60,9 +60,3 @@ val get_formatter_of_out_channel :
 (** [get_output_format ~source_file ~output_file ?ext ()] returns the infered
     filename and its corresponding [with_formatter_of_out_channel] function. If
     the [output_file] is equal to [Some "-"] returns a wrapper around [stdout]. *)
-
-(** {2 Utility functions on files} *)
-
-val ocamlformat_file_opt : string option -> unit
-(** [ocamlformat_file_opt filename_opt] runs [ocamlformat] on the file
-    [filename_opt] if there is some, otherwise, does nothing. *)

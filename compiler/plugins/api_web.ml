@@ -428,8 +428,7 @@ let apply
       Cli.trace_flag := true;
       Cli.debug_print "Writing OCaml code to %s..."
         (Option.value ~default:"stdout" output_file);
-      To_ocaml.format_program fmt prgm type_ordering;
-      File.ocamlformat_file_opt output_file);
+      To_ocaml.format_program fmt prgm type_ordering);
 
   let output_file, filename_without_ext =
     match output_file with
@@ -456,7 +455,6 @@ let apply
   with_formatter (fun fmt ->
       Cli.debug_print "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
-      To_jsoo.format_program fmt module_name prgm type_ordering;
-      File.ocamlformat_file_opt jsoo_output_file)
+      To_jsoo.format_program fmt module_name prgm type_ordering)
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply

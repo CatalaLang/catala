@@ -60,10 +60,3 @@ let get_out_channel ~source_file ~output_file ?ext () =
 let get_formatter_of_out_channel ~source_file ~output_file ?ext () =
   let f, with_ = get_out_channel ~source_file ~output_file ?ext () in
   f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel oc fmt)
-
-let ocamlformat_file_opt = function
-  | None | Some "-" -> ()
-  | Some f ->
-    Cli.debug_print "Formatting %s..." f;
-    if Sys.command (Printf.sprintf "ocamlformat %s -i" f) <> 0 then
-      Cli.error_print "Internal error: ocamlformat failed on %s" f
