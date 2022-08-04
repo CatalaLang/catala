@@ -96,4 +96,4 @@ include .depend
 
 clean:
 	rm -rf $(CACHE_DIR)
-	rm .depend
+	rm -f .depend

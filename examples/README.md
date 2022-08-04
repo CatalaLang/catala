@@ -52,6 +52,12 @@ can be passed using the `CATALA_OPTS` Makefile variable.
       [Marianne](https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography)
       installed in your machine.
 
+> Note: the OCaml, Javascript and Python artifacts that are generated here and
+> used in ../french_law are generated using `dune` rules instead. See the
+> examples in `aides_logement/dune` and `allocations_familiales/dune`. This
+> allows the compilation of `french_law` to be streamlined from the compilation
+> of the Catala compiler itself, and without polluting the source tree.
+
 ## Testing examples
 
 Unit testing is important, and we encourage Catala developers to write lots

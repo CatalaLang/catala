@@ -16,9 +16,20 @@
   ANSITerminal)
  (modules clerk_driver))
 
+(rule
+ (target custom_linking.sexp)
+ (mode fallback)
+ (action
+  (with-stdout-to
+   %{target}
+   (echo "()"))))
+
 (executable
  (name clerk)
  (public_name clerk)
+ (flags
+  (:standard
+   (:include custom_linking.sexp)))
  (libraries clerk.driver)
  (modules clerk)
  (package clerk))

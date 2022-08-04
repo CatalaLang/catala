@@ -25,7 +25,7 @@ RUN opam --cli=2.1 switch create catala ocaml-system && \
 
 
 # Stage 2: get the whole repo, run checks and builds
-FROM dev-build-context AS build-all
+FROM dev-build-context
 
 # Get the full repo
 ADD --chown=ocaml:ocaml . .
