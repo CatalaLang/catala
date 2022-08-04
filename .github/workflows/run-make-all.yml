@@ -35,7 +35,7 @@ jobs:
           docker run --rm catalalang/catala-build:${IMAGE_TAG} sh -uexc '
               opam --cli=2.1 exec -- dune build --profile=release french_law compiler/catala.bc.js >&2
               mv _build/default/compiler/catala.bc.js catala_'"${RELEASE_TAG}"'_node.js >&2
-              tar c -h catala_'"${RELEASE_TAG}"'_node.js french_law --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '.*'
+              tar c -h catala_'"${RELEASE_TAG}"'_node.js french_law --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '"'"'.*'"'"'
             ' | tar vx -C artifacts
       - name: Build static binaries
         if: ${{ github.ref == 'refs/heads/master' }}
