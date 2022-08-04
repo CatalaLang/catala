@@ -162,14 +162,14 @@ module To_jsoo = struct
                match Marked.unmark struct_field_type with
                | Dcalc.Ast.TArrow (t1, t2) ->
                  Format.fprintf fmt
-                   "method %a@ =@ Js.wrap_meth_callback@ (@[<hov 2>fun input ->@\n\
-                    %a (%a.%a (%a input))@])"
+                   "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
+                    fun input ->@ %a (%a.%a (%a input)))@]@]"
                    format_struct_field_name_camel_case struct_field
                    format_typ_to_jsoo t2 fmt_struct_name ()
                    format_struct_field_name (None, struct_field)
                    format_typ_of_jsoo t1
                | _ ->
-                 Format.fprintf fmt "val %a@ =@ %a %a.%a"
+                 Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
                    format_struct_field_name_camel_case struct_field
                    format_typ_to_jsoo struct_field_type fmt_struct_name ()
                    format_struct_field_name (None, struct_field)))
@@ -188,18 +188,23 @@ module To_jsoo = struct
                    format_struct_field_name (None, struct_field)
                    format_struct_field_name (None, struct_field)
                | _ ->
-                 Format.fprintf fmt "%a@ =@ %a %a##.%a" format_struct_field_name
-                   (None, struct_field) format_typ_of_jsoo struct_field_type
-                   fmt_struct_name () format_struct_field_name_camel_case
-                   struct_field))
+                 Format.fprintf fmt
+                   "@[<hv 2>%a =@ @[<hov 2>%a@ @[<hov>%a@,##.%a@]@]@]"
+                   format_struct_field_name (None, struct_field)
+                   format_typ_of_jsoo struct_field_type fmt_struct_name ()
+                   format_struct_field_name_camel_case struct_field))
           struct_fields
       in
       let fmt_conv_funs fmt _ =
         Format.fprintf fmt
-          "let %a_to_jsoo (%a : %a.t) : %a Js.t = object%%js@\n\
-           @[<hov 2>%a@]@\n\
-           end@\n\
-           let %a_of_jsoo (%a : %a Js.t) : %a.t = {@[<hov 2>%a@]}"
+          "@[<hov 2>let %a_to_jsoo@ (%a@ : %a.t)@ : %a Js.t =@ @[<hv \
+           2>object%%js@\n\
+           %a@\n\
+           @]@]end@\n\
+           @[<hov 2>let %a_of_jsoo@ @[<hov 2>(%a@ : %a Js.t)@] :@ %a.t =@ \
+           @[<hv 2>{@,\
+           %a@]@\n\
+           }@]"
           fmt_struct_name () fmt_struct_name () fmt_module_struct_name ()
           fmt_struct_name () fmt_to_jsoo () fmt_struct_name () fmt_struct_name
           () fmt_struct_name () fmt_module_struct_name () fmt_of_jsoo ()
@@ -214,12 +219,12 @@ module To_jsoo = struct
           fmt_struct_name () fmt_struct_name () fmt_module_struct_name ()
       else
         Format.fprintf fmt
-          "class type %a =@\n@[<hov 2>object@ @[<hov 2>@ @ %a@]@\nend@]@\n%a@\n"
+          "@[<hv 2>class type %a =@ @[<hov 2>object@ %a@]@,end@\n%a@]@\n"
           fmt_struct_name ()
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (struct_field, struct_field_type) ->
-               Format.fprintf fmt "method %a:@ %a %a"
+               Format.fprintf fmt "@[<hov 2>method %a:@ %a %a@]"
                  format_struct_field_name_camel_case struct_field format_typ
                  struct_field_type format_prop_or_meth struct_field_type))
           struct_fields fmt_conv_funs ()
@@ -243,21 +248,21 @@ module To_jsoo = struct
                    "Tuples aren't supported yet in the conversion to JS"
                | _ ->
                  Format.fprintf fmt
-                   "| %a arg -> object%%js@[<hov 2>@\n\
+                   "@[<v 2>@[<v 4>| %a arg -> object%%js@\n\
                     val kind = Js.string \"%a\"@\n\
                     val payload = Js.Unsafe.coerce (Js.Unsafe.inject (%a \
                     arg))@]@\n\
-                    end"
+                    end@]"
                    format_enum_cons_name cname format_enum_cons_name cname
                    format_typ_to_jsoo typ))
           enum_cons
       in
       let fmt_of_jsoo fmt _ =
         Format.fprintf fmt
-          "match %a##.kind |> Js.to_string with@\n\
-           %a@\n\
-           | cons -> failwith (Printf.sprintf \"Unexpected '%%s' kind for the \
-           enumeration '%a.t'\" cons)"
+          "@[<hov 2>match@ %a##.kind@ |> Js.to_string@ with@]@\n\
+           @[<hv>%a@\n\
+           @[<hv 2>| cons ->@ @[<hov 2>failwith@ @[<hov 2>(Printf.sprintf@ \
+           \"Unexpected '%%s' kind for the enumeration '%a.t'\"@ cons)@]@]@]@]"
           fmt_enum_name ()
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
@@ -267,7 +272,7 @@ module To_jsoo = struct
                  Cli.error_print
                    "Tuples aren't yet supported in the conversion to JS..."
                | Dcalc.Ast.TLit TUnit ->
-                 Format.fprintf fmt "| \"%a\" ->@\n%a.%a ()"
+                 Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
                    format_enum_cons_name cname fmt_module_enum_name ()
                    format_enum_cons_name cname
                | _ ->
@@ -281,23 +286,23 @@ module To_jsoo = struct
 
       let fmt_conv_funs fmt _ =
         Format.fprintf fmt
-          "let %a_to_jsoo : %a.t -> %a Js.t = function@\n\
-           @[<hov 2>%a@]@\n\
-           let %a_of_jsoo (%a : %a Js.t) : %a.t = @[<hov 2>%a@]" fmt_enum_name
-          () fmt_module_enum_name () fmt_enum_name () fmt_to_jsoo ()
-          fmt_enum_name () fmt_enum_name () fmt_enum_name ()
+          "@[<hov 2>let %a_to_jsoo@ : %a.t -> %a Js.t@ = function@\n\
+           %a@]@\n\
+           @\n\
+           @[<hov 2>let %a_of_jsoo@ @[<hov 2>(%a@ : %a Js.t)@]@ : %a.t =@ %a@]@\n"
+          fmt_enum_name () fmt_module_enum_name () fmt_enum_name () fmt_to_jsoo
+          () fmt_enum_name () fmt_enum_name () fmt_enum_name ()
           fmt_module_enum_name () fmt_of_jsoo ()
       in
       Format.fprintf fmt
-        "class type %a =@\n\
-         @[<hov 2>object@ @[<hov 2>@ @ method kind : Js.js_string Js.t \
-         Js.readonly_prop@\n\
+        "@[<v 2>class type %a =@ @[<v 2>object@ @[<hov 2>method kind :@ \
+         Js.js_string Js.t Js.readonly_prop@\n\
          @[<v 2>(** Expects one of:@\n\
-         %a *)@\n\
+         %a *)@]@]@\n\
          @\n\
-         @]method payload : Js.Unsafe.any Js.t Js.readonly_prop@\n\
-         @]@\n\
+         @[<hov 2>method payload :@ Js.Unsafe.any Js.t Js.readonly_prop@]@]@\n\
          end@]@\n\
+         @\n\
          %a@\n"
         format_enum_name enum_name
         (Format.pp_print_list
@@ -346,11 +351,12 @@ module To_jsoo = struct
     | Dcalc.Ast.ScopeDef scope_def ->
       let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
       let fmt_fun_call fmt _ =
-        Format.fprintf fmt "%a |> %a_of_jsoo |> %a |> %a_to_jsoo"
+        Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
           fmt_input_struct_name scope_def fmt_input_struct_name scope_def
           format_var scope_var fmt_output_struct_name scope_def
       in
-      Format.fprintf fmt "@\n@\nlet %a (%a : %a Js.t) : %a Js.t =@\n%a@\n%a"
+      Format.fprintf fmt
+        "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n%a"
         format_var scope_var fmt_input_struct_name scope_def
         fmt_input_struct_name scope_def fmt_output_struct_name scope_def
         fmt_fun_call () (format_scopes_to_fun ctx) scope_next
@@ -368,7 +374,7 @@ module To_jsoo = struct
           format_var_camel_case scope_var fmt_input_struct_name scope_def
           fmt_output_struct_name scope_def
       in
-      Format.fprintf fmt "@\n@\n@[<hov 2> %a =@\n Js.wrap_callback@ %a@]%a"
+      Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,%a"
         fmt_meth_name () format_var scope_var
         (format_scopes_to_callbacks ctx)
         scope_next
@@ -401,14 +407,14 @@ module To_jsoo = struct
            @\n\
            [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
            @\n\
-           (* Generated API *)\n\n\
+           (* Generated API *)@\n\
+           @\n\
            %a@\n\
            %a@\n\
-           @\n\n\
-          \  let _ =@ @[<hov 2> Js.export \"%a\"@\n\
-           (object%%js@ @[\n\
-           %a@]@\n\
-           end)@]@?"
+           @\n\
+           @[<v 2>let _ =@ @[<hov 2> Js.export \"%a\"@\n\
+           @[<v 2>(object%%js@ %a@]@\n\
+           end)@]@]@?"
           (Option.fold ~none:"" ~some:(fun name -> name) module_name)
           (format_ctx type_ordering) prgm.decl_ctx
           (format_scopes_to_fun prgm.decl_ctx)
