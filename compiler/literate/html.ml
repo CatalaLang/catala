@@ -134,7 +134,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
       "html";
       "-O";
       "style=colorful,anchorlinenos=True,lineanchors=\""
-      ^ Pos.get_file (Marked.get_mark c)
+      ^ String_common.to_ascii (Pos.get_file (Marked.get_mark c))
       ^ "\",linenos=table,linenostart="
       ^ string_of_int (Pos.get_start_line (Marked.get_mark c) - 1);
       "-o";
@@ -161,12 +161,13 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
 
 let sanitize_html_href str =
   str
-  |> Ubase.from_utf8
+  |> String_common.to_ascii
   |> R.substitute ~rex:(R.regexp "[' '°]") ~subst:(function _ -> "%20")
 
 let rec law_structure_to_html
     (language : C.backend_lang)
     (print_only_law : bool)
+    (parents_headings : string list)
     (fmt : Format.formatter)
     (i : A.law_structure) : unit =
   match i with
@@ -185,45 +186,67 @@ let rec law_structure_to_html
   | A.LawHeading (heading, children) ->
     let h_number = heading.law_heading_precedence + 1 in
     let h_name = Marked.unmark heading.law_heading_name in
+    let complete_headings = parents_headings @ [h_name] in
+    let id = complete_headings |> String.concat "-" |> sanitize_html_href in
     let fmt_details_open fmt () =
       if 2 = h_number then
         Format.fprintf fmt "<details><summary>%s</summary>" h_name
     in
     let fmt_details_close fmt () =
-      if 2 >= h_number then Format.fprintf fmt "</details>"
+      if 2 = h_number then Format.fprintf fmt "</details>"
     in
     Format.fprintf fmt
-      "%a<h%d class='law-heading' id=\"%s\"><a href=\"%s\">%s</a></h%d>@\n%a"
-      fmt_details_close () h_number
-      (sanitize_html_href h_name)
+      "<h%d class='law-heading' id=\"%s\"><a href=\"#%s\">%s</a>%s</h%d>@\n\
+       %a\n\
+       %a\n\
+       %a"
+      h_number id id h_name
       (match heading.law_heading_id, language with
       | Some id, Fr ->
         let ltime = Unix.localtime (Unix.time ()) in
-        P.sprintf "https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
+        P.sprintf
+          "<a class=\"link-article\" \
+           href=\"https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d\" \
+           target=\"_blank\">Voir le texte sur Légifrance.gouv.fr</a>"
+          id
           (1900 + ltime.Unix.tm_year)
           (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
-      | _ -> "#" ^ sanitize_html_href h_name)
-      (pre_html h_name) h_number fmt_details_open ();
-    Format.pp_print_list
-      ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-      (law_structure_to_html language print_only_law)
-      fmt children
+      | _ -> "")
+      h_number fmt_details_open ()
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+         (law_structure_to_html language print_only_law complete_headings))
+      children fmt_details_close ()
   | A.LawInclude _ -> ()
 
-let fmt_toc fmt (items : A.law_structure list) =
-  Format.fprintf fmt "@[<v 2><ol class=\"toc\">@\n%a@\n@]</ol>"
+let rec fmt_toc
+    (parents_headings : string list)
+    fmt
+    (items : A.law_structure list) =
+  Format.fprintf fmt "@[<v 2><ol class=\"toc-%d\">@\n%a@\n@]</ol>"
+    (List.length parents_headings)
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt item ->
          match item with
-         | A.LawHeading (heading, _children) ->
+         | A.LawHeading (heading, childs) ->
            let h_name = Marked.unmark heading.law_heading_name in
+           let complete_headings = parents_headings @ [h_name] in
+           let id =
+             complete_headings |> String.concat "-" |> sanitize_html_href
+           in
            Format.fprintf fmt
-             "<li class=\"toc-item\"><a href=\"#%s\">%s</a></li>"
-             (sanitize_html_href h_name)
-             h_name
+             "@[<hov 2><li class=\"toc-item\">@\n\
+              @[<hov 2><div>@\n\
+              <a href=\"#%s\">%s</a>@\n\
+              %a@\n\
+              @]</div>@\n\
+              @]</li>"
+             id h_name
+             (fmt_toc complete_headings)
+             childs
          | _ -> ()))
-    items
+    (items |> List.filter (function A.LawHeading (_, _) -> true | _ -> false))
 
 (** {1 API} *)
 
@@ -239,9 +262,16 @@ let ast_to_html
     | C.Pl -> "Spis treści."
   in
 
-  Format.fprintf fmt "<h1>%s</h1>\n%a\n%a" toc fmt_toc program.program_items
+  Format.fprintf fmt
+    "@[<hov 2><details class=\"toc\">@\n\
+     <summary>%s</summary>@\n\
+     %a@\n\
+     @]</details>\n\
+     %a@\n"
+    toc (fmt_toc []) program.program_items
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
        (fun fmt ->
-         Format.fprintf fmt "%a" (law_structure_to_html language print_only_law)))
+         Format.fprintf fmt "%a"
+           (law_structure_to_html language print_only_law [])))
     program.program_items
