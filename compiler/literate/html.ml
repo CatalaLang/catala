@@ -27,6 +27,12 @@ module C = Cli
 
 (** {1 Helpers} *)
 
+(** Converts to an ASCII string and substitutes unsupported characters inside
+    URL. *)
+let sanitize_html_href str =
+  str |> Ubase.from_utf8
+  |> R.substitute ~rex:(R.regexp "[' '°]") ~subst:(function _ -> "%20")
+
 (** Converts double lines into HTML newlines. *)
 let pre_html (s : string) = String.trim (run_pandoc s `Html)
 
@@ -133,7 +139,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
       "html";
       "-O";
       "style=colorful,anchorlinenos=True,lineanchors=\""
-      ^ Pos.get_file (Marked.get_mark c)
+      ^ sanitize_html_href (Pos.get_file (Marked.get_mark c))
       ^ "\",linenos=table,linenostart="
       ^ string_of_int (Pos.get_start_line (Marked.get_mark c) - 1);
       "-o";
