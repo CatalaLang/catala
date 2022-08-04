@@ -2,32 +2,38 @@
  (targets allocations_familiales.ml allocations_familiales_api_web.ml)
  (deps
   (source_tree ..)
-  ../../compiler/plugins/api_web%{ext_plugin})
+  %{workspace_root}/compiler/plugins/api_web%{ext_plugin})
  (action
-  (run
-   catala
-   api_web
-   -t
-   --plugin-dir=../../compiler/plugins
-   allocations_familiales.catala_fr)))
+  (chdir
+   %{workspace_root}
+   (run
+    catala
+    api_web
+    -t
+    --plugin-dir=compiler/plugins
+    %{dep:allocations_familiales.catala_fr}))))
 
 (rule
  (targets allocations_familiales_schema.json)
  (deps
   (source_tree ..)
-  ../../compiler/plugins/json_schema%{ext_plugin})
+  %{workspace_root}/compiler/plugins/json_schema%{ext_plugin})
  (action
-  (run
-   catala
-   json_schema
-   -t
-   --plugin-dir=../../compiler/plugins
-   --scope=InterfaceAllocationsFamiliales
-   allocations_familiales.catala_fr)))
+  (chdir
+   %{workspace_root}
+   (run
+    catala
+    json_schema
+    -t
+    --plugin-dir=compiler/plugins
+    --scope=InterfaceAllocationsFamiliales
+    %{dep:allocations_familiales.catala_fr}))))
 
 (rule
  (target allocations_familiales.py)
  (deps
   (source_tree ..))
  (action
-  (run catala Python -O allocations_familiales.catala_fr)))
+  (chdir
+   %{workspace_root}
+   (run catala Python -O %{dep:allocations_familiales.catala_fr}))))
