@@ -545,6 +545,77 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
     )
 ```
 
+## Articles valables du 1er janvier 2022 au 1er juillet 2022
+
+### Article 6 | LEGIARTI000045011471
+
+Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
+pour la location et à 6 000 euros pour la résidence en logement-foyer.
+
+Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
+pour la location et à 4 900 euros pour la résidence en logement-foyer.
+
+```catala
+# TODO informatique et juridique: traduire cet article qui vient définir
+# ressources_forfaitaires_r822_20
+```
+
+NOTA:
+
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+
+### Article 15 | LEGIARTI000045011468
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
+le tableau suivant (en euros) :
+
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 683
+Couple sans personne à charge	             6 709
+Personne seule ou couple ayant :
+    - une personne à charge	               8 002
+    - deux personnes à charge	             8 182
+    - trois personnes à charge	           8 495
+    - quatre personnes à charge	           8 811
+    - cinq personnes à charge	             9 124
+    - six personnes à charge               9 439
+    - par personne à charge supplémentaire 311
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >=@ |2022-01-01| et
+    date_courante <@ |2022-07-01|:
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 683 €
+      -- Couple: 6709 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      8 002 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      8 192 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      8 495 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      8 811 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      9 124 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      9 439 €
+    sinon
+      (9 439€ +€ (311 € *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 6))))
+    ))))))
+```
+
+NOTA :
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+
 
 ## Articles valables du 1er janvier 2020 au 1er janvier 2022
 
