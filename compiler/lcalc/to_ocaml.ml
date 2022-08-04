@@ -331,17 +331,18 @@ let rec format_expr
       (fst (List.nth (find_enum en ctx) n))
       format_with_parens e
   | EMatch (e, es, e_name) ->
-    Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
+    Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@\n| %a@]"
+      format_with_parens e
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
          (fun fmt (e, c) ->
-           Format.fprintf fmt "%a.%a %a" format_to_module_name (`Ename e_name)
-             format_enum_cons_name c
+           Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
+             (`Ename e_name) format_enum_cons_name c
              (fun fmt e ->
                match Marked.unmark e with
                | EAbs (binder, _) ->
                  let xs, body = Bindlib.unmbind binder in
-                 Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
+                 Format.fprintf fmt "%a ->@ %a"
                    (Format.pp_print_list
                       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
                       (fun fmt x -> Format.fprintf fmt "%a" format_var x))
@@ -438,7 +439,7 @@ let rec format_expr
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EAssert e' ->
     Format.fprintf fmt
-      "@[<hov 2>if @ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \
+      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \
        2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ end_line=%d; \
        end_column=%d;@ law_headings=%a}@])@]"
       format_with_parens e'
@@ -451,8 +452,9 @@ let rec format_expr
       (Pos.get_law_info (D.pos e'))
   | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception (exc, D.pos e)
   | ECatch (e1, exc, e2) ->
-    Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens
-      e1 format_exception
+    Format.fprintf fmt
+      "@,@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
+      format_with_parens e1 format_exception
       (exc, D.pos e)
       format_with_parens e2
 
@@ -488,8 +490,8 @@ let format_enum_embedding
       format_to_module_name (`Ename enum_name) format_enum_name enum_name
   else
     Format.fprintf fmt
-      "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Enum([\"%a\"],@ \
-       @[<hov 2>match x with@ %a@])@]@\n\
+      "@[<hv 2>@[<hov 2>let embed_%a@ @[<hov 2>(x:@ %a.t)@]@ : runtime_value \
+       =@]@ Enum([\"%a\"],@ @[<hov 2>match x with@ %a@])@]@\n\
        @\n"
       format_enum_name enum_name format_to_module_name (`Ename enum_name)
       D.EnumName.format_t enum_name
@@ -508,20 +510,18 @@ let format_ctx
   let format_struct_decl fmt (struct_name, struct_fields) =
     if List.length struct_fields = 0 then
       Format.fprintf fmt
-        "module %a = struct@\n@[<hov 2>@  type t = unit\nend@] @\n"
+        "@[<v 2>module %a = struct@\n@[<hov 2>type t = unit@]@]@\nend@\n"
         format_to_module_name (`Sname struct_name)
     else
       Format.fprintf fmt
-        "module %a = struct@\n\
-         @[<hov 2>@  type t = {@\n\
-         @[<hov 2>  %a@]@\n\
-         }\n\
-         end@]@\n"
+        "@[<v>@[<v 2>module %a = struct@ @[<hv 2>type t = {@,\
+         %a@;\
+         <0-2>}@]@]@ end@]@\n"
         format_to_module_name (`Sname struct_name)
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun _fmt (struct_field, struct_field_type) ->
-             Format.fprintf fmt "%a:@ %a;" format_struct_field_name
+             Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
         struct_fields;
     if !Cli.trace_flag then
@@ -534,8 +534,8 @@ let format_ctx
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
-           Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons
-             format_typ enum_cons_type))
+           Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
+             enum_cons format_typ enum_cons_type))
       enum_cons;
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
@@ -612,6 +612,7 @@ let format_program
          @\n\
          [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
          @\n\
-         %a%a@?"
+         %a%a@\n\
+         @?"
         (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx)
         p.scopes)

@@ -9,23 +9,23 @@ class TypeBailleur_Code(Enum):
     BailleurPrive = 1
 
 class TypeBailleur:
-	def __init__(self, code: TypeBailleur_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypeBailleur_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypeBailleur):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypeBailleur):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TypePret_Code(Enum):
     D331_32 = 0
@@ -35,46 +35,46 @@ class TypePret_Code(Enum):
     Autre = 4
 
 class TypePret:
-	def __init__(self, code: TypePret_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypePret_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypePret):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypePret):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TitulairePret_Code(Enum):
     Demandeur = 0
     VendeurQuandDemandeurAContratLocationAccession = 1
 
 class TitulairePret:
-	def __init__(self, code: TitulairePret_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TitulairePret_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TitulairePret):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TitulairePret):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TypeTravauxLogementD83215_Code(Enum):
     TravauxPourAcquisitionD832_15_1 = 0
@@ -82,23 +82,23 @@ class TypeTravauxLogementD83215_Code(Enum):
     PasDeTravaux = 2
 
 class TypeTravauxLogementD83215:
-	def __init__(self, code: TypeTravauxLogementD83215_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypeTravauxLogementD83215_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypeTravauxLogementD83215):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypeTravauxLogementD83215):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TypeTravauxLogementR8425_Code(Enum):
     ObjectifDecenceLogement = 0
@@ -107,92 +107,92 @@ class TypeTravauxLogementR8425_Code(Enum):
     PasDeTravaux = 3
 
 class TypeTravauxLogementR8425:
-	def __init__(self, code: TypeTravauxLogementR8425_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypeTravauxLogementR8425_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypeTravauxLogementR8425):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypeTravauxLogementR8425):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class AmelioreParOccupant_Code(Enum):
     Oui = 0
     Non = 1
 
 class AmelioreParOccupant:
-	def __init__(self, code: AmelioreParOccupant_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: AmelioreParOccupant_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, AmelioreParOccupant):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AmelioreParOccupant):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class LimiteTranche_Code(Enum):
     Revenu = 0
     Infini = 1
 
 class LimiteTranche:
-	def __init__(self, code: LimiteTranche_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: LimiteTranche_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, LimiteTranche):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, LimiteTranche):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class LimiteTrancheDecimal_Code(Enum):
     Revenu = 0
     Infini = 1
 
 class LimiteTrancheDecimal:
-	def __init__(self, code: LimiteTrancheDecimal_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: LimiteTrancheDecimal_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, LimiteTrancheDecimal):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, LimiteTrancheDecimal):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class PrestationRecue_Code(Enum):
     AllocationsFamiliales = 0
@@ -203,92 +203,92 @@ class PrestationRecue_Code(Enum):
     AllocationAdulteHandicape = 5
 
 class PrestationRecue:
-	def __init__(self, code: PrestationRecue_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PrestationRecue_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PrestationRecue):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PrestationRecue):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TypeContratTravail_Code(Enum):
     CDI = 0
     Autres = 1
 
 class TypeContratTravail:
-	def __init__(self, code: TypeContratTravail_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypeContratTravail_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypeContratTravail):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypeContratTravail):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ParentOuAutre_Code(Enum):
     DemandeurOuConjointOuParentOuViaPartsSocietes = 0
     Autre = 1
 
 class ParentOuAutre:
-	def __init__(self, code: ParentOuAutre_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ParentOuAutre_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ParentOuAutre):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ParentOuAutre):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class SituationGardeAlternee_Code(Enum):
     PasDeGardeAlternee = 0
     GardeAlterneeCoefficientPriseEnCharge = 1
 
 class SituationGardeAlternee:
-	def __init__(self, code: SituationGardeAlternee_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: SituationGardeAlternee_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SituationGardeAlternee):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SituationGardeAlternee):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Parente_Code(Enum):
     Ascendant = 0
@@ -296,23 +296,23 @@ class Parente_Code(Enum):
     CollateralDeuxiemeTroisiemeDegre = 2
 
 class Parente:
-	def __init__(self, code: Parente_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: Parente_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Parente):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Parente):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class DateDeNaissanceOuMoisDeGrossesse_Code(Enum):
     DateDeNaissance = 0
@@ -320,46 +320,46 @@ class DateDeNaissanceOuMoisDeGrossesse_Code(Enum):
     ApresPremierJourMoisCivilTroisiemeMoisDeGrossesse = 2
 
 class DateDeNaissanceOuMoisDeGrossesse:
-	def __init__(self, code: DateDeNaissanceOuMoisDeGrossesse_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: DateDeNaissanceOuMoisDeGrossesse_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, DateDeNaissanceOuMoisDeGrossesse):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, DateDeNaissanceOuMoisDeGrossesse):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Nationalite_Code(Enum):
     Francaise = 0
     Etrangere = 1
 
 class Nationalite:
-	def __init__(self, code: Nationalite_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: Nationalite_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Nationalite):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Nationalite):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ZoneDHabitation_Code(Enum):
     Zone1 = 0
@@ -367,23 +367,23 @@ class ZoneDHabitation_Code(Enum):
     Zone3 = 2
 
 class ZoneDHabitation:
-	def __init__(self, code: ZoneDHabitation_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ZoneDHabitation_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ZoneDHabitation):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ZoneDHabitation):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class CategorieCalculAPL_Code(Enum):
     Location = 0
@@ -391,46 +391,46 @@ class CategorieCalculAPL_Code(Enum):
     LogementFoyer = 2
 
 class CategorieCalculAPL:
-	def __init__(self, code: CategorieCalculAPL_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: CategorieCalculAPL_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CategorieCalculAPL):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CategorieCalculAPL):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class PaiementLogementDistinctProfessionnel_Code(Enum):
     OuiAvecLoyerOuCharges = 0
     Non = 1
 
 class PaiementLogementDistinctProfessionnel:
-	def __init__(self, code: PaiementLogementDistinctProfessionnel_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PaiementLogementDistinctProfessionnel_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PaiementLogementDistinctProfessionnel):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PaiementLogementDistinctProfessionnel):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class VersementA_Code(Enum):
     Bailleur = 0
@@ -438,23 +438,23 @@ class VersementA_Code(Enum):
     EtablissementHabilite = 2
 
 class VersementA:
-	def __init__(self, code: VersementA_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: VersementA_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, VersementA):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, VersementA):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class DepenseLogement_Code(Enum):
     TotalAnnuelEcheances = 0
@@ -462,46 +462,46 @@ class DepenseLogement_Code(Enum):
     Loyer = 2
 
 class DepenseLogement:
-	def __init__(self, code: DepenseLogement_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: DepenseLogement_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, DepenseLogement):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, DepenseLogement):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ModeOccupationImpaye_Code(Enum):
     ImpayeLoyer = 0
     ImpayePret = 1
 
 class ModeOccupationImpaye:
-	def __init__(self, code: ModeOccupationImpaye_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ModeOccupationImpaye_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ModeOccupationImpaye):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ModeOccupationImpaye):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class EligibiliteAllocationLogement_Code(Enum):
     PasEligible = 0
@@ -509,23 +509,23 @@ class EligibiliteAllocationLogement_Code(Enum):
     AllocationLogementSociale = 2
 
 class EligibiliteAllocationLogement:
-	def __init__(self, code: EligibiliteAllocationLogement_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: EligibiliteAllocationLogement_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAllocationLogement):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAllocationLogement):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TypeAidesPersonnelleLogement_Code(Enum):
     AidePersonnaliseeLogement = 0
@@ -533,23 +533,23 @@ class TypeAidesPersonnelleLogement_Code(Enum):
     AllocationLogementSociale = 2
 
 class TypeAidesPersonnelleLogement:
-	def __init__(self, code: TypeAidesPersonnelleLogement_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypeAidesPersonnelleLogement_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypeAidesPersonnelleLogement):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypeAidesPersonnelleLogement):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class SituationFamiliale_Code(Enum):
     Celibataire = 0
@@ -560,23 +560,23 @@ class SituationFamiliale_Code(Enum):
     ConcubinageDontSepareDeFait = 5
 
 class SituationFamiliale:
-	def __init__(self, code: SituationFamiliale_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: SituationFamiliale_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SituationFamiliale):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SituationFamiliale):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class PriseEnCharge_Code(Enum):
     EffectiveEtPermanente = 0
@@ -584,23 +584,23 @@ class PriseEnCharge_Code(Enum):
     ResidenceAlterneeAllocationsPartagee = 2
 
 class PriseEnCharge:
-	def __init__(self, code: PriseEnCharge_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PriseEnCharge_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PriseEnCharge):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PriseEnCharge):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TypeLogementFoyer_Code(Enum):
     LogementPersonnesAgeesOuHandicapees = 0
@@ -609,23 +609,23 @@ class TypeLogementFoyer_Code(Enum):
     Autre = 3
 
 class TypeLogementFoyer:
-	def __init__(self, code: TypeLogementFoyer_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: TypeLogementFoyer_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TypeLogementFoyer):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TypeLogementFoyer):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class CategorieEquivalenceLoyerAllocationLogementFoyer_Code(Enum):
     EtudiantLogeEnChambre = 0
@@ -634,46 +634,46 @@ class CategorieEquivalenceLoyerAllocationLogementFoyer_Code(Enum):
     AutresPersonnes = 3
 
 class CategorieEquivalenceLoyerAllocationLogementFoyer:
-	def __init__(self, code: CategorieEquivalenceLoyerAllocationLogementFoyer_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: CategorieEquivalenceLoyerAllocationLogementFoyer_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CategorieEquivalenceLoyerAllocationLogementFoyer):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CategorieEquivalenceLoyerAllocationLogementFoyer):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class SituationFamilialeCalculAPL_Code(Enum):
     PersonneSeule = 0
     Couple = 1
 
 class SituationFamilialeCalculAPL:
-	def __init__(self, code: SituationFamilialeCalculAPL_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: SituationFamilialeCalculAPL_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SituationFamilialeCalculAPL):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SituationFamilialeCalculAPL):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Collectivite_Code(Enum):
     Guadeloupe = 0
@@ -687,23 +687,23 @@ class Collectivite_Code(Enum):
     Mayotte = 8
 
 class Collectivite:
-	def __init__(self, code: Collectivite_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: Collectivite_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Collectivite):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Collectivite):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class PriseEnChargeEnfant_Code(Enum):
     GardeAlterneePartageAllocations = 0
@@ -713,23 +713,23 @@ class PriseEnChargeEnfant_Code(Enum):
     ServicesSociauxAllocationVerseeAuxServicesSociaux = 4
 
 class PriseEnChargeEnfant:
-	def __init__(self, code: PriseEnChargeEnfant_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PriseEnChargeEnfant_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PriseEnChargeEnfant):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PriseEnChargeEnfant):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class SituationObligationScolaire_Code(Enum):
     Avant = 0
@@ -737,23 +737,23 @@ class SituationObligationScolaire_Code(Enum):
     Apres = 2
 
 class SituationObligationScolaire:
-	def __init__(self, code: SituationObligationScolaire_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: SituationObligationScolaire_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SituationObligationScolaire):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SituationObligationScolaire):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ElementPrestationsFamiliales_Code(Enum):
     PrestationAccueilJeuneEnfant = 0
@@ -766,591 +766,593 @@ class ElementPrestationsFamiliales_Code(Enum):
     AllocationJournalierePresenceParentale = 7
 
 class ElementPrestationsFamiliales:
-	def __init__(self, code: ElementPrestationsFamiliales_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ElementPrestationsFamiliales_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ElementPrestationsFamiliales):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ElementPrestationsFamiliales):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class PersonneSousLocation:
-	def __init__(self, age_personne_sous_location: Integer, conforme_article_l442_1: bool) -> None:
-		self.age_personne_sous_location = age_personne_sous_location
-		self.conforme_article_l442_1 = conforme_article_l442_1
+    def __init__(self, age_personne_sous_location: Integer, conforme_article_l442_1: bool) -> None:
+        self.age_personne_sous_location = age_personne_sous_location
+        self.conforme_article_l442_1 = conforme_article_l442_1
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PersonneSousLocation):
-			return (self.age_personne_sous_location == other.age_personne_sous_location and
-          self.conforme_article_l442_1 == other.conforme_article_l442_1)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PersonneSousLocation):
+            return (self.age_personne_sous_location == other.age_personne_sous_location and
+                   self.conforme_article_l442_1 == other.conforme_article_l442_1)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "PersonneSousLocation(age_personne_sous_location={},conforme_article_l442_1={})".format(self.age_personne_sous_location,
-      self.conforme_article_l442_1)
+    def __str__(self) -> str:
+        return "PersonneSousLocation(age_personne_sous_location={},conforme_article_l442_1={})".format(self.age_personne_sous_location,
+            self.conforme_article_l442_1)
 
 class Patrimoine:
-	def __init__(self, produisant_revenu_periode_r822_3_3_r822_4: Money, ne_produisant_pas_revenu_periode_r822_3_3_r822_4: Money) -> None:
-		self.produisant_revenu_periode_r822_3_3_r822_4 = produisant_revenu_periode_r822_3_3_r822_4
-		self.ne_produisant_pas_revenu_periode_r822_3_3_r822_4 = ne_produisant_pas_revenu_periode_r822_3_3_r822_4
+    def __init__(self, produisant_revenu_periode_r822_3_3_r822_4: Money, ne_produisant_pas_revenu_periode_r822_3_3_r822_4: Money) -> None:
+        self.produisant_revenu_periode_r822_3_3_r822_4 = produisant_revenu_periode_r822_3_3_r822_4
+        self.ne_produisant_pas_revenu_periode_r822_3_3_r822_4 = ne_produisant_pas_revenu_periode_r822_3_3_r822_4
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Patrimoine):
-			return (self.produisant_revenu_periode_r822_3_3_r822_4 == other.produisant_revenu_periode_r822_3_3_r822_4 and
-          self.ne_produisant_pas_revenu_periode_r822_3_3_r822_4 == other.ne_produisant_pas_revenu_periode_r822_3_3_r822_4)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Patrimoine):
+            return (self.produisant_revenu_periode_r822_3_3_r822_4 == other.produisant_revenu_periode_r822_3_3_r822_4 and
+                   self.ne_produisant_pas_revenu_periode_r822_3_3_r822_4 == other.ne_produisant_pas_revenu_periode_r822_3_3_r822_4)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Patrimoine(produisant_revenu_periode_r822_3_3_r822_4={},ne_produisant_pas_revenu_periode_r822_3_3_r822_4={})".format(self.produisant_revenu_periode_r822_3_3_r822_4,
-      self.ne_produisant_pas_revenu_periode_r822_3_3_r822_4)
+    def __str__(self) -> str:
+        return "Patrimoine(produisant_revenu_periode_r822_3_3_r822_4={},ne_produisant_pas_revenu_periode_r822_3_3_r822_4={})".format(self.produisant_revenu_periode_r822_3_3_r822_4,
+            self.ne_produisant_pas_revenu_periode_r822_3_3_r822_4)
 
 class PersonneVivantHabituellementAuFoyer:
-	def __init__(self, duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois: bool, ressources: Money) -> None:
-		self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois = duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois
-		self.ressources = ressources
+    def __init__(self, duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois: bool, ressources: Money) -> None:
+        self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois = duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois
+        self.ressources = ressources
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PersonneVivantHabituellementAuFoyer):
-			return (self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois == other.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois and
-          self.ressources == other.ressources)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PersonneVivantHabituellementAuFoyer):
+            return (self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois == other.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois and
+                   self.ressources == other.ressources)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "PersonneVivantHabituellementAuFoyer(duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois={},ressources={})".format(self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois,
-      self.ressources)
+    def __str__(self) -> str:
+        return "PersonneVivantHabituellementAuFoyer(duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois={},ressources={})".format(self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois,
+            self.ressources)
 
 class InfosChangementLogementD8424:
-	def __init__(self, ancien_loyer_principal: Money, ancienne_allocation_logement: Money) -> None:
-		self.ancien_loyer_principal = ancien_loyer_principal
-		self.ancienne_allocation_logement = ancienne_allocation_logement
+    def __init__(self, ancien_loyer_principal: Money, ancienne_allocation_logement: Money) -> None:
+        self.ancien_loyer_principal = ancien_loyer_principal
+        self.ancienne_allocation_logement = ancienne_allocation_logement
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InfosChangementLogementD8424):
-			return (self.ancien_loyer_principal == other.ancien_loyer_principal and
-          self.ancienne_allocation_logement == other.ancienne_allocation_logement)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InfosChangementLogementD8424):
+            return (self.ancien_loyer_principal == other.ancien_loyer_principal and
+                   self.ancienne_allocation_logement == other.ancienne_allocation_logement)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "InfosChangementLogementD8424(ancien_loyer_principal={},ancienne_allocation_logement={})".format(self.ancien_loyer_principal,
-      self.ancienne_allocation_logement)
+    def __str__(self) -> str:
+        return "InfosChangementLogementD8424(ancien_loyer_principal={},ancienne_allocation_logement={})".format(self.ancien_loyer_principal,
+            self.ancienne_allocation_logement)
 
 class Bailleur:
-	def __init__(self, type_bailleur: TypeBailleur, respecte_convention_titre_V: bool, respecte_convention_titre_II: bool, construit_ameliore_conditions_l831_1_4: bool, acquisition_aides_etat_pret_titre_II_ou_livre_III: bool) -> None:
-		self.type_bailleur = type_bailleur
-		self.respecte_convention_titre_V = respecte_convention_titre_V
-		self.respecte_convention_titre_II = respecte_convention_titre_II
-		self.construit_ameliore_conditions_l831_1_4 = construit_ameliore_conditions_l831_1_4
-		self.acquisition_aides_etat_pret_titre_II_ou_livre_III = acquisition_aides_etat_pret_titre_II_ou_livre_III
+    def __init__(self, type_bailleur: TypeBailleur, respecte_convention_titre_V: bool, respecte_convention_titre_II: bool, construit_ameliore_conditions_l831_1_4: bool, acquisition_aides_etat_pret_titre_II_ou_livre_III: bool) -> None:
+        self.type_bailleur = type_bailleur
+        self.respecte_convention_titre_V = respecte_convention_titre_V
+        self.respecte_convention_titre_II = respecte_convention_titre_II
+        self.construit_ameliore_conditions_l831_1_4 = construit_ameliore_conditions_l831_1_4
+        self.acquisition_aides_etat_pret_titre_II_ou_livre_III = acquisition_aides_etat_pret_titre_II_ou_livre_III
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Bailleur):
-			return (self.type_bailleur == other.type_bailleur and
-          self.respecte_convention_titre_V == other.respecte_convention_titre_V and
-          self.respecte_convention_titre_II == other.respecte_convention_titre_II and
-          self.construit_ameliore_conditions_l831_1_4 == other.construit_ameliore_conditions_l831_1_4 and
-          self.acquisition_aides_etat_pret_titre_II_ou_livre_III == other.acquisition_aides_etat_pret_titre_II_ou_livre_III)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Bailleur):
+            return (self.type_bailleur == other.type_bailleur and
+                   self.respecte_convention_titre_V == other.respecte_convention_titre_V and
+                   self.respecte_convention_titre_II == other.respecte_convention_titre_II and
+                   self.construit_ameliore_conditions_l831_1_4 == other.construit_ameliore_conditions_l831_1_4 and
+                   self.acquisition_aides_etat_pret_titre_II_ou_livre_III == other.acquisition_aides_etat_pret_titre_II_ou_livre_III)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Bailleur(type_bailleur={},respecte_convention_titre_V={},respecte_convention_titre_II={},construit_ameliore_conditions_l831_1_4={},acquisition_aides_etat_pret_titre_II_ou_livre_III={})".format(self.type_bailleur,
-      self.respecte_convention_titre_V, self.respecte_convention_titre_II,
-      self.construit_ameliore_conditions_l831_1_4,
-      self.acquisition_aides_etat_pret_titre_II_ou_livre_III)
+    def __str__(self) -> str:
+        return "Bailleur(type_bailleur={},respecte_convention_titre_V={},respecte_convention_titre_II={},construit_ameliore_conditions_l831_1_4={},acquisition_aides_etat_pret_titre_II_ou_livre_III={})".format(self.type_bailleur,
+            self.respecte_convention_titre_V,
+            self.respecte_convention_titre_II,
+            self.construit_ameliore_conditions_l831_1_4,
+            self.acquisition_aides_etat_pret_titre_II_ou_livre_III)
 
 class Pret:
-	def __init__(self, type_pret: TypePret, date_signature: Date, titulaire_pret: TitulairePret) -> None:
-		self.type_pret = type_pret
-		self.date_signature = date_signature
-		self.titulaire_pret = titulaire_pret
+    def __init__(self, type_pret: TypePret, date_signature: Date, titulaire_pret: TitulairePret) -> None:
+        self.type_pret = type_pret
+        self.date_signature = date_signature
+        self.titulaire_pret = titulaire_pret
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Pret):
-			return (self.type_pret == other.type_pret and
-          self.date_signature == other.date_signature and
-          self.titulaire_pret == other.titulaire_pret)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Pret):
+            return (self.type_pret == other.type_pret and
+                   self.date_signature == other.date_signature and
+                   self.titulaire_pret == other.titulaire_pret)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Pret(type_pret={},date_signature={},titulaire_pret={})".format(self.type_pret,
-      self.date_signature, self.titulaire_pret)
+    def __str__(self) -> str:
+        return "Pret(type_pret={},date_signature={},titulaire_pret={})".format(self.type_pret,
+            self.date_signature, self.titulaire_pret)
 
 class NeufOuAncien_Code(Enum):
     Neuf = 0
     Ancien = 1
 
 class NeufOuAncien:
-	def __init__(self, code: NeufOuAncien_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: NeufOuAncien_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, NeufOuAncien):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, NeufOuAncien):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class TrancheRevenu:
-	def __init__(self, haut: LimiteTranche, bas: Money, taux: Decimal) -> None:
-		self.haut = haut
-		self.bas = bas
-		self.taux = taux
+    def __init__(self, haut: LimiteTranche, bas: Money, taux: Decimal) -> None:
+        self.haut = haut
+        self.bas = bas
+        self.taux = taux
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TrancheRevenu):
-			return (self.haut == other.haut and self.bas == other.bas and
-          self.taux == other.taux)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TrancheRevenu):
+            return (self.haut == other.haut and self.bas == other.bas and
+                   self.taux == other.taux)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "TrancheRevenu(haut={},bas={},taux={})".format(self.haut, self.bas,
-      self.taux)
+    def __str__(self) -> str:
+        return "TrancheRevenu(haut={},bas={},taux={})".format(self.haut,
+            self.bas, self.taux)
 
 class TrancheRevenuDecimal:
-	def __init__(self, haut: LimiteTrancheDecimal, bas: Decimal, taux: Decimal) -> None:
-		self.haut = haut
-		self.bas = bas
-		self.taux = taux
+    def __init__(self, haut: LimiteTrancheDecimal, bas: Decimal, taux: Decimal) -> None:
+        self.haut = haut
+        self.bas = bas
+        self.taux = taux
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, TrancheRevenuDecimal):
-			return (self.haut == other.haut and self.bas == other.bas and
-          self.taux == other.taux)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TrancheRevenuDecimal):
+            return (self.haut == other.haut and self.bas == other.bas and
+                   self.taux == other.taux)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "TrancheRevenuDecimal(haut={},bas={},taux={})".format(self.haut,
-      self.bas, self.taux)
+    def __str__(self) -> str:
+        return "TrancheRevenuDecimal(haut={},bas={},taux={})".format(self.haut,
+            self.bas, self.taux)
 
 class AutrePersonneACharge:
-	def __init__(self, date_naissance: Date, ressources: Money, ascendant_descendant_collateral_deuxieme_troisieme_degre: bool, parente: Parente, incapacite_80_pourcent_ou_restriction_emploi: bool, beneficiaire_l161_19_l351_8_l643_3_secu: bool, titulaire_allocation_personne_agee: bool) -> None:
-		self.date_naissance = date_naissance
-		self.ressources = ressources
-		self.ascendant_descendant_collateral_deuxieme_troisieme_degre = ascendant_descendant_collateral_deuxieme_troisieme_degre
-		self.parente = parente
-		self.incapacite_80_pourcent_ou_restriction_emploi = incapacite_80_pourcent_ou_restriction_emploi
-		self.beneficiaire_l161_19_l351_8_l643_3_secu = beneficiaire_l161_19_l351_8_l643_3_secu
-		self.titulaire_allocation_personne_agee = titulaire_allocation_personne_agee
+    def __init__(self, date_naissance: Date, ressources: Money, ascendant_descendant_collateral_deuxieme_troisieme_degre: bool, parente: Parente, incapacite_80_pourcent_ou_restriction_emploi: bool, beneficiaire_l161_19_l351_8_l643_3_secu: bool, titulaire_allocation_personne_agee: bool) -> None:
+        self.date_naissance = date_naissance
+        self.ressources = ressources
+        self.ascendant_descendant_collateral_deuxieme_troisieme_degre = ascendant_descendant_collateral_deuxieme_troisieme_degre
+        self.parente = parente
+        self.incapacite_80_pourcent_ou_restriction_emploi = incapacite_80_pourcent_ou_restriction_emploi
+        self.beneficiaire_l161_19_l351_8_l643_3_secu = beneficiaire_l161_19_l351_8_l643_3_secu
+        self.titulaire_allocation_personne_agee = titulaire_allocation_personne_agee
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, AutrePersonneACharge):
-			return (self.date_naissance == other.date_naissance and
-          self.ressources == other.ressources and
-          self.ascendant_descendant_collateral_deuxieme_troisieme_degre == other.ascendant_descendant_collateral_deuxieme_troisieme_degre and
-          self.parente == other.parente and
-          self.incapacite_80_pourcent_ou_restriction_emploi == other.incapacite_80_pourcent_ou_restriction_emploi and
-          self.beneficiaire_l161_19_l351_8_l643_3_secu == other.beneficiaire_l161_19_l351_8_l643_3_secu and
-          self.titulaire_allocation_personne_agee == other.titulaire_allocation_personne_agee)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AutrePersonneACharge):
+            return (self.date_naissance == other.date_naissance and
+                   self.ressources == other.ressources and
+                   self.ascendant_descendant_collateral_deuxieme_troisieme_degre == other.ascendant_descendant_collateral_deuxieme_troisieme_degre and
+                   self.parente == other.parente and
+                   self.incapacite_80_pourcent_ou_restriction_emploi == other.incapacite_80_pourcent_ou_restriction_emploi and
+                   self.beneficiaire_l161_19_l351_8_l643_3_secu == other.beneficiaire_l161_19_l351_8_l643_3_secu and
+                   self.titulaire_allocation_personne_agee == other.titulaire_allocation_personne_agee)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "AutrePersonneACharge(date_naissance={},ressources={},ascendant_descendant_collateral_deuxieme_troisieme_degre={},parente={},incapacite_80_pourcent_ou_restriction_emploi={},beneficiaire_l161_19_l351_8_l643_3_secu={},titulaire_allocation_personne_agee={})".format(self.date_naissance,
-      self.ressources,
-      self.ascendant_descendant_collateral_deuxieme_troisieme_degre,
-      self.parente, self.incapacite_80_pourcent_ou_restriction_emploi,
-      self.beneficiaire_l161_19_l351_8_l643_3_secu,
-      self.titulaire_allocation_personne_agee)
+    def __str__(self) -> str:
+        return "AutrePersonneACharge(date_naissance={},ressources={},ascendant_descendant_collateral_deuxieme_troisieme_degre={},parente={},incapacite_80_pourcent_ou_restriction_emploi={},beneficiaire_l161_19_l351_8_l643_3_secu={},titulaire_allocation_personne_agee={})".format(self.date_naissance,
+            self.ressources,
+            self.ascendant_descendant_collateral_deuxieme_troisieme_degre,
+            self.parente, self.incapacite_80_pourcent_ou_restriction_emploi,
+            self.beneficiaire_l161_19_l351_8_l643_3_secu,
+            self.titulaire_allocation_personne_agee)
 
 class DateNaissanceTroisiemeOuDernierPlusEnfant_Code(Enum):
     MoinsDeTroisEnfants = 0
     PlusDeTroisEnfants = 1
 
 class DateNaissanceTroisiemeOuDernierPlusEnfant:
-	def __init__(self, code: DateNaissanceTroisiemeOuDernierPlusEnfant_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: DateNaissanceTroisiemeOuDernierPlusEnfant_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, DateNaissanceTroisiemeOuDernierPlusEnfant):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, DateNaissanceTroisiemeOuDernierPlusEnfant):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class InformationsCalculAPLLogementFoyer:
-	def __init__(self, redevance: Money, categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer) -> None:
-		self.redevance = redevance
-		self.categorie_equivalence_loyer_d842_16 = categorie_equivalence_loyer_d842_16
+    def __init__(self, redevance: Money, categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer) -> None:
+        self.redevance = redevance
+        self.categorie_equivalence_loyer_d842_16 = categorie_equivalence_loyer_d842_16
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InformationsCalculAPLLogementFoyer):
-			return (self.redevance == other.redevance and
-          self.categorie_equivalence_loyer_d842_16 == other.categorie_equivalence_loyer_d842_16)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InformationsCalculAPLLogementFoyer):
+            return (self.redevance == other.redevance and
+                   self.categorie_equivalence_loyer_d842_16 == other.categorie_equivalence_loyer_d842_16)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "InformationsCalculAPLLogementFoyer(redevance={},categorie_equivalence_loyer_d842_16={})".format(self.redevance,
-      self.categorie_equivalence_loyer_d842_16)
+    def __str__(self) -> str:
+        return "InformationsCalculAPLLogementFoyer(redevance={},categorie_equivalence_loyer_d842_16={})".format(self.redevance,
+            self.categorie_equivalence_loyer_d842_16)
 
 class EnfantPrestationsFamiliales:
-	def __init__(self, identifiant: Integer, obligation_scolaire: SituationObligationScolaire, remuneration_mensuelle: Money, date_de_naissance: Date, age: Integer, prise_en_charge: PriseEnChargeEnfant, a_deja_ouvert_droit_aux_allocations_familiales: bool, beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
-		self.identifiant = identifiant
-		self.obligation_scolaire = obligation_scolaire
-		self.remuneration_mensuelle = remuneration_mensuelle
-		self.date_de_naissance = date_de_naissance
-		self.age = age
-		self.prise_en_charge = prise_en_charge
-		self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
-		self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
+    def __init__(self, identifiant: Integer, obligation_scolaire: SituationObligationScolaire, remuneration_mensuelle: Money, date_de_naissance: Date, age: Integer, prise_en_charge: PriseEnChargeEnfant, a_deja_ouvert_droit_aux_allocations_familiales: bool, beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
+        self.identifiant = identifiant
+        self.obligation_scolaire = obligation_scolaire
+        self.remuneration_mensuelle = remuneration_mensuelle
+        self.date_de_naissance = date_de_naissance
+        self.age = age
+        self.prise_en_charge = prise_en_charge
+        self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
+        self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EnfantPrestationsFamiliales):
-			return (self.identifiant == other.identifiant and
-          self.obligation_scolaire == other.obligation_scolaire and
-          self.remuneration_mensuelle == other.remuneration_mensuelle and
-          self.date_de_naissance == other.date_de_naissance and
-          self.age == other.age and
-          self.prise_en_charge == other.prise_en_charge and
-          self.a_deja_ouvert_droit_aux_allocations_familiales == other.a_deja_ouvert_droit_aux_allocations_familiales and
-          self.beneficie_titre_personnel_aide_personnelle_logement == other.beneficie_titre_personnel_aide_personnelle_logement)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EnfantPrestationsFamiliales):
+            return (self.identifiant == other.identifiant and
+                   self.obligation_scolaire == other.obligation_scolaire and
+                   self.remuneration_mensuelle == other.remuneration_mensuelle and
+                   self.date_de_naissance == other.date_de_naissance and
+                   self.age == other.age and
+                   self.prise_en_charge == other.prise_en_charge and
+                   self.a_deja_ouvert_droit_aux_allocations_familiales == other.a_deja_ouvert_droit_aux_allocations_familiales and
+                   self.beneficie_titre_personnel_aide_personnelle_logement == other.beneficie_titre_personnel_aide_personnelle_logement)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EnfantPrestationsFamiliales(identifiant={},obligation_scolaire={},remuneration_mensuelle={},date_de_naissance={},age={},prise_en_charge={},a_deja_ouvert_droit_aux_allocations_familiales={},beneficie_titre_personnel_aide_personnelle_logement={})".format(self.identifiant,
-      self.obligation_scolaire, self.remuneration_mensuelle,
-      self.date_de_naissance, self.age, self.prise_en_charge,
-      self.a_deja_ouvert_droit_aux_allocations_familiales,
-      self.beneficie_titre_personnel_aide_personnelle_logement)
+    def __str__(self) -> str:
+        return "EnfantPrestationsFamiliales(identifiant={},obligation_scolaire={},remuneration_mensuelle={},date_de_naissance={},age={},prise_en_charge={},a_deja_ouvert_droit_aux_allocations_familiales={},beneficie_titre_personnel_aide_personnelle_logement={})".format(self.identifiant,
+            self.obligation_scolaire, self.remuneration_mensuelle,
+            self.date_de_naissance, self.age, self.prise_en_charge,
+            self.a_deja_ouvert_droit_aux_allocations_familiales,
+            self.beneficie_titre_personnel_aide_personnelle_logement)
 
 class EnfantACharge:
-	def __init__(self, identifiant: Integer, beneficie_titre_personnel_aide_personnelle_logement: bool, a_deja_ouvert_droit_aux_allocations_familiales: bool, date_de_naissance: Date, remuneration_mensuelle: Money, obligation_scolaire: SituationObligationScolaire, prise_en_charge: PriseEnCharge, age: Integer, situation_garde_alternee: SituationGardeAlternee) -> None:
-		self.identifiant = identifiant
-		self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
-		self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
-		self.date_de_naissance = date_de_naissance
-		self.remuneration_mensuelle = remuneration_mensuelle
-		self.obligation_scolaire = obligation_scolaire
-		self.prise_en_charge = prise_en_charge
-		self.age = age
-		self.situation_garde_alternee = situation_garde_alternee
+    def __init__(self, identifiant: Integer, beneficie_titre_personnel_aide_personnelle_logement: bool, a_deja_ouvert_droit_aux_allocations_familiales: bool, date_de_naissance: Date, remuneration_mensuelle: Money, obligation_scolaire: SituationObligationScolaire, prise_en_charge: PriseEnCharge, age: Integer, situation_garde_alternee: SituationGardeAlternee) -> None:
+        self.identifiant = identifiant
+        self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
+        self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
+        self.date_de_naissance = date_de_naissance
+        self.remuneration_mensuelle = remuneration_mensuelle
+        self.obligation_scolaire = obligation_scolaire
+        self.prise_en_charge = prise_en_charge
+        self.age = age
+        self.situation_garde_alternee = situation_garde_alternee
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EnfantACharge):
-			return (self.identifiant == other.identifiant and
-          self.beneficie_titre_personnel_aide_personnelle_logement == other.beneficie_titre_personnel_aide_personnelle_logement and
-          self.a_deja_ouvert_droit_aux_allocations_familiales == other.a_deja_ouvert_droit_aux_allocations_familiales and
-          self.date_de_naissance == other.date_de_naissance and
-          self.remuneration_mensuelle == other.remuneration_mensuelle and
-          self.obligation_scolaire == other.obligation_scolaire and
-          self.prise_en_charge == other.prise_en_charge and
-          self.age == other.age and
-          self.situation_garde_alternee == other.situation_garde_alternee)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EnfantACharge):
+            return (self.identifiant == other.identifiant and
+                   self.beneficie_titre_personnel_aide_personnelle_logement == other.beneficie_titre_personnel_aide_personnelle_logement and
+                   self.a_deja_ouvert_droit_aux_allocations_familiales == other.a_deja_ouvert_droit_aux_allocations_familiales and
+                   self.date_de_naissance == other.date_de_naissance and
+                   self.remuneration_mensuelle == other.remuneration_mensuelle and
+                   self.obligation_scolaire == other.obligation_scolaire and
+                   self.prise_en_charge == other.prise_en_charge and
+                   self.age == other.age and
+                   self.situation_garde_alternee == other.situation_garde_alternee)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EnfantACharge(identifiant={},beneficie_titre_personnel_aide_personnelle_logement={},a_deja_ouvert_droit_aux_allocations_familiales={},date_de_naissance={},remuneration_mensuelle={},obligation_scolaire={},prise_en_charge={},age={},situation_garde_alternee={})".format(self.identifiant,
-      self.beneficie_titre_personnel_aide_personnelle_logement,
-      self.a_deja_ouvert_droit_aux_allocations_familiales,
-      self.date_de_naissance, self.remuneration_mensuelle,
-      self.obligation_scolaire, self.prise_en_charge, self.age,
-      self.situation_garde_alternee)
+    def __str__(self) -> str:
+        return "EnfantACharge(identifiant={},beneficie_titre_personnel_aide_personnelle_logement={},a_deja_ouvert_droit_aux_allocations_familiales={},date_de_naissance={},remuneration_mensuelle={},obligation_scolaire={},prise_en_charge={},age={},situation_garde_alternee={})".format(self.identifiant,
+            self.beneficie_titre_personnel_aide_personnelle_logement,
+            self.a_deja_ouvert_droit_aux_allocations_familiales,
+            self.date_de_naissance, self.remuneration_mensuelle,
+            self.obligation_scolaire, self.prise_en_charge, self.age,
+            self.situation_garde_alternee)
 
 class LoueOuSousLoueADesTiers_Code(Enum):
     Non = 0
     Oui = 1
 
 class LoueOuSousLoueADesTiers:
-	def __init__(self, code: LoueOuSousLoueADesTiers_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: LoueOuSousLoueADesTiers_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, LoueOuSousLoueADesTiers):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, LoueOuSousLoueADesTiers):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Demandeur:
-	def __init__(self, satisfait_conditions_l512_2_code_securite_sociale: bool, age_demandeur: Integer, date_naissance: Date, contrat_de_travail: TypeContratTravail, nationalite: Nationalite, patrimoine: Patrimoine, personne_hebergee_centre_soin_l_L162_22_3_securite_sociale: bool) -> None:
-		self.satisfait_conditions_l512_2_code_securite_sociale = satisfait_conditions_l512_2_code_securite_sociale
-		self.age_demandeur = age_demandeur
-		self.date_naissance = date_naissance
-		self.contrat_de_travail = contrat_de_travail
-		self.nationalite = nationalite
-		self.patrimoine = patrimoine
-		self.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale = personne_hebergee_centre_soin_l_L162_22_3_securite_sociale
+    def __init__(self, satisfait_conditions_l512_2_code_securite_sociale: bool, age_demandeur: Integer, date_naissance: Date, contrat_de_travail: TypeContratTravail, nationalite: Nationalite, patrimoine: Patrimoine, personne_hebergee_centre_soin_l_L162_22_3_securite_sociale: bool) -> None:
+        self.satisfait_conditions_l512_2_code_securite_sociale = satisfait_conditions_l512_2_code_securite_sociale
+        self.age_demandeur = age_demandeur
+        self.date_naissance = date_naissance
+        self.contrat_de_travail = contrat_de_travail
+        self.nationalite = nationalite
+        self.patrimoine = patrimoine
+        self.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale = personne_hebergee_centre_soin_l_L162_22_3_securite_sociale
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Demandeur):
-			return (self.satisfait_conditions_l512_2_code_securite_sociale == other.satisfait_conditions_l512_2_code_securite_sociale and
-          self.age_demandeur == other.age_demandeur and
-          self.date_naissance == other.date_naissance and
-          self.contrat_de_travail == other.contrat_de_travail and
-          self.nationalite == other.nationalite and
-          self.patrimoine == other.patrimoine and
-          self.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale == other.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Demandeur):
+            return (self.satisfait_conditions_l512_2_code_securite_sociale == other.satisfait_conditions_l512_2_code_securite_sociale and
+                   self.age_demandeur == other.age_demandeur and
+                   self.date_naissance == other.date_naissance and
+                   self.contrat_de_travail == other.contrat_de_travail and
+                   self.nationalite == other.nationalite and
+                   self.patrimoine == other.patrimoine and
+                   self.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale == other.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Demandeur(satisfait_conditions_l512_2_code_securite_sociale={},age_demandeur={},date_naissance={},contrat_de_travail={},nationalite={},patrimoine={},personne_hebergee_centre_soin_l_L162_22_3_securite_sociale={})".format(self.satisfait_conditions_l512_2_code_securite_sociale,
-      self.age_demandeur, self.date_naissance, self.contrat_de_travail,
-      self.nationalite, self.patrimoine,
-      self.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale)
+    def __str__(self) -> str:
+        return "Demandeur(satisfait_conditions_l512_2_code_securite_sociale={},age_demandeur={},date_naissance={},contrat_de_travail={},nationalite={},patrimoine={},personne_hebergee_centre_soin_l_L162_22_3_securite_sociale={})".format(self.satisfait_conditions_l512_2_code_securite_sociale,
+            self.age_demandeur, self.date_naissance, self.contrat_de_travail,
+            self.nationalite, self.patrimoine,
+            self.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale)
 
 class ChangementLogementD8424_Code(Enum):
     Changement = 0
     PasDeChangement = 1
 
 class ChangementLogementD8424:
-	def __init__(self, code: ChangementLogementD8424_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ChangementLogementD8424_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ChangementLogementD8424):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ChangementLogementD8424):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Location:
-	def __init__(self, bailleur: Bailleur) -> None:
-		self.bailleur = bailleur
+    def __init__(self, bailleur: Bailleur) -> None:
+        self.bailleur = bailleur
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Location):
-			return (self.bailleur == other.bailleur)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Location):
+            return (self.bailleur == other.bailleur)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Location(bailleur={})".format(self.bailleur)
+    def __str__(self) -> str:
+        return "Location(bailleur={})".format(self.bailleur)
 
 class Proprietaire:
-	def __init__(self, pret: Pret) -> None:
-		self.pret = pret
+    def __init__(self, pret: Pret) -> None:
+        self.pret = pret
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Proprietaire):
-			return (self.pret == other.pret)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Proprietaire):
+            return (self.pret == other.pret)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Proprietaire(pret={})".format(self.pret)
+    def __str__(self) -> str:
+        return "Proprietaire(pret={})".format(self.pret)
 
 class InformationsCalculAPLAccessionPropriete:
-	def __init__(self, mensualite_principale: Money, charges_mensuelles_pret: Money, date_signature_pret: Date, date_entree_logement: Date, type_travaux_logement_d832_15: TypeTravauxLogementD83215, type_travaux_logement_r842_5: TypeTravauxLogementR8425, local_habite_premiere_fois_beneficiaire: bool, copropriete: bool, situation_r822_11_13_17: bool, type_pret: TypePret, anciennete_logement: NeufOuAncien) -> None:
-		self.mensualite_principale = mensualite_principale
-		self.charges_mensuelles_pret = charges_mensuelles_pret
-		self.date_signature_pret = date_signature_pret
-		self.date_entree_logement = date_entree_logement
-		self.type_travaux_logement_d832_15 = type_travaux_logement_d832_15
-		self.type_travaux_logement_r842_5 = type_travaux_logement_r842_5
-		self.local_habite_premiere_fois_beneficiaire = local_habite_premiere_fois_beneficiaire
-		self.copropriete = copropriete
-		self.situation_r822_11_13_17 = situation_r822_11_13_17
-		self.type_pret = type_pret
-		self.anciennete_logement = anciennete_logement
+    def __init__(self, mensualite_principale: Money, charges_mensuelles_pret: Money, date_signature_pret: Date, date_entree_logement: Date, type_travaux_logement_d832_15: TypeTravauxLogementD83215, type_travaux_logement_r842_5: TypeTravauxLogementR8425, local_habite_premiere_fois_beneficiaire: bool, copropriete: bool, situation_r822_11_13_17: bool, type_pret: TypePret, anciennete_logement: NeufOuAncien) -> None:
+        self.mensualite_principale = mensualite_principale
+        self.charges_mensuelles_pret = charges_mensuelles_pret
+        self.date_signature_pret = date_signature_pret
+        self.date_entree_logement = date_entree_logement
+        self.type_travaux_logement_d832_15 = type_travaux_logement_d832_15
+        self.type_travaux_logement_r842_5 = type_travaux_logement_r842_5
+        self.local_habite_premiere_fois_beneficiaire = local_habite_premiere_fois_beneficiaire
+        self.copropriete = copropriete
+        self.situation_r822_11_13_17 = situation_r822_11_13_17
+        self.type_pret = type_pret
+        self.anciennete_logement = anciennete_logement
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InformationsCalculAPLAccessionPropriete):
-			return (self.mensualite_principale == other.mensualite_principale and
-          self.charges_mensuelles_pret == other.charges_mensuelles_pret and
-          self.date_signature_pret == other.date_signature_pret and
-          self.date_entree_logement == other.date_entree_logement and
-          self.type_travaux_logement_d832_15 == other.type_travaux_logement_d832_15 and
-          self.type_travaux_logement_r842_5 == other.type_travaux_logement_r842_5 and
-          self.local_habite_premiere_fois_beneficiaire == other.local_habite_premiere_fois_beneficiaire and
-          self.copropriete == other.copropriete and
-          self.situation_r822_11_13_17 == other.situation_r822_11_13_17 and
-          self.type_pret == other.type_pret and
-          self.anciennete_logement == other.anciennete_logement)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InformationsCalculAPLAccessionPropriete):
+            return (self.mensualite_principale == other.mensualite_principale and
+                   self.charges_mensuelles_pret == other.charges_mensuelles_pret and
+                   self.date_signature_pret == other.date_signature_pret and
+                   self.date_entree_logement == other.date_entree_logement and
+                   self.type_travaux_logement_d832_15 == other.type_travaux_logement_d832_15 and
+                   self.type_travaux_logement_r842_5 == other.type_travaux_logement_r842_5 and
+                   self.local_habite_premiere_fois_beneficiaire == other.local_habite_premiere_fois_beneficiaire and
+                   self.copropriete == other.copropriete and
+                   self.situation_r822_11_13_17 == other.situation_r822_11_13_17 and
+                   self.type_pret == other.type_pret and
+                   self.anciennete_logement == other.anciennete_logement)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "InformationsCalculAPLAccessionPropriete(mensualite_principale={},charges_mensuelles_pret={},date_signature_pret={},date_entree_logement={},type_travaux_logement_d832_15={},type_travaux_logement_r842_5={},local_habite_premiere_fois_beneficiaire={},copropriete={},situation_r822_11_13_17={},type_pret={},anciennete_logement={})".format(self.mensualite_principale,
-      self.charges_mensuelles_pret, self.date_signature_pret,
-      self.date_entree_logement, self.type_travaux_logement_d832_15,
-      self.type_travaux_logement_r842_5,
-      self.local_habite_premiere_fois_beneficiaire, self.copropriete,
-      self.situation_r822_11_13_17, self.type_pret, self.anciennete_logement)
+    def __str__(self) -> str:
+        return "InformationsCalculAPLAccessionPropriete(mensualite_principale={},charges_mensuelles_pret={},date_signature_pret={},date_entree_logement={},type_travaux_logement_d832_15={},type_travaux_logement_r842_5={},local_habite_premiere_fois_beneficiaire={},copropriete={},situation_r822_11_13_17={},type_pret={},anciennete_logement={})".format(self.mensualite_principale,
+            self.charges_mensuelles_pret, self.date_signature_pret,
+            self.date_entree_logement, self.type_travaux_logement_d832_15,
+            self.type_travaux_logement_r842_5,
+            self.local_habite_premiere_fois_beneficiaire, self.copropriete,
+            self.situation_r822_11_13_17, self.type_pret,
+            self.anciennete_logement)
 
 class PersonneACharge_Code(Enum):
     EnfantACharge = 0
     AutrePersonneACharge = 1
 
 class PersonneACharge:
-	def __init__(self, code: PersonneACharge_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PersonneACharge_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PersonneACharge):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PersonneACharge):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class InformationsCalculAPLLocatif:
-	def __init__(self, loyer_principal: Money, beneficiaire_aide_adulte_ou_enfant_handicapes: bool, logement_est_chambre: bool, colocation: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers: bool, reduction_loyer_solidarite: Money, logement_meuble_d842_2: bool, changement_logement_d842_4: ChangementLogementD8424) -> None:
-		self.loyer_principal = loyer_principal
-		self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
-		self.logement_est_chambre = logement_est_chambre
-		self.colocation = colocation
-		self.agees_ou_handicap_adultes_hebergees_onereux_particuliers = agees_ou_handicap_adultes_hebergees_onereux_particuliers
-		self.reduction_loyer_solidarite = reduction_loyer_solidarite
-		self.logement_meuble_d842_2 = logement_meuble_d842_2
-		self.changement_logement_d842_4 = changement_logement_d842_4
+    def __init__(self, loyer_principal: Money, beneficiaire_aide_adulte_ou_enfant_handicapes: bool, logement_est_chambre: bool, colocation: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers: bool, reduction_loyer_solidarite: Money, logement_meuble_d842_2: bool, changement_logement_d842_4: ChangementLogementD8424) -> None:
+        self.loyer_principal = loyer_principal
+        self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
+        self.logement_est_chambre = logement_est_chambre
+        self.colocation = colocation
+        self.agees_ou_handicap_adultes_hebergees_onereux_particuliers = agees_ou_handicap_adultes_hebergees_onereux_particuliers
+        self.reduction_loyer_solidarite = reduction_loyer_solidarite
+        self.logement_meuble_d842_2 = logement_meuble_d842_2
+        self.changement_logement_d842_4 = changement_logement_d842_4
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InformationsCalculAPLLocatif):
-			return (self.loyer_principal == other.loyer_principal and
-          self.beneficiaire_aide_adulte_ou_enfant_handicapes == other.beneficiaire_aide_adulte_ou_enfant_handicapes and
-          self.logement_est_chambre == other.logement_est_chambre and
-          self.colocation == other.colocation and
-          self.agees_ou_handicap_adultes_hebergees_onereux_particuliers == other.agees_ou_handicap_adultes_hebergees_onereux_particuliers and
-          self.reduction_loyer_solidarite == other.reduction_loyer_solidarite and
-          self.logement_meuble_d842_2 == other.logement_meuble_d842_2 and
-          self.changement_logement_d842_4 == other.changement_logement_d842_4)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InformationsCalculAPLLocatif):
+            return (self.loyer_principal == other.loyer_principal and
+                   self.beneficiaire_aide_adulte_ou_enfant_handicapes == other.beneficiaire_aide_adulte_ou_enfant_handicapes and
+                   self.logement_est_chambre == other.logement_est_chambre and
+                   self.colocation == other.colocation and
+                   self.agees_ou_handicap_adultes_hebergees_onereux_particuliers == other.agees_ou_handicap_adultes_hebergees_onereux_particuliers and
+                   self.reduction_loyer_solidarite == other.reduction_loyer_solidarite and
+                   self.logement_meuble_d842_2 == other.logement_meuble_d842_2 and
+                   self.changement_logement_d842_4 == other.changement_logement_d842_4)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "InformationsCalculAPLLocatif(loyer_principal={},beneficiaire_aide_adulte_ou_enfant_handicapes={},logement_est_chambre={},colocation={},agees_ou_handicap_adultes_hebergees_onereux_particuliers={},reduction_loyer_solidarite={},logement_meuble_d842_2={},changement_logement_d842_4={})".format(self.loyer_principal,
-      self.beneficiaire_aide_adulte_ou_enfant_handicapes,
-      self.logement_est_chambre, self.colocation,
-      self.agees_ou_handicap_adultes_hebergees_onereux_particuliers,
-      self.reduction_loyer_solidarite, self.logement_meuble_d842_2,
-      self.changement_logement_d842_4)
+    def __str__(self) -> str:
+        return "InformationsCalculAPLLocatif(loyer_principal={},beneficiaire_aide_adulte_ou_enfant_handicapes={},logement_est_chambre={},colocation={},agees_ou_handicap_adultes_hebergees_onereux_particuliers={},reduction_loyer_solidarite={},logement_meuble_d842_2={},changement_logement_d842_4={})".format(self.loyer_principal,
+            self.beneficiaire_aide_adulte_ou_enfant_handicapes,
+            self.logement_est_chambre, self.colocation,
+            self.agees_ou_handicap_adultes_hebergees_onereux_particuliers,
+            self.reduction_loyer_solidarite, self.logement_meuble_d842_2,
+            self.changement_logement_d842_4)
 
 class LogementFoyer:
-	def __init__(self, type: TypeLogementFoyer, date_conventionnement: Date, location: Location, remplit_conditions_r832_21: bool, construit_application_loi_1957_12_III: bool) -> None:
-		self.type = type
-		self.date_conventionnement = date_conventionnement
-		self.location = location
-		self.remplit_conditions_r832_21 = remplit_conditions_r832_21
-		self.construit_application_loi_1957_12_III = construit_application_loi_1957_12_III
+    def __init__(self, type: TypeLogementFoyer, date_conventionnement: Date, location: Location, remplit_conditions_r832_21: bool, construit_application_loi_1957_12_III: bool) -> None:
+        self.type = type
+        self.date_conventionnement = date_conventionnement
+        self.location = location
+        self.remplit_conditions_r832_21 = remplit_conditions_r832_21
+        self.construit_application_loi_1957_12_III = construit_application_loi_1957_12_III
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, LogementFoyer):
-			return (self.type == other.type and
-          self.date_conventionnement == other.date_conventionnement and
-          self.location == other.location and
-          self.remplit_conditions_r832_21 == other.remplit_conditions_r832_21 and
-          self.construit_application_loi_1957_12_III == other.construit_application_loi_1957_12_III)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, LogementFoyer):
+            return (self.type == other.type and
+                   self.date_conventionnement == other.date_conventionnement and
+                   self.location == other.location and
+                   self.remplit_conditions_r832_21 == other.remplit_conditions_r832_21 and
+                   self.construit_application_loi_1957_12_III == other.construit_application_loi_1957_12_III)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "LogementFoyer(type={},date_conventionnement={},location={},remplit_conditions_r832_21={},construit_application_loi_1957_12_III={})".format(self.type,
-      self.date_conventionnement, self.location,
-      self.remplit_conditions_r832_21,
-      self.construit_application_loi_1957_12_III)
+    def __str__(self) -> str:
+        return "LogementFoyer(type={},date_conventionnement={},location={},remplit_conditions_r832_21={},construit_application_loi_1957_12_III={})".format(self.type,
+            self.date_conventionnement, self.location,
+            self.remplit_conditions_r832_21,
+            self.construit_application_loi_1957_12_III)
 
 class InformationsCalculAPL_Code(Enum):
     InfosLocatif = 0
@@ -1358,23 +1360,23 @@ class InformationsCalculAPL_Code(Enum):
     InfosAccessionPropriete = 2
 
 class InformationsCalculAPL:
-	def __init__(self, code: InformationsCalculAPL_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: InformationsCalculAPL_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InformationsCalculAPL):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InformationsCalculAPL):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ModeOccupation_Code(Enum):
     Locataire = 0
@@ -1384,1319 +1386,1331 @@ class ModeOccupation_Code(Enum):
     LocationAccession = 4
 
 class ModeOccupation:
-	def __init__(self, code: ModeOccupation_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ModeOccupation_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ModeOccupation):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ModeOccupation):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Logement:
-	def __init__(self, residence_principale: bool, est_ehpad_ou_maison_autonomie_l313_12_asf: bool, mode_occupation: ModeOccupation, proprietaire: ParentOuAutre, loue_ou_sous_loue_a_des_tiers: LoueOuSousLoueADesTiers, usufruit: ParentOuAutre, logement_decent_l89_462: bool, surface_m_carres: Integer, est_ancien_l831_2: bool, situe_commune_desequilibre_l831_2: bool, zone: ZoneDHabitation) -> None:
-		self.residence_principale = residence_principale
-		self.est_ehpad_ou_maison_autonomie_l313_12_asf = est_ehpad_ou_maison_autonomie_l313_12_asf
-		self.mode_occupation = mode_occupation
-		self.proprietaire = proprietaire
-		self.loue_ou_sous_loue_a_des_tiers = loue_ou_sous_loue_a_des_tiers
-		self.usufruit = usufruit
-		self.logement_decent_l89_462 = logement_decent_l89_462
-		self.surface_m_carres = surface_m_carres
-		self.est_ancien_l831_2 = est_ancien_l831_2
-		self.situe_commune_desequilibre_l831_2 = situe_commune_desequilibre_l831_2
-		self.zone = zone
+    def __init__(self, residence_principale: bool, est_ehpad_ou_maison_autonomie_l313_12_asf: bool, mode_occupation: ModeOccupation, proprietaire: ParentOuAutre, loue_ou_sous_loue_a_des_tiers: LoueOuSousLoueADesTiers, usufruit: ParentOuAutre, logement_decent_l89_462: bool, surface_m_carres: Integer, est_ancien_l831_2: bool, situe_commune_desequilibre_l831_2: bool, zone: ZoneDHabitation) -> None:
+        self.residence_principale = residence_principale
+        self.est_ehpad_ou_maison_autonomie_l313_12_asf = est_ehpad_ou_maison_autonomie_l313_12_asf
+        self.mode_occupation = mode_occupation
+        self.proprietaire = proprietaire
+        self.loue_ou_sous_loue_a_des_tiers = loue_ou_sous_loue_a_des_tiers
+        self.usufruit = usufruit
+        self.logement_decent_l89_462 = logement_decent_l89_462
+        self.surface_m_carres = surface_m_carres
+        self.est_ancien_l831_2 = est_ancien_l831_2
+        self.situe_commune_desequilibre_l831_2 = situe_commune_desequilibre_l831_2
+        self.zone = zone
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Logement):
-			return (self.residence_principale == other.residence_principale and
-          self.est_ehpad_ou_maison_autonomie_l313_12_asf == other.est_ehpad_ou_maison_autonomie_l313_12_asf and
-          self.mode_occupation == other.mode_occupation and
-          self.proprietaire == other.proprietaire and
-          self.loue_ou_sous_loue_a_des_tiers == other.loue_ou_sous_loue_a_des_tiers and
-          self.usufruit == other.usufruit and
-          self.logement_decent_l89_462 == other.logement_decent_l89_462 and
-          self.surface_m_carres == other.surface_m_carres and
-          self.est_ancien_l831_2 == other.est_ancien_l831_2 and
-          self.situe_commune_desequilibre_l831_2 == other.situe_commune_desequilibre_l831_2 and
-          self.zone == other.zone)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Logement):
+            return (self.residence_principale == other.residence_principale and
+                   self.est_ehpad_ou_maison_autonomie_l313_12_asf == other.est_ehpad_ou_maison_autonomie_l313_12_asf and
+                   self.mode_occupation == other.mode_occupation and
+                   self.proprietaire == other.proprietaire and
+                   self.loue_ou_sous_loue_a_des_tiers == other.loue_ou_sous_loue_a_des_tiers and
+                   self.usufruit == other.usufruit and
+                   self.logement_decent_l89_462 == other.logement_decent_l89_462 and
+                   self.surface_m_carres == other.surface_m_carres and
+                   self.est_ancien_l831_2 == other.est_ancien_l831_2 and
+                   self.situe_commune_desequilibre_l831_2 == other.situe_commune_desequilibre_l831_2 and
+                   self.zone == other.zone)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Logement(residence_principale={},est_ehpad_ou_maison_autonomie_l313_12_asf={},mode_occupation={},proprietaire={},loue_ou_sous_loue_a_des_tiers={},usufruit={},logement_decent_l89_462={},surface_m_carres={},est_ancien_l831_2={},situe_commune_desequilibre_l831_2={},zone={})".format(self.residence_principale,
-      self.est_ehpad_ou_maison_autonomie_l313_12_asf, self.mode_occupation,
-      self.proprietaire, self.loue_ou_sous_loue_a_des_tiers, self.usufruit,
-      self.logement_decent_l89_462, self.surface_m_carres,
-      self.est_ancien_l831_2, self.situe_commune_desequilibre_l831_2,
-      self.zone)
+    def __str__(self) -> str:
+        return "Logement(residence_principale={},est_ehpad_ou_maison_autonomie_l313_12_asf={},mode_occupation={},proprietaire={},loue_ou_sous_loue_a_des_tiers={},usufruit={},logement_decent_l89_462={},surface_m_carres={},est_ancien_l831_2={},situe_commune_desequilibre_l831_2={},zone={})".format(self.residence_principale,
+            self.est_ehpad_ou_maison_autonomie_l313_12_asf,
+            self.mode_occupation, self.proprietaire,
+            self.loue_ou_sous_loue_a_des_tiers, self.usufruit,
+            self.logement_decent_l89_462, self.surface_m_carres,
+            self.est_ancien_l831_2, self.situe_commune_desequilibre_l831_2,
+            self.zone)
 
 class Menage:
-	def __init__(self, prestations_recues: List[PrestationRecue], logement: Logement, personnes_a_charge: List[PersonneACharge], nombre_autres_occupants_logement: Integer, situation_familiale: SituationFamiliale, condition_rattache_foyer_fiscal_parent_ifi: bool, nombre_enfants_a_naitre_apres_troisieme_mois_grossesse: Integer, enfant_a_naitre_apres_quatrieme_mois_grossesse: bool, date_naissance_troisieme_enfant_ou_dernier_si_plus: DateNaissanceTroisiemeOuDernierPlusEnfant) -> None:
-		self.prestations_recues = prestations_recues
-		self.logement = logement
-		self.personnes_a_charge = personnes_a_charge
-		self.nombre_autres_occupants_logement = nombre_autres_occupants_logement
-		self.situation_familiale = situation_familiale
-		self.condition_rattache_foyer_fiscal_parent_ifi = condition_rattache_foyer_fiscal_parent_ifi
-		self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse = nombre_enfants_a_naitre_apres_troisieme_mois_grossesse
-		self.enfant_a_naitre_apres_quatrieme_mois_grossesse = enfant_a_naitre_apres_quatrieme_mois_grossesse
-		self.date_naissance_troisieme_enfant_ou_dernier_si_plus = date_naissance_troisieme_enfant_ou_dernier_si_plus
+    def __init__(self, prestations_recues: List[PrestationRecue], logement: Logement, personnes_a_charge: List[PersonneACharge], nombre_autres_occupants_logement: Integer, situation_familiale: SituationFamiliale, condition_rattache_foyer_fiscal_parent_ifi: bool, nombre_enfants_a_naitre_apres_troisieme_mois_grossesse: Integer, enfant_a_naitre_apres_quatrieme_mois_grossesse: bool, date_naissance_troisieme_enfant_ou_dernier_si_plus: DateNaissanceTroisiemeOuDernierPlusEnfant) -> None:
+        self.prestations_recues = prestations_recues
+        self.logement = logement
+        self.personnes_a_charge = personnes_a_charge
+        self.nombre_autres_occupants_logement = nombre_autres_occupants_logement
+        self.situation_familiale = situation_familiale
+        self.condition_rattache_foyer_fiscal_parent_ifi = condition_rattache_foyer_fiscal_parent_ifi
+        self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse = nombre_enfants_a_naitre_apres_troisieme_mois_grossesse
+        self.enfant_a_naitre_apres_quatrieme_mois_grossesse = enfant_a_naitre_apres_quatrieme_mois_grossesse
+        self.date_naissance_troisieme_enfant_ou_dernier_si_plus = date_naissance_troisieme_enfant_ou_dernier_si_plus
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Menage):
-			return (self.prestations_recues == other.prestations_recues and
-          self.logement == other.logement and
-          self.personnes_a_charge == other.personnes_a_charge and
-          self.nombre_autres_occupants_logement == other.nombre_autres_occupants_logement and
-          self.situation_familiale == other.situation_familiale and
-          self.condition_rattache_foyer_fiscal_parent_ifi == other.condition_rattache_foyer_fiscal_parent_ifi and
-          self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse == other.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse and
-          self.enfant_a_naitre_apres_quatrieme_mois_grossesse == other.enfant_a_naitre_apres_quatrieme_mois_grossesse and
-          self.date_naissance_troisieme_enfant_ou_dernier_si_plus == other.date_naissance_troisieme_enfant_ou_dernier_si_plus)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Menage):
+            return (self.prestations_recues == other.prestations_recues and
+                   self.logement == other.logement and
+                   self.personnes_a_charge == other.personnes_a_charge and
+                   self.nombre_autres_occupants_logement == other.nombre_autres_occupants_logement and
+                   self.situation_familiale == other.situation_familiale and
+                   self.condition_rattache_foyer_fiscal_parent_ifi == other.condition_rattache_foyer_fiscal_parent_ifi and
+                   self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse == other.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse and
+                   self.enfant_a_naitre_apres_quatrieme_mois_grossesse == other.enfant_a_naitre_apres_quatrieme_mois_grossesse and
+                   self.date_naissance_troisieme_enfant_ou_dernier_si_plus == other.date_naissance_troisieme_enfant_ou_dernier_si_plus)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Menage(prestations_recues={},logement={},personnes_a_charge={},nombre_autres_occupants_logement={},situation_familiale={},condition_rattache_foyer_fiscal_parent_ifi={},nombre_enfants_a_naitre_apres_troisieme_mois_grossesse={},enfant_a_naitre_apres_quatrieme_mois_grossesse={},date_naissance_troisieme_enfant_ou_dernier_si_plus={})".format(self.prestations_recues,
-      self.logement, self.personnes_a_charge,
-      self.nombre_autres_occupants_logement, self.situation_familiale,
-      self.condition_rattache_foyer_fiscal_parent_ifi,
-      self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse,
-      self.enfant_a_naitre_apres_quatrieme_mois_grossesse,
-      self.date_naissance_troisieme_enfant_ou_dernier_si_plus)
+    def __str__(self) -> str:
+        return "Menage(prestations_recues={},logement={},personnes_a_charge={},nombre_autres_occupants_logement={},situation_familiale={},condition_rattache_foyer_fiscal_parent_ifi={},nombre_enfants_a_naitre_apres_troisieme_mois_grossesse={},enfant_a_naitre_apres_quatrieme_mois_grossesse={},date_naissance_troisieme_enfant_ou_dernier_si_plus={})".format(self.prestations_recues,
+            self.logement, self.personnes_a_charge,
+            self.nombre_autres_occupants_logement, self.situation_familiale,
+            self.condition_rattache_foyer_fiscal_parent_ifi,
+            self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse,
+            self.enfant_a_naitre_apres_quatrieme_mois_grossesse,
+            self.date_naissance_troisieme_enfant_ou_dernier_si_plus)
 
 class EligibiliteAidesPersonnelleLogementOut:
-	def __init__(self, date_courante_out: Date, eligibilite_out: bool, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal], condition_2_r823_4_out: Callable[[PersonneACharge], bool]) -> None:
-		self.date_courante_out = date_courante_out
-		self.eligibilite_out = eligibilite_out
-		self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
-		self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
-		self.condition_2_r823_4_out = condition_2_r823_4_out
+    def __init__(self, date_courante_out: Date, eligibilite_out: bool, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal], condition_2_r823_4_out: Callable[[PersonneACharge], bool]) -> None:
+        self.date_courante_out = date_courante_out
+        self.eligibilite_out = eligibilite_out
+        self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
+        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
+        self.condition_2_r823_4_out = condition_2_r823_4_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAidesPersonnelleLogementOut):
-			return (self.date_courante_out == other.date_courante_out and
-          self.eligibilite_out == other.eligibilite_out and
-          self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
-          self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out and
-          self.condition_2_r823_4_out == other.condition_2_r823_4_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAidesPersonnelleLogementOut):
+            return (self.date_courante_out == other.date_courante_out and
+                   self.eligibilite_out == other.eligibilite_out and
+                   self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out and
+                   self.condition_2_r823_4_out == other.condition_2_r823_4_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibiliteAidesPersonnelleLogementOut(date_courante_out={},eligibilite_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={},condition_2_r823_4_out={})".format(self.date_courante_out,
-      self.eligibilite_out,
-      self.nombre_personnes_a_charge_prises_en_compte_out,
-      self.coefficents_enfants_garde_alternee_pris_en_compte_out,
-      self.condition_2_r823_4_out)
+    def __str__(self) -> str:
+        return "EligibiliteAidesPersonnelleLogementOut(date_courante_out={},eligibilite_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={},condition_2_r823_4_out={})".format(self.date_courante_out,
+            self.eligibilite_out,
+            self.nombre_personnes_a_charge_prises_en_compte_out,
+            self.coefficents_enfants_garde_alternee_pris_en_compte_out,
+            self.condition_2_r823_4_out)
 
 class EligibiliteAidesPersonnelleLogementIn:
-	def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, condition_logement_residence_principale_in: Callable[[Unit], bool], condition_logement_surface_in: Callable[[Unit], bool]) -> None:
-		self.menage_in = menage_in
-		self.demandeur_in = demandeur_in
-		self.date_courante_in = date_courante_in
-		self.condition_logement_residence_principale_in = condition_logement_residence_principale_in
-		self.condition_logement_surface_in = condition_logement_surface_in
+    def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, condition_logement_residence_principale_in: Callable[[Unit], bool], condition_logement_surface_in: Callable[[Unit], bool]) -> None:
+        self.menage_in = menage_in
+        self.demandeur_in = demandeur_in
+        self.date_courante_in = date_courante_in
+        self.condition_logement_residence_principale_in = condition_logement_residence_principale_in
+        self.condition_logement_surface_in = condition_logement_surface_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAidesPersonnelleLogementIn):
-			return (self.menage_in == other.menage_in and
-          self.demandeur_in == other.demandeur_in and
-          self.date_courante_in == other.date_courante_in and
-          self.condition_logement_residence_principale_in == other.condition_logement_residence_principale_in and
-          self.condition_logement_surface_in == other.condition_logement_surface_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAidesPersonnelleLogementIn):
+            return (self.menage_in == other.menage_in and
+                   self.demandeur_in == other.demandeur_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.condition_logement_residence_principale_in == other.condition_logement_residence_principale_in and
+                   self.condition_logement_surface_in == other.condition_logement_surface_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibiliteAidesPersonnelleLogementIn(menage_in={},demandeur_in={},date_courante_in={},condition_logement_residence_principale_in={},condition_logement_surface_in={})".format(self.menage_in,
-      self.demandeur_in, self.date_courante_in,
-      self.condition_logement_residence_principale_in,
-      self.condition_logement_surface_in)
+    def __str__(self) -> str:
+        return "EligibiliteAidesPersonnelleLogementIn(menage_in={},demandeur_in={},date_courante_in={},condition_logement_residence_principale_in={},condition_logement_surface_in={})".format(self.menage_in,
+            self.demandeur_in, self.date_courante_in,
+            self.condition_logement_residence_principale_in,
+            self.condition_logement_surface_in)
 
 class EligibiliteAidePersonnaliseeLogementOut:
-	def __init__(self, date_courante_out: Date, eligibilite_out: bool, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
-		self.date_courante_out = date_courante_out
-		self.eligibilite_out = eligibilite_out
-		self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
-		self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
+    def __init__(self, date_courante_out: Date, eligibilite_out: bool, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
+        self.date_courante_out = date_courante_out
+        self.eligibilite_out = eligibilite_out
+        self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
+        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAidePersonnaliseeLogementOut):
-			return (self.date_courante_out == other.date_courante_out and
-          self.eligibilite_out == other.eligibilite_out and
-          self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
-          self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAidePersonnaliseeLogementOut):
+            return (self.date_courante_out == other.date_courante_out and
+                   self.eligibilite_out == other.eligibilite_out and
+                   self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibiliteAidePersonnaliseeLogementOut(date_courante_out={},eligibilite_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.date_courante_out,
-      self.eligibilite_out,
-      self.nombre_personnes_a_charge_prises_en_compte_out,
-      self.coefficents_enfants_garde_alternee_pris_en_compte_out)
+    def __str__(self) -> str:
+        return "EligibiliteAidePersonnaliseeLogementOut(date_courante_out={},eligibilite_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.date_courante_out,
+            self.eligibilite_out,
+            self.nombre_personnes_a_charge_prises_en_compte_out,
+            self.coefficents_enfants_garde_alternee_pris_en_compte_out)
 
 class EligibiliteAidePersonnaliseeLogementIn:
-	def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date) -> None:
-		self.menage_in = menage_in
-		self.demandeur_in = demandeur_in
-		self.date_courante_in = date_courante_in
+    def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date) -> None:
+        self.menage_in = menage_in
+        self.demandeur_in = demandeur_in
+        self.date_courante_in = date_courante_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAidePersonnaliseeLogementIn):
-			return (self.menage_in == other.menage_in and
-          self.demandeur_in == other.demandeur_in and
-          self.date_courante_in == other.date_courante_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAidePersonnaliseeLogementIn):
+            return (self.menage_in == other.menage_in and
+                   self.demandeur_in == other.demandeur_in and
+                   self.date_courante_in == other.date_courante_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibiliteAidePersonnaliseeLogementIn(menage_in={},demandeur_in={},date_courante_in={})".format(self.menage_in,
-      self.demandeur_in, self.date_courante_in)
+    def __str__(self) -> str:
+        return "EligibiliteAidePersonnaliseeLogementIn(menage_in={},demandeur_in={},date_courante_in={})".format(self.menage_in,
+            self.demandeur_in, self.date_courante_in)
 
 class EligibiliteAllocationLogementOut:
-	def __init__(self, eligibilite_avec_condition_logement_out: EligibiliteAllocationLogement, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
-		self.eligibilite_avec_condition_logement_out = eligibilite_avec_condition_logement_out
-		self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
-		self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
+    def __init__(self, eligibilite_avec_condition_logement_out: EligibiliteAllocationLogement, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
+        self.eligibilite_avec_condition_logement_out = eligibilite_avec_condition_logement_out
+        self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
+        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAllocationLogementOut):
-			return (self.eligibilite_avec_condition_logement_out == other.eligibilite_avec_condition_logement_out and
-          self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
-          self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAllocationLogementOut):
+            return (self.eligibilite_avec_condition_logement_out == other.eligibilite_avec_condition_logement_out and
+                   self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibiliteAllocationLogementOut(eligibilite_avec_condition_logement_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.eligibilite_avec_condition_logement_out,
-      self.nombre_personnes_a_charge_prises_en_compte_out,
-      self.coefficents_enfants_garde_alternee_pris_en_compte_out)
+    def __str__(self) -> str:
+        return "EligibiliteAllocationLogementOut(eligibilite_avec_condition_logement_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.eligibilite_avec_condition_logement_out,
+            self.nombre_personnes_a_charge_prises_en_compte_out,
+            self.coefficents_enfants_garde_alternee_pris_en_compte_out)
 
 class EligibiliteAllocationLogementIn:
-	def __init__(self, date_courante_in: Date, menage_in: Menage, demandeur_in: Demandeur, beneficie_aide_personnalisee_logement_in: bool, informations_calcul_in: InformationsCalculAPL) -> None:
-		self.date_courante_in = date_courante_in
-		self.menage_in = menage_in
-		self.demandeur_in = demandeur_in
-		self.beneficie_aide_personnalisee_logement_in = beneficie_aide_personnalisee_logement_in
-		self.informations_calcul_in = informations_calcul_in
+    def __init__(self, date_courante_in: Date, menage_in: Menage, demandeur_in: Demandeur, beneficie_aide_personnalisee_logement_in: bool, informations_calcul_in: InformationsCalculAPL) -> None:
+        self.date_courante_in = date_courante_in
+        self.menage_in = menage_in
+        self.demandeur_in = demandeur_in
+        self.beneficie_aide_personnalisee_logement_in = beneficie_aide_personnalisee_logement_in
+        self.informations_calcul_in = informations_calcul_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibiliteAllocationLogementIn):
-			return (self.date_courante_in == other.date_courante_in and
-          self.menage_in == other.menage_in and
-          self.demandeur_in == other.demandeur_in and
-          self.beneficie_aide_personnalisee_logement_in == other.beneficie_aide_personnalisee_logement_in and
-          self.informations_calcul_in == other.informations_calcul_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAllocationLogementIn):
+            return (self.date_courante_in == other.date_courante_in and
+                   self.menage_in == other.menage_in and
+                   self.demandeur_in == other.demandeur_in and
+                   self.beneficie_aide_personnalisee_logement_in == other.beneficie_aide_personnalisee_logement_in and
+                   self.informations_calcul_in == other.informations_calcul_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibiliteAllocationLogementIn(date_courante_in={},menage_in={},demandeur_in={},beneficie_aide_personnalisee_logement_in={},informations_calcul_in={})".format(self.date_courante_in,
-      self.menage_in, self.demandeur_in,
-      self.beneficie_aide_personnalisee_logement_in,
-      self.informations_calcul_in)
+    def __str__(self) -> str:
+        return "EligibiliteAllocationLogementIn(date_courante_in={},menage_in={},demandeur_in={},beneficie_aide_personnalisee_logement_in={},informations_calcul_in={})".format(self.date_courante_in,
+            self.menage_in, self.demandeur_in,
+            self.beneficie_aide_personnalisee_logement_in,
+            self.informations_calcul_in)
 
 class EligibilitePrimeDeDemenagementOut:
-	def __init__(self, montant_prime_demenagement_out: Money) -> None:
-		self.montant_prime_demenagement_out = montant_prime_demenagement_out
+    def __init__(self, montant_prime_demenagement_out: Money) -> None:
+        self.montant_prime_demenagement_out = montant_prime_demenagement_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibilitePrimeDeDemenagementOut):
-			return (self.montant_prime_demenagement_out == other.montant_prime_demenagement_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibilitePrimeDeDemenagementOut):
+            return (self.montant_prime_demenagement_out == other.montant_prime_demenagement_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibilitePrimeDeDemenagementOut(montant_prime_demenagement_out={})".format(self.montant_prime_demenagement_out)
+    def __str__(self) -> str:
+        return "EligibilitePrimeDeDemenagementOut(montant_prime_demenagement_out={})".format(self.montant_prime_demenagement_out)
 
 class EligibilitePrimeDeDemenagementIn:
-	def __init__(self, date_emmenagement_in: Date, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, depenses_justifiees_reellement_engagees_in: Money) -> None:
-		self.date_emmenagement_in = date_emmenagement_in
-		self.menage_in = menage_in
-		self.demandeur_in = demandeur_in
-		self.date_courante_in = date_courante_in
-		self.depenses_justifiees_reellement_engagees_in = depenses_justifiees_reellement_engagees_in
+    def __init__(self, date_emmenagement_in: Date, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, depenses_justifiees_reellement_engagees_in: Money) -> None:
+        self.date_emmenagement_in = date_emmenagement_in
+        self.menage_in = menage_in
+        self.demandeur_in = demandeur_in
+        self.date_courante_in = date_courante_in
+        self.depenses_justifiees_reellement_engagees_in = depenses_justifiees_reellement_engagees_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibilitePrimeDeDemenagementIn):
-			return (self.date_emmenagement_in == other.date_emmenagement_in and
-          self.menage_in == other.menage_in and
-          self.demandeur_in == other.demandeur_in and
-          self.date_courante_in == other.date_courante_in and
-          self.depenses_justifiees_reellement_engagees_in == other.depenses_justifiees_reellement_engagees_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibilitePrimeDeDemenagementIn):
+            return (self.date_emmenagement_in == other.date_emmenagement_in and
+                   self.menage_in == other.menage_in and
+                   self.demandeur_in == other.demandeur_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.depenses_justifiees_reellement_engagees_in == other.depenses_justifiees_reellement_engagees_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibilitePrimeDeDemenagementIn(date_emmenagement_in={},menage_in={},demandeur_in={},date_courante_in={},depenses_justifiees_reellement_engagees_in={})".format(self.date_emmenagement_in,
-      self.menage_in, self.demandeur_in, self.date_courante_in,
-      self.depenses_justifiees_reellement_engagees_in)
+    def __str__(self) -> str:
+        return "EligibilitePrimeDeDemenagementIn(date_emmenagement_in={},menage_in={},demandeur_in={},date_courante_in={},depenses_justifiees_reellement_engagees_in={})".format(self.date_emmenagement_in,
+            self.menage_in, self.demandeur_in, self.date_courante_in,
+            self.depenses_justifiees_reellement_engagees_in)
 
 class RessourcesAidesPersonnelleLogementOut:
-	def __init__(self, ressources_prises_en_compte_out: Money) -> None:
-		self.ressources_prises_en_compte_out = ressources_prises_en_compte_out
+    def __init__(self, ressources_prises_en_compte_out: Money) -> None:
+        self.ressources_prises_en_compte_out = ressources_prises_en_compte_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, RessourcesAidesPersonnelleLogementOut):
-			return (self.ressources_prises_en_compte_out == other.ressources_prises_en_compte_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, RessourcesAidesPersonnelleLogementOut):
+            return (self.ressources_prises_en_compte_out == other.ressources_prises_en_compte_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "RessourcesAidesPersonnelleLogementOut(ressources_prises_en_compte_out={})".format(self.ressources_prises_en_compte_out)
+    def __str__(self) -> str:
+        return "RessourcesAidesPersonnelleLogementOut(ressources_prises_en_compte_out={})".format(self.ressources_prises_en_compte_out)
 
 class RessourcesAidesPersonnelleLogementIn:
-	def __init__(self, ressources_demandeur_in: Money, ressources_conjoint_in: Money, personnes_vivant_habituellement_foyer_in: List[PersonneVivantHabituellementAuFoyer], demandeur_exerce_activite_remuneree_in: bool, conjoint_exerce_activite_remuneree_in: bool, personnes_a_charge_in: List[PersonneACharge], situation_familiale_in: SituationFamiliale, mode_occupation_in: ModeOccupation, condition_age_bourse_enseignement_superieur_in: bool, demandeur_poursuit_des_etudes_in: bool, date_demande_ou_reexamen_droit_in: Date, paiement_logement_distinct_professionnel_in: PaiementLogementDistinctProfessionnel, ressources_menage_arrondies_base_in: Money) -> None:
-		self.ressources_demandeur_in = ressources_demandeur_in
-		self.ressources_conjoint_in = ressources_conjoint_in
-		self.personnes_vivant_habituellement_foyer_in = personnes_vivant_habituellement_foyer_in
-		self.demandeur_exerce_activite_remuneree_in = demandeur_exerce_activite_remuneree_in
-		self.conjoint_exerce_activite_remuneree_in = conjoint_exerce_activite_remuneree_in
-		self.personnes_a_charge_in = personnes_a_charge_in
-		self.situation_familiale_in = situation_familiale_in
-		self.mode_occupation_in = mode_occupation_in
-		self.condition_age_bourse_enseignement_superieur_in = condition_age_bourse_enseignement_superieur_in
-		self.demandeur_poursuit_des_etudes_in = demandeur_poursuit_des_etudes_in
-		self.date_demande_ou_reexamen_droit_in = date_demande_ou_reexamen_droit_in
-		self.paiement_logement_distinct_professionnel_in = paiement_logement_distinct_professionnel_in
-		self.ressources_menage_arrondies_base_in = ressources_menage_arrondies_base_in
+    def __init__(self, ressources_demandeur_in: Money, ressources_conjoint_in: Money, personnes_vivant_habituellement_foyer_in: List[PersonneVivantHabituellementAuFoyer], demandeur_exerce_activite_remuneree_in: bool, conjoint_exerce_activite_remuneree_in: bool, personnes_a_charge_in: List[PersonneACharge], situation_familiale_in: SituationFamiliale, mode_occupation_in: ModeOccupation, condition_age_bourse_enseignement_superieur_in: bool, demandeur_poursuit_des_etudes_in: bool, date_demande_ou_reexamen_droit_in: Date, paiement_logement_distinct_professionnel_in: PaiementLogementDistinctProfessionnel, ressources_menage_arrondies_base_in: Money) -> None:
+        self.ressources_demandeur_in = ressources_demandeur_in
+        self.ressources_conjoint_in = ressources_conjoint_in
+        self.personnes_vivant_habituellement_foyer_in = personnes_vivant_habituellement_foyer_in
+        self.demandeur_exerce_activite_remuneree_in = demandeur_exerce_activite_remuneree_in
+        self.conjoint_exerce_activite_remuneree_in = conjoint_exerce_activite_remuneree_in
+        self.personnes_a_charge_in = personnes_a_charge_in
+        self.situation_familiale_in = situation_familiale_in
+        self.mode_occupation_in = mode_occupation_in
+        self.condition_age_bourse_enseignement_superieur_in = condition_age_bourse_enseignement_superieur_in
+        self.demandeur_poursuit_des_etudes_in = demandeur_poursuit_des_etudes_in
+        self.date_demande_ou_reexamen_droit_in = date_demande_ou_reexamen_droit_in
+        self.paiement_logement_distinct_professionnel_in = paiement_logement_distinct_professionnel_in
+        self.ressources_menage_arrondies_base_in = ressources_menage_arrondies_base_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, RessourcesAidesPersonnelleLogementIn):
-			return (self.ressources_demandeur_in == other.ressources_demandeur_in and
-          self.ressources_conjoint_in == other.ressources_conjoint_in and
-          self.personnes_vivant_habituellement_foyer_in == other.personnes_vivant_habituellement_foyer_in and
-          self.demandeur_exerce_activite_remuneree_in == other.demandeur_exerce_activite_remuneree_in and
-          self.conjoint_exerce_activite_remuneree_in == other.conjoint_exerce_activite_remuneree_in and
-          self.personnes_a_charge_in == other.personnes_a_charge_in and
-          self.situation_familiale_in == other.situation_familiale_in and
-          self.mode_occupation_in == other.mode_occupation_in and
-          self.condition_age_bourse_enseignement_superieur_in == other.condition_age_bourse_enseignement_superieur_in and
-          self.demandeur_poursuit_des_etudes_in == other.demandeur_poursuit_des_etudes_in and
-          self.date_demande_ou_reexamen_droit_in == other.date_demande_ou_reexamen_droit_in and
-          self.paiement_logement_distinct_professionnel_in == other.paiement_logement_distinct_professionnel_in and
-          self.ressources_menage_arrondies_base_in == other.ressources_menage_arrondies_base_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, RessourcesAidesPersonnelleLogementIn):
+            return (self.ressources_demandeur_in == other.ressources_demandeur_in and
+                   self.ressources_conjoint_in == other.ressources_conjoint_in and
+                   self.personnes_vivant_habituellement_foyer_in == other.personnes_vivant_habituellement_foyer_in and
+                   self.demandeur_exerce_activite_remuneree_in == other.demandeur_exerce_activite_remuneree_in and
+                   self.conjoint_exerce_activite_remuneree_in == other.conjoint_exerce_activite_remuneree_in and
+                   self.personnes_a_charge_in == other.personnes_a_charge_in and
+                   self.situation_familiale_in == other.situation_familiale_in and
+                   self.mode_occupation_in == other.mode_occupation_in and
+                   self.condition_age_bourse_enseignement_superieur_in == other.condition_age_bourse_enseignement_superieur_in and
+                   self.demandeur_poursuit_des_etudes_in == other.demandeur_poursuit_des_etudes_in and
+                   self.date_demande_ou_reexamen_droit_in == other.date_demande_ou_reexamen_droit_in and
+                   self.paiement_logement_distinct_professionnel_in == other.paiement_logement_distinct_professionnel_in and
+                   self.ressources_menage_arrondies_base_in == other.ressources_menage_arrondies_base_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "RessourcesAidesPersonnelleLogementIn(ressources_demandeur_in={},ressources_conjoint_in={},personnes_vivant_habituellement_foyer_in={},demandeur_exerce_activite_remuneree_in={},conjoint_exerce_activite_remuneree_in={},personnes_a_charge_in={},situation_familiale_in={},mode_occupation_in={},condition_age_bourse_enseignement_superieur_in={},demandeur_poursuit_des_etudes_in={},date_demande_ou_reexamen_droit_in={},paiement_logement_distinct_professionnel_in={},ressources_menage_arrondies_base_in={})".format(self.ressources_demandeur_in,
-      self.ressources_conjoint_in,
-      self.personnes_vivant_habituellement_foyer_in,
-      self.demandeur_exerce_activite_remuneree_in,
-      self.conjoint_exerce_activite_remuneree_in, self.personnes_a_charge_in,
-      self.situation_familiale_in, self.mode_occupation_in,
-      self.condition_age_bourse_enseignement_superieur_in,
-      self.demandeur_poursuit_des_etudes_in,
-      self.date_demande_ou_reexamen_droit_in,
-      self.paiement_logement_distinct_professionnel_in,
-      self.ressources_menage_arrondies_base_in)
+    def __str__(self) -> str:
+        return "RessourcesAidesPersonnelleLogementIn(ressources_demandeur_in={},ressources_conjoint_in={},personnes_vivant_habituellement_foyer_in={},demandeur_exerce_activite_remuneree_in={},conjoint_exerce_activite_remuneree_in={},personnes_a_charge_in={},situation_familiale_in={},mode_occupation_in={},condition_age_bourse_enseignement_superieur_in={},demandeur_poursuit_des_etudes_in={},date_demande_ou_reexamen_droit_in={},paiement_logement_distinct_professionnel_in={},ressources_menage_arrondies_base_in={})".format(self.ressources_demandeur_in,
+            self.ressources_conjoint_in,
+            self.personnes_vivant_habituellement_foyer_in,
+            self.demandeur_exerce_activite_remuneree_in,
+            self.conjoint_exerce_activite_remuneree_in,
+            self.personnes_a_charge_in, self.situation_familiale_in,
+            self.mode_occupation_in,
+            self.condition_age_bourse_enseignement_superieur_in,
+            self.demandeur_poursuit_des_etudes_in,
+            self.date_demande_ou_reexamen_droit_in,
+            self.paiement_logement_distinct_professionnel_in,
+            self.ressources_menage_arrondies_base_in)
 
 class ContributionsSocialesAidesPersonnelleLogementOut:
-	def __init__(self, montant_out: Callable[[Money], Money]) -> None:
-		self.montant_out = montant_out
+    def __init__(self, montant_out: Callable[[Money], Money]) -> None:
+        self.montant_out = montant_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ContributionsSocialesAidesPersonnelleLogementOut):
-			return (self.montant_out == other.montant_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ContributionsSocialesAidesPersonnelleLogementOut):
+            return (self.montant_out == other.montant_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "ContributionsSocialesAidesPersonnelleLogementOut(montant_out={})".format(self.montant_out)
+    def __str__(self) -> str:
+        return "ContributionsSocialesAidesPersonnelleLogementOut(montant_out={})".format(self.montant_out)
 
 class ContributionsSocialesAidesPersonnelleLogementIn:
-	def __init__(self, date_courante_in: Date) -> None:
-		self.date_courante_in = date_courante_in
+    def __init__(self, date_courante_in: Date) -> None:
+        self.date_courante_in = date_courante_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ContributionsSocialesAidesPersonnelleLogementIn):
-			return (self.date_courante_in == other.date_courante_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ContributionsSocialesAidesPersonnelleLogementIn):
+            return (self.date_courante_in == other.date_courante_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in={})".format(self.date_courante_in)
+    def __str__(self) -> str:
+        return "ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in={})".format(self.date_courante_in)
 
 class CalculAidePersonnaliseeLogementLocatifOut:
-	def __init__(self, montant_forfaitaire_charges_d823_16_out: Money, plafond_loyer_d823_16_2_out: Money, participation_minimale_out: Money, taux_composition_familiale_out: Decimal, participation_personnelle_out: Money, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-		self.montant_forfaitaire_charges_d823_16_out = montant_forfaitaire_charges_d823_16_out
-		self.plafond_loyer_d823_16_2_out = plafond_loyer_d823_16_2_out
-		self.participation_minimale_out = participation_minimale_out
-		self.taux_composition_familiale_out = taux_composition_familiale_out
-		self.participation_personnelle_out = participation_personnelle_out
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
+    def __init__(self, montant_forfaitaire_charges_d823_16_out: Money, plafond_loyer_d823_16_2_out: Money, participation_minimale_out: Money, taux_composition_familiale_out: Decimal, participation_personnelle_out: Money, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
+        self.montant_forfaitaire_charges_d823_16_out = montant_forfaitaire_charges_d823_16_out
+        self.plafond_loyer_d823_16_2_out = plafond_loyer_d823_16_2_out
+        self.participation_minimale_out = participation_minimale_out
+        self.taux_composition_familiale_out = taux_composition_familiale_out
+        self.participation_personnelle_out = participation_personnelle_out
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementLocatifOut):
-			return (self.montant_forfaitaire_charges_d823_16_out == other.montant_forfaitaire_charges_d823_16_out and
-          self.plafond_loyer_d823_16_2_out == other.plafond_loyer_d823_16_2_out and
-          self.participation_minimale_out == other.participation_minimale_out and
-          self.taux_composition_familiale_out == other.taux_composition_familiale_out and
-          self.participation_personnelle_out == other.participation_personnelle_out and
-          self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementLocatifOut):
+            return (self.montant_forfaitaire_charges_d823_16_out == other.montant_forfaitaire_charges_d823_16_out and
+                   self.plafond_loyer_d823_16_2_out == other.plafond_loyer_d823_16_2_out and
+                   self.participation_minimale_out == other.participation_minimale_out and
+                   self.taux_composition_familiale_out == other.taux_composition_familiale_out and
+                   self.participation_personnelle_out == other.participation_personnelle_out and
+                   self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementLocatifOut(montant_forfaitaire_charges_d823_16_out={},plafond_loyer_d823_16_2_out={},participation_minimale_out={},taux_composition_familiale_out={},participation_personnelle_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.montant_forfaitaire_charges_d823_16_out,
-      self.plafond_loyer_d823_16_2_out, self.participation_minimale_out,
-      self.taux_composition_familiale_out,
-      self.participation_personnelle_out, self.aide_finale_formule_out,
-      self.traitement_aide_finale_montant_minimal_out)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementLocatifOut(montant_forfaitaire_charges_d823_16_out={},plafond_loyer_d823_16_2_out={},participation_minimale_out={},taux_composition_familiale_out={},participation_personnelle_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.montant_forfaitaire_charges_d823_16_out,
+            self.plafond_loyer_d823_16_2_out,
+            self.participation_minimale_out,
+            self.taux_composition_familiale_out,
+            self.participation_personnelle_out, self.aide_finale_formule_out,
+            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAidePersonnaliseeLogementLocatifIn:
-	def __init__(self, loyer_principal_in: Money, ressources_menage_arrondies_in: Money, beneficiaire_aide_adulte_ou_enfant_handicapes_in: bool, date_courante_in: Date, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, logement_est_chambre_in: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers_in: bool, type_aide_in: TypeAidesPersonnelleLogement, colocation_in: bool, reduction_loyer_solidarite_in: Money) -> None:
-		self.loyer_principal_in = loyer_principal_in
-		self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
-		self.beneficiaire_aide_adulte_ou_enfant_handicapes_in = beneficiaire_aide_adulte_ou_enfant_handicapes_in
-		self.date_courante_in = date_courante_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
-		self.zone_in = zone_in
-		self.logement_est_chambre_in = logement_est_chambre_in
-		self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = agees_ou_handicap_adultes_hebergees_onereux_particuliers_in
-		self.type_aide_in = type_aide_in
-		self.colocation_in = colocation_in
-		self.reduction_loyer_solidarite_in = reduction_loyer_solidarite_in
+    def __init__(self, loyer_principal_in: Money, ressources_menage_arrondies_in: Money, beneficiaire_aide_adulte_ou_enfant_handicapes_in: bool, date_courante_in: Date, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, logement_est_chambre_in: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers_in: bool, type_aide_in: TypeAidesPersonnelleLogement, colocation_in: bool, reduction_loyer_solidarite_in: Money) -> None:
+        self.loyer_principal_in = loyer_principal_in
+        self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
+        self.beneficiaire_aide_adulte_ou_enfant_handicapes_in = beneficiaire_aide_adulte_ou_enfant_handicapes_in
+        self.date_courante_in = date_courante_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+        self.zone_in = zone_in
+        self.logement_est_chambre_in = logement_est_chambre_in
+        self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = agees_ou_handicap_adultes_hebergees_onereux_particuliers_in
+        self.type_aide_in = type_aide_in
+        self.colocation_in = colocation_in
+        self.reduction_loyer_solidarite_in = reduction_loyer_solidarite_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementLocatifIn):
-			return (self.loyer_principal_in == other.loyer_principal_in and
-          self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
-          self.beneficiaire_aide_adulte_ou_enfant_handicapes_in == other.beneficiaire_aide_adulte_ou_enfant_handicapes_in and
-          self.date_courante_in == other.date_courante_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
-          self.zone_in == other.zone_in and
-          self.logement_est_chambre_in == other.logement_est_chambre_in and
-          self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in == other.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in and
-          self.type_aide_in == other.type_aide_in and
-          self.colocation_in == other.colocation_in and
-          self.reduction_loyer_solidarite_in == other.reduction_loyer_solidarite_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementLocatifIn):
+            return (self.loyer_principal_in == other.loyer_principal_in and
+                   self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
+                   self.beneficiaire_aide_adulte_ou_enfant_handicapes_in == other.beneficiaire_aide_adulte_ou_enfant_handicapes_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
+                   self.zone_in == other.zone_in and
+                   self.logement_est_chambre_in == other.logement_est_chambre_in and
+                   self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in == other.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in and
+                   self.type_aide_in == other.type_aide_in and
+                   self.colocation_in == other.colocation_in and
+                   self.reduction_loyer_solidarite_in == other.reduction_loyer_solidarite_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_in={},ressources_menage_arrondies_in={},beneficiaire_aide_adulte_ou_enfant_handicapes_in={},date_courante_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},logement_est_chambre_in={},agees_ou_handicap_adultes_hebergees_onereux_particuliers_in={},type_aide_in={},colocation_in={},reduction_loyer_solidarite_in={})".format(self.loyer_principal_in,
-      self.ressources_menage_arrondies_in,
-      self.beneficiaire_aide_adulte_ou_enfant_handicapes_in,
-      self.date_courante_in, self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in, self.zone_in,
-      self.logement_est_chambre_in,
-      self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in,
-      self.type_aide_in, self.colocation_in,
-      self.reduction_loyer_solidarite_in)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_in={},ressources_menage_arrondies_in={},beneficiaire_aide_adulte_ou_enfant_handicapes_in={},date_courante_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},logement_est_chambre_in={},agees_ou_handicap_adultes_hebergees_onereux_particuliers_in={},type_aide_in={},colocation_in={},reduction_loyer_solidarite_in={})".format(self.loyer_principal_in,
+            self.ressources_menage_arrondies_in,
+            self.beneficiaire_aide_adulte_ou_enfant_handicapes_in,
+            self.date_courante_in, self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in, self.zone_in,
+            self.logement_est_chambre_in,
+            self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in,
+            self.type_aide_in, self.colocation_in,
+            self.reduction_loyer_solidarite_in)
 
 class CalculEquivalenceLoyerMinimaleOut:
-	def __init__(self, montant_out: Money) -> None:
-		self.montant_out = montant_out
+    def __init__(self, montant_out: Money) -> None:
+        self.montant_out = montant_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculEquivalenceLoyerMinimaleOut):
-			return (self.montant_out == other.montant_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculEquivalenceLoyerMinimaleOut):
+            return (self.montant_out == other.montant_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculEquivalenceLoyerMinimaleOut(montant_out={})".format(self.montant_out)
+    def __str__(self) -> str:
+        return "CalculEquivalenceLoyerMinimaleOut(montant_out={})".format(self.montant_out)
 
 class CalculEquivalenceLoyerMinimaleIn:
-	def __init__(self, ressources_menage_arrondies_in: Money, condition_2_du_832_25_in: bool, n_nombre_parts_d832_25_in: Decimal) -> None:
-		self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
-		self.condition_2_du_832_25_in = condition_2_du_832_25_in
-		self.n_nombre_parts_d832_25_in = n_nombre_parts_d832_25_in
+    def __init__(self, ressources_menage_arrondies_in: Money, condition_2_du_832_25_in: bool, n_nombre_parts_d832_25_in: Decimal) -> None:
+        self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
+        self.condition_2_du_832_25_in = condition_2_du_832_25_in
+        self.n_nombre_parts_d832_25_in = n_nombre_parts_d832_25_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculEquivalenceLoyerMinimaleIn):
-			return (self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
-          self.condition_2_du_832_25_in == other.condition_2_du_832_25_in and
-          self.n_nombre_parts_d832_25_in == other.n_nombre_parts_d832_25_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculEquivalenceLoyerMinimaleIn):
+            return (self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
+                   self.condition_2_du_832_25_in == other.condition_2_du_832_25_in and
+                   self.n_nombre_parts_d832_25_in == other.n_nombre_parts_d832_25_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in={},condition_2_du_832_25_in={},n_nombre_parts_d832_25_in={})".format(self.ressources_menage_arrondies_in,
-      self.condition_2_du_832_25_in, self.n_nombre_parts_d832_25_in)
+    def __str__(self) -> str:
+        return "CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in={},condition_2_du_832_25_in={},n_nombre_parts_d832_25_in={})".format(self.ressources_menage_arrondies_in,
+            self.condition_2_du_832_25_in, self.n_nombre_parts_d832_25_in)
 
 class CalculNombrePartLogementFoyerOut:
-	def __init__(self, n_nombre_parts_d832_25_out: Decimal) -> None:
-		self.n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_out
+    def __init__(self, n_nombre_parts_d832_25_out: Decimal) -> None:
+        self.n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculNombrePartLogementFoyerOut):
-			return (self.n_nombre_parts_d832_25_out == other.n_nombre_parts_d832_25_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculNombrePartLogementFoyerOut):
+            return (self.n_nombre_parts_d832_25_out == other.n_nombre_parts_d832_25_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculNombrePartLogementFoyerOut(n_nombre_parts_d832_25_out={})".format(self.n_nombre_parts_d832_25_out)
+    def __str__(self) -> str:
+        return "CalculNombrePartLogementFoyerOut(n_nombre_parts_d832_25_out={})".format(self.n_nombre_parts_d832_25_out)
 
 class CalculNombrePartLogementFoyerIn:
-	def __init__(self, condition_2_du_832_25_in: bool, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL) -> None:
-		self.condition_2_du_832_25_in = condition_2_du_832_25_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+    def __init__(self, condition_2_du_832_25_in: bool, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL) -> None:
+        self.condition_2_du_832_25_in = condition_2_du_832_25_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculNombrePartLogementFoyerIn):
-			return (self.condition_2_du_832_25_in == other.condition_2_du_832_25_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculNombrePartLogementFoyerIn):
+            return (self.condition_2_du_832_25_in == other.condition_2_du_832_25_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculNombrePartLogementFoyerIn(condition_2_du_832_25_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={})".format(self.condition_2_du_832_25_in,
-      self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in)
+    def __str__(self) -> str:
+        return "CalculNombrePartLogementFoyerIn(condition_2_du_832_25_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={})".format(self.condition_2_du_832_25_in,
+            self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in)
 
 class CalculAidePersonnaliseeLogementFoyerOut:
-	def __init__(self, coefficient_multiplicateur_d832_25_out: Money, coefficient_r_d832_25_out: Money, n_nombre_parts_d832_25_out: Decimal, equivalence_loyer_eligible_out: Money, plafond_equivalence_loyer_eligible_out: Money, equivalence_loyer_minimale_out: Money, coefficient_prise_en_charge_d832_25_seuil_out: Decimal, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-		self.coefficient_multiplicateur_d832_25_out = coefficient_multiplicateur_d832_25_out
-		self.coefficient_r_d832_25_out = coefficient_r_d832_25_out
-		self.n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_out
-		self.equivalence_loyer_eligible_out = equivalence_loyer_eligible_out
-		self.plafond_equivalence_loyer_eligible_out = plafond_equivalence_loyer_eligible_out
-		self.equivalence_loyer_minimale_out = equivalence_loyer_minimale_out
-		self.coefficient_prise_en_charge_d832_25_seuil_out = coefficient_prise_en_charge_d832_25_seuil_out
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
+    def __init__(self, coefficient_multiplicateur_d832_25_out: Money, coefficient_r_d832_25_out: Money, n_nombre_parts_d832_25_out: Decimal, equivalence_loyer_eligible_out: Money, plafond_equivalence_loyer_eligible_out: Money, equivalence_loyer_minimale_out: Money, coefficient_prise_en_charge_d832_25_seuil_out: Decimal, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
+        self.coefficient_multiplicateur_d832_25_out = coefficient_multiplicateur_d832_25_out
+        self.coefficient_r_d832_25_out = coefficient_r_d832_25_out
+        self.n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_out
+        self.equivalence_loyer_eligible_out = equivalence_loyer_eligible_out
+        self.plafond_equivalence_loyer_eligible_out = plafond_equivalence_loyer_eligible_out
+        self.equivalence_loyer_minimale_out = equivalence_loyer_minimale_out
+        self.coefficient_prise_en_charge_d832_25_seuil_out = coefficient_prise_en_charge_d832_25_seuil_out
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementFoyerOut):
-			return (self.coefficient_multiplicateur_d832_25_out == other.coefficient_multiplicateur_d832_25_out and
-          self.coefficient_r_d832_25_out == other.coefficient_r_d832_25_out and
-          self.n_nombre_parts_d832_25_out == other.n_nombre_parts_d832_25_out and
-          self.equivalence_loyer_eligible_out == other.equivalence_loyer_eligible_out and
-          self.plafond_equivalence_loyer_eligible_out == other.plafond_equivalence_loyer_eligible_out and
-          self.equivalence_loyer_minimale_out == other.equivalence_loyer_minimale_out and
-          self.coefficient_prise_en_charge_d832_25_seuil_out == other.coefficient_prise_en_charge_d832_25_seuil_out and
-          self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementFoyerOut):
+            return (self.coefficient_multiplicateur_d832_25_out == other.coefficient_multiplicateur_d832_25_out and
+                   self.coefficient_r_d832_25_out == other.coefficient_r_d832_25_out and
+                   self.n_nombre_parts_d832_25_out == other.n_nombre_parts_d832_25_out and
+                   self.equivalence_loyer_eligible_out == other.equivalence_loyer_eligible_out and
+                   self.plafond_equivalence_loyer_eligible_out == other.plafond_equivalence_loyer_eligible_out and
+                   self.equivalence_loyer_minimale_out == other.equivalence_loyer_minimale_out and
+                   self.coefficient_prise_en_charge_d832_25_seuil_out == other.coefficient_prise_en_charge_d832_25_seuil_out and
+                   self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementFoyerOut(coefficient_multiplicateur_d832_25_out={},coefficient_r_d832_25_out={},n_nombre_parts_d832_25_out={},equivalence_loyer_eligible_out={},plafond_equivalence_loyer_eligible_out={},equivalence_loyer_minimale_out={},coefficient_prise_en_charge_d832_25_seuil_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.coefficient_multiplicateur_d832_25_out,
-      self.coefficient_r_d832_25_out, self.n_nombre_parts_d832_25_out,
-      self.equivalence_loyer_eligible_out,
-      self.plafond_equivalence_loyer_eligible_out,
-      self.equivalence_loyer_minimale_out,
-      self.coefficient_prise_en_charge_d832_25_seuil_out,
-      self.aide_finale_formule_out,
-      self.traitement_aide_finale_montant_minimal_out)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementFoyerOut(coefficient_multiplicateur_d832_25_out={},coefficient_r_d832_25_out={},n_nombre_parts_d832_25_out={},equivalence_loyer_eligible_out={},plafond_equivalence_loyer_eligible_out={},equivalence_loyer_minimale_out={},coefficient_prise_en_charge_d832_25_seuil_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.coefficient_multiplicateur_d832_25_out,
+            self.coefficient_r_d832_25_out, self.n_nombre_parts_d832_25_out,
+            self.equivalence_loyer_eligible_out,
+            self.plafond_equivalence_loyer_eligible_out,
+            self.equivalence_loyer_minimale_out,
+            self.coefficient_prise_en_charge_d832_25_seuil_out,
+            self.aide_finale_formule_out,
+            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAidePersonnaliseeLogementFoyerIn:
-	def __init__(self, mode_occupation_in: ModeOccupation, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, redevance_in: Money, condition_2_du_832_25_in: Callable[[Unit], bool], n_nombre_parts_d832_25_in: Callable[[Unit], Decimal]) -> None:
-		self.mode_occupation_in = mode_occupation_in
-		self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
-		self.zone_in = zone_in
-		self.date_courante_in = date_courante_in
-		self.redevance_in = redevance_in
-		self.condition_2_du_832_25_in = condition_2_du_832_25_in
-		self.n_nombre_parts_d832_25_in = n_nombre_parts_d832_25_in
+    def __init__(self, mode_occupation_in: ModeOccupation, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, redevance_in: Money, condition_2_du_832_25_in: Callable[[Unit], bool], n_nombre_parts_d832_25_in: Callable[[Unit], Decimal]) -> None:
+        self.mode_occupation_in = mode_occupation_in
+        self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+        self.zone_in = zone_in
+        self.date_courante_in = date_courante_in
+        self.redevance_in = redevance_in
+        self.condition_2_du_832_25_in = condition_2_du_832_25_in
+        self.n_nombre_parts_d832_25_in = n_nombre_parts_d832_25_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementFoyerIn):
-			return (self.mode_occupation_in == other.mode_occupation_in and
-          self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
-          self.zone_in == other.zone_in and
-          self.date_courante_in == other.date_courante_in and
-          self.redevance_in == other.redevance_in and
-          self.condition_2_du_832_25_in == other.condition_2_du_832_25_in and
-          self.n_nombre_parts_d832_25_in == other.n_nombre_parts_d832_25_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementFoyerIn):
+            return (self.mode_occupation_in == other.mode_occupation_in and
+                   self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
+                   self.zone_in == other.zone_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.redevance_in == other.redevance_in and
+                   self.condition_2_du_832_25_in == other.condition_2_du_832_25_in and
+                   self.n_nombre_parts_d832_25_in == other.n_nombre_parts_d832_25_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementFoyerIn(mode_occupation_in={},ressources_menage_arrondies_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},date_courante_in={},redevance_in={},condition_2_du_832_25_in={},n_nombre_parts_d832_25_in={})".format(self.mode_occupation_in,
-      self.ressources_menage_arrondies_in, self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in, self.zone_in,
-      self.date_courante_in, self.redevance_in,
-      self.condition_2_du_832_25_in, self.n_nombre_parts_d832_25_in)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementFoyerIn(mode_occupation_in={},ressources_menage_arrondies_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},date_courante_in={},redevance_in={},condition_2_du_832_25_in={},n_nombre_parts_d832_25_in={})".format(self.mode_occupation_in,
+            self.ressources_menage_arrondies_in,
+            self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in, self.zone_in,
+            self.date_courante_in, self.redevance_in,
+            self.condition_2_du_832_25_in, self.n_nombre_parts_d832_25_in)
 
 class CalculNombrePartsAccessionProprieteOut:
-	def __init__(self, n_nombre_parts_d832_11_out: Decimal) -> None:
-		self.n_nombre_parts_d832_11_out = n_nombre_parts_d832_11_out
+    def __init__(self, n_nombre_parts_d832_11_out: Decimal) -> None:
+        self.n_nombre_parts_d832_11_out = n_nombre_parts_d832_11_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculNombrePartsAccessionProprieteOut):
-			return (self.n_nombre_parts_d832_11_out == other.n_nombre_parts_d832_11_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculNombrePartsAccessionProprieteOut):
+            return (self.n_nombre_parts_d832_11_out == other.n_nombre_parts_d832_11_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculNombrePartsAccessionProprieteOut(n_nombre_parts_d832_11_out={})".format(self.n_nombre_parts_d832_11_out)
+    def __str__(self) -> str:
+        return "CalculNombrePartsAccessionProprieteOut(n_nombre_parts_d832_11_out={})".format(self.n_nombre_parts_d832_11_out)
 
 class CalculNombrePartsAccessionProprieteIn:
-	def __init__(self, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL) -> None:
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+    def __init__(self, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL) -> None:
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculNombrePartsAccessionProprieteIn):
-			return (self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculNombrePartsAccessionProprieteIn):
+            return (self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={})".format(self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in)
+    def __str__(self) -> str:
+        return "CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={})".format(self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in)
 
 class CalculAidePersonnaliseeLogementAccessionProprieteOut:
-	def __init__(self, mensualite_eligible_out: Money, mensualite_minimale_out: Money, coefficient_prise_en_charge_d832_10_seuil_out: Decimal, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-		self.mensualite_eligible_out = mensualite_eligible_out
-		self.mensualite_minimale_out = mensualite_minimale_out
-		self.coefficient_prise_en_charge_d832_10_seuil_out = coefficient_prise_en_charge_d832_10_seuil_out
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
+    def __init__(self, mensualite_eligible_out: Money, mensualite_minimale_out: Money, coefficient_prise_en_charge_d832_10_seuil_out: Decimal, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
+        self.mensualite_eligible_out = mensualite_eligible_out
+        self.mensualite_minimale_out = mensualite_minimale_out
+        self.coefficient_prise_en_charge_d832_10_seuil_out = coefficient_prise_en_charge_d832_10_seuil_out
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementAccessionProprieteOut):
-			return (self.mensualite_eligible_out == other.mensualite_eligible_out and
-          self.mensualite_minimale_out == other.mensualite_minimale_out and
-          self.coefficient_prise_en_charge_d832_10_seuil_out == other.coefficient_prise_en_charge_d832_10_seuil_out and
-          self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementAccessionProprieteOut):
+            return (self.mensualite_eligible_out == other.mensualite_eligible_out and
+                   self.mensualite_minimale_out == other.mensualite_minimale_out and
+                   self.coefficient_prise_en_charge_d832_10_seuil_out == other.coefficient_prise_en_charge_d832_10_seuil_out and
+                   self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementAccessionProprieteOut(mensualite_eligible_out={},mensualite_minimale_out={},coefficient_prise_en_charge_d832_10_seuil_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.mensualite_eligible_out,
-      self.mensualite_minimale_out,
-      self.coefficient_prise_en_charge_d832_10_seuil_out,
-      self.aide_finale_formule_out,
-      self.traitement_aide_finale_montant_minimal_out)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementAccessionProprieteOut(mensualite_eligible_out={},mensualite_minimale_out={},coefficient_prise_en_charge_d832_10_seuil_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.mensualite_eligible_out,
+            self.mensualite_minimale_out,
+            self.coefficient_prise_en_charge_d832_10_seuil_out,
+            self.aide_finale_formule_out,
+            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAidePersonnaliseeLogementAccessionProprieteIn:
-	def __init__(self, mensualite_principale_in: Money, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, type_travaux_logement_in: TypeTravauxLogementD83215, date_signature_pret_in: Date, local_habite_premiere_fois_beneficiaire_in: bool, date_entree_logement_in: Date, copropriete_in: bool, situation_r822_11_13_17_in: bool, zone_in: ZoneDHabitation, type_pret_in: TypePret, anciennete_logement_in: NeufOuAncien, date_courante_in: Date) -> None:
-		self.mensualite_principale_in = mensualite_principale_in
-		self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
-		self.type_travaux_logement_in = type_travaux_logement_in
-		self.date_signature_pret_in = date_signature_pret_in
-		self.local_habite_premiere_fois_beneficiaire_in = local_habite_premiere_fois_beneficiaire_in
-		self.date_entree_logement_in = date_entree_logement_in
-		self.copropriete_in = copropriete_in
-		self.situation_r822_11_13_17_in = situation_r822_11_13_17_in
-		self.zone_in = zone_in
-		self.type_pret_in = type_pret_in
-		self.anciennete_logement_in = anciennete_logement_in
-		self.date_courante_in = date_courante_in
+    def __init__(self, mensualite_principale_in: Money, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, type_travaux_logement_in: TypeTravauxLogementD83215, date_signature_pret_in: Date, local_habite_premiere_fois_beneficiaire_in: bool, date_entree_logement_in: Date, copropriete_in: bool, situation_r822_11_13_17_in: bool, zone_in: ZoneDHabitation, type_pret_in: TypePret, anciennete_logement_in: NeufOuAncien, date_courante_in: Date) -> None:
+        self.mensualite_principale_in = mensualite_principale_in
+        self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+        self.type_travaux_logement_in = type_travaux_logement_in
+        self.date_signature_pret_in = date_signature_pret_in
+        self.local_habite_premiere_fois_beneficiaire_in = local_habite_premiere_fois_beneficiaire_in
+        self.date_entree_logement_in = date_entree_logement_in
+        self.copropriete_in = copropriete_in
+        self.situation_r822_11_13_17_in = situation_r822_11_13_17_in
+        self.zone_in = zone_in
+        self.type_pret_in = type_pret_in
+        self.anciennete_logement_in = anciennete_logement_in
+        self.date_courante_in = date_courante_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementAccessionProprieteIn):
-			return (self.mensualite_principale_in == other.mensualite_principale_in and
-          self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
-          self.type_travaux_logement_in == other.type_travaux_logement_in and
-          self.date_signature_pret_in == other.date_signature_pret_in and
-          self.local_habite_premiere_fois_beneficiaire_in == other.local_habite_premiere_fois_beneficiaire_in and
-          self.date_entree_logement_in == other.date_entree_logement_in and
-          self.copropriete_in == other.copropriete_in and
-          self.situation_r822_11_13_17_in == other.situation_r822_11_13_17_in and
-          self.zone_in == other.zone_in and
-          self.type_pret_in == other.type_pret_in and
-          self.anciennete_logement_in == other.anciennete_logement_in and
-          self.date_courante_in == other.date_courante_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementAccessionProprieteIn):
+            return (self.mensualite_principale_in == other.mensualite_principale_in and
+                   self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
+                   self.type_travaux_logement_in == other.type_travaux_logement_in and
+                   self.date_signature_pret_in == other.date_signature_pret_in and
+                   self.local_habite_premiere_fois_beneficiaire_in == other.local_habite_premiere_fois_beneficiaire_in and
+                   self.date_entree_logement_in == other.date_entree_logement_in and
+                   self.copropriete_in == other.copropriete_in and
+                   self.situation_r822_11_13_17_in == other.situation_r822_11_13_17_in and
+                   self.zone_in == other.zone_in and
+                   self.type_pret_in == other.type_pret_in and
+                   self.anciennete_logement_in == other.anciennete_logement_in and
+                   self.date_courante_in == other.date_courante_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementAccessionProprieteIn(mensualite_principale_in={},ressources_menage_arrondies_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},type_travaux_logement_in={},date_signature_pret_in={},local_habite_premiere_fois_beneficiaire_in={},date_entree_logement_in={},copropriete_in={},situation_r822_11_13_17_in={},zone_in={},type_pret_in={},anciennete_logement_in={},date_courante_in={})".format(self.mensualite_principale_in,
-      self.ressources_menage_arrondies_in, self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in, self.type_travaux_logement_in,
-      self.date_signature_pret_in,
-      self.local_habite_premiere_fois_beneficiaire_in,
-      self.date_entree_logement_in, self.copropriete_in,
-      self.situation_r822_11_13_17_in, self.zone_in, self.type_pret_in,
-      self.anciennete_logement_in, self.date_courante_in)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementAccessionProprieteIn(mensualite_principale_in={},ressources_menage_arrondies_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},type_travaux_logement_in={},date_signature_pret_in={},local_habite_premiere_fois_beneficiaire_in={},date_entree_logement_in={},copropriete_in={},situation_r822_11_13_17_in={},zone_in={},type_pret_in={},anciennete_logement_in={},date_courante_in={})".format(self.mensualite_principale_in,
+            self.ressources_menage_arrondies_in,
+            self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in,
+            self.type_travaux_logement_in, self.date_signature_pret_in,
+            self.local_habite_premiere_fois_beneficiaire_in,
+            self.date_entree_logement_in, self.copropriete_in,
+            self.situation_r822_11_13_17_in, self.zone_in, self.type_pret_in,
+            self.anciennete_logement_in, self.date_courante_in)
 
 class CalculAidePersonnaliseeLogementOut:
-	def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_out = traitement_aide_finale_out
+    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_out = traitement_aide_finale_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementOut):
-			return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_out == other.traitement_aide_finale_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementOut):
+            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_out == other.traitement_aide_finale_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
-      self.traitement_aide_finale_out)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
+            self.traitement_aide_finale_out)
 
 class CalculAidePersonnaliseeLogementIn:
-	def __init__(self, mode_occupation_in: ModeOccupation, type_aide_in: TypeAidesPersonnelleLogement, informations_calcul_in: InformationsCalculAPL, ressources_menage_sans_arrondi_in: Money, situation_familiale_in: SituationFamiliale, nombre_personnes_a_charge_in: Integer, zone_in: ZoneDHabitation, date_courante_in: Date) -> None:
-		self.mode_occupation_in = mode_occupation_in
-		self.type_aide_in = type_aide_in
-		self.informations_calcul_in = informations_calcul_in
-		self.ressources_menage_sans_arrondi_in = ressources_menage_sans_arrondi_in
-		self.situation_familiale_in = situation_familiale_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.zone_in = zone_in
-		self.date_courante_in = date_courante_in
+    def __init__(self, mode_occupation_in: ModeOccupation, type_aide_in: TypeAidesPersonnelleLogement, informations_calcul_in: InformationsCalculAPL, ressources_menage_sans_arrondi_in: Money, situation_familiale_in: SituationFamiliale, nombre_personnes_a_charge_in: Integer, zone_in: ZoneDHabitation, date_courante_in: Date) -> None:
+        self.mode_occupation_in = mode_occupation_in
+        self.type_aide_in = type_aide_in
+        self.informations_calcul_in = informations_calcul_in
+        self.ressources_menage_sans_arrondi_in = ressources_menage_sans_arrondi_in
+        self.situation_familiale_in = situation_familiale_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.zone_in = zone_in
+        self.date_courante_in = date_courante_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAidePersonnaliseeLogementIn):
-			return (self.mode_occupation_in == other.mode_occupation_in and
-          self.type_aide_in == other.type_aide_in and
-          self.informations_calcul_in == other.informations_calcul_in and
-          self.ressources_menage_sans_arrondi_in == other.ressources_menage_sans_arrondi_in and
-          self.situation_familiale_in == other.situation_familiale_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.zone_in == other.zone_in and
-          self.date_courante_in == other.date_courante_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementIn):
+            return (self.mode_occupation_in == other.mode_occupation_in and
+                   self.type_aide_in == other.type_aide_in and
+                   self.informations_calcul_in == other.informations_calcul_in and
+                   self.ressources_menage_sans_arrondi_in == other.ressources_menage_sans_arrondi_in and
+                   self.situation_familiale_in == other.situation_familiale_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.zone_in == other.zone_in and
+                   self.date_courante_in == other.date_courante_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAidePersonnaliseeLogementIn(mode_occupation_in={},type_aide_in={},informations_calcul_in={},ressources_menage_sans_arrondi_in={},situation_familiale_in={},nombre_personnes_a_charge_in={},zone_in={},date_courante_in={})".format(self.mode_occupation_in,
-      self.type_aide_in, self.informations_calcul_in,
-      self.ressources_menage_sans_arrondi_in, self.situation_familiale_in,
-      self.nombre_personnes_a_charge_in, self.zone_in, self.date_courante_in)
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementIn(mode_occupation_in={},type_aide_in={},informations_calcul_in={},ressources_menage_sans_arrondi_in={},situation_familiale_in={},nombre_personnes_a_charge_in={},zone_in={},date_courante_in={})".format(self.mode_occupation_in,
+            self.type_aide_in, self.informations_calcul_in,
+            self.ressources_menage_sans_arrondi_in,
+            self.situation_familiale_in, self.nombre_personnes_a_charge_in,
+            self.zone_in, self.date_courante_in)
 
 class CalculAllocationLogementLocatifOut:
-	def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_out = traitement_aide_finale_out
+    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_out = traitement_aide_finale_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementLocatifOut):
-			return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_out == other.traitement_aide_finale_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementLocatifOut):
+            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_out == other.traitement_aide_finale_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementLocatifOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
-      self.traitement_aide_finale_out)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementLocatifOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
+            self.traitement_aide_finale_out)
 
 class CalculAllocationLogementLocatifIn:
-	def __init__(self, loyer_principal_in: Money, ressources_menage_arrondies_in: Money, beneficiaire_aide_adulte_ou_enfant_handicapes_in: bool, date_courante_in: Date, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, logement_est_chambre_in: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers_in: bool, type_aide_in: TypeAidesPersonnelleLogement, colocation_in: bool, reduction_loyer_solidarite_in: Money, logement_meuble_d842_2_in: bool, changement_logement_d842_4_in: ChangementLogementD8424) -> None:
-		self.loyer_principal_in = loyer_principal_in
-		self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
-		self.beneficiaire_aide_adulte_ou_enfant_handicapes_in = beneficiaire_aide_adulte_ou_enfant_handicapes_in
-		self.date_courante_in = date_courante_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
-		self.zone_in = zone_in
-		self.logement_est_chambre_in = logement_est_chambre_in
-		self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = agees_ou_handicap_adultes_hebergees_onereux_particuliers_in
-		self.type_aide_in = type_aide_in
-		self.colocation_in = colocation_in
-		self.reduction_loyer_solidarite_in = reduction_loyer_solidarite_in
-		self.logement_meuble_d842_2_in = logement_meuble_d842_2_in
-		self.changement_logement_d842_4_in = changement_logement_d842_4_in
+    def __init__(self, loyer_principal_in: Money, ressources_menage_arrondies_in: Money, beneficiaire_aide_adulte_ou_enfant_handicapes_in: bool, date_courante_in: Date, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, logement_est_chambre_in: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers_in: bool, type_aide_in: TypeAidesPersonnelleLogement, colocation_in: bool, reduction_loyer_solidarite_in: Money, logement_meuble_d842_2_in: bool, changement_logement_d842_4_in: ChangementLogementD8424) -> None:
+        self.loyer_principal_in = loyer_principal_in
+        self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
+        self.beneficiaire_aide_adulte_ou_enfant_handicapes_in = beneficiaire_aide_adulte_ou_enfant_handicapes_in
+        self.date_courante_in = date_courante_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+        self.zone_in = zone_in
+        self.logement_est_chambre_in = logement_est_chambre_in
+        self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = agees_ou_handicap_adultes_hebergees_onereux_particuliers_in
+        self.type_aide_in = type_aide_in
+        self.colocation_in = colocation_in
+        self.reduction_loyer_solidarite_in = reduction_loyer_solidarite_in
+        self.logement_meuble_d842_2_in = logement_meuble_d842_2_in
+        self.changement_logement_d842_4_in = changement_logement_d842_4_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementLocatifIn):
-			return (self.loyer_principal_in == other.loyer_principal_in and
-          self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
-          self.beneficiaire_aide_adulte_ou_enfant_handicapes_in == other.beneficiaire_aide_adulte_ou_enfant_handicapes_in and
-          self.date_courante_in == other.date_courante_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
-          self.zone_in == other.zone_in and
-          self.logement_est_chambre_in == other.logement_est_chambre_in and
-          self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in == other.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in and
-          self.type_aide_in == other.type_aide_in and
-          self.colocation_in == other.colocation_in and
-          self.reduction_loyer_solidarite_in == other.reduction_loyer_solidarite_in and
-          self.logement_meuble_d842_2_in == other.logement_meuble_d842_2_in and
-          self.changement_logement_d842_4_in == other.changement_logement_d842_4_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementLocatifIn):
+            return (self.loyer_principal_in == other.loyer_principal_in and
+                   self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
+                   self.beneficiaire_aide_adulte_ou_enfant_handicapes_in == other.beneficiaire_aide_adulte_ou_enfant_handicapes_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
+                   self.zone_in == other.zone_in and
+                   self.logement_est_chambre_in == other.logement_est_chambre_in and
+                   self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in == other.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in and
+                   self.type_aide_in == other.type_aide_in and
+                   self.colocation_in == other.colocation_in and
+                   self.reduction_loyer_solidarite_in == other.reduction_loyer_solidarite_in and
+                   self.logement_meuble_d842_2_in == other.logement_meuble_d842_2_in and
+                   self.changement_logement_d842_4_in == other.changement_logement_d842_4_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementLocatifIn(loyer_principal_in={},ressources_menage_arrondies_in={},beneficiaire_aide_adulte_ou_enfant_handicapes_in={},date_courante_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},logement_est_chambre_in={},agees_ou_handicap_adultes_hebergees_onereux_particuliers_in={},type_aide_in={},colocation_in={},reduction_loyer_solidarite_in={},logement_meuble_d842_2_in={},changement_logement_d842_4_in={})".format(self.loyer_principal_in,
-      self.ressources_menage_arrondies_in,
-      self.beneficiaire_aide_adulte_ou_enfant_handicapes_in,
-      self.date_courante_in, self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in, self.zone_in,
-      self.logement_est_chambre_in,
-      self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in,
-      self.type_aide_in, self.colocation_in,
-      self.reduction_loyer_solidarite_in, self.logement_meuble_d842_2_in,
-      self.changement_logement_d842_4_in)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementLocatifIn(loyer_principal_in={},ressources_menage_arrondies_in={},beneficiaire_aide_adulte_ou_enfant_handicapes_in={},date_courante_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},logement_est_chambre_in={},agees_ou_handicap_adultes_hebergees_onereux_particuliers_in={},type_aide_in={},colocation_in={},reduction_loyer_solidarite_in={},logement_meuble_d842_2_in={},changement_logement_d842_4_in={})".format(self.loyer_principal_in,
+            self.ressources_menage_arrondies_in,
+            self.beneficiaire_aide_adulte_ou_enfant_handicapes_in,
+            self.date_courante_in, self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in, self.zone_in,
+            self.logement_est_chambre_in,
+            self.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in,
+            self.type_aide_in, self.colocation_in,
+            self.reduction_loyer_solidarite_in,
+            self.logement_meuble_d842_2_in,
+            self.changement_logement_d842_4_in)
 
 class CalculAllocationLogementAccessionProprieteOut:
-	def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
+    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementAccessionProprieteOut):
-			return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementAccessionProprieteOut):
+            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementAccessionProprieteOut(aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.aide_finale_formule_out,
-      self.traitement_aide_finale_montant_minimal_out)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementAccessionProprieteOut(aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.aide_finale_formule_out,
+            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAllocationLogementAccessionProprieteIn:
-	def __init__(self, ressources_menage_arrondies_base_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, mensualite_principale_in: Money, situation_r822_11_13_17_in: bool, date_signature_pret_in: Date, type_travaux_logement_in: TypeTravauxLogementR8425, local_habite_premiere_fois_beneficiaire_in: bool, date_entree_logement_in: Date, charges_mensuelles_pret_in: Money, copropriete_in: bool) -> None:
-		self.ressources_menage_arrondies_base_in = ressources_menage_arrondies_base_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
-		self.zone_in = zone_in
-		self.date_courante_in = date_courante_in
-		self.mensualite_principale_in = mensualite_principale_in
-		self.situation_r822_11_13_17_in = situation_r822_11_13_17_in
-		self.date_signature_pret_in = date_signature_pret_in
-		self.type_travaux_logement_in = type_travaux_logement_in
-		self.local_habite_premiere_fois_beneficiaire_in = local_habite_premiere_fois_beneficiaire_in
-		self.date_entree_logement_in = date_entree_logement_in
-		self.charges_mensuelles_pret_in = charges_mensuelles_pret_in
-		self.copropriete_in = copropriete_in
+    def __init__(self, ressources_menage_arrondies_base_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, mensualite_principale_in: Money, situation_r822_11_13_17_in: bool, date_signature_pret_in: Date, type_travaux_logement_in: TypeTravauxLogementR8425, local_habite_premiere_fois_beneficiaire_in: bool, date_entree_logement_in: Date, charges_mensuelles_pret_in: Money, copropriete_in: bool) -> None:
+        self.ressources_menage_arrondies_base_in = ressources_menage_arrondies_base_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+        self.zone_in = zone_in
+        self.date_courante_in = date_courante_in
+        self.mensualite_principale_in = mensualite_principale_in
+        self.situation_r822_11_13_17_in = situation_r822_11_13_17_in
+        self.date_signature_pret_in = date_signature_pret_in
+        self.type_travaux_logement_in = type_travaux_logement_in
+        self.local_habite_premiere_fois_beneficiaire_in = local_habite_premiere_fois_beneficiaire_in
+        self.date_entree_logement_in = date_entree_logement_in
+        self.charges_mensuelles_pret_in = charges_mensuelles_pret_in
+        self.copropriete_in = copropriete_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementAccessionProprieteIn):
-			return (self.ressources_menage_arrondies_base_in == other.ressources_menage_arrondies_base_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
-          self.zone_in == other.zone_in and
-          self.date_courante_in == other.date_courante_in and
-          self.mensualite_principale_in == other.mensualite_principale_in and
-          self.situation_r822_11_13_17_in == other.situation_r822_11_13_17_in and
-          self.date_signature_pret_in == other.date_signature_pret_in and
-          self.type_travaux_logement_in == other.type_travaux_logement_in and
-          self.local_habite_premiere_fois_beneficiaire_in == other.local_habite_premiere_fois_beneficiaire_in and
-          self.date_entree_logement_in == other.date_entree_logement_in and
-          self.charges_mensuelles_pret_in == other.charges_mensuelles_pret_in and
-          self.copropriete_in == other.copropriete_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementAccessionProprieteIn):
+            return (self.ressources_menage_arrondies_base_in == other.ressources_menage_arrondies_base_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
+                   self.zone_in == other.zone_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.mensualite_principale_in == other.mensualite_principale_in and
+                   self.situation_r822_11_13_17_in == other.situation_r822_11_13_17_in and
+                   self.date_signature_pret_in == other.date_signature_pret_in and
+                   self.type_travaux_logement_in == other.type_travaux_logement_in and
+                   self.local_habite_premiere_fois_beneficiaire_in == other.local_habite_premiere_fois_beneficiaire_in and
+                   self.date_entree_logement_in == other.date_entree_logement_in and
+                   self.charges_mensuelles_pret_in == other.charges_mensuelles_pret_in and
+                   self.copropriete_in == other.copropriete_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},date_courante_in={},mensualite_principale_in={},situation_r822_11_13_17_in={},date_signature_pret_in={},type_travaux_logement_in={},local_habite_premiere_fois_beneficiaire_in={},date_entree_logement_in={},charges_mensuelles_pret_in={},copropriete_in={})".format(self.ressources_menage_arrondies_base_in,
-      self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in, self.zone_in,
-      self.date_courante_in, self.mensualite_principale_in,
-      self.situation_r822_11_13_17_in, self.date_signature_pret_in,
-      self.type_travaux_logement_in,
-      self.local_habite_premiere_fois_beneficiaire_in,
-      self.date_entree_logement_in, self.charges_mensuelles_pret_in,
-      self.copropriete_in)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},date_courante_in={},mensualite_principale_in={},situation_r822_11_13_17_in={},date_signature_pret_in={},type_travaux_logement_in={},local_habite_premiere_fois_beneficiaire_in={},date_entree_logement_in={},charges_mensuelles_pret_in={},copropriete_in={})".format(self.ressources_menage_arrondies_base_in,
+            self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in, self.zone_in,
+            self.date_courante_in, self.mensualite_principale_in,
+            self.situation_r822_11_13_17_in, self.date_signature_pret_in,
+            self.type_travaux_logement_in,
+            self.local_habite_premiere_fois_beneficiaire_in,
+            self.date_entree_logement_in, self.charges_mensuelles_pret_in,
+            self.copropriete_in)
 
 class CalculAllocationLogementFoyerOut:
-	def __init__(self, coefficient_prise_en_charge_out: Decimal, equivalence_loyer_out: Money, montant_forfaitaire_charges_out: Money, loyer_minimal_out: Money, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-		self.coefficient_prise_en_charge_out = coefficient_prise_en_charge_out
-		self.equivalence_loyer_out = equivalence_loyer_out
-		self.montant_forfaitaire_charges_out = montant_forfaitaire_charges_out
-		self.loyer_minimal_out = loyer_minimal_out
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
+    def __init__(self, coefficient_prise_en_charge_out: Decimal, equivalence_loyer_out: Money, montant_forfaitaire_charges_out: Money, loyer_minimal_out: Money, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
+        self.coefficient_prise_en_charge_out = coefficient_prise_en_charge_out
+        self.equivalence_loyer_out = equivalence_loyer_out
+        self.montant_forfaitaire_charges_out = montant_forfaitaire_charges_out
+        self.loyer_minimal_out = loyer_minimal_out
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementFoyerOut):
-			return (self.coefficient_prise_en_charge_out == other.coefficient_prise_en_charge_out and
-          self.equivalence_loyer_out == other.equivalence_loyer_out and
-          self.montant_forfaitaire_charges_out == other.montant_forfaitaire_charges_out and
-          self.loyer_minimal_out == other.loyer_minimal_out and
-          self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementFoyerOut):
+            return (self.coefficient_prise_en_charge_out == other.coefficient_prise_en_charge_out and
+                   self.equivalence_loyer_out == other.equivalence_loyer_out and
+                   self.montant_forfaitaire_charges_out == other.montant_forfaitaire_charges_out and
+                   self.loyer_minimal_out == other.loyer_minimal_out and
+                   self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementFoyerOut(coefficient_prise_en_charge_out={},equivalence_loyer_out={},montant_forfaitaire_charges_out={},loyer_minimal_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.coefficient_prise_en_charge_out,
-      self.equivalence_loyer_out, self.montant_forfaitaire_charges_out,
-      self.loyer_minimal_out, self.aide_finale_formule_out,
-      self.traitement_aide_finale_montant_minimal_out)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementFoyerOut(coefficient_prise_en_charge_out={},equivalence_loyer_out={},montant_forfaitaire_charges_out={},loyer_minimal_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.coefficient_prise_en_charge_out,
+            self.equivalence_loyer_out, self.montant_forfaitaire_charges_out,
+            self.loyer_minimal_out, self.aide_finale_formule_out,
+            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAllocationLogementFoyerIn:
-	def __init__(self, redevance_in: Money, mode_occupation_in: ModeOccupation, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, categorie_equivalence_loyer_d842_16_in: CategorieEquivalenceLoyerAllocationLogementFoyer) -> None:
-		self.redevance_in = redevance_in
-		self.mode_occupation_in = mode_occupation_in
-		self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
-		self.zone_in = zone_in
-		self.date_courante_in = date_courante_in
-		self.categorie_equivalence_loyer_d842_16_in = categorie_equivalence_loyer_d842_16_in
+    def __init__(self, redevance_in: Money, mode_occupation_in: ModeOccupation, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, categorie_equivalence_loyer_d842_16_in: CategorieEquivalenceLoyerAllocationLogementFoyer) -> None:
+        self.redevance_in = redevance_in
+        self.mode_occupation_in = mode_occupation_in
+        self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.situation_familiale_calcul_apl_in = situation_familiale_calcul_apl_in
+        self.zone_in = zone_in
+        self.date_courante_in = date_courante_in
+        self.categorie_equivalence_loyer_d842_16_in = categorie_equivalence_loyer_d842_16_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementFoyerIn):
-			return (self.redevance_in == other.redevance_in and
-          self.mode_occupation_in == other.mode_occupation_in and
-          self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
-          self.zone_in == other.zone_in and
-          self.date_courante_in == other.date_courante_in and
-          self.categorie_equivalence_loyer_d842_16_in == other.categorie_equivalence_loyer_d842_16_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementFoyerIn):
+            return (self.redevance_in == other.redevance_in and
+                   self.mode_occupation_in == other.mode_occupation_in and
+                   self.ressources_menage_arrondies_in == other.ressources_menage_arrondies_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.situation_familiale_calcul_apl_in == other.situation_familiale_calcul_apl_in and
+                   self.zone_in == other.zone_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.categorie_equivalence_loyer_d842_16_in == other.categorie_equivalence_loyer_d842_16_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementFoyerIn(redevance_in={},mode_occupation_in={},ressources_menage_arrondies_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},date_courante_in={},categorie_equivalence_loyer_d842_16_in={})".format(self.redevance_in,
-      self.mode_occupation_in, self.ressources_menage_arrondies_in,
-      self.nombre_personnes_a_charge_in,
-      self.situation_familiale_calcul_apl_in, self.zone_in,
-      self.date_courante_in, self.categorie_equivalence_loyer_d842_16_in)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementFoyerIn(redevance_in={},mode_occupation_in={},ressources_menage_arrondies_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={},zone_in={},date_courante_in={},categorie_equivalence_loyer_d842_16_in={})".format(self.redevance_in,
+            self.mode_occupation_in, self.ressources_menage_arrondies_in,
+            self.nombre_personnes_a_charge_in,
+            self.situation_familiale_calcul_apl_in, self.zone_in,
+            self.date_courante_in,
+            self.categorie_equivalence_loyer_d842_16_in)
 
 class CalculAllocationLogementOut:
-	def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_out = traitement_aide_finale_out
+    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_out = traitement_aide_finale_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementOut):
-			return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_out == other.traitement_aide_finale_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementOut):
+            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_out == other.traitement_aide_finale_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
-      self.traitement_aide_finale_out)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
+            self.traitement_aide_finale_out)
 
 class CalculAllocationLogementIn:
-	def __init__(self, mode_occupation_in: ModeOccupation, informations_calcul_in: InformationsCalculAPL, ressources_menage_sans_arrondi_in: Money, situation_familiale_in: SituationFamiliale, nombre_personnes_a_charge_in: Integer, zone_in: ZoneDHabitation, date_courante_in: Date, type_aide_in: TypeAidesPersonnelleLogement) -> None:
-		self.mode_occupation_in = mode_occupation_in
-		self.informations_calcul_in = informations_calcul_in
-		self.ressources_menage_sans_arrondi_in = ressources_menage_sans_arrondi_in
-		self.situation_familiale_in = situation_familiale_in
-		self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
-		self.zone_in = zone_in
-		self.date_courante_in = date_courante_in
-		self.type_aide_in = type_aide_in
+    def __init__(self, mode_occupation_in: ModeOccupation, informations_calcul_in: InformationsCalculAPL, ressources_menage_sans_arrondi_in: Money, situation_familiale_in: SituationFamiliale, nombre_personnes_a_charge_in: Integer, zone_in: ZoneDHabitation, date_courante_in: Date, type_aide_in: TypeAidesPersonnelleLogement) -> None:
+        self.mode_occupation_in = mode_occupation_in
+        self.informations_calcul_in = informations_calcul_in
+        self.ressources_menage_sans_arrondi_in = ressources_menage_sans_arrondi_in
+        self.situation_familiale_in = situation_familiale_in
+        self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
+        self.zone_in = zone_in
+        self.date_courante_in = date_courante_in
+        self.type_aide_in = type_aide_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculAllocationLogementIn):
-			return (self.mode_occupation_in == other.mode_occupation_in and
-          self.informations_calcul_in == other.informations_calcul_in and
-          self.ressources_menage_sans_arrondi_in == other.ressources_menage_sans_arrondi_in and
-          self.situation_familiale_in == other.situation_familiale_in and
-          self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
-          self.zone_in == other.zone_in and
-          self.date_courante_in == other.date_courante_in and
-          self.type_aide_in == other.type_aide_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementIn):
+            return (self.mode_occupation_in == other.mode_occupation_in and
+                   self.informations_calcul_in == other.informations_calcul_in and
+                   self.ressources_menage_sans_arrondi_in == other.ressources_menage_sans_arrondi_in and
+                   self.situation_familiale_in == other.situation_familiale_in and
+                   self.nombre_personnes_a_charge_in == other.nombre_personnes_a_charge_in and
+                   self.zone_in == other.zone_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.type_aide_in == other.type_aide_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculAllocationLogementIn(mode_occupation_in={},informations_calcul_in={},ressources_menage_sans_arrondi_in={},situation_familiale_in={},nombre_personnes_a_charge_in={},zone_in={},date_courante_in={},type_aide_in={})".format(self.mode_occupation_in,
-      self.informations_calcul_in, self.ressources_menage_sans_arrondi_in,
-      self.situation_familiale_in, self.nombre_personnes_a_charge_in,
-      self.zone_in, self.date_courante_in, self.type_aide_in)
+    def __str__(self) -> str:
+        return "CalculAllocationLogementIn(mode_occupation_in={},informations_calcul_in={},ressources_menage_sans_arrondi_in={},situation_familiale_in={},nombre_personnes_a_charge_in={},zone_in={},date_courante_in={},type_aide_in={})".format(self.mode_occupation_in,
+            self.informations_calcul_in,
+            self.ressources_menage_sans_arrondi_in,
+            self.situation_familiale_in, self.nombre_personnes_a_charge_in,
+            self.zone_in, self.date_courante_in, self.type_aide_in)
 
 class OuvertureDroitsRetraiteOut:
-	def __init__(self, age_ouverture_droit_out: Duration) -> None:
-		self.age_ouverture_droit_out = age_ouverture_droit_out
+    def __init__(self, age_ouverture_droit_out: Duration) -> None:
+        self.age_ouverture_droit_out = age_ouverture_droit_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, OuvertureDroitsRetraiteOut):
-			return (self.age_ouverture_droit_out == other.age_ouverture_droit_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, OuvertureDroitsRetraiteOut):
+            return (self.age_ouverture_droit_out == other.age_ouverture_droit_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "OuvertureDroitsRetraiteOut(age_ouverture_droit_out={})".format(self.age_ouverture_droit_out)
+    def __str__(self) -> str:
+        return "OuvertureDroitsRetraiteOut(age_ouverture_droit_out={})".format(self.age_ouverture_droit_out)
 
 class OuvertureDroitsRetraiteIn:
-	def __init__(self, date_naissance_assure_in: Date) -> None:
-		self.date_naissance_assure_in = date_naissance_assure_in
+    def __init__(self, date_naissance_assure_in: Date) -> None:
+        self.date_naissance_assure_in = date_naissance_assure_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, OuvertureDroitsRetraiteIn):
-			return (self.date_naissance_assure_in == other.date_naissance_assure_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, OuvertureDroitsRetraiteIn):
+            return (self.date_naissance_assure_in == other.date_naissance_assure_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "OuvertureDroitsRetraiteIn(date_naissance_assure_in={})".format(self.date_naissance_assure_in)
+    def __str__(self) -> str:
+        return "OuvertureDroitsRetraiteIn(date_naissance_assure_in={})".format(self.date_naissance_assure_in)
 
 class ImpayeDepenseLogementOut:
-	def __init__(self, montant_impaye_out: Money) -> None:
-		self.montant_impaye_out = montant_impaye_out
+    def __init__(self, montant_impaye_out: Money) -> None:
+        self.montant_impaye_out = montant_impaye_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ImpayeDepenseLogementOut):
-			return (self.montant_impaye_out == other.montant_impaye_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ImpayeDepenseLogementOut):
+            return (self.montant_impaye_out == other.montant_impaye_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "ImpayeDepenseLogementOut(montant_impaye_out={})".format(self.montant_impaye_out)
+    def __str__(self) -> str:
+        return "ImpayeDepenseLogementOut(montant_impaye_out={})".format(self.montant_impaye_out)
 
 class ImpayeDepenseLogementIn:
-	def __init__(self, mode_occupation_in: ModeOccupation, aide_versee_in: VersementA, montant_apl_in: Money, montant_charges_in: Money, depense_logement_in: DepenseLogement, montant_dette_in: Money) -> None:
-		self.mode_occupation_in = mode_occupation_in
-		self.aide_versee_in = aide_versee_in
-		self.montant_apl_in = montant_apl_in
-		self.montant_charges_in = montant_charges_in
-		self.depense_logement_in = depense_logement_in
-		self.montant_dette_in = montant_dette_in
+    def __init__(self, mode_occupation_in: ModeOccupation, aide_versee_in: VersementA, montant_apl_in: Money, montant_charges_in: Money, depense_logement_in: DepenseLogement, montant_dette_in: Money) -> None:
+        self.mode_occupation_in = mode_occupation_in
+        self.aide_versee_in = aide_versee_in
+        self.montant_apl_in = montant_apl_in
+        self.montant_charges_in = montant_charges_in
+        self.depense_logement_in = depense_logement_in
+        self.montant_dette_in = montant_dette_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ImpayeDepenseLogementIn):
-			return (self.mode_occupation_in == other.mode_occupation_in and
-          self.aide_versee_in == other.aide_versee_in and
-          self.montant_apl_in == other.montant_apl_in and
-          self.montant_charges_in == other.montant_charges_in and
-          self.depense_logement_in == other.depense_logement_in and
-          self.montant_dette_in == other.montant_dette_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ImpayeDepenseLogementIn):
+            return (self.mode_occupation_in == other.mode_occupation_in and
+                   self.aide_versee_in == other.aide_versee_in and
+                   self.montant_apl_in == other.montant_apl_in and
+                   self.montant_charges_in == other.montant_charges_in and
+                   self.depense_logement_in == other.depense_logement_in and
+                   self.montant_dette_in == other.montant_dette_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "ImpayeDepenseLogementIn(mode_occupation_in={},aide_versee_in={},montant_apl_in={},montant_charges_in={},depense_logement_in={},montant_dette_in={})".format(self.mode_occupation_in,
-      self.aide_versee_in, self.montant_apl_in, self.montant_charges_in,
-      self.depense_logement_in, self.montant_dette_in)
+    def __str__(self) -> str:
+        return "ImpayeDepenseLogementIn(mode_occupation_in={},aide_versee_in={},montant_apl_in={},montant_charges_in={},depense_logement_in={},montant_dette_in={})".format(self.mode_occupation_in,
+            self.aide_versee_in, self.montant_apl_in,
+            self.montant_charges_in, self.depense_logement_in,
+            self.montant_dette_in)
 
 class CalculetteAidesAuLogementOut:
-	def __init__(self, eligibilite_out: bool, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money], coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
-		self.eligibilite_out = eligibilite_out
-		self.aide_finale_formule_out = aide_finale_formule_out
-		self.traitement_aide_finale_out = traitement_aide_finale_out
-		self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
+    def __init__(self, eligibilite_out: bool, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money], coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
+        self.eligibilite_out = eligibilite_out
+        self.aide_finale_formule_out = aide_finale_formule_out
+        self.traitement_aide_finale_out = traitement_aide_finale_out
+        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculetteAidesAuLogementOut):
-			return (self.eligibilite_out == other.eligibilite_out and
-          self.aide_finale_formule_out == other.aide_finale_formule_out and
-          self.traitement_aide_finale_out == other.traitement_aide_finale_out and
-          self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculetteAidesAuLogementOut):
+            return (self.eligibilite_out == other.eligibilite_out and
+                   self.aide_finale_formule_out == other.aide_finale_formule_out and
+                   self.traitement_aide_finale_out == other.traitement_aide_finale_out and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculetteAidesAuLogementOut(eligibilite_out={},aide_finale_formule_out={},traitement_aide_finale_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.eligibilite_out,
-      self.aide_finale_formule_out, self.traitement_aide_finale_out,
-      self.coefficents_enfants_garde_alternee_pris_en_compte_out)
+    def __str__(self) -> str:
+        return "CalculetteAidesAuLogementOut(eligibilite_out={},aide_finale_formule_out={},traitement_aide_finale_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.eligibilite_out,
+            self.aide_finale_formule_out, self.traitement_aide_finale_out,
+            self.coefficents_enfants_garde_alternee_pris_en_compte_out)
 
 class CalculetteAidesAuLogementIn:
-	def __init__(self, menage_in: Menage, demandeur_in: Demandeur, informations_calcul_in: InformationsCalculAPL, date_courante_in: Date, ressources_menage_prises_en_compte_in: Money) -> None:
-		self.menage_in = menage_in
-		self.demandeur_in = demandeur_in
-		self.informations_calcul_in = informations_calcul_in
-		self.date_courante_in = date_courante_in
-		self.ressources_menage_prises_en_compte_in = ressources_menage_prises_en_compte_in
+    def __init__(self, menage_in: Menage, demandeur_in: Demandeur, informations_calcul_in: InformationsCalculAPL, date_courante_in: Date, ressources_menage_prises_en_compte_in: Money) -> None:
+        self.menage_in = menage_in
+        self.demandeur_in = demandeur_in
+        self.informations_calcul_in = informations_calcul_in
+        self.date_courante_in = date_courante_in
+        self.ressources_menage_prises_en_compte_in = ressources_menage_prises_en_compte_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculetteAidesAuLogementIn):
-			return (self.menage_in == other.menage_in and
-          self.demandeur_in == other.demandeur_in and
-          self.informations_calcul_in == other.informations_calcul_in and
-          self.date_courante_in == other.date_courante_in and
-          self.ressources_menage_prises_en_compte_in == other.ressources_menage_prises_en_compte_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculetteAidesAuLogementIn):
+            return (self.menage_in == other.menage_in and
+                   self.demandeur_in == other.demandeur_in and
+                   self.informations_calcul_in == other.informations_calcul_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.ressources_menage_prises_en_compte_in == other.ressources_menage_prises_en_compte_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculetteAidesAuLogementIn(menage_in={},demandeur_in={},informations_calcul_in={},date_courante_in={},ressources_menage_prises_en_compte_in={})".format(self.menage_in,
-      self.demandeur_in, self.informations_calcul_in, self.date_courante_in,
-      self.ressources_menage_prises_en_compte_in)
+    def __str__(self) -> str:
+        return "CalculetteAidesAuLogementIn(menage_in={},demandeur_in={},informations_calcul_in={},date_courante_in={},ressources_menage_prises_en_compte_in={})".format(self.menage_in,
+            self.demandeur_in, self.informations_calcul_in,
+            self.date_courante_in,
+            self.ressources_menage_prises_en_compte_in)
 
 class CalculetteAidesAuLogementGardeAlterneeOut:
-	def __init__(self, eligibilite_out: bool, aide_finale_out: Money) -> None:
-		self.eligibilite_out = eligibilite_out
-		self.aide_finale_out = aide_finale_out
+    def __init__(self, eligibilite_out: bool, aide_finale_out: Money) -> None:
+        self.eligibilite_out = eligibilite_out
+        self.aide_finale_out = aide_finale_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculetteAidesAuLogementGardeAlterneeOut):
-			return (self.eligibilite_out == other.eligibilite_out and
-          self.aide_finale_out == other.aide_finale_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculetteAidesAuLogementGardeAlterneeOut):
+            return (self.eligibilite_out == other.eligibilite_out and
+                   self.aide_finale_out == other.aide_finale_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculetteAidesAuLogementGardeAlterneeOut(eligibilite_out={},aide_finale_out={})".format(self.eligibilite_out,
-      self.aide_finale_out)
+    def __str__(self) -> str:
+        return "CalculetteAidesAuLogementGardeAlterneeOut(eligibilite_out={},aide_finale_out={})".format(self.eligibilite_out,
+            self.aide_finale_out)
 
 class CalculetteAidesAuLogementGardeAlterneeIn:
-	def __init__(self, menage_in: Menage, demandeur_in: Demandeur, informations_calcul_in: InformationsCalculAPL, date_courante_in: Date, ressources_menage_prises_en_compte_in: Money) -> None:
-		self.menage_in = menage_in
-		self.demandeur_in = demandeur_in
-		self.informations_calcul_in = informations_calcul_in
-		self.date_courante_in = date_courante_in
-		self.ressources_menage_prises_en_compte_in = ressources_menage_prises_en_compte_in
+    def __init__(self, menage_in: Menage, demandeur_in: Demandeur, informations_calcul_in: InformationsCalculAPL, date_courante_in: Date, ressources_menage_prises_en_compte_in: Money) -> None:
+        self.menage_in = menage_in
+        self.demandeur_in = demandeur_in
+        self.informations_calcul_in = informations_calcul_in
+        self.date_courante_in = date_courante_in
+        self.ressources_menage_prises_en_compte_in = ressources_menage_prises_en_compte_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, CalculetteAidesAuLogementGardeAlterneeIn):
-			return (self.menage_in == other.menage_in and
-          self.demandeur_in == other.demandeur_in and
-          self.informations_calcul_in == other.informations_calcul_in and
-          self.date_courante_in == other.date_courante_in and
-          self.ressources_menage_prises_en_compte_in == other.ressources_menage_prises_en_compte_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculetteAidesAuLogementGardeAlterneeIn):
+            return (self.menage_in == other.menage_in and
+                   self.demandeur_in == other.demandeur_in and
+                   self.informations_calcul_in == other.informations_calcul_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.ressources_menage_prises_en_compte_in == other.ressources_menage_prises_en_compte_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "CalculetteAidesAuLogementGardeAlterneeIn(menage_in={},demandeur_in={},informations_calcul_in={},date_courante_in={},ressources_menage_prises_en_compte_in={})".format(self.menage_in,
-      self.demandeur_in, self.informations_calcul_in, self.date_courante_in,
-      self.ressources_menage_prises_en_compte_in)
+    def __str__(self) -> str:
+        return "CalculetteAidesAuLogementGardeAlterneeIn(menage_in={},demandeur_in={},informations_calcul_in={},date_courante_in={},ressources_menage_prises_en_compte_in={})".format(self.menage_in,
+            self.demandeur_in, self.informations_calcul_in,
+            self.date_courante_in,
+            self.ressources_menage_prises_en_compte_in)
 
 class BaseMensuelleAllocationsFamilialesOut:
-	def __init__(self, montant_out: Money) -> None:
-		self.montant_out = montant_out
+    def __init__(self, montant_out: Money) -> None:
+        self.montant_out = montant_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, BaseMensuelleAllocationsFamilialesOut):
-			return (self.montant_out == other.montant_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, BaseMensuelleAllocationsFamilialesOut):
+            return (self.montant_out == other.montant_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "BaseMensuelleAllocationsFamilialesOut(montant_out={})".format(self.montant_out)
+    def __str__(self) -> str:
+        return "BaseMensuelleAllocationsFamilialesOut(montant_out={})".format(self.montant_out)
 
 class BaseMensuelleAllocationsFamilialesIn:
-	def __init__(self, date_courante_in: Date) -> None:
-		self.date_courante_in = date_courante_in
+    def __init__(self, date_courante_in: Date) -> None:
+        self.date_courante_in = date_courante_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, BaseMensuelleAllocationsFamilialesIn):
-			return (self.date_courante_in == other.date_courante_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, BaseMensuelleAllocationsFamilialesIn):
+            return (self.date_courante_in == other.date_courante_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "BaseMensuelleAllocationsFamilialesIn(date_courante_in={})".format(self.date_courante_in)
+    def __str__(self) -> str:
+        return "BaseMensuelleAllocationsFamilialesIn(date_courante_in={})".format(self.date_courante_in)
 
 class SmicOut:
-	def __init__(self, brut_horaire_out: Money) -> None:
-		self.brut_horaire_out = brut_horaire_out
+    def __init__(self, brut_horaire_out: Money) -> None:
+        self.brut_horaire_out = brut_horaire_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SmicOut):
-			return (self.brut_horaire_out == other.brut_horaire_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SmicOut):
+            return (self.brut_horaire_out == other.brut_horaire_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "SmicOut(brut_horaire_out={})".format(self.brut_horaire_out)
+    def __str__(self) -> str:
+        return "SmicOut(brut_horaire_out={})".format(self.brut_horaire_out)
 
 class SmicIn:
-	def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
-		self.date_courante_in = date_courante_in
-		self.residence_in = residence_in
+    def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
+        self.date_courante_in = date_courante_in
+        self.residence_in = residence_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SmicIn):
-			return (self.date_courante_in == other.date_courante_in and
-          self.residence_in == other.residence_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SmicIn):
+            return (self.date_courante_in == other.date_courante_in and
+                   self.residence_in == other.residence_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "SmicIn(date_courante_in={},residence_in={})".format(self.date_courante_in,
-      self.residence_in)
+    def __str__(self) -> str:
+        return "SmicIn(date_courante_in={},residence_in={})".format(self.date_courante_in,
+            self.residence_in)
 
 class EligibilitePrestationsFamilialesOut:
-	def __init__(self, droit_ouvert_out: Callable[[EnfantPrestationsFamiliales], bool], conditions_hors_age_out: Callable[[EnfantPrestationsFamiliales], bool], age_l512_3_2_out: Integer, regime_outre_mer_l751_1_out: bool) -> None:
-		self.droit_ouvert_out = droit_ouvert_out
-		self.conditions_hors_age_out = conditions_hors_age_out
-		self.age_l512_3_2_out = age_l512_3_2_out
-		self.regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_out
+    def __init__(self, droit_ouvert_out: Callable[[EnfantPrestationsFamiliales], bool], conditions_hors_age_out: Callable[[EnfantPrestationsFamiliales], bool], age_l512_3_2_out: Integer, regime_outre_mer_l751_1_out: bool) -> None:
+        self.droit_ouvert_out = droit_ouvert_out
+        self.conditions_hors_age_out = conditions_hors_age_out
+        self.age_l512_3_2_out = age_l512_3_2_out
+        self.regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibilitePrestationsFamilialesOut):
-			return (self.droit_ouvert_out == other.droit_ouvert_out and
-          self.conditions_hors_age_out == other.conditions_hors_age_out and
-          self.age_l512_3_2_out == other.age_l512_3_2_out and
-          self.regime_outre_mer_l751_1_out == other.regime_outre_mer_l751_1_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibilitePrestationsFamilialesOut):
+            return (self.droit_ouvert_out == other.droit_ouvert_out and
+                   self.conditions_hors_age_out == other.conditions_hors_age_out and
+                   self.age_l512_3_2_out == other.age_l512_3_2_out and
+                   self.regime_outre_mer_l751_1_out == other.regime_outre_mer_l751_1_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibilitePrestationsFamilialesOut(droit_ouvert_out={},conditions_hors_age_out={},age_l512_3_2_out={},regime_outre_mer_l751_1_out={})".format(self.droit_ouvert_out,
-      self.conditions_hors_age_out, self.age_l512_3_2_out,
-      self.regime_outre_mer_l751_1_out)
+    def __str__(self) -> str:
+        return "EligibilitePrestationsFamilialesOut(droit_ouvert_out={},conditions_hors_age_out={},age_l512_3_2_out={},regime_outre_mer_l751_1_out={})".format(self.droit_ouvert_out,
+            self.conditions_hors_age_out, self.age_l512_3_2_out,
+            self.regime_outre_mer_l751_1_out)
 
 class EligibilitePrestationsFamilialesIn:
-	def __init__(self, date_courante_in: Date, prestation_courante_in: ElementPrestationsFamiliales, residence_in: Collectivite) -> None:
-		self.date_courante_in = date_courante_in
-		self.prestation_courante_in = prestation_courante_in
-		self.residence_in = residence_in
+    def __init__(self, date_courante_in: Date, prestation_courante_in: ElementPrestationsFamiliales, residence_in: Collectivite) -> None:
+        self.date_courante_in = date_courante_in
+        self.prestation_courante_in = prestation_courante_in
+        self.residence_in = residence_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EligibilitePrestationsFamilialesIn):
-			return (self.date_courante_in == other.date_courante_in and
-          self.prestation_courante_in == other.prestation_courante_in and
-          self.residence_in == other.residence_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibilitePrestationsFamilialesIn):
+            return (self.date_courante_in == other.date_courante_in and
+                   self.prestation_courante_in == other.prestation_courante_in and
+                   self.residence_in == other.residence_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EligibilitePrestationsFamilialesIn(date_courante_in={},prestation_courante_in={},residence_in={})".format(self.date_courante_in,
-      self.prestation_courante_in, self.residence_in)
+    def __str__(self) -> str:
+        return "EligibilitePrestationsFamilialesIn(date_courante_in={},prestation_courante_in={},residence_in={})".format(self.date_courante_in,
+            self.prestation_courante_in, self.residence_in)
 
 
 
@@ -2771,8 +2785,8 @@ def contributions_sociales_aides_personnelle_logement(contributions_sociales_aid
                                               start_column=13, end_line=104,
                                               end_column=24,
                                               law_headings=["Article 14",
-                                              "Chapitre II : Des contributions pour le remboursement de la dette sociale.",
-                                              "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]))
+                                                           "Chapitre II : Des contributions pour le remboursement de la dette sociale.",
+                                                           "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]))
     return ContributionsSocialesAidesPersonnelleLogementOut(montant_out = montant)
 
 def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:CalculEquivalenceLoyerMinimaleIn):
@@ -5103,13 +5117,13 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                               start_column=13, end_line=1929,
                                               end_column=76,
                                               law_headings=["Article D823-16",
-                                              "Sous-section 2 : Calcul de l'aide en secteur locatif",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Sous-section 2 : Calcul de l'aide en secteur locatif",
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     try:
         temp___2 = ((fraction_l832_3 >= decimal_of_string("0.9")) and
             (fraction_l832_3 <= decimal_of_string("0.98")))
@@ -5130,11 +5144,11 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                               start_column=13, end_line=833,
                                               end_column=63,
                                               law_headings=["Article L832-3",
-                                              "Chapitre Ier : Champ d'application",
-                                              "Titre III : Aide personnalisée au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie législative",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Chapitre Ier : Champ d'application",
+                                                           "Titre III : Aide personnalisée au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie législative",
+                                                           "Code de la construction et de l'habitation"]))
     return CalculAidePersonnaliseeLogementLocatifOut(montant_forfaitaire_charges_d823_16_out = montant_forfaitaire_charges_d823_16,
         plafond_loyer_d823_16_2_out = plafond_loyer_d823_16_2,
         participation_minimale_out = participation_minimale,
@@ -10969,11 +10983,11 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                               start_column=13, end_line=182,
                                               end_column=48,
                                               law_headings=["Article L822-3",
-                                              "Chapitre II : Conditions générales d'attribution",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie législative",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Chapitre II : Conditions générales d'attribution",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie législative",
+                                                           "Code de la construction et de l'habitation"]))
     try:
         temp___4 = (seuil_l822_3_parts_propriete < decimal_of_string("0.2"))
     except EmptyError:
@@ -10993,11 +11007,11 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                               start_column=13, end_line=181,
                                               end_column=49,
                                               law_headings=["Article L822-3",
-                                              "Chapitre II : Conditions générales d'attribution",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie législative",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Chapitre II : Conditions générales d'attribution",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie législative",
+                                                           "Code de la construction et de l'habitation"]))
     return EligibiliteAidesPersonnelleLogementOut(date_courante_out = date_courante_6,
         eligibilite_out = eligibilite,
         nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte,
@@ -11226,13 +11240,13 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
                                               start_column=13, end_line=143,
                                               end_column=74,
                                               law_headings=["Article R822-2",
-                                              "Sous-section 1 : Modalités générales de l'appréciation des ressources",
-                                              "Section 2 : Conditions relatives aux ressources",
-                                              "Chapitre II : Conditions générales d'attribution",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Sous-section 1 : Modalités générales de l'appréciation des ressources",
+                                                           "Section 2 : Conditions relatives aux ressources",
+                                                           "Chapitre II : Conditions générales d'attribution",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     return RessourcesAidesPersonnelleLogementOut(ressources_prises_en_compte_out = ressources_prises_en_compte)
 
 def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:EligibilitePrestationsFamilialesIn):
@@ -16574,12 +16588,12 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                               start_column=5, end_line=1471,
                                               end_column=15,
                                               law_headings=["Article D823-9",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     try:
         match_arg_492 = categorie_calcul_apl
         if match_arg_492.code == CategorieCalculAPL_Code.Location:
@@ -16622,12 +16636,12 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                               start_column=5, end_line=1467,
                                               end_column=15,
                                               law_headings=["Article D823-9",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     try:
         match_arg_494 = categorie_calcul_apl
         if match_arg_494.code == CategorieCalculAPL_Code.Location:
@@ -16670,12 +16684,12 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                               start_column=5, end_line=1463,
                                               end_column=15,
                                               law_headings=["Article D823-9",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     return CalculAidePersonnaliseeLogementOut(aide_finale_formule_out = aide_finale_formule_6,
         traitement_aide_finale_out = traitement_aide_finale_1)
 
@@ -18884,12 +18898,12 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                               start_column=5, end_line=1605,
                                               end_column=15,
                                               law_headings=["Article D823-9",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     try:
         match_arg_565 = categorie_calcul_apl_1
         if match_arg_565.code == CategorieCalculAPL_Code.Location:
@@ -18932,12 +18946,12 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                               start_column=5, end_line=1601,
                                               end_column=15,
                                               law_headings=["Article D823-9",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     try:
         match_arg_567 = categorie_calcul_apl_1
         if match_arg_567.code == CategorieCalculAPL_Code.Location:
@@ -18980,12 +18994,12 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                               start_column=5, end_line=1597,
                                               end_column=15,
                                               law_headings=["Article D823-9",
-                                              "Section 1 : Calcul, liquidation et versement des aides",
-                                              "Chapitre III : Modalités de liquidation et de versement",
-                                              "Titre II : Dispositions communes aux aides personnelles au logement",
-                                              "Livre VIII : Aides personnelles au logement",
-                                              "Partie réglementaire",
-                                              "Code de la construction et de l'habitation"]))
+                                                           "Section 1 : Calcul, liquidation et versement des aides",
+                                                           "Chapitre III : Modalités de liquidation et de versement",
+                                                           "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                           "Livre VIII : Aides personnelles au logement",
+                                                           "Partie réglementaire",
+                                                           "Code de la construction et de l'habitation"]))
     return CalculAllocationLogementOut(aide_finale_formule_out = aide_finale_formule_7,
         traitement_aide_finale_out = traitement_aide_finale_2)
 

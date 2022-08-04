@@ -12,23 +12,23 @@ class PriseEnCharge_Code(Enum):
     ServicesSociauxAllocationVerseeAuxServicesSociaux = 4
 
 class PriseEnCharge:
-	def __init__(self, code: PriseEnCharge_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PriseEnCharge_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PriseEnCharge):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PriseEnCharge):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class SituationObligationScolaire_Code(Enum):
     Avant = 0
@@ -36,23 +36,23 @@ class SituationObligationScolaire_Code(Enum):
     Apres = 2
 
 class SituationObligationScolaire:
-	def __init__(self, code: SituationObligationScolaire_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: SituationObligationScolaire_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SituationObligationScolaire):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SituationObligationScolaire):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class PriseEnCompte_Code(Enum):
     Complete = 0
@@ -60,46 +60,46 @@ class PriseEnCompte_Code(Enum):
     Zero = 2
 
 class PriseEnCompte:
-	def __init__(self, code: PriseEnCompte_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: PriseEnCompte_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PriseEnCompte):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PriseEnCompte):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class VersementAllocations_Code(Enum):
     Normal = 0
     AllocationVerseeAuxServicesSociaux = 1
 
 class VersementAllocations:
-	def __init__(self, code: VersementAllocations_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: VersementAllocations_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, VersementAllocations):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, VersementAllocations):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ElementPrestationsFamiliales_Code(Enum):
     PrestationAccueilJeuneEnfant = 0
@@ -112,23 +112,23 @@ class ElementPrestationsFamiliales_Code(Enum):
     AllocationJournalierePresenceParentale = 7
 
 class ElementPrestationsFamiliales:
-	def __init__(self, code: ElementPrestationsFamiliales_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: ElementPrestationsFamiliales_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, ElementPrestationsFamiliales):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ElementPrestationsFamiliales):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class Collectivite_Code(Enum):
     Guadeloupe = 0
@@ -142,359 +142,360 @@ class Collectivite_Code(Enum):
     Mayotte = 8
 
 class Collectivite:
-	def __init__(self, code: Collectivite_Code, value: Any) -> None:
-		self.code = code
-		self.value = value
+    def __init__(self, code: Collectivite_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
 
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Collectivite):
-			return self.code == other.code and self.value == other.value
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Collectivite):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
 
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "{}({})".format(self.code, self.value)
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class EnfantEntree:
-	def __init__(self, d_identifiant: Integer, d_remuneration_mensuelle: Money, d_date_de_naissance: Date, d_prise_en_charge: PriseEnCharge, d_a_deja_ouvert_droit_aux_allocations_familiales: bool, d_beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
-		self.d_identifiant = d_identifiant
-		self.d_remuneration_mensuelle = d_remuneration_mensuelle
-		self.d_date_de_naissance = d_date_de_naissance
-		self.d_prise_en_charge = d_prise_en_charge
-		self.d_a_deja_ouvert_droit_aux_allocations_familiales = d_a_deja_ouvert_droit_aux_allocations_familiales
-		self.d_beneficie_titre_personnel_aide_personnelle_logement = d_beneficie_titre_personnel_aide_personnelle_logement
+    def __init__(self, d_identifiant: Integer, d_remuneration_mensuelle: Money, d_date_de_naissance: Date, d_prise_en_charge: PriseEnCharge, d_a_deja_ouvert_droit_aux_allocations_familiales: bool, d_beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
+        self.d_identifiant = d_identifiant
+        self.d_remuneration_mensuelle = d_remuneration_mensuelle
+        self.d_date_de_naissance = d_date_de_naissance
+        self.d_prise_en_charge = d_prise_en_charge
+        self.d_a_deja_ouvert_droit_aux_allocations_familiales = d_a_deja_ouvert_droit_aux_allocations_familiales
+        self.d_beneficie_titre_personnel_aide_personnelle_logement = d_beneficie_titre_personnel_aide_personnelle_logement
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EnfantEntree):
-			return (self.d_identifiant == other.d_identifiant and
-          self.d_remuneration_mensuelle == other.d_remuneration_mensuelle and
-          self.d_date_de_naissance == other.d_date_de_naissance and
-          self.d_prise_en_charge == other.d_prise_en_charge and
-          self.d_a_deja_ouvert_droit_aux_allocations_familiales == other.d_a_deja_ouvert_droit_aux_allocations_familiales and
-          self.d_beneficie_titre_personnel_aide_personnelle_logement == other.d_beneficie_titre_personnel_aide_personnelle_logement)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EnfantEntree):
+            return (self.d_identifiant == other.d_identifiant and
+                   self.d_remuneration_mensuelle == other.d_remuneration_mensuelle and
+                   self.d_date_de_naissance == other.d_date_de_naissance and
+                   self.d_prise_en_charge == other.d_prise_en_charge and
+                   self.d_a_deja_ouvert_droit_aux_allocations_familiales == other.d_a_deja_ouvert_droit_aux_allocations_familiales and
+                   self.d_beneficie_titre_personnel_aide_personnelle_logement == other.d_beneficie_titre_personnel_aide_personnelle_logement)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EnfantEntree(d_identifiant={},d_remuneration_mensuelle={},d_date_de_naissance={},d_prise_en_charge={},d_a_deja_ouvert_droit_aux_allocations_familiales={},d_beneficie_titre_personnel_aide_personnelle_logement={})".format(self.d_identifiant,
-      self.d_remuneration_mensuelle, self.d_date_de_naissance,
-      self.d_prise_en_charge,
-      self.d_a_deja_ouvert_droit_aux_allocations_familiales,
-      self.d_beneficie_titre_personnel_aide_personnelle_logement)
+    def __str__(self) -> str:
+        return "EnfantEntree(d_identifiant={},d_remuneration_mensuelle={},d_date_de_naissance={},d_prise_en_charge={},d_a_deja_ouvert_droit_aux_allocations_familiales={},d_beneficie_titre_personnel_aide_personnelle_logement={})".format(self.d_identifiant,
+            self.d_remuneration_mensuelle, self.d_date_de_naissance,
+            self.d_prise_en_charge,
+            self.d_a_deja_ouvert_droit_aux_allocations_familiales,
+            self.d_beneficie_titre_personnel_aide_personnelle_logement)
 
 class Enfant:
-	def __init__(self, identifiant: Integer, obligation_scolaire: SituationObligationScolaire, remuneration_mensuelle: Money, date_de_naissance: Date, age: Integer, prise_en_charge: PriseEnCharge, a_deja_ouvert_droit_aux_allocations_familiales: bool, beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
-		self.identifiant = identifiant
-		self.obligation_scolaire = obligation_scolaire
-		self.remuneration_mensuelle = remuneration_mensuelle
-		self.date_de_naissance = date_de_naissance
-		self.age = age
-		self.prise_en_charge = prise_en_charge
-		self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
-		self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
+    def __init__(self, identifiant: Integer, obligation_scolaire: SituationObligationScolaire, remuneration_mensuelle: Money, date_de_naissance: Date, age: Integer, prise_en_charge: PriseEnCharge, a_deja_ouvert_droit_aux_allocations_familiales: bool, beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
+        self.identifiant = identifiant
+        self.obligation_scolaire = obligation_scolaire
+        self.remuneration_mensuelle = remuneration_mensuelle
+        self.date_de_naissance = date_de_naissance
+        self.age = age
+        self.prise_en_charge = prise_en_charge
+        self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
+        self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, Enfant):
-			return (self.identifiant == other.identifiant and
-          self.obligation_scolaire == other.obligation_scolaire and
-          self.remuneration_mensuelle == other.remuneration_mensuelle and
-          self.date_de_naissance == other.date_de_naissance and
-          self.age == other.age and
-          self.prise_en_charge == other.prise_en_charge and
-          self.a_deja_ouvert_droit_aux_allocations_familiales == other.a_deja_ouvert_droit_aux_allocations_familiales and
-          self.beneficie_titre_personnel_aide_personnelle_logement == other.beneficie_titre_personnel_aide_personnelle_logement)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Enfant):
+            return (self.identifiant == other.identifiant and
+                   self.obligation_scolaire == other.obligation_scolaire and
+                   self.remuneration_mensuelle == other.remuneration_mensuelle and
+                   self.date_de_naissance == other.date_de_naissance and
+                   self.age == other.age and
+                   self.prise_en_charge == other.prise_en_charge and
+                   self.a_deja_ouvert_droit_aux_allocations_familiales == other.a_deja_ouvert_droit_aux_allocations_familiales and
+                   self.beneficie_titre_personnel_aide_personnelle_logement == other.beneficie_titre_personnel_aide_personnelle_logement)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "Enfant(identifiant={},obligation_scolaire={},remuneration_mensuelle={},date_de_naissance={},age={},prise_en_charge={},a_deja_ouvert_droit_aux_allocations_familiales={},beneficie_titre_personnel_aide_personnelle_logement={})".format(self.identifiant,
-      self.obligation_scolaire, self.remuneration_mensuelle,
-      self.date_de_naissance, self.age, self.prise_en_charge,
-      self.a_deja_ouvert_droit_aux_allocations_familiales,
-      self.beneficie_titre_personnel_aide_personnelle_logement)
+    def __str__(self) -> str:
+        return "Enfant(identifiant={},obligation_scolaire={},remuneration_mensuelle={},date_de_naissance={},age={},prise_en_charge={},a_deja_ouvert_droit_aux_allocations_familiales={},beneficie_titre_personnel_aide_personnelle_logement={})".format(self.identifiant,
+            self.obligation_scolaire, self.remuneration_mensuelle,
+            self.date_de_naissance, self.age, self.prise_en_charge,
+            self.a_deja_ouvert_droit_aux_allocations_familiales,
+            self.beneficie_titre_personnel_aide_personnelle_logement)
 
 class PrestationsFamilialesOut:
-	def __init__(self, droit_ouvert_out: Callable[[Enfant], bool], conditions_hors_age_out: Callable[[Enfant], bool], age_l512_3_2_out: Integer, regime_outre_mer_l751_1_out: bool) -> None:
-		self.droit_ouvert_out = droit_ouvert_out
-		self.conditions_hors_age_out = conditions_hors_age_out
-		self.age_l512_3_2_out = age_l512_3_2_out
-		self.regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_out
+    def __init__(self, droit_ouvert_out: Callable[[Enfant], bool], conditions_hors_age_out: Callable[[Enfant], bool], age_l512_3_2_out: Integer, regime_outre_mer_l751_1_out: bool) -> None:
+        self.droit_ouvert_out = droit_ouvert_out
+        self.conditions_hors_age_out = conditions_hors_age_out
+        self.age_l512_3_2_out = age_l512_3_2_out
+        self.regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PrestationsFamilialesOut):
-			return (self.droit_ouvert_out == other.droit_ouvert_out and
-          self.conditions_hors_age_out == other.conditions_hors_age_out and
-          self.age_l512_3_2_out == other.age_l512_3_2_out and
-          self.regime_outre_mer_l751_1_out == other.regime_outre_mer_l751_1_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PrestationsFamilialesOut):
+            return (self.droit_ouvert_out == other.droit_ouvert_out and
+                   self.conditions_hors_age_out == other.conditions_hors_age_out and
+                   self.age_l512_3_2_out == other.age_l512_3_2_out and
+                   self.regime_outre_mer_l751_1_out == other.regime_outre_mer_l751_1_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "PrestationsFamilialesOut(droit_ouvert_out={},conditions_hors_age_out={},age_l512_3_2_out={},regime_outre_mer_l751_1_out={})".format(self.droit_ouvert_out,
-      self.conditions_hors_age_out, self.age_l512_3_2_out,
-      self.regime_outre_mer_l751_1_out)
+    def __str__(self) -> str:
+        return "PrestationsFamilialesOut(droit_ouvert_out={},conditions_hors_age_out={},age_l512_3_2_out={},regime_outre_mer_l751_1_out={})".format(self.droit_ouvert_out,
+            self.conditions_hors_age_out, self.age_l512_3_2_out,
+            self.regime_outre_mer_l751_1_out)
 
 class PrestationsFamilialesIn:
-	def __init__(self, date_courante_in: Date, prestation_courante_in: ElementPrestationsFamiliales, residence_in: Collectivite) -> None:
-		self.date_courante_in = date_courante_in
-		self.prestation_courante_in = prestation_courante_in
-		self.residence_in = residence_in
+    def __init__(self, date_courante_in: Date, prestation_courante_in: ElementPrestationsFamiliales, residence_in: Collectivite) -> None:
+        self.date_courante_in = date_courante_in
+        self.prestation_courante_in = prestation_courante_in
+        self.residence_in = residence_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, PrestationsFamilialesIn):
-			return (self.date_courante_in == other.date_courante_in and
-          self.prestation_courante_in == other.prestation_courante_in and
-          self.residence_in == other.residence_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PrestationsFamilialesIn):
+            return (self.date_courante_in == other.date_courante_in and
+                   self.prestation_courante_in == other.prestation_courante_in and
+                   self.residence_in == other.residence_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "PrestationsFamilialesIn(date_courante_in={},prestation_courante_in={},residence_in={})".format(self.date_courante_in,
-      self.prestation_courante_in, self.residence_in)
+    def __str__(self) -> str:
+        return "PrestationsFamilialesIn(date_courante_in={},prestation_courante_in={},residence_in={})".format(self.date_courante_in,
+            self.prestation_courante_in, self.residence_in)
 
 class AllocationFamilialesAvril2008Out:
-	def __init__(self, age_minimum_alinea_1_l521_3_out: Integer) -> None:
-		self.age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_out
+    def __init__(self, age_minimum_alinea_1_l521_3_out: Integer) -> None:
+        self.age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, AllocationFamilialesAvril2008Out):
-			return (self.age_minimum_alinea_1_l521_3_out == other.age_minimum_alinea_1_l521_3_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AllocationFamilialesAvril2008Out):
+            return (self.age_minimum_alinea_1_l521_3_out == other.age_minimum_alinea_1_l521_3_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "AllocationFamilialesAvril2008Out(age_minimum_alinea_1_l521_3_out={})".format(self.age_minimum_alinea_1_l521_3_out)
+    def __str__(self) -> str:
+        return "AllocationFamilialesAvril2008Out(age_minimum_alinea_1_l521_3_out={})".format(self.age_minimum_alinea_1_l521_3_out)
 
 class AllocationFamilialesAvril2008In:
-	def __init__(self, ) -> None:
-		pass
+    def __init__(self, ) -> None:
+        pass
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, AllocationFamilialesAvril2008In):
-			return (True)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AllocationFamilialesAvril2008In):
+            return (True)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "AllocationFamilialesAvril2008In()".format()
+    def __str__(self) -> str:
+        return "AllocationFamilialesAvril2008In()".format()
 
 class EnfantLePlusAgeOut:
-	def __init__(self, le_plus_age_out: Enfant) -> None:
-		self.le_plus_age_out = le_plus_age_out
+    def __init__(self, le_plus_age_out: Enfant) -> None:
+        self.le_plus_age_out = le_plus_age_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EnfantLePlusAgeOut):
-			return (self.le_plus_age_out == other.le_plus_age_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EnfantLePlusAgeOut):
+            return (self.le_plus_age_out == other.le_plus_age_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EnfantLePlusAgeOut(le_plus_age_out={})".format(self.le_plus_age_out)
+    def __str__(self) -> str:
+        return "EnfantLePlusAgeOut(le_plus_age_out={})".format(self.le_plus_age_out)
 
 class EnfantLePlusAgeIn:
-	def __init__(self, enfants_in: List[Enfant]) -> None:
-		self.enfants_in = enfants_in
+    def __init__(self, enfants_in: List[Enfant]) -> None:
+        self.enfants_in = enfants_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, EnfantLePlusAgeIn):
-			return (self.enfants_in == other.enfants_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EnfantLePlusAgeIn):
+            return (self.enfants_in == other.enfants_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "EnfantLePlusAgeIn(enfants_in={})".format(self.enfants_in)
+    def __str__(self) -> str:
+        return "EnfantLePlusAgeIn(enfants_in={})".format(self.enfants_in)
 
 class AllocationsFamilialesOut:
-	def __init__(self, montant_verse_out: Money) -> None:
-		self.montant_verse_out = montant_verse_out
+    def __init__(self, montant_verse_out: Money) -> None:
+        self.montant_verse_out = montant_verse_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, AllocationsFamilialesOut):
-			return (self.montant_verse_out == other.montant_verse_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AllocationsFamilialesOut):
+            return (self.montant_verse_out == other.montant_verse_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "AllocationsFamilialesOut(montant_verse_out={})".format(self.montant_verse_out)
+    def __str__(self) -> str:
+        return "AllocationsFamilialesOut(montant_verse_out={})".format(self.montant_verse_out)
 
 class AllocationsFamilialesIn:
-	def __init__(self, personne_charge_effective_permanente_est_parent_in: bool, personne_charge_effective_permanente_remplit_titre_I_in: bool, ressources_menage_in: Money, residence_in: Collectivite, date_courante_in: Date, enfants_a_charge_in: List[Enfant], avait_enfant_a_charge_avant_1er_janvier_2012_in: bool) -> None:
-		self.personne_charge_effective_permanente_est_parent_in = personne_charge_effective_permanente_est_parent_in
-		self.personne_charge_effective_permanente_remplit_titre_I_in = personne_charge_effective_permanente_remplit_titre_I_in
-		self.ressources_menage_in = ressources_menage_in
-		self.residence_in = residence_in
-		self.date_courante_in = date_courante_in
-		self.enfants_a_charge_in = enfants_a_charge_in
-		self.avait_enfant_a_charge_avant_1er_janvier_2012_in = avait_enfant_a_charge_avant_1er_janvier_2012_in
+    def __init__(self, personne_charge_effective_permanente_est_parent_in: bool, personne_charge_effective_permanente_remplit_titre_I_in: bool, ressources_menage_in: Money, residence_in: Collectivite, date_courante_in: Date, enfants_a_charge_in: List[Enfant], avait_enfant_a_charge_avant_1er_janvier_2012_in: bool) -> None:
+        self.personne_charge_effective_permanente_est_parent_in = personne_charge_effective_permanente_est_parent_in
+        self.personne_charge_effective_permanente_remplit_titre_I_in = personne_charge_effective_permanente_remplit_titre_I_in
+        self.ressources_menage_in = ressources_menage_in
+        self.residence_in = residence_in
+        self.date_courante_in = date_courante_in
+        self.enfants_a_charge_in = enfants_a_charge_in
+        self.avait_enfant_a_charge_avant_1er_janvier_2012_in = avait_enfant_a_charge_avant_1er_janvier_2012_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, AllocationsFamilialesIn):
-			return (self.personne_charge_effective_permanente_est_parent_in == other.personne_charge_effective_permanente_est_parent_in and
-          self.personne_charge_effective_permanente_remplit_titre_I_in == other.personne_charge_effective_permanente_remplit_titre_I_in and
-          self.ressources_menage_in == other.ressources_menage_in and
-          self.residence_in == other.residence_in and
-          self.date_courante_in == other.date_courante_in and
-          self.enfants_a_charge_in == other.enfants_a_charge_in and
-          self.avait_enfant_a_charge_avant_1er_janvier_2012_in == other.avait_enfant_a_charge_avant_1er_janvier_2012_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AllocationsFamilialesIn):
+            return (self.personne_charge_effective_permanente_est_parent_in == other.personne_charge_effective_permanente_est_parent_in and
+                   self.personne_charge_effective_permanente_remplit_titre_I_in == other.personne_charge_effective_permanente_remplit_titre_I_in and
+                   self.ressources_menage_in == other.ressources_menage_in and
+                   self.residence_in == other.residence_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.enfants_a_charge_in == other.enfants_a_charge_in and
+                   self.avait_enfant_a_charge_avant_1er_janvier_2012_in == other.avait_enfant_a_charge_avant_1er_janvier_2012_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in={},personne_charge_effective_permanente_remplit_titre_I_in={},ressources_menage_in={},residence_in={},date_courante_in={},enfants_a_charge_in={},avait_enfant_a_charge_avant_1er_janvier_2012_in={})".format(self.personne_charge_effective_permanente_est_parent_in,
-      self.personne_charge_effective_permanente_remplit_titre_I_in,
-      self.ressources_menage_in, self.residence_in, self.date_courante_in,
-      self.enfants_a_charge_in,
-      self.avait_enfant_a_charge_avant_1er_janvier_2012_in)
+    def __str__(self) -> str:
+        return "AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in={},personne_charge_effective_permanente_remplit_titre_I_in={},ressources_menage_in={},residence_in={},date_courante_in={},enfants_a_charge_in={},avait_enfant_a_charge_avant_1er_janvier_2012_in={})".format(self.personne_charge_effective_permanente_est_parent_in,
+            self.personne_charge_effective_permanente_remplit_titre_I_in,
+            self.ressources_menage_in, self.residence_in,
+            self.date_courante_in, self.enfants_a_charge_in,
+            self.avait_enfant_a_charge_avant_1er_janvier_2012_in)
 
 class SmicOut:
-	def __init__(self, brut_horaire_out: Money) -> None:
-		self.brut_horaire_out = brut_horaire_out
+    def __init__(self, brut_horaire_out: Money) -> None:
+        self.brut_horaire_out = brut_horaire_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SmicOut):
-			return (self.brut_horaire_out == other.brut_horaire_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SmicOut):
+            return (self.brut_horaire_out == other.brut_horaire_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "SmicOut(brut_horaire_out={})".format(self.brut_horaire_out)
+    def __str__(self) -> str:
+        return "SmicOut(brut_horaire_out={})".format(self.brut_horaire_out)
 
 class SmicIn:
-	def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
-		self.date_courante_in = date_courante_in
-		self.residence_in = residence_in
+    def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
+        self.date_courante_in = date_courante_in
+        self.residence_in = residence_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, SmicIn):
-			return (self.date_courante_in == other.date_courante_in and
-          self.residence_in == other.residence_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SmicIn):
+            return (self.date_courante_in == other.date_courante_in and
+                   self.residence_in == other.residence_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "SmicIn(date_courante_in={},residence_in={})".format(self.date_courante_in,
-      self.residence_in)
+    def __str__(self) -> str:
+        return "SmicIn(date_courante_in={},residence_in={})".format(self.date_courante_in,
+            self.residence_in)
 
 class BaseMensuelleAllocationsFamilialesOut:
-	def __init__(self, montant_out: Money) -> None:
-		self.montant_out = montant_out
+    def __init__(self, montant_out: Money) -> None:
+        self.montant_out = montant_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, BaseMensuelleAllocationsFamilialesOut):
-			return (self.montant_out == other.montant_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, BaseMensuelleAllocationsFamilialesOut):
+            return (self.montant_out == other.montant_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "BaseMensuelleAllocationsFamilialesOut(montant_out={})".format(self.montant_out)
+    def __str__(self) -> str:
+        return "BaseMensuelleAllocationsFamilialesOut(montant_out={})".format(self.montant_out)
 
 class BaseMensuelleAllocationsFamilialesIn:
-	def __init__(self, date_courante_in: Date) -> None:
-		self.date_courante_in = date_courante_in
+    def __init__(self, date_courante_in: Date) -> None:
+        self.date_courante_in = date_courante_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, BaseMensuelleAllocationsFamilialesIn):
-			return (self.date_courante_in == other.date_courante_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, BaseMensuelleAllocationsFamilialesIn):
+            return (self.date_courante_in == other.date_courante_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "BaseMensuelleAllocationsFamilialesIn(date_courante_in={})".format(self.date_courante_in)
+    def __str__(self) -> str:
+        return "BaseMensuelleAllocationsFamilialesIn(date_courante_in={})".format(self.date_courante_in)
 
 class InterfaceAllocationsFamilialesOut:
-	def __init__(self, i_montant_verse_out: Money) -> None:
-		self.i_montant_verse_out = i_montant_verse_out
+    def __init__(self, i_montant_verse_out: Money) -> None:
+        self.i_montant_verse_out = i_montant_verse_out
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InterfaceAllocationsFamilialesOut):
-			return (self.i_montant_verse_out == other.i_montant_verse_out)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InterfaceAllocationsFamilialesOut):
+            return (self.i_montant_verse_out == other.i_montant_verse_out)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "InterfaceAllocationsFamilialesOut(i_montant_verse_out={})".format(self.i_montant_verse_out)
+    def __str__(self) -> str:
+        return "InterfaceAllocationsFamilialesOut(i_montant_verse_out={})".format(self.i_montant_verse_out)
 
 class InterfaceAllocationsFamilialesIn:
-	def __init__(self, i_date_courante_in: Date, i_enfants_in: List[EnfantEntree], i_ressources_menage_in: Money, i_residence_in: Collectivite, i_personne_charge_effective_permanente_est_parent_in: bool, i_personne_charge_effective_permanente_remplit_titre_I_in: bool, i_avait_enfant_a_charge_avant_1er_janvier_2012_in: bool) -> None:
-		self.i_date_courante_in = i_date_courante_in
-		self.i_enfants_in = i_enfants_in
-		self.i_ressources_menage_in = i_ressources_menage_in
-		self.i_residence_in = i_residence_in
-		self.i_personne_charge_effective_permanente_est_parent_in = i_personne_charge_effective_permanente_est_parent_in
-		self.i_personne_charge_effective_permanente_remplit_titre_I_in = i_personne_charge_effective_permanente_remplit_titre_I_in
-		self.i_avait_enfant_a_charge_avant_1er_janvier_2012_in = i_avait_enfant_a_charge_avant_1er_janvier_2012_in
+    def __init__(self, i_date_courante_in: Date, i_enfants_in: List[EnfantEntree], i_ressources_menage_in: Money, i_residence_in: Collectivite, i_personne_charge_effective_permanente_est_parent_in: bool, i_personne_charge_effective_permanente_remplit_titre_I_in: bool, i_avait_enfant_a_charge_avant_1er_janvier_2012_in: bool) -> None:
+        self.i_date_courante_in = i_date_courante_in
+        self.i_enfants_in = i_enfants_in
+        self.i_ressources_menage_in = i_ressources_menage_in
+        self.i_residence_in = i_residence_in
+        self.i_personne_charge_effective_permanente_est_parent_in = i_personne_charge_effective_permanente_est_parent_in
+        self.i_personne_charge_effective_permanente_remplit_titre_I_in = i_personne_charge_effective_permanente_remplit_titre_I_in
+        self.i_avait_enfant_a_charge_avant_1er_janvier_2012_in = i_avait_enfant_a_charge_avant_1er_janvier_2012_in
 
-	def __eq__(self, other: object) -> bool:
-		if isinstance(other, InterfaceAllocationsFamilialesIn):
-			return (self.i_date_courante_in == other.i_date_courante_in and
-          self.i_enfants_in == other.i_enfants_in and
-          self.i_ressources_menage_in == other.i_ressources_menage_in and
-          self.i_residence_in == other.i_residence_in and
-          self.i_personne_charge_effective_permanente_est_parent_in == other.i_personne_charge_effective_permanente_est_parent_in and
-          self.i_personne_charge_effective_permanente_remplit_titre_I_in == other.i_personne_charge_effective_permanente_remplit_titre_I_in and
-          self.i_avait_enfant_a_charge_avant_1er_janvier_2012_in == other.i_avait_enfant_a_charge_avant_1er_janvier_2012_in)
-		else:
-			return False
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InterfaceAllocationsFamilialesIn):
+            return (self.i_date_courante_in == other.i_date_courante_in and
+                   self.i_enfants_in == other.i_enfants_in and
+                   self.i_ressources_menage_in == other.i_ressources_menage_in and
+                   self.i_residence_in == other.i_residence_in and
+                   self.i_personne_charge_effective_permanente_est_parent_in == other.i_personne_charge_effective_permanente_est_parent_in and
+                   self.i_personne_charge_effective_permanente_remplit_titre_I_in == other.i_personne_charge_effective_permanente_remplit_titre_I_in and
+                   self.i_avait_enfant_a_charge_avant_1er_janvier_2012_in == other.i_avait_enfant_a_charge_avant_1er_janvier_2012_in)
+        else:
+            return False
 
-	def __ne__(self, other: object) -> bool:
-		return not (self == other)
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
 
-	def __str__(self) -> str:
-		return "InterfaceAllocationsFamilialesIn(i_date_courante_in={},i_enfants_in={},i_ressources_menage_in={},i_residence_in={},i_personne_charge_effective_permanente_est_parent_in={},i_personne_charge_effective_permanente_remplit_titre_I_in={},i_avait_enfant_a_charge_avant_1er_janvier_2012_in={})".format(self.i_date_courante_in,
-      self.i_enfants_in, self.i_ressources_menage_in, self.i_residence_in,
-      self.i_personne_charge_effective_permanente_est_parent_in,
-      self.i_personne_charge_effective_permanente_remplit_titre_I_in,
-      self.i_avait_enfant_a_charge_avant_1er_janvier_2012_in)
+    def __str__(self) -> str:
+        return "InterfaceAllocationsFamilialesIn(i_date_courante_in={},i_enfants_in={},i_ressources_menage_in={},i_residence_in={},i_personne_charge_effective_permanente_est_parent_in={},i_personne_charge_effective_permanente_remplit_titre_I_in={},i_avait_enfant_a_charge_avant_1er_janvier_2012_in={})".format(self.i_date_courante_in,
+            self.i_enfants_in, self.i_ressources_menage_in,
+            self.i_residence_in,
+            self.i_personne_charge_effective_permanente_est_parent_in,
+            self.i_personne_charge_effective_permanente_remplit_titre_I_in,
+            self.i_avait_enfant_a_charge_avant_1er_janvier_2012_in)
 
 
 
@@ -2917,11 +2918,11 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                               start_line=230, start_column=5,
                                               end_line=234, end_column=6,
                                               law_headings=["Article L521-2",
-                                              "Chapitre 1er : Allocations familiales",
-                                              "Titre 2 : Prestations générales d'entretien",
-                                              "Livre 5 : Prestations familiales et prestations assimilées",
-                                              "Partie législative",
-                                              "Code de la sécurité sociale"]))
+                                                           "Chapitre 1er : Allocations familiales",
+                                                           "Titre 2 : Prestations générales d'entretien",
+                                                           "Livre 5 : Prestations familiales et prestations assimilées",
+                                                           "Partie législative",
+                                                           "Code de la sécurité sociale"]))
     return AllocationsFamilialesOut(montant_verse_out = montant_verse)
 
 def interface_allocations_familiales(interface_allocations_familiales_in:InterfaceAllocationsFamilialesIn):

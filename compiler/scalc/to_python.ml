@@ -444,7 +444,7 @@ let rec format_statement
       "@[<hov 4>if not (%a):@\n\
        raise AssertionFailure(@[<hov 0>SourcePosition(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=%a)@])@]@]"
+       end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]"
       (format_expression ctx)
       (e1, Marked.get_mark s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
@@ -467,20 +467,20 @@ let format_ctx
   let format_struct_decl fmt (struct_name, struct_fields) =
     Format.fprintf fmt
       "class %a:@\n\
-       \tdef __init__(self, %a) -> None:@\n\
+      \    def __init__(self, %a) -> None:@\n\
        %a@\n\
        @\n\
-       \tdef __eq__(self, other: object) -> bool:@\n\
-       \t\tif isinstance(other, %a):@\n\
-       \t\t\treturn @[<hov>(%a)@]@\n\
-       \t\telse:@\n\
-       \t\t\treturn False@\n\
+      \    def __eq__(self, other: object) -> bool:@\n\
+      \        if isinstance(other, %a):@\n\
+      \            return @[<hov>(%a)@]@\n\
+      \        else:@\n\
+      \            return False@\n\
        @\n\
-       \tdef __ne__(self, other: object) -> bool:@\n\
-       \t\treturn not (self == other)@\n\
+      \    def __ne__(self, other: object) -> bool:@\n\
+      \        return not (self == other)@\n\
        @\n\
-       \tdef __str__(self) -> str:@\n\
-       \t\t@[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name
+      \    def __str__(self) -> str:@\n\
+      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name
       struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
@@ -489,12 +489,12 @@ let format_ctx
              format_typ struct_field_type))
       struct_fields
       (if List.length struct_fields = 0 then fun fmt _ ->
-       Format.fprintf fmt "\t\tpass"
+       Format.fprintf fmt "        pass"
       else
         Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
           (fun _fmt (struct_field, _) ->
-            Format.fprintf fmt "\t\tself.%a = %a" format_struct_field_name
+            Format.fprintf fmt "        self.%a = %a" format_struct_field_name
               struct_field format_struct_field_name struct_field))
       struct_fields format_struct_name struct_name
       (if List.length struct_fields > 0 then
@@ -524,23 +524,24 @@ let format_ctx
          %a@]@\n\
          @\n\
          class %a:@\n\
-         \tdef __init__(self, code: %a_Code, value: Any) -> None:@\n\
-         \t\tself.code = code@\n\
-         \t\tself.value = value@\n\
+        \    def __init__(self, code: %a_Code, value: Any) -> None:@\n\
+        \        self.code = code@\n\
+        \        self.value = value@\n\
          @\n\
          @\n\
-         \tdef __eq__(self, other: object) -> bool:@\n\
-         \t\tif isinstance(other, %a):@\n\
-         \t\t\treturn self.code == other.code and self.value == other.value@\n\
-         \t\telse:@\n\
-         \t\t\treturn False@\n\
+        \    def __eq__(self, other: object) -> bool:@\n\
+        \        if isinstance(other, %a):@\n\
+        \            return self.code == other.code and self.value == \
+         other.value@\n\
+        \        else:@\n\
+        \            return False@\n\
          @\n\
          @\n\
-         \tdef __ne__(self, other: object) -> bool:@\n\
-         \t\treturn not (self == other)@\n\
+        \    def __ne__(self, other: object) -> bool:@\n\
+        \        return not (self == other)@\n\
          @\n\
-         \tdef __str__(self) -> str:@\n\
-         \t\t@[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
+        \    def __str__(self) -> str:@\n\
+        \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
         format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
