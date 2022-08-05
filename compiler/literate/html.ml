@@ -75,7 +75,6 @@ let wrap_html
   Format.fprintf fmt
     "<head>\n\
      <style>\n\
-     summary { cursor: pointer; font-style: italic; }\n\
      %s\n\
      </style>\n\
      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
@@ -185,15 +184,22 @@ let rec law_structure_to_html
   | A.CodeBlock _ -> ()
   | A.LawHeading (heading, children) ->
     let h_number = heading.law_heading_precedence + 1 in
+    let is_a_section_to_collapse =
+      (* Only 2 depth sections are collasped in a <details> tag. Indeed, this
+         allow to significantly reduce rendering time (~= 100x for the
+         [aides_logement] example in the catala-website), while remaining
+         practicable. *)
+      h_number = 2
+    in
     let h_name = Marked.unmark heading.law_heading_name in
     let complete_headings = parents_headings @ [h_name] in
     let id = complete_headings |> String.concat "-" |> sanitize_html_href in
     let fmt_details_open fmt () =
-      if 2 = h_number then
+      if is_a_section_to_collapse then
         Format.fprintf fmt "<details><summary>%s</summary>" h_name
     in
     let fmt_details_close fmt () =
-      if 2 = h_number then Format.fprintf fmt "</details>"
+      if is_a_section_to_collapse then Format.fprintf fmt "</details>"
     in
     Format.fprintf fmt
       "<h%d class='law-heading' id=\"%s\"><a href=\"#%s\">%s</a>%s</h%d>@\n\

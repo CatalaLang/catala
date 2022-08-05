@@ -14,8 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Helper functions manipulating strings common to all Catala compiler
-    internals. *)
+(** Helper functions used for string manipulation. *)
 
 val to_ascii : string -> string
 (** Removes all non-ASCII diacritics from a string by converting them to their
