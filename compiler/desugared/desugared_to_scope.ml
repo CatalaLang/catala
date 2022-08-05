@@ -688,7 +688,8 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
                                  in
                                  ( Marked.unmark
                                      (Ast.ScopeVar.get_info scope_var)
-                                   ^ "_" ^ state_name,
+                                   ^ "_"
+                                   ^ state_name,
                                    state_pos )) ))
                           states))
                     ctx.scope_var_mapping;

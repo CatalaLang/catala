@@ -18,11 +18,6 @@
 
 open Utils
 
-(** {1 Helpers} *)
-
-val is_uppercase : CamomileLibraryDefault.Camomile.UChar.t -> bool
-val begins_with_uppercase : string -> bool
-
 (** {1 Common syntax highlighting helpers}*)
 
 val format_base_type : Format.formatter -> string -> unit

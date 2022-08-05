@@ -198,7 +198,8 @@ let rec evaluate_operator
     A.ELit
       (LBool
          (try
-            en1 = en2 && i1 = i2
+            en1 = en2
+            && i1 = i2
             &&
             match evaluate_operator ctx op pos [e1; e2] with
             | A.ELit (LBool b) -> b

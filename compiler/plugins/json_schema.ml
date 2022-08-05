@@ -21,8 +21,8 @@ let name = "json_schema"
 let extension = "_schema.json"
 
 open Utils
+open String_common
 open Lcalc.Ast
-open Lcalc.Backends
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
@@ -40,7 +40,10 @@ module To_json = struct
       (v : Dcalc.Ast.StructFieldName.t) : unit =
     let s =
       Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
-      |> to_ascii |> to_lowercase |> avoid_keywords |> to_camel_case
+      |> to_ascii
+      |> to_snake_case
+      |> avoid_keywords
+      |> to_camel_case
     in
     Format.fprintf fmt "%s" s
 

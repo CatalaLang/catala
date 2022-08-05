@@ -17,7 +17,7 @@
 
 open Utils
 open Ast
-open Lcalc.Backends
+open String_common
 module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
@@ -131,7 +131,7 @@ let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_uppercase
+       (to_camel_case
           (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructName.format_t v))))
 
 let format_struct_field_name
@@ -145,7 +145,7 @@ let format_enum_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumName.t) : unit
     =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_uppercase
+       (to_camel_case
           (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v))))
 
 let format_enum_cons_name
@@ -193,14 +193,13 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
   | TAny -> Format.fprintf fmt "Any"
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
-  let lowercase_name = to_lowercase (to_ascii s) in
-  let lowercase_name =
-    Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
-      ~subst:(fun _ -> "_dot_")
-      lowercase_name
-  in
-  let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
-  Format.fprintf fmt "%s" lowercase_name
+  s
+  |> to_ascii
+  |> to_snake_case
+  |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
+  |> to_ascii
+  |> avoid_keywords
+  |> Format.fprintf fmt "%s"
 
 module StringMap = Map.Make (String)
 module IntMap = Map.Make (Int)

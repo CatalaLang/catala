@@ -436,16 +436,19 @@ module EventParser = struct
                 { pos = Some pos; name; value; fun_calls = Some fun_calls } )
           | event :: _ ->
             failwith
-              ("Invalid function call ([ " ^ String.concat ", " infos
-             ^ " ]): expected variable definition (function output), found: "
-             ^ raw_event_to_string event ^ "["
+              ("Invalid function call ([ "
+              ^ String.concat ", " infos
+              ^ " ]): expected variable definition (function output), found: "
+              ^ raw_event_to_string event
+              ^ "["
               ^ (nb_raw_events - List.length rest + 1 |> string_of_int)
               ^ "]")
           | [] ->
             failwith
-              ("Invalid function call ([ " ^ String.concat ", " infos
-             ^ " ]): expected variable definition (function output), found: \
-                end of tokens")
+              ("Invalid function call ([ "
+              ^ String.concat ", " infos
+              ^ " ]): expected variable definition (function output), found: \
+                 end of tokens")
         in
 
         parse_events { ctx with events = var_comp :: ctx.events; rest }

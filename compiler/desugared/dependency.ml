@@ -132,7 +132,8 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
                  Marked.get_mark var_info );
                ( Some
                    ("Used here in the definition of another cycle variable "
-                  ^ succ_str ^ ":"),
+                   ^ succ_str
+                   ^ ":"),
                  edge_pos );
              ])
            scc)
@@ -468,12 +469,15 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
              in
              [
                ( Some
-                   ("Cyclic exception for definition of variable \"" ^ var_str
-                  ^ "\", declared here:"),
+                   ("Cyclic exception for definition of variable \""
+                   ^ var_str
+                   ^ "\", declared here:"),
                  Marked.get_mark var_info );
                ( Some
                    ("Used here in the definition of another cyclic exception \
-                     for defining \"" ^ var_str ^ "\":"),
+                     for defining \""
+                   ^ var_str
+                   ^ "\":"),
                  List.hd edge_pos );
              ])
            scc)

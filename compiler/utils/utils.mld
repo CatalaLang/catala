@@ -37,8 +37,8 @@ Related modules:
 
 {!modules: Utils.Errors}
 
-{1 File utilities}
+{1 Other utilies}
 
 Related modules:
 
-{!modules: Utils.File}
+{!modules: Utils.File Utils.String_common}

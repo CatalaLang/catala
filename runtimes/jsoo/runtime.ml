@@ -91,12 +91,15 @@ let event_manager : event_manager Js.t =
       Js.wrap_meth_callback (fun () ->
           Js.array
             (Array.of_list
-               (R_ocaml.retrieve_log () |> R_ocaml.EventParser.parse_raw_events
+               (R_ocaml.retrieve_log ()
+               |> R_ocaml.EventParser.parse_raw_events
                |> List.map (fun event ->
                       object%js
                         val mutable data =
-                          event |> R_ocaml.yojson_of_event
-                          |> Yojson.Safe.to_string |> Js.string
+                          event
+                          |> R_ocaml.yojson_of_event
+                          |> Yojson.Safe.to_string
+                          |> Js.string
                       end))))
 
     method retrieveRawEvents =
@@ -130,7 +133,8 @@ let event_manager : event_manager Js.t =
                         | EndCall _ | BeginCall _ | DecisionTaken _ ->
                           R_ocaml.unembeddable ())
                         |> R_ocaml.yojson_of_runtime_value
-                        |> Yojson.Safe.to_string |> Js.string
+                        |> Yojson.Safe.to_string
+                        |> Js.string
 
                       val mutable sourcePosition =
                         match evt with

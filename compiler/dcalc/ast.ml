@@ -463,14 +463,17 @@ let rec free_vars_expr (e : 'm marked_expr) : VarSet.t =
   | EInj (e1, _, _, _) ->
     free_vars_expr e1
   | EApp (e1, es) | EMatch (e1, es, _) ->
-    e1 :: es |> List.map free_vars_expr
+    e1 :: es
+    |> List.map free_vars_expr
     |> List.fold_left VarSet.union VarSet.empty
   | EDefault (es, ejust, econs) ->
-    ejust :: econs :: es |> List.map free_vars_expr
+    ejust :: econs :: es
+    |> List.map free_vars_expr
     |> List.fold_left VarSet.union VarSet.empty
   | EOp _ | ELit _ -> VarSet.empty
   | EIfThenElse (e1, e2, e3) ->
-    [e1; e2; e3] |> List.map free_vars_expr
+    [e1; e2; e3]
+    |> List.map free_vars_expr
     |> List.fold_left VarSet.union VarSet.empty
   | EAbs (binder, _) ->
     let vs, body = Bindlib.unmbind binder in
@@ -672,7 +675,8 @@ let rec equal_exprs (e1 : 'm marked_expr) (e2 : 'm marked_expr) : bool =
   | EAssert e1, EAssert e2 -> equal_exprs e1 e2
   | EOp op1, EOp op2 -> equal_ops op1 op2
   | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
-    equal_exprs def1 def2 && equal_exprs cons1 cons2
+    equal_exprs def1 def2
+    && equal_exprs cons1 cons2
     && equal_exprs_list exc1 exc2
   | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
     equal_exprs if1 if2 && equal_exprs then1 then2 && equal_exprs else1 else2

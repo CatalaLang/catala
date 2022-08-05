@@ -16,7 +16,7 @@
 
 open Utils
 open Ast
-open Backends
+open String_common
 module D = Dcalc.Ast
 
 let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
@@ -148,7 +148,10 @@ let avoid_keywords (s : string) : string =
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
   Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-  |> to_ascii |> to_lowercase |> avoid_keywords |> Format.fprintf fmt "%s"
+  |> to_ascii
+  |> to_snake_case
+  |> avoid_keywords
+  |> Format.fprintf fmt "%s"
 
 let format_to_module_name
     (fmt : Format.formatter)
@@ -156,9 +159,13 @@ let format_to_module_name
   (match name with
   | `Ename v -> Format.asprintf "%a" D.EnumName.format_t v
   | `Sname v -> Format.asprintf "%a" D.StructName.format_t v)
-  |> to_ascii |> to_lowercase |> avoid_keywords |> String.split_on_char '_'
+  |> to_ascii
+  |> to_snake_case
+  |> avoid_keywords
+  |> String.split_on_char '_'
   |> List.map String.capitalize_ascii
-  |> String.concat "" |> Format.fprintf fmt "%s"
+  |> String.concat ""
+  |> Format.fprintf fmt "%s"
 
 let format_struct_field_name
     (fmt : Format.formatter)
@@ -175,7 +182,7 @@ let format_enum_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumName.t) : unit
     =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_lowercase
+       (to_snake_case
           (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v))))
 
 let format_enum_cons_name
@@ -237,7 +244,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : 'm var) : unit =
-  let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
+  let lowercase_name = to_snake_case (to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
       ~subst:(fun _ -> "_dot_")
@@ -246,10 +253,12 @@ let format_var (fmt : Format.formatter) (v : 'm var) : unit =
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
   if
     List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-    || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
+    || begins_with_uppercase (Bindlib.name_of v)
   then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
-  else Format.fprintf fmt "%s_" lowercase_name
+  else (
+    Cli.debug_print "lowercase_name: %s " lowercase_name;
+    Format.fprintf fmt "%s_" lowercase_name)
 
 let needs_parens (e : 'm marked_expr) : bool =
   match Marked.unmark e with

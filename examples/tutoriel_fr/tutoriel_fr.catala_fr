@@ -1,4 +1,4 @@
-## Tutoriel d'utilisation du langage Catala
+# Tutoriel d'utilisation du langage Catala
 
 Bienvenue dans ce tutoriel, son objectif est de vous accompagner dans les
 fonctionnalités du langage Catala et de vous apprendre à annoter des textes
@@ -13,7 +13,7 @@ en informatique devraient pouvoir s'en sortir.
 # la référence pour le langage.
 ```
 
-### Programmation littéraire
+## Programmation littéraire
 
 Pour commencer à écrire un programme Catala, vous devez partir du texte
 d'une source législative qui va justifier le code que vous écrirez.
@@ -34,7 +34,7 @@ diminuer l'importance du titre en augmentant le nombre de "#" après le titre de
 l'entête.
 Étudions un exemple fictif qui définit un impôt sur le revenu.
 
-#### Article 1
+### Article 1
 
 L'impôt sur le revenu d'un individu est calculé en tant qu'un pourcentage
 fixe des revenus d'une personne pour une année.
@@ -52,7 +52,7 @@ et aussi proche que possible de la phrase qui justifie le code. Ce style
 s'appelle programmation littéraire, un paradigme de programmation inventé par le
 célèbre informaticien Donald Knuth dans les années 70.
 
-### Définir un impôt sur le revenu fictif
+## Définir un impôt sur le revenu fictif
 
 Le contenu de l'article 1 utilise beaucoup d'éléments du contexte implicite :
 il existe une personne avec un revenu et en même temps un impôt sur le revenu,
@@ -128,7 +128,7 @@ déclaration champ d'application CalculImpôtRevenu:
 Nous avons maintenant tout ce dont nous avons besoin pour annoter le contenu
 de l'article 1 qui a été copié ci-dessous.
 
-#### Article 1
+### Article 1
 
 L'impôt sur le revenu pour une personne est défini comme un pourcentage fixe
 des revenus de la personne pour une année.
@@ -162,7 +162,7 @@ Mais dans l'article 1, une question reste sans réponse: quelle est la valeur
 de la pourcentage fixe? Souvent, des valeurs précises sont définis ailleurs
 dans les sources législatives. Ici, supposons que nous avons:
 
-#### Article 2
+### Article 2
 
 Le pourcentage fixe mentionné à l'article 1 est égal à 20%.
 
@@ -176,12 +176,12 @@ Vous pouvez voir ici que Catala permet des définitions réparties dans toute
 l'annotation du texte législatif, afin que chaque définition soit le plus
 proche possible de sa localisation dans le texte.
 
-### Définitions conditionnelles
+## Définitions conditionnelles
 
 Jusqu'à là tout va bien mais maintenant le texte législatif présente quelques
 difficultés. Supposons que le troisième article dispose :
 
-#### Article 3
+### Article 3
 
 Si l'individu a à sa charge deux ou plus enfants alors
 le pourcentage fixe mentionné à l'article 1 vaut 15 %.
@@ -210,7 +210,7 @@ une seule condition soit vraie à tout moment. Toutefois, si ce n'est pas le cas
 Catala vous permettra de définir un ordre des priorités sur les conditions,
 qui doit être justifié par un raisonnement juridique.
 
-### Fonctions
+## Fonctions
 
 Catala vous permet de définir des fonctions partout dans vos données. Voici
 à quoi cela ressemble dans la définition des métadonnées quand nous voulons
@@ -229,7 +229,7 @@ déclaration champ d'application CalculImpôtDeuxTranches :
 
 Et dans le code :
 
-#### Article4
+### Article4
 
 Le montant d'impôt pour le calcul à deux tranches
 est égal au montant d'impôt dans chaque tranche multiplié
@@ -246,13 +246,13 @@ champ d'application CalculImpôtDeuxTranches :
     )
 ```
 
-### Inclusion de champ d'application
+## Inclusion de champ d'application
 
 Maintenant que nous avons défini notre champ d'application utilitaire pour
 calculer un impôt à deux tranches, nous voulons l'utiliser dans notre champ
 d'application principal de calcul de l'impôt.
 
-#### Article 5
+### Article 5
 
 Pour les individus dont le revenu est supérieur à 100 000€,
 l'impôt sur le revenu de l'article 1 est de 40% du revenu au-dessus de
@@ -278,7 +278,7 @@ champ d'application NouveauCalculImpôtRevenu :
     deux_tranches.formule_imposition de personne.revenu
 ```
 
-#### Article 6
+### Article 6
 
 Les personnes ayant moins de 10 000€ de revenus sont exemptés de l'impôt
 sur le revenu prévu à l'article 1.
@@ -300,7 +300,7 @@ La loi ne le précise pas; nos articles sont clairement mal rédigés.
 Mais Catala vous aide à trouver ce genre d'erreur par de simples tests ou
 même la vérification formelle. Commençons par les tests.
 
-### Tester les programmes Catala
+## Tester les programmes Catala
 
 Tester les programmes Catala peut se faire directement en Catala. En effet,
 écrire des cas de tests pour chaque champ d'application Catala que vous
@@ -308,7 +308,7 @@ définissez est une bonne pratique appelée "tests unitaires" dans la
 communauté du génie logicielle. Les cas de test sont définis dans des
 champ d'application :
 
-#### Tester NouveauCalculImpotRevenu
+### Tester NouveauCalculImpotRevenu
 
 ```catala
 déclaration champ d'application Test1:
@@ -356,7 +356,7 @@ Ce cas de test devrait calculer un impôt sur le revenu de 0€,
 en raison de l'article 6. Mais au lieu de cela, l'exécution produira
 une erreur car il y a un conflit entre les règles.
 
-### Définir des exceptions à des règles
+## Définir des exceptions à des règles
 
 En effet, la définition d'un impôt sur le revenu à l'article 6 entre en
 conflit avec la définition de l'article 5. Mais en réalité, l'article 6
@@ -364,7 +364,7 @@ est une simple exception à l'article 5. Dans la loi, il est implicite que
 si l'article 6 est applicable, alors son application est prioritaire
 sur l'article 5.
 
-#### Régler correctement le calcul
+### Régler correctement le calcul
 
 Cette priorité implicite doit être explicitement déclaré en Catala. Voici une
 version correcte du champ d'application NouveauCalculImpotRevenu :
@@ -413,7 +413,7 @@ champ d'application Test3:
   assertion impôt_revenu = 0€
 ```
 
-### Conclusion
+## Conclusion
 
 Ce tutoriel présente les concepts de base et la syntaxe des fonctionnalités
 du langage Catala. C'est à vous de les utiliser pour annoter du texte

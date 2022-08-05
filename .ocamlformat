@@ -9,3 +9,5 @@ cases-exp-indent=2
 indicate-multiline-delimiters=no
 parens-tuple=multi-line-only
 space-around-lists=false
+break-infix-before-func
+break-infix= fit-or-vertical
