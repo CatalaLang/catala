@@ -16,12 +16,13 @@
 
 let to_ascii : string -> string = Ubase.from_utf8
 
-let is_uppercase (c : char) : bool =
+let is_uppercase_ascii (c : char) : bool =
   let c = Char.code c in
+  (* 'A' <= c && c <= 'Z' *)
   0x41 <= c && c <= 0x5b
 
 let begins_with_uppercase (s : string) : bool =
-  if "" = s then false else is_uppercase (to_ascii s).[0]
+  if "" = s then false else is_uppercase_ascii (to_ascii s).[0]
 
 let to_snake_case (s : string) : string =
   let out = ref "" in
@@ -29,7 +30,7 @@ let to_snake_case (s : string) : string =
   |> String.iteri (fun i c ->
          out :=
            !out
-           ^ (if is_uppercase c && 0 <> i then "_" else "")
+           ^ (if is_uppercase_ascii c && 0 <> i then "_" else "")
            ^ String.lowercase_ascii (String.make 1 c));
   !out
 

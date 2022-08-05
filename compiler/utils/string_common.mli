@@ -21,12 +21,12 @@ val to_ascii : string -> string
 (** Removes all non-ASCII diacritics from a string by converting them to their
     base letter in the Latin alphabet. *)
 
-val is_uppercase : char -> bool
-(** [is_uppercase c] returns if [c] is the set ['A'...'Z']. *)
+val is_uppercase_ascii : char -> bool
+(** [is_uppercase c] returns if [c] is in the set ['A'...'Z']. *)
 
 val begins_with_uppercase : string -> bool
-(** [begins_with_uppercase s] returns if the first letter of [s] is
-    [is_uppercase]. If [s] is empty returns false. *)
+(** [begins_with_uppercase s] returns if the first letter of [s]
+    {!is_uppercase_ascii}. If [s] is empty returns false. *)
 
 val to_snake_case : string -> string
 (** Converts CamlCase into snake_case after removing Remove all diacritics on
