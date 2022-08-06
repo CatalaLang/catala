@@ -182,9 +182,10 @@ let check_exceeding_lines
     (start_line : int)
     (filename : string)
     (content : string) =
-  content |> String.split_on_char '\n'
+  content
+  |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
-         if CamomileLibrary.UTF8.length s > max_len then (
+         if String.length s > max_len then (
            Cli.warning_print "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
                 ANSITerminal.[Bold; yellow]
@@ -216,7 +217,7 @@ let rec law_structure_to_latex
       | 6 -> "subsubsubsubsubsubsection"
       | 7 -> "paragraph"
       | _ -> "subparagraph")
-      (pre_latexify (Pos.unmark heading.law_heading_name));
+      (pre_latexify (Marked.unmark heading.law_heading_name));
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
       (law_structure_to_latex language print_only_law)
@@ -241,10 +242,10 @@ let rec law_structure_to_latex
        ```catala\n\
        %s```\n\
        \\end{minted}"
-      (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-      (Pos.get_start_line (Pos.get_position c) - 1)
+      (pre_latexify (Filename.basename (Pos.get_file (Marked.get_mark c))))
+      (Pos.get_start_line (Marked.get_mark c) - 1)
       (get_language_extension language)
-      (Pos.unmark c)
+      (Marked.unmark c)
   | A.CodeBlock (_, c, true) when not print_only_law ->
     let metadata_title =
       match language with
@@ -252,9 +253,9 @@ let rec law_structure_to_latex
       | En -> "Metadata"
       | Pl -> "Metadane"
     in
-    let start_line = Pos.get_start_line (Pos.get_position c) - 1 in
-    let filename = Filename.basename (Pos.get_file (Pos.get_position c)) in
-    let block_content = Pos.unmark c in
+    let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
+    let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
+    let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     Format.fprintf fmt
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \

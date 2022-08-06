@@ -1,0 +1,13 @@
+## Test
+
+```catala
+declaration scope Foo:
+  output bar content integer
+
+scope Foo:
+  definition bar equals 0
+```
+
+```catala-test {id="Lcalc"}
+catala Lcalc -s Foo
+```

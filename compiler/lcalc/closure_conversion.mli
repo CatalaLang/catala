@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2021 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,14 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Helper functions common to all Catala compiler backends *)
-
-val to_ascii : string -> string
-(** Removes all non-ASCII diacritics from a string by converting them to their
-    base letter in the Latin alphabet *)
-
-val to_lowercase : string -> string
-(** Converts CamlCase into snake_case *)
-
-val to_uppercase : string -> string
-(** Convertes snake_case into CamlCase *)
+val closure_conversion : 'm Ast.program -> 'm Ast.program Bindlib.box
+(** Warning/todo: no effort was yet made to ensure correct propagation of type
+    annotations in the typed case *)

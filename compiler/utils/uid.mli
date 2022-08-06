@@ -23,7 +23,7 @@ module type Info = sig
   val format_info : Format.formatter -> info -> unit
 end
 
-module MarkedString : Info with type info = string Pos.marked
+module MarkedString : Info with type info = string Marked.pos
 (** The only kind of information carried in Catala identifiers is the original
     string of the identifier annotated with the position where it is declared or
     used. *)

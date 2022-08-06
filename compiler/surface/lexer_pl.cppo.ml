@@ -29,6 +29,7 @@
 #define MS_INCREASING "rosnacy"
 #define MS_OF "z"
 #define MS_COLLECTION "kolekcja"
+#define MS_CONTAINS "zawiera"
 #define MS_ENUM "enumeracja"
 #define MS_INTEGER "calkowita"
 #define MS_MONEY "pieniądze"
@@ -113,12 +114,20 @@
 #define MR_RoundMoney "zaokr",0x0105,"glony_pieni", 0x0105, "dze"
 #define MS_IntToDec "calkowita_wers_dziesiętny"
 #define MR_IntToDec "calkowita_wers_dziesi", 0x0119, "tny"
+#define MS_MoneyToDec "pieniądze_wers_dziesiętny"
+#define MR_MoneyToDec "pieni", 0x0105, "dze_wers_dziesi", 0x0119, "tny"
+#define MS_DecToMoney "dziesiętny_wers_pieniądze"
+#define MR_DecToMoney "dziesi", 0x0119, "tny_wers_pieni", 0x0105, "dze"
 #define MS_GetDay "dostęp_dzień"
 #define MR_GetDay "dost", 0x0119, "p_dzie", 0x144
 #define MS_GetMonth "dostęp_miesiąc"
 #define MR_GetMonth "dost", 0x0119, "p_miesi", 0x0105, "c"
 #define MS_GetYear "dostęp_rok"
 #define MR_GetYear "dost", 0x0119, "p_rok"
+#define MS_FirstDayOfMonth "pierwszy_dzień_miesiąca"
+#define MR_FirstDayOfMonth "pierwszy_dzie", 0x144, "_miesi", 0x0105, "ca"
+#define MS_LastDayOfMonth "ostatni_dzień_miesiąca"
+#define MR_LastDayOfMonth "ostatni_dzie", 0x144, "_miesi", 0x0105, "ca"
 
 (* Directives *)
 

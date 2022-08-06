@@ -121,7 +121,7 @@ champ d'application OuvertureDroitsRetraite:
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition ouverture_droits_retraite.date_naissance_assuré égal à
-    demandeur.date_naissance
+    demandeur.Demandeur.date_naissance
   définition âge_l161_17_2_sécu égal à
     ouverture_droits_retraite.âge_ouverture_droit
 ```

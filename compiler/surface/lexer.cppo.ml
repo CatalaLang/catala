@@ -59,6 +59,9 @@ module R = Re.Pcre
 #ifndef MR_COLLECTION
   #define MR_COLLECTION MS_COLLECTION
 #endif
+#ifndef MR_CONTAINS
+  #define MR_CONTAINS MS_CONTAINS
+#endif
 #ifndef MR_ENUM
   #define MR_ENUM MS_ENUM
 #endif
@@ -221,6 +224,12 @@ module R = Re.Pcre
 #ifndef MR_IntToDec
   #define MR_IntToDec MS_IntToDec
 #endif
+#ifndef MR_MoneyToDec
+  #define MR_MoneyToDec MS_MoneyToDec
+#endif
+#ifndef MR_DecToMoney
+  #define MR_DecToMoney MS_DecToMoney
+#endif
 #ifndef MR_RoundMoney
   #define MR_RoundMoney MS_RoundMoney
 #endif
@@ -235,6 +244,12 @@ module R = Re.Pcre
 #endif
 #ifndef MR_GetYear
   #define MR_GetYear MS_GetYear
+#endif
+#ifndef MR_FirstDayOfMonth
+  #define MR_FirstDayOfMonth MS_FirstDayOfMonth
+#endif
+#ifndef MR_LastDayOfMonth
+  #define MR_LastDayOfMonth MS_LastDayOfMonth
 #endif
 #ifndef MR_INPUT
   #define MR_INPUT MS_INPUT
@@ -258,6 +273,7 @@ let token_list : (string * token) list =
     (MS_INCREASING, INCREASING);
     (MS_OF, OF);
     (MS_COLLECTION, COLLECTION);
+    (MS_CONTAINS, CONTAINS);
     (MS_ENUM, ENUM);
     (MS_INTEGER, INTEGER);
     (MS_MONEY, MONEY);
@@ -322,9 +338,13 @@ let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
   | MR_IntToDec, eof -> Some IntToDec
+  | MR_DecToMoney, eof -> Some DecToMoney
+  | MR_MoneyToDec, eof -> Some MoneyToDec
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear
+  | MR_FirstDayOfMonth -> Some FirstDayOfMonth
+  | MR_LastDayOfMonth -> Some LastDayOfMonth
   | MR_RoundMoney, eof -> Some RoundMoney
   | MR_RoundDecimal, eof -> Some RoundDecimal
   | _ -> None
@@ -394,6 +414,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_COLLECTION ->
       L.update_acc lexbuf;
       COLLECTION
+  | MR_CONTAINS ->
+      L.update_acc lexbuf;
+      CONTAINS
   | MR_ENUM ->
       L.update_acc lexbuf;
       ENUM
@@ -572,10 +595,26 @@ let rec lex_code (lexbuf : lexbuf) : token =
       Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
       L.update_acc lexbuf;
       MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
-  | Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
+  | Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2) ->
     let rex =
       Re.(compile @@ whole_string @@ seq [
-          group (rep1 digit);
+          group (repn digit 4 None);
+          char '-';
+          group (repn digit 2 None);
+          char '-';
+          group (repn digit 2 None);
+        ])
+    in
+    let date_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
+    DATE_LITERAL (
+      int_of_string (date_parts 1),
+      int_of_string (date_parts 2),
+      int_of_string (date_parts 3)
+    )
+  | Opt '-', Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
+    let rex =
+      Re.(compile @@ whole_string @@ seq [
+          group (seq [opt (char '-') ; rep1 digit]);
           char MC_DECIMAL_SEPARATOR;
           group (rep digit)
         ]) in
@@ -750,7 +789,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Name of variable *)
       L.update_acc lexbuf;
       IDENT (Utf8.lexeme lexbuf)
-  | Plus digit ->
+  | Opt '-', Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;
       INT_LITERAL (Utf8.lexeme lexbuf)

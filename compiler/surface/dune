@@ -10,7 +10,7 @@
   scopelang
   zarith
   zarith_stubs_js
-  calendar)
+  dates_calc)
  (preprocess
   (pps sedlex.ppx visitors.ppx)))
 
@@ -37,6 +37,11 @@
  (modules tokens parser)
  (merge_into parser)
  (flags --external-tokens Tokens --table --explain))
+
+(rule
+ (target grammar.html)
+ (action
+  (run obelisk html -o %{target} %{dep:parser.mly})))
 
 (documentation
  (package catala)

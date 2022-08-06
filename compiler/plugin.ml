@@ -14,13 +14,23 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type 'ast plugin_apply_fun_typ =
+  source_file:Utils.Pos.input_file ->
+  output_file:string option ->
+  scope:string option ->
+  'ast ->
+  Scopelang.Dependency.TVertex.t list ->
+  unit
+
 type 'ast gen = {
   name : string;
   extension : string;
-  apply : string option -> 'ast -> Scopelang.Dependency.TVertex.t list -> unit;
+  apply : 'ast plugin_apply_fun_typ;
 }
 
-type t = Lcalc of Lcalc.Ast.program gen | Scalc of Scalc.Ast.program gen
+type t =
+  | Lcalc of Dcalc.Ast.untyped Lcalc.Ast.program gen
+  | Scalc of Scalc.Ast.program gen
 
 let name = function Lcalc { name; _ } | Scalc { name; _ } -> name
 let backend_plugins : (string, t) Hashtbl.t = Hashtbl.create 17

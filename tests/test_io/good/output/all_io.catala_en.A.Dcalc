@@ -1,18 +1,14 @@
 let A =
-  λ (A_in_31: A_in{"c_in": integer; "d_in": integer; "e_in":
+  λ (A_in_21: A_in{"c_in": integer; "d_in": integer; "e_in":
                  unit → integer; "f_in": unit → integer}) →
-    let c_32 : integer = A_in_31."c_in" in
-    let d_33 : integer = A_in_31."d_in" in
-    let e_34 : unit → integer = A_in_31."e_in" in
-    let f_35 : unit → integer = A_in_31."f_in" in
-    let a_36 : integer = error_empty ⟨⟨true ⊢ 0⟩ | false ⊢ ∅ ⟩
-      in
-    let b_37 : integer = error_empty
-      ⟨⟨true ⊢ a_36 + 1⟩ | false ⊢ ∅ ⟩ in
-    let e_38 : integer = error_empty
-      ⟨e_34 () | true ⊢
-        ⟨⟨true ⊢ b_37 + c_32 + d_33 + 1⟩ | false ⊢ ∅ ⟩⟩ in
-    let f_39 : integer = error_empty
-      ⟨f_35 () | true ⊢ ⟨⟨true ⊢ e_38 + 1⟩ | false ⊢ ∅ ⟩⟩
-      in
-    A_out {"b_out"= b_37; "d_out"= d_33; "f_out"= f_39}
+    let c_22 : integer = A_in_21."c_in" in
+    let d_23 : integer = A_in_21."d_in" in
+    let e_24 : unit → integer = A_in_21."e_in" in
+    let f_25 : unit → integer = A_in_21."f_in" in
+    let a_26 : integer = error_empty ⟨true ⊢ 0⟩ in
+    let b_27 : integer = error_empty ⟨true ⊢ a_26 + 1⟩ in
+    let e_28 : integer = error_empty
+      ⟨e_24 () | true ⊢ ⟨true ⊢ b_27 + c_22 + d_23 + 1⟩⟩ in
+    let f_29 : integer = error_empty
+      ⟨f_25 () | true ⊢ ⟨true ⊢ e_28 + 1⟩⟩ in
+    A_out {"b_out"= b_27; "d_out"= d_23; "f_out"= f_29}

@@ -6,34 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up OCaml
-        uses: avsm/setup-ocaml@v2
-        with:
-          ocaml-compiler: 4.11.x
-          dune-cache: true
-
-      - name: Install external dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install python3-dev virtualenv \
-            python3-setuptools python3-pip python3-pygments man2html rsync \
-            colordiff npm nodejs libmpc-dev ninja-build pandoc
-          sudo python3 -m pip install --upgrade pip
-          sudo python3 -m pip install virtualenv
-          sudo make pygments
-          ./french_law/python/setup_env.sh
-      - name: Install OCaml dependencies
-        run: |
-          make dependencies-ocaml-with-z3
-      - name: Make build
-        run: |
-          OCAMLRUNPARAM=b opam exec -- make build
-
   build-nix-flake:
     runs-on: ubuntu-latest
     steps:

@@ -1,7 +1,7 @@
 (library
  (name scalc)
  (public_name catala.scalc)
- (libraries bindlib lcalc runtime))
+ (libraries bindlib lcalc catala.runtime_ocaml))
 
 (documentation
  (package catala)

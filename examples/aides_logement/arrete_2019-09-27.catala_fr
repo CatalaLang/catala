@@ -21,20 +21,25 @@ champ d'application RessourcesAidesPersonnelleLogement:
   définition montant_forfaitaire_r_822_8 égal à 2 589€
 ```
 
-### Article 6 | LEGIARTI000045011471
+### Article 6 | LEGIARTI000046126949
 
 Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
-égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
-pour la location et à 6 000 euros pour la résidence en logement-foyer.
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 8 100 euros
+pour la location et à 6 200 euros pour la résidence en logement-foyer.
 
 Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
-pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
-pour la location et à 4 900 euros pour la résidence en logement-foyer.
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 500 euros
+pour la location et à 5 100 euros pour la résidence en logement-foyer.
 
 ```catala
 # TODO informatique et juridique: traduire cet article qui vient définir
 # ressources_forfaitaires_r822_20
 ```
+
+NOTA:
+
+Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
+ces dispositions sont applicables pour les prestations dues à compter du 1er juillet 2022.
 
 ## Chapitre III : Calcul des aides personnelles au logement en secteur locatif
 
@@ -221,7 +226,7 @@ du 1er octobre 2021.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
-  définition montant_forfaitaire_charges_d823_16 égal à
+  étiquette base définition montant_forfaitaire_charges_d823_16 égal à
     54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
@@ -294,8 +299,11 @@ défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,3
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition participation_minimale égal à
-    si loyer_éligible *€ 8,5% >=€ 35,39 € alors
-      loyer_éligible *€ 8,5%
+    si
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16)
+        *€ 8,5% >=€ 35,39 €
+    alors
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16) *€ 8,5%
     sinon
       35,39 €
 ```
@@ -310,7 +318,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 Pour l'application de l'article D. 823-17 du même code, le taux de participation
 personnelle Tp du ménage, exprimé en pourcentage, est calculé selon la formule suivante :
 
-$$\text{Tp} = \text{TF} + \text{TL}$$
+$$\textrm{Tp} = \textrm{TF} + \textrm{TL}$$
 
 dans laquelle :
 
@@ -323,32 +331,16 @@ Bénéficiaires                                        TF
 ---------------------------------------------------- ------
 Isolé	                                               2,83%
 Couple sans personne à charge	                       3,15%
-Personne seule ou couple ayant une personne à charge 2,70%
-2 enfants ou 2 personnes                             2,38%
-3 enfants ou 3 personnes                             2,01%
-4 enfants ou 4 personnes                             1,85%
-5 enfants ou 5 personnes                             1,79%
-6 enfants ou 6 personnes                             1,73%
-Majoration par personne à charge	                   -0,06%
+Personne seule ou couple ayant:
+une personne à charge                                2,70%
+2 personnes à charge                                 2,38%
+3 personnes à charge                                 2,01%
+4 personnes à charge                                 1,85%
+5 personnes à charge                                 1,79%
+6 personnes à charge                                 1,73%
+Majoration par personne à charge supplémentaire     -0,06%
 
 ```catala
-# La distinction enfants/personnes est-elle juste
-# un artefact de rédaction ou y-a-t-il vraiment une différence de calcul dans
-# le cas où e.g. il y a 3 enfants + 2 adultes à charges : doit on prendre 1,79%
-# ou 2,01% ?
-# Réponse de DGALN/DHUP/FE4 du 25/05/2022:
-# "Non pas de différence, « X enfants ou X personnes » signifie « personne seule
-#  ou couple ayant X personnes à charge » (ainsi, dans le cas d’un couple avec
-#  3 enfants à charge et 2 adultes à charge, il faut prendre la ligne « 5
-#  enfants ou personnes », soit la valeur 1,79 %).
-#  Nous notons le point pour uniformiser les rédactions (également pour le
-#  tableau du 4° de l’article 46, correspondant aux valeurs pour l’outre-mer)."
-# Que se passe-t-il quand il y a 29 personnes à charge et que le taux devient
-# négatif?
-# Réponse de DGALN/DHUP/FE4 du 25/05/2022:
-# "Cette situation étant très éloignée de la réalité elle n’a pas été traitée."
-# Nous sommes donc libres de choisir une interprétation, et nous choisissons
-# donc de laisser courir cette valeur dans le territoire négatif.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition taux_composition_familiale égal à
@@ -377,7 +369,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 ```
 
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
-RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : $\text{RL} = \text{L} / \text{LR}$.
+RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : $\textrm{RL} = \textrm{L} / \textrm{LR}$.
 
 RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
@@ -400,9 +392,9 @@ au 3° de l'article D. 823-17 du même code sont fixés comme suit :
 TL est exprimé en pourcentage et arrondi à la troisième décimale.
 Le tableau suivant traduit cette formule :
 
-Si $\text{RL}<45\%$ Si $45\% < \text{RL} < 75\%$               Si $\text{RL} >75 \%$
+Si $\textrm{RL}<45\%$ Si $45\% < \textrm{RL} < 75\%$               Si $\textrm{RL} >75 \%$
 ------------------- ------------------------------------------ -----------------------------------------------------------
-$\text{TL}=0 \%$    $\text{TL}=0,45 \%\times (\text{RL}-45\%)$ $\text{TL}=0,45\%\times30 \%+0,68 \%\times(\text{RL}-75\%)$
+$\textrm{TL}=0 \%$    $\textrm{TL}=0,45 \%\times (\textrm{RL}-45\%)$ $\textrm{TL}=0,45\%\times30 \%+0,68 \%\times(\textrm{RL}-75\%)$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -447,53 +439,53 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
-### Article 15 | LEGIARTI000045011468
+### Article 15 | LEGIARTI000046126962
 
 Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
 le tableau suivant (en euros) :
 
 Composition du foyer	                     MONTANT  (en euros)
 -----------------------------------------  -------------------
-Personne seule sans personne à charge	     4 683
-Couple sans personne à charge	             6 709
+Personne seule sans personne à charge	     4 870
+Couple sans personne à charge	             6 977
 Personne seule ou couple ayant :
-    - une personne à charge	               8 002
-    - deux personnes à charge	             8 182
-    - trois personnes à charge	           8 495
-    - quatre personnes à charge	           8 811
-    - cinq personnes à charge	             9 124
-    - six personnes à charge               9 439
-    - par personne à charge supplémentaire 311
+    - une personne à charge	               8 322
+    - deux personnes à charge	             8 509
+    - trois personnes à charge	           8 834
+    - quatre personnes à charge	           9 163
+    - cinq personnes à charge	             9 488
+    - six personnes à charge               9 816
+    - par personne à charge supplémentaire 323
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-01-01|:
+  sous condition date_courante >=@ |2022-07-01|:
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 4 683 €
-      -- Couple: 6709 €
+      -- PersonneSeule: 4 870 €
+      -- Couple: 6 977 €
     sinon (si nombre_personnes_à_charge = 1 alors
-      8 002 €
+      8 322 €
     sinon (si nombre_personnes_à_charge = 2 alors
-      8 192 €
+      8 509 €
     sinon (si nombre_personnes_à_charge = 3 alors
-      8 495 €
+      8 834 €
     sinon (si nombre_personnes_à_charge = 4 alors
-      8 811 €
+      9 163 €
     sinon (si nombre_personnes_à_charge = 5 alors
-      9 124 €
+      9 488 €
     sinon (si nombre_personnes_à_charge = 6 alors
-      9 439 €
+      9 816 €
     sinon
-      (9 439€ +€ (311 € *€ (entier_vers_décimal de
+      (9 816€ +€ (323 € *€ (entier_vers_décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 ```
 
 NOTA :
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
+ces dispositions sont applicables pour les prestations dues à compter du 1er juillet 2022.
 
 ### Article 16 | LEGIARTI000044137417
 
@@ -571,7 +563,7 @@ Majoration par personne à charge 12,29
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >=@ |2021-10-01| et colocation:
-  définition montant_forfaitaire_charges_d823_16 égal à
+  exception base définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
     -- Couple: 54,22€) +€
@@ -613,10 +605,6 @@ Par personne supplémentaire à charge	                   430	  379     346
 # l'avènement de l'euro mais pour le calcul des APL en euros il faut
 # que la mensualité plafond soit exprimée en euros. Donc nous convertissons.
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  # TODO juridique: trouver le décret ou la loi qui définit ce taux de
-  #  conversion.
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
-
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
@@ -1988,7 +1976,7 @@ DÉSIGNATION	                                             ZONE I ZONE II ZONE II
 Bénéficiaire isolé	                                     358,55 319,98  298,72
 Couple sans personne à charge	                           432,55 385,12  358,19
 Bénéficiaire isolé ou couple ayant une personne à charge 506,55 450,29  417,67
-Par personne supplémentaire à charge	                   73,99  65,15   459,47
+Par personne supplémentaire à charge	                   73,99  65,15   59,47
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
@@ -2020,38 +2008,8 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 298,72€
          -- Couple: 358,19€)
       sinon (417,67€ +€
-        # Attention ici valeur différente du décret car décret
-        # incorrect selon information DGALN/DHUP/FE4 du 25/04/2022
         59,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
-
-# Concernant l'erreur dans la valeur, voici la réponse intégrale de
-# DGALN/DHUP/FE4:
-# "Pour les deux valeurs indiquées, il faut lire « 59,47 » à la place de
-#  « 459,47 » et « 47,99 » à la place de « 347,99 » (les valeurs des centaines
-#  sont à supprimer).
-#  L’arrêté du 27/09/2019 fait suite à la recodification des APL dans le CCH,
-#  opérée à l’été 2019. Il reprend et regroupe plusieurs anciens arrêtés, dont
-#  celui du 03/07/1978.
-#  Les valeurs citées correspondent à celles en vigueur pour des prêts signés en
-#  2012 et découlent de l’arrêté du 28/12/2011 modifiant celui du 03/07/1978 :
-#  - la version JO « scannée » authentifiée de cet arrêté de 2011 (page 123 du
-#    JO du 30/12/2011) est correcte, avec les vraies valeurs, qui ont été
-#    intégrées dans les SI à l’époque (et le sont toujours).
-#    (https://www.legifrance.gouv.fr/download/pdf?id=MX15OwEPRjsyPR0h_40wx-7mT0ji9z3kMMVYU8Jy7sc=)
-#  - on constate cependant sur légifrance que la version remise en page comporte
-#    l’erreur (article 6, mais également article 5 pour des valeurs qui ont été
-#    « écrasées » depuis et ne sont donc pas reprises dans l’arrêté de 2019
-#    (https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000025054546)
-#  La correction a été demandé fin avril à légifrance, mais n’est pas encore
-#  effective.
-#  En conséquence, l’arrêté modifié de 1978 apparaissait erroné sur légifrance
-#  en 2019 (et jusqu’à fin avril 2022, légifrance l’ayant corrigé à la suite de
-#  notre signalement), lorsqu’il a servi de base pour la rédaction du nouvel
-#  arrêté du 27/09/2019.
-#  Nous procéderons à la correction de l’arrêté de 2019 lors de la prochaine
-#  revalorisation des barèmes. Dans l’attente, les valeurs SI ont toujours
-#  été correctes, sans impact dans le calcul des aides."
 ```
 
 
@@ -2063,7 +2021,7 @@ DÉSIGNATION	                                             ZONE I ZONE II ZONE II
 Bénéficiaire isolé	                                     288,61 257,28  240,27
 Couple sans personne à charge	                           348,29 309,87  288,24
 Bénéficiaire isolé ou couple ayant une personne à charge 407,96 362,44  336,23
-Par personne supplémentaire à charge	                   59,68  52,58   347,99
+Par personne supplémentaire à charge	                   59,68  52,58   47,99
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
@@ -2095,8 +2053,6 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 240,27€
          -- Couple: 288,24€)
       sinon (336,23€ +€
-        # Attention ici valeur différente du décret car décret
-        # incorrect selon information DGALN/DHUP/FE4 du 25/04/2022
         47,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
@@ -2565,7 +2521,7 @@ du 1er octobre 2021.
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété sous condition
   date_courante >=@ |2021-10-01|:
 
-  définition montant_forfaitaire_charges_d832_10 égal à
+  étiquette base définition montant_forfaitaire_charges_d832_10 égal à
     54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
@@ -2643,13 +2599,13 @@ Majoration par personne à charge 12,29
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
   sous condition date_courante >=@ |2021-10-01|:
-   exception définition montant_forfaitaire_charges_d832_10 sous condition
-     copropriété
-   conséquence égal à
-    (selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 27,10€
-      -- Couple: 54,22€) +€
-    12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    exception base définition montant_forfaitaire_charges_d832_10 sous condition
+      copropriété
+    conséquence égal à
+     (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 27,10€
+       -- Couple: 54,22€) +€
+     12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -2813,6 +2769,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 I. - Les pourcentages et les tranches de ressources intervenant dans le calcul de l'équivalence de loyer et
 de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du même code, sont fixés comme suit :
 
+a) Au premier alinéa :
+
 1° 4,00 % pour la tranche de ressources inférieure ou égale à 1 948,10 euros ;
 
 2° 10,40 % pour la tranche de ressources comprise entre 1 948,10 euros et 2 678,71 euros ;
@@ -2826,57 +2784,83 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26 égal à [
-    TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
     TrancheRevenu {
-      -- haut: Revenu contenu 2678,71€
+      -- haut: LimiteTranche.Revenu contenu 1948,10€
+      -- bas: 0€
+      -- taux: 4%
+    };
+    TrancheRevenu {
+      -- haut: LimiteTranche.Revenu contenu 2678,71€
       -- bas: 1948,10€
       -- taux: 10,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 3896,18€
+      -- haut: LimiteTranche.Revenu contenu 3896,18€
       -- bas: 2678,71€
       -- taux: 21,60%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 5 357,44€
+      -- haut: LimiteTranche.Revenu contenu 5 357,44€
       -- bas: 3896,18€
       -- taux: 26,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 6 331,29€
+      -- haut: LimiteTranche.Revenu contenu 6 331,29€
       -- bas: 5 357,44€
       -- taux: 32%
     };
-    TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
+    TrancheRevenu {
+      -- haut: LimiteTranche.Infini
+      -- bas: 6 331,29€
+      -- taux: 48%
+    }
   ]
+```
 
-  # Cette exception ne figure pas dans le texte de l'arrête mais cette absence
-  # nous a été confirmée comme une erreur de recodification par DLGAN/DHUP/FE4
-  # le 30/05/2022. Les valeurs et taux des tranches exceptionnelles sont
-  # décrites dans les éléments de calcul publiés par ce même bureau (page 33):
-  # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf
+b) Au deuxième alinéa :
+
+1° 0 % pour la tranche de ressources inférieure ou égale à 1 423,03 euros ;
+
+2° 2,40 % pour la tranche de ressources comprise entre 1 423,03 euros et 2 047,61 euros ;
+
+3° 20,80 % pour la tranche de ressources comprise entre 2 047,61 et 2 629,85 euros ;
+
+4° 23,20 % pour la tranche de ressources comprise entre 2 629,85 euros et 4 095,05 euros ;
+
+5° 32,80 % pour la tranche de ressources supérieure à 4 095,05 euros.
+
+```catala
+champ d'application CalculÉquivalenceLoyerMinimale:
   exception définition tranches_revenus_d832_26 sous condition
     condition_2_du_832_25
   conséquence égal à [
-    TrancheRevenu { -- haut: Revenu contenu 1423,03€  -- bas: 0€ -- taux: 0%};
     TrancheRevenu {
-      -- haut: Revenu contenu 2047,61€
+      -- haut: LimiteTranche.Revenu contenu 1423,03€
+      -- bas: 0€
+      -- taux: 0%
+    };
+    TrancheRevenu {
+      -- haut: LimiteTranche.Revenu contenu 2047,61€
       -- bas: 1423,03€
       -- taux: 2,40%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 2629,85€
+      -- haut: LimiteTranche.Revenu contenu 2629,85€
       -- bas: 2047,61€
       -- taux: 20,80%
     };
     TrancheRevenu {
-      -- haut: Revenu contenu 4095,05€
+      -- haut: LimiteTranche.Revenu contenu 4095,05€
       -- bas: 2629,85€
       -- taux: 23,20%
     };
-    TrancheRevenu { -- haut: Infini  -- bas: 4095,05€ -- taux: 32,80%}
+    TrancheRevenu {
+      -- haut: LimiteTranche.Infini
+      -- bas: 4095,05€
+      -- taux: 32,80%
+    }
   ]
 ```
 
@@ -2884,7 +2868,7 @@ II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas so
 fixés respectivement à 45,57 et 76,32.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculÉquivalenceLoyerMinimale:
   définition montant_forfaitaire_d832_26 égal à
     si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
 ```
@@ -2983,7 +2967,7 @@ Certificats datés          I       263,97    318,12    342,04   351,60   361,48
 
                            II      231,58    283,88	   307,32   317,97   328,92    339,72   363,78       31,63
 
-                           III     217,23    263,50    2987,27  299,15   311,18    323,06   347,13       30,09
+                           III     217,23    263,50    287,27  299,15   311,18    323,06   347,13       30,09
 
 Certificats datés          I       267,14    321,94    346,14   355,82   365,82    375,64   383,61       33,41
 à partir du
@@ -3095,16 +3079,6 @@ Conformément à l'article 2 de l'arrêté du 3 janvier 2020 ( NOR : LOGL1934006
 pour les prestations dues à compter du 1er janvier 2020.
 
 ```catala
-# Dans le bloc "Certificats datés à partir du 01/07/02", dans la ligne
-# correspondant à la zone III, dans la colonne "C+1", il est inscrit la valeur
-# "2987,27" qui est clairement aberrante par rapport aux autres valeurs.
-# Selon DGALN/DHUP/FE4 en date du 01/06/2022, la bonne valeur est "287,27"
-# qui provient de l'article 2 de l'arrêté du 20 décembre 2002 relatif à la
-# revalorisation des aides au logement
-
-champ d'application CalculAllocationLogementAccessionPropriété:
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
-
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
   date_courante >=@ |2020-01-01|:
 
@@ -3512,8 +3486,6 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 217,23 €
          -- Couple: 263,50€)
       sinon
-        # Première valeur différente de ce qui est marqué selon mail de
-        # DGALN/DHUP/FE4 du 01/06/2022.
         (si nombre_personnes_à_charge = 1 alors 287,27 € sinon
         (si nombre_personnes_à_charge = 2 alors 299,15 € sinon
         (si nombre_personnes_à_charge = 3 alors 311,18 € sinon

@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(* An integer number of cents *)
 type money = Z.t
 type integer = Z.t
 type decimal = Q.t
@@ -32,8 +33,8 @@ type source_position = {
 [@@deriving yojson_of]
 
 exception EmptyError
-exception AssertionFailed
-exception ConflictError
+exception AssertionFailed of source_position
+exception ConflictError of source_position
 exception UncomparableDurations
 exception IndivisableDurations
 exception ImpossibleDate
@@ -43,6 +44,9 @@ let money_of_cents_string (cents : string) : money = Z.of_string cents
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
 let money_of_cents_integer (cents : integer) : money = cents
 let money_to_float (m : money) : float = Z.to_float m /. 100.
+
+let money_of_decimal (d : decimal) : money =
+  Q.to_bigint (Q.mul d (Q.of_int 100))
 
 let money_to_string (m : money) : string =
   Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
@@ -104,6 +108,9 @@ let decimal_round (q : decimal) : decimal =
   let d = Q.den q in
   Q.of_bigint Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d))
 
+let decimal_of_money (m : money) : decimal =
+  Q.div (Q.of_bigint m) (Q.of_int 100)
+
 let integer_of_string (s : string) : integer = Z.of_string s
 let integer_to_string (i : integer) : string = Z.to_string i
 let integer_to_int (i : integer) : int = Z.to_int i
@@ -129,6 +136,16 @@ let date_of_numbers (year : int) (month : int) (day : int) : date =
 
 let date_to_string (d : date) : string =
   Format.asprintf "%a" Dates_calc.Dates.format_date d
+
+(* let first_day_of_month (d : date) : date =
+ *   date_of_numbers (CalendarLib.Date.year d)
+ *     (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+ *     1
+ *
+ * let last_day_of_month (d : date) : date =
+ *   date_of_numbers (CalendarLib.Date.year d)
+ *     (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+ *     (CalendarLib.Date.days_in_month d) *)
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
   Dates_calc.Dates.make_period ~years:year ~months:month ~days:day
@@ -428,16 +445,19 @@ module EventParser = struct
                 { pos = Some pos; name; value; fun_calls = Some fun_calls } )
           | event :: _ ->
             failwith
-              ("Invalid function call ([ " ^ String.concat ", " infos
-             ^ " ]): expected variable definition (function output), found: "
-             ^ raw_event_to_string event ^ "["
+              ("Invalid function call ([ "
+              ^ String.concat ", " infos
+              ^ " ]): expected variable definition (function output), found: "
+              ^ raw_event_to_string event
+              ^ "["
               ^ (nb_raw_events - List.length rest + 1 |> string_of_int)
               ^ "]")
           | [] ->
             failwith
-              ("Invalid function call ([ " ^ String.concat ", " infos
-             ^ " ]): expected variable definition (function output), found: \
-                end of tokens")
+              ("Invalid function call ([ "
+              ^ String.concat ", " infos
+              ^ " ]): expected variable definition (function output), found: \
+                 end of tokens")
         in
 
         parse_events { ctx with events = var_comp :: ctx.events; rest }
@@ -500,8 +520,13 @@ module EventParser = struct
 end
 
 let handle_default :
-      'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =
- fun exceptions just cons ->
+      'a.
+      source_position ->
+      (unit -> 'a) array ->
+      (unit -> bool) ->
+      (unit -> 'a) ->
+      'a =
+ fun pos exceptions just cons ->
   let except =
     Array.fold_left
       (fun acc except ->
@@ -509,7 +534,7 @@ let handle_default :
         match acc, new_val with
         | None, _ -> new_val
         | Some _, None -> acc
-        | Some _, Some _ -> raise ConflictError)
+        | Some _, Some _ -> raise (ConflictError pos))
       None exceptions
   in
   match except with
@@ -517,6 +542,7 @@ let handle_default :
   | None -> if just () then cons () else raise EmptyError
 
 let handle_default_opt
+    (pos : source_position)
     (exceptions : 'a eoption array)
     (just : bool eoption)
     (cons : 'a eoption) : 'a eoption =
@@ -526,7 +552,7 @@ let handle_default_opt
         match acc, except with
         | ENone _, _ -> except
         | ESome _, ENone _ -> acc
-        | ESome _, ESome _ -> raise ConflictError)
+        | ESome _, ESome _ -> raise (ConflictError pos))
       (ENone ()) exceptions
   in
   match except with

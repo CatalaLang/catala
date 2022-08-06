@@ -1,6 +1,7 @@
 (* This file is part of the French law library, a collection of functions for
    computing French taxes and benefits derived from Catala programs. Copyright
-   (C) 2021 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>
+   (C) 2021 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>, Emile
+   Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,15 +15,15 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Runtime_ocaml.Runtime
 module Allocations_familiales = Law_source.Allocations_familiales
 module AF = Allocations_familiales
-open Runtime
 
 let compute_allocations_familiales
-    ~(current_date : Runtime.date)
+    ~(current_date : date)
     ~(children : AF.EnfantEntree.t array)
     ~(income : int)
-    ~(residence : AF.collectivite)
+    ~(residence : AF.Collectivite.t)
     ~(is_parent : bool)
     ~(fills_title_I : bool)
     ~(had_rights_open_before_2012 : bool) : float =

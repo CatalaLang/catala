@@ -10,17 +10,9 @@
   dcalc
   lcalc
   scalc
-  runtime
+  catala.runtime_ocaml
   verification)
  (modules plugin driver))
-
-(library
- (name runtime)
- (public_name catala.runtime)
- (preprocess
-  (pps ppx_yojson_conv))
- (libraries dates_calc zarith zarith_stubs_js)
- (modules runtime))
 
 (executable
  (name catala_web_interpreter)
@@ -30,11 +22,26 @@
  (modules catala_web_interpreter)
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries catala.driver js_of_ocaml))
+ (libraries
+  catala.driver
+  js_of_ocaml
+  catala.runtime_ocaml
+  catala.runtime_jsoo))
+
+(rule
+ (target custom_linking.sexp)
+ (mode fallback)
+ (action
+  (with-stdout-to
+   %{target}
+   (echo "()"))))
 
 (executable
  (name catala)
  (modes native js)
+ (flags
+  (:standard
+   (:include custom_linking.sexp)))
  (package catala)
  (modules catala)
  (public_name catala)

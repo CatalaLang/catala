@@ -15,6 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(** The OCaml runtime. *)
+
 (** {1 Types} *)
 
 type money
@@ -38,8 +40,8 @@ type 'a eoption = ENone of unit | ESome of 'a
 (** {1 Exceptions} *)
 
 exception EmptyError
-exception AssertionFailed
-exception ConflictError
+exception AssertionFailed of source_position
+exception ConflictError of source_position
 exception UncomparableDurations
 exception IndivisableDurations
 exception ImpossibleDate
@@ -209,6 +211,10 @@ val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
 
 val money_of_cents_string : string -> money
 val money_of_units_int : int -> money
+
+val money_of_decimal : decimal -> money
+(** Warning: rounds to nearest cent. *)
+
 val money_of_cents_integer : integer -> money
 val money_to_float : money -> float
 val money_to_string : money -> string
@@ -223,6 +229,7 @@ val decimal_of_integer : integer -> decimal
 val decimal_of_float : float -> decimal
 val decimal_to_float : decimal -> float
 val decimal_round : decimal -> decimal
+val decimal_of_money : money -> decimal
 
 (**{2 Integers} *)
 
@@ -245,20 +252,32 @@ val date_of_numbers : int -> int -> int -> date
 
     @raise ImpossibleDate *)
 
+val first_day_of_month : date -> date
+val last_day_of_month : date -> date
+
 (**{2 Durations} *)
 
 val duration_of_numbers : int -> int -> int -> duration
+(** Usage : [duration_of_numbers year mounth day]. *)
+
 val duration_to_years_months_days : duration -> int * int * int
+(**{2 Times} *)
+
 val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
 
-val handle_default : (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
+val handle_default :
+  source_position -> (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
 (** @raise EmptyError
     @raise ConflictError *)
 
 val handle_default_opt :
-  'a eoption array -> bool eoption -> 'a eoption -> 'a eoption
+  source_position ->
+  'a eoption array ->
+  bool eoption ->
+  'a eoption ->
+  'a eoption
 (** @raise ConflictError *)
 
 val no_input : unit -> 'a

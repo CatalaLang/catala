@@ -81,9 +81,12 @@ val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
+(** The usual auto/always/never option argument *)
+type when_enum = Auto | Always | Never
+
 type options = {
   debug : bool;
-  unstyled : bool;
+  color : when_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;
@@ -117,6 +120,10 @@ val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 
 val format_with_style :
   ANSITerminal.style list -> Format.formatter -> string -> unit
+
+val call_unstyled : (unit -> 'a) -> 'a
+(** [call_unstyled f] calls the function [f] with the [style_flag] set to false
+    during the execution. *)
 
 val debug_marker : unit -> string
 val error_marker : unit -> string

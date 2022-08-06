@@ -19,4 +19,4 @@
     transformation is one piece to permit to compile toward legacy languages
     that does not contains exceptions. *)
 
-val translate_program : Dcalc.Ast.program -> Ast.program
+val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program

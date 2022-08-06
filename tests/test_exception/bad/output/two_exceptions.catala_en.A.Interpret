@@ -3,13 +3,13 @@
 This consequence has a valid justification:
   --> tests/test_exception/bad/two_exceptions.catala_en
    | 
-15 |   definition x equals 2
+12 |   definition x equals 1
    |                       ^
    + Test
 
 This consequence has a valid justification:
   --> tests/test_exception/bad/two_exceptions.catala_en
    | 
-12 |   definition x equals 1
+15 |   definition x equals 2
    |                       ^
    + Test

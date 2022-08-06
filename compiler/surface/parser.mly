@@ -126,9 +126,6 @@ unit_literal:
 | MONTH { (Month, Pos.from_lpos $sloc) }
 | DAY { (Day, Pos.from_lpos $sloc) }
 
-date_int:
-| d = INT_LITERAL { (int_of_string d, Pos.from_lpos $sloc) }
-
 literal:
 | l = num_literal u = option(unit_literal) {
   (LNumber (l, u), Pos.from_lpos $sloc)
@@ -140,7 +137,8 @@ literal:
     money_amount_cents = cents;
   }, Pos.from_lpos $sloc)
 }
-| VERTICAL y = date_int MINUS m = date_int MINUS d = date_int VERTICAL {
+| VERTICAL d = DATE_LITERAL VERTICAL {
+  let (y,m,d) = d in
   (LDate {
     literal_date_year = y;
     literal_date_month = m;
@@ -176,18 +174,18 @@ compare_op:
 
 aggregate_func:
 | CONTENT MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (true, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateArgExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | CONTENT MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (false, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateArgExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (true, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (false, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
-| SUM t = typ_base { (Aggregate (AggregateSum (Pos.unmark t)), Pos.from_lpos $sloc) }
+| SUM t = typ_base { (Aggregate (AggregateSum (Marked.unmark t)), Pos.from_lpos $sloc) }
 | CARDINAL { (Aggregate AggregateCount, Pos.from_lpos $sloc) }
 | FILTER { (Filter, Pos.from_lpos $sloc ) }
 | MAP { (Map, Pos.from_lpos $sloc) }
@@ -207,8 +205,8 @@ base_expression:
 | e = primitive_expression WITH c = constructor_binding {
   (TestMatchCase (e, (c, Pos.from_lpos $sloc)), Pos.from_lpos $sloc)
 }
-| e1 = primitive_expression IN e2 = base_expression {
-  (MemCollection (e1, e2), Pos.from_lpos $sloc)
+| e1 = primitive_expression CONTAINS e2 = base_expression {
+  (MemCollection (e2, e1), Pos.from_lpos $sloc)
 }
 
 unop:
@@ -379,7 +377,7 @@ rule:
   state = option(state)
   consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
-    let cons : bool Pos.marked = consequence in
+    let cons : bool Marked.pos = consequence in
     let rule_exception = match except with | None -> NotAnException | Some x -> x in
     ({
       rule_label = label;
@@ -388,7 +386,7 @@ rule:
       rule_condition = cond;
       rule_name = name;
       rule_id = Desugared.Ast.RuleName.fresh
-        (String.concat "." (List.map (fun i -> Pos.unmark i) (Pos.unmark name)),
+        (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
           Pos.from_lpos $sloc);
       rule_consequence = cons;
       rule_state = state;
@@ -425,7 +423,7 @@ definition:
       definition_condition = cond;
       definition_id =
         Desugared.Ast.RuleName.fresh
-          (String.concat "." (List.map (fun i -> Pos.unmark i) (Pos.unmark name)),
+          (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
             Pos.from_lpos $sloc);
       definition_expr = e;
       definition_state = state;

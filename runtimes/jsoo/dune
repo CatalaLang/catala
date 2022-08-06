@@ -1,0 +1,7 @@
+(library
+ (name runtime_jsoo)
+ (public_name catala.runtime_jsoo)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries catala.runtime_ocaml js_of_ocaml)
+ (modules runtime))

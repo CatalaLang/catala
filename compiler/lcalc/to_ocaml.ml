@@ -16,11 +16,11 @@
 
 open Utils
 open Ast
-open Backends
+open String_common
 module D = Dcalc.Ast
 
 let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
-    (D.StructFieldName.t * D.typ Pos.marked) list =
+    (D.StructFieldName.t * D.typ Marked.pos) list =
   try D.StructMap.find s ctx.D.ctx_structs
   with Not_found ->
     let s_name, pos = D.StructName.get_info s in
@@ -29,7 +29,7 @@ let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
       s_name
 
 let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) :
-    (D.EnumConstructor.t * D.typ Pos.marked) list =
+    (D.EnumConstructor.t * D.typ Marked.pos) list =
   try D.EnumMap.find en ctx.D.ctx_enums
   with Not_found ->
     let en_name, pos = D.EnumName.get_info en in
@@ -37,27 +37,26 @@ let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) :
       "Internal Error: Enumeration %s was not found in the current environment."
       en_name
 
-let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
-  match Pos.unmark l with
-  | LBool b ->
-    Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LBool b) l)
+let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
+  match Marked.unmark l with
+  | LBool b -> Dcalc.Print.format_lit fmt (Dcalc.Ast.LBool b)
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
-  | LUnit -> Dcalc.Print.format_lit fmt (Pos.same_pos_as Dcalc.Ast.LUnit l)
+  | LUnit -> Dcalc.Print.format_lit fmt Dcalc.Ast.LUnit
   | LRat i ->
     Format.fprintf fmt "decimal_of_string \"%a\"" Dcalc.Print.format_lit
-      (Pos.same_pos_as (Dcalc.Ast.LRat i) l)
+      (Dcalc.Ast.LRat i)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string@ \"%s\""
       (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
-    Format.fprintf fmt "date_of_numbers %d %d %d"
+    Format.fprintf fmt "date_of_numbers (%d) (%d) (%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))
       (Runtime.integer_to_int (Runtime.month_number_of_date d))
       (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
   | LDuration d ->
     let years, months, days = Runtime.duration_to_years_months_days d in
-    Format.fprintf fmt "duration_of_numbers %d %d %d" years months days
+    Format.fprintf fmt "duration_of_numbers (%d) (%d) (%d)" years months days
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
@@ -68,9 +67,9 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) :
+let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Marked.pos) :
     unit =
-  match Pos.unmark op with
+  match Marked.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
   | Sub k -> Format.fprintf fmt "-%a" format_op_kind k
   | Mult k -> Format.fprintf fmt "*%a" format_op_kind k
@@ -87,9 +86,9 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) :
   | Map -> Format.fprintf fmt "Array.map"
   | Filter -> Format.fprintf fmt "array_filter"
 
-let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Pos.marked) :
+let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Marked.pos) :
     unit =
-  match Pos.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
+  match Marked.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     : unit =
@@ -101,74 +100,80 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     uids
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
+  let sanitize_quotes = Re.compile (Re.char '"') in
   Format.fprintf fmt "@[<hov 2>[%a]@]"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-       (fun fmt info -> Format.fprintf fmt "\"%s\"" info))
+       (fun fmt info ->
+         Format.fprintf fmt "\"%s\""
+           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
+let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Marked.pos) : unit
     =
-  match Pos.unmark op with
+  match Marked.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
   | Log (_entry, _infos) ->
-    Errors.raise_spanned_error (Pos.get_position op)
+    Errors.raise_spanned_error (Marked.get_mark op)
       "Internal error: a log operator has not been caught by the expression \
        match"
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
+  | MoneyToRat -> Format.fprintf fmt "%s" "decimal_of_money"
+  | RatToMoney -> Format.fprintf fmt "%s" "money_of_decimal"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
   | GetMonth -> Format.fprintf fmt "%s" "month_number_of_date"
   | GetYear -> Format.fprintf fmt "%s" "year_of_date"
+  | FirstDayOfMonth -> Format.fprintf fmt "%s" "first_day_of_month"
+  | LastDayOfMonth -> Format.fprintf fmt "%s" "last_day_of_month"
   | RoundMoney -> Format.fprintf fmt "%s" "money_round"
   | RoundDecimal -> Format.fprintf fmt "%s" "decimal_round"
 
 let avoid_keywords (s : string) : string =
-  if
-    match s with
-    (* list taken from
-       http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
-    | "and" | "as" | "assert" | "asr" | "begin" | "class" | "constraint" | "do"
-    | "done" | "downto" | "else" | "end" | "exception" | "external" | "false"
-    | "for" | "fun" | "function" | "functor" | "if" | "in" | "include"
-    | "inherit" | "initializer" | "land" | "lazy" | "let" | "lor" | "lsl"
-    | "lsr" | "lxor" | "match" | "method" | "mod" | "module" | "mutable" | "new"
-    | "nonrec" | "object" | "of" | "open" | "or" | "private" | "rec" | "sig"
-    | "struct" | "then" | "to" | "true" | "try" | "type" | "val" | "virtual"
-    | "when" | "while" | "with" ->
-      true
-    | _ -> false
-  then s ^ "_"
-  else s
+  match s with
+  (* list taken from
+     http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
+  | "and" | "as" | "assert" | "asr" | "begin" | "class" | "constraint" | "do"
+  | "done" | "downto" | "else" | "end" | "exception" | "external" | "false"
+  | "for" | "fun" | "function" | "functor" | "if" | "in" | "include" | "inherit"
+  | "initializer" | "land" | "lazy" | "let" | "lor" | "lsl" | "lsr" | "lxor"
+  | "match" | "method" | "mod" | "module" | "mutable" | "new" | "nonrec"
+  | "object" | "of" | "open" | "or" | "private" | "rec" | "sig" | "struct"
+  | "then" | "to" | "true" | "try" | "type" | "val" | "virtual" | "when"
+  | "while" | "with" ->
+    s ^ "_user"
+  | _ -> s
 
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
-  unit =
-Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
-|> to_ascii
-|> to_lowercase
-|> avoid_keywords
-|> Format.fprintf fmt "%s"
-[@@ocamlformat "disable"]
-
-let format_to_struct_type (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) :
     unit =
   Format.asprintf "%a" Dcalc.Ast.StructName.format_t v
   |> to_ascii
-  |> to_lowercase
+  |> to_snake_case
+  |> avoid_keywords
+  |> Format.fprintf fmt "%s"
+
+let format_to_module_name
+    (fmt : Format.formatter)
+    (name : [< `Ename of D.EnumName.t | `Sname of D.StructName.t ]) =
+  (match name with
+  | `Ename v -> Format.asprintf "%a" D.EnumName.format_t v
+  | `Sname v -> Format.asprintf "%a" D.StructName.format_t v)
+  |> to_ascii
+  |> to_snake_case
   |> avoid_keywords
   |> String.split_on_char '_'
   |> List.map String.capitalize_ascii
   |> String.concat ""
   |> Format.fprintf fmt "%s"
-  [@@ocamlformat "disable"]
 
 let format_struct_field_name
     (fmt : Format.formatter)
     ((sname_opt, v) :
       Dcalc.Ast.StructName.t option * Dcalc.Ast.StructFieldName.t) : unit =
   (match sname_opt with
-  | Some sname -> Format.fprintf fmt "%a.%s" format_to_struct_type sname
+  | Some sname ->
+    Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
   | None -> Format.fprintf fmt "%s")
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v)))
@@ -177,7 +182,7 @@ let format_enum_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumName.t) : unit
     =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_lowercase
+       (to_snake_case
           (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v))))
 
 let format_enum_cons_name
@@ -187,9 +192,9 @@ let format_enum_cons_name
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumConstructor.format_t v)))
 
-let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Pos.marked) :
+let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Marked.pos) :
     unit =
-  match Pos.unmark ty with
+  match Marked.unmark ty with
   | D.TLit D.TUnit -> Format.fprintf fmt "embed_unit"
   | D.TLit D.TBool -> Format.fprintf fmt "embed_bool"
   | D.TLit D.TInt -> Format.fprintf fmt "embed_integer"
@@ -203,19 +208,18 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Pos.marked) :
   | D.TArray ty -> Format.fprintf fmt "embed_array (%a)" typ_embedding_name ty
   | _ -> Format.fprintf fmt "unembeddable"
 
-let typ_needs_parens (e : Dcalc.Ast.typ Pos.marked) : bool =
-  match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
+let typ_needs_parens (e : Dcalc.Ast.typ Marked.pos) : bool =
+  match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
+let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
     unit =
-  let format_typ = format_typ in
   let format_typ_with_parens
       (fmt : Format.formatter)
-      (t : Dcalc.Ast.typ Pos.marked) =
+      (t : Dcalc.Ast.typ Marked.pos) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
-  match Pos.unmark typ with
+  match Marked.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" Dcalc.Print.format_tlit l
   | TTuple (ts, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
@@ -223,23 +227,24 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          format_typ_with_parens)
       ts
-  | TTuple (_, Some s) -> Format.fprintf fmt "%a.t" format_to_struct_type s
+  | TTuple (_, Some s) ->
+    Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
   | TEnum ([t], e) when D.EnumName.compare e Ast.option_enum = 0 ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
       format_enum_name e
   | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
-    Errors.raise_spanned_error (Pos.get_position typ)
+    Errors.raise_spanned_error (Marked.get_mark typ)
       "Internal Error: found an typing parameter for an eoption type of the \
-       wrong lenght."
-  | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
+       wrong length."
+  | TEnum (_ts, e) -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1
       format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 
-let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
+let format_var (fmt : Format.formatter) (v : 'm var) : unit =
+  let lowercase_name = to_snake_case (to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
       ~subst:(fun _ -> "_dot_")
@@ -248,26 +253,35 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
   if
     List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-    || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
+    || begins_with_uppercase (Bindlib.name_of v)
   then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
-  else Format.fprintf fmt "%s_" lowercase_name
+  else (
+    Cli.debug_print "lowercase_name: %s " lowercase_name;
+    Format.fprintf fmt "%s_" lowercase_name)
 
-let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with
+let needs_parens (e : 'm marked_expr) : bool =
+  match Marked.unmark e with
   | EApp ((EAbs (_, _), _), _)
   | ELit (LBool _ | LUnit)
   | EVar _ | ETuple _ | EOp _ ->
     false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Pos.marked) : unit =
-  match Pos.unmark exc with
-  | ConflictError -> Format.fprintf fmt "ConflictError"
+let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
+  match Marked.unmark exc with
+  | ConflictError ->
+    let pos = Marked.get_mark exc in
+    Format.fprintf fmt
+      "(ConflictError@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
+       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+      (Pos.get_law_info pos)
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | Crash -> Format.fprintf fmt "Crash"
   | NoValueProvided ->
-    let pos = Pos.get_position exc in
+    let pos = Marked.get_mark exc in
     Format.fprintf fmt
       "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
@@ -278,14 +292,14 @@ let format_exception (fmt : Format.formatter) (exc : except Pos.marked) : unit =
 let rec format_expr
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Pos.marked) : unit =
+    (e : 'm marked_expr) : unit =
   let format_expr = format_expr ctx in
-  let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
+  let format_with_parens (fmt : Format.formatter) (e : 'm marked_expr) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Pos.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
+  match Marked.unmark e with
+  | EVar v -> Format.fprintf fmt "%a" format_var v
   | ETuple (es, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -321,20 +335,23 @@ let rec format_expr
       Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
         (Some s, fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
+    Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name (`Ename en)
+      format_enum_cons_name
       (fst (List.nth (find_enum en ctx) n))
       format_with_parens e
   | EMatch (e, es, e_name) ->
-    Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
+    Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@\n| %a@]"
+      format_with_parens e
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
          (fun fmt (e, c) ->
-           Format.fprintf fmt "%a %a" format_enum_cons_name c
+           Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
+             (`Ename e_name) format_enum_cons_name c
              (fun fmt e ->
-               match Pos.unmark e with
-               | EAbs ((binder, _), _) ->
+               match Marked.unmark e with
+               | EAbs (binder, _) ->
                  let xs, body = Bindlib.unmbind binder in
-                 Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
+                 Format.fprintf fmt "%a ->@ %a"
                    (Format.pp_print_list
                       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
                       (fun fmt x -> Format.fprintf fmt "%a" format_var x))
@@ -343,8 +360,8 @@ let rec format_expr
                (* should not happen *))
              e))
       (List.combine es (List.map fst (find_enum e_name ctx)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
-  | EApp ((EAbs ((binder, _), taus), _), args) ->
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (D.pos e) l)
+  | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
@@ -355,7 +372,7 @@ let rec format_expr
            Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n"
              format_var x format_typ tau format_with_parens arg))
       xs_tau_arg format_with_parens body
-  | EAbs ((binder, _), taus) ->
+  | EAbs (binder, taus) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
     Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"
@@ -380,8 +397,9 @@ let rec format_expr
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
-  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [arg1])
+  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), m), [arg1])
     when !Cli.trace_flag ->
+    let pos = D.mark_pos m in
     Format.fprintf fmt
       "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
@@ -397,6 +415,24 @@ let rec format_expr
   | EApp ((EOp (Unop op), _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
       format_with_parens arg1
+  | EApp ((EVar x, pos), args)
+    when Ast.Var.compare (Ast.Var.t x) Ast.handle_default = 0
+         || Ast.Var.compare (Ast.Var.t x) Ast.handle_default_opt = 0 ->
+    Format.fprintf fmt
+      "@[<hov 2>%a@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
+       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
+      format_var x
+      (Pos.get_file (D.mark_pos pos))
+      (Pos.get_start_line (D.mark_pos pos))
+      (Pos.get_start_column (D.mark_pos pos))
+      (Pos.get_end_line (D.mark_pos pos))
+      (Pos.get_end_column (D.mark_pos pos))
+      format_string_list
+      (Pos.get_law_info (D.mark_pos pos))
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         format_with_parens)
+      args
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
       (Format.pp_print_list
@@ -412,29 +448,38 @@ let rec format_expr
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EAssert e' ->
     Format.fprintf fmt
-      "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
+      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \
+       2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ end_line=%d; \
+       end_column=%d;@ law_headings=%a}@])@]"
       format_with_parens e'
-  | ERaise exc ->
-    Format.fprintf fmt "raise@ %a" format_exception (exc, Pos.get_position e)
+      (Pos.get_file (D.pos e'))
+      (Pos.get_start_line (D.pos e'))
+      (Pos.get_start_column (D.pos e'))
+      (Pos.get_end_line (D.pos e'))
+      (Pos.get_end_column (D.pos e'))
+      format_string_list
+      (Pos.get_law_info (D.pos e'))
+  | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception (exc, D.pos e)
   | ECatch (e1, exc, e2) ->
-    Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens
-      e1 format_exception
-      (exc, Pos.get_position e)
+    Format.fprintf fmt
+      "@,@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
+      format_with_parens e1 format_exception
+      (exc, D.pos e)
       format_with_parens e2
 
 let format_struct_embedding
     (fmt : Format.formatter)
     ((struct_name, struct_fields) :
-      D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list) =
+      D.StructName.t * (D.StructFieldName.t * D.typ Marked.pos) list) =
   if List.length struct_fields = 0 then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
-      format_struct_name struct_name format_to_struct_type struct_name
+      format_struct_name struct_name format_to_module_name (`Sname struct_name)
   else
     Format.fprintf fmt
       "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Struct([\"%a\"],@ \
        @[<hov 2>[%a]@])@]@\n\
        @\n"
-      format_struct_name struct_name format_to_struct_type struct_name
+      format_struct_name struct_name format_to_module_name (`Sname struct_name)
       D.StructName.format_t struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
@@ -448,17 +493,17 @@ let format_struct_embedding
 let format_enum_embedding
     (fmt : Format.formatter)
     ((enum_name, enum_cases) :
-      D.EnumName.t * (D.EnumConstructor.t * D.typ Pos.marked) list) =
+      D.EnumName.t * (D.EnumConstructor.t * D.typ Marked.pos) list) =
   if List.length enum_cases = 0 then
-    Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n"
-      format_enum_name enum_name format_enum_name enum_name
+    Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
+      format_to_module_name (`Ename enum_name) format_enum_name enum_name
   else
     Format.fprintf fmt
-      "@[<hov 2>let embed_%a (x: %a) : runtime_value =@ Enum([\"%a\"],@ @[<hov \
-       2>match x with@ %a@])@]@\n\
+      "@[<hv 2>@[<hov 2>let embed_%a@ @[<hov 2>(x:@ %a.t)@]@ : runtime_value \
+       =@]@ Enum([\"%a\"],@ @[<hov 2>match x with@ %a@])@]@\n\
        @\n"
-      format_enum_name enum_name format_enum_name enum_name D.EnumName.format_t
-      enum_name
+      format_enum_name enum_name format_to_module_name (`Ename enum_name)
+      D.EnumName.format_t enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
@@ -474,37 +519,33 @@ let format_ctx
   let format_struct_decl fmt (struct_name, struct_fields) =
     if List.length struct_fields = 0 then
       Format.fprintf fmt
-        "module %a = struct@\n@[<hov 2>@  type t = unit\nend@] @\n"
-        format_to_struct_type struct_name
+        "@[<v 2>module %a = struct@\n@[<hov 2>type t = unit@]@]@\nend@\n"
+        format_to_module_name (`Sname struct_name)
     else
       Format.fprintf fmt
-        "module %a = struct@\n\
-         @[<hov 2>@  type t = {@\n\
-         @[<hov 2>  %a@]@\n\
-         }\n\
-         end@]@\n"
-        format_to_struct_type struct_name
+        "@[<v>@[<v 2>module %a = struct@ @[<hv 2>type t = {@,\
+         %a@;\
+         <0-2>}@]@]@ end@]@\n"
+        format_to_module_name (`Sname struct_name)
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun _fmt (struct_field, struct_field_type) ->
-             Format.fprintf fmt "%a:@ %a;" format_struct_field_name
+             Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
         struct_fields;
     if !Cli.trace_flag then
       format_struct_embedding fmt (struct_name, struct_fields)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    if List.length enum_cons = 0 then
-      Format.fprintf fmt "type %a = unit@\n@\n" format_enum_name enum_name
-    else
-      Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n@\n" format_enum_name
-        enum_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _fmt (enum_cons, enum_cons_type) ->
-             Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons
-               format_typ enum_cons_type))
-        enum_cons;
+    Format.fprintf fmt
+      "module %a = struct@\n@[<hov 2>@ type t =@\n@[<hov 2>  %a@]@\nend@]@\n"
+      format_to_module_name (`Ename enum_name)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun _fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
+             enum_cons format_typ enum_cons_type))
+      enum_cons;
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
@@ -535,7 +576,7 @@ let format_ctx
 let rec format_scope_body_expr
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (scope_lets : Ast.expr Dcalc.Ast.scope_body_expr) : unit =
+    (scope_lets : ('m Ast.expr, 'm) Dcalc.Ast.scope_body_expr) : unit =
   match scope_lets with
   | Dcalc.Ast.Result e -> format_expr ctx fmt e
   | Dcalc.Ast.ScopeLet scope_let ->
@@ -551,7 +592,7 @@ let rec format_scope_body_expr
 let rec format_scopes
     (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (scopes : Ast.expr Dcalc.Ast.scopes) : unit =
+    (scopes : ('m Ast.expr, 'm) Dcalc.Ast.scopes) : unit =
   match scopes with
   | Dcalc.Ast.Nil -> ()
   | Dcalc.Ast.ScopeDef scope_def ->
@@ -560,23 +601,27 @@ let rec format_scopes
     in
     let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
     Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a.t) : %a.t =@\n%a@]%a"
-      format_var scope_var format_var scope_input_var format_to_struct_type
-      scope_def.scope_body.scope_body_input_struct format_to_struct_type
-      scope_def.scope_body.scope_body_output_struct
+      format_var scope_var format_var scope_input_var format_to_module_name
+      (`Sname scope_def.scope_body.scope_body_input_struct)
+      format_to_module_name
+      (`Sname scope_def.scope_body.scope_body_output_struct)
       (format_scope_body_expr ctx)
       scope_body_expr (format_scopes ctx) scope_next
 
 let format_program
     (fmt : Format.formatter)
-    (p : Ast.program)
+    (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  Cli.style_flag := false;
-  Format.fprintf fmt
-    "(** This file has been generated by the Catala compiler, do not edit! *)@\n\
-     @\n\
-     open Runtime@\n\
-     @\n\
-     [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
-     @\n\
-     %a%a@?"
-    (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx) p.scopes
+  Cli.call_unstyled (fun _ ->
+      Format.fprintf fmt
+        "(** This file has been generated by the Catala compiler, do not edit! \
+         *)@\n\
+         @\n\
+         open Runtime_ocaml.Runtime@\n\
+         @\n\
+         [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
+         @\n\
+         %a%a@\n\
+         @?"
+        (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx)
+        p.scopes)

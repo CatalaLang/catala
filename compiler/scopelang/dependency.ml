@@ -61,14 +61,14 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
             | Ast.Call (subscope, subindex) ->
               if subscope = scope_name then
                 Errors.raise_spanned_error
-                  (Pos.get_position
+                  (Marked.get_mark
                      (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
                   "The scope %a is calling into itself as a subscope, which is \
                    forbidden since Catala does not provide recursion"
                   Ast.ScopeName.format_t scope.Ast.scope_decl_name
               else
                 Ast.ScopeMap.add subscope
-                  (Pos.get_position (Ast.SubScopeName.get_info subindex))
+                  (Marked.get_mark (Ast.SubScopeName.get_info subindex))
                   acc)
           Ast.ScopeMap.empty scope.Ast.scope_decl_rules
       in
@@ -100,10 +100,11 @@ let check_for_cycle_in_scope (g : SDependencies.t) : unit =
              let succ_str = Format.asprintf "%a" Ast.ScopeName.format_t succ in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                 Pos.get_position var_info );
+                 Marked.get_mark var_info );
                ( Some
                    ("Used here in the definition of another cycle variable "
-                  ^ succ_str ^ ":"),
+                   ^ succ_str
+                   ^ ":"),
                  edge_pos );
              ])
            scc)
@@ -165,8 +166,8 @@ module TTopologicalTraversal = Graph.Topological.Make (TDependencies)
 module TSCC = Graph.Components.Make (TDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
-let rec get_structs_or_enums_in_type (t : Ast.typ Pos.marked) : TVertexSet.t =
-  match Pos.unmark t with
+let rec get_structs_or_enums_in_type (t : Ast.typ Marked.pos) : TVertexSet.t =
+  match Marked.unmark t with
   | Ast.TStruct s -> TVertexSet.singleton (TVertex.Struct s)
   | Ast.TEnum e -> TVertexSet.singleton (TVertex.Enum e)
   | Ast.TArrow (t1, t2) ->
@@ -174,7 +175,7 @@ let rec get_structs_or_enums_in_type (t : Ast.typ Pos.marked) : TVertexSet.t =
       (get_structs_or_enums_in_type t1)
       (get_structs_or_enums_in_type t2)
   | Ast.TLit _ | Ast.TAny -> TVertexSet.empty
-  | Ast.TArray t1 -> get_structs_or_enums_in_type (Pos.same_pos_as t1 t)
+  | Ast.TArray t1 -> get_structs_or_enums_in_type (Marked.same_mark_as t1 t)
 
 let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
     TDependencies.t =
@@ -190,13 +191,13 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Errors.raise_spanned_error (Pos.get_position typ)
+                  Errors.raise_spanned_error (Marked.get_mark typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
                     TVertex.format_t used
                 else
                   let edge =
-                    TDependencies.E.create used (Pos.get_position typ) def
+                    TDependencies.E.create used (Marked.get_mark typ) def
                   in
                   TDependencies.add_edge_e g edge)
               used g)
@@ -214,13 +215,13 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Errors.raise_spanned_error (Pos.get_position typ)
+                  Errors.raise_spanned_error (Marked.get_mark typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
                     TVertex.format_t used
                 else
                   let edge =
-                    TDependencies.E.create used (Pos.get_position typ) def
+                    TDependencies.E.create used (Marked.get_mark typ) def
                   in
                   TDependencies.add_edge_e g edge)
               used g)
@@ -251,10 +252,11 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
             let succ_str = Format.asprintf "%a" TVertex.format_t succ in
             [
               ( Some ("Cycle type " ^ var_str ^ ", declared:"),
-                Pos.get_position var_info );
+                Marked.get_mark var_info );
               ( Some
                   ("Used here in the definition of another cycle type "
-                 ^ succ_str ^ ":"),
+                  ^ succ_str
+                  ^ ":"),
                 edge_pos );
             ])
           scc)

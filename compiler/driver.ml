@@ -81,20 +81,12 @@ let driver source_file (options : Cli.options) : int =
       Surface.Parser_driver.parse_top_level_file source_file language
     in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
-    let get_output ?ext () =
-      match options.output_file, ext with
-      | Some "-", _ | None, None -> None, fun f -> f stdout
-      | Some f, _ -> Some f, File.with_out_channel f
-      | None, Some ext ->
-        let src =
-          match source_file with FileName f -> f | Contents _ -> "a"
-        in
-        let f = Filename.remove_extension src ^ ext in
-        Some f, File.with_out_channel f
+    let get_output ?ext =
+      File.get_out_channel ~source_file ~output_file:options.output_file ?ext
     in
-    let get_output_format ?ext () =
-      let f, with_ = get_output ?ext () in
-      f, fun f -> with_ (fun oc -> File.with_formatter_of_out_channel oc f)
+    let get_output_format ?ext =
+      File.get_formatter_of_out_channel ~source_file
+        ~output_file:options.output_file ?ext
     in
     (match backend with
     | `Makefile ->
@@ -109,7 +101,8 @@ let driver source_file (options : Cli.options) : int =
       let output_file, with_output = get_output ~ext:".d" () in
       Cli.debug_print "Writing list of dependencies to %s..."
         (Option.value ~default:"stdout" output_file);
-      with_output @@ fun oc ->
+      with_output
+      @@ fun oc ->
       Printf.fprintf oc "%s:\\\n%s\n%s:"
         (String.concat "\\\n"
            (Option.value ~default:"stdout" output_file
@@ -173,7 +166,8 @@ let driver source_file (options : Cli.options) : int =
       match backend with
       | `Scopelang ->
         let _output_file, with_output = get_output_format () in
-        with_output @@ fun fmt ->
+        with_output
+        @@ fun fmt ->
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.format_scope ~debug:options.debug)
@@ -196,13 +190,11 @@ let driver source_file (options : Cli.options) : int =
           end
           else prgm
         in
-        let prgrm_dcalc_expr =
-          Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid)
-        in
         match backend with
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
-          with_output @@ fun fmt ->
+          with_output
+          @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
@@ -218,13 +210,19 @@ let driver source_file (options : Cli.options) : int =
                        else acc)
                      prgm.scopes) )
           else
+            let prgrm_dcalc_expr =
+              Bindlib.unbox
+                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
+                   ~make_abs:Dcalc.Ast.make_abs
+                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
+            in
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_expr prgm.decl_ctx)
               prgrm_dcalc_expr
         | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
           | `Proof | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking...";
-          let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
+          let prgm = Dcalc.Typing.infer_types_program prgm in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Dcalc.Print.format_typ prgm.decl_ctx) typ); *)
           match backend with
@@ -242,6 +240,12 @@ let driver source_file (options : Cli.options) : int =
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
+            let prgrm_dcalc_expr =
+              Bindlib.unbox
+                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
+                   ~make_abs:Dcalc.Ast.make_abs
+                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
+            in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
             in
@@ -281,7 +285,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
-              else prgm
+              else Lcalc.Ast.untype_program prgm
             in
             let prgm =
               if options.closure_conversion then (
@@ -294,7 +298,8 @@ let driver source_file (options : Cli.options) : int =
             match backend with
             | `Lcalc ->
               let _output_file, with_output = get_output_format () in
-              with_output @@ fun fmt ->
+              with_output
+              @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
                   (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
@@ -310,39 +315,42 @@ let driver source_file (options : Cli.options) : int =
                            else acc)
                          prgm.scopes) )
               else
-                ignore
-                  (Dcalc.Ast.fold_left_scope_defs ~init:0
-                     ~f:(fun i scope_def _ ->
-                       Format.fprintf fmt "%s%a"
-                         (if i = 0 then "" else "\n")
-                         (Lcalc.Print.format_scope prgm.decl_ctx)
-                         (scope_uid, scope_def.scope_body);
-                       i + 1)
-                     prgm.scopes)
+                let prgrm_lcalc_expr =
+                  Bindlib.unbox
+                    (Dcalc.Ast.build_whole_program_expr
+                       ~box_expr:Lcalc.Ast.box_expr ~make_abs:Lcalc.Ast.make_abs
+                       ~make_let_in:Lcalc.Ast.make_let_in prgm scope_uid)
+                in
+                Format.fprintf fmt "%a\n"
+                  (Lcalc.Print.format_expr prgm.decl_ctx)
+                  prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with
               | `OCaml ->
                 let output_file, with_output =
                   get_output_format ~ext:".ml" ()
                 in
-                with_output @@ fun fmt ->
+                with_output
+                @@ fun fmt ->
                 Cli.debug_print "Compiling program into OCaml...";
                 Cli.debug_print "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
               | `Plugin (Plugin.Lcalc p) ->
-                let output_file, _ = get_output ~ext:p.Plugin.extension () in
+                let output_file, _ =
+                  get_output_format ~ext:p.Plugin.extension ()
+                in
                 Cli.debug_print "Compiling program through backend \"%s\"..."
                   p.Plugin.name;
-                Cli.debug_print "Writing to %s..."
-                  (Option.value ~default:"stdout" output_file);
-                p.Plugin.apply output_file prgm type_ordering
+                p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
+                  prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
                 let prgm = Scalc.Compile_from_lambda.translate_program prgm in
                 match backend with
                 | `Scalc ->
                   let _output_file, with_output = get_output_format () in
-                  with_output @@ fun fmt ->
+                  with_output
+                  @@ fun fmt ->
                   if Option.is_some options.ex_scope then
                     Format.fprintf fmt "%a\n"
                       (Scalc.Print.format_scope ~debug:options.debug
@@ -365,7 +373,8 @@ let driver source_file (options : Cli.options) : int =
                   Cli.debug_print "Compiling program into Python...";
                   Cli.debug_print "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
-                  with_output @@ fun fmt ->
+                  with_output
+                  @@ fun fmt ->
                   Scalc.To_python.format_program fmt prgm type_ordering
                 | `Plugin (Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->
@@ -374,14 +383,19 @@ let driver source_file (options : Cli.options) : int =
                     p.Plugin.name;
                   Cli.debug_print "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
-                  p.Plugin.apply output_file prgm type_ordering)))))));
+                  p.Plugin.apply ~source_file ~output_file
+                    ~scope:options.ex_scope prgm type_ordering)))))));
     0
   with
   | Errors.StructuredError (msg, pos) ->
+    let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "%s" (Errors.print_structured_error msg pos);
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
   | Sys_error msg ->
+    let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "System error: %s" msg;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 
 let main () =

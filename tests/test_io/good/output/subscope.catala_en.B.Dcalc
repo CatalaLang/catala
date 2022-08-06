@@ -1,10 +1,9 @@
 let B =
-  λ (B_in_40: B_in{}) →
-    let a.a_41 : unit → integer = λ (__42: unit) → ∅  in
-    let a.b_43 : integer = error_empty
-      ⟨⟨true ⊢ 2⟩ | false ⊢ ∅ ⟩ in
-    let result_44 : A_out{"c_out": integer} =
-      A_32 (A_in {"a_in"= a.a_41; "b_in"= a.b_43}) in
-    let a.c_45 : integer = result_44."c_out" in
-    let __46 : unit = assert (error_empty a.c_45 = 1) in
+  λ (B_in_27: B_in{}) →
+    let a.a_28 : unit → integer = λ (__29: unit) → ∅  in
+    let a.b_30 : integer = error_empty ⟨true ⊢ 2⟩ in
+    let result_31 : A_out{"c_out": integer} =
+      A_17 (A_in {"a_in"= a.a_28; "b_in"= a.b_30}) in
+    let a.c_32 : integer = result_31."c_out" in
+    let __33 : unit = assert (error_empty a.c_32 = 1) in
     B_out {}

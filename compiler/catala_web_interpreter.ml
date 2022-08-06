@@ -13,7 +13,7 @@ let _ =
            (Contents (Js.to_string contents))
            {
              Utils.Cli.debug = false;
-             unstyled = false;
+             color = Never;
              wrap_weaved_output = false;
              avoid_exceptions = false;
              backend = "Interpret";

@@ -1,0 +1,7 @@
+(library
+ (name runtime_ocaml)
+ (public_name catala.runtime_ocaml)
+ (preprocess
+  (pps ppx_yojson_conv))
+ (libraries dates_calc zarith zarith_stubs_js)
+ (modules runtime))

@@ -16,27 +16,22 @@
 
 open Utils
 
-(** {1 Helpers} *)
-
-val is_uppercase : CamomileLibraryDefault.Camomile.UChar.t -> bool
-val begins_with_uppercase : string -> bool
-
 (** {1 Formatters} *)
 
-val format_lit : Format.formatter -> Ast.lit Pos.marked -> unit
-val format_var : Format.formatter -> Ast.Var.t -> unit
+val format_lit : Format.formatter -> Ast.lit Marked.pos -> unit
+val format_var : Format.formatter -> 'm Ast.var -> unit
 val format_exception : Format.formatter -> Ast.except -> unit
 
 val format_expr :
   ?debug:bool ->
   Dcalc.Ast.decl_ctx ->
   Format.formatter ->
-  Ast.expr Pos.marked ->
+  'm Ast.marked_expr ->
   unit
 
 val format_scope :
   ?debug:bool ->
   Dcalc.Ast.decl_ctx ->
   Format.formatter ->
-  Dcalc.Ast.ScopeName.t * Ast.expr Dcalc.Ast.scope_body ->
+  Dcalc.Ast.ScopeName.t * ('m Ast.expr, 'm) Dcalc.Ast.scope_body ->
   unit
