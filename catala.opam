@@ -12,6 +12,7 @@ authors: [
   "Louis Gesbert"
   "Aymeric Fromherz"
   "Alain Delaët-Tixeuil"
+  "Raphaël Monat"
 ]
 license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
@@ -30,13 +31,13 @@ depends: [
   "zarith" {>= "1.12"}
   "zarith_stubs_js" {>= "v0.14.1"}
   "ocamlgraph" {>= "1.8.8"}
-  "calendar" {>= "2.04"}
   "visitors" {>= "20200210"}
   "benchmark" {>= "1.6"}
   "js_of_ocaml-ppx" {>= "3.8.0"}
   "ppx_yojson_conv" {>= "0.14.0"}
   "camomile" {>= "1.0.2"}
   "cppo" {>= "1"}
+  "dates_calc" {>= "0.0.2"}
   "alcotest" {with-test & >= "1.5.0"}
   "odoc" {with-doc}
 ]

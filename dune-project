@@ -21,7 +21,8 @@
  "Emile Rolley"
  "Louis Gesbert"
  "Aymeric Fromherz"
- "Alain Dela\195\171t-Tixeuil")
+ "Alain Dela\195\171t-Tixeuil"
+ "Raphaël Monat")
 
 (maintainers "contact@catala-lang.org")
 

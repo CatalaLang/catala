@@ -328,7 +328,7 @@ val ( <@ ) : date -> date -> bool
 val ( +^ ) : duration -> duration -> duration
 val ( -^ ) : duration -> duration -> duration
 
-val ( /^ ) : duration -> duration -> decimal
+(* val ( /^ ) : duration -> duration -> decimal *)
 (** @raise Division_by_zero
     @raise IndivisableDurations *)
 

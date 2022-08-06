@@ -17,8 +17,8 @@
 type money = Z.t
 type integer = Z.t
 type decimal = Q.t
-type date = CalendarLib.Date.t
-type duration = CalendarLib.Date.Period.t
+type date = Dates_calc.Dates.date
+type duration = Dates_calc.Dates.period
 type 'a eoption = ENone of unit | ESome of 'a
 
 type source_position = {
@@ -110,38 +110,47 @@ let integer_to_int (i : integer) : int = Z.to_int i
 let integer_of_int (i : int) : integer = Z.of_int i
 let integer_exponentiation (i : integer) (e : int) : integer = Z.pow i e
 let integer_log2 = Z.log2
-let year_of_date (d : date) : integer = Z.of_int (CalendarLib.Date.year d)
+
+let year_of_date (d : date) : integer =
+  let y, _, _ = Dates_calc.Dates.date_to_ymd d in
+  Z.of_int y
 
 let month_number_of_date (d : date) : integer =
-  Z.of_int (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+  let _, m, _ = Dates_calc.Dates.date_to_ymd d in
+  Z.of_int m
 
 let day_of_month_of_date (d : date) : integer =
-  Z.of_int (CalendarLib.Date.day_of_month d)
+  let _, _, d = Dates_calc.Dates.date_to_ymd d in
+  Z.of_int d
 
 let date_of_numbers (year : int) (month : int) (day : int) : date =
-  try CalendarLib.Date.make year month day with _ -> raise ImpossibleDate
+  try Dates_calc.Dates.make_date ~year ~month ~day
+  with _ -> raise ImpossibleDate
 
-let date_to_string (d : date) : string = CalendarLib.Printer.Date.to_string d
+let date_to_string (d : date) : string =
+  Format.asprintf "%a" Dates_calc.Dates.format_date d
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
-  CalendarLib.Date.Period.make year month day
+  Dates_calc.Dates.make_period ~years:year ~months:month ~days:day
 
 let duration_to_string (d : duration) : string =
-  let x, y, z = CalendarLib.Date.Period.ymd d in
-  let to_print =
-    List.filter (fun (a, _) -> a <> 0) [x, "years"; y, "months"; z, "days"]
-  in
-  match to_print with
-  | [] -> "empty duration"
-  | _ ->
-    Format.asprintf "%a"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
-      to_print
+  Format.asprintf "%a" Dates_calc.Dates.format_period d
+(* breaks previous format *)
+(* let x, y, z = CalendarLib.Date.Period.ymd d in
+ * let to_print =
+ *   List.filter (fun (a, _) -> a <> 0) [x, "years"; y, "months"; z, "days"]
+ * in
+ * match to_print with
+ * | [] -> "empty duration"
+ * | _ ->
+ *   Format.asprintf "%a"
+ *     (Format.pp_print_list
+ *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+ *        (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
+ *     to_print *)
 
 let duration_to_years_months_days (d : duration) : int * int * int =
-  CalendarLib.Date.Period.ymd d
+  Dates_calc.Dates.period_to_ymds d
 
 let yojson_of_money (m : money) = `Float (money_to_float m)
 let yojson_of_integer (i : integer) = `Int (integer_to_int i)
@@ -564,31 +573,23 @@ let ( *& ) (i1 : decimal) (i2 : decimal) : decimal = Q.mul i1 i2
 let ( /& ) (i1 : decimal) (i2 : decimal) : decimal =
   if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2
 
-let ( +@ ) (d1 : date) (d2 : duration) : date = CalendarLib.Date.add d1 d2
-let ( -@ ) (d1 : date) (d2 : date) : duration = CalendarLib.Date.sub d1 d2
-
-let ( +^ ) (d1 : duration) (d2 : duration) : duration =
-  CalendarLib.Date.Period.add d1 d2
-
-let ( -^ ) (d1 : duration) (d2 : duration) : duration =
-  CalendarLib.Date.Period.sub d1 d2
+let ( +@ ) : date -> duration -> date = Dates_calc.Dates.add_dates
+let ( -@ ) : date -> date -> duration = Dates_calc.Dates.sub_dates
+let ( +^ ) : duration -> duration -> duration = Dates_calc.Dates.add_periods
+let ( -^ ) : duration -> duration -> duration = Dates_calc.Dates.sub_periods
 
 (* (EmileRolley) NOTE: {!CalendarLib.Date.Period.nb_days} is deprecated,
    {!CalendarLib.Date.Period.safe_nb_days} should be used. But the current
    {!duration} is greater that the supported polymorphic variants.*)
-let ( /^ ) (d1 : duration) (d2 : duration) : decimal =
-  try
-    let nb_day1 = CalendarLib.Date.Period.nb_days d1 in
-    let nb_day2 = CalendarLib.Date.Period.nb_days d2 in
-    if 0 = nb_day2 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
-  with CalendarLib.Date.Period.Not_computable -> raise IndivisableDurations
+(* let ( /^ ) (d1 : duration) (d2 : duration) : decimal =
+ *   try
+ *     let nb_day1 = CalendarLib.Date.Period.nb_days d1 in
+ *     let nb_day2 = CalendarLib.Date.Period.nb_days d2 in
+ *     if 0 = nb_day2 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
+ *   with CalendarLib.Date.Period.Not_computable -> raise IndivisableDurations *)
 
-let ( *^ ) (d1 : duration) (i1 : integer) : duration =
-  let y, m, d = CalendarLib.Date.Period.ymd d1 in
-  CalendarLib.Date.Period.make
-    (y * integer_to_int i1)
-    (m * integer_to_int i1)
-    (d * integer_to_int i1)
+let ( *^ ) (d : duration) (m : integer) : duration =
+  Dates_calc.Dates.mul_period d (Z.to_int m)
 
 let ( <=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 <= 0
 let ( >=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 >= 0
@@ -605,27 +606,35 @@ let ( <=& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 <= 0
 let ( >& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 > 0
 let ( <& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 < 0
 let ( =& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 = 0
-let ( >=@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 >= 0
-let ( <=@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 <= 0
-let ( >@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 > 0
-let ( <@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 < 0
-let ( =@ ) (d1 : date) (d2 : date) : bool = CalendarLib.Date.compare d1 d2 = 0
 
-let compare_periods
-    (p1 : CalendarLib.Date.Period.t)
-    (p2 : CalendarLib.Date.Period.t) : int =
+let ( >=@ ) (d1 : date) (d2 : date) : bool =
+  Dates_calc.Dates.compare_dates d1 d2 >= 0
+
+let ( <=@ ) (d1 : date) (d2 : date) : bool =
+  Dates_calc.Dates.compare_dates d1 d2 <= 0
+
+let ( >@ ) (d1 : date) (d2 : date) : bool =
+  Dates_calc.Dates.compare_dates d1 d2 > 0
+
+let ( <@ ) (d1 : date) (d2 : date) : bool =
+  Dates_calc.Dates.compare_dates d1 d2 < 0
+
+let ( =@ ) (d1 : date) (d2 : date) : bool =
+  Dates_calc.Dates.compare_dates d1 d2 = 0
+
+let compare_periods (p1 : duration) (p2 : duration) : int =
   try
-    let p1_days = CalendarLib.Date.Period.nb_days p1 in
-    let p2_days = CalendarLib.Date.Period.nb_days p2 in
+    let p1_days = Dates_calc.Dates.period_to_days p1 in
+    let p2_days = Dates_calc.Dates.period_to_days p2 in
     compare p1_days p2_days
-  with CalendarLib.Date.Period.Not_computable -> raise UncomparableDurations
+  with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
 
 let ( >=^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 >= 0
 let ( <=^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 <= 0
 let ( >^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 > 0
 let ( <^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 < 0
 let ( =^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 = 0
-let ( ~-^ ) (d1 : duration) : duration = CalendarLib.Date.Period.opp d1
+let ( ~-^ ) : duration -> duration = Dates_calc.Dates.neg_period
 
 let array_filter (f : 'a -> bool) (a : 'a array) : 'a array =
   Array.of_list (List.filter f (Array.to_list a))

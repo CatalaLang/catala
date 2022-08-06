@@ -110,15 +110,15 @@ let rec evaluate_operator
       A.ELit (LDuration Runtime.(d1 -@ d2))
     | A.Binop (A.Add KDate), [ELit (LDate d1); ELit (LDuration d2)] ->
       A.ELit (LDate Runtime.(d1 +@ d2))
-    | A.Binop (A.Div KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-      apply_div_or_raise_err
-        (fun _ ->
-          try A.ELit (LRat Runtime.(d1 /^ d2))
-          with Runtime.IndivisableDurations ->
-            Errors.raise_multispanned_error (get_binop_args_pos args)
-              "Cannot divide durations that cannot be converted to a precise \
-               number of days")
-        op
+    (* | A.Binop (A.Div KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+     *   apply_div_or_raise_err
+     *     (fun _ ->
+     *       try A.ELit (LRat Runtime.(d1 /^ d2))
+     *       with Runtime.IndivisableDurations ->
+     *         Errors.raise_multispanned_error (get_binop_args_pos args)
+     *           "Cannot divide durations that cannot be converted to a precise \
+     *            number of days")
+     *     op *)
     | A.Binop (A.Mult KDuration), [ELit (LDuration d1); ELit (LInt i1)] ->
       A.ELit (LDuration Runtime.(d1 *^ i1))
     | A.Binop (A.Lt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
