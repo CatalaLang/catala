@@ -501,11 +501,25 @@ let interpret_program :
   match evaluate_expr ctx e with
   | Ast.EAbs (_, [((Ast.TTuple (taus, Some s_in), _) as targs)]), mark_e ->
     begin
+    (* At this point, the interpreter seeks to execute the scope but does not
+       have a way to retrieve input values from the command line. [taus] contain
+       the types of the scope arguments. For [context] arguments, we cann
+       provide an empty thunked term. But for [input] arguments of another type,
+       we cannot provide anything so we have to fail. *)
     let application_term =
       List.map
         (fun ty ->
-          Ast.empty_thunked_term
-            (A.map_mark (fun pos -> pos) (fun _ -> ty) mark_e))
+          match Marked.unmark ty with
+          | A.TArrow ((A.TLit A.TUnit, _), ty_in) ->
+            Ast.empty_thunked_term
+              (A.map_mark (fun pos -> pos) (fun _ -> ty_in) mark_e)
+          | _ ->
+            Errors.raise_spanned_error (Marked.get_mark ty)
+              "This scope needs input arguments to be executed. But the Catala \
+               built-in interpreter does not have a way to retrieve input \
+               values from the command line, so it cannot execute this scope. \
+               Please create another scope thatprovide the input arguments to \
+               this one and execute it instead. ")
         taus
     in
     let to_interpret =
