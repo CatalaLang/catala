@@ -252,8 +252,8 @@ val date_of_numbers : int -> int -> int -> date
 
     @raise ImpossibleDate *)
 
-val first_day_of_month : date -> date
-val last_day_of_month : date -> date
+(* val first_day_of_month : date -> date
+ * val last_day_of_month : date -> date *)
 
 (**{2 Durations} *)
 

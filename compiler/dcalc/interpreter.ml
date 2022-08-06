@@ -108,13 +108,13 @@ let rec evaluate_operator
     A.ELit (LDuration Runtime.(d1 -@ d2))
   | A.Binop (A.Add KDate), [ELit (LDate d1); ELit (LDuration d2)] ->
     A.ELit (LDate Runtime.(d1 +@ d2))
-  | A.Binop (A.Div KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    apply_div_or_raise_err (fun _ ->
-        try A.ELit (LRat Runtime.(d1 /^ d2))
-        with Runtime.IndivisableDurations ->
-          Errors.raise_multispanned_error (get_binop_args_pos args)
-            "Cannot divide durations that cannot be converted to a precise \
-             number of days")
+  (* | A.Binop (A.Div KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+   *   apply_div_or_raise_err (fun _ ->
+   *       try A.ELit (LRat Runtime.(d1 /^ d2))
+   *       with Runtime.IndivisableDurations ->
+   *         Errors.raise_multispanned_error (get_binop_args_pos args)
+   *           "Cannot divide durations that cannot be converted to a precise \
+   *            number of days") *)
   | A.Binop (A.Mult KDuration), [ELit (LDuration d1); ELit (LInt i1)] ->
     A.ELit (LDuration Runtime.(d1 *^ i1))
   | A.Binop (A.Lt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
@@ -253,10 +253,10 @@ let rec evaluate_operator
   | A.Unop A.GetMonth, [ELit (LDate d)] ->
     A.ELit (LInt Runtime.(month_number_of_date d))
   | A.Unop A.GetYear, [ELit (LDate d)] -> A.ELit (LInt Runtime.(year_of_date d))
-  | A.Unop A.FirstDayOfMonth, [ELit (LDate d)] ->
-    A.ELit (LDate Runtime.(first_day_of_month d))
-  | A.Unop A.LastDayOfMonth, [ELit (LDate d)] ->
-    A.ELit (LDate Runtime.(first_day_of_month d))
+  (* | A.Unop A.FirstDayOfMonth, [ELit (LDate d)] ->
+   *   A.ELit (LDate Runtime.(first_day_of_month d))
+   * | A.Unop A.LastDayOfMonth, [ELit (LDate d)] ->
+   *   A.ELit (LDate Runtime.(first_day_of_month d)) *)
   | A.Unop A.IntToRat, [ELit (LInt i)] ->
     A.ELit (LRat Runtime.(decimal_of_integer i))
   | A.Unop A.MoneyToRat, [ELit (LMoney i)] ->
@@ -323,7 +323,6 @@ let rec evaluate_operator
           args)
       "Operator applied to the wrong arguments\n\
        (should not happen if the term was well-typed)"
->>>>>>> master
 
 and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
     =
