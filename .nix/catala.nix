@@ -42,7 +42,6 @@ buildDunePackage rec {
     benchmark
     bindlib
     calendar
-    camomile
     cmdliner_1_1_0
     cppo
     js_of_ocaml
