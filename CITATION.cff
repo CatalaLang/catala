@@ -13,31 +13,31 @@ authors:
     family-names: Merigoux
     email: denis.merigoux@inria.fr
     affiliation: INRIA
-    orcid: 'https://orcid.org/0000-0003-2247-0938'
+    orcid: "https://orcid.org/0000-0003-2247-0938"
   - given-names: Nicolas
     family-names: Chataing
     email: nicolas.chataing@ens.fr
-    affiliation: 'INRIA, ENS'
+    affiliation: "INRIA, ENS"
   - given-names: Emile
     family-names: Rolley
     email: emile.rolley@tuta.io
   - given-names: Louis
     family-names: Gesbert
-    affiliation: 'INRIA, OCamlPro'
+    affiliation: "INRIA, OCamlPro"
   - given-names: Aymeric
     family-names: Fromherz
     affiliation: Inria
   - given-names: Alain
     family-names: Delaët-Tixeuil
-    affiliation: 'INRIA, ENS Lyon'
+    affiliation: "INRIA, ENS Lyon"
   - given-names: Lilya
     family-names: Slimani
-repository-code: 'https://github.com/CatalaLang/catala'
-url: 'https://catala-lang.org/'
+repository-code: "https://github.com/CatalaLang/catala"
+url: "https://catala-lang.org/"
 abstract: >-
   Catala is a domain-specific language for deriving
   faithful-by-construction algorithms from
   legislative texts.
 license: Apache-2.0
-version: 0.6.0
-date-released: '2022-03-08'
+version: 0.7.0
+date-released: "2022-03-08"
