@@ -185,7 +185,11 @@ let check_exceeding_lines
   content
   |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
-         if String.length s > max_len then (
+         if
+           String.length (Ubase.from_utf8 s)
+           (* we remove diacritics to avoid false positives due to UFT8 encoding
+              not taken into account by String *) > max_len
+         then (
            Cli.warning_print "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
                 ANSITerminal.[Bold; yellow]
