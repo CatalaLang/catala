@@ -164,6 +164,9 @@ module R = Re.Pcre
 #ifndef MR_RULE
   #define MR_RULE MS_RULE
 #endif
+#ifndef MR_LET
+  #define MR_LET MS_LET
+#endif
 #ifndef MR_EXISTS
   #define MR_EXISTS MS_EXISTS
 #endif
@@ -308,6 +311,7 @@ let token_list : (string * token) list =
     (MS_FIXED, FIXED);
     (MS_BY, BY);
     (MS_RULE, RULE);
+    (MS_LET, LET);
     (MS_EXISTS, EXISTS);
     (MS_IN, IN);
     (MS_SUCH, SUCH);
@@ -522,6 +526,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_RULE ->
       L.update_acc lexbuf;
       RULE
+  | MR_LET ->
+      L.update_acc lexbuf;
+      LET
   | MR_EXISTS ->
       L.update_acc lexbuf;
       EXISTS

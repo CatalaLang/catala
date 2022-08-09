@@ -198,7 +198,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(pasuje|ze\s+wzorem|staloprzecinkowa|przez|malejacy|rosnacy|rozna|wraz z|mamy|w|takich ze|istnieje|dla|wszystkie|z|jezeli|wtedy|inaczej|poczatkowy)\b
+    regex \= \b(pasuje|ze\s+wzorem|staloprzecinkowa|przez|malejacy|rosnacy|rozna|wraz z|mamy|niech|in|takich ze|istnieje|dla|wszystkie|z|jezeli|wtedy|inaczej|poczatkowy)\b
     styles [] = .keyword_expression ;
   }
 

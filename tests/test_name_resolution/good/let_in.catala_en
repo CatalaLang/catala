@@ -1,0 +1,30 @@
+## Article
+
+```catala
+declaration scope S:
+  context output a content A
+  context output b content B
+
+declaration structure A:
+   data x content decimal
+   data y content B
+
+declaration structure B:
+   data y content boolean
+   data z content decimal
+
+scope S:
+   definition b equals let b equals 42 in B { -- y: true -- z: integer_to_decimal of b}
+   definition a equals
+     let b equals
+       if b.B.y
+       then B { -- y: false -- z: -1. }
+       else B { -- y: true  -- z: -2. }
+     in
+     let a equals 2. *. b.z in
+     A { -- x: a -- y : b }
+```
+
+```catala-test {id="S.Interpret"}
+catala Interpret -s S
+```
