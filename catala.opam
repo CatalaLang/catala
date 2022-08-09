@@ -24,7 +24,7 @@ depends: [
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
   "dune" {>= "2.8"}
-  "js_of_ocaml-ppx" {>= "3.8.0"}
+  "js_of_ocaml-ppx" {>= "4.0.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
   "ocaml" {>= "4.13.0"}
