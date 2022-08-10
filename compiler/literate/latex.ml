@@ -247,7 +247,7 @@ let rec law_structure_to_latex
        %s```\n\
        \\end{minted}"
       (pre_latexify (Filename.basename (Pos.get_file (Marked.get_mark c))))
-      (Pos.get_start_line (Marked.get_mark c) - 1)
+      (Pos.get_start_line (Marked.get_mark c) + 1)
       (get_language_extension language)
       (Marked.unmark c)
   | A.CodeBlock (_, c, true) when not print_only_law ->
