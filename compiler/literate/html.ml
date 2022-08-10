@@ -208,15 +208,18 @@ let rec law_structure_to_html
        %a"
       h_number id id h_name
       (match heading.law_heading_id, language with
-      | Some id, Fr ->
-        let ltime = Unix.localtime (Unix.time ()) in
-        P.sprintf
-          "<a class=\"link-article\" \
-           href=\"https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d\" \
-           target=\"_blank\">Voir le texte sur Légifrance.gouv.fr</a>"
-          id
-          (1900 + ltime.Unix.tm_year)
-          (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
+      | Some id, Fr -> (
+        try
+          P.sprintf
+            "<a class=\"link-article\" \
+             href=\"https://legifrance.gouv.fr/%s/id/%s\" \
+             target=\"_blank\">Voir le texte sur Légifrance.gouv.fr</a>"
+            (if String.starts_with ~prefix:"LEGIARTI" id then "codes"
+            else if String.starts_with ~prefix:"JORFARTI" id then "jorf"
+            else if String.starts_with ~prefix:"CETATEXT" id then "ceta"
+            else raise Not_found)
+            id
+        with Not_found -> "")
       | _ -> "")
       h_number fmt_details_open ()
       (Format.pp_print_list
