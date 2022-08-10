@@ -388,41 +388,6 @@ let prestation_recue_of_jsoo (prestation_recue : prestation_recue Js.t)
         "Unexpected '%s' kind for the enumeration 'PrestationRecue.t'" cons)
 
 
-class type type_contrat_travail =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "CDI"
-        - "Autres" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let type_contrat_travail_to_jsoo
-  : TypeContratTravail.t -> type_contrat_travail Js.t
-  = function
-  | CDI arg -> object%js
-      val kind = Js.string "CDI"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | Autres arg -> object%js
-      val kind = Js.string "Autres"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-
-let type_contrat_travail_of_jsoo
-  (type_contrat_travail : type_contrat_travail Js.t) : TypeContratTravail.t =
-  match type_contrat_travail##.kind |> Js.to_string with
-  | "CDI" -> TypeContratTravail.CDI ()
-  | "Autres" -> TypeContratTravail.Autres ()
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'TypeContratTravail.t'"
-        cons)
-
-
 class type parent_ou_autre =
   object
     method kind :
@@ -1954,7 +1919,6 @@ class type demandeur =
       bool Js.t Js.readonly_prop
     method ageDemandeur: int Js.readonly_prop
     method dateNaissance: Js.js_string Js.t Js.readonly_prop
-    method contratDeTravail: type_contrat_travail Js.t Js.readonly_prop
     method nationalite: nationalite Js.t Js.readonly_prop
     method patrimoine: patrimoine Js.t Js.readonly_prop
     method personneHebergeeCentreSoinLL162223SecuriteSociale:
@@ -1966,8 +1930,6 @@ class type demandeur =
         Js.bool demandeur.satisfait_conditions_l512_2_code_securite_sociale
       val ageDemandeur = integer_to_int demandeur.age_demandeur
       val dateNaissance = date_to_jsoo demandeur.date_naissance
-      val contratDeTravail =
-        type_contrat_travail_to_jsoo demandeur.contrat_de_travail
       val nationalite = nationalite_to_jsoo demandeur.nationalite
       val patrimoine = patrimoine_to_jsoo demandeur.patrimoine
       val personneHebergeeCentreSoinLL162223SecuriteSociale =
@@ -1979,8 +1941,6 @@ class type demandeur =
         Js.to_bool demandeur##.satisfaitConditionsL5122CodeSecuriteSociale;
       age_demandeur = integer_of_int demandeur##.ageDemandeur;
       date_naissance = date_of_jsoo demandeur##.dateNaissance;
-      contrat_de_travail =
-        type_contrat_travail_of_jsoo demandeur##.contratDeTravail;
       nationalite = nationalite_of_jsoo demandeur##.nationalite;
       patrimoine = patrimoine_of_jsoo demandeur##.patrimoine;
       personne_hebergee_centre_soin_l_L162_22_3_securite_sociale =
@@ -2051,7 +2011,6 @@ class type informations_calcul_a_p_l_accession_propriete =
   object
     method mensualitePrincipale: Js.number Js.t Js.readonly_prop
     method chargesMensuellesPret: Js.number Js.t Js.readonly_prop
-    method dateSignaturePret: Js.js_string Js.t Js.readonly_prop
     method dateEntreeLogement: Js.js_string Js.t Js.readonly_prop
     method typeTravauxLogementD83215:
       type_travaux_logement_d832_15 Js.t Js.readonly_prop
@@ -2060,7 +2019,6 @@ class type informations_calcul_a_p_l_accession_propriete =
     method localHabitePremiereFoisBeneficiaire: bool Js.t Js.readonly_prop
     method copropriete: bool Js.t Js.readonly_prop
     method situationR822111317: bool Js.t Js.readonly_prop
-    method typePret: type_pret Js.t Js.readonly_prop
     method ancienneteLogement: neuf_ou_ancien Js.t Js.readonly_prop
   end
   let informations_calcul_a_p_l_accession_propriete_to_jsoo
@@ -2072,8 +2030,6 @@ class type informations_calcul_a_p_l_accession_propriete =
         Js.number_of_float @@ money_to_float informations_calcul_a_p_l_accession_propriete.mensualite_principale
       val chargesMensuellesPret =
         Js.number_of_float @@ money_to_float informations_calcul_a_p_l_accession_propriete.charges_mensuelles_pret
-      val dateSignaturePret =
-        date_to_jsoo informations_calcul_a_p_l_accession_propriete.date_signature_pret
       val dateEntreeLogement =
         date_to_jsoo informations_calcul_a_p_l_accession_propriete.date_entree_logement
       val typeTravauxLogementD83215 =
@@ -2086,8 +2042,6 @@ class type informations_calcul_a_p_l_accession_propriete =
         Js.bool informations_calcul_a_p_l_accession_propriete.copropriete
       val situationR822111317 =
         Js.bool informations_calcul_a_p_l_accession_propriete.situation_r822_11_13_17
-      val typePret =
-        type_pret_to_jsoo informations_calcul_a_p_l_accession_propriete.type_pret
       val ancienneteLogement =
         neuf_ou_ancien_to_jsoo informations_calcul_a_p_l_accession_propriete.anciennete_logement
       end
@@ -2104,9 +2058,6 @@ class type informations_calcul_a_p_l_accession_propriete =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           informations_calcul_a_p_l_accession_propriete
           ##.chargesMensuellesPret;
-      date_signature_pret =
-        date_of_jsoo
-          informations_calcul_a_p_l_accession_propriete##.dateSignaturePret;
       date_entree_logement =
         date_of_jsoo
           informations_calcul_a_p_l_accession_propriete##.dateEntreeLogement;
@@ -2128,9 +2079,6 @@ class type informations_calcul_a_p_l_accession_propriete =
       situation_r822_11_13_17 =
         Js.to_bool
           informations_calcul_a_p_l_accession_propriete##.situationR822111317;
-      type_pret =
-        type_pret_of_jsoo
-          informations_calcul_a_p_l_accession_propriete##.typePret;
       anciennete_logement =
         neuf_ou_ancien_of_jsoo
           informations_calcul_a_p_l_accession_propriete##.ancienneteLogement

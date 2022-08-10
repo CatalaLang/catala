@@ -83,14 +83,12 @@ déclaration énumération NeufOuAncien:
 déclaration structure InformationsCalculAPLAccessionPropriété:
   donnée mensualité_principale contenu argent
   donnée charges_mensuelles_prêt contenu argent
-  donnée date_signature_prêt contenu date
   donnée date_entrée_logement contenu date
   donnée type_travaux_logement_d832_15 contenu TypeTravauxLogementD832_15
   donnée type_travaux_logement_r842_5 contenu TypeTravauxLogementR842_5
   donnée local_habité_première_fois_bénéficiaire contenu booléen
   donnée copropriété contenu booléen
   donnée situation_r822_11_13_17 contenu booléen
-  donnée type_prêt contenu TypePrêt
   donnée ancienneté_logement contenu NeufOuAncien
 
 ```
@@ -140,9 +138,6 @@ déclaration énumération PrestationReçue:
   -- AllocationSoutienEnfantHandicapé
   -- AllocationAdulteHandicapé
 
-déclaration énumération TypeContratTravail:
-  -- CDI
-  -- Autres
 
 déclaration énumération ModeOccupation:
   -- Locataire contenu Location
@@ -244,7 +239,6 @@ déclaration structure Demandeur:
     contenu booléen
   donnée age_demandeur contenu entier
   donnée date_naissance contenu date
-  donnée contrat_de_travail contenu TypeContratTravail
   donnée nationalité contenu Nationalité
   donnée patrimoine contenu Patrimoine
   donnée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale

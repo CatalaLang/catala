@@ -664,12 +664,9 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
         -- BailleurSocial: faux
         -- BailleurPrivé:
           location.bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
-            (non location.bailleur.respecte_convention_titre_V))
-            # Ici il faut la négation car si le bailleur privé ne respecte
-            # pas le titre V, alors il ne doit pas bénéficier du cas de base du
-            # 2°)
+            location.bailleur.respecte_convention_titre_V)
       -- n'importe quel: faux
-  conséquence non rempli
+  conséquence rempli
 ```
 
 4° Logements à usage locatif construits ou améliorés dans des conditions fixées

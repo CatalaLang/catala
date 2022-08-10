@@ -652,7 +652,7 @@ law_text:
 source_file_item:
 | text = law_text { LawText text }
 | BEGIN_CODE code_and_pos = code text = END_CODE  {
-  let (code, pos) = code_and_pos in
+  let (code, _) = code_and_pos in
   CodeBlock (code, (text, Pos.from_lpos $sloc), false)
 }
 | heading = law_heading {

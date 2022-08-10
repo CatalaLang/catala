@@ -1546,10 +1546,14 @@ champ d'application CalculAidePersonnaliséeLogement:
     # Valeur par défaut
     -- InfosAccessionPropriété de infos: infos.type_travaux_logement_d832_15
   définition accession_propriété.date_signature_prêt égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: |2010-01-01| # Valeur par défaut
-    -- InfosLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.date_signature_prêt
+    selon mode_occupation sous forme
+    -- Locataire: |2010-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.prêt.date_signature
+    -- SousLocataire: |2010-01-01| # Valeur par défaut
+    -- LocationAccession de propriétaire:
+      propriétaire.prêt.date_signature
   définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
     selon informations_calcul sous forme
     -- InfosLocatif: faux # Valeur par défaut
@@ -1572,11 +1576,14 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- InfosLogementFoyer: faux # Valeur par défaut
     -- InfosAccessionPropriété de infos: infos.situation_r822_11_13_17
   définition accession_propriété.type_prêt égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: D331_32 # Valeur par défaut
-    -- InfosLogementFoyer: D331_32 # Valeur par défaut
-    -- InfosAccessionPropriété de infos:
-      infos.InformationsCalculAPLAccessionPropriété.type_prêt
+    selon mode_occupation sous forme
+    -- Locataire: D331_32 # Valeur par défaut
+    -- RésidentLogementFoyer: D331_32 # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.prêt.type_prêt
+    -- SousLocataire: D331_32 # Valeur par défaut
+    -- LocationAccession de propriétaire:
+      propriétaire.prêt.type_prêt
   définition accession_propriété.ancienneté_logement égal à
     selon informations_calcul sous forme
     -- InfosLocatif: Neuf # Valeur par défaut
@@ -1690,10 +1697,14 @@ champ d'application CalculAllocationLogement:
     # Valeur par défaut
     -- InfosAccessionPropriété de infos: infos.type_travaux_logement_r842_5
   définition accession_propriété.date_signature_prêt égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: |2010-01-01| # Valeur par défaut
-    -- InfosLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.date_signature_prêt
+    selon mode_occupation sous forme
+    -- Locataire: |2010-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.prêt.date_signature
+    -- SousLocataire: |2010-01-01| # Valeur par défaut
+    -- LocationAccession de propriétaire:
+      propriétaire.prêt.date_signature
   définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
     selon informations_calcul sous forme
     -- InfosLocatif: faux # Valeur par défaut
