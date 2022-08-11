@@ -1057,8 +1057,8 @@ class type categorie_equivalence_loyer_allocation_logement_foyer =
     method kind :
       Js.js_string Js.t Js.readonly_prop
       (** Expects one of:
-        - "EtudiantLogeEnChambre"
-        - "EtudiantLogeEnChambreRehabilitee"
+        - "EtudiantLogeEnChambreCROUS"
+        - "EtudiantLogeEnChambreCROUSRehabilitee"
         - "PersonnesAgeesSelon3DeD842_16"
         - "AutresPersonnes" *)
     
@@ -1068,12 +1068,12 @@ class type categorie_equivalence_loyer_allocation_logement_foyer =
 let categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo
   : CategorieEquivalenceLoyerAllocationLogementFoyer.t -> categorie_equivalence_loyer_allocation_logement_foyer Js.t
   = function
-  | EtudiantLogeEnChambre arg -> object%js
-      val kind = Js.string "EtudiantLogeEnChambre"
+  | EtudiantLogeEnChambreCROUS arg -> object%js
+      val kind = Js.string "EtudiantLogeEnChambreCROUS"
       val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
     end
-  | EtudiantLogeEnChambreRehabilitee arg -> object%js
-      val kind = Js.string "EtudiantLogeEnChambreRehabilitee"
+  | EtudiantLogeEnChambreCROUSRehabilitee arg -> object%js
+      val kind = Js.string "EtudiantLogeEnChambreCROUSRehabilitee"
       val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
     end
   | PersonnesAgeesSelon3DeD842_16 arg -> object%js
@@ -1091,10 +1091,10 @@ let categorie_equivalence_loyer_allocation_logement_foyer_of_jsoo
   : CategorieEquivalenceLoyerAllocationLogementFoyer.t =
   match categorie_equivalence_loyer_allocation_logement_foyer##.kind
     |> Js.to_string with
-  | "EtudiantLogeEnChambre" ->
-    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambre ()
-  | "EtudiantLogeEnChambreRehabilitee" ->
-    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambreRehabilitee ()
+  | "EtudiantLogeEnChambreCROUS" ->
+    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambreCROUS ()
+  | "EtudiantLogeEnChambreCROUSRehabilitee" ->
+    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambreCROUSRehabilitee ()
   | "PersonnesAgeesSelon3DeD842_16" ->
     CategorieEquivalenceLoyerAllocationLogementFoyer.PersonnesAgeesSelon3DeD842_16 ()
   | "AutresPersonnes" ->
