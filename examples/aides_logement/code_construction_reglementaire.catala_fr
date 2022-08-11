@@ -2002,9 +2002,14 @@ $$\textrm{Pp} = \textrm{P0} + \textrm{Tp}* (\textrm{R}-\textrm{R0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition participation_personnelle égal à
-    participation_minimale +€
-    (ressources_ménage_arrondies -€ abattement_forfaitaire_d823_17) *€
-      taux_prise_compte_ressources
+    soit participation_ressources égal à
+       (ressources_ménage_arrondies -€ abattement_forfaitaire_d823_17) *€
+        taux_prise_compte_ressources
+    dans
+    soit participation_ressources égal à
+      si participation_ressources <€ 0€ alors 0€ sinon participation_ressources
+    dans
+    participation_minimale +€ participation_ressources
 ```
 
 où :
