@@ -121,7 +121,7 @@
         }
       }
       {
-        'match' : '\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b'
+        'match' : '\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|let|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b'
         'name' : 'keyword.control.catala_en'
       }
       {
