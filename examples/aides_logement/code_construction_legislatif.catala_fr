@@ -638,6 +638,12 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
           location.bailleur.respecte_convention_titre_V
         -- BailleurPrivé:
           location.bailleur.respecte_convention_titre_II)
+      -- RésidentLogementFoyer de logement_foyer:
+        (selon logement_foyer.location.bailleur.type_bailleur sous forme
+        -- BailleurSocial:
+          logement_foyer.location.bailleur.respecte_convention_titre_V
+        -- BailleurPrivé:
+          logement_foyer.location.bailleur.respecte_convention_titre_II)
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -665,6 +671,13 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
         -- BailleurPrivé:
           location.bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
             location.bailleur.respecte_convention_titre_V)
+      -- RésidentLogementFoyer de logement_foyer:
+        (selon logement_foyer.location.bailleur.type_bailleur sous forme
+        -- BailleurSocial: faux
+        -- BailleurPrivé:
+          logement_foyer.location.
+            bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
+            logement_foyer.location.bailleur.respecte_convention_titre_V)
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -689,6 +702,18 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
           location.bailleur.construit_amélioré_conditions_l831_1_4 et
           (location.bailleur.respecte_convention_titre_V ou
             location.bailleur.respecte_convention_titre_II))
+      -- RésidentLogementFoyer de logement_foyer:
+        (selon logement_foyer.location.bailleur.type_bailleur sous forme
+        -- BailleurSocial:
+          logement_foyer.location.
+            bailleur.construit_amélioré_conditions_l831_1_4 et
+          (logement_foyer.location.bailleur.respecte_convention_titre_V ou
+            logement_foyer.location.bailleur.respecte_convention_titre_II)
+        -- BailleurPrivé:
+          logement_foyer.location.bailleur.
+            construit_amélioré_conditions_l831_1_4 et
+          (logement_foyer.location.bailleur.respecte_convention_titre_V ou
+            logement_foyer.location.bailleur.respecte_convention_titre_II))
       -- n'importe quel: faux
   conséquence rempli
 ```
