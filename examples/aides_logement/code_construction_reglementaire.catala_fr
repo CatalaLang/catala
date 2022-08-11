@@ -517,18 +517,13 @@ il est opéré sur ses ressources un abattement de :
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   définition abattement_r_822_10 égal à
-    selon situation_familiale sous forme
-    # TODO informatique: améliorer avec
-    # https://github.com/CatalaLang/catala/issues/203 ou
-    # https://github.com/CatalaLang/catala/issues/199
-    -- Célibataire:
-      (si nombre de personnes_à_charge = 0 alors 0 €
+    soit abattement égal à
+      si nombre de personnes_à_charge = 0 alors 0 €
       sinon (si nombre de personnes_à_charge <= 2 alors 901 €
-      sinon 1 350 €))
-    --  CélibataireSéparéDeFait:
-      (si nombre de personnes_à_charge = 0 alors 0 €
-      sinon (si nombre de personnes_à_charge <= 2 alors 901 €
-      sinon 1 350 €))
+      sinon 1 350 €)
+    dans selon situation_familiale sous forme
+    -- Célibataire: abattement
+    -- CélibataireSéparéDeFait: abattement
     -- n'importe quel: 0 €
 ```
 
@@ -1030,9 +1025,9 @@ plus.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  # TODO informatique : remplacer par variables locales
-  définition nombre_personnes_logement égal à
-    (selon ménage.situation_familiale sous forme
+  règle condition_logement_surface sous condition
+    soit nombre_personnes_logement égal à
+      (selon ménage.situation_familiale sous forme
       -- Célibataire: 1
       -- Mariés: 2
       -- Pacsés: 2
@@ -1041,9 +1036,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- ConcubinageDontSéparéDeFait: 2) +
       ménage.nombre_autres_occupants_logement +
       nombre de ménage.personnes_à_charge
-
-  définition condition_logement_surface_minimale_sans_seuil_m_carrés égal à
-    (selon ménage.situation_familiale sous forme
+    dans
+    soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
+      (selon ménage.situation_familiale sous forme
       -- Célibataire: 9
       -- Mariés: 16
       -- Pacsés: 16
@@ -1052,9 +1047,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- ConcubinageDontSéparéDeFait: 16) +
       (ménage.nombre_autres_occupants_logement +
       nombre de ménage.personnes_à_charge) * 9
-
-  règle condition_logement_surface sous condition
-    si
+    dans si
       condition_logement_surface_minimale_sans_seuil_m_carrés >= 70 et
       nombre_personnes_logement >= 8
     alors
@@ -1871,11 +1864,11 @@ $$\textrm{Af} = \textrm{L} + \textrm{C}-\textrm{Pp}$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale_formule égal à
-    si loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
-      participation_personnelle <€ 0 €
-    alors 0 € sinon
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
-        participation_personnelle)
+    soit aide_finale égal à
+      loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
+      participation_personnelle
+    dans
+    si aide_finale <€ 0 € alors 0 € sinon aide_finale
 ```
 
 où :
@@ -1945,11 +1938,11 @@ Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arr
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale état minoration_forfaitaire égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
-      traitement_aide_finale de aide_finale -€
-        montant_forfaitaire_d823_16 >=€ 0€
+      aide_finale -€ montant_forfaitaire_d823_16 >=€ 0€
     alors
-      traitement_aide_finale de aide_finale -€ montant_forfaitaire_d823_16
+      aide_finale -€ montant_forfaitaire_d823_16
     sinon 0€
 ```
 
@@ -1962,18 +1955,17 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à
+      contributions_sociales.montant de aide_finale
+    dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -1993,12 +1985,10 @@ n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
-      traitement_aide_finale de aide_finale <€ montant_minimal_aide_d823_16
-    alors
-      0 €
-    sinon
-      traitement_aide_finale de aide_finale
+      aide_finale <€ montant_minimal_aide_d823_16
+    alors 0 € sinon aide_finale
 ```
 
 ######## Article D823-17 | LEGIARTI000041419255
@@ -3158,11 +3148,11 @@ $$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale_formule égal à
-    si (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
-      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10 <€ 0 €
-    alors 0 € sinon
-    ((mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
-      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10)
+    soit aide_finale égal à
+      (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
+      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10
+    dans
+    si aide_finale <€ 0 € alors 0 € sinon aide_finale
 ```
 
 où :
@@ -3217,14 +3207,11 @@ de calcul sont fixées par l'article D. 832-17.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état abattement égal à
-    si traitement_aide_finale de aide_finale -€
-      abattement_dépense_nette_minimale_d832_10 de
-        (traitement_aide_finale de aide_finale) >=€ 0€
-    alors
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale_d832_10 de
-          (traitement_aide_finale de aide_finale)
-    sinon 0€
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit aide_finale égal à
+      aide_finale -€ abattement_dépense_nette_minimale_d832_10 de aide_finale
+    dans
+    si aide_finale >=€ 0€ alors aide_finale sinon 0€
 ```
 
 Ce dernier résultat, obtenu par application des dispositions précédentes, est diminué d'un montant
@@ -3236,20 +3223,15 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à contributions_sociales.montant de aide_finale dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -3259,9 +3241,10 @@ il n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d832_10
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d832_10
     alors 0 €
-    sinon traitement_aide_finale de aide_finale
+    sinon aide_finale
 ```
 
 ####### Article D832-11 | LEGIARTI000038878744
@@ -3447,14 +3430,15 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   exception définition plafond_mensualité_d832_10_3 état base sous condition
     local_habité_première_fois_bénéficiaire
   conséquence égal à
-    # TODO informatique: refactorer avec des let-bindings locaux.
-    si
-      calcul_plafond_mensualité_d832_10_3 de date_signature_prêt <€
-      calcul_plafond_mensualité_d832_10_3 de date_entrée_logement
-    alors
-      calcul_plafond_mensualité_d832_10_3 de date_entrée_logement
-    sinon
+    soit plafond_signature égal à
       calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
+    dans
+    soit plafond_entrée égal à
+      calcul_plafond_mensualité_d832_10_3 de date_entrée_logement
+    dans
+    si plafond_signature <€ plafond_entrée
+    alors plafond_entrée
+    sinon plafond_signature
 ```
 
 ####### Article D832-15 | LEGIARTI000039621211
@@ -3523,28 +3507,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     # durant toutes les étapes du calcul. En Catala, nous utilisons donc le type
     # décimal plutôt que argent qui arrondi systématiquement au centime près
     # à chaque étape de calcul.
+    soit ressources_ménage_arrondies égal à
+      argent_vers_décimal de ressources_ménage_arrondies
+    dans
+    soit montant_limite_tranches_d832_15_1 égal à
+      argent_vers_décimal de montant_limite_tranches_d832_15_1
+    dans
     décimal_vers_argent de (
       ((si
         # Pour la tranche supérieure
-        argent_vers_décimal de ressources_ménage_arrondies >=.
-          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-            n_nombre_parts_d832_11)
+        ressources_ménage_arrondies >=.
+          (montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11)
       alors
-        ((argent_vers_décimal de ressources_ménage_arrondies -.
-          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-          n_nombre_parts_d832_11)) *. taux_tranche_supérieure_d832_15_1)
+        ((ressources_ménage_arrondies -.
+          (montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11)) *.
+            taux_tranche_supérieure_d832_15_1)
       sinon 0,0) +.
       (si
         # Pour la tranche inférieure
-        argent_vers_décimal de ressources_ménage_arrondies <=.
-          argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-            n_nombre_parts_d832_11
+        ressources_ménage_arrondies <=.
+          montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11
       alors
-        argent_vers_décimal de ressources_ménage_arrondies *.
-          taux_tranche_inférieure_d832_15_1
+        ressources_ménage_arrondies *. taux_tranche_inférieure_d832_15_1
       sinon
-        ((argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-          n_nombre_parts_d832_11) *.
+        ((montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11) *.
             taux_tranche_inférieure_d832_15_1))) /. 12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
@@ -3632,11 +3618,14 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale_d832_10
     de aide_calculée_2_9_d832_10
   égal à
-    si dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 <=€
+    soit dépense_nette_minimale égal à
+      dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+    dans
+    si dépense_nette_minimale<=€
       ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
     alors
       ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3 -€
-         dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+        dépense_nette_minimale
     sinon
       0€
 ```
@@ -3810,11 +3799,11 @@ $$\textrm{Af} = \textrm{K} \times (\textrm{E}-\textrm{E0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale_formule égal à
-    si (équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
-      coefficient_prise_en_charge_d832_25 <€ 0 €
-    alors 0 € sinon
-      ((équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
-      coefficient_prise_en_charge_d832_25)
+    soit aide_finale égal à
+      (équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
+        coefficient_prise_en_charge_d832_25
+    dans
+    si aide_finale <€ 0 € alors 0 € sinon aide_finale
 ```
 
 où :
@@ -3871,14 +3860,11 @@ de calcul sont fixées à l'article D. 832-27.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition traitement_aide_finale de aide_finale état abattement égal à
-    si traitement_aide_finale de aide_finale -€
-      abattement_dépense_nette_minimale_d832_27 de
-        (traitement_aide_finale de aide_finale) >=€ 0€
-    alors
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale_d832_27 de
-          (traitement_aide_finale de aide_finale)
-    sinon 0€
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit aide_finale égal à
+      aide_finale -€  abattement_dépense_nette_minimale_d832_27 de aide_finale
+    dans
+    si aide_finale >=€ 0€ alors aide_finale sinon 0€
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -3890,20 +3876,16 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
-    si
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à
+      contributions_sociales.montant de aide_finale
+    dans
+    soit aide_finale_moins_crds_arrondie égal à
+       arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans si
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -3913,8 +3895,9 @@ Lorsque le montant mensuel de l'aide, calculé selon les modalités précédente
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d823_24
-    alors 0 € sinon traitement_aide_finale de aide_finale
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d823_24
+    alors 0 € sinon aide_finale
 ```
 
 ######## Article D832-25 | LEGIARTI000038878710
@@ -4129,29 +4112,29 @@ champ d'application CalculÉquivalenceLoyerMinimale:
       }
 
   définition montant égal à
+    soit ressources_ménage_arrondies égal à
+      argent_vers_décimal de ressources_ménage_arrondies
+    dans
     décimal_vers_argent de (
       (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
         (si
-          argent_vers_décimal de ressources_ménage_arrondies <=.
-            tranche.TrancheRevenuDécimal.bas
+          ressources_ménage_arrondies <=. tranche.TrancheRevenuDécimal.bas
         alors 0,0
         sinon
           (selon tranche.TrancheRevenuDécimal.haut sous forme
           -- LimiteTrancheDécimal.Revenu de tranche_haut:
             (si
-              argent_vers_décimal de ressources_ménage_arrondies >=.
-                tranche_haut
+              ressources_ménage_arrondies >=. tranche_haut
             alors
               (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
                 tranche.TrancheRevenuDécimal.taux
             sinon
-              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+              ((ressources_ménage_arrondies -.
                 tranche.TrancheRevenuDécimal.bas) *.
                   tranche.TrancheRevenuDécimal.taux))
           -- LimiteTrancheDécimal.Infini:
-            (argent_vers_décimal de ressources_ménage_arrondies -.
-              tranche.TrancheRevenuDécimal.bas) *.
-                tranche.TrancheRevenuDécimal.taux)
+            (ressources_ménage_arrondies -. tranche.TrancheRevenuDécimal.bas) *.
+              tranche.TrancheRevenuDécimal.taux)
         ))) +.
       argent_vers_décimal de montant_forfaitaire_d832_26 *.
         n_nombre_parts_d832_25) /. 12,0)
@@ -4168,29 +4151,29 @@ champ d'application CalculÉquivalenceLoyerMinimale:
   exception définition montant sous condition
     condition_2_du_832_25
   conséquence égal à
+    soit ressources_ménage_arrondies égal à
+      argent_vers_décimal de ressources_ménage_arrondies
+    dans
     décimal_vers_argent de (
       (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
         (si
-          argent_vers_décimal de ressources_ménage_arrondies <=.
-            tranche.TrancheRevenuDécimal.bas
+          ressources_ménage_arrondies <=. tranche.TrancheRevenuDécimal.bas
         alors 0,0
         sinon
           (selon tranche.TrancheRevenuDécimal.haut sous forme
           -- LimiteTrancheDécimal.Revenu de tranche_haut:
             (si
-              argent_vers_décimal de ressources_ménage_arrondies >=.
-                tranche_haut
+              ressources_ménage_arrondies >=. tranche_haut
             alors
               (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
                 tranche.TrancheRevenuDécimal.taux
             sinon
-              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+              ((ressources_ménage_arrondies -.
                 tranche.TrancheRevenuDécimal.bas) *.
                   tranche.TrancheRevenuDécimal.taux))
           -- LimiteTrancheDécimal.Infini:
-            (argent_vers_décimal de ressources_ménage_arrondies -.
-              tranche.TrancheRevenuDécimal.bas) *.
-                tranche.TrancheRevenuDécimal.taux)
+            (ressources_ménage_arrondies -. tranche.TrancheRevenuDécimal.bas) *.
+              tranche.TrancheRevenuDécimal.taux)
         ))) +.
       argent_vers_décimal de montant_forfaitaire_d832_26) /. 12,0)
 ```
@@ -4221,13 +4204,12 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition abattement_dépense_nette_minimale_d832_27
     de aide_calculée_1_8_d832_24
   égal à
-    si dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24 <=€
-      montant_forfaitaire_d832_27
-    alors
-      montant_forfaitaire_d832_27 -€
-        dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
-    sinon
-      0€
+    soit dépense_nette_minimale égal à
+      dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+    dans
+    si dépense_nette_minimale <=€ montant_forfaitaire_d832_27
+    alors montant_forfaitaire_d832_27 -€ dépense_nette_minimale
+    sinon 0€
 
 ```
 ######## Article D832-28 | LEGIARTI000038878704
@@ -4394,8 +4376,9 @@ champ d'application ÉligibilitéAllocationLogement:
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
          propriétaire.prêt.titulaire_prêt sous forme Demandeur et
          (infos.type_travaux_logement_r842_5 sous forme
-           TypeTravauxLogementR842_5.PasDeTravaux
-           ou infos.type_travaux_logement_r842_5 sous forme ObjectifDécenceLogement)
+            TypeTravauxLogementR842_5.PasDeTravaux ou
+          infos.type_travaux_logement_r842_5 sous forme
+            ObjectifDécenceLogement)
       -- n'importe quel: faux)
     -- n'importe quel: faux
   conséquence rempli
@@ -4537,16 +4520,11 @@ dont les modalités de calcul sont précisées par l'article D. 842-11.
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état dépense_nette_minimale
   égal à
-    si
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale de
-          (traitement_aide_finale de aide_finale) <€ 0€
-    alors
-      0 €
-    sinon
-      (traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale de
-          (traitement_aide_finale de aide_finale))
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit abattement égal à abattement_dépense_nette_minimale de aide_finale dans
+    si aide_finale <€ abattement
+    alors 0 €
+    sinon aide_finale -€ abattement
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -4557,18 +4535,15 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à contributions_sociales.montant de aide_finale dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -4578,8 +4553,9 @@ par arrêté, il n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d842_6
-    alors 0 € sinon traitement_aide_finale de aide_finale
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d842_6
+    alors 0 € sinon aide_finale
 ```
 
 ####### Article D842-7 | LEGIARTI000038878673
@@ -4660,14 +4636,16 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   exception définition plafond_mensualité_d842_6 sous condition
     local_habité_première_fois_bénéficiaire
   conséquence égal à
-    # TODO informatique: refactorer avec des let-bindings locaux.
-    si
-      calcul_plafond_mensualité_d842_6 de date_signature_prêt <€
-      calcul_plafond_mensualité_d842_6 de date_entrée_logement
-    alors
-      calcul_plafond_mensualité_d842_6 de date_entrée_logement
-    sinon
+    soit plafond_signature égal à
       calcul_plafond_mensualité_d842_6 de date_signature_prêt
+    dans
+    soit plafond_entrée égal à
+      calcul_plafond_mensualité_d842_6 de date_entrée_logement
+    dans
+    si
+      plafond_signature <€ plafond_entrée
+    alors plafond_entrée
+    sinon plafond_signature
 ```
 
 ####### Article D842-10 | LEGIARTI000038878667
@@ -4718,12 +4696,12 @@ constatée.
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale de allocation_mensuelle
   égal à
-    si
-      dépense_nette_minimale de allocation_mensuelle <€
-        seuil_minimal_dépense_nette_minimale
+    soit dépense_nette_minimale égal à
+      dépense_nette_minimale de allocation_mensuelle
+    dans si
+      dépense_nette_minimale <€ seuil_minimal_dépense_nette_minimale
     alors
-      seuil_minimal_dépense_nette_minimale -€
-        dépense_nette_minimale de allocation_mensuelle
+      seuil_minimal_dépense_nette_minimale -€ dépense_nette_minimale
     sinon
      0 €
 

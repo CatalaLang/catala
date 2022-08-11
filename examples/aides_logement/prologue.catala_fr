@@ -312,8 +312,6 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   contexte condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
-  interne condition_logement_surface_minimale_sans_seuil_m_carrés
-    contenu entier
   contexte condition_logement_surface condition
   interne condition_non_ouverture_l822_8 condition
   interne condition_non_ouverture_l822_9_decence_logement condition
@@ -327,7 +325,6 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
 
   # Autres variables
   interne patrimoine_total_demandeur contenu argent
-  interne nombre_personnes_logement contenu entier
   interne usufruit_ou_propriété_famille contenu booléen
   interne seuil_l822_3_parts_propriété contenu décimal
   interne seuil_l822_3_parts_usufruit contenu décimal
