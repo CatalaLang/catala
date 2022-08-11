@@ -5001,8 +5001,10 @@ que les personnes handicapées ;
 
 ```catala-metadata
 déclaration énumération CatégorieÉquivalenceLoyerAllocationLogementFoyer:
-  -- ÉtudiantLogéEnChambre
-  -- ÉtudiantLogéEnChambreRéhabilitée
+  # Les catégories 1° et 2° ici ne s'appliquent qu'aux chambres pour étudiants
+  # gérées par les CROUS, comme décrit au 30 de l'article D823-9.
+  -- ÉtudiantLogéEnChambreCROUS
+  -- ÉtudiantLogéEnChambreCROUSRéhabilitée
   -- PersonnesÂgéesSelon3DeD842_16
   -- AutresPersonnes
 ```

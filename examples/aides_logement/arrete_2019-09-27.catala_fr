@@ -4265,7 +4265,7 @@ b) 131,00 euros lorsqu'il s'agit d'un couple ;
 champ d'application CalculAllocationLogementFoyer
   sous condition date_courante >=@ |2021-10-01|:
   définition équivalence_loyer sous condition
-     catégorie_équivalence_loyer_d842_16 sous forme ÉtudiantLogéEnChambre
+     catégorie_équivalence_loyer_d842_16 sous forme ÉtudiantLogéEnChambreCROUS
   conséquence égal à
     selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 84,14 €
@@ -4283,7 +4283,7 @@ champ d'application CalculAllocationLogementFoyer
   sous condition date_courante >=@ |2021-10-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
-        ÉtudiantLogéEnChambreRéhabilitée
+        ÉtudiantLogéEnChambreCROUSRéhabilitée
   conséquence égal à
     selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 170,12 €
