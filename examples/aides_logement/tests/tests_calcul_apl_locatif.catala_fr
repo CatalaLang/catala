@@ -18,8 +18,6 @@ champ d'application Exemple1:
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.nombre_personnes_à_charge égal à 3
   définition calcul.type_aide égal à AidePersonnaliséeLogement
-  # TODO juridique: trouver articles loi qui calculent le type d'aide
-  # à partir des caractéristiques du ménage et l'implémenter.
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 36 000 €
@@ -140,12 +138,12 @@ champ d'application Exemple5:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 2700 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
-  assertion montant = 375,88 €
+  assertion montant = 311,56 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 298,07 €
   assertion calcul.participation_minimale = 35,39 €
   assertion calcul.taux_composition_familiale = 2,83%
-  assertion calcul.participation_personnelle = 0€ -€ 28,80 €
+  assertion calcul.participation_personnelle = 35,39€
 ```
 
 ```catala
