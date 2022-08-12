@@ -59,6 +59,8 @@ déclaration structure Prêt:
   donnée titulaire_prêt contenu TitulairePrêt
 
 déclaration structure Propriétaire:
+  donnée logement_est_ancien_l831_2 contenu booléen
+  donnée logement_situé_commune_déséquilibre_l831_2 contenu booléen
   donnée prêt contenu Prêt
 
 déclaration énumération TypeTravauxLogementD832_15:
@@ -168,8 +170,6 @@ déclaration structure Logement:
   donnée usufruit contenu ParentOuAutre
   donnée logement_decent_l89_462 contenu booléen
   donnée surface_m_carrés contenu entier
-  donnée est_ancien_l831_2 contenu booléen
-  donnée situé_commune_déséquilibre_l831_2 contenu booléen
   donnée zone contenu ZoneDHabitation
 
 déclaration énumération SituationGardeAlternée:

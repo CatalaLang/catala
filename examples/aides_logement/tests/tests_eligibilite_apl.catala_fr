@@ -69,8 +69,6 @@ champ d'application Exemple1 :
      -- usufruit : ParentOuAutre.Autre
      -- logement_decent_l89_462 : vrai
      -- surface_m_carrés : 80
-     -- est_ancien_l831_2 : faux
-     -- situé_commune_déséquilibre_l831_2 : faux
    }
    -- nombre_autres_occupants_logement: 1
    -- condition_rattaché_foyer_fiscal_parent_ifi: faux

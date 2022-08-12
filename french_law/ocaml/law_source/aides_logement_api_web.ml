@@ -1997,14 +1997,28 @@ class type location =
     }
 
 class type proprietaire =
-  object method pret: pret Js.t Js.readonly_prop
+  object
+    method logementEstAncienL8312: bool Js.t Js.readonly_prop
+    method logementSitueCommuneDesequilibreL8312: bool Js.t Js.readonly_prop
+    method pret: pret Js.t Js.readonly_prop
   end
   let proprietaire_to_jsoo (proprietaire : Proprietaire.t)
-    : proprietaire Js.t = object%js
-                            val pret = pret_to_jsoo proprietaire.pret
-                            end
+    : proprietaire Js.t =
+    object%js
+      val logementEstAncienL8312 =
+        Js.bool proprietaire.logement_est_ancien_l831_2
+      val logementSitueCommuneDesequilibreL8312 =
+        Js.bool proprietaire.logement_situe_commune_desequilibre_l831_2
+      val pret = pret_to_jsoo proprietaire.pret
+      end
   let proprietaire_of_jsoo (proprietaire : proprietaire Js.t) :
-    Proprietaire.t = {pret = pret_of_jsoo proprietaire##.pret
+    Proprietaire.t =
+    {
+      logement_est_ancien_l831_2 =
+        Js.to_bool proprietaire##.logementEstAncienL8312;
+      logement_situe_commune_desequilibre_l831_2 =
+        Js.to_bool proprietaire##.logementSitueCommuneDesequilibreL8312;
+      pret = pret_of_jsoo proprietaire##.pret
     }
 
 class type informations_calcul_a_p_l_accession_propriete =
@@ -2327,8 +2341,6 @@ class type logement =
     method usufruit: parent_ou_autre Js.t Js.readonly_prop
     method logementDecentL89462: bool Js.t Js.readonly_prop
     method surfaceMCarres: int Js.readonly_prop
-    method estAncienL8312: bool Js.t Js.readonly_prop
-    method situeCommuneDesequilibreL8312: bool Js.t Js.readonly_prop
     method zone: zone_d_habitation Js.t Js.readonly_prop
   end
   let logement_to_jsoo (logement : Logement.t) : logement Js.t =
@@ -2343,9 +2355,6 @@ class type logement =
       val usufruit = parent_ou_autre_to_jsoo logement.usufruit
       val logementDecentL89462 = Js.bool logement.logement_decent_l89_462
       val surfaceMCarres = integer_to_int logement.surface_m_carres
-      val estAncienL8312 = Js.bool logement.est_ancien_l831_2
-      val situeCommuneDesequilibreL8312 =
-        Js.bool logement.situe_commune_desequilibre_l831_2
       val zone = zone_d_habitation_to_jsoo logement.zone
       end
   let logement_of_jsoo (logement : logement Js.t) : Logement.t =
@@ -2361,9 +2370,6 @@ class type logement =
       usufruit = parent_ou_autre_of_jsoo logement##.usufruit;
       logement_decent_l89_462 = Js.to_bool logement##.logementDecentL89462;
       surface_m_carres = integer_of_int logement##.surfaceMCarres;
-      est_ancien_l831_2 = Js.to_bool logement##.estAncienL8312;
-      situe_commune_desequilibre_l831_2 =
-        Js.to_bool logement##.situeCommuneDesequilibreL8312;
       zone = zone_d_habitation_of_jsoo logement##.zone
     }
 

@@ -1998,7 +1998,7 @@ La participation personnelle du ménage, mentionnée au 4° de l'article D. 823-
 la somme d'une participation minimale et d'une participation au titre des ressources
 du ménage, calculée selon la formule suivante :
 
-$$\textrm{Pp} = \textrm{P0} + \textrm{Tp}* (\textrm{R}-\textrm{R0})$$
+$$\textrm{Pp} = \textrm{P0} + \textrm{Tp}\times (\textrm{R}-\textrm{R0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
@@ -3937,9 +3937,14 @@ $$\textrm{K} = 0,95 - \frac{\textrm{R} - \textrm{r} \times \textrm{N}}{\textrm{c
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état formule égal à
+    soit dénominateur égal à ressources_ménage_arrondies -€
+        coefficient_r_d832_25 *€ n_nombre_parts_d832_25
+    dans
+    soit dénominateur égal à
+      si dénominateur <€ 0€ alors 0€ sinon dénominateur
+    dans
     0,95 -.
-      ((ressources_ménage_arrondies -€
-        coefficient_r_d832_25 *€ n_nombre_parts_d832_25) /€
+      (dénominateur /€
         (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
       )
 ```

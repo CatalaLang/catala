@@ -781,13 +781,13 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
         # 2018 nous a été confirmé le 25/05/2022 par DGALN/DHUP/FE4.
         propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
-        ménage.logement.est_ancien_l831_2 et
-        ménage.logement.situé_commune_déséquilibre_l831_2
+        propriété.logement_est_ancien_l831_2 et
+        propriété.logement_situé_commune_déséquilibre_l831_2
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
         propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
-        ménage.logement.est_ancien_l831_2 et
-        ménage.logement.situé_commune_déséquilibre_l831_2
+        propriété.logement_est_ancien_l831_2 et
+        propriété.logement_situé_commune_déséquilibre_l831_2
       -- n'importe quel: faux
   conséquence rempli
 ```
