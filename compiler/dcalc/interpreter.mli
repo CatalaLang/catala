@@ -17,12 +17,13 @@
 (** Reference interpreter for the default calculus *)
 
 open Utils
+open Shared_ast
 
-val evaluate_expr : Ast.decl_ctx -> 'm Ast.marked_expr -> 'm Ast.marked_expr
+val evaluate_expr : decl_ctx -> 'm Ast.marked_expr -> 'm Ast.marked_expr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program :
-  Ast.decl_ctx ->
+  decl_ctx ->
   'm Ast.marked_expr ->
   (Uid.MarkedString.info * 'm Ast.marked_expr) list
 (** Interprets a program. This function expects an expression typed as a

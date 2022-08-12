@@ -71,7 +71,7 @@ let typ_needs_parens (t : typ Marked.pos UnionFind.elem) : bool =
   match Marked.unmark t with TArrow _ | TArray _ -> true | _ -> false
 
 let rec format_typ
-    (ctx : Ast.decl_ctx)
+    (ctx : A.decl_ctx)
     (fmt : Format.formatter)
     (typ : typ Marked.pos UnionFind.elem) : unit =
   let format_typ = format_typ ctx in
@@ -90,8 +90,8 @@ let rec format_typ
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
       ts
-  | TTuple (_ts, Some s) -> Format.fprintf fmt "%a" Ast.StructName.format_t s
-  | TEnum (_ts, e) -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
+  | TTuple (_ts, Some s) -> Format.fprintf fmt "%a" A.StructName.format_t s
+  | TEnum (_ts, e) -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1
       format_typ t2
@@ -108,8 +108,8 @@ type mark = { pos : Pos.t; uf : unionfind_typ }
 
 (** Raises an error if unification cannot be performed *)
 let rec unify
-    (ctx : Ast.decl_ctx)
-    (e : ('a, 'm A.mark) Ast.marked_gexpr) (* used for error context *)
+    (ctx : A.decl_ctx)
+    (e : ('a, 'm A.mark) A.marked_gexpr) (* used for error context *)
     (t1 : typ Marked.pos UnionFind.elem)
     (t2 : typ Marked.pos UnionFind.elem) : unit =
   let unify = unify ctx in
@@ -263,7 +263,7 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
 
 type 'e env = ('e, typ Marked.pos UnionFind.elem) A.Var.Map.t
 
-let add_pos e ty = Marked.mark (Ast.pos e) ty
+let add_pos e ty = Marked.mark (A.Expr.pos e) ty
 let ty (_, { uf; _ }) = uf
 let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x1 x2 = Bindlib.box_pair x1 x2
@@ -290,12 +290,12 @@ let box_ty e = Bindlib.unbox (Bindlib.box_apply ty e)
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up
-    (ctx : Ast.decl_ctx)
+    (ctx : A.decl_ctx)
     (env : 'm Ast.expr env)
     (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
   (* Cli.debug_format "Looking for type of %a" (Print.format_expr ~debug:true
      ctx) e; *)
-  let pos_e = Ast.pos e in
+  let pos_e = A.Expr.pos e in
   let mark (e : (A.dcalc, mark) A.gexpr) uf =
     Marked.mark { uf; pos = pos_e } e
   in
@@ -308,7 +308,7 @@ let rec typecheck_expr_bottom_up
       let+ v' = Bindlib.box_var (A.Var.translate v) in
       mark v' t
     | None ->
-      Errors.raise_spanned_error (Ast.pos e)
+      Errors.raise_spanned_error (A.Expr.pos e)
         "Variable %s not found in the current context." (Bindlib.name_of v)
   end
   | A.ELit (LBool _) as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TBool)
@@ -343,7 +343,7 @@ let rec typecheck_expr_bottom_up
       match List.nth_opt ts' n with
       | Some ts_n -> ts_n
       | None ->
-        Errors.raise_spanned_error (Ast.pos e)
+        Errors.raise_spanned_error (A.Expr.pos e)
           "Expression should have a sum type with at least %d cases but only \
            has %d"
           n (List.length ts')
@@ -368,7 +368,7 @@ let rec typecheck_expr_bottom_up
     mark (EMatch (e1', es', e_name)) t_ret
   | A.EAbs (binder, taus) ->
     if Bindlib.mbinder_arity binder <> List.length taus then
-      Errors.raise_spanned_error (Ast.pos e)
+      Errors.raise_spanned_error (A.Expr.pos e)
         "function has %d variables but was supplied %d types"
         (Bindlib.mbinder_arity binder)
         (List.length taus)
@@ -446,13 +446,13 @@ let rec typecheck_expr_bottom_up
 
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down
-    (ctx : Ast.decl_ctx)
+    (ctx : A.decl_ctx)
     (env : 'm Ast.expr env)
     (tau : typ Marked.pos UnionFind.elem)
     (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
   (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
      (Print.format_expr ctx) e; *)
-  let pos_e = Ast.pos e in
+  let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.gexpr) tau' =
     (* This try...with was added because of
@@ -502,7 +502,7 @@ and typecheck_expr_top_down
     match List.nth_opt typs' n with
     | Some t1n -> unify_and_mark (A.ETupleAccess (e1', n, s, typs)) t1n
     | None ->
-      Errors.raise_spanned_error (Ast.pos e1)
+      Errors.raise_spanned_error (A.Expr.pos e1)
         "Expression should have a tuple type with at least %d elements but \
          only has %d"
         n (List.length typs)
@@ -513,7 +513,7 @@ and typecheck_expr_top_down
       match List.nth_opt ts' n with
       | Some ts_n -> ts_n
       | None ->
-        Errors.raise_spanned_error (Ast.pos e)
+        Errors.raise_spanned_error (A.Expr.pos e)
           "Expression should have a sum type with at least %d cases but only \
            has %d"
           n (List.length ts)
@@ -544,7 +544,7 @@ and typecheck_expr_top_down
     unify_and_mark (EMatch (e1', es', e_name)) t_ret
   | A.EAbs (binder, t_args) ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
-      Errors.raise_spanned_error (Ast.pos e)
+      Errors.raise_spanned_error (A.Expr.pos e)
         "function has %d variables but was supplied %d types"
         (Bindlib.mbinder_arity binder)
         (List.length t_args)
@@ -628,8 +628,8 @@ let wrap ctx f e =
 let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 
 (* Infer the type of an expression *)
-let infer_types (ctx : Ast.decl_ctx) (e : 'm Ast.marked_expr) :
-    Ast.typed Ast.marked_expr Bindlib.box =
+let infer_types (ctx : A.decl_ctx) (e : 'm Ast.marked_expr) :
+    A.typed Ast.marked_expr Bindlib.box =
   A.Expr.map_marks ~f:get_ty_mark
   @@ Bindlib.unbox
   @@ wrap ctx (typecheck_expr_bottom_up ctx A.Var.Map.empty) e
@@ -637,11 +637,11 @@ let infer_types (ctx : Ast.decl_ctx) (e : 'm Ast.marked_expr) :
 let infer_type (type m) ctx (e : m Ast.marked_expr) =
   match Marked.get_mark e with
   | A.Typed { ty; _ } -> ty
-  | A.Untyped _ -> Ast.ty (Bindlib.unbox (infer_types ctx e))
+  | A.Untyped _ -> A.Expr.ty (Bindlib.unbox (infer_types ctx e))
 
 (** Typechecks an expression given an expected type *)
 let check_type
-    (ctx : Ast.decl_ctx)
+    (ctx : A.decl_ctx)
     (e : 'm Ast.marked_expr)
     (tau : A.typ Marked.pos) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)

@@ -14,8 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Ast
 open Utils
+open Shared_ast
+open Ast
 module D = Dcalc.Ast
 
 (** TODO: This version is not yet debugged and ought to be specialized when
@@ -127,7 +128,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
     | EAbs (binder, typs) ->
       (* λ x.t *)
       let binder_mark = Marked.get_mark e in
-      let binder_pos = D.mark_pos binder_mark in
+      let binder_pos = Expr.mark_pos binder_mark in
       (* Converting the closure. *)
       let vars, body = Bindlib.unmbind binder in
       (* t *)
@@ -141,7 +142,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
       let code_var = Var.make ctx.name_context in
       (* code *)
       let inner_c_var = Var.make "env" in
-      let any_ty = Dcalc.Ast.TAny, binder_pos in
+      let any_ty = TAny, binder_pos in
       let new_closure_body =
         make_multiple_let_in
           (Array.of_list extra_vars_list)
@@ -158,17 +159,17 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                      binder_mark ))
                  (Bindlib.box_var inner_c_var))
              extra_vars_list)
-          new_body (D.mark_pos binder_mark)
+          new_body (Expr.mark_pos binder_mark)
       in
       let new_closure =
         make_abs
           (Array.concat [Array.make 1 inner_c_var; vars])
           new_closure_body
-          ((Dcalc.Ast.TAny, binder_pos) :: typs)
+          ((TAny, binder_pos) :: typs)
           (Marked.get_mark e)
       in
       ( make_let_in code_var
-          (Dcalc.Ast.TAny, D.pos e)
+          (TAny, Expr.pos e)
           new_closure
           (Bindlib.box_apply2
              (fun code_var extra_vars ->
@@ -184,7 +185,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                 (List.map
                    (fun extra_var -> Bindlib.box_var extra_var)
                    extra_vars_list)))
-          (D.pos e),
+          (Expr.pos e),
         extra_vars )
     | EApp ((EOp op, pos_op), args) ->
       (* This corresponds to an operator call, which we don't want to
@@ -227,7 +228,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
       in
       let call_expr =
         make_let_in code_var
-          (Dcalc.Ast.TAny, D.pos e)
+          (TAny, Expr.pos e)
           (Bindlib.box_apply
              (fun env_var ->
                ( ETupleAccess
@@ -242,9 +243,9 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                  Marked.get_mark e ))
              (Bindlib.box_var code_var) (Bindlib.box_var env_var)
              (Bindlib.box_list new_args))
-          (D.pos e)
+          (Expr.pos e)
       in
-      ( make_let_in env_var (Dcalc.Ast.TAny, D.pos e) new_e1 call_expr (D.pos e),
+      ( make_let_in env_var (TAny, Expr.pos e) new_e1 call_expr (Expr.pos e),
         free_vars )
     | EAssert e1 ->
       let new_e1, free_vars = aux e1 in
@@ -278,7 +279,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
   let new_scopes, _ =
-    D.fold_left_scope_defs
+    Expr.fold_left_scope_defs
       ~f:(fun (acc_new_scopes, global_vars) scope scope_var ->
         (* [acc_new_scopes] represents what has been translated in the past, it
            needs a continuation to attach the rest of the translated scopes. *)
@@ -289,12 +290,12 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
         let ctx =
           {
             name_context =
-              Marked.unmark (Dcalc.Ast.ScopeName.get_info scope.scope_name);
+              Marked.unmark (ScopeName.get_info scope.scope_name);
             globally_bound_vars = global_vars;
           }
         in
         let new_scope_lets =
-          D.map_exprs_in_scope_lets
+          Expr.map_exprs_in_scope_lets
             ~f:(closure_conversion_expr ctx)
             ~varf:(fun v -> v)
             scope_body_expr
@@ -306,7 +307,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
             acc_new_scopes
               (Bindlib.box_apply2
                  (fun new_scope_body_expr next ->
-                   D.ScopeDef
+                   ScopeDef
                      {
                        scope with
                        scope_body =
@@ -327,4 +328,4 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
   in
   Bindlib.box_apply
     (fun new_scopes -> { p with scopes = new_scopes })
-    (new_scopes (Bindlib.box D.Nil))
+    (new_scopes (Bindlib.box Nil))

@@ -15,8 +15,8 @@
    the License. *)
 
 open Utils
-module ScopeName = Dcalc.Ast.ScopeName
-module ScopeNameSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
+open Shared_ast
+
 module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
 
 module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =
@@ -33,17 +33,11 @@ module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
 
 module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
 module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
-module StructName = Dcalc.Ast.StructName
-module StructMap = Dcalc.Ast.StructMap
-module StructFieldName = Dcalc.Ast.StructFieldName
 
 module StructFieldMap : Map.S with type key = StructFieldName.t =
   Map.Make (StructFieldName)
 
 module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
-module EnumName = Dcalc.Ast.EnumName
-module EnumMap = Dcalc.Ast.EnumMap
-module EnumConstructor = Dcalc.Ast.EnumConstructor
 
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
   Map.Make (EnumConstructor)
@@ -71,7 +65,7 @@ Set.Make (struct
 end)
 
 type typ =
-  | TLit of Dcalc.Ast.typ_lit
+  | TLit of typ_lit
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TArrow of typ Marked.pos * typ Marked.pos
@@ -114,7 +108,7 @@ and expr =
   | ELit of Dcalc.Ast.lit
   | EAbs of (expr, marked_expr) Bindlib.mbinder * typ Marked.pos list
   | EApp of marked_expr * marked_expr list
-  | EOp of Dcalc.Ast.operator
+  | EOp of operator
   | EDefault of marked_expr list * marked_expr * marked_expr
   | EIfThenElse of marked_expr * marked_expr * marked_expr
   | EArray of marked_expr list
@@ -319,9 +313,9 @@ let make_let_in
 
 let make_default ?(pos = Pos.no_pos) exceptions just cons =
   let rec bool_value = function
-    | ELit (Dcalc.Ast.LBool b), _ -> Some b
+    | ELit (LBool b), _ -> Some b
     | EApp ((EOp (Unop (Log (l, _))), _), [e]), _
-      when l <> Dcalc.Ast.PosRecordIfTrueBool
+      when l <> PosRecordIfTrueBool
            (* we don't remove the log calls corresponding to source code
               definitions !*) ->
       bool_value e

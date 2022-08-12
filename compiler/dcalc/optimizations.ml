@@ -15,6 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 open Utils
+open Shared_ast
 open Ast
 
 type partial_evaluation_ctx = {
@@ -82,7 +83,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
       (fun arg arms ->
         match arg, arms with
         | (EInj (e1, i, e_name', _ts), _), _
-          when Ast.EnumName.compare e_name e_name' = 0 ->
+          when EnumName.compare e_name e_name' = 0 ->
           (* iota reduction *)
           EApp (List.nth arms i, [e1]), pos
         | _ -> EMatch (arg, arms, e_name), pos)
@@ -252,4 +253,4 @@ let optimize_program (p : 'm program) : untyped program =
     (program_map partial_evaluation
        { var_values = Var.Map.empty; decl_ctx = p.decl_ctx }
        p)
-  |> untype_program
+  |> Expr.untype_program

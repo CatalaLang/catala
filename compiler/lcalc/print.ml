@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Ast
 
 (** {b Note:} (EmileRolley) seems to be factorizable with
@@ -64,7 +65,7 @@ let format_var (fmt : Format.formatter) (v : 'm Ast.var) : unit =
 
 let rec format_expr
     ?(debug : bool = false)
-    (ctx : Dcalc.Ast.decl_ctx)
+    (ctx : decl_ctx)
     (fmt : Format.formatter)
     (e : 'm marked_expr) : unit =
   let format_expr = format_expr ctx ~debug in
@@ -83,16 +84,16 @@ let rec format_expr
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
       es format_punctuation ")"
   | ETuple (es, Some s) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" Dcalc.Ast.StructName.format_t s
+    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
       format_punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, struct_field) ->
            Format.fprintf fmt "%a%a%a%a %a" format_punctuation "\""
-             Dcalc.Ast.StructFieldName.format_t struct_field format_punctuation
+             StructFieldName.format_t struct_field format_punctuation
              "\"" format_punctuation ":" format_expr e))
       (List.combine es
-         (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
+         (List.map fst (StructMap.find s ctx.ctx_structs)))
       format_punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "["
@@ -106,12 +107,12 @@ let rec format_expr
       Format.fprintf fmt "%a%a%d" format_expr e1 format_punctuation "." n
     | Some s ->
       Format.fprintf fmt "%a%a%a%a%a" format_expr e1 format_punctuation "."
-        format_punctuation "\"" Dcalc.Ast.StructFieldName.format_t
-        (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n))
+        format_punctuation "\"" StructFieldName.format_t
+        (fst (List.nth (StructMap.find s ctx.ctx_structs) n))
         format_punctuation "\"")
   | EInj (e, n, en, _ts) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_enum_constructor
-      (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
+      (fst (List.nth (EnumMap.find en ctx.ctx_enums) n))
       format_expr e
   | EMatch (e, es, e_name) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" format_keyword "match"
@@ -123,9 +124,9 @@ let rec format_expr
              Dcalc.Print.format_enum_constructor c format_punctuation ":"
              format_expr e))
       (List.combine es
-         (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
+         (List.map fst (EnumMap.find e_name ctx.ctx_enums)))
   | ELit l ->
-    Format.fprintf fmt "%a" format_lit (Marked.mark (Dcalc.Ast.pos e) l)
+    Format.fprintf fmt "%a" format_lit (Marked.mark (Expr.pos e) l)
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     Format.fprintf fmt "%a%a"
@@ -152,7 +153,7 @@ let rec format_expr
       (List.combine (Array.to_list xs) taus)
       format_punctuation "→" format_expr body
   | EApp
-      ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
+      ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2])
     ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
       format_with_parens arg1 format_with_parens arg2
@@ -190,11 +191,11 @@ let rec format_expr
 
 let format_scope ?(debug = false) ctx fmt (n, s) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
-    Dcalc.Ast.ScopeName.format_t n (format_expr ctx ~debug)
+    ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox
        (Dcalc.Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
-          ~make_let_in:Ast.make_let_in ~box_expr:Ast.box_expr ctx s
-          (Dcalc.Ast.map_mark
-             (fun _ -> Marked.get_mark (Dcalc.Ast.ScopeName.get_info n))
+          ~make_let_in:Ast.make_let_in ~box_expr:Expr.box ctx s
+          (Expr.map_mark
+             (fun _ -> Marked.get_mark (ScopeName.get_info n))
              (fun ty -> ty)
-             (Dcalc.Ast.get_scope_body_mark s))))
+             (Expr.get_scope_body_mark s))))

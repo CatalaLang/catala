@@ -17,11 +17,10 @@
 (** Abstract syntax tree of the scope language *)
 
 open Utils
+open Shared_ast
 
 (** {1 Identifiers} *)
 
-module ScopeName = Dcalc.Ast.ScopeName
-module ScopeNameSet : Set.S with type elt = ScopeName.t
 module ScopeMap : Map.S with type key = ScopeName.t
 module SubScopeName : Uid.Id with type info = Uid.MarkedString.info
 module SubScopeNameSet : Set.S with type elt = SubScopeName.t
@@ -29,9 +28,6 @@ module SubScopeMap : Map.S with type key = SubScopeName.t
 module ScopeVar : Uid.Id with type info = Uid.MarkedString.info
 module ScopeVarSet : Set.S with type elt = ScopeVar.t
 module ScopeVarMap : Map.S with type key = ScopeVar.t
-module StructName = Dcalc.Ast.StructName
-module StructMap = Dcalc.Ast.StructMap
-module StructFieldName = Dcalc.Ast.StructFieldName
 module StructFieldMap : Map.S with type key = StructFieldName.t
 
 module StructFieldMapLift : sig
@@ -39,9 +35,6 @@ module StructFieldMapLift : sig
     'a Bindlib.box StructFieldMap.t -> 'a StructFieldMap.t Bindlib.box
 end
 
-module EnumName = Dcalc.Ast.EnumName
-module EnumMap = Dcalc.Ast.EnumMap
-module EnumConstructor = Dcalc.Ast.EnumConstructor
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t
 
 module EnumConstructorMapLift : sig
@@ -59,7 +52,7 @@ module LocationSet : Set.S with type elt = location Marked.pos
 (** {1 Abstract syntax tree} *)
 
 type typ =
-  | TLit of Dcalc.Ast.typ_lit
+  | TLit of typ_lit
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TArrow of typ Marked.pos * typ Marked.pos
@@ -82,7 +75,7 @@ and expr =
   | ELit of Dcalc.Ast.lit
   | EAbs of (expr, marked_expr) Bindlib.mbinder * typ Marked.pos list
   | EApp of marked_expr * marked_expr list
-  | EOp of Dcalc.Ast.operator
+  | EOp of operator
   | EDefault of marked_expr list * marked_expr * marked_expr
   | EIfThenElse of marked_expr * marked_expr * marked_expr
   | EArray of marked_expr list

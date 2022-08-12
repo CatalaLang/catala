@@ -16,6 +16,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Dcalc.Ast
 
 module type Backend = sig
@@ -73,7 +74,7 @@ module type BackendIO = sig
     string
 
   val encode_and_check_vc :
-    Dcalc.Ast.decl_ctx ->
+    decl_ctx ->
     Conditions.verification_condition * vc_encoding_result ->
     unit
 end
@@ -161,7 +162,7 @@ module MakeBackendIO (B : Backend) = struct
     let vc, z3_vc = vc in
 
     Cli.debug_print "For this variable:\n%s\n"
-      (Pos.retrieve_loc_text (pos vc.Conditions.vc_guard));
+      (Pos.retrieve_loc_text (Expr.pos vc.Conditions.vc_guard));
     Cli.debug_format "This verification condition was generated for %a:@\n%a"
       (Cli.format_with_style [ANSITerminal.yellow])
       (match vc.vc_kind with

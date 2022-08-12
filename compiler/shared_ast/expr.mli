@@ -105,13 +105,70 @@ val eerroronempty :
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
-(** ---------- *)
+val ecatch :
+  (lcalc, 't) marked_gexpr Bindlib.box ->
+  except ->
+  (lcalc, 't) marked_gexpr Bindlib.box ->
+  't ->
+  (lcalc, 't) marked_gexpr Bindlib.box
 
-val map :
+val eraise : except -> 't -> (lcalc, 't) marked_gexpr Bindlib.box
+
+(** Manipulation of marks *)
+
+val no_mark : 'm mark -> 'm mark
+val mark_pos : 'm mark -> Pos.t
+val pos : ('a, 'm) marked -> Pos.t
+val ty : ('a, typed) marked -> marked_typ
+val with_ty : marked_typ -> ('a, 'm) marked -> ('a, typed) marked
+
+val map_mark :
+  (Pos.t -> Pos.t) -> (marked_typ -> marked_typ) -> 'm mark -> 'm mark
+
+val map_mark2 :
+  (Pos.t -> Pos.t -> Pos.t) ->
+  (typed -> typed -> marked_typ) ->
+  'm mark ->
+  'm mark ->
+  'm mark
+
+val fold_marks :
+  (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
+
+val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
+val untype : ('a, 'm mark) marked_gexpr -> ('a, untyped mark) marked_gexpr Bindlib.box
+val untype_program : (('a, 'm mark) gexpr Var.expr, 'm) program_generic -> (('a, untyped mark) gexpr Var.expr, untyped) program_generic
+
+(** {2 Handling of boxing} *)
+
+val box : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr Bindlib.box
+
+
+(** {2 Traversal functions} *)
+
+val map:
   'ctx ->
   f:('ctx -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box) ->
   (('a, 't1) gexpr, 't2) Marked.t ->
   ('a, 't2) marked_gexpr Bindlib.box
+(** Flat (non-recursive) mapping on expressions.
+
+    If you want to apply a map transform to an expression, you can save up
+    writing a painful match over all the cases of the AST. For instance, if you
+    want to remove all errors on empty, you can write
+
+    {[
+      let remove_error_empty =
+        let rec f () e =
+          match Marked.unmark e with
+          | ErrorOnEmpty e1 -> Expr.map () f e1
+          | _ -> Expr.map () f e
+        in
+        f () e
+    ]}
+
+    The first argument of map_expr is an optional context that you can carry
+    around during your map traversal. *)
 
 val map_top_down :
   f:(('a, 't1) marked_gexpr -> (('a, 't1) gexpr, 't2) Marked.t) ->

@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Ast
 
 let needs_parens (_e : expr Marked.pos) : bool = false
@@ -24,7 +25,7 @@ let format_local_name (fmt : Format.formatter) (v : LocalName.t) : unit =
     (string_of_int (LocalName.hash v))
 
 let rec format_expr
-    (decl_ctx : Dcalc.Ast.decl_ctx)
+    (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
     (e : expr Marked.pos) : unit =
@@ -39,17 +40,17 @@ let rec format_expr
   | EVar v -> Format.fprintf fmt "%a" format_local_name v
   | EFunc v -> Format.fprintf fmt "%a" TopLevelName.format_t v
   | EStruct (es, s) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" Dcalc.Ast.StructName.format_t s
+    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
       Dcalc.Print.format_punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, struct_field) ->
            Format.fprintf fmt "%a%a%a%a %a" Dcalc.Print.format_punctuation "\""
-             Dcalc.Ast.StructFieldName.format_t struct_field
+             StructFieldName.format_t struct_field
              Dcalc.Print.format_punctuation "\"" Dcalc.Print.format_punctuation
              ":" format_expr e))
       (List.combine es
-         (List.map fst (Dcalc.Ast.StructMap.find s decl_ctx.ctx_structs)))
+         (List.map fst (StructMap.find s decl_ctx.ctx_structs)))
       Dcalc.Print.format_punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Dcalc.Print.format_punctuation "["
@@ -60,24 +61,24 @@ let rec format_expr
   | EStructFieldAccess (e1, field, s) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1
       Dcalc.Print.format_punctuation "." Dcalc.Print.format_punctuation "\""
-      Dcalc.Ast.StructFieldName.format_t
+      StructFieldName.format_t
       (fst
          (List.find
             (fun (field', _) ->
-              Dcalc.Ast.StructFieldName.compare field' field = 0)
-            (Dcalc.Ast.StructMap.find s decl_ctx.ctx_structs)))
+              StructFieldName.compare field' field = 0)
+            (StructMap.find s decl_ctx.ctx_structs)))
       Dcalc.Print.format_punctuation "\""
   | EInj (e, case, enum) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_enum_constructor
       (fst
          (List.find
-            (fun (case', _) -> Dcalc.Ast.EnumConstructor.compare case' case = 0)
-            (Dcalc.Ast.EnumMap.find enum decl_ctx.ctx_enums)))
+            (fun (case', _) -> EnumConstructor.compare case' case = 0)
+            (EnumMap.find enum decl_ctx.ctx_enums)))
       format_expr e
   | ELit l ->
     Format.fprintf fmt "%a" Lcalc.Print.format_lit (Marked.same_mark_as l e)
   | EApp
-      ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [arg1; arg2])
+      ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2])
     ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
       format_with_parens arg1 format_with_parens arg2
@@ -100,7 +101,7 @@ let rec format_expr
   | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop op
 
 let rec format_statement
-    (decl_ctx : Dcalc.Ast.decl_ctx)
+    (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
     (stmt : stmt Marked.pos) : unit =
@@ -174,10 +175,10 @@ let rec format_statement
              Dcalc.Print.format_punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
-      (List.combine (Dcalc.Ast.EnumMap.find enum decl_ctx.ctx_enums) arms)
+      (List.combine (EnumMap.find enum decl_ctx.ctx_enums) arms)
 
 and format_block
-    (decl_ctx : Dcalc.Ast.decl_ctx)
+    (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
     (block : block) : unit =
@@ -188,7 +189,7 @@ and format_block
     fmt block
 
 let format_scope
-    (decl_ctx : Dcalc.Ast.decl_ctx)
+    (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
     (body : scope_body) : unit =

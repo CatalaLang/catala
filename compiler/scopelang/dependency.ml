@@ -18,13 +18,14 @@
     program. Vertices are functions, x -> y if x is used in the definition of y. *)
 
 open Utils
+open Shared_ast
 
 module SVertex = struct
-  type t = Ast.ScopeName.t
+  type t = ScopeName.t
 
-  let hash x = Ast.ScopeName.hash x
-  let compare = Ast.ScopeName.compare
-  let equal x y = Ast.ScopeName.compare x y = 0
+  let hash x = ScopeName.hash x
+  let compare = ScopeName.compare
+  let equal x y = ScopeName.compare x y = 0
 end
 
 (** On the edges, the label is the expression responsible for the use of the
@@ -62,10 +63,10 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
               if subscope = scope_name then
                 Errors.raise_spanned_error
                   (Marked.get_mark
-                     (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
+                     (ScopeName.get_info scope.Ast.scope_decl_name))
                   "The scope %a is calling into itself as a subscope, which is \
                    forbidden since Catala does not provide recursion"
-                  Ast.ScopeName.format_t scope.Ast.scope_decl_name
+                  ScopeName.format_t scope.Ast.scope_decl_name
               else
                 Ast.ScopeMap.add subscope
                   (Marked.get_mark (Ast.SubScopeName.get_info subindex))
@@ -90,14 +91,14 @@ let check_for_cycle_in_scope (g : SDependencies.t) : unit =
         (List.map
            (fun v ->
              let var_str, var_info =
-               ( Format.asprintf "%a" Ast.ScopeName.format_t v,
-                 Ast.ScopeName.get_info v )
+               ( Format.asprintf "%a" ScopeName.format_t v,
+                 ScopeName.get_info v )
              in
              let succs = SDependencies.succ_e g v in
              let _, edge_pos, succ =
                List.find (fun (_, _, succ) -> List.mem succ scc) succs
              in
-             let succ_str = Format.asprintf "%a" Ast.ScopeName.format_t succ in
+             let succ_str = Format.asprintf "%a" ScopeName.format_t succ in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
                  Marked.get_mark var_info );
@@ -112,39 +113,39 @@ let check_for_cycle_in_scope (g : SDependencies.t) : unit =
     Errors.raise_multispanned_error spans
       "Cyclic dependency detected between scopes!"
 
-let get_scope_ordering (g : SDependencies.t) : Ast.ScopeName.t list =
+let get_scope_ordering (g : SDependencies.t) : ScopeName.t list =
   List.rev (STopologicalTraversal.fold (fun sd acc -> sd :: acc) g [])
 
 module TVertex = struct
-  type t = Struct of Ast.StructName.t | Enum of Ast.EnumName.t
+  type t = Struct of StructName.t | Enum of EnumName.t
 
   let hash x =
     match x with
-    | Struct x -> Ast.StructName.hash x
-    | Enum x -> Ast.EnumName.hash x
+    | Struct x -> StructName.hash x
+    | Enum x -> EnumName.hash x
 
   let compare x y =
     match x, y with
-    | Struct x, Struct y -> Ast.StructName.compare x y
-    | Enum x, Enum y -> Ast.EnumName.compare x y
+    | Struct x, Struct y -> StructName.compare x y
+    | Enum x, Enum y -> EnumName.compare x y
     | Struct _, Enum _ -> 1
     | Enum _, Struct _ -> -1
 
   let equal x y =
     match x, y with
-    | Struct x, Struct y -> Ast.StructName.compare x y = 0
-    | Enum x, Enum y -> Ast.EnumName.compare x y = 0
+    | Struct x, Struct y -> StructName.compare x y = 0
+    | Enum x, Enum y -> EnumName.compare x y = 0
     | _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
-    | Struct x -> Ast.StructName.format_t fmt x
-    | Enum x -> Ast.EnumName.format_t fmt x
+    | Struct x -> StructName.format_t fmt x
+    | Enum x -> EnumName.format_t fmt x
 
   let get_info (x : t) =
     match x with
-    | Struct x -> Ast.StructName.get_info x
-    | Enum x -> Ast.EnumName.get_info x
+    | Struct x -> StructName.get_info x
+    | Enum x -> EnumName.get_info x
 end
 
 module TVertexSet = Set.Make (TVertex)
@@ -181,7 +182,7 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
     TDependencies.t =
   let g = TDependencies.empty in
   let g =
-    Ast.StructMap.fold
+    StructMap.fold
       (fun s fields g ->
         List.fold_left
           (fun g (_, typ) ->
@@ -205,7 +206,7 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
       structs g
   in
   let g =
-    Ast.EnumMap.fold
+    EnumMap.fold
       (fun e cases g ->
         List.fold_left
           (fun g (_, typ) ->

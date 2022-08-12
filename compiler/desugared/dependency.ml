@@ -18,6 +18,7 @@
     OCamlgraph} *)
 
 open Utils
+open Shared_ast
 
 (** {1 Scope variables dependency graph} *)
 
@@ -140,7 +141,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
     in
     Errors.raise_multispanned_error spans
       "Cyclic dependency detected between variables of scope %a!"
-      Scopelang.Ast.ScopeName.format_t scope.scope_uid
+      ScopeName.format_t scope.scope_uid
 
 (** Builds the dependency graph of a particular scope *)
 let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =

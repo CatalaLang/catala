@@ -16,8 +16,7 @@
    the License. *)
 
 open Utils
-include Shared_ast
-include Shared_ast.Expr
+open Shared_ast
 
 type lit = dcalc glit
 
@@ -26,52 +25,8 @@ and 'm marked_expr = (dcalc, 'm mark) marked_gexpr
 
 type 'm program = ('m expr, 'm) program_generic
 
-let no_mark (type m) : m mark -> m mark = function
-  | Untyped _ -> Untyped { pos = Pos.no_pos }
-  | Typed _ -> Typed { pos = Pos.no_pos; ty = Marked.mark Pos.no_pos TAny }
-
-let mark_pos (type m) (m : m mark) : Pos.t =
-  match m with Untyped { pos } | Typed { pos; _ } -> pos
-
-let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Marked.get_mark x)
-let ty (_, m) : marked_typ = match m with Typed { ty; _ } -> ty
-
-let with_ty (type m) (ty : marked_typ) (x : ('a, m) marked) : ('a, typed) marked
-    =
-  Marked.mark
-    (match Marked.get_mark x with
-    | Untyped { pos } -> Typed { pos; ty }
-    | Typed m -> Typed { m with ty })
-    (Marked.unmark x)
-
-let map_expr ctx ~f e = Expr.map ctx ~f e
-
-let rec map_expr_top_down ~f e =
-  map_expr () ~f:(fun () -> map_expr_top_down ~f) (f e)
-
-let map_expr_marks ~f e =
-  map_expr_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
-
-let untype_expr e = map_expr_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
-
 type ('expr, 'm) box_expr_sig =
   ('expr, 'm) marked -> ('expr, 'm) marked Bindlib.box
-
-(** See [Bindlib.box_term] documentation for why we are doing that. *)
-let box_expr : ('m expr, 'm) box_expr_sig =
- fun e ->
-  let rec id_t () e = map_expr () ~f:id_t e in
-  id_t () e
-
-let untype_program prg =
-  {
-    prg with
-    scopes =
-      Bindlib.unbox
-        (map_exprs_in_scopes
-           ~f:(fun e -> untype_expr e)
-           ~varf:Var.translate prg.scopes);
-  }
 
 type 'm var = 'm expr Var.t
 type 'm vars = 'm expr Var.vars
@@ -158,49 +113,14 @@ type ('expr, 'm) make_let_in_sig =
   Pos.t ->
   ('expr, 'm) marked Bindlib.box
 
-let map_mark
-    (type m)
-    (pos_f : Pos.t -> Pos.t)
-    (ty_f : marked_typ -> marked_typ)
-    (m : m mark) : m mark =
-  match m with
-  | Untyped { pos } -> Untyped { pos = pos_f pos }
-  | Typed { pos; ty } -> Typed { pos = pos_f pos; ty = ty_f ty }
-
-let map_mark2
-    (type m)
-    (pos_f : Pos.t -> Pos.t -> Pos.t)
-    (ty_f : typed -> typed -> marked_typ)
-    (m1 : m mark)
-    (m2 : m mark) : m mark =
-  match m1, m2 with
-  | Untyped m1, Untyped m2 -> Untyped { pos = pos_f m1.pos m2.pos }
-  | Typed m1, Typed m2 -> Typed { pos = pos_f m1.pos m2.pos; ty = ty_f m1 m2 }
-
-let fold_marks
-    (type m)
-    (pos_f : Pos.t list -> Pos.t)
-    (ty_f : typed list -> marked_typ)
-    (ms : m mark list) : m mark =
-  match ms with
-  | [] -> invalid_arg "Dcalc.Ast.fold_mark"
-  | Untyped _ :: _ as ms ->
-    Untyped { pos = pos_f (List.map (function Untyped { pos } -> pos) ms) }
-  | Typed _ :: _ ->
-    Typed
-      {
-        pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
-        ty = ty_f (List.map (function Typed m -> m) ms);
-      }
-
 let empty_thunked_term mark : 'm marked_expr =
   let silent = Var.make "_" in
-  let pos = mark_pos mark in
+  let pos = Expr.mark_pos mark in
   Bindlib.unbox
     (make_abs [| silent |]
        (Bindlib.box (ELit LEmptyError, mark))
        [TLit TUnit, pos]
-       (map_mark
+       (Expr.map_mark
           (fun pos -> pos)
           (fun ty ->
             Marked.mark pos (TArrow (Marked.mark pos (TLit TUnit), ty)))
@@ -211,7 +131,7 @@ let (make_let_in : ('m expr, 'm) make_let_in_sig) =
   let m_e1 = Marked.get_mark (Bindlib.unbox e1) in
   let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
   let m_abs =
-    map_mark2
+    Expr.map_mark2
       (fun _ _ -> pos)
       (fun m1 m2 -> Marked.mark pos (TArrow (m1.ty, m2.ty)))
       m_e1 m_e2
@@ -329,7 +249,7 @@ let build_whole_scope_expr
           ( List.map snd
               (StructMap.find body.scope_body_input_struct ctx.ctx_structs),
             Some body.scope_body_input_struct ),
-        mark_pos mark_scope );
+        Expr.mark_pos mark_scope );
     ]
     mark_scope
 
@@ -354,10 +274,6 @@ type 'expr scope_name_or_var =
   | ScopeName of ScopeName.t
   | ScopeVar of 'expr Bindlib.var
 
-let get_scope_body_mark scope_body =
-  match snd (Bindlib.unbind scope_body.scope_body_expr) with
-  | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
-
 let rec unfold_scopes
     ~(box_expr : ('expr, 'm) box_expr_sig)
     ~(make_abs : ('expr, 'm) make_abs_sig)
@@ -374,7 +290,7 @@ let rec unfold_scopes
   | ScopeDef { scope_name; scope_body; scope_next } ->
     let scope_var, scope_next = Bindlib.unbind scope_next in
     let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
-    let scope_body_mark = get_scope_body_mark scope_body in
+    let scope_body_mark = Expr.get_scope_body_mark scope_body in
     let main_scope =
       match main_scope with
       | ScopeVar v -> ScopeVar v
@@ -407,7 +323,7 @@ let build_whole_program_expr
     (main_scope : ScopeName.t) : ('expr, 'm) marked Bindlib.box =
   let _, main_scope_body = find_scope main_scope [] p.scopes in
   unfold_scopes ~box_expr ~make_abs ~make_let_in p.decl_ctx p.scopes
-    (get_scope_body_mark main_scope_body)
+    (Expr.get_scope_body_mark main_scope_body)
     (ScopeName main_scope)
 
 let rec expr_size (e : 'm marked_expr) : int =
@@ -435,7 +351,7 @@ let rec expr_size (e : 'm marked_expr) : int =
 let remove_logging_calls (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
   let rec f () e =
     match Marked.unmark e with
-    | EApp ((EOp (Unop (Log _)), _), [arg]) -> map_expr () ~f arg
-    | _ -> map_expr () ~f e
+    | EApp ((EOp (Unop (Log _)), _), [arg]) -> Expr.map () ~f arg
+    | _ -> Expr.map () ~f e
   in
   f () e

@@ -16,6 +16,6 @@
 
 open Ast
 
-val optimize_program : 'm program -> Dcalc.Ast.untyped program
+val optimize_program : 'm program -> Shared_ast.untyped program
 (** Warning/todo: no effort was yet made to ensure correct propagation of type
     annotations in the typed case *)

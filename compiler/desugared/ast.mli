@@ -17,6 +17,7 @@
 (** Abstract syntax tree of the desugared representation *)
 
 open Utils
+open Shared_ast
 
 (** {1 Names, Maps and Keys} *)
 
@@ -54,7 +55,7 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 type location =
   | ScopeVar of ScopeVar.t Marked.pos * StateName.t option
   | SubScopeVar of
-      Scopelang.Ast.ScopeName.t
+      ScopeName.t
       * Scopelang.Ast.SubScopeName.t Marked.pos
       * ScopeVar.t Marked.pos
 
@@ -68,20 +69,20 @@ and expr =
   | ELocation of location
   | EVar of expr Bindlib.var
   | EStruct of
-      Scopelang.Ast.StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
+      StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
   | EStructAccess of
-      marked_expr * Scopelang.Ast.StructFieldName.t * Scopelang.Ast.StructName.t
+      marked_expr * StructFieldName.t * StructName.t
   | EEnumInj of
-      marked_expr * Scopelang.Ast.EnumConstructor.t * Scopelang.Ast.EnumName.t
+      marked_expr * EnumConstructor.t * EnumName.t
   | EMatch of
       marked_expr
-      * Scopelang.Ast.EnumName.t
+      * EnumName.t
       * marked_expr Scopelang.Ast.EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
       (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list
   | EApp of marked_expr * marked_expr list
-  | EOp of Dcalc.Ast.operator
+  | EOp of operator
   | EDefault of marked_expr list * marked_expr * marked_expr
   | EIfThenElse of marked_expr * marked_expr * marked_expr
   | EArray of marked_expr list
@@ -166,8 +167,8 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
-  scope_uid : Scopelang.Ast.ScopeName.t;
+  scope_sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;

@@ -19,6 +19,7 @@
     lexical scopes into account *)
 
 open Utils
+open Shared_ast
 
 (** {1 Name resolution context} *)
 
@@ -41,7 +42,7 @@ type scope_context = {
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
-  sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
       (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
@@ -64,27 +65,27 @@ type context = {
   local_var_idmap : Desugared.Ast.Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
-  scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;
+  scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
       (** The names of the scopes *)
-  struct_idmap : Scopelang.Ast.StructName.t Desugared.Ast.IdentMap.t;
+  struct_idmap : StructName.t Desugared.Ast.IdentMap.t;
       (** The names of the structs *)
   field_idmap :
-    Scopelang.Ast.StructFieldName.t Scopelang.Ast.StructMap.t
+    StructFieldName.t StructMap.t
     Desugared.Ast.IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  enum_idmap : Scopelang.Ast.EnumName.t Desugared.Ast.IdentMap.t;
+  enum_idmap : EnumName.t Desugared.Ast.IdentMap.t;
       (** The names of the enums *)
   constructor_idmap :
-    Scopelang.Ast.EnumConstructor.t Scopelang.Ast.EnumMap.t
+    EnumConstructor.t EnumMap.t
     Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
       (** For each scope, its context *)
-  structs : struct_context Scopelang.Ast.StructMap.t;
+  structs : struct_context StructMap.t;
       (** For each struct, its context *)
-  enums : enum_context Scopelang.Ast.EnumMap.t;
+  enums : enum_context EnumMap.t;
       (** For each enum, its context *)
   var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
@@ -120,7 +121,7 @@ let get_var_io (ctxt : context) (uid : Desugared.Ast.ScopeVar.t) :
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid
-    (scope_uid : Scopelang.Ast.ScopeName.t)
+    (scope_uid : ScopeName.t)
     (ctxt : context)
     ((x, pos) : ident Marked.pos) : Desugared.Ast.ScopeVar.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
@@ -128,13 +129,13 @@ let get_var_uid
   | None ->
     raise_unknown_identifier
       (Format.asprintf "for a variable of scope %a"
-         Scopelang.Ast.ScopeName.format_t scope_uid)
+         ScopeName.format_t scope_uid)
       (x, pos)
   | Some uid -> uid
 
 (** Get the subscope uid inside the scope given in argument *)
 let get_subscope_uid
-    (scope_uid : Scopelang.Ast.ScopeName.t)
+    (scope_uid : ScopeName.t)
     (ctxt : context)
     ((y, pos) : ident Marked.pos) : Scopelang.Ast.SubScopeName.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
@@ -145,7 +146,7 @@ let get_subscope_uid
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
 let is_subscope_uid
-    (scope_uid : Scopelang.Ast.ScopeName.t)
+    (scope_uid : ScopeName.t)
     (ctxt : context)
     (y : ident) : bool =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
@@ -155,7 +156,7 @@ let is_subscope_uid
 let belongs_to
     (ctxt : context)
     (uid : Desugared.Ast.ScopeVar.t)
-    (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
+    (scope_uid : ScopeName.t) : bool =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.exists
     (fun _ var_uid -> Desugared.Ast.ScopeVar.compare uid var_uid = 0)
@@ -183,7 +184,7 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
 
 (** Process a subscope declaration *)
 let process_subscope_decl
-    (scope : Scopelang.Ast.ScopeName.t)
+    (scope : ScopeName.t)
     (ctxt : context)
     (decl : Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
@@ -277,7 +278,7 @@ let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Marked.pos) :
 
 (** Process data declaration *)
 let process_data_decl
-    (scope : Scopelang.Ast.ScopeName.t)
+    (scope : ScopeName.t)
     (ctxt : context)
     (decl : Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
@@ -330,7 +331,7 @@ let process_data_decl
 
 (** Process an item declaration *)
 let process_item_decl
-    (scope : Scopelang.Ast.ScopeName.t)
+    (scope : ScopeName.t)
     (ctxt : context)
     (decl : Ast.scope_decl_context_item) : context =
   match decl with
@@ -372,7 +373,7 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
   List.fold_left
     (fun ctxt (fdecl, _) ->
       let f_uid =
-        Scopelang.Ast.StructFieldName.fresh fdecl.Ast.struct_decl_field_name
+        StructFieldName.fresh fdecl.Ast.struct_decl_field_name
       in
       let ctxt =
         {
@@ -382,16 +383,16 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
               (Marked.unmark fdecl.Ast.struct_decl_field_name)
               (fun uids ->
                 match uids with
-                | None -> Some (Scopelang.Ast.StructMap.singleton s_uid f_uid)
+                | None -> Some (StructMap.singleton s_uid f_uid)
                 | Some uids ->
-                  Some (Scopelang.Ast.StructMap.add s_uid f_uid uids))
+                  Some (StructMap.add s_uid f_uid uids))
               ctxt.field_idmap;
         }
       in
       {
         ctxt with
         structs =
-          Scopelang.Ast.StructMap.update s_uid
+          StructMap.update s_uid
             (fun fields ->
               match fields with
               | None ->
@@ -421,7 +422,7 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
       let c_uid =
-        Scopelang.Ast.EnumConstructor.fresh cdecl.Ast.enum_decl_case_name
+        EnumConstructor.fresh cdecl.Ast.enum_decl_case_name
       in
       let ctxt =
         {
@@ -431,15 +432,15 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
               (Marked.unmark cdecl.Ast.enum_decl_case_name)
               (fun uids ->
                 match uids with
-                | None -> Some (Scopelang.Ast.EnumMap.singleton e_uid c_uid)
-                | Some uids -> Some (Scopelang.Ast.EnumMap.add e_uid c_uid uids))
+                | None -> Some (EnumMap.singleton e_uid c_uid)
+                | Some uids -> Some (EnumMap.add e_uid c_uid uids))
               ctxt.constructor_idmap;
         }
       in
       {
         ctxt with
         enums =
-          Scopelang.Ast.EnumMap.update e_uid
+          EnumMap.update e_uid
             (fun cases ->
               let typ =
                 match cdecl.Ast.enum_decl_case_typ with
@@ -475,10 +476,10 @@ let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
     match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
     | Some use ->
       raise_already_defined_error
-        (Scopelang.Ast.ScopeName.get_info use)
+        (ScopeName.get_info use)
         name pos "scope"
     | None ->
-      let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
+      let scope_uid = ScopeName.fresh (name, pos) in
       {
         ctxt with
         scope_idmap = Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
@@ -497,10 +498,10 @@ let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
     match Desugared.Ast.IdentMap.find_opt name ctxt.struct_idmap with
     | Some use ->
       raise_already_defined_error
-        (Scopelang.Ast.StructName.get_info use)
+        (StructName.get_info use)
         name pos "struct"
     | None ->
-      let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
+      let s_uid = StructName.fresh sdecl.struct_decl_name in
       {
         ctxt with
         struct_idmap =
@@ -513,10 +514,10 @@ let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
     match Desugared.Ast.IdentMap.find_opt name ctxt.enum_idmap with
     | Some use ->
       raise_already_defined_error
-        (Scopelang.Ast.EnumName.get_info use)
+        (EnumName.get_info use)
         name pos "enum"
     | None ->
-      let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
+      let e_uid = EnumName.fresh edecl.enum_decl_name in
 
       {
         ctxt with
@@ -561,7 +562,7 @@ let rec process_law_structure
 let get_def_key
     (name : Ast.qident)
     (state : Ast.ident Marked.pos option)
-    (scope_uid : Scopelang.Ast.ScopeName.t)
+    (scope_uid : ScopeName.t)
     (ctxt : context)
     (default_pos : Pos.t) : Desugared.Ast.ScopeDef.t =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
@@ -603,7 +604,7 @@ let get_def_key
     let subscope_uid : Scopelang.Ast.SubScopeName.t =
       get_subscope_uid scope_uid ctxt y
     in
-    let subscope_real_uid : Scopelang.Ast.ScopeName.t =
+    let subscope_real_uid : ScopeName.t =
       Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
@@ -616,7 +617,7 @@ let get_def_key
 
 let process_definition
     (ctxt : context)
-    (s_name : Scopelang.Ast.ScopeName.t)
+    (s_name : ScopeName.t)
     (d : Ast.definition) : context =
   (* We update the definition context inside the big context *)
   {
@@ -725,7 +726,7 @@ let process_definition
   }
 
 let process_scope_use_item
-    (s_name : Scopelang.Ast.ScopeName.t)
+    (s_name : ScopeName.t)
     (ctxt : context)
     (sitem : Ast.scope_use_item Marked.pos) : context =
   match Marked.unmark sitem with
@@ -764,10 +765,10 @@ let form_context (prgm : Ast.program) : context =
       scope_idmap = Desugared.Ast.IdentMap.empty;
       scopes = Scopelang.Ast.ScopeMap.empty;
       var_typs = Desugared.Ast.ScopeVarMap.empty;
-      structs = Scopelang.Ast.StructMap.empty;
+      structs = StructMap.empty;
       struct_idmap = Desugared.Ast.IdentMap.empty;
       field_idmap = Desugared.Ast.IdentMap.empty;
-      enums = Scopelang.Ast.EnumMap.empty;
+      enums = EnumMap.empty;
       enum_idmap = Desugared.Ast.IdentMap.empty;
       constructor_idmap = Desugared.Ast.IdentMap.empty;
     }

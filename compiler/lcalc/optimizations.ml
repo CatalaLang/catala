@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 open Utils
+open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
@@ -71,7 +72,7 @@ let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
   match Marked.unmark e with
   | EMatch ((EInj (e1, i, n', _ts), _), cases, n)
-    when Dcalc.Ast.EnumName.compare n n' = 0 ->
+    when EnumName.compare n n' = 0 ->
     let+ e1 = visitor_map iota_expr () e1
     and+ case = visitor_map iota_expr () (List.nth cases i) in
     default_mark @@ EApp (case, [e1])
@@ -80,7 +81,7 @@ let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
          |> List.mapi (fun i (case, _pos) ->
                 match case with
                 | EInj (_ei, i', n', _ts') ->
-                  i = i' && (* n = n' *) Dcalc.Ast.EnumName.compare n n' = 0
+                  i = i' && (* n = n' *) EnumName.compare n n' = 0
                 | _ -> false)
          |> List.for_all Fun.id ->
     visitor_map iota_expr () e'
@@ -101,9 +102,9 @@ let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
 
 let iota_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
+    Expr.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
   in
-  { p with D.scopes = Bindlib.unbox new_scopes }
+  { p with scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
    of beta-optimization as future work since its produce code that is harder to
@@ -111,7 +112,7 @@ let iota_optimizations (p : 'm program) : 'm program =
    program. *)
 let _beta_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes
+    Expr.map_exprs_in_scopes ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
@@ -145,11 +146,11 @@ let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ())
+    Expr.map_exprs_in_scopes ~f:(peephole_expr ())
       ~varf:(fun v -> v)
       p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let optimize_program (p : 'm program) : Dcalc.Ast.untyped program =
-  p |> iota_optimizations |> peephole_optimizations |> untype_program
+let optimize_program (p : 'm program) : untyped program =
+  p |> iota_optimizations |> peephole_optimizations |> Expr.untype_program

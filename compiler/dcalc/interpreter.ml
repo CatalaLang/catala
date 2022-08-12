@@ -17,12 +17,13 @@
 (** Reference interpreter for the default calculus *)
 
 open Utils
+open Shared_ast
 module A = Ast
 module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
 
-let is_empty_error (e : 'm A.marked_expr) : bool =
+let is_empty_error (e : 'm Ast.marked_expr) : bool =
   match Marked.unmark e with ELit LEmptyError -> true | _ -> false
 
 let log_indent = ref 0
@@ -30,25 +31,25 @@ let log_indent = ref 0
 (** {1 Evaluation} *)
 
 let rec evaluate_operator
-    (ctx : Ast.decl_ctx)
-    (op : A.operator)
+    (ctx : decl_ctx)
+    (op : operator)
     (pos : Pos.t)
-    (args : 'm A.marked_expr list) : 'm A.expr =
+    (args : 'm Ast.marked_expr list) : 'm Ast.expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
      [op] to raise multispanned errors. *)
-  let apply_div_or_raise_err (div : unit -> 'm A.expr) : 'm A.expr =
+  let apply_div_or_raise_err (div : unit -> 'm Ast.expr) : 'm Ast.expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error
         [
           Some "The division operator:", pos;
-          Some "The null denominator:", Ast.pos (List.nth args 1);
+          Some "The null denominator:", Expr.pos (List.nth args 1);
         ]
         "division by zero at runtime"
   in
   let get_binop_args_pos = function
     | (arg0 :: arg1 :: _ : 'm A.marked_expr list) ->
-      [None, Ast.pos arg0; None, Ast.pos arg1]
+      [None, Expr.pos arg0; None, Expr.pos arg1]
     | _ -> assert false
   in
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
@@ -63,211 +64,211 @@ let rec evaluate_operator
          precise number of days"
   in
   match op, List.map Marked.unmark args with
-  | A.Ternop A.Fold, [_f; _init; EArray es] ->
+  | Ternop Fold, [_f; _init; EArray es] ->
     Marked.unmark
       (List.fold_left
          (fun acc e' ->
            evaluate_expr ctx
-             (Marked.same_mark_as (A.EApp (List.nth args 0, [acc; e'])) e'))
+             (Marked.same_mark_as (EApp (List.nth args 0, [acc; e'])) e'))
          (List.nth args 1) es)
-  | A.Binop A.And, [ELit (LBool b1); ELit (LBool b2)] ->
-    A.ELit (LBool (b1 && b2))
-  | A.Binop A.Or, [ELit (LBool b1); ELit (LBool b2)] ->
-    A.ELit (LBool (b1 || b2))
-  | A.Binop A.Xor, [ELit (LBool b1); ELit (LBool b2)] ->
-    A.ELit (LBool (b1 <> b2))
-  | A.Binop (A.Add KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LInt Runtime.(i1 +! i2))
-  | A.Binop (A.Sub KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LInt Runtime.(i1 -! i2))
-  | A.Binop (A.Mult KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LInt Runtime.(i1 *! i2))
-  | A.Binop (A.Div KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    apply_div_or_raise_err (fun _ -> A.ELit (LInt Runtime.(i1 /! i2)))
-  | A.Binop (A.Add KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LRat Runtime.(i1 +& i2))
-  | A.Binop (A.Sub KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LRat Runtime.(i1 -& i2))
-  | A.Binop (A.Mult KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LRat Runtime.(i1 *& i2))
-  | A.Binop (A.Div KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /& i2)))
-  | A.Binop (A.Add KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LMoney Runtime.(m1 +$ m2))
-  | A.Binop (A.Sub KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LMoney Runtime.(m1 -$ m2))
-  | A.Binop (A.Mult KMoney), [ELit (LMoney m1); ELit (LRat m2)] ->
-    A.ELit (LMoney Runtime.(m1 *$ m2))
-  | A.Binop (A.Div KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(m1 /$ m2)))
-  | A.Binop (A.Add KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    A.ELit (LDuration Runtime.(d1 +^ d2))
-  | A.Binop (A.Sub KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    A.ELit (LDuration Runtime.(d1 -^ d2))
-  | A.Binop (A.Sub KDate), [ELit (LDate d1); ELit (LDate d2)] ->
-    A.ELit (LDuration Runtime.(d1 -@ d2))
-  | A.Binop (A.Add KDate), [ELit (LDate d1); ELit (LDuration d2)] ->
-    A.ELit (LDate Runtime.(d1 +@ d2))
-  | A.Binop (A.Div KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+  | Binop And, [ELit (LBool b1); ELit (LBool b2)] ->
+    ELit (LBool (b1 && b2))
+  | Binop Or, [ELit (LBool b1); ELit (LBool b2)] ->
+    ELit (LBool (b1 || b2))
+  | Binop Xor, [ELit (LBool b1); ELit (LBool b2)] ->
+    ELit (LBool (b1 <> b2))
+  | Binop (Add KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LInt Runtime.(i1 +! i2))
+  | Binop (Sub KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LInt Runtime.(i1 -! i2))
+  | Binop (Mult KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LInt Runtime.(i1 *! i2))
+  | Binop (Div KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    apply_div_or_raise_err (fun _ -> ELit (LInt Runtime.(i1 /! i2)))
+  | Binop (Add KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LRat Runtime.(i1 +& i2))
+  | Binop (Sub KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LRat Runtime.(i1 -& i2))
+  | Binop (Mult KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LRat Runtime.(i1 *& i2))
+  | Binop (Div KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    apply_div_or_raise_err (fun _ -> ELit (LRat Runtime.(i1 /& i2)))
+  | Binop (Add KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LMoney Runtime.(m1 +$ m2))
+  | Binop (Sub KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LMoney Runtime.(m1 -$ m2))
+  | Binop (Mult KMoney), [ELit (LMoney m1); ELit (LRat m2)] ->
+    ELit (LMoney Runtime.(m1 *$ m2))
+  | Binop (Div KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    apply_div_or_raise_err (fun _ -> ELit (LRat Runtime.(m1 /$ m2)))
+  | Binop (Add KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+    ELit (LDuration Runtime.(d1 +^ d2))
+  | Binop (Sub KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+    ELit (LDuration Runtime.(d1 -^ d2))
+  | Binop (Sub KDate), [ELit (LDate d1); ELit (LDate d2)] ->
+    ELit (LDuration Runtime.(d1 -@ d2))
+  | Binop (Add KDate), [ELit (LDate d1); ELit (LDuration d2)] ->
+    ELit (LDate Runtime.(d1 +@ d2))
+  | Binop (Div KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
     apply_div_or_raise_err (fun _ ->
-        try A.ELit (LRat Runtime.(d1 /^ d2))
+        try ELit (LRat Runtime.(d1 /^ d2))
         with Runtime.IndivisableDurations ->
           Errors.raise_multispanned_error (get_binop_args_pos args)
             "Cannot divide durations that cannot be converted to a precise \
              number of days")
-  | A.Binop (A.Mult KDuration), [ELit (LDuration d1); ELit (LInt i1)] ->
-    A.ELit (LDuration Runtime.(d1 *^ i1))
-  | A.Binop (A.Lt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LBool Runtime.(i1 <! i2))
-  | A.Binop (A.Lte KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LBool Runtime.(i1 <=! i2))
-  | A.Binop (A.Gt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LBool Runtime.(i1 >! i2))
-  | A.Binop (A.Gte KInt), [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LBool Runtime.(i1 >=! i2))
-  | A.Binop (A.Lt KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LBool Runtime.(i1 <& i2))
-  | A.Binop (A.Lte KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LBool Runtime.(i1 <=& i2))
-  | A.Binop (A.Gt KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LBool Runtime.(i1 >& i2))
-  | A.Binop (A.Gte KRat), [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LBool Runtime.(i1 >=& i2))
-  | A.Binop (A.Lt KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LBool Runtime.(m1 <$ m2))
-  | A.Binop (A.Lte KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LBool Runtime.(m1 <=$ m2))
-  | A.Binop (A.Gt KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LBool Runtime.(m1 >$ m2))
-  | A.Binop (A.Gte KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LBool Runtime.(m1 >=$ m2))
-  | A.Binop (A.Lt KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 <^ d2))) args
-  | A.Binop (A.Lte KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 <=^ d2))) args
-  | A.Binop (A.Gt KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 >^ d2))) args
-  | A.Binop (A.Gte KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
-    apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 >=^ d2))) args
-  | A.Binop (A.Lt KDate), [ELit (LDate d1); ELit (LDate d2)] ->
-    A.ELit (LBool Runtime.(d1 <@ d2))
-  | A.Binop (A.Lte KDate), [ELit (LDate d1); ELit (LDate d2)] ->
-    A.ELit (LBool Runtime.(d1 <=@ d2))
-  | A.Binop (A.Gt KDate), [ELit (LDate d1); ELit (LDate d2)] ->
-    A.ELit (LBool Runtime.(d1 >@ d2))
-  | A.Binop (A.Gte KDate), [ELit (LDate d1); ELit (LDate d2)] ->
-    A.ELit (LBool Runtime.(d1 >=@ d2))
-  | A.Binop A.Eq, [ELit LUnit; ELit LUnit] -> A.ELit (LBool true)
-  | A.Binop A.Eq, [ELit (LDuration d1); ELit (LDuration d2)] ->
-    A.ELit (LBool Runtime.(d1 =^ d2))
-  | A.Binop A.Eq, [ELit (LDate d1); ELit (LDate d2)] ->
-    A.ELit (LBool Runtime.(d1 =@ d2))
-  | A.Binop A.Eq, [ELit (LMoney m1); ELit (LMoney m2)] ->
-    A.ELit (LBool Runtime.(m1 =$ m2))
-  | A.Binop A.Eq, [ELit (LRat i1); ELit (LRat i2)] ->
-    A.ELit (LBool Runtime.(i1 =& i2))
-  | A.Binop A.Eq, [ELit (LInt i1); ELit (LInt i2)] ->
-    A.ELit (LBool Runtime.(i1 =! i2))
-  | A.Binop A.Eq, [ELit (LBool b1); ELit (LBool b2)] -> A.ELit (LBool (b1 = b2))
-  | A.Binop A.Eq, [EArray es1; EArray es2] ->
-    A.ELit
+  | Binop (Mult KDuration), [ELit (LDuration d1); ELit (LInt i1)] ->
+    ELit (LDuration Runtime.(d1 *^ i1))
+  | Binop (Lt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LBool Runtime.(i1 <! i2))
+  | Binop (Lte KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LBool Runtime.(i1 <=! i2))
+  | Binop (Gt KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LBool Runtime.(i1 >! i2))
+  | Binop (Gte KInt), [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LBool Runtime.(i1 >=! i2))
+  | Binop (Lt KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LBool Runtime.(i1 <& i2))
+  | Binop (Lte KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LBool Runtime.(i1 <=& i2))
+  | Binop (Gt KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LBool Runtime.(i1 >& i2))
+  | Binop (Gte KRat), [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LBool Runtime.(i1 >=& i2))
+  | Binop (Lt KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LBool Runtime.(m1 <$ m2))
+  | Binop (Lte KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LBool Runtime.(m1 <=$ m2))
+  | Binop (Gt KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LBool Runtime.(m1 >$ m2))
+  | Binop (Gte KMoney), [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LBool Runtime.(m1 >=$ m2))
+  | Binop (Lt KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+    apply_cmp_or_raise_err (fun _ -> ELit (LBool Runtime.(d1 <^ d2))) args
+  | Binop (Lte KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+    apply_cmp_or_raise_err (fun _ -> ELit (LBool Runtime.(d1 <=^ d2))) args
+  | Binop (Gt KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+    apply_cmp_or_raise_err (fun _ -> ELit (LBool Runtime.(d1 >^ d2))) args
+  | Binop (Gte KDuration), [ELit (LDuration d1); ELit (LDuration d2)] ->
+    apply_cmp_or_raise_err (fun _ -> ELit (LBool Runtime.(d1 >=^ d2))) args
+  | Binop (Lt KDate), [ELit (LDate d1); ELit (LDate d2)] ->
+    ELit (LBool Runtime.(d1 <@ d2))
+  | Binop (Lte KDate), [ELit (LDate d1); ELit (LDate d2)] ->
+    ELit (LBool Runtime.(d1 <=@ d2))
+  | Binop (Gt KDate), [ELit (LDate d1); ELit (LDate d2)] ->
+    ELit (LBool Runtime.(d1 >@ d2))
+  | Binop (Gte KDate), [ELit (LDate d1); ELit (LDate d2)] ->
+    ELit (LBool Runtime.(d1 >=@ d2))
+  | Binop Eq, [ELit LUnit; ELit LUnit] -> ELit (LBool true)
+  | Binop Eq, [ELit (LDuration d1); ELit (LDuration d2)] ->
+    ELit (LBool Runtime.(d1 =^ d2))
+  | Binop Eq, [ELit (LDate d1); ELit (LDate d2)] ->
+    ELit (LBool Runtime.(d1 =@ d2))
+  | Binop Eq, [ELit (LMoney m1); ELit (LMoney m2)] ->
+    ELit (LBool Runtime.(m1 =$ m2))
+  | Binop Eq, [ELit (LRat i1); ELit (LRat i2)] ->
+    ELit (LBool Runtime.(i1 =& i2))
+  | Binop Eq, [ELit (LInt i1); ELit (LInt i2)] ->
+    ELit (LBool Runtime.(i1 =! i2))
+  | Binop Eq, [ELit (LBool b1); ELit (LBool b2)] -> ELit (LBool (b1 = b2))
+  | Binop Eq, [EArray es1; EArray es2] ->
+    ELit
       (LBool
          (try
             List.for_all2
               (fun e1 e2 ->
                 match evaluate_operator ctx op pos [e1; e2] with
-                | A.ELit (LBool b) -> b
+                | ELit (LBool b) -> b
                 | _ -> assert false
                 (* should not happen *))
               es1 es2
           with Invalid_argument _ -> false))
-  | A.Binop A.Eq, [ETuple (es1, s1); ETuple (es2, s2)] ->
-    A.ELit
+  | Binop Eq, [ETuple (es1, s1); ETuple (es2, s2)] ->
+    ELit
       (LBool
          (try
             s1 = s2
             && List.for_all2
                  (fun e1 e2 ->
                    match evaluate_operator ctx op pos [e1; e2] with
-                   | A.ELit (LBool b) -> b
+                   | ELit (LBool b) -> b
                    | _ -> assert false
                    (* should not happen *))
                  es1 es2
           with Invalid_argument _ -> false))
-  | A.Binop A.Eq, [EInj (e1, i1, en1, _ts1); EInj (e2, i2, en2, _ts2)] ->
-    A.ELit
+  | Binop Eq, [EInj (e1, i1, en1, _ts1); EInj (e2, i2, en2, _ts2)] ->
+    ELit
       (LBool
          (try
             en1 = en2
             && i1 = i2
             &&
             match evaluate_operator ctx op pos [e1; e2] with
-            | A.ELit (LBool b) -> b
+            | ELit (LBool b) -> b
             | _ -> assert false
             (* should not happen *)
           with Invalid_argument _ -> false))
-  | A.Binop A.Eq, [_; _] ->
-    A.ELit (LBool false) (* comparing anything else return false *)
-  | A.Binop A.Neq, [_; _] -> (
-    match evaluate_operator ctx (A.Binop A.Eq) pos args with
-    | A.ELit (A.LBool b) -> A.ELit (A.LBool (not b))
+  | Binop Eq, [_; _] ->
+    ELit (LBool false) (* comparing anything else return false *)
+  | Binop Neq, [_; _] -> (
+    match evaluate_operator ctx (Binop Eq) pos args with
+    | ELit (LBool b) -> ELit (LBool (not b))
     | _ -> assert false (*should not happen *))
-  | A.Binop A.Concat, [A.EArray es1; A.EArray es2] -> A.EArray (es1 @ es2)
-  | A.Binop A.Map, [_; A.EArray es] ->
-    A.EArray
+  | Binop Concat, [EArray es1; EArray es2] -> EArray (es1 @ es2)
+  | Binop Map, [_; EArray es] ->
+    EArray
       (List.map
          (fun e' ->
            evaluate_expr ctx
-             (Marked.same_mark_as (A.EApp (List.nth args 0, [e'])) e'))
+             (Marked.same_mark_as (EApp (List.nth args 0, [e'])) e'))
          es)
-  | A.Binop A.Filter, [_; A.EArray es] ->
-    A.EArray
+  | Binop Filter, [_; EArray es] ->
+    EArray
       (List.filter
          (fun e' ->
            match
              evaluate_expr ctx
-               (Marked.same_mark_as (A.EApp (List.nth args 0, [e'])) e')
+               (Marked.same_mark_as (EApp (List.nth args 0, [e'])) e')
            with
-           | A.ELit (A.LBool b), _ -> b
+           | ELit (LBool b), _ -> b
            | _ ->
              Errors.raise_spanned_error
-               (A.pos (List.nth args 0))
+               (Expr.pos (List.nth args 0))
                "This predicate evaluated to something else than a boolean \
                 (should not happen if the term was well-typed)")
          es)
-  | A.Binop _, ([ELit LEmptyError; _] | [_; ELit LEmptyError]) ->
-    A.ELit LEmptyError
-  | A.Unop (A.Minus KInt), [ELit (LInt i)] ->
-    A.ELit (LInt Runtime.(integer_of_int 0 -! i))
-  | A.Unop (A.Minus KRat), [ELit (LRat i)] ->
-    A.ELit (LRat Runtime.(decimal_of_string "0" -& i))
-  | A.Unop (A.Minus KMoney), [ELit (LMoney i)] ->
-    A.ELit (LMoney Runtime.(money_of_units_int 0 -$ i))
-  | A.Unop (A.Minus KDuration), [ELit (LDuration i)] ->
-    A.ELit (LDuration Runtime.(~-^i))
-  | A.Unop A.Not, [ELit (LBool b)] -> A.ELit (LBool (not b))
-  | A.Unop A.Length, [EArray es] ->
-    A.ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | A.Unop A.GetDay, [ELit (LDate d)] ->
-    A.ELit (LInt Runtime.(day_of_month_of_date d))
-  | A.Unop A.GetMonth, [ELit (LDate d)] ->
-    A.ELit (LInt Runtime.(month_number_of_date d))
-  | A.Unop A.GetYear, [ELit (LDate d)] -> A.ELit (LInt Runtime.(year_of_date d))
-  | A.Unop A.FirstDayOfMonth, [ELit (LDate d)] ->
-    A.ELit (LDate Runtime.(first_day_of_month d))
-  | A.Unop A.LastDayOfMonth, [ELit (LDate d)] ->
-    A.ELit (LDate Runtime.(first_day_of_month d))
-  | A.Unop A.IntToRat, [ELit (LInt i)] ->
-    A.ELit (LRat Runtime.(decimal_of_integer i))
-  | A.Unop A.MoneyToRat, [ELit (LMoney i)] ->
-    A.ELit (LRat Runtime.(decimal_of_money i))
-  | A.Unop A.RatToMoney, [ELit (LRat i)] ->
-    A.ELit (LMoney Runtime.(money_of_decimal i))
-  | A.Unop A.RoundMoney, [ELit (LMoney m)] ->
-    A.ELit (LMoney Runtime.(money_round m))
-  | A.Unop A.RoundDecimal, [ELit (LRat m)] ->
-    A.ELit (LRat Runtime.(decimal_round m))
-  | A.Unop (A.Log (entry, infos)), [e'] ->
+  | Binop _, ([ELit LEmptyError; _] | [_; ELit LEmptyError]) ->
+    ELit LEmptyError
+  | Unop (Minus KInt), [ELit (LInt i)] ->
+    ELit (LInt Runtime.(integer_of_int 0 -! i))
+  | Unop (Minus KRat), [ELit (LRat i)] ->
+    ELit (LRat Runtime.(decimal_of_string "0" -& i))
+  | Unop (Minus KMoney), [ELit (LMoney i)] ->
+    ELit (LMoney Runtime.(money_of_units_int 0 -$ i))
+  | Unop (Minus KDuration), [ELit (LDuration i)] ->
+    ELit (LDuration Runtime.(~-^i))
+  | Unop Not, [ELit (LBool b)] -> ELit (LBool (not b))
+  | Unop Length, [EArray es] ->
+    ELit (LInt (Runtime.integer_of_int (List.length es)))
+  | Unop GetDay, [ELit (LDate d)] ->
+    ELit (LInt Runtime.(day_of_month_of_date d))
+  | Unop GetMonth, [ELit (LDate d)] ->
+    ELit (LInt Runtime.(month_number_of_date d))
+  | Unop GetYear, [ELit (LDate d)] -> ELit (LInt Runtime.(year_of_date d))
+  | Unop FirstDayOfMonth, [ELit (LDate d)] ->
+    ELit (LDate Runtime.(first_day_of_month d))
+  | Unop LastDayOfMonth, [ELit (LDate d)] ->
+    ELit (LDate Runtime.(first_day_of_month d))
+  | Unop IntToRat, [ELit (LInt i)] ->
+    ELit (LRat Runtime.(decimal_of_integer i))
+  | Unop MoneyToRat, [ELit (LMoney i)] ->
+    ELit (LRat Runtime.(decimal_of_money i))
+  | Unop RatToMoney, [ELit (LRat i)] ->
+    ELit (LMoney Runtime.(money_of_decimal i))
+  | Unop RoundMoney, [ELit (LMoney m)] ->
+    ELit (LMoney Runtime.(money_round m))
+  | Unop RoundDecimal, [ELit (LRat m)] ->
+    ELit (LRat Runtime.(decimal_round m))
+  | Unop (Log (entry, infos)), [e'] ->
     if !Cli.trace_flag then (
       match entry with
       | VarDef _ ->
@@ -276,7 +277,7 @@ let rec evaluate_operator
         Cli.log_format "%*s%a %a: %s" (!log_indent * 2) ""
           Print.format_log_entry entry Print.format_uid_list infos
           (match e' with
-          | Ast.EAbs _ -> Cli.with_style [ANSITerminal.green] "<function>"
+          | EAbs _ -> Cli.with_style [ANSITerminal.green] "<function>"
           | _ ->
             let expr_str =
               Format.asprintf "%a"
@@ -308,7 +309,7 @@ let rec evaluate_operator
           entry Print.format_uid_list infos)
     else ();
     e'
-  | A.Unop _, [ELit LEmptyError] -> A.ELit LEmptyError
+  | Unop _, [ELit LEmptyError] -> ELit LEmptyError
   | _ ->
     Errors.raise_multispanned_error
       ([Some "Operator:", pos]
@@ -318,16 +319,16 @@ let rec evaluate_operator
                 (Format.asprintf "Argument n°%d, value %a" (i + 1)
                    (Print.format_expr ctx ~debug:true)
                    arg),
-              A.pos arg ))
+              Expr.pos arg ))
           args)
       "Operator applied to the wrong arguments\n\
        (should not happen if the term was well-typed)"
 
-and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
+and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
     =
   match Marked.unmark e with
   | EVar _ ->
-    Errors.raise_spanned_error (A.pos e)
+    Errors.raise_spanned_error (Expr.pos e)
       "free variable found at evaluation (should not happen if term was \
        well-typed"
   | EApp (e1, args) -> (
@@ -339,22 +340,22 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
         evaluate_expr ctx
           (Bindlib.msubst binder (Array.of_list (List.map Marked.unmark args)))
       else
-        Errors.raise_spanned_error (A.pos e)
+        Errors.raise_spanned_error (Expr.pos e)
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp op -> Marked.same_mark_as (evaluate_operator ctx op (A.pos e) args) e
-    | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
+    | EOp op -> Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
+    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (A.pos e)
+      Errors.raise_spanned_error (Expr.pos e)
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
   | ETuple (es, s) ->
     let new_es = List.map (evaluate_expr ctx) es in
     if List.exists is_empty_error new_es then
-      Marked.same_mark_as (A.ELit LEmptyError) e
-    else Marked.same_mark_as (A.ETuple (new_es, s)) e
+      Marked.same_mark_as (ELit LEmptyError) e
+    else Marked.same_mark_as (ETuple (new_es, s)) e
   | ETupleAccess (e1, n, s, _) -> (
     let e1 = evaluate_expr ctx e1 in
     match Marked.unmark e1 with
@@ -364,49 +365,49 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
       | Some s, Some s' when s = s' -> ()
       | _ ->
         Errors.raise_multispanned_error
-          [None, A.pos e; None, A.pos e1]
+          [None, Expr.pos e; None, Expr.pos e1]
           "Error during tuple access: not the same structs (should not happen \
            if the term was well-typed)");
       match List.nth_opt es n with
       | Some e' -> e'
       | None ->
-        Errors.raise_spanned_error (A.pos e1)
+        Errors.raise_spanned_error (Expr.pos e1)
           "The tuple has %d components but the %i-th element was requested \
            (should not happen if the term was well-type)"
           (List.length es) n)
-    | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
+    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (A.pos e1)
+      Errors.raise_spanned_error (Expr.pos e1)
         "The expression %a should be a tuple with %d components but is not \
          (should not happen if the term was well-typed)"
         (Print.format_expr ctx ~debug:true)
         e n)
   | EInj (e1, n, en, ts) ->
     let e1' = evaluate_expr ctx e1 in
-    if is_empty_error e1' then Marked.same_mark_as (A.ELit LEmptyError) e
-    else Marked.same_mark_as (A.EInj (e1', n, en, ts)) e
+    if is_empty_error e1' then Marked.same_mark_as (ELit LEmptyError) e
+    else Marked.same_mark_as (EInj (e1', n, en, ts)) e
   | EMatch (e1, es, e_name) -> (
     let e1 = evaluate_expr ctx e1 in
     match Marked.unmark e1 with
-    | A.EInj (e1, n, e_name', _) ->
+    | EInj (e1, n, e_name', _) ->
       if e_name <> e_name' then
         Errors.raise_multispanned_error
-          [None, A.pos e; None, A.pos e1]
+          [None, Expr.pos e; None, Expr.pos e1]
           "Error during match: two different enums found (should not happend \
            if the term was well-typed)";
       let es_n =
         match List.nth_opt es n with
         | Some es_n -> es_n
         | None ->
-          Errors.raise_spanned_error (A.pos e)
+          Errors.raise_spanned_error (Expr.pos e)
             "sum type index error (should not happend if the term was \
              well-typed)"
       in
-      let new_e = Marked.same_mark_as (A.EApp (es_n, [e1])) e in
+      let new_e = Marked.same_mark_as (EApp (es_n, [e1])) e in
       evaluate_expr ctx new_e
-    | A.ELit A.LEmptyError -> Marked.same_mark_as (A.ELit A.LEmptyError) e
+    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (A.pos e1)
+      Errors.raise_spanned_error (Expr.pos e1)
         "Expected a term having a sum type as an argument to a match (should \
          not happend if the term was well-typed")
   | EDefault (exceptions, just, cons) -> (
@@ -416,11 +417,11 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
     | 0 -> (
       let just = evaluate_expr ctx just in
       match Marked.unmark just with
-      | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
+      | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
       | ELit (LBool true) -> evaluate_expr ctx cons
-      | ELit (LBool false) -> Marked.same_mark_as (A.ELit LEmptyError) e
+      | ELit (LBool false) -> Marked.same_mark_as (ELit LEmptyError) e
       | _ ->
-        Errors.raise_spanned_error (A.pos e)
+        Errors.raise_spanned_error (Expr.pos e)
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) exceptions
@@ -428,7 +429,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
       Errors.raise_multispanned_error
         (List.map
            (fun except ->
-             Some "This consequence has a valid justification:", A.pos except)
+             Some "This consequence has a valid justification:", Expr.pos except)
            (List.filter (fun sub -> not (is_empty_error sub)) exceptions))
         "There is a conflict between multiple valid consequences for assigning \
          the same variable.")
@@ -436,55 +437,55 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
     match Marked.unmark (evaluate_expr ctx cond) with
     | ELit (LBool true) -> evaluate_expr ctx et
     | ELit (LBool false) -> evaluate_expr ctx ef
-    | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
+    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (A.pos cond)
+      Errors.raise_spanned_error (Expr.pos cond)
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
     let new_es = List.map (evaluate_expr ctx) es in
     if List.exists is_empty_error new_es then
-      Marked.same_mark_as (A.ELit LEmptyError) e
-    else Marked.same_mark_as (A.EArray new_es) e
+      Marked.same_mark_as (ELit LEmptyError) e
+    else Marked.same_mark_as (EArray new_es) e
   | ErrorOnEmpty e' ->
     let e' = evaluate_expr ctx e' in
-    if Marked.unmark e' = A.ELit LEmptyError then
-      Errors.raise_spanned_error (A.pos e')
+    if Marked.unmark e' = ELit LEmptyError then
+      Errors.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
     else e'
   | EAssert e' -> (
     match Marked.unmark (evaluate_expr ctx e') with
-    | ELit (LBool true) -> Marked.same_mark_as (Ast.ELit LUnit) e'
+    | ELit (LBool true) -> Marked.same_mark_as (ELit LUnit) e'
     | ELit (LBool false) -> (
       match Marked.unmark e' with
-      | Ast.ErrorOnEmpty
+      | ErrorOnEmpty
           ( EApp
-              ( (Ast.EOp (Binop op), _),
+              ( (EOp (Binop op), _),
                 [((ELit _, _) as e1); ((ELit _, _) as e2)] ),
             _ )
       | EApp
-          ( (Ast.EOp (Ast.Unop (Ast.Log _)), _),
+          ( (EOp (Unop (Log _)), _),
             [
-              ( Ast.EApp
-                  ( (Ast.EOp (Binop op), _),
+              ( EApp
+                  ( (EOp (Binop op), _),
                     [((ELit _, _) as e1); ((ELit _, _) as e2)] ),
                 _ );
             ] )
       | EApp
-          ((Ast.EOp (Binop op), _), [((ELit _, _) as e1); ((ELit _, _) as e2)])
+          ((EOp (Binop op), _), [((ELit _, _) as e1); ((ELit _, _) as e2)])
         ->
-        Errors.raise_spanned_error (A.pos e') "Assertion failed: %a %a %a"
+        Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
           (Print.format_expr ctx ~debug:false)
           e1 Print.format_binop op
           (Print.format_expr ctx ~debug:false)
           e2
       | _ ->
         Cli.debug_format "%a" (Print.format_expr ctx) e';
-        Errors.raise_spanned_error (A.pos e') "Assertion failed")
-    | ELit LEmptyError -> Marked.same_mark_as (A.ELit LEmptyError) e
+        Errors.raise_spanned_error (Expr.pos e') "Assertion failed")
+    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
-      Errors.raise_spanned_error (A.pos e')
+      Errors.raise_spanned_error (Expr.pos e')
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
 
@@ -492,13 +493,13 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) : 'm A.marked_expr
 
 let interpret_program :
       'm.
-      Ast.decl_ctx ->
+      decl_ctx ->
       'm Ast.marked_expr ->
       (Uid.MarkedString.info * 'm Ast.marked_expr) list =
- fun (ctx : Ast.decl_ctx) (e : 'm Ast.marked_expr) :
+ fun (ctx : decl_ctx) (e : 'm Ast.marked_expr) :
      (Uid.MarkedString.info * 'm Ast.marked_expr) list ->
   match evaluate_expr ctx e with
-  | Ast.EAbs (_, [((Ast.TTuple (taus, Some s_in), _) as targs)]), mark_e ->
+  | EAbs (_, [((TTuple (taus, Some s_in), _) as targs)]), mark_e ->
     begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -509,9 +510,9 @@ let interpret_program :
       List.map
         (fun ty ->
           match Marked.unmark ty with
-          | A.TArrow ((A.TLit A.TUnit, _), ty_in) ->
+          | TArrow ((TLit TUnit, _), ty_in) ->
             Ast.empty_thunked_term
-              (A.map_mark (fun pos -> pos) (fun _ -> ty_in) mark_e)
+              (Expr.map_mark (fun pos -> pos) (fun _ -> ty_in) mark_e)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)
               "This scope needs input arguments to be executed. But the Catala \
@@ -522,23 +523,23 @@ let interpret_program :
         taus
     in
     let to_interpret =
-      ( Ast.EApp
+      ( EApp
           ( e,
             [
-              ( Ast.ETuple (application_term, Some s_in),
+              ( ETuple (application_term, Some s_in),
                 let pos =
                   match application_term with
-                  | a :: _ -> A.pos a
+                  | a :: _ -> Expr.pos a
                   | [] -> Pos.no_pos
                 in
-                A.map_mark (fun _ -> pos) (fun _ -> targs) mark_e );
+                Expr.map_mark (fun _ -> pos) (fun _ -> targs) mark_e );
             ] ),
-        A.map_mark
+        Expr.map_mark
           (fun pos -> pos)
           (fun ty ->
             match application_term, ty with
             | [], t_out -> t_out
-            | _ :: _, (A.TArrow (_, t_out), _) -> t_out
+            | _ :: _, (TArrow (_, t_out), _) -> t_out
             | _ :: _, (_, bad_pos) ->
               Errors.raise_spanned_error bad_pos
                 "@[<hv 2>(bug) Result of interpretation doesn't have the \
@@ -547,19 +548,19 @@ let interpret_program :
           mark_e )
     in
     match Marked.unmark (evaluate_expr ctx to_interpret) with
-    | Ast.ETuple (args, Some s_out) ->
+    | ETuple (args, Some s_out) ->
       let s_out_fields =
         List.map
-          (fun (f, _) -> Ast.StructFieldName.get_info f)
-          (Ast.StructMap.find s_out ctx.ctx_structs)
+          (fun (f, _) -> StructFieldName.get_info f)
+          (StructMap.find s_out ctx.ctx_structs)
       in
       List.map2 (fun arg var -> var, arg) args s_out_fields
     | _ ->
-      Errors.raise_spanned_error (A.pos e)
+      Errors.raise_spanned_error (Expr.pos e)
         "The interpretation of a program should always yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
-    Errors.raise_spanned_error (A.pos e)
+    Errors.raise_spanned_error (Expr.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"

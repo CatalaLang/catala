@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Ast
 
 let needs_parens (e : expr Marked.pos) : bool =
@@ -42,8 +43,8 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
   in
   match Marked.unmark typ with
   | TLit l -> Dcalc.Print.format_tlit fmt l
-  | TStruct s -> Format.fprintf fmt "%a" Ast.StructName.format_t s
-  | TEnum e -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
+  | TStruct s -> Format.fprintf fmt "%a" StructName.format_t s
+  | TEnum e -> Format.fprintf fmt "%a" EnumName.format_t e
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens t1
       Dcalc.Print.format_operator "→" format_typ t2
@@ -67,14 +68,14 @@ let rec format_expr
   | EVar v -> Format.fprintf fmt "%a" format_var v
   | ELit l -> Format.fprintf fmt "%a" Dcalc.Print.format_lit l
   | EStruct (name, fields) ->
-    Format.fprintf fmt " @[<hov 2>%a@ %a@ %a@ %a@]" Ast.StructName.format_t name
+    Format.fprintf fmt " @[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
       Dcalc.Print.format_punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () ->
            Format.fprintf fmt "%a@ " Dcalc.Print.format_punctuation ";")
          (fun fmt (field_name, field_expr) ->
            Format.fprintf fmt "%a%a%a%a@ %a" Dcalc.Print.format_punctuation "\""
-             Ast.StructFieldName.format_t field_name
+             StructFieldName.format_t field_name
              Dcalc.Print.format_punctuation "\"" Dcalc.Print.format_punctuation
              "=" format_expr field_expr))
       (Ast.StructFieldMap.bindings fields)
@@ -82,9 +83,9 @@ let rec format_expr
   | EStructAccess (e1, field, _) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1
       Dcalc.Print.format_punctuation "." Dcalc.Print.format_punctuation "\""
-      Ast.StructFieldName.format_t field Dcalc.Print.format_punctuation "\""
+      StructFieldName.format_t field Dcalc.Print.format_punctuation "\""
   | EEnumInj (e1, cons, _) ->
-    Format.fprintf fmt "%a@ %a" Ast.EnumConstructor.format_t cons format_expr e1
+    Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons format_expr e1
   | EMatch (e1, _, cases) ->
     Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]"
       Dcalc.Print.format_keyword "match" format_expr e1

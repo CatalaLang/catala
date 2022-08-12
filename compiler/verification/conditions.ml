@@ -16,6 +16,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Dcalc
 open Ast
 
@@ -92,7 +93,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed marked_expr)
   | ErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
   | _ ->
-    Errors.raise_spanned_error (pos e)
+    Errors.raise_spanned_error (Expr.pos e)
       "Internal error: this expression does not have the structure expected by \
        the VC generator:\n\
        %a"
@@ -382,7 +383,7 @@ let rec generate_verification_conditions_scopes
   | ScopeDef scope_def ->
     let is_selected_scope =
       match s with
-      | Some s when Dcalc.Ast.ScopeName.compare s scope_def.scope_name = 0 ->
+      | Some s when ScopeName.compare s scope_def.scope_name = 0 ->
         true
       | None -> true
       | _ -> false
@@ -416,7 +417,7 @@ let rec generate_verification_conditions_scopes
 
 let generate_verification_conditions
     (p : 'm program)
-    (s : Dcalc.Ast.ScopeName.t option) : verification_condition list =
+    (s : ScopeName.t option) : verification_condition list =
   let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
   (* We sort this list by scope name and then variable name to ensure consistent
      output for testing*)

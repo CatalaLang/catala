@@ -17,6 +17,7 @@
 (** Abstract syntax tree of the desugared representation *)
 
 open Utils
+open Shared_ast
 
 (** {1 Names, Maps and Keys} *)
 
@@ -99,7 +100,7 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
 type location =
   | ScopeVar of ScopeVar.t Marked.pos * StateName.t option
   | SubScopeVar of
-      Scopelang.Ast.ScopeName.t
+      ScopeName.t
       * Scopelang.Ast.SubScopeName.t Marked.pos
       * ScopeVar.t Marked.pos
 
@@ -132,20 +133,20 @@ and expr =
   | ELocation of location
   | EVar of expr Bindlib.var
   | EStruct of
-      Scopelang.Ast.StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
+      StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
   | EStructAccess of
-      marked_expr * Scopelang.Ast.StructFieldName.t * Scopelang.Ast.StructName.t
+      marked_expr * StructFieldName.t * StructName.t
   | EEnumInj of
-      marked_expr * Scopelang.Ast.EnumConstructor.t * Scopelang.Ast.EnumName.t
+      marked_expr * EnumConstructor.t * EnumName.t
   | EMatch of
       marked_expr
-      * Scopelang.Ast.EnumName.t
+      * EnumName.t
       * marked_expr Scopelang.Ast.EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
       (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list
   | EApp of marked_expr * marked_expr list
-  | EOp of Dcalc.Ast.operator
+  | EOp of operator
   | EDefault of marked_expr list * marked_expr * marked_expr
   | EIfThenElse of marked_expr * marked_expr * marked_expr
   | EArray of marked_expr list
@@ -170,7 +171,7 @@ module Expr = struct
     | ELocation _, ELocation _ -> 0
     | EVar v1, EVar v2 -> Bindlib.compare_vars v1 v2
     | EStruct (name1, field_map1), EStruct (name2, field_map2) -> (
-      match Scopelang.Ast.StructName.compare name1 name2 with
+      match StructName.compare name1 name2 with
       | 0 ->
         Scopelang.Ast.StructFieldMap.compare (Marked.compare compare) field_map1
           field_map2
@@ -179,21 +180,21 @@ module Expr = struct
         EStructAccess ((e2, _), field_name2, struct_name2) ) -> (
       match compare e1 e2 with
       | 0 -> (
-        match Scopelang.Ast.StructFieldName.compare field_name1 field_name2 with
-        | 0 -> Scopelang.Ast.StructName.compare struct_name1 struct_name2
+        match StructFieldName.compare field_name1 field_name2 with
+        | 0 -> StructName.compare struct_name1 struct_name2
         | n -> n)
       | n -> n)
     | EEnumInj ((e1, _), cstr1, name1), EEnumInj ((e2, _), cstr2, name2) -> (
       match compare e1 e2 with
       | 0 -> (
-        match Scopelang.Ast.EnumName.compare name1 name2 with
-        | 0 -> Scopelang.Ast.EnumConstructor.compare cstr1 cstr2
+        match EnumName.compare name1 name2 with
+        | 0 -> EnumConstructor.compare cstr1 cstr2
         | n -> n)
       | n -> n)
     | EMatch ((e1, _), name1, emap1), EMatch ((e2, _), name2, emap2) -> (
       match compare e1 e2 with
       | 0 -> (
-        match Scopelang.Ast.EnumName.compare name1 name2 with
+        match EnumName.compare name1 name2 with
         | 0 ->
           Scopelang.Ast.EnumConstructorMap.compare (Marked.compare compare)
             emap1 emap2
@@ -325,8 +326,8 @@ let empty_rule
     (pos : Pos.t)
     (have_parameter : Scopelang.Ast.typ Marked.pos option) : rule =
   {
-    rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
-    rule_cons = Bindlib.box (ELit Dcalc.Ast.LEmptyError, pos);
+    rule_just = Bindlib.box (ELit (LBool false), pos);
+    rule_cons = Bindlib.box (ELit LEmptyError, pos);
     rule_parameter =
       (match have_parameter with
       | Some typ -> Some (Var.make "dummy", typ)
@@ -340,8 +341,8 @@ let always_false_rule
     (pos : Pos.t)
     (have_parameter : Scopelang.Ast.typ Marked.pos option) : rule =
   {
-    rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool true), pos);
-    rule_cons = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
+    rule_just = Bindlib.box (ELit (LBool true), pos);
+    rule_cons = Bindlib.box (ELit (LBool false), pos);
     rule_parameter =
       (match have_parameter with
       | Some typ -> Some (Var.make "dummy", typ)
@@ -370,8 +371,8 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
-  scope_uid : Scopelang.Ast.ScopeName.t;
+  scope_sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;

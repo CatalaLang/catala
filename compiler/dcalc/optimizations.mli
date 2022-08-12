@@ -17,6 +17,7 @@
 
 (** Optimization passes for default calculus programs and expressions *)
 
+open Shared_ast
 open Ast
 
 val optimize_expr : decl_ctx -> 'm marked_expr -> 'm marked_expr Bindlib.box

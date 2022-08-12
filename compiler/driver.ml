@@ -200,10 +200,10 @@ let driver source_file (options : Cli.options) : int =
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
-                  (Dcalc.Ast.fold_left_scope_defs ~init:None
+                  (Shared_ast.Expr.fold_left_scope_defs ~init:None
                      ~f:(fun acc scope_def _ ->
                        if
-                         Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                         Shared_ast.ScopeName.compare scope_def.scope_name
                            scope_uid
                          = 0
                        then Some scope_def.scope_body
@@ -212,7 +212,7 @@ let driver source_file (options : Cli.options) : int =
           else
             let prgrm_dcalc_expr =
               Bindlib.unbox
-                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
+                (Dcalc.Ast.build_whole_program_expr ~box_expr:Shared_ast.Expr.box
                    ~make_abs:Dcalc.Ast.make_abs
                    ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
             in
@@ -242,7 +242,7 @@ let driver source_file (options : Cli.options) : int =
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
               Bindlib.unbox
-                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
+                (Dcalc.Ast.build_whole_program_expr ~box_expr:Shared_ast.Expr.box
                    ~make_abs:Dcalc.Ast.make_abs
                    ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
             in
@@ -285,7 +285,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
-              else Lcalc.Ast.untype_program prgm
+              else Shared_ast.Expr.untype_program prgm
             in
             let prgm =
               if options.closure_conversion then (
@@ -305,10 +305,10 @@ let driver source_file (options : Cli.options) : int =
                   (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
                   ( scope_uid,
                     Option.get
-                      (Dcalc.Ast.fold_left_scope_defs ~init:None
+                      (Shared_ast.Expr.fold_left_scope_defs ~init:None
                          ~f:(fun acc scope_def _ ->
                            if
-                             Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                             Shared_ast.ScopeName.compare scope_def.scope_name
                                scope_uid
                              = 0
                            then Some scope_def.scope_body
@@ -318,7 +318,7 @@ let driver source_file (options : Cli.options) : int =
                 let prgrm_lcalc_expr =
                   Bindlib.unbox
                     (Dcalc.Ast.build_whole_program_expr
-                       ~box_expr:Lcalc.Ast.box_expr ~make_abs:Lcalc.Ast.make_abs
+                       ~box_expr:Shared_ast.Expr.box ~make_abs:Lcalc.Ast.make_abs
                        ~make_let_in:Lcalc.Ast.make_let_in prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"

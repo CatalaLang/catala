@@ -26,8 +26,8 @@ module type Backend = sig
   type backend_context
 
   val make_context :
-    Dcalc.Ast.decl_ctx ->
-    (typed Dcalc.Ast.expr, Dcalc.Ast.typ Utils.Marked.pos) Var.Map.t ->
+    decl_ctx ->
+    (typed Dcalc.Ast.expr, typ Utils.Marked.pos) Var.Map.t ->
     backend_context
 
   type vc_encoding
@@ -53,8 +53,8 @@ module type BackendIO = sig
   type backend_context
 
   val make_context :
-    Dcalc.Ast.decl_ctx ->
-    (typed Dcalc.Ast.expr, Dcalc.Ast.typ Utils.Marked.pos) Var.Map.t ->
+    decl_ctx ->
+    (typed Dcalc.Ast.expr, typ Utils.Marked.pos) Var.Map.t ->
     backend_context
 
   type vc_encoding
@@ -79,7 +79,7 @@ module type BackendIO = sig
     string
 
   val encode_and_check_vc :
-    Dcalc.Ast.decl_ctx ->
+    decl_ctx ->
     Conditions.verification_condition * vc_encoding_result ->
     unit
 end

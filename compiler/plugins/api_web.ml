@@ -19,6 +19,7 @@
     the associated [js_of_ocaml] wrapper. *)
 
 open Utils
+open Shared_ast
 open String_common
 open Lcalc
 open Lcalc.Ast
@@ -39,9 +40,9 @@ module To_jsoo = struct
 
   let format_struct_field_name_camel_case
       (fmt : Format.formatter)
-      (v : Dcalc.Ast.StructFieldName.t) : unit =
+      (v : StructFieldName.t) : unit =
     let s =
-      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
+      Format.asprintf "%a" StructFieldName.format_t v
       |> to_ascii
       |> to_snake_case
       |> avoid_keywords
@@ -49,7 +50,7 @@ module To_jsoo = struct
     in
     Format.fprintf fmt "%s" s
 
-  let format_tlit (fmt : Format.formatter) (l : Dcalc.Ast.typ_lit) : unit =
+  let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     Dcalc.Print.format_base_type fmt
       (match l with
       | TUnit -> "unit"
@@ -59,11 +60,11 @@ module To_jsoo = struct
       | TBool -> "bool Js.t"
       | TDate -> "Js.js_string Js.t")
 
-  let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Marked.pos) :
+  let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) :
       unit =
     let format_typ_with_parens
         (fmt : Format.formatter)
-        (t : Dcalc.Ast.typ Marked.pos) =
+        (t : typ Marked.pos) =
       if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
       else Format.fprintf fmt "%a" format_typ t
     in
@@ -73,10 +74,10 @@ module To_jsoo = struct
     | TTuple (_, None) ->
       (* Tuples are encoded as an javascript polymorphic array. *)
       Format.fprintf fmt "Js.Unsafe.any_js_array Js.t "
-    | TEnum ([t], e) when D.EnumName.compare e option_enum = 0 ->
+    | TEnum ([t], e) when EnumName.compare e option_enum = 0 ->
       Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
         format_enum_name e
-    | TEnum (_, e) when D.EnumName.compare e option_enum = 0 ->
+    | TEnum (_, e) when EnumName.compare e option_enum = 0 ->
       Errors.raise_spanned_error (Marked.get_mark typ)
         "Internal Error: found an typing parameter for an eoption type of the \
          wrong length."
@@ -90,41 +91,41 @@ module To_jsoo = struct
 
   let rec format_typ_to_jsoo fmt typ =
     match Marked.unmark typ with
-    | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.bool"
-    | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_to_int"
-    | Dcalc.Ast.TLit TRat ->
+    | TLit TBool -> Format.fprintf fmt "Js.bool"
+    | TLit TInt -> Format.fprintf fmt "integer_to_int"
+    | TLit TRat ->
       Format.fprintf fmt "Js.number_of_float %@%@ decimal_to_float"
-    | Dcalc.Ast.TLit TMoney ->
+    | TLit TMoney ->
       Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
-    | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
-    | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_to_jsoo"
-    | Dcalc.Ast.TEnum (_, ename) ->
+    | TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
+    | TLit TDate -> Format.fprintf fmt "date_to_jsoo"
+    | TEnum (_, ename) ->
       Format.fprintf fmt "%a_to_jsoo" format_enum_name ename
-    | Dcalc.Ast.TTuple (_, Some sname) ->
+    | TTuple (_, Some sname) ->
       Format.fprintf fmt "%a_to_jsoo" format_struct_name sname
-    | Dcalc.Ast.TArray t ->
+    | TArray t ->
       Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)"
         format_typ_to_jsoo t
-    | Dcalc.Ast.TAny | Dcalc.Ast.TTuple (_, None) ->
+    | TAny | TTuple (_, None) ->
       Format.fprintf fmt "Js.Unsafe.inject"
     | _ -> Format.fprintf fmt ""
 
   let rec format_typ_of_jsoo fmt typ =
     match Marked.unmark typ with
-    | Dcalc.Ast.TLit TBool -> Format.fprintf fmt "Js.to_bool"
-    | Dcalc.Ast.TLit TInt -> Format.fprintf fmt "integer_of_int"
-    | Dcalc.Ast.TLit TRat ->
+    | TLit TBool -> Format.fprintf fmt "Js.to_bool"
+    | TLit TInt -> Format.fprintf fmt "integer_of_int"
+    | TLit TRat ->
       Format.fprintf fmt "decimal_of_float %@%@ Js.float_of_number"
-    | Dcalc.Ast.TLit TMoney ->
+    | TLit TMoney ->
       Format.fprintf fmt
         "money_of_decimal %@%@ decimal_of_float %@%@ Js.float_of_number"
-    | Dcalc.Ast.TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
-    | Dcalc.Ast.TLit TDate -> Format.fprintf fmt "date_of_jsoo"
-    | Dcalc.Ast.TEnum (_, ename) ->
+    | TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
+    | TLit TDate -> Format.fprintf fmt "date_of_jsoo"
+    | TEnum (_, ename) ->
       Format.fprintf fmt "%a_of_jsoo" format_enum_name ename
-    | Dcalc.Ast.TTuple (_, Some sname) ->
+    | TTuple (_, Some sname) ->
       Format.fprintf fmt "%a_of_jsoo" format_struct_name sname
-    | Dcalc.Ast.TArray t ->
+    | TArray t ->
       Format.fprintf fmt "Array.map (fun x -> %a x) %@%@ Js.to_array"
         format_typ_of_jsoo t
     | _ -> Format.fprintf fmt ""
@@ -150,10 +151,10 @@ module To_jsoo = struct
   let format_ctx
       (type_ordering : Scopelang.Dependency.TVertex.t list)
       (fmt : Format.formatter)
-      (ctx : D.decl_ctx) : unit =
-    let format_prop_or_meth fmt (struct_field_type : D.typ Marked.pos) =
+      (ctx : decl_ctx) : unit =
+    let format_prop_or_meth fmt (struct_field_type : typ Marked.pos) =
       match Marked.unmark struct_field_type with
-      | Dcalc.Ast.TArrow _ -> Format.fprintf fmt "Js.meth"
+      | TArrow _ -> Format.fprintf fmt "Js.meth"
       | _ -> Format.fprintf fmt "Js.readonly_prop"
     in
     let format_struct_decl fmt (struct_name, struct_fields) =
@@ -167,7 +168,7 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (struct_field, struct_field_type) ->
                match Marked.unmark struct_field_type with
-               | Dcalc.Ast.TArrow (t1, t2) ->
+               | TArrow (t1, t2) ->
                  Format.fprintf fmt
                    "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
                     fun input ->@ %a (%a.%a (%a input)))@]@]"
@@ -188,7 +189,7 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
              (fun fmt (struct_field, struct_field_type) ->
                match Marked.unmark struct_field_type with
-               | Dcalc.Ast.TArrow _ ->
+               | TArrow _ ->
                  Format.fprintf fmt
                    "%a = failwith \"The function '%a' translation isn't yet \
                     supported...\""
@@ -238,7 +239,7 @@ module To_jsoo = struct
     in
     let format_enum_decl
         fmt
-        (enum_name, (enum_cons : (D.EnumConstructor.t * D.typ Marked.pos) list))
+        (enum_name, (enum_cons : (EnumConstructor.t * typ Marked.pos) list))
         =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt _ =
@@ -250,7 +251,7 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
                match Marked.unmark typ with
-               | Dcalc.Ast.TTuple (_, None) ->
+               | TTuple (_, None) ->
                  Cli.error_print
                    "Tuples aren't supported yet in the conversion to JS"
                | _ ->
@@ -275,10 +276,10 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
                match Marked.unmark typ with
-               | Dcalc.Ast.TTuple (_, None) ->
+               | TTuple (_, None) ->
                  Cli.error_print
                    "Tuples aren't yet supported in the conversion to JS..."
-               | Dcalc.Ast.TLit TUnit ->
+               | TLit TUnit ->
                  Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
                    format_enum_cons_name cname fmt_module_enum_name ()
                    format_enum_cons_name cname
@@ -329,8 +330,8 @@ module To_jsoo = struct
     let scope_structs =
       List.map
         (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
-        (Dcalc.Ast.StructMap.bindings
-           (Dcalc.Ast.StructMap.filter
+        (StructMap.bindings
+           (StructMap.filter
               (fun s _ -> not (is_in_type_ordering s))
               ctx.ctx_structs))
     in
@@ -343,19 +344,19 @@ module To_jsoo = struct
           Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
       (type_ordering @ scope_structs)
 
-  let fmt_input_struct_name fmt (scope_def : ('a expr, 'm) D.scope_def) =
+  let fmt_input_struct_name fmt (scope_def : ('a expr, 'm) scope_def) =
     format_struct_name fmt scope_def.scope_body.scope_body_input_struct
 
-  let fmt_output_struct_name fmt (scope_def : ('a expr, 'm) D.scope_def) =
+  let fmt_output_struct_name fmt (scope_def : ('a expr, 'm) scope_def) =
     format_struct_name fmt scope_def.scope_body.scope_body_output_struct
 
   let rec format_scopes_to_fun
-      (ctx : Dcalc.Ast.decl_ctx)
+      (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : ('expr, 'm) Dcalc.Ast.scopes) =
+      (scopes : ('expr, 'm) scopes) =
     match scopes with
-    | Dcalc.Ast.Nil -> ()
-    | Dcalc.Ast.ScopeDef scope_def ->
+    | Nil -> ()
+    | ScopeDef scope_def ->
       let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
       let fmt_fun_call fmt _ =
         Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
@@ -369,12 +370,12 @@ module To_jsoo = struct
         fmt_fun_call () (format_scopes_to_fun ctx) scope_next
 
   let rec format_scopes_to_callbacks
-      (ctx : Dcalc.Ast.decl_ctx)
+      (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : ('expr, 'm) Dcalc.Ast.scopes) : unit =
+      (scopes : ('expr, 'm) scopes) : unit =
     match scopes with
-    | Dcalc.Ast.Nil -> ()
-    | Dcalc.Ast.ScopeDef scope_def ->
+    | Nil -> ()
+    | ScopeDef scope_def ->
       let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
       let fmt_meth_name fmt _ =
         Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
