@@ -161,7 +161,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
 let sanitize_html_href str =
   str
   |> String_common.to_ascii
-  |> R.substitute ~rex:(R.regexp "[' '°]") ~subst:(function _ -> "%20")
+  |> R.substitute ~rex:(R.regexp "[' '°\"]") ~subst:(function _ -> "%20")
 
 let rec law_structure_to_html
     (language : C.backend_lang)
