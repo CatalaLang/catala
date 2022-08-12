@@ -15,9 +15,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Astgen
+open Utils
+open Types
 
-(** Functions handling the types in [Astgen] *)
+(** Functions handling the types of [shared_ast] *)
 
 let evar v mark = Bindlib.box_apply (Marked.mark mark) (Bindlib.box_var v)
 
@@ -69,7 +70,7 @@ let ecatch e1 exn e2 pos =
 
 let translate_var v = Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
 
-let map_gexpr
+let map
     (type a)
     (ctx : 'ctx)
     ~(f : 'ctx -> (a, 'm1) marked_gexpr -> (a, 'm2) marked_gexpr Bindlib.box)
@@ -99,11 +100,11 @@ let map_gexpr
   | ECatch (e1, exn, e2) -> ecatch (f ctx e1) exn (f ctx e2) (Marked.get_mark e)
   | ERaise exn -> eraise exn (Marked.get_mark e)
 
-let rec map_gexpr_top_down ~f e =
-  map_gexpr () ~f:(fun () -> map_gexpr_top_down ~f) (f e)
+let rec map_top_down ~f e =
+  map () ~f:(fun () -> map_top_down ~f) (f e)
 
-let map_gexpr_marks ~f e =
-  map_gexpr_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
+let map_marks ~f e =
+  map_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
 
 let rec fold_left_scope_lets ~f ~init scope_body_expr =
   match scope_body_expr with

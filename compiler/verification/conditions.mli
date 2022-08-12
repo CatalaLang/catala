@@ -18,6 +18,7 @@
 (** Generates verification conditions from scope definitions *)
 
 open Utils
+open Shared_ast
 
 type verification_condition_kind =
   | NoEmptyError
@@ -32,9 +33,9 @@ type verification_condition = {
       (** This expression should have type [bool]*)
   vc_kind : verification_condition_kind;
   vc_scope : Dcalc.Ast.ScopeName.t;
-  vc_variable : Astgen.typed Dcalc.Ast.var Marked.pos;
+  vc_variable : typed Dcalc.Ast.var Marked.pos;
   vc_free_vars_typ :
-    (Astgen.typed Dcalc.Ast.expr, Dcalc.Ast.typ Marked.pos) Var.Map.t;
+    (typed Dcalc.Ast.expr, Dcalc.Ast.typ Marked.pos) Var.Map.t;
       (** Types of the locally free variables in [vc_guard]. The types of other
           free variables linked to scope variables can be obtained with
           [Dcalc.Ast.variable_types]. *)

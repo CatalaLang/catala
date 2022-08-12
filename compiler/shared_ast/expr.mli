@@ -15,9 +15,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Functions handling the types in [Astgen] *)
+(** Functions handling the types of [shared_ast] *)
 
-open Astgen
+open Utils
+open Types
 
 (** {2 Boxed constructors} *)
 
@@ -106,13 +107,13 @@ val eerroronempty :
 
 (** ---------- *)
 
-val map_gexpr :
+val map :
   'ctx ->
   f:('ctx -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box) ->
   (('a, 't1) gexpr, 't2) Marked.t ->
   ('a, 't2) marked_gexpr Bindlib.box
 
-val map_gexpr_top_down :
+val map_top_down :
   f:(('a, 't1) marked_gexpr -> (('a, 't1) gexpr, 't2) Marked.t) ->
   ('a, 't1) marked_gexpr ->
   ('a, 't2) marked_gexpr Bindlib.box
@@ -120,7 +121,7 @@ val map_gexpr_top_down :
     returned by [f] is hybrid since the mark at top-level has been rewritten,
     but not yet the marks in the subtrees. *)
 
-val map_gexpr_marks :
+val map_marks :
   f:('t1 -> 't2) -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box
 
 val fold_left_scope_lets :

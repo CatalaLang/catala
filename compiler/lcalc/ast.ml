@@ -15,7 +15,7 @@
    the License. *)
 
 open Utils
-include Astgen
+include Shared_ast
 module D = Dcalc.Ast
 
 type lit = lcalc glit
@@ -71,7 +71,7 @@ let eraise e1 pos = Bindlib.box (ERaise e1, pos)
 let ecatch e1 exn e2 pos =
   Bindlib.box_apply2 (fun e1 e2 -> ECatch (e1, exn, e2), pos) e1 e2
 
-let map_expr ctx ~f e = Astgen_utils.map_gexpr ctx ~f e
+let map_expr ctx ~f e = Expr.map ctx ~f e
 
 let rec map_expr_top_down ~f e =
   map_expr () ~f:(fun () -> map_expr_top_down ~f) (f e)

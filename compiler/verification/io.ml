@@ -39,7 +39,7 @@ module type Backend = sig
 
   val translate_expr :
     backend_context ->
-    Astgen.typed Dcalc.Ast.marked_expr ->
+    typed Dcalc.Ast.marked_expr ->
     backend_context * vc_encoding
 end
 
@@ -49,13 +49,13 @@ module type BackendIO = sig
   type backend_context
 
   val make_context :
-    decl_ctx -> (Astgen.typed expr, typ Marked.pos) Var.Map.t -> backend_context
+    decl_ctx -> (typed expr, typ Marked.pos) Var.Map.t -> backend_context
 
   type vc_encoding
 
   val translate_expr :
     backend_context ->
-    Astgen.typed Dcalc.Ast.marked_expr ->
+    typed Dcalc.Ast.marked_expr ->
     backend_context * vc_encoding
 
   type model

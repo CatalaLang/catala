@@ -15,7 +15,7 @@
    the License. *)
 
 open Utils
-include module type of Astgen
+include module type of Shared_ast
 
 (** Abstract syntax tree for the lambda calculus *)
 

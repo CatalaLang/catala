@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
 

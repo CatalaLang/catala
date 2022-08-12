@@ -40,6 +40,8 @@ module A = Ast
     hoisted and later handled by the [translate_expr] function. Every other
     cases is found in the translate_and_hoist function. *)
 
+open Shared_ast
+
 type 'm hoists = ('m A.expr, 'm D.marked_expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 

@@ -15,6 +15,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(** This module defines generic types for types, literals and expressions shared through several of the different ASTs. *)
+
+(* Doesn't define values, so OK to have without an mli *)
+
+open Utils
+
 module Runtime = Runtime_ocaml.Runtime
 
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info =

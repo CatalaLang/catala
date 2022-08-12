@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 
 type scope_var_ctx = {
   scope_var_name : Ast.ScopeVar.t;
@@ -751,7 +752,7 @@ let translate_scope_decl
     (sigma : Ast.scope_decl) :
     (Dcalc.Ast.untyped Dcalc.Ast.expr, Dcalc.Ast.untyped) Dcalc.Ast.scope_body
     Bindlib.box
-    * Astgen.struct_ctx =
+    * struct_ctx =
   let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in

@@ -18,7 +18,7 @@
     inference using the classical W algorithm with union-find unification. *)
 
 open Utils
-module A = Astgen
+module A = Shared_ast
 
 module Any =
   Utils.Uid.Make
@@ -261,7 +261,7 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
 
 (** {1 Double-directed typing} *)
 
-type 'e env = ('e, typ Marked.pos UnionFind.elem) Var.Map.t
+type 'e env = ('e, typ Marked.pos UnionFind.elem) A.Var.Map.t
 
 let add_pos e ty = Marked.mark (Ast.pos e) ty
 let ty (_, { uf; _ }) = uf
@@ -303,9 +303,9 @@ let rec typecheck_expr_bottom_up
   let mark_with_uf e1 ?pos ty = mark e1 (unionfind_make ?pos ty) in
   match Marked.unmark e with
   | A.EVar v -> begin
-    match Var.Map.find_opt v env with
+    match A.Var.Map.find_opt v env with
     | Some t ->
-      let+ v' = Bindlib.box_var (Var.translate v) in
+      let+ v' = Bindlib.box_var (A.Var.translate v) in
       mark v' t
     | None ->
       Errors.raise_spanned_error (Ast.pos e)
@@ -374,10 +374,10 @@ let rec typecheck_expr_bottom_up
         (List.length taus)
     else
       let xs, body = Bindlib.unmbind binder in
-      let xs' = Array.map Var.translate xs in
+      let xs' = Array.map A.Var.translate xs in
       let xstaus = List.mapi (fun i tau -> xs.(i), ast_to_typ tau) taus in
       let env =
-        List.fold_left (fun env (x, tau) -> Var.Map.add x tau env) env xstaus
+        List.fold_left (fun env (x, tau) -> A.Var.Map.add x tau env) env xstaus
       in
       let body' = typecheck_expr_bottom_up ctx env body in
       let t_func =
@@ -465,9 +465,9 @@ and typecheck_expr_top_down
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   match Marked.unmark e with
   | A.EVar v -> begin
-    match Var.Map.find_opt v env with
+    match A.Var.Map.find_opt v env with
     | Some tau' ->
-      let+ v' = Bindlib.box_var (Var.translate v) in
+      let+ v' = Bindlib.box_var (A.Var.translate v) in
       unify_and_mark v' tau'
     | None ->
       Errors.raise_spanned_error pos_e
@@ -550,13 +550,13 @@ and typecheck_expr_top_down
         (List.length t_args)
     else
       let xs, body = Bindlib.unmbind binder in
-      let xs' = Array.map Var.translate xs in
+      let xs' = Array.map A.Var.translate xs in
       let xstaus =
         List.map2 (fun x t_arg -> x, ast_to_typ t_arg) (Array.to_list xs) t_args
       in
       let env =
         List.fold_left
-          (fun env (x, t_arg) -> Var.Map.add x t_arg env)
+          (fun env (x, t_arg) -> A.Var.Map.add x t_arg env)
           env xstaus
       in
       let body' = typecheck_expr_bottom_up ctx env body in
@@ -630,9 +630,9 @@ let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 (* Infer the type of an expression *)
 let infer_types (ctx : Ast.decl_ctx) (e : 'm Ast.marked_expr) :
     Ast.typed Ast.marked_expr Bindlib.box =
-  Astgen_utils.map_gexpr_marks ~f:get_ty_mark
+  A.Expr.map_marks ~f:get_ty_mark
   @@ Bindlib.unbox
-  @@ wrap ctx (typecheck_expr_bottom_up ctx Var.Map.empty) e
+  @@ wrap ctx (typecheck_expr_bottom_up ctx A.Var.Map.empty) e
 
 let infer_type (type m) ctx (e : m Ast.marked_expr) =
   match Marked.get_mark e with
@@ -646,7 +646,7 @@ let check_type
     (tau : A.typ Marked.pos) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
   ignore
-  @@ wrap ctx (typecheck_expr_top_down ctx Var.Map.empty (ast_to_typ tau)) e
+  @@ wrap ctx (typecheck_expr_top_down ctx A.Var.Map.empty (ast_to_typ tau)) e
 
 let infer_types_program prg =
   let ctx = prg.A.decl_ctx in
@@ -681,7 +681,7 @@ let infer_types_program prg =
           Bindlib.box_apply
             (fun e1 ->
               wrap ctx (unify ctx e (ty e1)) ty_out;
-              let e1 = Astgen_utils.map_gexpr_marks ~f:get_ty_mark e1 in
+              let e1 = A.Expr.map_marks ~f:get_ty_mark e1 in
               A.Result (Bindlib.unbox e1))
             e'
         | A.ScopeLet
@@ -695,13 +695,13 @@ let infer_types_program prg =
           let ty_e = ast_to_typ scope_let_typ in
           let e = wrap ctx (typecheck_expr_bottom_up ctx env) e0 in
           let var, next = Bindlib.unbind scope_let_next in
-          let env = Var.Map.add var ty_e env in
+          let env = A.Var.Map.add var ty_e env in
           let next = process_scope_body_expr env next in
-          let scope_let_next = Bindlib.bind_var (Var.translate var) next in
+          let scope_let_next = Bindlib.bind_var (A.Var.translate var) next in
           Bindlib.box_apply2
             (fun e scope_let_next ->
               wrap ctx (unify ctx e0 (ty e)) ty_e;
-              let e = Astgen_utils.map_gexpr_marks ~f:get_ty_mark e in
+              let e = A.Expr.map_marks ~f:get_ty_mark e in
               A.ScopeLet
                 {
                   scope_let_kind;
@@ -714,15 +714,15 @@ let infer_types_program prg =
       in
       let scope_body_expr =
         let var, e = Bindlib.unbind body in
-        let env = Var.Map.add var ty_in env in
+        let env = A.Var.Map.add var ty_in env in
         let e' = process_scope_body_expr env e in
-        Bindlib.bind_var (Var.translate var) e'
+        Bindlib.bind_var (A.Var.translate var) e'
       in
       let scope_next =
         let scope_var, next = Bindlib.unbind scope_next in
-        let env = Var.Map.add scope_var ty_scope env in
+        let env = A.Var.Map.add scope_var ty_scope env in
         let next' = process_scopes env next in
-        Bindlib.bind_var (Var.translate scope_var) next'
+        Bindlib.bind_var (A.Var.translate scope_var) next'
       in
       Bindlib.box_apply2
         (fun scope_body_expr scope_next ->
@@ -739,6 +739,6 @@ let infer_types_program prg =
             })
         scope_body_expr scope_next
   in
-  let scopes = wrap ctx (process_scopes Var.Map.empty) prg.scopes in
+  let scopes = wrap ctx (process_scopes A.Var.Map.empty) prg.scopes in
   Bindlib.box_apply (fun scopes -> { A.decl_ctx = ctx; scopes }) scopes
   |> Bindlib.unbox

@@ -14,16 +14,16 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Astgen
+open Types
 
 (** {1 Variables and their collections} *)
 
 (** This module provides types and helpers for Bindlib variables on the
-    [Astgen.gexpr] type *)
+    [gexpr] type *)
 
 type 'e expr = 'e
   constraint 'e = ([< desugared | scopelang | dcalc | lcalc ], 't) gexpr
-(** Subtype of Astgen.gexpr where variables are handled *)
+(** Subtype of gexpr where variables are handled *)
 
 type 'e var = 'e expr Bindlib.var
 type 'e t = 'e var

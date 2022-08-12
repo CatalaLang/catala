@@ -18,8 +18,8 @@
 (** Abstract syntax tree of the default calculus intermediate representation *)
 
 open Utils
-include module type of Astgen
-include module type of Astgen_utils
+include module type of Shared_ast
+include module type of Shared_ast.Expr
 
 type lit = dcalc glit
 

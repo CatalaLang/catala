@@ -14,12 +14,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Astgen
+open Types
 
 (** {1 Variables and their collections} *)
 
 (** This module provides types and helpers for Bindlib variables on the
-    [Astgen.gexpr] type *)
+    [gexpr] type *)
 
 (* The subtypes of the generic AST that hold vars *)
 type 'e expr = 'e

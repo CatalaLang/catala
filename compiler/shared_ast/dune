@@ -1,0 +1,4 @@
+(library
+ (name shared_ast)
+ (public_name catala.shared_ast)
+ (libraries bindlib unionFind utils catala.runtime_ocaml))

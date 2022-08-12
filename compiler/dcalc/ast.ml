@@ -16,8 +16,8 @@
    the License. *)
 
 open Utils
-include Astgen
-include Astgen_utils
+include Shared_ast
+include Shared_ast.Expr
 
 type lit = dcalc glit
 
@@ -44,7 +44,7 @@ let with_ty (type m) (ty : marked_typ) (x : ('a, m) marked) : ('a, typed) marked
     | Typed m -> Typed { m with ty })
     (Marked.unmark x)
 
-let map_expr ctx ~f e = Astgen_utils.map_gexpr ctx ~f e
+let map_expr ctx ~f e = Expr.map ctx ~f e
 
 let rec map_expr_top_down ~f e =
   map_expr () ~f:(fun () -> map_expr_top_down ~f) (f e)
@@ -62,8 +62,6 @@ let box_expr : ('m expr, 'm) box_expr_sig =
  fun e ->
   let rec id_t () e = map_expr () ~f:id_t e in
   id_t () e
-
-open Astgen_utils
 
 let untype_program prg =
   {
