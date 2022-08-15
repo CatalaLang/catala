@@ -1,0 +1,15 @@
+## Test
+
+```catala
+declaration scope Foo:
+  internal x content integer
+
+scope Foo:
+  definition x equals 0
+  assertion x
+```
+
+
+```catala-test {id="Foo"}
+catala Interpret -s Foo
+```

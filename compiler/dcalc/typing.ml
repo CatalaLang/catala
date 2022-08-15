@@ -411,7 +411,12 @@ and typecheck_expr_top_down
   let mark e = Marked.mark (A.Inferring { uf = tau; pos = pos_e }) e in
   let unify_and_mark (e : A.inferring A.expr) tau' =
     let e = Marked.mark (A.Inferring { uf = tau'; pos = pos_e }) e in
-    unify ctx (Bindlib.unbox (A.untype_expr e)) tau tau';
+    (* Why do we need to put a handler here? It seems weird since all the
+       front-facing API of the module is encased in [wrap] handlers. However
+       empirically for the example [tests/test_bool/bad_assert.catala_en] we
+       need this handler here, otherwise it throws an uncaught exception. *)
+    (try unify ctx (Bindlib.unbox (A.untype_expr e)) tau tau'
+     with Type_error (e', t1, t2) -> handle_type_error ctx e' t1 t2);
     e
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
@@ -631,10 +636,10 @@ let infer_types_program prg =
       in
       let rec process_scope_body_expr env = function
         | A.Result e ->
-          let e' = typecheck_expr_bottom_up ctx env e in
+          let e' = wrap ctx (typecheck_expr_bottom_up ctx env) e in
           Bindlib.box_apply
             (fun e ->
-              unify ctx e (ty e) ty_out;
+              wrap ctx (unify ctx e (ty e)) ty_out;
               A.Result e)
             e'
         | A.ScopeLet
@@ -646,14 +651,14 @@ let infer_types_program prg =
               scope_let_pos;
             } ->
           let ty_e = ast_to_typ scope_let_typ in
-          let e = typecheck_expr_bottom_up ctx env e in
+          let e = wrap ctx (typecheck_expr_bottom_up ctx env) e in
           let var, next = Bindlib.unbind scope_let_next in
           let env = A.VarMap.add (A.Var.t var) ty_e env in
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (translate_var var) next in
           Bindlib.box_apply2
             (fun scope_let_expr scope_let_next ->
-              unify ctx scope_let_expr (ty scope_let_expr) ty_e;
+              wrap ctx (unify ctx scope_let_expr (ty scope_let_expr)) ty_e;
               A.ScopeLet
                 {
                   scope_let_kind;
@@ -702,6 +707,6 @@ let infer_types_program prg =
             })
         scope_body_expr scope_next
   in
-  let scopes = wrap ctx (process_scopes A.VarMap.empty) prg.scopes in
+  let scopes = process_scopes A.VarMap.empty prg.scopes in
   Bindlib.box_apply (fun scopes -> { A.decl_ctx = ctx; scopes }) scopes
   |> Bindlib.unbox
