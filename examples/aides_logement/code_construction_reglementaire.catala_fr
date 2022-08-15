@@ -1527,6 +1527,11 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- InfosLocatif de infos: infos.réduction_loyer_solidarité
     -- InfosLogementFoyer: 0 € # Valeur par défaut
     -- InfosAccessionPropriété: 0 € # Valeur par défaut
+  définition locatif.logement_meublé_d842_2 égal à
+    selon informations_calcul sous forme
+    -- InfosLocatif de infos: infos.logement_meublé_d842_2
+    -- InfosLogementFoyer: faux # Valeur par défaut
+    -- InfosAccessionPropriété: faux # Valeur par défaut
 
   définition accession_propriété.mensualité_principale égal à
     selon informations_calcul sous forme
@@ -4277,11 +4282,16 @@ un logement loué en meublé, le prix du loyer est remplacé par les deux tiers 
 payé dans la limite du loyer-plafond.
 
 ```catala
-champ d'application CalculAllocationLogementLocatif:
-  exception définition calcul_apl_locatif.loyer_principal sous condition
-    logement_meublé_d842_2
-  conséquence égal à
-    loyer_principal *€ (2,0/.3,0)
+# D'après D823-18, cet article s'applique aussi pour l'aide personnalisée au
+# logement. Puisque CalculAllocationLogementLocatif appelle toujours
+# CalculAidePersonnaliséeLogementLocatif, il suffit de définir la manipulation
+# dans CalculAidePersonnaliséeLogementLocatif.
+champ d'application CalculAidePersonnaliséeLogementLocatif:
+  définition loyer_principal état avec_réduction_meublé égal à
+    si logement_meublé_d842_2 alors
+      loyer_principal *€ (2,0 /. 3,0)
+    sinon
+      loyer_principal
 ```
 
 Dans le cas d'un local à usage mixte d'habitation et professionnel, il n'est pas tenu compte

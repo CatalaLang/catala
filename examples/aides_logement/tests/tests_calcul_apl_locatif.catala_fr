@@ -22,6 +22,7 @@ champ d'application Exemple1:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 36 000 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
   assertion calcul.plafond_loyer_d823_16_2 = 524,20 €
@@ -51,6 +52,7 @@ champ d'application Exemple2:
     calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à faux
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 352,77 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 78,80 €
   assertion calcul.plafond_loyer_d823_16_2 = 409,88 €
@@ -80,6 +82,7 @@ champ d'application Exemple3:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 14300 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 321,61 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
   assertion calcul.plafond_loyer_d823_16_2 = 425,80 €
@@ -109,6 +112,7 @@ champ d'application Exemple4:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 39500 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 66,51 €
   assertion calcul.plafond_loyer_d823_16_2 = 406,30 €
@@ -138,6 +142,7 @@ champ d'application Exemple5:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 2700 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 311,56 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 298,07 €
@@ -167,6 +172,7 @@ champ d'application Exemple6:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 19500  €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 317,97 €
@@ -196,6 +202,7 @@ champ d'application Exemple7:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 32200 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 153,77 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 127,96 €
   assertion calcul.plafond_loyer_d823_16_2 = 618,20 €
@@ -225,6 +232,7 @@ champ d'application Exemple8:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 14800 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 11,06 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 268,26 €
@@ -256,6 +264,7 @@ champ d'application Exemple9:
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.ressources_ménage_arrondies égal à 8100 €
   définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
+  définition calcul.logement_meublé_d842_2 égal à faux
   assertion montant = 207,04 € # TODO: le simulateur CAF dit 210€.
                                # D'où viennent les 3€ de différence ?
 ```

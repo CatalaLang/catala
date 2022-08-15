@@ -539,6 +539,8 @@ déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
 ```catala-metadata
 déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée loyer_principal contenu argent
+    état base
+    état avec_réduction_meublé
   entrée ressources_ménage_arrondies contenu argent
   entrée bénéficiaire_aide_adulte_ou_enfant_handicapés
     contenu booléen
@@ -552,6 +554,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
+  entrée logement_meublé_d842_2 contenu booléen
 
   interne loyer_éligible contenu argent
   interne taux_loyer_éligible contenu décimal
@@ -784,9 +787,9 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
+  entrée logement_meublé_d842_2 contenu booléen
 
   # Entrées spécifiques
-  entrée logement_meublé_d842_2 contenu booléen
   entrée changement_logement_d842_4 contenu ChangementLogementD842_4
 
   calcul_apl_locatif champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -824,6 +827,8 @@ champ d'application CalculAllocationLogementLocatif:
     colocation
   définition calcul_apl_locatif.réduction_loyer_solidarité égal à
     réduction_loyer_solidarité
+  définition calcul_apl_locatif.logement_meublé_d842_2 égal à
+    logement_meublé_d842_2
 
 
   définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
