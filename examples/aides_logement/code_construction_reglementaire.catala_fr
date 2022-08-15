@@ -4357,6 +4357,20 @@ champ d'application CalculAllocationLogementLocatif sous condition
 
 L'allocation de logement est accordée au titre de la résidence principale :
 
+```catala
+# Cet article dispose qu'en cas d'accession à la propriété, l'allocation
+# logement est plus restrictive. On définit donc une variable qui va
+# être vraie tout le temps sauf en cas d'accession propriété. Puis
+# on définit des exceptions à cette règle pour les 1°, 2° et 3° de cet
+# article.
+champ d'application ÉligibilitéAllocationLogement:
+  règle condition_accession_propriété sous condition
+    selon informations_calcul sous forme
+      -- InfosAccessionPropriété: faux
+      -- n'importe quel: vrai
+  conséquence rempli
+```
+
 1° Aux personnes propriétaires du logement pendant la période au cours de laquelle elles se
 libèrent de la dette contractée pour accéder à la propriété de ce logement et, le cas échéant,
 de celle contractée en même temps pour réaliser des travaux permettant de remplir les
@@ -4380,7 +4394,7 @@ conditions de décence ;
 # "Soit la demande est globale avec 2 prêts « en même temps » (cf. 1°), soit
 # les travaux arrivent ultérieurement, dans ce cas c’est le 2°."
 champ d'application ÉligibilitéAllocationLogement:
-  règle condition_logement sous condition
+  exception règle condition_accession_propriété sous condition
     selon informations_calcul sous forme
     -- InfosAccessionPropriété de infos: (
       selon ménage.logement.mode_occupation sous forme
@@ -4400,7 +4414,7 @@ figurant sur la liste mentionnée à l'article R. 321-15 ;
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  règle condition_logement sous condition
+  exception règle condition_accession_propriété sous condition
     selon informations_calcul sous forme
     -- InfosAccessionPropriété de infos: (
       selon ménage.logement.mode_occupation sous forme
@@ -4419,7 +4433,7 @@ mentionnés à l'article D. 331-63.
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  règle condition_logement sous condition
+  exception règle condition_accession_propriété sous condition
     selon informations_calcul sous forme
     -- InfosAccessionPropriété de infos: (
       selon ménage.logement.mode_occupation sous forme

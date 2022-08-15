@@ -315,7 +315,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   contexte condition_logement_surface condition
   interne condition_non_ouverture_l822_8 condition
   interne condition_non_ouverture_l822_9_decence_logement condition
-  interne condition_non_ouverture_l822_10_peuplement_logement condition
+  interne condition_ouverture_l822_10_peuplement_logement condition
   interne condition_peuplement_logement_l822_10 condition
   interne éligibilité_logement condition
   interne prise_en_compte_personne_à_charge condition
@@ -417,10 +417,9 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   entrée bénéficie_aide_personnalisée_logement contenu booléen
   entrée informations_calcul contenu InformationsCalculAPL
 
-  interne condition_logement condition
+  interne condition_accession_propriété condition
 
   interne éligibilité_allocation_logement_familiale condition
-  interne éligibilité_allocation_logement_sociale condition
   interne durée_l841_1_3 contenu durée
 
   prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
@@ -430,7 +429,6 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   sortie éligibilité contenu ÉligibilitéAllocationLogement
     état dispositions_communes
     état l841_2
-    état avec_condition_logement
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier
   sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
     collection décimal
@@ -449,12 +447,6 @@ champ d'application ÉligibilitéAllocationLogement:
   définition éligibilité_commune.demandeur égal à demandeur
   définition éligibilité_commune.date_courante égal à
     date_courante
-
-  définition éligibilité état avec_condition_logement égal à
-    si non condition_logement alors
-      PasÉligible
-    sinon
-      éligibilité
   définition nombre_personnes_à_charge_prises_en_compte égal à
     éligibilité_commune.nombre_personnes_à_charge_prises_en_compte
   définition coefficents_enfants_garde_alternée_pris_en_compte égal à
