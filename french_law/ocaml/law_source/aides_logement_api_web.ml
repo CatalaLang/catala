@@ -2610,7 +2610,7 @@ class type eligibilite_aide_personnalisee_logement_in =
 
 class type eligibilite_allocation_logement_out =
   object
-    method eligibiliteAvecConditionLogementOut:
+    method eligibiliteL8412Out:
       eligibilite_allocation_logement Js.t Js.readonly_prop
     method nombrePersonnesAChargePrisesEnCompteOut: int Js.readonly_prop
     method coefficentsEnfantsGardeAlterneePrisEnCompteOut:
@@ -2621,8 +2621,8 @@ class type eligibilite_allocation_logement_out =
     : EligibiliteAllocationLogementOut.t)
     : eligibilite_allocation_logement_out Js.t =
     object%js
-      val eligibiliteAvecConditionLogementOut =
-        eligibilite_allocation_logement_to_jsoo eligibilite_allocation_logement_out.eligibilite_avec_condition_logement_out
+      val eligibiliteL8412Out =
+        eligibilite_allocation_logement_to_jsoo eligibilite_allocation_logement_out.eligibilite_l841_2_out
       val nombrePersonnesAChargePrisesEnCompteOut =
         integer_to_int eligibilite_allocation_logement_out.nombre_personnes_a_charge_prises_en_compte_out
       val coefficentsEnfantsGardeAlterneePrisEnCompteOut =
@@ -2633,10 +2633,9 @@ class type eligibilite_allocation_logement_out =
       : eligibilite_allocation_logement_out Js.t) :
     EligibiliteAllocationLogementOut.t =
     {
-      eligibilite_avec_condition_logement_out =
+      eligibilite_l841_2_out =
         eligibilite_allocation_logement_of_jsoo
-          eligibilite_allocation_logement_out
-          ##.eligibiliteAvecConditionLogementOut;
+          eligibilite_allocation_logement_out##.eligibiliteL8412Out;
       nombre_personnes_a_charge_prises_en_compte_out =
         integer_of_int
           eligibilite_allocation_logement_out
