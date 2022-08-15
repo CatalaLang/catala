@@ -2997,7 +2997,7 @@ class type calcul_aide_personnalisee_logement_locatif_out =
 
 class type calcul_aide_personnalisee_logement_locatif_in =
   object
-    method loyerPrincipalIn: Js.number Js.t Js.readonly_prop
+    method loyerPrincipalBaseIn: Js.number Js.t Js.readonly_prop
     method ressourcesMenageArrondiesIn: Js.number Js.t Js.readonly_prop
     method beneficiaireAideAdulteOuEnfantHandicapesIn:
       bool Js.t Js.readonly_prop
@@ -3012,14 +3012,15 @@ class type calcul_aide_personnalisee_logement_locatif_in =
     method typeAideIn: type_aides_personnelle_logement Js.t Js.readonly_prop
     method colocationIn: bool Js.t Js.readonly_prop
     method reductionLoyerSolidariteIn: Js.number Js.t Js.readonly_prop
+    method logementMeubleD8422In: bool Js.t Js.readonly_prop
   end
   let calcul_aide_personnalisee_logement_locatif_in_to_jsoo
     (calcul_aide_personnalisee_logement_locatif_in
     : CalculAidePersonnaliseeLogementLocatifIn.t)
     : calcul_aide_personnalisee_logement_locatif_in Js.t =
     object%js
-      val loyerPrincipalIn =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.loyer_principal_in
+      val loyerPrincipalBaseIn =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.loyer_principal_base_in
       val ressourcesMenageArrondiesIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.ressources_menage_arrondies_in
       val beneficiaireAideAdulteOuEnfantHandicapesIn =
@@ -3042,15 +3043,18 @@ class type calcul_aide_personnalisee_logement_locatif_in =
         Js.bool calcul_aide_personnalisee_logement_locatif_in.colocation_in
       val reductionLoyerSolidariteIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.reduction_loyer_solidarite_in
+      val logementMeubleD8422In =
+        Js.bool calcul_aide_personnalisee_logement_locatif_in.logement_meuble_d842_2_in
       end
   let calcul_aide_personnalisee_logement_locatif_in_of_jsoo
     (calcul_aide_personnalisee_logement_locatif_in
       : calcul_aide_personnalisee_logement_locatif_in Js.t) :
     CalculAidePersonnaliseeLogementLocatifIn.t =
     {
-      loyer_principal_in =
+      loyer_principal_base_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_in##.loyerPrincipalIn;
+          calcul_aide_personnalisee_logement_locatif_in
+          ##.loyerPrincipalBaseIn;
       ressources_menage_arrondies_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_locatif_in
@@ -3090,7 +3094,11 @@ class type calcul_aide_personnalisee_logement_locatif_in =
       reduction_loyer_solidarite_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_locatif_in
-          ##.reductionLoyerSolidariteIn
+          ##.reductionLoyerSolidariteIn;
+      logement_meuble_d842_2_in =
+        Js.to_bool
+          calcul_aide_personnalisee_logement_locatif_in
+          ##.logementMeubleD8422In
     }
 
 class type calcul_equivalence_loyer_minimale_out =
