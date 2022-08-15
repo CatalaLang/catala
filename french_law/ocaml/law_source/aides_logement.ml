@@ -25445,8 +25445,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=1159; start_column=5;
-                              end_line=1159; end_column=73;
+                              start_line=1164; start_column=5;
+                              end_line=1164; end_column=73;
                               law_headings=["Article L841-3";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25468,8 +25468,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=1172; start_column=5;
-                              end_line=1175; end_column=28;
+                              start_line=1177; start_column=5;
+                              end_line=1180; end_column=28;
                               law_headings=["Article L841-4";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -27899,111 +27899,50 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                                   "Code de la construction et de l'habitation"]}
                  true))
               (fun (_: _) ->
-                  if (not eligibilite_) then param_ else
-                   ( if
-                      (eligibilite_aide_personnalisee_logement_dot_eligibilite_
-                         &&
-                         (not
-                            (match
-                               eligibilite_allocation_logement_dot_eligibilite_l841_2_
-                             with
-                             | EligibiliteAllocationLogement.PasEligible _ ->
-                                 true
-                             | EligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
-                                 false
-                             | EligibiliteAllocationLogement.AllocationLogementSociale _ ->
-                                 false))) then
-                      ( if
-                         (((log_end_call
-                            ["CalculAidePersonnaliséeLogement";
-                              "traitement_aide_finale"]
-                            ((log_variable_definition
-                            ["CalculAidePersonnaliséeLogement";
-                              "traitement_aide_finale"; "output"]
-                            (embed_money) ((log_begin_call
-                            ["CalculAidePersonnaliséeLogement";
-                              "traitement_aide_finale"]
-                            calcul_aide_personnalisee_logement_dot_traitement_aide_finale_)
-                            ((log_variable_definition
-                            ["CalculAidePersonnaliséeLogement";
-                              "traitement_aide_finale"; "input"]
-                            (embed_money)
-                            calcul_aide_personnalisee_logement_dot_aide_finale_formule_)))))))
-                            >$ ((log_end_call
-                            ["CalculAllocationLogement";
-                              "traitement_aide_finale"]
-                            ((log_variable_definition
-                            ["CalculAllocationLogement";
-                              "traitement_aide_finale"; "output"]
-                            (embed_money) ((log_begin_call
-                            ["CalculAllocationLogement";
-                              "traitement_aide_finale"]
-                            calcul_allocation_logement_dot_traitement_aide_finale_)
-                            ((log_variable_definition
-                            ["CalculAllocationLogement";
-                              "traitement_aide_finale"; "input"]
-                            (embed_money)
-                            calcul_allocation_logement_dot_aide_finale_formule_))))))))
-                         then
-                         ((log_end_call
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"]
-                           ((log_variable_definition
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"; "output"]
-                           (embed_money) ((log_begin_call
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"]
-                           calcul_aide_personnalisee_logement_dot_traitement_aide_finale_)
-                           ((log_variable_definition
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"; "input"] (embed_money)
-                           param_))))))) else
-                         ((log_end_call
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"]
-                           ((log_variable_definition
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"; "output"]
-                           (embed_money) ((log_begin_call
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"]
-                           calcul_allocation_logement_dot_traitement_aide_finale_)
-                           ((log_variable_definition
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"; "input"] (embed_money)
-                           param_)))))))) else
-                      ( if
-                         eligibilite_aide_personnalisee_logement_dot_eligibilite_
-                         then
-                         ((log_end_call
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"]
-                           ((log_variable_definition
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"; "output"]
-                           (embed_money) ((log_begin_call
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"]
-                           calcul_aide_personnalisee_logement_dot_traitement_aide_finale_)
-                           ((log_variable_definition
-                           ["CalculAidePersonnaliséeLogement";
-                             "traitement_aide_finale"; "input"] (embed_money)
-                           param_))))))) else
-                         ((log_end_call
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"]
-                           ((log_variable_definition
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"; "output"]
-                           (embed_money) ((log_begin_call
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"]
-                           calcul_allocation_logement_dot_traitement_aide_finale_)
-                           ((log_variable_definition
-                           ["CalculAllocationLogement";
-                             "traitement_aide_finale"; "input"] (embed_money)
-                           param_)))))))))))
+                 (let aide_finale_apl_ : _ = ((log_end_call
+                    ["CalculAidePersonnaliséeLogement";
+                      "traitement_aide_finale"] ((log_variable_definition
+                    ["CalculAidePersonnaliséeLogement";
+                      "traitement_aide_finale"; "output"] (embed_money)
+                    ((log_begin_call
+                    ["CalculAidePersonnaliséeLogement";
+                      "traitement_aide_finale"]
+                    calcul_aide_personnalisee_logement_dot_traitement_aide_finale_)
+                    ((log_variable_definition
+                    ["CalculAidePersonnaliséeLogement";
+                      "traitement_aide_finale"; "input"] (embed_money)
+                    param_)))))))
+                 in
+                 (let aide_finale_al_ : _ = ((log_end_call
+                    ["CalculAllocationLogement"; "traitement_aide_finale"]
+                    ((log_variable_definition
+                    ["CalculAllocationLogement"; "traitement_aide_finale";
+                      "output"] (embed_money) ((log_begin_call
+                    ["CalculAllocationLogement"; "traitement_aide_finale"]
+                    calcul_allocation_logement_dot_traitement_aide_finale_)
+                    ((log_variable_definition
+                    ["CalculAllocationLogement"; "traitement_aide_finale";
+                      "input"] (embed_money) param_)))))))
+                 in
+                 ( if (not eligibilite_) then param_ else
+                    ( if
+                       (eligibilite_aide_personnalisee_logement_dot_eligibilite_
+                          &&
+                          (not
+                             (match
+                                eligibilite_allocation_logement_dot_eligibilite_l841_2_
+                              with
+                              | EligibiliteAllocationLogement.PasEligible _ ->
+                                  true
+                              | EligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
+                                  false
+                              | EligibiliteAllocationLogement.AllocationLogementSociale _ ->
+                                  false))) then
+                       ( if (aide_finale_apl_ >$ aide_finale_al_) then
+                          aide_finale_apl_ else aide_finale_al_) else
+                       ( if
+                          eligibilite_aide_personnalisee_logement_dot_eligibilite_
+                          then aide_finale_apl_ else aide_finale_al_)))))))
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
