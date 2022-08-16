@@ -631,8 +631,8 @@ code:
 
 metadata_block:
 |  BEGIN_METADATA option(law_text) code_and_pos = code text = END_CODE {
-  let (code, pos) = code_and_pos in
-   (code, (text, pos))
+  let (code, _) = code_and_pos in
+   (code, (text, Pos.from_lpos $sloc))
 }
 
 
