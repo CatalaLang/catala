@@ -14,8 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Dcalc.Ast
-
 (** [solve_vc] is the main entry point of this module. It takes a list of
     expressions [vcs] corresponding to verification conditions that must be
     discharged by Z3, and attempts to solve them **)

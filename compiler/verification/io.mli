@@ -17,7 +17,6 @@
 
 (** Common code for handling the IO of all proof backends supported *)
 
-open Utils
 open Shared_ast
 
 module type Backend = sig

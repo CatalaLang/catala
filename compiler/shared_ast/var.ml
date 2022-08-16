@@ -56,6 +56,7 @@ module Generic = struct
   let t v = Var v
   let get (Var v) = Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
   let compare (Var x) (Var y) = Bindlib.compare_vars x y
+  let eq (Var x) (Var y) = Bindlib.eq_vars x y [@@ocaml.warning "-32"]
 end
 
 (* Wrapper around Set.Make to re-add type parameters (avoid inconsistent

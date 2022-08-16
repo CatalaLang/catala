@@ -23,6 +23,7 @@ open Types
 
 type 'e t = 'e Bindlib.var constraint 'e = ([< any ], 't) gexpr
 type 'e vars = 'e Bindlib.mvar
+type 'e binder = ('e, 'e marked) Bindlib.binder
 
 val make : string -> 'e t
 val compare : 'e t -> 'e t -> int
