@@ -1996,7 +1996,6 @@ class type logement_foyer =
 
 class type proprietaire =
   object
-    method logementEstAncienL8312: bool Js.t Js.readonly_prop
     method logementSitueCommuneDesequilibreL8312: bool Js.t Js.readonly_prop
     method mensualitePrincipale: Js.number Js.t Js.readonly_prop
     method chargesMensuellesPret: Js.number Js.t Js.readonly_prop
@@ -2014,8 +2013,6 @@ class type proprietaire =
   let proprietaire_to_jsoo (proprietaire : Proprietaire.t)
     : proprietaire Js.t =
     object%js
-      val logementEstAncienL8312 =
-        Js.bool proprietaire.logement_est_ancien_l831_2
       val logementSitueCommuneDesequilibreL8312 =
         Js.bool proprietaire.logement_situe_commune_desequilibre_l831_2
       val mensualitePrincipale =
@@ -2038,8 +2035,6 @@ class type proprietaire =
   let proprietaire_of_jsoo (proprietaire : proprietaire Js.t) :
     Proprietaire.t =
     {
-      logement_est_ancien_l831_2 =
-        Js.to_bool proprietaire##.logementEstAncienL8312;
       logement_situe_commune_desequilibre_l831_2 =
         Js.to_bool proprietaire##.logementSitueCommuneDesequilibreL8312;
       mensualite_principale =

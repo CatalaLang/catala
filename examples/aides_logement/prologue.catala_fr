@@ -57,7 +57,6 @@ déclaration structure Prêt:
   donnée titulaire_prêt contenu TitulairePrêt
 
 déclaration structure Propriétaire:
-  donnée logement_est_ancien_l831_2 contenu booléen
   donnée logement_situé_commune_déséquilibre_l831_2 contenu booléen
   donnée mensualité_principale contenu argent
   donnée charges_mensuelles_prêt contenu argent
