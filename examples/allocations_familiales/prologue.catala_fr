@@ -24,7 +24,6 @@ déclaration structure Enfant :
   donnée obligation_scolaire contenu SituationObligationScolaire
   donnée rémuneration_mensuelle contenu argent
   donnée date_de_naissance contenu date
-  donnée âge contenu entier
   donnée prise_en_charge contenu PriseEnCharge
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
   donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
@@ -58,7 +57,7 @@ déclaration champ d'application PrestationsFamiliales:
   sortie droit_ouvert condition dépend de Enfant
   sortie conditions_hors_âge condition dépend de Enfant
   interne plafond_l512_3_2 contenu argent
-  sortie âge_l512_3_2 contenu entier
+  sortie âge_l512_3_2 contenu durée
   sortie régime_outre_mer_l751_1 condition
   entrée date_courante contenu date
   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
@@ -74,7 +73,7 @@ champ d'application PrestationsFamiliales:
 
 ```catala-metadata
 déclaration champ d'application AllocationFamilialesAvril2008:
-  sortie âge_minimum_alinéa_1_l521_3 contenu entier
+  sortie âge_minimum_alinéa_1_l521_3 contenu durée
 
 déclaration champ d'application EnfantLePlusÂgé:
   entrée enfants contenu collection Enfant
@@ -144,7 +143,7 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Plafonds, âges limites et autres constantes
   interne nombre_enfants_l521_1 contenu entier
-  interne âge_minimum_alinéa_1_l521_3 contenu entier dépend de Enfant
+  interne âge_minimum_alinéa_1_l521_3 contenu durée dépend de Enfant
   interne nombre_enfants_alinéa_2_l521_3 contenu entier
   interne est_enfant_le_plus_âgé contenu booléen dépend de Enfant
   interne plafond_I_d521_3 contenu argent

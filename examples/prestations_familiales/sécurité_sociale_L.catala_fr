@@ -57,7 +57,8 @@ champ d'application ÉligibilitéPrestationsFamiliales :
   étiquette cas_base règle droit_ouvert de enfant sous condition
     enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Après et
     (enfant.EnfantPrestationsFamiliales.rémuneration_mensuelle <=€ plafond_l512_3_2) et
-    (enfant.EnfantPrestationsFamiliales.âge < âge_l512_3_2)
+    (enfant.EnfantPrestationsFamiliales.date_de_naissance +@ âge_l512_3_2 >@
+      date_courante)
   conséquence rempli
 
   # On définit les conditions hors âge d'abord car elles

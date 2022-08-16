@@ -22,7 +22,6 @@ champ d'application Exemple1 :
      EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 19
        -- identifiant: 0
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2001-01-01|
@@ -32,7 +31,6 @@ champ d'application Exemple1 :
      }); EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 11
        -- identifiant: 1
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2009-01-01|
@@ -42,7 +40,6 @@ champ d'application Exemple1 :
      }); EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 8
        -- identifiant: 2
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2012-01-01|
@@ -79,7 +76,6 @@ champ d'application Exemple1 :
   }
   définition éligibilité.demandeur égal à Demandeur {
     -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
-    -- age_demandeur : 52
     -- date_naissance : |1970-05-02|
     -- nationalité : Française
     -- patrimoine : Patrimoine {
@@ -106,7 +102,6 @@ champ d'application Exemple2 :
      EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 6
        -- identifiant: 0
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2016-01-01|
@@ -116,7 +111,6 @@ champ d'application Exemple2 :
      }); EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 7
        -- identifiant: 1
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2015-01-01|
@@ -153,7 +147,6 @@ champ d'application Exemple2 :
   }
   définition éligibilité.demandeur égal à Demandeur {
     -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
-    -- age_demandeur : 30
     -- date_naissance : |1992-01-01|
     -- nationalité : Française
     -- patrimoine : Patrimoine {

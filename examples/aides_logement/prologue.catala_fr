@@ -154,7 +154,7 @@ déclaration énumération ParentOuAutre:
   -- Autre
 
 déclaration structure PersonneSousLocation:
-  donnée age_personne_sous_location contenu entier
+  donnée date_naissance_personne_sous_location contenu date
   donnée conforme_article_l442_1 contenu booléen
 
 déclaration énumération LouéOuSousLouéÀDesTiers:
@@ -185,7 +185,6 @@ déclaration structure EnfantÀCharge:
   donnée rémuneration_mensuelle contenu argent
   donnée obligation_scolaire contenu SituationObligationScolaire
   donnée prise_en_charge contenu PriseEnCharge
-  donnée âge contenu entier
   donnée situation_garde_alternée contenu SituationGardeAlternée
 
 déclaration énumération Parenté:
@@ -237,7 +236,6 @@ déclaration structure Patrimoine:
 déclaration structure Demandeur:
   donnée satisfait_conditions_l512_2_code_sécurité_sociale
     contenu booléen
-  donnée age_demandeur contenu entier
   donnée date_naissance contenu date
   donnée nationalité contenu Nationalité
   donnée patrimoine contenu Patrimoine

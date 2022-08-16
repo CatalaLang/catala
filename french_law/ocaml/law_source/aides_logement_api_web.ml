@@ -1399,14 +1399,15 @@ let element_prestations_familiales_of_jsoo
 
 class type personne_sous_location =
   object
-    method agePersonneSousLocation: int Js.readonly_prop
+    method dateNaissancePersonneSousLocation:
+      Js.js_string Js.t Js.readonly_prop
     method conformeArticleL4421: bool Js.t Js.readonly_prop
   end
   let personne_sous_location_to_jsoo (personne_sous_location
     : PersonneSousLocation.t) : personne_sous_location Js.t =
     object%js
-      val agePersonneSousLocation =
-        integer_to_int personne_sous_location.age_personne_sous_location
+      val dateNaissancePersonneSousLocation =
+        date_to_jsoo personne_sous_location.date_naissance_personne_sous_location
       val conformeArticleL4421 =
         Js.bool personne_sous_location.conforme_article_l442_1
       end
@@ -1414,8 +1415,9 @@ class type personne_sous_location =
     (personne_sous_location : personne_sous_location Js.t) :
     PersonneSousLocation.t =
     {
-      age_personne_sous_location =
-        integer_of_int personne_sous_location##.agePersonneSousLocation;
+      date_naissance_personne_sous_location =
+        date_of_jsoo
+          personne_sous_location##.dateNaissancePersonneSousLocation;
       conforme_article_l442_1 =
         Js.to_bool personne_sous_location##.conformeArticleL4421
     }
@@ -1764,7 +1766,6 @@ class type enfant_prestations_familiales =
       situation_obligation_scolaire Js.t Js.readonly_prop
     method remunerationMensuelle: Js.number Js.t Js.readonly_prop
     method dateDeNaissance: Js.js_string Js.t Js.readonly_prop
-    method age: int Js.readonly_prop
     method priseEnCharge: prise_en_charge_enfant Js.t Js.readonly_prop
     method aDejaOuvertDroitAuxAllocationsFamiliales:
       bool Js.t Js.readonly_prop
@@ -1782,7 +1783,6 @@ class type enfant_prestations_familiales =
         Js.number_of_float @@ money_to_float enfant_prestations_familiales.remuneration_mensuelle
       val dateDeNaissance =
         date_to_jsoo enfant_prestations_familiales.date_de_naissance
-      val age = integer_to_int enfant_prestations_familiales.age
       val priseEnCharge =
         prise_en_charge_enfant_to_jsoo enfant_prestations_familiales.prise_en_charge
       val aDejaOuvertDroitAuxAllocationsFamiliales =
@@ -1803,7 +1803,6 @@ class type enfant_prestations_familiales =
           enfant_prestations_familiales##.remunerationMensuelle;
       date_de_naissance =
         date_of_jsoo enfant_prestations_familiales##.dateDeNaissance;
-      age = integer_of_int enfant_prestations_familiales##.age;
       prise_en_charge =
         prise_en_charge_enfant_of_jsoo
           enfant_prestations_familiales##.priseEnCharge;
@@ -1829,7 +1828,6 @@ class type enfant_a_charge =
     method obligationScolaire:
       situation_obligation_scolaire Js.t Js.readonly_prop
     method priseEnCharge: prise_en_charge Js.t Js.readonly_prop
-    method age: int Js.readonly_prop
     method situationGardeAlternee:
       situation_garde_alternee Js.t Js.readonly_prop
   end
@@ -1848,7 +1846,6 @@ class type enfant_a_charge =
         situation_obligation_scolaire_to_jsoo enfant_a_charge.obligation_scolaire
       val priseEnCharge =
         prise_en_charge_to_jsoo enfant_a_charge.prise_en_charge
-      val age = integer_to_int enfant_a_charge.age
       val situationGardeAlternee =
         situation_garde_alternee_to_jsoo enfant_a_charge.situation_garde_alternee
       end
@@ -1870,7 +1867,6 @@ class type enfant_a_charge =
           enfant_a_charge##.obligationScolaire;
       prise_en_charge =
         prise_en_charge_of_jsoo enfant_a_charge##.priseEnCharge;
-      age = integer_of_int enfant_a_charge##.age;
       situation_garde_alternee =
         situation_garde_alternee_of_jsoo
           enfant_a_charge##.situationGardeAlternee
@@ -1917,7 +1913,6 @@ class type demandeur =
   object
     method satisfaitConditionsL5122CodeSecuriteSociale:
       bool Js.t Js.readonly_prop
-    method ageDemandeur: int Js.readonly_prop
     method dateNaissance: Js.js_string Js.t Js.readonly_prop
     method nationalite: nationalite Js.t Js.readonly_prop
     method patrimoine: patrimoine Js.t Js.readonly_prop
@@ -1928,7 +1923,6 @@ class type demandeur =
     object%js
       val satisfaitConditionsL5122CodeSecuriteSociale =
         Js.bool demandeur.satisfait_conditions_l512_2_code_securite_sociale
-      val ageDemandeur = integer_to_int demandeur.age_demandeur
       val dateNaissance = date_to_jsoo demandeur.date_naissance
       val nationalite = nationalite_to_jsoo demandeur.nationalite
       val patrimoine = patrimoine_to_jsoo demandeur.patrimoine
@@ -1939,7 +1933,6 @@ class type demandeur =
     {
       satisfait_conditions_l512_2_code_securite_sociale =
         Js.to_bool demandeur##.satisfaitConditionsL5122CodeSecuriteSociale;
-      age_demandeur = integer_of_int demandeur##.ageDemandeur;
       date_naissance = date_of_jsoo demandeur##.dateNaissance;
       nationalite = nationalite_of_jsoo demandeur##.nationalite;
       patrimoine = patrimoine_of_jsoo demandeur##.patrimoine;
@@ -4492,7 +4485,7 @@ class type eligibilite_prestations_familiales_out =
       (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
     method conditionsHorsAgeOut:
       (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method ageL51232Out: int Js.readonly_prop
+    method ageL51232Out: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
     method regimeOutreMerL7511Out: bool Js.t Js.readonly_prop
   end
   let eligibilite_prestations_familiales_out_to_jsoo
@@ -4509,7 +4502,7 @@ class type eligibilite_prestations_familiales_out =
           fun input ->
           Js.bool (eligibilite_prestations_familiales_out.conditions_hors_age_out (enfant_prestations_familiales_of_jsoo input)))
       val ageL51232Out =
-        integer_to_int eligibilite_prestations_familiales_out.age_l512_3_2_out
+        duration_to_jsoo eligibilite_prestations_familiales_out.age_l512_3_2_out
       val regimeOutreMerL7511Out =
         Js.bool eligibilite_prestations_familiales_out.regime_outre_mer_l751_1_out
       end
@@ -4521,7 +4514,8 @@ class type eligibilite_prestations_familiales_out =
       droit_ouvert_out = failwith "The function 'droit_ouvert_out' translation isn't yet supported...";
       conditions_hors_age_out = failwith "The function 'conditions_hors_age_out' translation isn't yet supported...";
       age_l512_3_2_out =
-        integer_of_int eligibilite_prestations_familiales_out##.ageL51232Out;
+        duration_of_jsoo
+          eligibilite_prestations_familiales_out##.ageL51232Out;
       regime_outre_mer_l751_1_out =
         Js.to_bool
           eligibilite_prestations_familiales_out##.regimeOutreMerL7511Out

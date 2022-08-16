@@ -202,7 +202,8 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      personne.age_personne_sous_location <= 30 ou
+      personne.date_naissance_personne_sous_location +@ 30 an >@
+        date_courante ou
       personne.conforme_article_l442_1
   conséquence rempli
 ```
@@ -932,7 +933,6 @@ champ d'application ÉligibilitéAllocationLogement:
         -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
         -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
         -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
-        -- âge: enfant.EnfantÀCharge.âge
         -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
           -- PriseEnCharge.EffectiveEtPermanente:
             PriseEnChargeEnfant.EffectiveEtPermanente
@@ -967,7 +967,6 @@ champ d'application ÉligibilitéAllocationLogement:
         -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
         -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
         -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
-        -- âge: enfant.EnfantÀCharge.âge
         -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
           -- PriseEnCharge.EffectiveEtPermanente:
             PriseEnChargeEnfant.EffectiveEtPermanente

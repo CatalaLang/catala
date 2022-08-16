@@ -1142,7 +1142,8 @@ l'article L. 823-2 du présent code ;
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
-    -- EnfantÀCharge de enfant: enfant.EnfantÀCharge.âge <= 21
+    -- EnfantÀCharge de enfant:
+      enfant.EnfantÀCharge.date_de_naissance +@ 21 an >@ date_courante
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```
