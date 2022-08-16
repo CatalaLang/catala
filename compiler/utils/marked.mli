@@ -27,6 +27,7 @@ type 'a pos = ('a, Pos.t) t
 val mark : 'm -> 'a -> ('a, 'm) t
 val unmark : ('a, 'm) t -> 'a
 val get_mark : ('a, 'm) t -> 'm
+val map_mark : ('m1 -> 'm2) -> ('a, 'm1) t -> ('a, 'm2) t
 val map_under_mark : ('a -> 'b) -> ('a, 'm) t -> ('b, 'm) t
 val same_mark_as : 'a -> ('b, 'm) t -> ('a, 'm) t
 val unmark_option : ('a, 'm) t option -> 'a option

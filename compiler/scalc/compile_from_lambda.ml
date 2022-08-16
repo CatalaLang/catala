@@ -19,23 +19,23 @@ module A = Ast
 module L = Lcalc.Ast
 module D = Dcalc.Ast
 
-type ctxt = {
-  func_dict : A.TopLevelName.t L.VarMap.t;
+type 'm ctxt = {
+  func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t;
   decl_ctx : D.decl_ctx;
-  var_dict : A.LocalName.t L.VarMap.t;
+  var_dict : ('m L.expr, A.LocalName.t) Var.Map.t;
   inside_definition_of : A.LocalName.t option;
   context_name : string;
 }
 
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
-let rec translate_expr (ctxt : ctxt) (expr : 'm L.marked_expr) :
+let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
     A.block * A.expr Marked.pos =
   match Marked.unmark expr with
   | L.EVar v ->
     let local_var =
-      try A.EVar (L.VarMap.find (L.Var.t v) ctxt.var_dict)
-      with Not_found -> A.EFunc (L.VarMap.find (L.Var.t v) ctxt.func_dict)
+      try A.EVar (Var.Map.find v ctxt.var_dict)
+      with Not_found -> A.EFunc (Var.Map.find v ctxt.func_dict)
     in
     [], (local_var, D.pos expr)
   | L.ETuple (args, Some s_name) ->
@@ -115,8 +115,8 @@ let rec translate_expr (ctxt : ctxt) (expr : 'm L.marked_expr) :
       :: tmp_stmts,
       (A.EVar tmp_var, D.pos expr) )
 
-and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
-    =
+and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.marked_expr) :
+    A.block =
   match Marked.unmark block_expr with
   | L.EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
@@ -133,7 +133,7 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
         var_dict =
           List.fold_left
             (fun var_dict (x, _) ->
-              L.VarMap.add (L.Var.t x)
+              Var.Map.add x
                 (A.LocalName.fresh (Bindlib.name_of x, binder_pos))
                 var_dict)
             ctxt.var_dict vars_tau;
@@ -142,15 +142,14 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
     let local_decls =
       List.map
         (fun (x, tau) ->
-          ( A.SLocalDecl
-              ((L.VarMap.find (L.Var.t x) ctxt.var_dict, binder_pos), tau),
+          ( A.SLocalDecl ((Var.Map.find x ctxt.var_dict, binder_pos), tau),
             binder_pos ))
         vars_tau
     in
     let vars_args =
       List.map2
         (fun (x, tau) arg ->
-          (L.VarMap.find (L.Var.t x) ctxt.var_dict, binder_pos), tau, arg)
+          (Var.Map.find x ctxt.var_dict, binder_pos), tau, arg)
         vars_tau args
     in
     let def_blocks =
@@ -185,7 +184,7 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
         var_dict =
           List.fold_left
             (fun var_dict (x, _) ->
-              L.VarMap.add (L.Var.t x)
+              Var.Map.add x
                 (A.LocalName.fresh (Bindlib.name_of x, binder_pos))
                 var_dict)
             ctxt.var_dict vars_tau;
@@ -200,7 +199,7 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
               func_params =
                 List.map
                   (fun (var, tau) ->
-                    (L.VarMap.find (L.Var.t var) ctxt.var_dict, binder_pos), tau)
+                    (Var.Map.find var ctxt.var_dict, binder_pos), tau)
                   vars_tau;
               func_body = new_body;
             } ),
@@ -220,10 +219,7 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
               A.LocalName.fresh (Bindlib.name_of var, D.pos arg)
             in
             let ctxt =
-              {
-                ctxt with
-                var_dict = L.VarMap.add (L.Var.t var) scalc_var ctxt.var_dict;
-              }
+              { ctxt with var_dict = Var.Map.add var scalc_var ctxt.var_dict }
             in
             let new_arg = translate_statements ctxt body in
             (new_arg, scalc_var) :: new_args
@@ -275,8 +271,8 @@ and translate_statements (ctxt : ctxt) (block_expr : 'm L.marked_expr) : A.block
 let rec translate_scope_body_expr
     (scope_name : D.ScopeName.t)
     (decl_ctx : D.decl_ctx)
-    (var_dict : A.LocalName.t L.VarMap.t)
-    (func_dict : A.TopLevelName.t L.VarMap.t)
+    (var_dict : ('m L.expr, A.LocalName.t) Var.Map.t)
+    (func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t)
     (scope_expr : ('m L.expr, 'm) D.scope_body_expr) : A.block =
   match scope_expr with
   | Result e ->
@@ -297,7 +293,7 @@ let rec translate_scope_body_expr
     let let_var_id =
       A.LocalName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
     in
-    let new_var_dict = L.VarMap.add (L.Var.t let_var) let_var_id var_dict in
+    let new_var_dict = Var.Map.add let_var let_var_id var_dict in
     (match scope_let.scope_let_kind with
     | D.Assertion ->
       translate_statements
@@ -349,7 +345,7 @@ let translate_program (p : 'm L.program) : A.program =
                A.LocalName.fresh (Bindlib.name_of scope_input_var, input_pos)
              in
              let var_dict =
-               L.VarMap.singleton (L.Var.t scope_input_var) scope_input_var_id
+               Var.Map.singleton scope_input_var scope_input_var_id
              in
              let new_scope_body =
                translate_scope_body_expr scope_def.D.scope_name p.decl_ctx
@@ -358,9 +354,7 @@ let translate_program (p : 'm L.program) : A.program =
              let func_id =
                A.TopLevelName.fresh (Bindlib.name_of scope_var, Pos.no_pos)
              in
-             let func_dict =
-               L.VarMap.add (L.Var.t scope_var) func_id func_dict
-             in
+             let func_dict = Var.Map.add scope_var func_id func_dict in
              ( func_dict,
                {
                  Ast.scope_body_name = scope_def.D.scope_name;
@@ -387,8 +381,8 @@ let translate_program (p : 'm L.program) : A.program =
                :: new_scopes ))
            ~init:
              ( (if !Cli.avoid_exceptions_flag then
-                L.VarMap.singleton L.handle_default_opt A.handle_default_opt
-               else L.VarMap.singleton L.handle_default A.handle_default),
+                Var.Map.singleton L.handle_default_opt A.handle_default_opt
+               else Var.Map.singleton L.handle_default A.handle_default),
                [] )
            p.D.scopes
        in
