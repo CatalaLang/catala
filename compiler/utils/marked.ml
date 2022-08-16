@@ -21,6 +21,7 @@ type 'a pos = ('a, Pos.t) t
 let mark m e : ('a, 'm) t = e, m
 let unmark ((x, _) : ('a, 'm) t) : 'a = x
 let get_mark ((_, x) : ('a, 'm) t) : 'm = x
+let map_mark (f : 'm1 -> 'm2) ((a, m) : ('a, 'm1) t) : ('a, 'm2) t = a, f m
 let map_under_mark (f : 'a -> 'b) ((x, y) : ('a, 'm) t) : ('b, 'c) t = f x, y
 let same_mark_as (x : 'a) ((_, y) : ('b, 'm) t) : ('a, 'm) t = x, y
 

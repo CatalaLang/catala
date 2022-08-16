@@ -18,8 +18,51 @@
     inference using the classical W algorithm with union-find unification. *)
 
 open Utils
-module A = Ast
-open A.Infer
+module A = Astgen
+
+module Any =
+  Utils.Uid.Make
+    (struct
+      type info = unit
+
+      let format_info fmt () = Format.fprintf fmt "any"
+    end)
+    ()
+
+type unionfind_typ = typ Marked.pos UnionFind.elem
+(** We do not reuse {!type: Dcalc.Ast.typ} because we have to include a new
+    [TAny] variant. Indeed, error terms can have any type and this has to be
+    captured by the type sytem. *)
+
+and typ =
+  | TLit of A.typ_lit
+  | TArrow of unionfind_typ * unionfind_typ
+  | TTuple of unionfind_typ list * A.StructName.t option
+  | TEnum of unionfind_typ list * A.EnumName.t
+  | TArray of unionfind_typ
+  | TAny of Any.t
+
+let rec typ_to_ast (ty : unionfind_typ) : A.marked_typ =
+  let ty, pos = UnionFind.get (UnionFind.find ty) in
+  match ty with
+  | TLit l -> TLit l, pos
+  | TTuple (ts, s) -> TTuple (List.map typ_to_ast ts, s), pos
+  | TEnum (ts, e) -> TEnum (List.map typ_to_ast ts, e), pos
+  | TArrow (t1, t2) -> TArrow (typ_to_ast t1, typ_to_ast t2), pos
+  | TAny _ -> TAny, pos
+  | TArray t1 -> TArray (typ_to_ast t1), pos
+
+let rec ast_to_typ (ty : A.marked_typ) : unionfind_typ =
+  let ty' =
+    match Marked.unmark ty with
+    | TLit l -> TLit l
+    | TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
+    | TTuple (ts, s) -> TTuple (List.map (fun t -> ast_to_typ t) ts, s)
+    | TEnum (ts, e) -> TEnum (List.map (fun t -> ast_to_typ t) ts, e)
+    | TArray t -> TArray (ast_to_typ t)
+    | TAny -> TAny (Any.fresh ())
+  in
+  UnionFind.make (Marked.same_mark_as ty' ty)
 
 (** {1 Types and unification} *)
 
@@ -57,14 +100,16 @@ let rec format_typ
 
 exception
   Type_error of
-    A.untyped A.marked_expr
+    A.any_marked_expr
     * typ Marked.pos UnionFind.elem
     * typ Marked.pos UnionFind.elem
+
+type mark = { pos : Pos.t; uf : unionfind_typ }
 
 (** Raises an error if unification cannot be performed *)
 let rec unify
     (ctx : Ast.decl_ctx)
-    (e : 'm A.marked_expr) (* used for error context *)
+    (e : ('a, 'm A.mark) Ast.marked_gexpr) (* used for error context *)
     (t1 : typ Marked.pos UnionFind.elem)
     (t2 : typ Marked.pos UnionFind.elem) : unit =
   let unify = unify ctx in
@@ -72,9 +117,7 @@ let rec unify
      t2; *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
-  let raise_type_error () =
-    raise (Type_error (Bindlib.unbox (A.untype_expr e), t1, t2))
-  in
+  let raise_type_error () = raise (Type_error (A.AnyExpr e, t1, t2)) in
   let repr =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
     | TLit tl1, TLit tl2 when tl1 = tl2 -> None
@@ -108,6 +151,11 @@ let rec unify
 let handle_type_error ctx e t1 t2 =
   (* TODO: if we get weird error messages, then it means that we should use the
      persistent version of the union-find data structure. *)
+  let pos =
+    match e with
+    | A.AnyExpr e -> (
+      match Marked.get_mark e with Untyped { pos } | Typed { pos; _ } -> pos)
+  in
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let t1_pos = Marked.get_mark t1_repr in
@@ -132,7 +180,7 @@ let handle_type_error ctx e t1 t2 =
       ( Some
           (Format.asprintf
              "Error coming from typechecking the following expression:"),
-        A.pos e );
+        pos );
       Some (Format.asprintf "Type %a coming from expression:" t1_s ()), t1_pos;
       Some (Format.asprintf "Type %a coming from expression:" t2_s ()), t2_pos;
     ]
@@ -213,11 +261,10 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
 
 (** {1 Double-directed typing} *)
 
-type env = typ Marked.pos UnionFind.elem A.VarMap.t
+type 'e env = ('e, typ Marked.pos UnionFind.elem) Var.Map.t
 
-let translate_var v = Bindlib.copy_var v (fun x -> A.EVar x) (Bindlib.name_of v)
-let add_pos e ty = Marked.mark (A.pos e) ty
-let ty (_, A.Inferring { A.uf; _ }) = uf
+let add_pos e ty = Marked.mark (Ast.pos e) ty
+let ty (_, { uf; _ }) = uf
 let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x1 x2 = Bindlib.box_pair x1 x2
 
@@ -244,24 +291,24 @@ let box_ty e = Bindlib.unbox (Bindlib.box_apply ty e)
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up
     (ctx : Ast.decl_ctx)
-    (env : env)
-    (e : 'm A.marked_expr) : A.inferring A.marked_expr Bindlib.box =
+    (env : 'm Ast.expr env)
+    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
   (* Cli.debug_format "Looking for type of %a" (Print.format_expr ~debug:true
      ctx) e; *)
-  let pos_e = A.pos e in
-  let mark (e : A.inferring A.expr) uf =
-    Marked.mark (A.Inferring { A.uf; pos = pos_e }) e
+  let pos_e = Ast.pos e in
+  let mark (e : (A.dcalc, mark) A.gexpr) uf =
+    Marked.mark { uf; pos = pos_e } e
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   let mark_with_uf e1 ?pos ty = mark e1 (unionfind_make ?pos ty) in
   match Marked.unmark e with
   | A.EVar v -> begin
-    match A.VarMap.find_opt (A.Var.t v) env with
+    match Var.Map.find_opt v env with
     | Some t ->
-      let+ v' = Bindlib.box_var (translate_var v) in
+      let+ v' = Bindlib.box_var (Var.translate v) in
       mark v' t
     | None ->
-      Errors.raise_spanned_error (A.pos e)
+      Errors.raise_spanned_error (Ast.pos e)
         "Variable %s not found in the current context." (Bindlib.name_of v)
   end
   | A.ELit (LBool _) as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TBool)
@@ -285,7 +332,7 @@ let rec typecheck_expr_bottom_up
     match List.nth_opt utyps n with
     | Some t' -> mark (ETupleAccess (e1, n, s, typs)) t'
     | None ->
-      Errors.raise_spanned_error (A.pos e1)
+      Errors.raise_spanned_error (Marked.get_mark e1).pos
         "Expression should have a tuple type with at least %d elements but \
          only has %d"
         n (List.length typs)
@@ -296,7 +343,7 @@ let rec typecheck_expr_bottom_up
       match List.nth_opt ts' n with
       | Some ts_n -> ts_n
       | None ->
-        Errors.raise_spanned_error (A.pos e)
+        Errors.raise_spanned_error (Ast.pos e)
           "Expression should have a sum type with at least %d cases but only \
            has %d"
           n (List.length ts')
@@ -321,18 +368,16 @@ let rec typecheck_expr_bottom_up
     mark (EMatch (e1', es', e_name)) t_ret
   | A.EAbs (binder, taus) ->
     if Bindlib.mbinder_arity binder <> List.length taus then
-      Errors.raise_spanned_error (A.pos e)
+      Errors.raise_spanned_error (Ast.pos e)
         "function has %d variables but was supplied %d types"
         (Bindlib.mbinder_arity binder)
         (List.length taus)
     else
       let xs, body = Bindlib.unmbind binder in
-      let xs' = Array.map translate_var xs in
-      let xstaus = List.mapi (fun i tau -> xs'.(i), ast_to_typ tau) taus in
+      let xs' = Array.map Var.translate xs in
+      let xstaus = List.mapi (fun i tau -> xs.(i), ast_to_typ tau) taus in
       let env =
-        List.fold_left
-          (fun env (x, tau) -> A.VarMap.add (A.Var.t x) tau env)
-          env xstaus
+        List.fold_left (fun env (x, tau) -> Var.Map.add x tau env) env xstaus
       in
       let body' = typecheck_expr_bottom_up ctx env body in
       let t_func =
@@ -402,32 +447,27 @@ let rec typecheck_expr_bottom_up
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down
     (ctx : Ast.decl_ctx)
-    (env : env)
+    (env : 'm Ast.expr env)
     (tau : typ Marked.pos UnionFind.elem)
-    (e : 'm A.marked_expr) : A.inferring A.marked_expr Bindlib.box =
+    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
   (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
      (Print.format_expr ctx) e; *)
-  let pos_e = A.pos e in
-  let mark e = Marked.mark (A.Inferring { uf = tau; pos = pos_e }) e in
-  let unify_and_mark (e : A.inferring A.expr) tau' =
-    let e = Marked.mark (A.Inferring { uf = tau'; pos = pos_e }) e in
-    (* Why do we need to put a handler here? It seems weird since all the
-       front-facing API of the module is encased in [wrap] handlers. However
-       empirically for the example [tests/test_bool/bad_assert.catala_en] we
-       need this handler here, otherwise it throws an uncaught exception. *)
-    (try unify ctx (Bindlib.unbox (A.untype_expr e)) tau tau'
+  let pos_e = Ast.pos e in
+  let mark e = Marked.mark { uf = tau; pos = pos_e } e in
+  let unify_and_mark (e' : (A.dcalc, mark) A.gexpr) tau' =
+    (try unify ctx e tau tau'
      with Type_error (e', t1, t2) -> handle_type_error ctx e' t1 t2);
-    e
+    Marked.mark { uf = tau; pos = pos_e } e'
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   match Marked.unmark e with
   | A.EVar v -> begin
-    match A.VarMap.find_opt (A.Var.t v) env with
+    match Var.Map.find_opt v env with
     | Some tau' ->
-      let+ v' = Bindlib.box_var (translate_var v) in
+      let+ v' = Bindlib.box_var (Var.translate v) in
       unify_and_mark v' tau'
     | None ->
-      Errors.raise_spanned_error (A.pos e)
+      Errors.raise_spanned_error pos_e
         "Variable %s not found in the current context" (Bindlib.name_of v)
   end
   | A.ELit (LBool _) as e1 ->
@@ -470,7 +510,7 @@ and typecheck_expr_top_down
       match List.nth_opt ts' n with
       | Some ts_n -> ts_n
       | None ->
-        Errors.raise_spanned_error (A.pos e)
+        Errors.raise_spanned_error (Ast.pos e)
           "Expression should have a sum type with at least %d cases but only \
            has %d"
           n (List.length ts)
@@ -501,19 +541,19 @@ and typecheck_expr_top_down
     unify_and_mark (EMatch (e1', es', e_name)) t_ret
   | A.EAbs (binder, t_args) ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
-      Errors.raise_spanned_error (A.pos e)
+      Errors.raise_spanned_error (Ast.pos e)
         "function has %d variables but was supplied %d types"
         (Bindlib.mbinder_arity binder)
         (List.length t_args)
     else
       let xs, body = Bindlib.unmbind binder in
-      let xs' = Array.map translate_var xs in
+      let xs' = Array.map Var.translate xs in
       let xstaus =
         List.map2 (fun x t_arg -> x, ast_to_typ t_arg) (Array.to_list xs) t_args
       in
       let env =
         List.fold_left
-          (fun env (x, t_arg) -> A.VarMap.add (A.Var.t x) t_arg env)
+          (fun env (x, t_arg) -> Var.Map.add x t_arg env)
           env xstaus
       in
       let body' = typecheck_expr_bottom_up ctx env body in
@@ -582,30 +622,28 @@ let wrap ctx f e =
 
 (** {1 API} *)
 
-let get_ty_mark (A.Inferring { uf; pos }) =
-  A.Typed { ty = A.Infer.typ_to_ast uf; pos }
+let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 
 (* Infer the type of an expression *)
-let infer_types (ctx : Ast.decl_ctx) (e : 'm A.marked_expr) :
+let infer_types (ctx : Ast.decl_ctx) (e : 'm Ast.marked_expr) :
     Ast.typed Ast.marked_expr Bindlib.box =
-  A.map_expr_marks ~f:get_ty_mark
+  Astgen_utils.map_gexpr_marks ~f:get_ty_mark
   @@ Bindlib.unbox
-  @@ wrap ctx (typecheck_expr_bottom_up ctx A.VarMap.empty) e
+  @@ wrap ctx (typecheck_expr_bottom_up ctx Var.Map.empty) e
 
-let infer_type (type m) ctx (e : m A.marked_expr) =
+let infer_type (type m) ctx (e : m Ast.marked_expr) =
   match Marked.get_mark e with
   | A.Typed { ty; _ } -> ty
-  | A.Inferring { uf; _ } -> typ_to_ast uf
-  | A.Untyped _ -> A.ty (Bindlib.unbox (infer_types ctx e))
+  | A.Untyped _ -> Ast.ty (Bindlib.unbox (infer_types ctx e))
 
 (** Typechecks an expression given an expected type *)
 let check_type
     (ctx : Ast.decl_ctx)
-    (e : 'm A.marked_expr)
+    (e : 'm Ast.marked_expr)
     (tau : A.typ Marked.pos) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
   ignore
-  @@ wrap ctx (typecheck_expr_top_down ctx A.VarMap.empty (ast_to_typ tau)) e
+  @@ wrap ctx (typecheck_expr_top_down ctx Var.Map.empty (ast_to_typ tau)) e
 
 let infer_types_program prg =
   let ctx = prg.A.decl_ctx in
@@ -638,32 +676,34 @@ let infer_types_program prg =
         | A.Result e ->
           let e' = wrap ctx (typecheck_expr_bottom_up ctx env) e in
           Bindlib.box_apply
-            (fun e ->
-              wrap ctx (unify ctx e (ty e)) ty_out;
-              A.Result e)
+            (fun e1 ->
+              wrap ctx (unify ctx e (ty e1)) ty_out;
+              let e1 = Astgen_utils.map_gexpr_marks ~f:get_ty_mark e1 in
+              A.Result (Bindlib.unbox e1))
             e'
         | A.ScopeLet
             {
               scope_let_kind;
               scope_let_typ;
-              scope_let_expr = e;
+              scope_let_expr = e0;
               scope_let_next;
               scope_let_pos;
             } ->
           let ty_e = ast_to_typ scope_let_typ in
-          let e = wrap ctx (typecheck_expr_bottom_up ctx env) e in
+          let e = wrap ctx (typecheck_expr_bottom_up ctx env) e0 in
           let var, next = Bindlib.unbind scope_let_next in
-          let env = A.VarMap.add (A.Var.t var) ty_e env in
+          let env = Var.Map.add var ty_e env in
           let next = process_scope_body_expr env next in
-          let scope_let_next = Bindlib.bind_var (translate_var var) next in
+          let scope_let_next = Bindlib.bind_var (Var.translate var) next in
           Bindlib.box_apply2
-            (fun scope_let_expr scope_let_next ->
-              wrap ctx (unify ctx scope_let_expr (ty scope_let_expr)) ty_e;
+            (fun e scope_let_next ->
+              wrap ctx (unify ctx e0 (ty e)) ty_e;
+              let e = Astgen_utils.map_gexpr_marks ~f:get_ty_mark e in
               A.ScopeLet
                 {
                   scope_let_kind;
                   scope_let_typ;
-                  scope_let_expr;
+                  scope_let_expr = Bindlib.unbox e;
                   scope_let_next;
                   scope_let_pos;
                 })
@@ -671,26 +711,15 @@ let infer_types_program prg =
       in
       let scope_body_expr =
         let var, e = Bindlib.unbind body in
-        let env = A.VarMap.add (A.Var.t var) ty_in env in
+        let env = Var.Map.add var ty_in env in
         let e' = process_scope_body_expr env e in
-        let e' =
-          Bindlib.box_apply
-            (fun e ->
-              Bindlib.unbox
-              @@ A.map_exprs_in_scope_lets ~varf:translate_var
-                   ~f:
-                     (A.map_expr_top_down ~f:(fun e ->
-                          Marked.(mark (get_ty_mark (get_mark e)) (unmark e))))
-                   e)
-            e'
-        in
-        Bindlib.bind_var (translate_var var) e'
+        Bindlib.bind_var (Var.translate var) e'
       in
       let scope_next =
         let scope_var, next = Bindlib.unbind scope_next in
-        let env = A.VarMap.add (A.Var.t scope_var) ty_scope env in
+        let env = Var.Map.add scope_var ty_scope env in
         let next' = process_scopes env next in
-        Bindlib.bind_var (translate_var scope_var) next'
+        Bindlib.bind_var (Var.translate scope_var) next'
       in
       Bindlib.box_apply2
         (fun scope_body_expr scope_next ->
@@ -707,6 +736,6 @@ let infer_types_program prg =
             })
         scope_body_expr scope_next
   in
-  let scopes = process_scopes A.VarMap.empty prg.scopes in
+  let scopes = wrap ctx (process_scopes Var.Map.empty) prg.scopes in
   Bindlib.box_apply (fun scopes -> { A.decl_ctx = ctx; scopes }) scopes
   |> Bindlib.unbox

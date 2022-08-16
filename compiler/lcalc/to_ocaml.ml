@@ -416,8 +416,8 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
       format_with_parens arg1
   | EApp ((EVar x, pos), args)
-    when Ast.Var.compare (Ast.Var.t x) Ast.handle_default = 0
-         || Ast.Var.compare (Ast.Var.t x) Ast.handle_default_opt = 0 ->
+    when Var.compare x (Var.translate Ast.handle_default) = 0
+         || Var.compare x (Var.translate Ast.handle_default_opt) = 0 ->
     Format.fprintf fmt
       "@[<hov 2>%a@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
