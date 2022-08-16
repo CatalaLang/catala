@@ -200,7 +200,7 @@ let driver source_file (options : Cli.options) : int =
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
-                  (Shared_ast.Expr.fold_left_scope_defs ~init:None
+                  (Shared_ast.Scope.fold_left ~init:None
                      ~f:(fun acc scope_def _ ->
                        if
                          Shared_ast.ScopeName.compare scope_def.scope_name
@@ -285,7 +285,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
-              else Shared_ast.Expr.untype_program prgm
+              else Shared_ast.Program.untype prgm
             in
             let prgm =
               if options.closure_conversion then (
@@ -305,7 +305,7 @@ let driver source_file (options : Cli.options) : int =
                   (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
                   ( scope_uid,
                     Option.get
-                      (Shared_ast.Expr.fold_left_scope_defs ~init:None
+                      (Shared_ast.Scope.fold_left ~init:None
                          ~f:(fun acc scope_def _ ->
                            if
                              Shared_ast.ScopeName.compare scope_def.scope_name

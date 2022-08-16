@@ -335,7 +335,7 @@ let translate_program (p : 'm L.program) : A.program =
     decl_ctx = p.decl_ctx;
     scopes =
       (let _, new_scopes =
-         Expr.fold_left_scope_defs
+         Scope.fold_left
            ~f:(fun (func_dict, new_scopes) scope_def scope_var ->
              let scope_input_var, scope_body_expr =
                Bindlib.unbind scope_def.scope_body.scope_body_expr

@@ -253,4 +253,4 @@ let optimize_program (p : 'm program) : untyped program =
     (program_map partial_evaluation
        { var_values = Var.Map.empty; decl_ctx = p.decl_ctx }
        p)
-  |> Expr.untype_program
+  |> Program.untype

@@ -546,7 +546,7 @@ let rec translate_scopes (ctx : 'm ctx) (scopes : 'm D.expr scopes) :
 
 let translate_program (prgm : 'm D.program) : 'm A.program =
   let inputs_structs =
-    Expr.fold_left_scope_defs prgm.scopes ~init:[] ~f:(fun acc scope_def _ ->
+    Scope.fold_left prgm.scopes ~init:[] ~f:(fun acc scope_def _ ->
         scope_def.scope_body.scope_body_input_struct :: acc)
   in
 

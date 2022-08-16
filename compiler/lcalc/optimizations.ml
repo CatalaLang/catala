@@ -102,7 +102,7 @@ let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
 
 let iota_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Expr.map_exprs_in_scopes ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
+    Scope.map_exprs ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
@@ -112,7 +112,7 @@ let iota_optimizations (p : 'm program) : 'm program =
    program. *)
 let _beta_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Expr.map_exprs_in_scopes ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes
+    Scope.map_exprs ~f:(beta_expr ()) ~varf:(fun v -> v) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
@@ -146,9 +146,9 @@ let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Expr.map_exprs_in_scopes ~f:(peephole_expr ()) ~varf:(fun v -> v) p.scopes
+    Scope.map_exprs ~f:(peephole_expr ()) ~varf:(fun v -> v) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
 let optimize_program (p : 'm program) : untyped program =
-  p |> iota_optimizations |> peephole_optimizations |> Expr.untype_program
+  p |> iota_optimizations |> peephole_optimizations |> Program.untype

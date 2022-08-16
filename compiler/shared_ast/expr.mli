@@ -15,7 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Functions handling the types of [shared_ast] *)
+(** Functions handling the expressions of [shared_ast] *)
 
 open Utils
 open Types
@@ -134,9 +134,6 @@ val get_scope_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
 val untype :
   ('a, 'm mark) marked_gexpr -> ('a, untyped mark) marked_gexpr Bindlib.box
 
-val untype_program :
-  (([< any ] as 'a), 'm mark) gexpr program -> ('a, untyped mark) gexpr program
-
 (** {2 Handling of boxing} *)
 
 val box : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr Bindlib.box
@@ -177,62 +174,3 @@ val map_top_down :
 
 val map_marks :
   f:('t1 -> 't2) -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box
-
-val fold_left_scope_lets :
-  f:('a -> 'e scope_let -> 'e Bindlib.var -> 'a) ->
-  init:'a ->
-  'e scope_body_expr ->
-  'a
-(** Usage:
-    [fold_left_scope_lets ~f:(fun acc scope_let scope_let_var -> ...) ~init scope_lets],
-    where [scope_let_var] is the variable bound to the scope let in the next
-    scope lets to be examined. *)
-
-val fold_right_scope_lets :
-  f:('expr1 scope_let -> 'expr1 Bindlib.var -> 'a -> 'a) ->
-  init:('expr1 marked -> 'a) ->
-  'expr1 scope_body_expr ->
-  'a
-(** Usage:
-    [fold_right_scope_lets ~f:(fun scope_let scope_let_var acc -> ...) ~init scope_lets],
-    where [scope_let_var] is the variable bound to the scope let in the next
-    scope lets to be examined (which are before in the program order). *)
-
-val map_exprs_in_scope_lets :
-  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
-  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
-  'expr1 scope_body_expr ->
-  'expr2 scope_body_expr Bindlib.box
-
-val fold_left_scope_defs :
-  f:('a -> 'expr1 scope_def -> 'expr1 Bindlib.var -> 'a) ->
-  init:'a ->
-  'expr1 scopes ->
-  'a
-(** Usage:
-    [fold_left_scope_defs ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined. *)
-
-val fold_right_scope_defs :
-  f:('expr1 scope_def -> 'expr1 Bindlib.var -> 'a -> 'a) ->
-  init:'a ->
-  'expr1 scopes ->
-  'a
-(** Usage:
-    [fold_right_scope_defs ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined (which are before in the program order). *)
-
-val map_scope_defs :
-  f:('e scope_def -> 'e scope_def Bindlib.box) ->
-  'e scopes ->
-  'e scopes Bindlib.box
-
-val map_exprs_in_scopes :
-  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
-  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
-  'expr1 scopes ->
-  'expr2 scopes Bindlib.box
-(** This is the main map visitor for all the expressions inside all the scopes
-    of the program. *)

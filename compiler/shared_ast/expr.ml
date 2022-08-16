@@ -166,80 +166,6 @@ let rec map_top_down ~f e = map () ~f:(fun () -> map_top_down ~f) (f e)
 let map_marks ~f e =
   map_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
 
-let rec fold_left_scope_lets ~f ~init scope_body_expr =
-  match scope_body_expr with
-  | Result _ -> init
-  | ScopeLet scope_let ->
-    let var, next = Bindlib.unbind scope_let.scope_let_next in
-    fold_left_scope_lets ~f ~init:(f init scope_let var) next
-
-let rec fold_right_scope_lets ~f ~init scope_body_expr =
-  match scope_body_expr with
-  | Result result -> init result
-  | ScopeLet scope_let ->
-    let var, next = Bindlib.unbind scope_let.scope_let_next in
-    let next_result = fold_right_scope_lets ~f ~init next in
-    f scope_let var next_result
-
-let map_exprs_in_scope_lets ~f ~varf scope_body_expr =
-  fold_right_scope_lets
-    ~f:(fun scope_let var_next acc ->
-      Bindlib.box_apply2
-        (fun scope_let_next scope_let_expr ->
-          ScopeLet { scope_let with scope_let_next; scope_let_expr })
-        (Bindlib.bind_var (varf var_next) acc)
-        (f scope_let.scope_let_expr))
-    ~init:(fun res -> Bindlib.box_apply (fun res -> Result res) (f res))
-    scope_body_expr
-
-let rec fold_left_scope_defs ~f ~init scopes =
-  match scopes with
-  | Nil -> init
-  | ScopeDef scope_def ->
-    let var, next = Bindlib.unbind scope_def.scope_next in
-    fold_left_scope_defs ~f ~init:(f init scope_def var) next
-
-let rec fold_right_scope_defs ~f ~init scopes =
-  match scopes with
-  | Nil -> init
-  | ScopeDef scope_def ->
-    let var_next, next = Bindlib.unbind scope_def.scope_next in
-    let result_next = fold_right_scope_defs ~f ~init next in
-    f scope_def var_next result_next
-
-let map_scope_defs ~f scopes =
-  fold_right_scope_defs
-    ~f:(fun scope_def var_next acc ->
-      let new_scope_def = f scope_def in
-      let new_next = Bindlib.bind_var var_next acc in
-      Bindlib.box_apply2
-        (fun new_scope_def new_next ->
-          ScopeDef { new_scope_def with scope_next = new_next })
-        new_scope_def new_next)
-    ~init:(Bindlib.box Nil) scopes
-
-let map_exprs_in_scopes ~f ~varf scopes =
-  fold_right_scope_defs
-    ~f:(fun scope_def var_next acc ->
-      let scope_input_var, scope_lets =
-        Bindlib.unbind scope_def.scope_body.scope_body_expr
-      in
-      let new_scope_body_expr = map_exprs_in_scope_lets ~f ~varf scope_lets in
-      let new_scope_body_expr =
-        Bindlib.bind_var (varf scope_input_var) new_scope_body_expr
-      in
-      let new_next = Bindlib.bind_var (varf var_next) acc in
-      Bindlib.box_apply2
-        (fun scope_body_expr scope_next ->
-          ScopeDef
-            {
-              scope_def with
-              scope_body = { scope_def.scope_body with scope_body_expr };
-              scope_next;
-            })
-        new_scope_body_expr new_next)
-    ~init:(Bindlib.box Nil) scopes
-
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
@@ -248,12 +174,3 @@ let box e =
   id_t () e
 
 let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
-
-let untype_program (prg : ('a, 'm mark) gexpr program) :
-    ('a, untyped mark) gexpr program =
-  {
-    prg with
-    scopes =
-      Bindlib.unbox
-        (map_exprs_in_scopes ~f:untype ~varf:Var.translate prg.scopes);
-  }

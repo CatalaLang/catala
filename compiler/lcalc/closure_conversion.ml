@@ -275,7 +275,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
   let new_scopes, _ =
-    Expr.fold_left_scope_defs
+    Scope.fold_left
       ~f:(fun (acc_new_scopes, global_vars) scope scope_var ->
         (* [acc_new_scopes] represents what has been translated in the past, it
            needs a continuation to attach the rest of the translated scopes. *)
@@ -290,7 +290,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
           }
         in
         let new_scope_lets =
-          Expr.map_exprs_in_scope_lets
+          Scope.map_exprs_in_lets
             ~f:(closure_conversion_expr ctx)
             ~varf:(fun v -> v)
             scope_body_expr
