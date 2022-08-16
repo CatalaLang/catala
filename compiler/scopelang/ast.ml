@@ -16,7 +16,6 @@
 
 open Utils
 open Shared_ast
-
 module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
 
 module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =

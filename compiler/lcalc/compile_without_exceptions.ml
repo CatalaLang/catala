@@ -95,8 +95,8 @@ let find ?(info : string = "none") (n : 'm D.var) (ctx : 'm ctx) : 'm info =
     var, creating a unique corresponding variable in Lcalc, with the
     corresponding expression, and the boolean is_pure. It is usefull for
     debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
-let add_var (mark : 'm mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx)
-    : 'm ctx =
+let add_var (mark : 'm mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx) :
+    'm ctx =
   let new_var = Var.make (Bindlib.name_of var) in
   let expr = A.make_var (new_var, mark) in
 
@@ -493,8 +493,8 @@ let rec translate_scope_let
 let translate_scope_body
     (scope_pos : Pos.t)
     (ctx : 'm ctx)
-    (body : ('m D.expr, 'm) scope_body) :
-    ('m A.expr, 'm) scope_body Bindlib.box =
+    (body : ('m D.expr, 'm) scope_body) : ('m A.expr, 'm) scope_body Bindlib.box
+    =
   match body with
   | {
    scope_body_expr = result;

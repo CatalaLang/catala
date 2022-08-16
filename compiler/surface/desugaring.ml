@@ -167,8 +167,7 @@ let rec translate_expr
   | Binop (op, e1, e2) ->
     let op_term =
       Marked.same_mark_as
-        (Desugared.Ast.EOp
-           (Binop (translate_binop (Marked.unmark op))))
+        (Desugared.Ast.EOp (Binop (translate_binop (Marked.unmark op))))
         op
     in
     Bindlib.box_apply2
@@ -190,11 +189,9 @@ let rec translate_expr
         Desugared.Ast.ELit (LInt (Runtime.integer_of_string i))
       | LNumber ((Int i, _), Some (Percent, _)) ->
         Desugared.Ast.ELit
-          (LRat
-             Runtime.(decimal_of_string i /& decimal_of_string "100"))
+          (LRat Runtime.(decimal_of_string i /& decimal_of_string "100"))
       | LNumber ((Dec (i, f), _), None) ->
-        Desugared.Ast.ELit
-          (LRat Runtime.(decimal_of_string (i ^ "." ^ f)))
+        Desugared.Ast.ELit (LRat Runtime.(decimal_of_string (i ^ "." ^ f)))
       | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
         Desugared.Ast.ELit
           (LRat
@@ -210,16 +207,13 @@ let rec translate_expr
                  +! integer_of_string i.money_amount_cents)))
       | LNumber ((Int i, _), Some (Year, _)) ->
         Desugared.Ast.ELit
-          (LDuration
-             (Runtime.duration_of_numbers (int_of_string i) 0 0))
+          (LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0))
       | LNumber ((Int i, _), Some (Month, _)) ->
         Desugared.Ast.ELit
-          (LDuration
-             (Runtime.duration_of_numbers 0 (int_of_string i) 0))
+          (LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0))
       | LNumber ((Int i, _), Some (Day, _)) ->
         Desugared.Ast.ELit
-          (LDuration
-             (Runtime.duration_of_numbers 0 0 (int_of_string i)))
+          (LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i)))
       | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
         Errors.raise_spanned_error pos
           "Impossible to specify decimal amounts of days, months or years"
@@ -338,13 +332,10 @@ let rec translate_expr
             (Format.pp_print_list
                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
                (fun fmt (s_name, _) ->
-                 Format.fprintf fmt "%a" StructName.format_t
-                   s_name))
+                 Format.fprintf fmt "%a" StructName.format_t s_name))
             (StructMap.bindings x_possible_structs)
         else
-          let s_uid, f_uid =
-            StructMap.choose x_possible_structs
-          in
+          let s_uid, f_uid = StructMap.choose x_possible_structs in
           Bindlib.box_apply
             (fun e -> Desugared.Ast.EStructAccess (e, f_uid, s_uid), pos)
             e
@@ -408,8 +399,8 @@ let rec translate_expr
                 None, Marked.get_mark f_e;
                 None, Marked.get_mark (Bindlib.unbox e_field);
               ]
-              "The field %a has been defined twice:"
-              StructFieldName.format_t f_uid);
+              "The field %a has been defined twice:" StructFieldName.format_t
+              f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
           Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
         Scopelang.Ast.StructFieldMap.empty fields
@@ -419,8 +410,7 @@ let rec translate_expr
       (fun expected_f _ ->
         if not (Scopelang.Ast.StructFieldMap.mem expected_f s_fields) then
           Errors.raise_spanned_error pos
-            "Missing field for structure %a: \"%a\""
-            StructName.format_t s_uid
+            "Missing field for structure %a: \"%a\"" StructName.format_t s_uid
             StructFieldName.format_t expected_f)
       expected_s_fields;
 
@@ -466,8 +456,7 @@ let rec translate_expr
                 ( (match payload with
                   | Some e' -> e'
                   | None ->
-                    ( Desugared.Ast.ELit LUnit,
-                      Marked.get_mark constructor )),
+                    Desugared.Ast.ELit LUnit, Marked.get_mark constructor),
                   c_uid,
                   e_uid ),
               pos ))
@@ -489,8 +478,7 @@ let rec translate_expr
                   ( (match payload with
                     | Some e' -> e'
                     | None ->
-                      ( Desugared.Ast.ELit LUnit,
-                        Marked.get_mark constructor )),
+                      Desugared.Ast.ELit LUnit, Marked.get_mark constructor),
                     c_uid,
                     e_uid ),
                 pos ))
@@ -531,8 +519,7 @@ let rec translate_expr
             (Desugared.Ast.make_abs [| nop_var |]
                (Bindlib.box
                   ( Desugared.Ast.ELit
-                      (LBool
-                         (EnumConstructor.compare c_uid c_uid' = 0)),
+                      (LBool (EnumConstructor.compare c_uid c_uid' = 0)),
                     pos ))
                [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
@@ -595,9 +582,7 @@ let rec translate_expr
           (if max_or_min then "max" else "min")
           Print.format_primitive_typ pred_typ
     in
-    let cmp_op =
-      if max_or_min then Gt op_kind else Lt op_kind
-    in
+    let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
     let f_pred =
       Desugared.Ast.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
@@ -656,11 +641,9 @@ let rec translate_expr
       | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
       | Ast.Exists ->
-        Bindlib.box
-          (Desugared.Ast.ELit (LBool false), Marked.get_mark op')
+        Bindlib.box (Desugared.Ast.ELit (LBool false), Marked.get_mark op')
       | Ast.Forall ->
-        Bindlib.box
-          (Desugared.Ast.ELit (LBool true), Marked.get_mark op')
+        Bindlib.box (Desugared.Ast.ELit (LBool true), Marked.get_mark op')
       | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
         Bindlib.box
           ( Desugared.Ast.ELit (LInt (Runtime.integer_of_int 0)),
@@ -677,8 +660,7 @@ let rec translate_expr
             Marked.get_mark op' )
       | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
         Bindlib.box
-          ( Desugared.Ast.ELit
-              (LDuration (Runtime.duration_of_numbers 0 0 0)),
+          ( Desugared.Ast.ELit (LDuration (Runtime.duration_of_numbers 0 0 0)),
             Marked.get_mark op' )
       | Ast.Aggregate (Ast.AggregateSum t) ->
         Errors.raise_spanned_error pos
@@ -703,9 +685,7 @@ let rec translate_expr
           (translate_expr scope inside_definition_of ctxt predicate)
           acc
       in
-      let make_extr_body
-          (cmp_op : binop)
-          (t : Scopelang.Ast.typ Marked.pos) =
+      let make_extr_body (cmp_op : binop) (t : Scopelang.Ast.typ Marked.pos) =
         let tmp_var = Desugared.Ast.Var.make "tmp" in
         let tmp = Desugared.Ast.make_var (tmp_var, Marked.get_mark param') in
         Desugared.Ast.make_let_in tmp_var t
@@ -728,12 +708,9 @@ let rec translate_expr
         assert false (* should not happen *)
       | Ast.Exists -> make_body Or
       | Ast.Forall -> make_body And
-      | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
-        make_body (Add KInt)
-      | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
-        make_body (Add KRat)
-      | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
-        make_body (Add KMoney)
+      | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_body (Add KInt)
+      | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_body (Add KRat)
+      | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_body (Add KMoney)
       | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
         make_body (Add KDuration)
       | Ast.Aggregate (Ast.AggregateSum _) ->
@@ -744,8 +721,7 @@ let rec translate_expr
           | Ast.Integer -> KInt, (Scopelang.Ast.TLit TInt, pos)
           | Ast.Decimal -> KRat, (Scopelang.Ast.TLit TRat, pos)
           | Ast.Money -> KMoney, (Scopelang.Ast.TLit TMoney, pos)
-          | Ast.Duration ->
-            KDuration, (Scopelang.Ast.TLit TDuration, pos)
+          | Ast.Duration -> KDuration, (Scopelang.Ast.TLit TDuration, pos)
           | Ast.Date -> KDate, (Scopelang.Ast.TLit TDate, pos)
           | _ ->
             Errors.raise_spanned_error pos
@@ -753,9 +729,7 @@ let rec translate_expr
               (if max_or_min then "max" else "min")
               Print.format_primitive_typ t
         in
-        let cmp_op =
-          if max_or_min then Gt op_kind else Lt op_kind
-        in
+        let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
         make_extr_body cmp_op typ
       | Ast.Aggregate Ast.AggregateCount ->
         Bindlib.box_apply2
@@ -763,13 +737,11 @@ let rec translate_expr
             ( Desugared.Ast.EIfThenElse
                 ( predicate,
                   ( Desugared.Ast.EApp
-                      ( ( Desugared.Ast.EOp
-                            (Binop (Add KInt)),
+                      ( ( Desugared.Ast.EOp (Binop (Add KInt)),
                           Marked.get_mark op' ),
                         [
                           acc;
-                          ( Desugared.Ast.ELit
-                              (LInt (Runtime.integer_of_int 1)),
+                          ( Desugared.Ast.ELit (LInt (Runtime.integer_of_int 1)),
                             Marked.get_mark predicate );
                         ] ),
                     pos ),
@@ -819,8 +791,7 @@ let rec translate_expr
     Bindlib.box_apply3
       (fun f collection init ->
         ( Desugared.Ast.EApp
-            ( (Desugared.Ast.EOp (Ternop Fold), pos),
-              [f; init; collection] ),
+            ((Desugared.Ast.EOp (Ternop Fold), pos), [f; init; collection]),
           pos ))
       f collection init
   | MemCollection (member, collection) ->
@@ -837,8 +808,7 @@ let rec translate_expr
               ( (Desugared.Ast.EOp (Binop Or), pos),
                 [
                   ( Desugared.Ast.EApp
-                      ( (Desugared.Ast.EOp (Binop Eq), pos),
-                        [member; param] ),
+                      ((Desugared.Ast.EOp (Binop Eq), pos), [member; param]),
                     pos );
                   acc;
                 ] ),
@@ -850,43 +820,28 @@ let rec translate_expr
       Bindlib.box_apply
         (fun binder ->
           ( Desugared.Ast.EAbs
-              ( binder,
-                [
-                  Scopelang.Ast.TLit TBool, pos;
-                  Scopelang.Ast.TAny, pos;
-                ] ),
+              (binder, [Scopelang.Ast.TLit TBool, pos; Scopelang.Ast.TAny, pos]),
             pos ))
         (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
     in
     Bindlib.box_apply3
       (fun f collection init ->
         ( Desugared.Ast.EApp
-            ( (Desugared.Ast.EOp (Ternop Fold), pos),
-              [f; init; collection] ),
+            ((Desugared.Ast.EOp (Ternop Fold), pos), [f; init; collection]),
           pos ))
       f collection init
-  | Builtin IntToDec ->
-    Bindlib.box (Desugared.Ast.EOp (Unop IntToRat), pos)
-  | Builtin MoneyToDec ->
-    Bindlib.box (Desugared.Ast.EOp (Unop MoneyToRat), pos)
-  | Builtin DecToMoney ->
-    Bindlib.box (Desugared.Ast.EOp (Unop RatToMoney), pos)
-  | Builtin Cardinal ->
-    Bindlib.box (Desugared.Ast.EOp (Unop Length), pos)
-  | Builtin GetDay ->
-    Bindlib.box (Desugared.Ast.EOp (Unop GetDay), pos)
-  | Builtin GetMonth ->
-    Bindlib.box (Desugared.Ast.EOp (Unop GetMonth), pos)
-  | Builtin GetYear ->
-    Bindlib.box (Desugared.Ast.EOp (Unop GetYear), pos)
+  | Builtin IntToDec -> Bindlib.box (Desugared.Ast.EOp (Unop IntToRat), pos)
+  | Builtin MoneyToDec -> Bindlib.box (Desugared.Ast.EOp (Unop MoneyToRat), pos)
+  | Builtin DecToMoney -> Bindlib.box (Desugared.Ast.EOp (Unop RatToMoney), pos)
+  | Builtin Cardinal -> Bindlib.box (Desugared.Ast.EOp (Unop Length), pos)
+  | Builtin GetDay -> Bindlib.box (Desugared.Ast.EOp (Unop GetDay), pos)
+  | Builtin GetMonth -> Bindlib.box (Desugared.Ast.EOp (Unop GetMonth), pos)
+  | Builtin GetYear -> Bindlib.box (Desugared.Ast.EOp (Unop GetYear), pos)
   | Builtin FirstDayOfMonth ->
-    Bindlib.box
-      (Desugared.Ast.EOp (Unop FirstDayOfMonth), pos)
+    Bindlib.box (Desugared.Ast.EOp (Unop FirstDayOfMonth), pos)
   | Builtin LastDayOfMonth ->
-    Bindlib.box
-      (Desugared.Ast.EOp (Unop LastDayOfMonth), pos)
-  | Builtin RoundMoney ->
-    Bindlib.box (Desugared.Ast.EOp (Unop RoundMoney), pos)
+    Bindlib.box (Desugared.Ast.EOp (Unop LastDayOfMonth), pos)
+  | Builtin RoundMoney -> Bindlib.box (Desugared.Ast.EOp (Unop RoundMoney), pos)
   | Builtin RoundDecimal ->
     Bindlib.box (Desugared.Ast.EOp (Unop RoundDecimal), pos)
 
@@ -941,8 +896,7 @@ and disambiguate_match_and_build_expression
               (Marked.get_mark case.Ast.match_case_pattern)
               "This case matches a constructor of enumeration %a but previous \
                case were matching constructors of enumeration %a"
-              EnumName.format_t e_uid
-              EnumName.format_t e_uid'
+              EnumName.format_t e_uid EnumName.format_t e_uid'
       in
       (match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
       | None -> ()
@@ -952,8 +906,8 @@ and disambiguate_match_and_build_expression
             None, Marked.get_mark case.match_case_expr;
             None, Marked.get_mark (Bindlib.unbox e_case);
           ]
-          "The constructor %a has been matched twice:"
-          EnumConstructor.format_t c_uid);
+          "The constructor %a has been matched twice:" EnumConstructor.format_t
+          c_uid);
       let ctxt, param_var = create_var (Option.map Marked.unmark binding) in
       let case_body =
         translate_expr scope inside_definition_of ctxt case.Ast.match_case_expr
@@ -1049,8 +1003,7 @@ let merge_conditions
   match precond, cond with
   | Some precond, Some cond ->
     let op_term =
-      ( Desugared.Ast.EOp (Binop And),
-        Marked.get_mark (Bindlib.unbox cond) )
+      Desugared.Ast.EOp (Binop And), Marked.get_mark (Bindlib.unbox cond)
     in
     Bindlib.box_apply2
       (fun precond cond ->
@@ -1061,8 +1014,7 @@ let merge_conditions
       (fun precond -> Marked.unmark precond, default_pos)
       precond
   | None, Some cond -> cond
-  | None, None ->
-    Bindlib.box (Desugared.Ast.ELit (LBool true), default_pos)
+  | None, None -> Bindlib.box (Desugared.Ast.ELit (LBool true), default_pos)
 
 (** Translates a surface definition into condition into a desugared {!type:
     Desugared.Ast.rule} *)
@@ -1237,8 +1189,7 @@ let process_assert
           ( Desugared.Ast.EIfThenElse
               ( precond,
                 ass,
-                Marked.same_mark_as (Desugared.Ast.ELit (LBool true))
-                  precond ),
+                Marked.same_mark_as (Desugared.Ast.ELit (LBool true)) precond ),
             Marked.get_mark precond ))
         precond ass
     | None -> ass

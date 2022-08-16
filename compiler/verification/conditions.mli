@@ -34,17 +34,14 @@ type verification_condition = {
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
   vc_variable : typed Dcalc.Ast.var Marked.pos;
-  vc_free_vars_typ :
-    (typed Dcalc.Ast.expr, typ Marked.pos) Var.Map.t;
+  vc_free_vars_typ : (typed Dcalc.Ast.expr, typ Marked.pos) Var.Map.t;
       (** Types of the locally free variables in [vc_guard]. The types of other
           free variables linked to scope variables can be obtained with
           [Dcalc.Ast.variable_types]. *)
 }
 
 val generate_verification_conditions :
-  typed Dcalc.Ast.program ->
-  ScopeName.t option ->
-  verification_condition list
+  typed Dcalc.Ast.program -> ScopeName.t option -> verification_condition list
 (** [generate_verification_conditions p None] will generate the verification
     conditions for all the variables of all the scopes of the program [p], while
     [generate_verification_conditions p (Some s)] will focus only on the

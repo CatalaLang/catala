@@ -45,16 +45,14 @@ let format_lit (fmt : Format.formatter) (l : L.lit Marked.pos) : unit =
     let years, months, days = Runtime.duration_to_years_months_days d in
     Format.fprintf fmt "duration_of_numbers(%d,%d,%d)" years months days
 
-let format_log_entry (fmt : Format.formatter) (entry : log_entry) :
-    unit =
+let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   match entry with
   | VarDef _ -> Format.fprintf fmt ":="
   | BeginCall -> Format.fprintf fmt "→ "
   | EndCall -> Format.fprintf fmt "%s" "← "
   | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
 
-let format_binop (fmt : Format.formatter) (op : binop Marked.pos) :
-    unit =
+let format_binop (fmt : Format.formatter) (op : binop Marked.pos) : unit =
   match Marked.unmark op with
   | Add _ | Concat -> Format.fprintf fmt "+"
   | Sub _ -> Format.fprintf fmt "-"
@@ -72,8 +70,7 @@ let format_binop (fmt : Format.formatter) (op : binop Marked.pos) :
   | Map -> Format.fprintf fmt "list_map"
   | Filter -> Format.fprintf fmt "list_filter"
 
-let format_ternop (fmt : Format.formatter) (op : ternop Marked.pos) :
-    unit =
+let format_ternop (fmt : Format.formatter) (op : ternop Marked.pos) : unit =
   match Marked.unmark op with Fold -> Format.fprintf fmt "list_fold_left"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -95,8 +92,7 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let format_unop (fmt : Format.formatter) (op : unop Marked.pos) : unit
-    =
+let format_unop (fmt : Format.formatter) (op : unop Marked.pos) : unit =
   match Marked.unmark op with
   | Minus _ -> Format.fprintf fmt "-"
   | Not -> Format.fprintf fmt "not"
@@ -128,30 +124,24 @@ let avoid_keywords (s : string) : string =
   then s ^ "_"
   else s
 
-let format_struct_name (fmt : Format.formatter) (v : StructName.t) :
-    unit =
+let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_camel_case
-          (to_ascii (Format.asprintf "%a" StructName.format_t v))))
+       (to_camel_case (to_ascii (Format.asprintf "%a" StructName.format_t v))))
 
-let format_struct_field_name
-    (fmt : Format.formatter)
-    (v : StructFieldName.t) : unit =
+let format_struct_field_name (fmt : Format.formatter) (v : StructFieldName.t) :
+    unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" StructFieldName.format_t v)))
 
-let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit
-    =
+let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_camel_case
-          (to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+       (to_camel_case (to_ascii (Format.asprintf "%a" EnumName.format_t v))))
 
-let format_enum_cons_name
-    (fmt : Format.formatter)
-    (v : EnumConstructor.t) : unit =
+let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
+    unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
@@ -159,12 +149,9 @@ let format_enum_cons_name
 let typ_needs_parens (e : typ Marked.pos) : bool =
   match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) :
-    unit =
+let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
   let format_typ = format_typ in
-  let format_typ_with_parens
-      (fmt : Format.formatter)
-      (t : typ Marked.pos) =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ Marked.pos) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
@@ -252,8 +239,7 @@ let needs_parens (e : expr Marked.pos) : bool =
   | ELit (LBool _ | LUnit) | EVar _ | EOp _ -> false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit
-    =
+let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
   let pos = Marked.get_mark exc in
   match Marked.unmark exc with
   | ConflictError ->
@@ -289,14 +275,13 @@ let rec format_expression
          (fun fmt (e, struct_field) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              (format_expression ctx) e))
-      (List.combine es
-         (List.map fst (StructMap.find s ctx.ctx_structs)))
+      (List.combine es (List.map fst (StructMap.find s ctx.ctx_structs)))
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
   | EInj (_, cons, e_name)
     when EnumName.compare e_name L.option_enum = 0
-      && EnumConstructor.compare cons L.none_constr = 0 ->
+         && EnumConstructor.compare cons L.none_constr = 0 ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "None"
   | EInj (e, cons, e_name)
@@ -315,9 +300,7 @@ let rec format_expression
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
-  | EApp
-      ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2])
-    ->
+  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
     Format.fprintf fmt "%a(%a,@ %a)" format_binop (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
@@ -327,8 +310,8 @@ let rec format_expression
     when !Cli.trace_flag ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
-  | EApp ((EOp (Unop (Log (VarDef tau, info))), _), [arg1])
-    when !Cli.trace_flag ->
+  | EApp ((EOp (Unop (Log (VarDef tau, info))), _), [arg1]) when !Cli.trace_flag
+    ->
     Format.fprintf fmt "log_variable_definition(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
   | EApp ((EOp (Unop (Log (PosRecordIfTrueBool, _))), pos), [arg1])
@@ -339,8 +322,7 @@ let rec format_expression
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EApp ((EOp (Unop (Log (EndCall, info))), _), [arg1])
-    when !Cli.trace_flag ->
+  | EApp ((EOp (Unop (Log (EndCall, info))), _), [arg1]) when !Cli.trace_flag ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
   | EApp ((EOp (Unop (Log _)), _), [arg1]) ->
@@ -451,8 +433,7 @@ let rec format_statement
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
 
-and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block)
-    : unit =
+and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
     (format_statement ctx) fmt

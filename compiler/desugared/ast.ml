@@ -132,16 +132,11 @@ type marked_expr = expr Marked.pos
 and expr =
   | ELocation of location
   | EVar of expr Bindlib.var
-  | EStruct of
-      StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
-  | EStructAccess of
-      marked_expr * StructFieldName.t * StructName.t
-  | EEnumInj of
-      marked_expr * EnumConstructor.t * EnumName.t
+  | EStruct of StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
+  | EStructAccess of marked_expr * StructFieldName.t * StructName.t
+  | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
   | EMatch of
-      marked_expr
-      * EnumName.t
-      * marked_expr Scopelang.Ast.EnumConstructorMap.t
+      marked_expr * EnumName.t * marked_expr Scopelang.Ast.EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
       (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list

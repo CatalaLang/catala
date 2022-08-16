@@ -383,8 +383,7 @@ let rec generate_verification_conditions_scopes
   | ScopeDef scope_def ->
     let is_selected_scope =
       match s with
-      | Some s when ScopeName.compare s scope_def.scope_name = 0 ->
-        true
+      | Some s when ScopeName.compare s scope_def.scope_name = 0 -> true
       | None -> true
       | _ -> false
     in
@@ -415,9 +414,8 @@ let rec generate_verification_conditions_scopes
     let _scope_var, next = Bindlib.unbind scope_def.scope_next in
     generate_verification_conditions_scopes decl_ctx next s @ vcs
 
-let generate_verification_conditions
-    (p : 'm program)
-    (s : ScopeName.t option) : verification_condition list =
+let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
+    verification_condition list =
   let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
   (* We sort this list by scope name and then variable name to ensure consistent
      output for testing*)

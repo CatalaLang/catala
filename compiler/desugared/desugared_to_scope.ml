@@ -36,9 +36,7 @@ let tag_with_log_entry
     (markings : Utils.Uid.MarkedString.info list) :
     Scopelang.Ast.expr Marked.pos =
   ( Scopelang.Ast.EApp
-      ( ( Scopelang.Ast.EOp (Unop (Log (l, markings))),
-          Marked.get_mark e ),
-        [e] ),
+      ((Scopelang.Ast.EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :

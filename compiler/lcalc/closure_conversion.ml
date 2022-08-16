@@ -159,7 +159,8 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                      binder_mark ))
                  (Bindlib.box_var inner_c_var))
              extra_vars_list)
-          new_body (Expr.mark_pos binder_mark)
+          new_body
+          (Expr.mark_pos binder_mark)
       in
       let new_closure =
         make_abs
@@ -289,8 +290,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
         let global_vars = Var.Set.add scope_var global_vars in
         let ctx =
           {
-            name_context =
-              Marked.unmark (ScopeName.get_info scope.scope_name);
+            name_context = Marked.unmark (ScopeName.get_info scope.scope_name);
             globally_bound_vars = global_vars;
           }
         in

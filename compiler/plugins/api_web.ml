@@ -60,11 +60,8 @@ module To_jsoo = struct
       | TBool -> "bool Js.t"
       | TDate -> "Js.js_string Js.t")
 
-  let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) :
-      unit =
-    let format_typ_with_parens
-        (fmt : Format.formatter)
-        (t : typ Marked.pos) =
+  let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
+    let format_typ_with_parens (fmt : Format.formatter) (t : typ Marked.pos) =
       if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
       else Format.fprintf fmt "%a" format_typ t
     in
@@ -93,36 +90,30 @@ module To_jsoo = struct
     match Marked.unmark typ with
     | TLit TBool -> Format.fprintf fmt "Js.bool"
     | TLit TInt -> Format.fprintf fmt "integer_to_int"
-    | TLit TRat ->
-      Format.fprintf fmt "Js.number_of_float %@%@ decimal_to_float"
-    | TLit TMoney ->
-      Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
+    | TLit TRat -> Format.fprintf fmt "Js.number_of_float %@%@ decimal_to_float"
+    | TLit TMoney -> Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
     | TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
     | TLit TDate -> Format.fprintf fmt "date_to_jsoo"
-    | TEnum (_, ename) ->
-      Format.fprintf fmt "%a_to_jsoo" format_enum_name ename
+    | TEnum (_, ename) -> Format.fprintf fmt "%a_to_jsoo" format_enum_name ename
     | TTuple (_, Some sname) ->
       Format.fprintf fmt "%a_to_jsoo" format_struct_name sname
     | TArray t ->
       Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)"
         format_typ_to_jsoo t
-    | TAny | TTuple (_, None) ->
-      Format.fprintf fmt "Js.Unsafe.inject"
+    | TAny | TTuple (_, None) -> Format.fprintf fmt "Js.Unsafe.inject"
     | _ -> Format.fprintf fmt ""
 
   let rec format_typ_of_jsoo fmt typ =
     match Marked.unmark typ with
     | TLit TBool -> Format.fprintf fmt "Js.to_bool"
     | TLit TInt -> Format.fprintf fmt "integer_of_int"
-    | TLit TRat ->
-      Format.fprintf fmt "decimal_of_float %@%@ Js.float_of_number"
+    | TLit TRat -> Format.fprintf fmt "decimal_of_float %@%@ Js.float_of_number"
     | TLit TMoney ->
       Format.fprintf fmt
         "money_of_decimal %@%@ decimal_of_float %@%@ Js.float_of_number"
     | TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
     | TLit TDate -> Format.fprintf fmt "date_of_jsoo"
-    | TEnum (_, ename) ->
-      Format.fprintf fmt "%a_of_jsoo" format_enum_name ename
+    | TEnum (_, ename) -> Format.fprintf fmt "%a_of_jsoo" format_enum_name ename
     | TTuple (_, Some sname) ->
       Format.fprintf fmt "%a_of_jsoo" format_struct_name sname
     | TArray t ->
@@ -239,8 +230,7 @@ module To_jsoo = struct
     in
     let format_enum_decl
         fmt
-        (enum_name, (enum_cons : (EnumConstructor.t * typ Marked.pos) list))
-        =
+        (enum_name, (enum_cons : (EnumConstructor.t * typ Marked.pos) list)) =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt _ =
         To_ocaml.format_to_module_name fmt (`Ename enum_name)

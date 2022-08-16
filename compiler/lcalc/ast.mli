@@ -69,10 +69,7 @@ val make_multiple_let_in :
 val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
-
-val option_enum_config :
-  (EnumConstructor.t * typ Marked.pos) list
-
+val option_enum_config : (EnumConstructor.t * typ Marked.pos) list
 val make_none : 'm mark -> 'm marked_expr Bindlib.box
 val make_some : 'm marked_expr Bindlib.box -> 'm marked_expr Bindlib.box
 

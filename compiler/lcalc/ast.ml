@@ -67,12 +67,8 @@ let make_multiple_let_in xs taus e1s e2 pos =
 let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x y = Bindlib.box_pair x y
 let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
-
-let none_constr : EnumConstructor.t =
-  EnumConstructor.fresh ("ENone", Pos.no_pos)
-
-let some_constr : EnumConstructor.t =
-  EnumConstructor.fresh ("ESome", Pos.no_pos)
+let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
+let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
 let option_enum_config : (EnumConstructor.t * typ Marked.pos) list =
   [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]

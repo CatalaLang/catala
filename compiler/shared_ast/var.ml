@@ -18,8 +18,8 @@ open Types
 
 (** {1 Variables and their collections} *)
 
-(** This module provides types and helpers for Bindlib variables on the
-    [gexpr] type *)
+(** This module provides types and helpers for Bindlib variables on the [gexpr]
+    type *)
 
 (* The subtypes of the generic AST that hold vars *)
 type 'e expr = 'e

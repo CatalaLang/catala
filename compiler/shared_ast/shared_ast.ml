@@ -15,6 +15,5 @@
    the License. *)
 
 include Types
-
 module Expr = Expr
 module Var = Var

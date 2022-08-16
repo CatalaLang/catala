@@ -78,7 +78,6 @@ let mark_pos (type m) (m : m mark) : Pos.t =
   match m with Untyped { pos } | Typed { pos; _ } -> pos
 
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Marked.get_mark x)
-
 let ty (_, m) : marked_typ = match m with Typed { ty; _ } -> ty
 
 let with_ty (type m) (ty : marked_typ) (x : ('a, m) marked) : ('a, typed) marked
@@ -160,8 +159,7 @@ let map
   | ECatch (e1, exn, e2) -> ecatch (f ctx e1) exn (f ctx e2) (Marked.get_mark e)
   | ERaise exn -> eraise exn (Marked.get_mark e)
 
-let rec map_top_down ~f e =
-  map () ~f:(fun () -> map_top_down ~f) (f e)
+let rec map_top_down ~f e = map () ~f:(fun () -> map_top_down ~f) (f e)
 
 let map_marks ~f e =
   map_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
@@ -243,7 +241,7 @@ let map_exprs_in_scopes ~f ~varf scopes =
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
-let box e=
+let box e =
   let rec id_t () e = map () ~f:id_t e in
   id_t () e
 

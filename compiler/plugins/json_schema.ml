@@ -52,9 +52,7 @@ module To_json = struct
       ('m expr, 'm) scopes -> ('m expr, 'm) scope_def option = function
     | Nil -> None
     | ScopeDef scope_def ->
-      let name =
-        Format.asprintf "%a" ScopeName.format_t scope_def.scope_name
-      in
+      let name = Format.asprintf "%a" ScopeName.format_t scope_def.scope_name in
       if name = target_name then Some scope_def
       else
         let _, next_scope = Bindlib.unbind scope_def.scope_next in
@@ -107,15 +105,14 @@ module To_json = struct
       (scope_def : ('m expr, 'm) scope_def) =
     let get_name t =
       match Marked.unmark t with
-      | TTuple (_, Some sname) ->
-        Format.asprintf "%a" format_struct_name sname
+      | TTuple (_, Some sname) -> Format.asprintf "%a" format_struct_name sname
       | TEnum (_, ename) -> Format.asprintf "%a" format_enum_name ename
       | _ -> failwith "unreachable: only structs and enums are collected."
     in
     let rec collect_required_type_defs_from_scope_input
         (input_struct : StructName.t) : marked_typ list =
-      let rec collect (acc : marked_typ list) (t : marked_typ) :
-          marked_typ list =
+      let rec collect (acc : marked_typ list) (t : marked_typ) : marked_typ list
+          =
         match Marked.unmark t with
         | TTuple (_, Some s) ->
           (* Scope's input is a struct. *)

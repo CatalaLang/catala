@@ -23,33 +23,22 @@ open Ast
 val avoid_keywords : string -> string
 
 val find_struct :
-  StructName.t ->
-  decl_ctx ->
-  (StructFieldName.t * typ Marked.pos) list
+  StructName.t -> decl_ctx -> (StructFieldName.t * typ Marked.pos) list
 
 val find_enum :
-  EnumName.t ->
-  decl_ctx ->
-  (EnumConstructor.t * typ Marked.pos) list
+  EnumName.t -> decl_ctx -> (EnumConstructor.t * typ Marked.pos) list
 
 val typ_needs_parens : typ Marked.pos -> bool
 val needs_parens : 'm marked_expr -> bool
 val format_enum_name : Format.formatter -> EnumName.t -> unit
-
-val format_enum_cons_name :
-  Format.formatter -> EnumConstructor.t -> unit
-
+val format_enum_cons_name : Format.formatter -> EnumConstructor.t -> unit
 val format_struct_name : Format.formatter -> StructName.t -> unit
 
 val format_struct_field_name :
-  Format.formatter ->
-  StructName.t option * StructFieldName.t ->
-  unit
+  Format.formatter -> StructName.t option * StructFieldName.t -> unit
 
 val format_to_module_name :
-  Format.formatter ->
-  [< `Ename of EnumName.t | `Sname of StructName.t ] ->
-  unit
+  Format.formatter -> [< `Ename of EnumName.t | `Sname of StructName.t ] -> unit
 
 val format_lit : Format.formatter -> lit Marked.pos -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit

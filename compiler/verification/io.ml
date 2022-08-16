@@ -74,9 +74,7 @@ module type BackendIO = sig
     string
 
   val encode_and_check_vc :
-    decl_ctx ->
-    Conditions.verification_condition * vc_encoding_result ->
-    unit
+    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
 end
 
 module MakeBackendIO (B : Backend) = struct

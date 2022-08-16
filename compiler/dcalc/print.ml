@@ -69,8 +69,8 @@ let format_enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) :
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
-let rec format_typ (ctx : decl_ctx) (fmt : Format.formatter) (typ : typ) :
-    unit =
+let rec format_typ (ctx : decl_ctx) (fmt : Format.formatter) (typ : typ) : unit
+    =
   let format_typ = format_typ ctx in
   let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
@@ -231,8 +231,8 @@ let rec format_expr
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
       es format_punctuation ")"
   | ETuple (es, Some s) ->
-    Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a%a%a@]@]"
-      StructName.format_t s format_punctuation "{"
+    Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a%a%a@]@]" StructName.format_t s
+      format_punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () ->
            Format.fprintf fmt "%a@ " format_punctuation ";")

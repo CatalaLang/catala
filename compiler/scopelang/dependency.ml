@@ -91,8 +91,7 @@ let check_for_cycle_in_scope (g : SDependencies.t) : unit =
         (List.map
            (fun v ->
              let var_str, var_info =
-               ( Format.asprintf "%a" ScopeName.format_t v,
-                 ScopeName.get_info v )
+               Format.asprintf "%a" ScopeName.format_t v, ScopeName.get_info v
              in
              let succs = SDependencies.succ_e g v in
              let _, edge_pos, succ =
@@ -120,9 +119,7 @@ module TVertex = struct
   type t = Struct of StructName.t | Enum of EnumName.t
 
   let hash x =
-    match x with
-    | Struct x -> StructName.hash x
-    | Enum x -> EnumName.hash x
+    match x with Struct x -> StructName.hash x | Enum x -> EnumName.hash x
 
   let compare x y =
     match x, y with

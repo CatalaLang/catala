@@ -90,10 +90,9 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, struct_field) ->
            Format.fprintf fmt "%a%a%a%a %a" format_punctuation "\""
-             StructFieldName.format_t struct_field format_punctuation
-             "\"" format_punctuation ":" format_expr e))
-      (List.combine es
-         (List.map fst (StructMap.find s ctx.ctx_structs)))
+             StructFieldName.format_t struct_field format_punctuation "\""
+             format_punctuation ":" format_expr e))
+      (List.combine es (List.map fst (StructMap.find s ctx.ctx_structs)))
       format_punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "["
@@ -123,10 +122,8 @@ let rec format_expr
            Format.fprintf fmt "@[<hov 2>%a %a%a@ %a@]" format_punctuation "|"
              Dcalc.Print.format_enum_constructor c format_punctuation ":"
              format_expr e))
-      (List.combine es
-         (List.map fst (EnumMap.find e_name ctx.ctx_enums)))
-  | ELit l ->
-    Format.fprintf fmt "%a" format_lit (Marked.mark (Expr.pos e) l)
+      (List.combine es (List.map fst (EnumMap.find e_name ctx.ctx_enums)))
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (Expr.pos e) l)
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     Format.fprintf fmt "%a%a"
@@ -152,9 +149,7 @@ let rec format_expr
              (Marked.unmark tau) format_punctuation ")"))
       (List.combine (Array.to_list xs) taus)
       format_punctuation "→" format_expr body
-  | EApp
-      ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2])
-    ->
+  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
       format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->

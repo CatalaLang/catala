@@ -49,8 +49,7 @@ let rec format_expr
              StructFieldName.format_t struct_field
              Dcalc.Print.format_punctuation "\"" Dcalc.Print.format_punctuation
              ":" format_expr e))
-      (List.combine es
-         (List.map fst (StructMap.find s decl_ctx.ctx_structs)))
+      (List.combine es (List.map fst (StructMap.find s decl_ctx.ctx_structs)))
       Dcalc.Print.format_punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Dcalc.Print.format_punctuation "["
@@ -64,8 +63,7 @@ let rec format_expr
       StructFieldName.format_t
       (fst
          (List.find
-            (fun (field', _) ->
-              StructFieldName.compare field' field = 0)
+            (fun (field', _) -> StructFieldName.compare field' field = 0)
             (StructMap.find s decl_ctx.ctx_structs)))
       Dcalc.Print.format_punctuation "\""
   | EInj (e, case, enum) ->
@@ -77,9 +75,7 @@ let rec format_expr
       format_expr e
   | ELit l ->
     Format.fprintf fmt "%a" Lcalc.Print.format_lit (Marked.same_mark_as l e)
-  | EApp
-      ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2])
-    ->
+  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
       format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->

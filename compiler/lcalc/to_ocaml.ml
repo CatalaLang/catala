@@ -68,8 +68,7 @@ let format_op_kind (fmt : Format.formatter) (k : op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let format_binop (fmt : Format.formatter) (op : binop Marked.pos) :
-    unit =
+let format_binop (fmt : Format.formatter) (op : binop Marked.pos) : unit =
   match Marked.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
   | Sub k -> Format.fprintf fmt "-%a" format_op_kind k
@@ -87,8 +86,7 @@ let format_binop (fmt : Format.formatter) (op : binop Marked.pos) :
   | Map -> Format.fprintf fmt "Array.map"
   | Filter -> Format.fprintf fmt "array_filter"
 
-let format_ternop (fmt : Format.formatter) (op : ternop Marked.pos) :
-    unit =
+let format_ternop (fmt : Format.formatter) (op : ternop Marked.pos) : unit =
   match Marked.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -110,8 +108,7 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let format_unop (fmt : Format.formatter) (op : unop Marked.pos) : unit
-    =
+let format_unop (fmt : Format.formatter) (op : unop Marked.pos) : unit =
   match Marked.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
@@ -146,8 +143,7 @@ let avoid_keywords (s : string) : string =
     s ^ "_user"
   | _ -> s
 
-let format_struct_name (fmt : Format.formatter) (v : StructName.t) :
-    unit =
+let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.asprintf "%a" StructName.format_t v
   |> to_ascii
   |> to_snake_case
@@ -170,8 +166,7 @@ let format_to_module_name
 
 let format_struct_field_name
     (fmt : Format.formatter)
-    ((sname_opt, v) :
-      StructName.t option * StructFieldName.t) : unit =
+    ((sname_opt, v) : StructName.t option * StructFieldName.t) : unit =
   (match sname_opt with
   | Some sname ->
     Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
@@ -179,22 +174,19 @@ let format_struct_field_name
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" StructFieldName.format_t v)))
 
-let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit
-    =
+let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_snake_case
-          (to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+       (to_snake_case (to_ascii (Format.asprintf "%a" EnumName.format_t v))))
 
-let format_enum_cons_name
-    (fmt : Format.formatter)
-    (v : EnumConstructor.t) : unit =
+let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
+    unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
-let rec typ_embedding_name (fmt : Format.formatter) (ty : typ Marked.pos) :
-    unit =
+let rec typ_embedding_name (fmt : Format.formatter) (ty : typ Marked.pos) : unit
+    =
   match Marked.unmark ty with
   | TLit TUnit -> Format.fprintf fmt "embed_unit"
   | TLit TBool -> Format.fprintf fmt "embed_bool"
@@ -212,11 +204,8 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : typ Marked.pos) :
 let typ_needs_parens (e : typ Marked.pos) : bool =
   match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) :
-    unit =
-  let format_typ_with_parens
-      (fmt : Format.formatter)
-      (t : typ Marked.pos) =
+let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ Marked.pos) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
@@ -382,9 +371,7 @@ let rec format_expr
          (fun fmt (x, tau) ->
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
-  | EApp
-      ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2])
-    ->
+  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos)
       format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
@@ -394,8 +381,8 @@ let rec format_expr
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EApp ((EOp (Unop (Log (VarDef tau, info))), _), [arg1])
-    when !Cli.trace_flag ->
+  | EApp ((EOp (Unop (Log (VarDef tau, info))), _), [arg1]) when !Cli.trace_flag
+    ->
     Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
   | EApp ((EOp (Unop (Log (PosRecordIfTrueBool, _))), m), [arg1])
@@ -407,8 +394,7 @@ let rec format_expr
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EApp ((EOp (Unop (Log (EndCall, info))), _), [arg1])
-    when !Cli.trace_flag ->
+  | EApp ((EOp (Unop (Log (EndCall, info))), _), [arg1]) when !Cli.trace_flag ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
   | EApp ((EOp (Unop (Log _)), _), [arg1]) ->
@@ -460,7 +446,8 @@ let rec format_expr
       (Pos.get_end_column (Expr.pos e'))
       format_string_list
       (Pos.get_law_info (Expr.pos e'))
-  | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception (exc, Expr.pos e)
+  | ERaise exc ->
+    Format.fprintf fmt "raise@ %a" format_exception (exc, Expr.pos e)
   | ECatch (e1, exc, e2) ->
     Format.fprintf fmt
       "@,@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
@@ -509,8 +496,8 @@ let format_enum_embedding
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
-             format_enum_cons_name enum_cons EnumConstructor.format_t
-             enum_cons typ_embedding_name enum_cons_type))
+             format_enum_cons_name enum_cons EnumConstructor.format_t enum_cons
+             typ_embedding_name enum_cons_type))
       enum_cases
 
 let format_ctx

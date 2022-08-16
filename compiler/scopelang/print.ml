@@ -75,9 +75,8 @@ let rec format_expr
            Format.fprintf fmt "%a@ " Dcalc.Print.format_punctuation ";")
          (fun fmt (field_name, field_expr) ->
            Format.fprintf fmt "%a%a%a%a@ %a" Dcalc.Print.format_punctuation "\""
-             StructFieldName.format_t field_name
-             Dcalc.Print.format_punctuation "\"" Dcalc.Print.format_punctuation
-             "=" format_expr field_expr))
+             StructFieldName.format_t field_name Dcalc.Print.format_punctuation
+             "\"" Dcalc.Print.format_punctuation "=" format_expr field_expr))
       (Ast.StructFieldMap.bindings fields)
       Dcalc.Print.format_punctuation "}"
   | EStructAccess (e1, field, _) ->

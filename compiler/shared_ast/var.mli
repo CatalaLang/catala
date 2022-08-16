@@ -18,8 +18,8 @@ open Types
 
 (** {1 Variables and their collections} *)
 
-(** This module provides types and helpers for Bindlib variables on the
-    [gexpr] type *)
+(** This module provides types and helpers for Bindlib variables on the [gexpr]
+    type *)
 
 type 'e expr = 'e
   constraint 'e = ([< desugared | scopelang | dcalc | lcalc ], 't) gexpr

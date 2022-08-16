@@ -71,8 +71,8 @@ let visitor_map
 let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
   match Marked.unmark e with
-  | EMatch ((EInj (e1, i, n', _ts), _), cases, n)
-    when EnumName.compare n n' = 0 ->
+  | EMatch ((EInj (e1, i, n', _ts), _), cases, n) when EnumName.compare n n' = 0
+    ->
     let+ e1 = visitor_map iota_expr () e1
     and+ case = visitor_map iota_expr () (List.nth cases i) in
     default_mark @@ EApp (case, [e1])
@@ -146,9 +146,7 @@ let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_scopes =
-    Expr.map_exprs_in_scopes ~f:(peephole_expr ())
-      ~varf:(fun v -> v)
-      p.scopes
+    Expr.map_exprs_in_scopes ~f:(peephole_expr ()) ~varf:(fun v -> v) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 

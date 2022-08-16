@@ -71,12 +71,9 @@ let rec evaluate_operator
            evaluate_expr ctx
              (Marked.same_mark_as (EApp (List.nth args 0, [acc; e'])) e'))
          (List.nth args 1) es)
-  | Binop And, [ELit (LBool b1); ELit (LBool b2)] ->
-    ELit (LBool (b1 && b2))
-  | Binop Or, [ELit (LBool b1); ELit (LBool b2)] ->
-    ELit (LBool (b1 || b2))
-  | Binop Xor, [ELit (LBool b1); ELit (LBool b2)] ->
-    ELit (LBool (b1 <> b2))
+  | Binop And, [ELit (LBool b1); ELit (LBool b2)] -> ELit (LBool (b1 && b2))
+  | Binop Or, [ELit (LBool b1); ELit (LBool b2)] -> ELit (LBool (b1 || b2))
+  | Binop Xor, [ELit (LBool b1); ELit (LBool b2)] -> ELit (LBool (b1 <> b2))
   | Binop (Add KInt), [ELit (LInt i1); ELit (LInt i2)] ->
     ELit (LInt Runtime.(i1 +! i2))
   | Binop (Sub KInt), [ELit (LInt i1); ELit (LInt i2)] ->
@@ -236,8 +233,7 @@ let rec evaluate_operator
                "This predicate evaluated to something else than a boolean \
                 (should not happen if the term was well-typed)")
          es)
-  | Binop _, ([ELit LEmptyError; _] | [_; ELit LEmptyError]) ->
-    ELit LEmptyError
+  | Binop _, ([ELit LEmptyError; _] | [_; ELit LEmptyError]) -> ELit LEmptyError
   | Unop (Minus KInt), [ELit (LInt i)] ->
     ELit (LInt Runtime.(integer_of_int 0 -! i))
   | Unop (Minus KRat), [ELit (LRat i)] ->
@@ -258,16 +254,13 @@ let rec evaluate_operator
     ELit (LDate Runtime.(first_day_of_month d))
   | Unop LastDayOfMonth, [ELit (LDate d)] ->
     ELit (LDate Runtime.(first_day_of_month d))
-  | Unop IntToRat, [ELit (LInt i)] ->
-    ELit (LRat Runtime.(decimal_of_integer i))
+  | Unop IntToRat, [ELit (LInt i)] -> ELit (LRat Runtime.(decimal_of_integer i))
   | Unop MoneyToRat, [ELit (LMoney i)] ->
     ELit (LRat Runtime.(decimal_of_money i))
   | Unop RatToMoney, [ELit (LRat i)] ->
     ELit (LMoney Runtime.(money_of_decimal i))
-  | Unop RoundMoney, [ELit (LMoney m)] ->
-    ELit (LMoney Runtime.(money_round m))
-  | Unop RoundDecimal, [ELit (LRat m)] ->
-    ELit (LRat Runtime.(decimal_round m))
+  | Unop RoundMoney, [ELit (LMoney m)] -> ELit (LMoney Runtime.(money_round m))
+  | Unop RoundDecimal, [ELit (LRat m)] -> ELit (LRat Runtime.(decimal_round m))
   | Unop (Log (entry, infos)), [e'] ->
     if !Cli.trace_flag then (
       match entry with
@@ -344,7 +337,8 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp op -> Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
+    | EOp op ->
+      Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
     | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e)
@@ -461,8 +455,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
       match Marked.unmark e' with
       | ErrorOnEmpty
           ( EApp
-              ( (EOp (Binop op), _),
-                [((ELit _, _) as e1); ((ELit _, _) as e2)] ),
+              ((EOp (Binop op), _), [((ELit _, _) as e1); ((ELit _, _) as e2)]),
             _ )
       | EApp
           ( (EOp (Unop (Log _)), _),
@@ -472,8 +465,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
                     [((ELit _, _) as e1); ((ELit _, _) as e2)] ),
                 _ );
             ] )
-      | EApp
-          ((EOp (Binop op), _), [((ELit _, _) as e1); ((ELit _, _) as e2)])
+      | EApp ((EOp (Binop op), _), [((ELit _, _) as e1); ((ELit _, _) as e2)])
         ->
         Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
           (Print.format_expr ctx ~debug:false)
@@ -499,8 +491,7 @@ let interpret_program :
  fun (ctx : decl_ctx) (e : 'm Ast.marked_expr) :
      (Uid.MarkedString.info * 'm Ast.marked_expr) list ->
   match evaluate_expr ctx e with
-  | EAbs (_, [((TTuple (taus, Some s_in), _) as targs)]), mark_e ->
-    begin
+  | EAbs (_, [((TTuple (taus, Some s_in), _) as targs)]), mark_e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we cann

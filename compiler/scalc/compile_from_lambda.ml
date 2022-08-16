@@ -50,13 +50,11 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
     let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
     args_stmts, (A.EStruct (new_args, s_name), Expr.pos expr)
-  | ETuple (_, None) ->
-    failwith "Non-struct tuples cannot be compiled to scalc"
+  | ETuple (_, None) -> failwith "Non-struct tuples cannot be compiled to scalc"
   | ETupleAccess (e1, num_field, Some s_name, _) ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     let field_name =
-      fst
-        (List.nth (StructMap.find s_name ctxt.decl_ctx.ctx_structs) num_field)
+      fst (List.nth (StructMap.find s_name ctxt.decl_ctx.ctx_structs) num_field)
     in
     e1_stmts, (A.EStructFieldAccess (new_e1, field_name, s_name), Expr.pos expr)
   | ETupleAccess (_, _, None, _) ->
@@ -112,7 +110,8 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
-    ( (A.SLocalDecl ((tmp_var, Expr.pos expr), (TAny, Expr.pos expr)), Expr.pos expr)
+    ( ( A.SLocalDecl ((tmp_var, Expr.pos expr), (TAny, Expr.pos expr)),
+        Expr.pos expr )
       :: tmp_stmts,
       (A.EVar tmp_var, Expr.pos expr) )
 
@@ -234,7 +233,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.marked_expr) :
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt e_true in
     let s_e_false = translate_statements ctxt e_false in
-    cond_stmts @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Expr.pos block_expr]
+    cond_stmts
+    @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Expr.pos block_expr]
   | ECatch (e_try, except, e_catch) ->
     let s_e_try = translate_statements ctxt e_try in
     let s_e_catch = translate_statements ctxt e_catch in
@@ -247,7 +247,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.marked_expr) :
     | Some x ->
       [
         ( A.SLocalDef
-            ((x, Expr.pos block_expr), (Ast.EVar Ast.dead_value, Expr.pos block_expr)),
+            ( (x, Expr.pos block_expr),
+              (Ast.EVar Ast.dead_value, Expr.pos block_expr) ),
           Expr.pos block_expr );
       ])
     @ [A.SRaise except, Expr.pos block_expr]
@@ -372,8 +373,8 @@ let translate_program (p : 'm L.program) : A.program =
                                         .scope_body_input_struct
                                       p.decl_ctx.ctx_structs),
                                  Some
-                                   scope_def.scope_body
-                                     .scope_body_input_struct ),
+                                   scope_def.scope_body.scope_body_input_struct
+                               ),
                              input_pos ) );
                        ];
                      A.func_body = new_scope_body;

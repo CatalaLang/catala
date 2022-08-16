@@ -136,17 +136,21 @@ val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
 val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
-val untype : ('a, 'm mark) marked_gexpr -> ('a, untyped mark) marked_gexpr Bindlib.box
-val untype_program : (('a, 'm mark) gexpr Var.expr, 'm) program_generic -> (('a, untyped mark) gexpr Var.expr, untyped) program_generic
+
+val untype :
+  ('a, 'm mark) marked_gexpr -> ('a, untyped mark) marked_gexpr Bindlib.box
+
+val untype_program :
+  (('a, 'm mark) gexpr Var.expr, 'm) program_generic ->
+  (('a, untyped mark) gexpr Var.expr, untyped) program_generic
 
 (** {2 Handling of boxing} *)
 
 val box : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr Bindlib.box
 
-
 (** {2 Traversal functions} *)
 
-val map:
+val map :
   'ctx ->
   f:('ctx -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box) ->
   (('a, 't1) gexpr, 't2) Marked.t ->

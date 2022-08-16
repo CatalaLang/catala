@@ -69,24 +69,18 @@ type context = {
       (** The names of the scopes *)
   struct_idmap : StructName.t Desugared.Ast.IdentMap.t;
       (** The names of the structs *)
-  field_idmap :
-    StructFieldName.t StructMap.t
-    Desugared.Ast.IdentMap.t;
+  field_idmap : StructFieldName.t StructMap.t Desugared.Ast.IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
   enum_idmap : EnumName.t Desugared.Ast.IdentMap.t;
       (** The names of the enums *)
-  constructor_idmap :
-    EnumConstructor.t EnumMap.t
-    Desugared.Ast.IdentMap.t;
+  constructor_idmap : EnumConstructor.t EnumMap.t Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
       (** For each scope, its context *)
-  structs : struct_context StructMap.t;
-      (** For each struct, its context *)
-  enums : enum_context EnumMap.t;
-      (** For each enum, its context *)
+  structs : struct_context StructMap.t;  (** For each struct, its context *)
+  enums : enum_context EnumMap.t;  (** For each enum, its context *)
   var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
 }
@@ -111,25 +105,18 @@ val get_var_io :
   context -> Desugared.Ast.ScopeVar.t -> Ast.scope_decl_context_io
 
 val get_var_uid :
-  ScopeName.t ->
-  context ->
-  ident Marked.pos ->
-  Desugared.Ast.ScopeVar.t
+  ScopeName.t -> context -> ident Marked.pos -> Desugared.Ast.ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
 val get_subscope_uid :
-  ScopeName.t ->
-  context ->
-  ident Marked.pos ->
-  Scopelang.Ast.SubScopeName.t
+  ScopeName.t -> context -> ident Marked.pos -> Scopelang.Ast.SubScopeName.t
 (** Get the subscope uid inside the scope given in argument *)
 
 val is_subscope_uid : ScopeName.t -> context -> ident -> bool
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
 
-val belongs_to :
-  context -> Desugared.Ast.ScopeVar.t -> ScopeName.t -> bool
+val belongs_to : context -> Desugared.Ast.ScopeVar.t -> ScopeName.t -> bool
 (** Checks if the var_uid belongs to the scope scope_uid *)
 
 val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Marked.pos

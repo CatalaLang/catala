@@ -24,11 +24,7 @@ val format_var : Format.formatter -> 'm Ast.var -> unit
 val format_exception : Format.formatter -> except -> unit
 
 val format_expr :
-  ?debug:bool ->
-  decl_ctx ->
-  Format.formatter ->
-  'm Ast.marked_expr ->
-  unit
+  ?debug:bool -> decl_ctx -> Format.formatter -> 'm Ast.marked_expr -> unit
 
 val format_scope :
   ?debug:bool ->
