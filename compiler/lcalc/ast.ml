@@ -23,7 +23,7 @@ type lit = lcalc glit
 type 'm expr = (lcalc, 'm mark) gexpr
 and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
-type 'm program = ('m expr, 'm) program_generic
+type 'm program = 'm expr Shared_ast.program
 type 'm var = 'm expr Var.t
 type 'm vars = 'm expr Var.vars
 

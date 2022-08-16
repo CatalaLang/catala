@@ -127,8 +127,9 @@ type desugared = [ `Desugared ]
 type scopelang = [ `Scopelang ]
 type dcalc = [ `Dcalc ]
 type lcalc = [ `Lcalc ]
-type scalc = [ `Scalc ]
-type any = [ desugared | scopelang | dcalc | lcalc | scalc ]
+
+(* type scalc = [ `Scalc ] *)
+type any = [ desugared | scopelang | dcalc | lcalc ]
 
 (** Literals are the same throughout compilation except for the [LEmptyError]
     case which is eliminated midway through. *)
@@ -152,10 +153,12 @@ type ('a, 't) marked_gexpr = (('a, 't) gexpr, 't) Marked.t
     library, based on higher-order abstract syntax *)
 and ('a, 't) gexpr =
   (* Constructors common to all ASTs *)
-  | ELit : 'a glit -> ('a, 't) gexpr
-  | EApp : ('a, 't) marked_gexpr * ('a, 't) marked_gexpr list -> ('a, 't) gexpr
-  | EOp : operator -> ('a, 't) gexpr
-  | EArray : ('a, 't) marked_gexpr list -> ('a, 't) gexpr
+  | ELit : 'a glit -> (([< any ] as 'a), 't) gexpr
+  | EApp :
+      ('a, 't) marked_gexpr * ('a, 't) marked_gexpr list
+      -> (([< any ] as 'a), 't) gexpr
+  | EOp : operator -> (([< any ] as 'a), 't) gexpr
+  | EArray : ('a, 't) marked_gexpr list -> (([< any ] as 'a), 't) gexpr
   (* All but statement calculus *)
   | EVar :
       ('a, 't) gexpr Bindlib.var
@@ -219,11 +222,12 @@ type typed = { pos : Pos.t; ty : marked_typ }
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
     appropriate. Expected to fill the ['t] parameter of [gexpr] and
-    [marked_gexpr] *)
+    [marked_gexpr] (a ['t] annotation different from this type is used in the
+    middle of the typing processing, but all visible ASTs should otherwise use
+    this. *)
 type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
-(* | Inferring : inferring -> inferring mark *)
 
-type ('a, 'm) marked = ('a, 'm mark) Marked.t
+type 'e marked = ('e, 'm mark) Marked.t constraint 'e = ('a, 'm mark) gexpr
 
 (** Useful for errors and printing, for example *)
 type any_marked_expr =
@@ -249,42 +253,47 @@ type scope_let_kind =
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
   | Assertion  (** [let _ = assert e]*)
 
-type ('expr, 'm) scope_let = {
+type 'e scope_let = {
   scope_let_kind : scope_let_kind;
   scope_let_typ : marked_typ;
-  scope_let_expr : ('expr, 'm) marked;
-  scope_let_next : ('expr, ('expr, 'm) scope_body_expr) Bindlib.binder;
+  scope_let_expr : 'e marked;
+  scope_let_next : ('e, 'e scope_body_expr) Bindlib.binder;
   scope_let_pos : Pos.t;
 }
+  constraint 'e = ('a, 'm mark) gexpr
 (** This type is parametrized by the expression type so it can be reused in
     later intermediate representations. *)
 
 (** A scope let-binding has all the information necessary to make a proper
     let-binding expression, plus an annotation for the kind of the let-binding
     that comes from the compilation of a {!module: Scopelang.Ast} statement. *)
-and ('expr, 'm) scope_body_expr =
-  | Result of ('expr, 'm) marked
-  | ScopeLet of ('expr, 'm) scope_let
+and 'e scope_body_expr =
+  | Result of 'e marked
+  | ScopeLet of 'e scope_let
+  constraint 'e = ('a, 'm mark) gexpr
 
-type ('expr, 'm) scope_body = {
+type 'e scope_body = {
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
-  scope_body_expr : ('expr, ('expr, 'm) scope_body_expr) Bindlib.binder;
+  scope_body_expr : ('e, 'e scope_body_expr) Bindlib.binder;
 }
 (** Instead of being a single expression, we give a little more ad-hoc structure
     to the scope body by decomposing it in an ordered list of let-bindings, and
     a result expression that uses the let-binded variables. The first binder is
     the argument of type [scope_body_input_struct]. *)
 
-type ('expr, 'm) scope_def = {
+type 'e scope_def = {
   scope_name : ScopeName.t;
-  scope_body : ('expr, 'm) scope_body;
-  scope_next : ('expr, ('expr, 'm) scopes) Bindlib.binder;
+  scope_body : 'e scope_body;
+  scope_next : ('e, 'e scopes) Bindlib.binder;
 }
 
 (** Finally, we do the same transformation for the whole program for the kinded
     lets. This permit us to use bindlib variables for scopes names. *)
-and ('expr, 'm) scopes = Nil | ScopeDef of ('expr, 'm) scope_def
+and 'e scopes =
+  | Nil
+  | ScopeDef of 'e scope_def
+  constraint 'e = ('a, 'm mark) gexpr
 
 type struct_ctx = (StructFieldName.t * marked_typ) list StructMap.t
 
@@ -293,7 +302,4 @@ type decl_ctx = {
   ctx_structs : struct_ctx;
 }
 
-type ('expr, 'm) program_generic = {
-  decl_ctx : decl_ctx;
-  scopes : ('expr, 'm) scopes;
-}
+type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

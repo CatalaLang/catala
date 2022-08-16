@@ -22,10 +22,7 @@ open Types
 
 (** {2 Boxed constructors} *)
 
-val evar :
-  (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr Bindlib.var ->
-  't ->
-  ('a, 't) marked_gexpr Bindlib.box
+val evar : ('a, 't) gexpr Bindlib.var -> 't -> ('a, 't) marked_gexpr Bindlib.box
 
 val etuple :
   (([< dcalc | lcalc ] as 'a), 't) marked_gexpr Bindlib.box list ->
@@ -57,23 +54,21 @@ val ematch :
   ('a, 't) marked_gexpr Bindlib.box
 
 val earray :
-  ('a, 't) marked_gexpr Bindlib.box list ->
+  (([< any ] as 'a), 't) marked_gexpr Bindlib.box list ->
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
-val elit : 'a glit -> 't -> ('a, 't) marked_gexpr Bindlib.box
+val elit : ([< any ] as 'a) glit -> 't -> ('a, 't) marked_gexpr Bindlib.box
 
 val eabs :
-  ( (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr,
-    ('a, 't) marked_gexpr )
-  Bindlib.mbinder
+  ((([< any ] as 'a), 't) gexpr, ('a, 't) marked_gexpr) Bindlib.mbinder
   Bindlib.box ->
   marked_typ list ->
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
 val eapp :
-  ('a, 't) marked_gexpr Bindlib.box ->
+  (([< any ] as 'a), 't) marked_gexpr Bindlib.box ->
   ('a, 't) marked_gexpr Bindlib.box list ->
   't ->
   ('a, 't) marked_gexpr Bindlib.box
@@ -83,7 +78,7 @@ val eassert :
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
-val eop : operator -> 't -> ('a, 't) marked_gexpr Bindlib.box
+val eop : operator -> 't -> ([< any ], 't) marked_gexpr Bindlib.box
 
 val edefault :
   (([< desugared | scopelang | dcalc ] as 'a), 't) marked_gexpr Bindlib.box list ->
@@ -93,8 +88,7 @@ val edefault :
   ('a, 't) marked_gexpr Bindlib.box
 
 val eifthenelse :
-  (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) marked_gexpr
-  Bindlib.box ->
+  (([< any ] as 'a), 't) marked_gexpr Bindlib.box ->
   ('a, 't) marked_gexpr Bindlib.box ->
   ('a, 't) marked_gexpr Bindlib.box ->
   't ->
@@ -118,9 +112,9 @@ val eraise : except -> 't -> (lcalc, 't) marked_gexpr Bindlib.box
 
 val no_mark : 'm mark -> 'm mark
 val mark_pos : 'm mark -> Pos.t
-val pos : ('a, 'm) marked -> Pos.t
-val ty : ('a, typed) marked -> marked_typ
-val with_ty : marked_typ -> ('a, 'm) marked -> ('a, typed) marked
+val pos : ('e, _) gexpr marked -> Pos.t
+val ty : (_, typed mark) Marked.t -> marked_typ
+val with_ty : marked_typ -> ('a, _ mark) Marked.t -> ('a, typed mark) Marked.t
 
 val map_mark :
   (Pos.t -> Pos.t) -> (marked_typ -> marked_typ) -> 'm mark -> 'm mark
@@ -135,14 +129,13 @@ val map_mark2 :
 val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
-val get_scope_body_mark : ('expr, 'm) scope_body -> 'm mark
+val get_scope_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
 
 val untype :
   ('a, 'm mark) marked_gexpr -> ('a, untyped mark) marked_gexpr Bindlib.box
 
 val untype_program :
-  (('a, 'm mark) gexpr Var.expr, 'm) program_generic ->
-  (('a, untyped mark) gexpr Var.expr, untyped) program_generic
+  (([< any ] as 'a), 'm mark) gexpr program -> ('a, untyped mark) gexpr program
 
 (** {2 Handling of boxing} *)
 
@@ -186,9 +179,9 @@ val map_marks :
   f:('t1 -> 't2) -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box
 
 val fold_left_scope_lets :
-  f:('a -> ('expr, 'm) scope_let -> 'expr Bindlib.var -> 'a) ->
+  f:('a -> 'e scope_let -> 'e Bindlib.var -> 'a) ->
   init:'a ->
-  ('expr, 'm) scope_body_expr ->
+  'e scope_body_expr ->
   'a
 (** Usage:
     [fold_left_scope_lets ~f:(fun acc scope_let scope_let_var -> ...) ~init scope_lets],
@@ -196,9 +189,9 @@ val fold_left_scope_lets :
     scope lets to be examined. *)
 
 val fold_right_scope_lets :
-  f:(('expr1, 'm1) scope_let -> 'expr1 Bindlib.var -> 'a -> 'a) ->
-  init:(('expr1, 'm1) marked -> 'a) ->
-  ('expr1, 'm1) scope_body_expr ->
+  f:('expr1 scope_let -> 'expr1 Bindlib.var -> 'a -> 'a) ->
+  init:('expr1 marked -> 'a) ->
+  'expr1 scope_body_expr ->
   'a
 (** Usage:
     [fold_right_scope_lets ~f:(fun scope_let scope_let_var acc -> ...) ~init scope_lets],
@@ -206,15 +199,15 @@ val fold_right_scope_lets :
     scope lets to be examined (which are before in the program order). *)
 
 val map_exprs_in_scope_lets :
-  f:(('expr1, 'm1) marked -> ('expr2, 'm2) marked Bindlib.box) ->
+  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
   varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
-  ('expr1, 'm1) scope_body_expr ->
-  ('expr2, 'm2) scope_body_expr Bindlib.box
+  'expr1 scope_body_expr ->
+  'expr2 scope_body_expr Bindlib.box
 
 val fold_left_scope_defs :
-  f:('a -> ('expr1, 'm1) scope_def -> 'expr1 Bindlib.var -> 'a) ->
+  f:('a -> 'expr1 scope_def -> 'expr1 Bindlib.var -> 'a) ->
   init:'a ->
-  ('expr1, 'm1) scopes ->
+  'expr1 scopes ->
   'a
 (** Usage:
     [fold_left_scope_defs ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
@@ -222,9 +215,9 @@ val fold_left_scope_defs :
     be examined. *)
 
 val fold_right_scope_defs :
-  f:(('expr1, 'm1) scope_def -> 'expr1 Bindlib.var -> 'a -> 'a) ->
+  f:('expr1 scope_def -> 'expr1 Bindlib.var -> 'a -> 'a) ->
   init:'a ->
-  ('expr1, 'm1) scopes ->
+  'expr1 scopes ->
   'a
 (** Usage:
     [fold_right_scope_defs ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
@@ -232,14 +225,14 @@ val fold_right_scope_defs :
     be examined (which are before in the program order). *)
 
 val map_scope_defs :
-  f:(('expr, 'm) scope_def -> ('expr, 'm) scope_def Bindlib.box) ->
-  ('expr, 'm) scopes ->
-  ('expr, 'm) scopes Bindlib.box
+  f:('e scope_def -> 'e scope_def Bindlib.box) ->
+  'e scopes ->
+  'e scopes Bindlib.box
 
 val map_exprs_in_scopes :
-  f:(('expr1, 'm1) marked -> ('expr2, 'm2) marked Bindlib.box) ->
+  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
   varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
-  ('expr1, 'm1) scopes ->
-  ('expr2, 'm2) scopes Bindlib.box
+  'expr1 scopes ->
+  'expr2 scopes Bindlib.box
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)

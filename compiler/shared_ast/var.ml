@@ -21,20 +21,17 @@ open Types
 (** This module provides types and helpers for Bindlib variables on the [gexpr]
     type *)
 
-(* The subtypes of the generic AST that hold vars *)
-type 'e expr = 'e
-  constraint 'e = ([< desugared | scopelang | dcalc | lcalc ], 't) gexpr
-
-type 'e var = 'e expr Bindlib.var
-type 'e t = 'e var
-type 'e vars = 'e expr Bindlib.mvar
-
-let make (name : string) : 'e var = Bindlib.new_var (fun x -> EVar x) name
+type 'e t = 'e Bindlib.var constraint 'e = ([< any ], 't) gexpr
+type 'e vars = 'e Bindlib.mvar
+type 'e binder = ('e, 'e marked) Bindlib.binder
+let make (name : string) : 'e t = Bindlib.new_var (fun x -> EVar x) name
 let compare = Bindlib.compare_vars
 let eq = Bindlib.eq_vars
 
-let translate (v : 'e1 var) : 'e2 var =
+let translate (v : 'e1 t) : 'e2 t =
   Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
+
+type 'e var = 'e t
 
 (* The purpose of this module is just to lift a type parameter outside of
    [Set.S] and [Map.S], so that we can have ['e Var.Set.t] for sets of variables
@@ -67,7 +64,7 @@ module Set = struct
   open Generic
   open Set.Make (Generic)
 
-  type nonrec 'e t = t constraint 'e = 'e expr
+  type nonrec 'e t = t
 
   let empty = empty
   let singleton x = singleton (t x)
@@ -77,6 +74,7 @@ module Set = struct
   let mem x s = mem (t x) s
   let of_list l = of_list (List.map t l)
   let elements s = elements s |> List.map get
+  let diff s1 s2 = diff s1 s2
 
   (* Add more as needed *)
 end
@@ -87,7 +85,7 @@ module Map = struct
   open Generic
   open Map.Make (Generic)
 
-  type nonrec ('e, 'x) t = 'x t constraint 'e = 'e expr
+  type nonrec ('e, 'x) t = 'x t
 
   let empty = empty
   let singleton v x = singleton (t v) x

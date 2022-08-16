@@ -365,10 +365,8 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
         (TAny, Expr.mark_pos mark_hoist)
         c' (A.make_none mark_hoist) acc)
 
-let rec translate_scope_let
-    (ctx : 'm ctx)
-    (lets : ('m D.expr, 'm) scope_body_expr) :
-    ('m A.expr, 'm) scope_body_expr Bindlib.box =
+let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
+    'm A.expr scope_body_expr Bindlib.box =
   match lets with
   | Result e ->
     Bindlib.box_apply
@@ -493,8 +491,7 @@ let rec translate_scope_let
 let translate_scope_body
     (scope_pos : Pos.t)
     (ctx : 'm ctx)
-    (body : ('m D.expr, 'm) scope_body) : ('m A.expr, 'm) scope_body Bindlib.box
-    =
+    (body : 'm D.expr scope_body) : 'm A.expr scope_body Bindlib.box =
   match body with
   | {
    scope_body_expr = result;
@@ -520,8 +517,8 @@ let translate_scope_body
         })
       (Bindlib.bind_var v' (translate_scope_let ctx' lets))
 
-let rec translate_scopes (ctx : 'm ctx) (scopes : ('m D.expr, 'm) scopes) :
-    ('m A.expr, 'm) scopes Bindlib.box =
+let rec translate_scopes (ctx : 'm ctx) (scopes : 'm D.expr scopes) :
+    'm A.expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef { scope_name; scope_body; scope_next } ->

@@ -564,7 +564,7 @@ let format_ctx
 let rec format_scope_body_expr
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scope_lets : ('m Ast.expr, 'm) scope_body_expr) : unit =
+    (scope_lets : 'm Ast.expr scope_body_expr) : unit =
   match scope_lets with
   | Result e -> format_expr ctx fmt e
   | ScopeLet scope_let ->
@@ -580,7 +580,7 @@ let rec format_scope_body_expr
 let rec format_scopes
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scopes : ('m Ast.expr, 'm) scopes) : unit =
+    (scopes : 'm Ast.expr scopes) : unit =
   match scopes with
   | Nil -> ()
   | ScopeDef scope_def ->

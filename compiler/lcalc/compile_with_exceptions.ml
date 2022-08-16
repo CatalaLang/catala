@@ -119,8 +119,8 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.marked_expr) :
 let rec translate_scope_lets
     (decl_ctx : decl_ctx)
     (ctx : 'm ctx)
-    (scope_lets : ('m D.expr, 'm) scope_body_expr) :
-    ('m A.expr, 'm) scope_body_expr Bindlib.box =
+    (scope_lets : 'm D.expr scope_body_expr) :
+    'm A.expr scope_body_expr Bindlib.box =
   match scope_lets with
   | Result e -> Bindlib.box_apply (fun e -> Result e) (translate_expr ctx e)
   | ScopeLet scope_let ->
@@ -147,7 +147,7 @@ let rec translate_scope_lets
 let rec translate_scopes
     (decl_ctx : decl_ctx)
     (ctx : 'm ctx)
-    (scopes : ('m D.expr, 'm) scopes) : ('m A.expr, 'm) scopes Bindlib.box =
+    (scopes : 'm D.expr scopes) : 'm A.expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
@@ -166,7 +166,7 @@ let rec translate_scopes
     let new_scope_body_expr =
       Bindlib.bind_var new_scope_input_var new_scope_body_expr
     in
-    let new_scope : ('m A.expr, 'm) scope_body Bindlib.box =
+    let new_scope : 'm A.expr scope_body Bindlib.box =
       Bindlib.box_apply
         (fun new_scope_body_expr ->
           {

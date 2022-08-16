@@ -52,5 +52,5 @@ val format_scope :
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->
-  ScopeName.t * ('m Ast.expr, 'm) scope_body ->
+  ScopeName.t * 'm Ast.expr scope_body ->
   unit

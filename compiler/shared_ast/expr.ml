@@ -77,11 +77,13 @@ let no_mark (type m) : m mark -> m mark = function
 let mark_pos (type m) (m : m mark) : Pos.t =
   match m with Untyped { pos } | Typed { pos; _ } -> pos
 
-let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Marked.get_mark x)
+let pos (type m) (x : ('a, m mark) Marked.t) : Pos.t =
+  mark_pos (Marked.get_mark x)
+
 let ty (_, m) : marked_typ = match m with Typed { ty; _ } -> ty
 
-let with_ty (type m) (ty : marked_typ) (x : ('a, m) marked) : ('a, typed) marked
-    =
+let with_ty (type m) (ty : marked_typ) (x : ('a, m mark) Marked.t) :
+    ('a, typed mark) Marked.t =
   Marked.mark
     (match Marked.get_mark x with
     | Untyped { pos } -> Typed { pos; ty }
@@ -247,12 +249,11 @@ let box e =
 
 let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
-let untype_program prg =
+let untype_program (prg : ('a, 'm mark) gexpr program) :
+    ('a, untyped mark) gexpr program =
   {
     prg with
     scopes =
       Bindlib.unbox
-        (map_exprs_in_scopes
-           ~f:(fun e -> untype e)
-           ~varf:Var.translate prg.scopes);
+        (map_exprs_in_scopes ~f:untype ~varf:Var.translate prg.scopes);
   }

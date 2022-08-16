@@ -275,7 +275,7 @@ let rec translate_scope_body_expr
     (decl_ctx : decl_ctx)
     (var_dict : ('m L.expr, A.LocalName.t) Var.Map.t)
     (func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t)
-    (scope_expr : ('m L.expr, 'm) scope_body_expr) : A.block =
+    (scope_expr : 'm L.expr scope_body_expr) : A.block =
   match scope_expr with
   | Result e ->
     let block, new_e =

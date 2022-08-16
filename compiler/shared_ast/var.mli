@@ -21,13 +21,8 @@ open Types
 (** This module provides types and helpers for Bindlib variables on the [gexpr]
     type *)
 
-type 'e expr = 'e
-  constraint 'e = ([< desugared | scopelang | dcalc | lcalc ], 't) gexpr
-(** Subtype of gexpr where variables are handled *)
-
-type 'e var = 'e expr Bindlib.var
-type 'e t = 'e var
-type 'e vars = 'e expr Bindlib.mvar
+type 'e t = 'e Bindlib.var constraint 'e = ([< any ], 't) gexpr
+type 'e vars = 'e Bindlib.mvar
 
 val make : string -> 'e t
 val compare : 'e t -> 'e t -> int
@@ -37,10 +32,13 @@ val translate : 'e1 t -> 'e2 t
 (** Needed when converting from one AST type to another. See the note of caution
     on [Bindlib.copy_var]. *)
 
+type 'e var = 'e t
+(** Alias to allow referring to the type in the submodules *)
+
 (** Wrapper over [Set.S] but with a type variable for the AST type parameters.
     Extend as needed *)
 module Set : sig
-  type 'e t constraint 'e = 'e expr
+  type 'e t
 
   val empty : 'e t
   val singleton : 'e var -> 'e t
@@ -50,12 +48,13 @@ module Set : sig
   val mem : 'e var -> 'e t -> bool
   val of_list : 'e var list -> 'e t
   val elements : 'e t -> 'e var list
+  val diff : 'e t -> 'e t -> 'e t
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.
     Extend as needed *)
 module Map : sig
-  type ('e, 'x) t constraint 'e = 'e expr
+  type ('e, 'x) t
 
   val empty : ('e, 'x) t
   val singleton : 'e var -> 'x -> ('e, 'x) t

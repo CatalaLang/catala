@@ -26,7 +26,7 @@ type lit = lcalc glit
 type 'm expr = (lcalc, 'm mark) gexpr
 and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
-type 'm program = ('m expr, 'm) program_generic
+type 'm program = 'm expr Shared_ast.program
 
 (** {1 Variable helpers} *)
 
@@ -35,7 +35,7 @@ type 'm vars = 'm expr Var.vars
 
 (** {1 Language terms construction}*)
 
-val make_var : ('m var, 'm) marked -> 'm marked_expr Bindlib.box
+val make_var : ('m var, 'm mark) Marked.t -> 'm marked_expr Bindlib.box
 
 val make_abs :
   'm vars ->

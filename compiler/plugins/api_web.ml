@@ -334,16 +334,16 @@ module To_jsoo = struct
           Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
       (type_ordering @ scope_structs)
 
-  let fmt_input_struct_name fmt (scope_def : ('a expr, 'm) scope_def) =
+  let fmt_input_struct_name fmt (scope_def : 'a expr scope_def) =
     format_struct_name fmt scope_def.scope_body.scope_body_input_struct
 
-  let fmt_output_struct_name fmt (scope_def : ('a expr, 'm) scope_def) =
+  let fmt_output_struct_name fmt (scope_def : 'a expr scope_def) =
     format_struct_name fmt scope_def.scope_body.scope_body_output_struct
 
   let rec format_scopes_to_fun
       (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : ('expr, 'm) scopes) =
+      (scopes : 'e scopes) =
     match scopes with
     | Nil -> ()
     | ScopeDef scope_def ->
@@ -362,7 +362,7 @@ module To_jsoo = struct
   let rec format_scopes_to_callbacks
       (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : ('expr, 'm) scopes) : unit =
+      (scopes : 'e scopes) : unit =
     match scopes with
     | Nil -> ()
     | ScopeDef scope_def ->

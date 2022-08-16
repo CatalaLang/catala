@@ -293,7 +293,7 @@ type verification_condition = {
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
-    (scope_body_expr : ('m expr, 'm) scope_body_expr) :
+    (scope_body_expr : 'm expr scope_body_expr) :
     ctx * verification_condition list =
   match scope_body_expr with
   | Result _ -> ctx, []
@@ -376,7 +376,7 @@ let rec generate_verification_conditions_scope_body_expr
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)
-    (scopes : ('m expr, 'm) scopes)
+    (scopes : 'm expr scopes)
     (s : ScopeName.t option) : verification_condition list =
   match scopes with
   | Nil -> []

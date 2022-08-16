@@ -190,8 +190,8 @@ let optimize_expr (decl_ctx : decl_ctx) (e : 'm marked_expr) =
 let rec scope_lets_map
     (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
     (ctx : 'a)
-    (scope_body_expr : ('m expr, 'm) scope_body_expr) :
-    ('m expr, 'm) scope_body_expr Bindlib.box =
+    (scope_body_expr : 'm expr scope_body_expr) :
+    'm expr scope_body_expr Bindlib.box =
   match scope_body_expr with
   | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
   | ScopeLet scope_let ->
@@ -212,7 +212,7 @@ let rec scope_lets_map
 let rec scopes_map
     (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
     (ctx : 'a)
-    (scopes : ('m expr, 'm) scopes) : ('m expr, 'm) scopes Bindlib.box =
+    (scopes : 'm expr scopes) : 'm expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
