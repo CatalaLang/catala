@@ -635,17 +635,17 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   étiquette l831_1_2 règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
-        (selon location.bailleur.type_bailleur sous forme
+        (selon location.Location.bailleur.type_bailleur sous forme
         -- BailleurSocial:
-          location.bailleur.respecte_convention_titre_V
+          location.Location.bailleur.respecte_convention_titre_V
         -- BailleurPrivé:
-          location.bailleur.respecte_convention_titre_II)
+          location.Location.bailleur.respecte_convention_titre_II)
       -- RésidentLogementFoyer de logement_foyer:
-        (selon logement_foyer.location.bailleur.type_bailleur sous forme
+        (selon logement_foyer.LogementFoyer.bailleur.type_bailleur sous forme
         -- BailleurSocial:
-          logement_foyer.location.bailleur.respecte_convention_titre_V
+          logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_V
         -- BailleurPrivé:
-          logement_foyer.location.bailleur.respecte_convention_titre_II)
+          logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_II)
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -668,18 +668,19 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   exception l831_1_4 règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
-        (selon location.bailleur.type_bailleur sous forme
+        (selon location.Location.bailleur.type_bailleur sous forme
         -- BailleurSocial: faux
         -- BailleurPrivé:
-          location.bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
-            location.bailleur.respecte_convention_titre_V)
+          location.Location.bailleur.
+            acquisition_aides_état_prêt_titre_II_ou_livre_III et
+          location.Location.bailleur.respecte_convention_titre_V)
       -- RésidentLogementFoyer de logement_foyer:
-        (selon logement_foyer.location.bailleur.type_bailleur sous forme
+        (selon logement_foyer.LogementFoyer.bailleur.type_bailleur sous forme
         -- BailleurSocial: faux
         -- BailleurPrivé:
-          logement_foyer.location.
+          logement_foyer.LogementFoyer.
             bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
-            logement_foyer.location.bailleur.respecte_convention_titre_V)
+            logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_V)
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -695,27 +696,27 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
-        (selon location.bailleur.type_bailleur sous forme
+        (selon location.Location.bailleur.type_bailleur sous forme
         -- BailleurSocial:
-          location.bailleur.construit_amélioré_conditions_l831_1_4 et
-          (location.bailleur.respecte_convention_titre_V ou
-            location.bailleur.respecte_convention_titre_II)
+          location.Location.bailleur.construit_amélioré_conditions_l831_1_4 et
+          (location.Location.bailleur.respecte_convention_titre_V ou
+            location.Location.bailleur.respecte_convention_titre_II)
         -- BailleurPrivé:
-          location.bailleur.construit_amélioré_conditions_l831_1_4 et
-          (location.bailleur.respecte_convention_titre_V ou
-            location.bailleur.respecte_convention_titre_II))
+          location.Location.bailleur.construit_amélioré_conditions_l831_1_4 et
+          (location.Location.bailleur.respecte_convention_titre_V ou
+            location.Location.bailleur.respecte_convention_titre_II))
       -- RésidentLogementFoyer de logement_foyer:
-        (selon logement_foyer.location.bailleur.type_bailleur sous forme
+        (selon logement_foyer.LogementFoyer.bailleur.type_bailleur sous forme
         -- BailleurSocial:
-          logement_foyer.location.
+          logement_foyer.LogementFoyer.
             bailleur.construit_amélioré_conditions_l831_1_4 et
-          (logement_foyer.location.bailleur.respecte_convention_titre_V ou
-            logement_foyer.location.bailleur.respecte_convention_titre_II)
+          (logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_V ou
+            logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_II)
         -- BailleurPrivé:
-          logement_foyer.location.bailleur.
+          logement_foyer.LogementFoyer.bailleur.
             construit_amélioré_conditions_l831_1_4 et
-          (logement_foyer.location.bailleur.respecte_convention_titre_V ou
-            logement_foyer.location.bailleur.respecte_convention_titre_II))
+          (logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_V ou
+            logement_foyer.LogementFoyer.bailleur.respecte_convention_titre_II))
       -- n'importe quel: faux
   conséquence rempli
 ```
