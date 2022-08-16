@@ -1475,8 +1475,6 @@ champ d'application CalculAidePersonnaliséeLogement:
     situation_familiale_calcul_apl
   définition accession_propriété.situation_familiale_calcul_apl égal à
     situation_familiale_calcul_apl
-  définition logement_foyer.mode_occupation égal à
-    mode_occupation
 
   définition locatif.loyer_principal égal à
     selon mode_occupation sous forme
@@ -1547,7 +1545,8 @@ champ d'application CalculAidePersonnaliséeLogement:
   définition accession_propriété.type_travaux_logement égal à
     selon mode_occupation sous forme
     -- Locataire: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
-    -- SousLocataire: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
+    -- SousLocataire:
+      TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
     -- RésidentLogementFoyer: TypeTravauxLogementD832_15.PasDeTravaux
       # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
@@ -1625,9 +1624,25 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- RésidentLogementFoyer de logement_foyer_: logement_foyer_.redevance
     -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
     -- LocationAccession: 0 € # Valeur par défaut
+  définition logement_foyer.type_logement_foyer égal à
+    selon mode_occupation sous forme
+    -- Locataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- SousLocataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.type
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      TypeLogementFoyer.Autre # Valeur par défaut
+    -- LocationAccession: TypeLogementFoyer.Autre # Valeur par défaut
+  définition logement_foyer.date_conventionnement égal à
+    selon mode_occupation sous forme
+    -- Locataire: |1970-01-01| # Valeur par défaut
+    -- SousLocataire: |1970-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.date_conventionnement
+    -- AccessionPropriétéLocalUsageExclusifHabitation: |1970-01-01| # Valeur par défaut
+    -- LocationAccession: |1970-01-01| # Valeur par défaut
 
 champ d'application CalculAllocationLogement:
-
   définition locatif.ressources_ménage_arrondies égal à ressources_ménage
   définition logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage
@@ -1651,8 +1666,6 @@ champ d'application CalculAllocationLogement:
     situation_familiale_calcul_apl
   définition accession_propriété.situation_familiale_calcul_apl égal à
     situation_familiale_calcul_apl
-  définition logement_foyer.mode_occupation égal à
-    mode_occupation
 
   définition locatif.loyer_principal égal à
     selon mode_occupation sous forme
@@ -1806,8 +1819,26 @@ champ d'application CalculAllocationLogement:
     -- SousLocataire: AutresPersonnes # Valeur par défaut
     -- RésidentLogementFoyer de logement_foyer_:
       logement_foyer_.catégorie_équivalence_loyer_d842_16
-    -- AccessionPropriétéLocalUsageExclusifHabitation: AutresPersonnes # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      AutresPersonnes # Valeur par défaut
     -- LocationAccession: AutresPersonnes # Valeur par défaut
+  définition logement_foyer.type_logement_foyer égal à
+    selon mode_occupation sous forme
+    -- Locataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- SousLocataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.type
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      TypeLogementFoyer.Autre # Valeur par défaut
+    -- LocationAccession: TypeLogementFoyer.Autre # Valeur par défaut
+  définition logement_foyer.date_conventionnement égal à
+    selon mode_occupation sous forme
+    -- Locataire: |1970-01-01| # Valeur par défaut
+    -- SousLocataire: |1970-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.date_conventionnement
+    -- AccessionPropriétéLocalUsageExclusifHabitation: |1970-01-01| # Valeur par défaut
+    -- LocationAccession: |1970-01-01| # Valeur par défaut
 ```
 
 ####### Sous-section 1 : Ouverture et extinction des droits
@@ -3991,14 +4022,11 @@ selon la formule et les modalités précisées au 2° du présent article.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition condition_2_du_832_25 égal à
-    selon mode_occupation sous forme
-    -- RésidentLogementFoyer de logement_foyer: (
-      selon logement_foyer.type sous forme
-      -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995:
-        logement_foyer.date_conventionnement >=@ |1990-09-30|
-      -- RésidenceSociale:
-        logement_foyer.date_conventionnement >=@ |1994-12-31|
-      -- n'importe quel: faux)
+    selon type_logement_foyer sous forme
+    -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995:
+      date_conventionnement >=@ |1990-09-30|
+    -- RésidenceSociale:
+      date_conventionnement >=@ |1994-12-31|
     -- n'importe quel: faux
 ```
 

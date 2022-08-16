@@ -9,21 +9,9 @@ déclaration champ d'application CasTest1 :
   sortie montant contenu argent
 
 champ d'application CasTest1:
-  définition calcul.mode_occupation égal à RésidentLogementFoyer contenu (LogementFoyer {
-    -- type : TypeLogementFoyer.RésidenceSociale
-    -- date_conventionnement : |2020-01-01|
-    -- construit_application_loi_1957_12_III: faux
-    -- bailleur: Bailleur {
-      -- type_bailleur: BailleurSocial
-      -- respecte_convention_titre_V: vrai
-      -- respecte_convention_titre_II: vrai
-      -- construit_amélioré_conditions_l831_1_4: vrai
-      -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
-    }
-    -- remplit_conditions_r832_21 : vrai
-    -- redevance: 350 €
-    -- catégorie_équivalence_loyer_d842_16: AutresPersonnes
-  })
+  définition calcul.date_conventionnement égal à |2020-01-01|
+  définition calcul.type_logement_foyer égal à
+    TypeLogementFoyer.RésidenceSociale
   définition calcul.redevance égal à 350 €
   définition calcul.ressources_ménage_arrondies égal à 7 500€
   définition calcul.nombre_personnes_à_charge égal à 0

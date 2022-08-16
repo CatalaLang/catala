@@ -600,7 +600,8 @@ déclaration champ d'application CalculNombrePartLogementFoyer:
   sortie n_nombre_parts_d832_25 contenu décimal
 
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
-  entrée mode_occupation contenu ModeOccupation
+  entrée type_logement_foyer contenu TypeLogementFoyer
+  entrée date_conventionnement contenu date
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -877,27 +878,16 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
     état montant_minimal
 
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition calcul_apl_logement_foyer.mode_occupation égal à
-    # Ici la valeur du mode d'occupation n'a pas de sens puisque l'on est
-    # dans le cas d'une accession à la propriété mais on nous demande de
-    # calculer des quantités comme si on était en logement foyer. Or il nous
-    # faut donner un argument au sous-champ d'application donc on met ici une
-    # valeur bidon.
-    RésidentLogementFoyer contenu (LogementFoyer {
-      -- type: RésidenceSociale
-      -- date_conventionnement: |2022-01-01|
-      -- construit_application_loi_1957_12_III: faux
-      -- bailleur: Bailleur {
-        -- type_bailleur: BailleurSocial
-        -- respecte_convention_titre_V: vrai
-        -- respecte_convention_titre_II: vrai
-        -- construit_amélioré_conditions_l831_1_4: vrai
-        -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
-      }
-      -- remplit_conditions_r832_21: faux
-      -- redevance: 0€
-      -- catégorie_équivalence_loyer_d842_16: AutresPersonnes
-    })
+  # Ici la valeur du type de foyer et de la date de conventionnement
+  # n'a pas de sens puisque l'on est
+  # dans le cas d'une accession à la propriété mais on nous demande de
+  # calculer des quantités comme si on était en logement foyer. Or il nous
+  # faut donner un argument au sous-champ d'application donc on met ici une
+  # valeur bidon.
+  définition calcul_apl_logement_foyer.type_logement_foyer égal à
+    TypeLogementFoyer.Autre # Valeur par défaut
+  définition calcul_apl_logement_foyer.date_conventionnement égal à
+    |1970-01-01| # Valeur par défaut
   définition calcul_apl_logement_foyer.redevance égal à
     0 € # Valeur par défaut
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
@@ -917,8 +907,9 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 
 ```catala-metadata
 déclaration champ d'application CalculAllocationLogementFoyer:
+  entrée type_logement_foyer contenu TypeLogementFoyer
+  entrée date_conventionnement contenu date
   entrée redevance contenu argent
-  entrée mode_occupation contenu ModeOccupation
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -954,8 +945,10 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     état montant_minimal
 
 champ d'application CalculAllocationLogementFoyer:
-  définition calcul_apl_logement_foyer.mode_occupation égal à
-    mode_occupation
+  définition calcul_apl_logement_foyer.type_logement_foyer égal à
+    type_logement_foyer
+  définition calcul_apl_logement_foyer.date_conventionnement égal à
+    date_conventionnement
   définition calcul_apl_logement_foyer.redevance égal à
     redevance
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
