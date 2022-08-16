@@ -192,5 +192,3 @@ let make_matchopt m v tau arg e_none e_some =
 
 let handle_default = Var.make "handle_default"
 let handle_default_opt = Var.make "handle_default_opt"
-
-type 'm binder = ('m expr, 'm marked_expr) Bindlib.binder
