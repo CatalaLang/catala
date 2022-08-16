@@ -4461,7 +4461,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               (fun (_: _) -> (log_decision_taken
                                  {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                                    start_line=386; start_column=5;
-                                   end_line=389; end_column=57;
+                                   end_line=389; end_column=58;
                                    law_headings=["Article D755-5";
                                                   "Chapitre 5 : Prestations familiales et prestations assimilées";
                                                   "Titre 5 : Départements d'outre-mer";
@@ -4490,7 +4490,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           (((param_.Enfant.date_de_naissance)
                                               +@
                                               (duration_of_numbers (16) (0) (0)))
-                                             >@ date_courante_))))))
+                                             <=@ date_courante_))))))
                               (fun (_: _) ->
                                  bmaf_dot_montant_ *$
                                    (decimal_of_string "0.0567")))|])
