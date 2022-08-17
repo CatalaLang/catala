@@ -59,6 +59,13 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TDuration -> "duration"
     | TDate -> "date")
 
+let location (fmt : Format.formatter) (l : location) : unit =
+  match l with
+  | ScopeVar v -> Format.fprintf fmt "%a" ScopeVar.format_t (Marked.unmark v)
+  | SubScopeVar (_, subindex, subvar) ->
+    Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
+      ScopeVar.format_t (Marked.unmark subvar)
+
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Format.fprintf fmt "%a"
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
@@ -109,7 +116,6 @@ let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
       (Marked.unmark t1)
   | TAny -> base_type fmt "any"
 
-(* (EmileRolley) NOTE: seems to be factorizable with Print.lit. *)
 let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
   match l with
   | LBool b -> lit_style fmt (string_of_bool b)
@@ -338,3 +344,29 @@ let rec expr :
        with_parens e1 keyword "with" except exn with_parens e2
    | ERaise exn ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
+   | ELocation loc -> location fmt loc
+   | EStruct (name, fields) ->
+     Format.fprintf fmt " @[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
+       punctuation "{"
+       (Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
+          (fun fmt (field_name, field_expr) ->
+            Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
+              StructFieldName.format_t field_name punctuation "\"" punctuation
+              "=" expr field_expr))
+       (StructFieldMap.bindings fields)
+       punctuation "}"
+   | EStructAccess (e1, field, _) ->
+     Format.fprintf fmt "%a%a%a%a%a" expr e1 punctuation "." punctuation "\""
+       StructFieldName.format_t field punctuation "\""
+   | EEnumInj (e1, cons, _) ->
+     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons expr e1
+   | EMatchS (e1, _, cases) ->
+     Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" keyword "match"
+       expr e1 keyword "with"
+       (Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+          (fun fmt (cons_name, case_expr) ->
+            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
+              enum_constructor cons_name punctuation "→" expr case_expr))
+       (EnumConstructorMap.bindings cases)
