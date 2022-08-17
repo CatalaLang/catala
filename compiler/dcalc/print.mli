@@ -39,7 +39,7 @@ val format_binop : Format.formatter -> binop -> unit
 val format_ternop : Format.formatter -> ternop -> unit
 val format_log_entry : Format.formatter -> log_entry -> unit
 val format_unop : Format.formatter -> unop -> unit
-val format_var : Format.formatter -> 'm Ast.var -> unit
+val format_var : Format.formatter -> 'e Var.t -> unit
 
 val format_expr :
   ?debug:bool (** [true] for debug printing *) ->

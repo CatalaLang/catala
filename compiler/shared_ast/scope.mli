@@ -17,6 +17,7 @@
 
 (** Functions handling the scope structures of [shared_ast] *)
 
+open Utils
 open Types
 
 (** {2 Traversal functions} *)
@@ -79,4 +80,36 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
-(** {2 Other helpers} *)
+val get_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
+
+(** {2 Conversions} *)
+
+val to_expr :
+  decl_ctx ->
+  ((_ any, 'm mark) gexpr as 'e) scope_body ->
+  'm mark ->
+  'e marked Bindlib.box
+(** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
+    to the line of the scope declaration for instance. *)
+
+type 'e scope_name_or_var =
+  | ScopeName of ScopeName.t
+  | ScopeVar of 'e Bindlib.var
+
+val unfold :
+  decl_ctx ->
+  ((_ any, 'm mark) gexpr as 'e) scopes ->
+  'm mark ->
+  'e scope_name_or_var ->
+  'e marked Bindlib.box
+
+val build_typ_from_sig :
+  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ Marked.pos
+(** [build_typ_from_sig ctx in_struct out_struct pos] builds the arrow type for
+    the specified scope *)
+
+(** {2 Analysis and tests} *)
+
+val free_vars_body_expr : 'e anyexpr scope_body_expr -> 'e Var.Set.t
+val free_vars_body : 'e anyexpr scope_body -> 'e Var.Set.t
+val free_vars : 'e anyexpr scopes -> 'e Var.Set.t

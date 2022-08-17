@@ -22,6 +22,7 @@ open Types
 
 (** {2 Boxed constructors} *)
 
+val box : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr Bindlib.box
 val evar : ('a, 't) gexpr Bindlib.var -> 't -> ('a, 't) marked_gexpr Bindlib.box
 
 val etuple :
@@ -54,21 +55,20 @@ val ematch :
   ('a, 't) marked_gexpr Bindlib.box
 
 val earray :
-  (([< any ] as 'a), 't) marked_gexpr Bindlib.box list ->
+  ('a any, 't) marked_gexpr Bindlib.box list ->
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
-val elit : ([< any ] as 'a) glit -> 't -> ('a, 't) marked_gexpr Bindlib.box
+val elit : 'a any glit -> 't -> ('a, 't) marked_gexpr Bindlib.box
 
 val eabs :
-  ((([< any ] as 'a), 't) gexpr, ('a, 't) marked_gexpr) Bindlib.mbinder
-  Bindlib.box ->
+  (('a any, 't) gexpr, ('a, 't) marked_gexpr) Bindlib.mbinder Bindlib.box ->
   marked_typ list ->
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
 val eapp :
-  (([< any ] as 'a), 't) marked_gexpr Bindlib.box ->
+  ('a any, 't) marked_gexpr Bindlib.box ->
   ('a, 't) marked_gexpr Bindlib.box list ->
   't ->
   ('a, 't) marked_gexpr Bindlib.box
@@ -78,7 +78,7 @@ val eassert :
   't ->
   ('a, 't) marked_gexpr Bindlib.box
 
-val eop : operator -> 't -> ([< any ], 't) marked_gexpr Bindlib.box
+val eop : operator -> 't -> (_ any, 't) marked_gexpr Bindlib.box
 
 val edefault :
   (([< desugared | scopelang | dcalc ] as 'a), 't) marked_gexpr Bindlib.box list ->
@@ -88,7 +88,7 @@ val edefault :
   ('a, 't) marked_gexpr Bindlib.box
 
 val eifthenelse :
-  (([< any ] as 'a), 't) marked_gexpr Bindlib.box ->
+  ('a any, 't) marked_gexpr Bindlib.box ->
   ('a, 't) marked_gexpr Bindlib.box ->
   ('a, 't) marked_gexpr Bindlib.box ->
   't ->
@@ -129,14 +129,8 @@ val map_mark2 :
 val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
-val get_scope_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
-
 val untype :
   ('a, 'm mark) marked_gexpr -> ('a, untyped mark) marked_gexpr Bindlib.box
-
-(** {2 Handling of boxing} *)
-
-val box : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr Bindlib.box
 
 (** {2 Traversal functions} *)
 
@@ -174,3 +168,50 @@ val map_top_down :
 
 val map_marks :
   f:('t1 -> 't2) -> ('a, 't1) marked_gexpr -> ('a, 't2) marked_gexpr Bindlib.box
+
+(** {2 Expression building helpers} *)
+
+val make_var : 'a Bindlib.var * 'b -> ('a * 'b) Bindlib.box
+
+val make_abs :
+  'e Var.vars ->
+  (('a, 'm mark) gexpr as 'e) marked Bindlib.box ->
+  typ Marked.pos list ->
+  'm mark ->
+  'e marked Bindlib.box
+
+val make_app :
+  ((_ any, 'm mark) gexpr as 'e) marked Bindlib.box ->
+  'e marked Bindlib.box list ->
+  'm mark ->
+  'e marked Bindlib.box
+
+val empty_thunked_term :
+  'm mark -> ([< dcalc | desugared | scopelang ], 'm mark) gexpr marked
+
+val make_let_in :
+  'e Bindlib.var ->
+  typ Utils.Marked.pos ->
+  ((_ any, 'm mark) gexpr as 'e) marked Bindlib.box ->
+  'e marked Bindlib.box ->
+  Utils.Pos.t ->
+  'e marked Bindlib.box
+
+(** {2 Transformations} *)
+
+val remove_logging_calls :
+  ((_ any, 't) gexpr as 'e) marked -> 'e marked Bindlib.box
+(** Removes all calls to [Log] unary operators in the AST, replacing them by
+    their argument. *)
+
+(** {2 Analysis and tests} *)
+
+val is_value : (_ any, 'm mark) gexpr marked -> bool
+
+val equal : ('a, 'm mark) gexpr marked -> ('a, 'm mark) gexpr marked -> bool
+(** Determines if two expressions are equal, omitting their position information *)
+
+val free_vars : 'e marked -> 'e Var.Set.t
+
+val size : (_ any, 't) gexpr marked -> int
+(** Used by the optimizer to know when to stop *)

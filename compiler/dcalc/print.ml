@@ -207,7 +207,7 @@ let format_unop (fmt : Format.formatter) (op : unop) : unit =
 let needs_parens (e : 'm marked_expr) : bool =
   match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
-let format_var (fmt : Format.formatter) (v : 'm Ast.var) : unit =
+let format_var fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 let rec format_expr
@@ -352,9 +352,8 @@ let format_scope
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
     ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox
-       (Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
-          ~make_let_in:Ast.make_let_in ~box_expr:Expr.box ctx s
+       (Scope.to_expr ctx s
           (Expr.map_mark
              (fun _ -> Marked.get_mark (ScopeName.get_info n))
              (fun ty -> ty)
-             (Expr.get_scope_body_mark s))))
+             (Scope.get_body_mark s))))

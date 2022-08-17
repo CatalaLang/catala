@@ -29,7 +29,7 @@ type vc_return = typed marked_expr * (typed expr, typ Marked.pos) Var.Map.t
 type ctx = {
   current_scope_name : ScopeName.t;
   decl : decl_ctx;
-  input_vars : typed var list;
+  input_vars : typed expr Var.t list;
   scope_variables_typs : (typed expr, typ Marked.pos) Var.Map.t;
 }
 
@@ -287,7 +287,7 @@ type verification_condition = {
   (* should have type bool *)
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
-  vc_variable : typed var Marked.pos;
+  vc_variable : typed expr Var.t Marked.pos;
   vc_free_vars_typ : (typed expr, typ Marked.pos) Var.Map.t;
 }
 
@@ -311,7 +311,9 @@ let rec generate_verification_conditions_scope_body_expr
            what we're really doing is adding exceptions to something defined in
            the subscope so we just ought to verify only that the exceptions
            overlap. *)
-        let e = Bindlib.unbox (remove_logging_calls scope_let.scope_let_expr) in
+        let e =
+          Bindlib.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
+        in
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl, vc_confl_typs =
           generate_vs_must_not_return_confict ctx e

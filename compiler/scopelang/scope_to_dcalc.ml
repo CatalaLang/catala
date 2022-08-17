@@ -25,9 +25,9 @@ type scope_var_ctx = {
 
 type scope_sig_ctx = {
   scope_sig_local_vars : scope_var_ctx list;  (** List of scope variables *)
-  scope_sig_scope_var : untyped Dcalc.Ast.var;
+  scope_sig_scope_var : untyped Dcalc.Ast.expr Var.t;
       (** Var representing the scope *)
-  scope_sig_input_var : untyped Dcalc.Ast.var;
+  scope_sig_input_var : untyped Dcalc.Ast.expr Var.t;
       (** Var representing the scope input inside the scope func *)
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
@@ -40,10 +40,11 @@ type ctx = {
   enums : Ast.enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : scope_sigs_ctx;
-  scope_vars : (untyped Dcalc.Ast.var * typ * Ast.io) Ast.ScopeVarMap.t;
+  scope_vars : (untyped Dcalc.Ast.expr Var.t * typ * Ast.io) Ast.ScopeVarMap.t;
   subscope_vars :
-    (untyped Dcalc.Ast.var * typ * Ast.io) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
-  local_vars : untyped Dcalc.Ast.var Ast.VarMap.t;
+    (untyped Dcalc.Ast.expr Var.t * typ * Ast.io) Ast.ScopeVarMap.t
+    Ast.SubScopeMap.t;
+  local_vars : untyped Dcalc.Ast.expr Var.t Ast.VarMap.t;
 }
 
 let empty_ctx
@@ -85,7 +86,7 @@ let merge_defaults
     untyped Dcalc.Ast.marked_expr Bindlib.box =
   let caller =
     let m = Marked.get_mark (Bindlib.unbox caller) in
-    Dcalc.Ast.make_app caller [Bindlib.box (ELit LUnit, m)] m
+    Expr.make_app caller [Bindlib.box (ELit LUnit, m)] m
   in
   let body =
     Bindlib.box_apply2
@@ -388,7 +389,7 @@ let translate_rule
     let a_var = Var.make (Marked.unmark a_name) in
     let tau = translate_typ ctx tau in
     let new_e = translate_expr ctx e in
-    let a_expr = Dcalc.Ast.make_var (a_var, pos_mark var_def_pos) in
+    let a_expr = Expr.make_var (a_var, pos_mark var_def_pos) in
     let merged_expr =
       Bindlib.box_apply
         (fun merged_expr -> ErrorOnEmpty merged_expr, pos_mark_as a_name)
@@ -454,7 +455,7 @@ let translate_rule
           (fun new_e -> ErrorOnEmpty new_e, pos_mark_as subs_var)
           new_e
       | Reentrant ->
-        Dcalc.Ast.make_abs
+        Expr.make_abs
           (Array.of_list [silent_var])
           new_e
           [TLit TUnit, var_def_pos]
@@ -530,13 +531,12 @@ let translate_rule
                should have been defined (even an empty definition, if they're
                not defined by any rule in the source code) by the translation
                from desugared to the scope language. *)
-            Bindlib.box
-              (Dcalc.Ast.empty_thunked_term (Untyped { pos = pos_call }))
+            Bindlib.box (Expr.empty_thunked_term (Untyped { pos = pos_call }))
           else
             let a_var, _, _ =
               Ast.ScopeVarMap.find subvar.scope_var_name subscope_vars_defined
             in
-            Dcalc.Ast.make_var (a_var, pos_mark pos_call))
+            Expr.make_var (a_var, pos_mark pos_call))
         all_subscope_input_vars
     in
     let subscope_struct_arg =
@@ -560,7 +560,7 @@ let translate_rule
     in
     let subscope_func =
       tag_with_log_entry
-        (Dcalc.Ast.make_var
+        (Expr.make_var
            (scope_dcalc_var, pos_mark_as (Ast.SubScopeName.get_info subindex)))
         BeginCall
         [
@@ -627,7 +627,7 @@ let translate_rule
                         pos_mark pos_sigma );
                   })
               (Bindlib.bind_var v next)
-              (Dcalc.Ast.make_var (result_tuple_var, pos_mark pos_sigma)),
+              (Expr.make_var (result_tuple_var, pos_mark pos_sigma)),
             i - 1 ))
         all_subscope_output_vars_dcalc
         (next, List.length all_subscope_output_vars_dcalc - 1)
@@ -696,7 +696,7 @@ let translate_rules
       (Bindlib.box_list
          (List.map
             (fun (_, (dcalc_var, _, _)) ->
-              Dcalc.Ast.make_var (dcalc_var, pos_mark pos_sigma))
+              Expr.make_var (dcalc_var, pos_mark pos_sigma))
             scope_output_variables))
   in
   ( scope_lets
@@ -797,7 +797,7 @@ let translate_scope_decl
                          pos_mark pos_sigma );
                    })
                (Bindlib.bind_var v next)
-               (Dcalc.Ast.make_var (scope_input_var, pos_mark pos_sigma)),
+               (Expr.make_var (scope_input_var, pos_mark pos_sigma)),
              i - 1 ))
          scope_input_variables
          (next, List.length scope_input_variables - 1))

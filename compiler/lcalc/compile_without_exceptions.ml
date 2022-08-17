@@ -67,7 +67,9 @@ type 'm ctx = {
 }
 
 let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
-  let pp_binding (fmt : Format.formatter) ((v, info) : 'm D.var * 'm info) =
+  let pp_binding
+      (fmt : Format.formatter)
+      ((v, info) : 'm D.expr Var.t * 'm info) =
     Format.fprintf fmt "%a: %a" Dcalc.Print.format_var v pp_info info
   in
 
@@ -81,7 +83,8 @@ let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
 
 (** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a
     slightly better way. *)
-let find ?(info : string = "none") (n : 'm D.var) (ctx : 'm ctx) : 'm info =
+let find ?(info : string = "none") (n : 'm D.expr Var.t) (ctx : 'm ctx) :
+    'm info =
   (* let _ = Format.asprintf "Searching for variable %a inside context %a"
      Dcalc.Print.format_var n pp_ctx ctx |> Cli.debug_print in *)
   try Var.Map.find n ctx.vars
@@ -95,8 +98,11 @@ let find ?(info : string = "none") (n : 'm D.var) (ctx : 'm ctx) : 'm info =
     var, creating a unique corresponding variable in Lcalc, with the
     corresponding expression, and the boolean is_pure. It is usefull for
     debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
-let add_var (mark : 'm mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx) :
-    'm ctx =
+let add_var
+    (mark : 'm mark)
+    (var : 'm D.expr Var.t)
+    (is_pure : bool)
+    (ctx : 'm ctx) : 'm ctx =
   let new_var = Var.make (Bindlib.name_of var) in
   let expr = A.make_var (new_var, mark) in
 

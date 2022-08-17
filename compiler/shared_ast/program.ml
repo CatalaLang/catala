@@ -25,3 +25,17 @@ let untype (prg : ('a, 'm mark) gexpr program) :
       Bindlib.unbox
         (Scope.map_exprs ~f:Expr.untype ~varf:Var.translate prg.scopes);
   }
+
+let rec find_scope name vars = function
+  | Nil -> raise Not_found
+  | ScopeDef { scope_name; scope_body; _ } when scope_name = name ->
+    List.rev vars, scope_body
+  | ScopeDef { scope_next; _ } ->
+    let var, next = Bindlib.unbind scope_next in
+    find_scope name (var :: vars) next
+
+let to_expr p main_scope =
+  let _, main_scope_body = find_scope main_scope [] p.scopes in
+  Scope.unfold p.decl_ctx p.scopes
+    (Scope.get_body_mark main_scope_body)
+    (ScopeName main_scope)

@@ -188,9 +188,8 @@ let format_scope ?(debug = false) ctx fmt (n, s) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
     ScopeName.format_t n (format_expr ctx ~debug)
     (Bindlib.unbox
-       (Dcalc.Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
-          ~make_let_in:Ast.make_let_in ~box_expr:Expr.box ctx s
+       (Scope.to_expr ctx s
           (Expr.map_mark
              (fun _ -> Marked.get_mark (ScopeName.get_info n))
              (fun ty -> ty)
-             (Expr.get_scope_body_mark s))))
+             (Scope.get_body_mark s))))

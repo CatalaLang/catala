@@ -129,7 +129,8 @@ type dcalc = [ `Dcalc ]
 type lcalc = [ `Lcalc ]
 
 (* type scalc = [ `Scalc ] *)
-type any = [ desugared | scopelang | dcalc | lcalc ]
+
+type 'a any = [< desugared | scopelang | dcalc | lcalc ] as 'a
 
 (** Literals are the same throughout compilation except for the [LEmptyError]
     case which is eliminated midway through. *)
@@ -153,12 +154,12 @@ type ('a, 't) marked_gexpr = (('a, 't) gexpr, 't) Marked.t
     library, based on higher-order abstract syntax *)
 and ('a, 't) gexpr =
   (* Constructors common to all ASTs *)
-  | ELit : 'a glit -> (([< any ] as 'a), 't) gexpr
+  | ELit : 'a glit -> ('a any, 't) gexpr
   | EApp :
       ('a, 't) marked_gexpr * ('a, 't) marked_gexpr list
-      -> (([< any ] as 'a), 't) gexpr
-  | EOp : operator -> (([< any ] as 'a), 't) gexpr
-  | EArray : ('a, 't) marked_gexpr list -> (([< any ] as 'a), 't) gexpr
+      -> ('a any, 't) gexpr
+  | EOp : operator -> ('a any, 't) gexpr
+  | EArray : ('a, 't) marked_gexpr list -> ('a any, 't) gexpr
   (* All but statement calculus *)
   | EVar :
       ('a, 't) gexpr Bindlib.var
@@ -213,6 +214,9 @@ and ('a, 't) gexpr =
  * | ESInj: ('a, 't) marked_gexpr * EnumConstructor.t * EnumName.t -> (scalc as 'a, 't) gexpr
  * | ESFunc: TopLevelName.t -> (scalc as 'a, 't) gexpr *)
 
+type 'e anyexpr = 'e constraint 'e = (_ any, _) gexpr
+(** Shorter alias for functions taking any kind of expression *)
+
 (** {2 Markings} *)
 
 type untyped = { pos : Pos.t } [@@ocaml.unboxed]
@@ -231,7 +235,7 @@ type 'e marked = ('e, 'm mark) Marked.t constraint 'e = ('a, 'm mark) gexpr
 
 (** Useful for errors and printing, for example *)
 type any_marked_expr =
-  | AnyExpr : ([< any ], 'm mark) marked_gexpr -> any_marked_expr
+  | AnyExpr : (_ any, _ mark) marked_gexpr -> any_marked_expr
 
 (** {2 Higher-level program structure} *)
 

@@ -17,5 +17,11 @@
 
 open Types
 
-val untype :
-  (([< any ] as 'a), 'm mark) gexpr program -> ('a, untyped mark) gexpr program
+(** {2 Transformations} *)
+
+val untype : ('a any, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
+
+val to_expr : 'e anyexpr program -> ScopeName.t -> 'e marked Bindlib.box
+(** Usage: [build_whole_program_expr program main_scope] builds an expression
+    corresponding to the main program and returning the main scope as a
+    function. *)

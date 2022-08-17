@@ -211,10 +211,7 @@ let driver source_file (options : Cli.options) : int =
                      prgm.scopes) )
           else
             let prgrm_dcalc_expr =
-              Bindlib.unbox
-                (Dcalc.Ast.build_whole_program_expr
-                   ~box_expr:Shared_ast.Expr.box ~make_abs:Dcalc.Ast.make_abs
-                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
+              Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_expr prgm.decl_ctx)
@@ -241,10 +238,7 @@ let driver source_file (options : Cli.options) : int =
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
-              Bindlib.unbox
-                (Dcalc.Ast.build_whole_program_expr
-                   ~box_expr:Shared_ast.Expr.box ~make_abs:Dcalc.Ast.make_abs
-                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
+              Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
@@ -316,11 +310,7 @@ let driver source_file (options : Cli.options) : int =
                          prgm.scopes) )
               else
                 let prgrm_lcalc_expr =
-                  Bindlib.unbox
-                    (Dcalc.Ast.build_whole_program_expr
-                       ~box_expr:Shared_ast.Expr.box
-                       ~make_abs:Lcalc.Ast.make_abs
-                       ~make_let_in:Lcalc.Ast.make_let_in prgm scope_uid)
+                  Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
                   (Lcalc.Print.format_expr prgm.decl_ctx)

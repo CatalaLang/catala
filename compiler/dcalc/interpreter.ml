@@ -502,7 +502,7 @@ let interpret_program :
         (fun ty ->
           match Marked.unmark ty with
           | TArrow ((TLit TUnit, _), ty_in) ->
-            Ast.empty_thunked_term
+            Expr.empty_thunked_term
               (Expr.map_mark (fun pos -> pos) (fun _ -> ty_in) mark_e)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)

@@ -21,8 +21,8 @@ open Types
 (** This module provides types and helpers for Bindlib variables on the [gexpr]
     type *)
 
-type 'e t = 'e Bindlib.var constraint 'e = ([< any ], 't) gexpr
-type 'e vars = 'e Bindlib.mvar
+type 'e t = 'e anyexpr Bindlib.var
+type 'e vars = 'e anyexpr Bindlib.mvar
 type 'e binder = ('e, 'e marked) Bindlib.binder
 
 val make : string -> 'e t

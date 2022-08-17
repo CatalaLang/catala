@@ -15,6 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Utils
 open Types
 
 let rec fold_left_lets ~f ~init scope_body_expr =
@@ -90,3 +91,107 @@ let map_exprs ~f ~varf scopes =
             })
         new_body_expr new_next)
     ~init:(Bindlib.box Nil) scopes
+
+let get_body_mark scope_body =
+  match snd (Bindlib.unbind scope_body.scope_body_expr) with
+  | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
+
+let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
+    'e marked Bindlib.box =
+  match scope_let with
+  | Result e -> Expr.box e
+  | ScopeLet
+      {
+        scope_let_kind = _;
+        scope_let_typ;
+        scope_let_expr;
+        scope_let_next;
+        scope_let_pos;
+      } ->
+    let var, next = Bindlib.unbind scope_let_next in
+    Expr.make_let_in var scope_let_typ (Expr.box scope_let_expr)
+      (unfold_body_expr ctx next)
+      scope_let_pos
+
+let build_typ_from_sig
+    (ctx : decl_ctx)
+    (scope_input_struct_name : StructName.t)
+    (scope_return_struct_name : StructName.t)
+    (pos : Pos.t) : typ Marked.pos =
+  let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
+  let scope_return_typ =
+    StructMap.find scope_return_struct_name ctx.ctx_structs
+  in
+  let result_typ =
+    TTuple (List.map snd scope_return_typ, Some scope_return_struct_name), pos
+  in
+  let input_typ =
+    TTuple (List.map snd scope_sig, Some scope_input_struct_name), pos
+  in
+  TArrow (input_typ, result_typ), pos
+
+type 'e scope_name_or_var =
+  | ScopeName of ScopeName.t
+  | ScopeVar of 'e Bindlib.var
+
+let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
+    'e marked Bindlib.box =
+  let var, body_expr = Bindlib.unbind body.scope_body_expr in
+  let body_expr = unfold_body_expr ctx body_expr in
+  Expr.make_abs [| var |] body_expr
+    [
+      ( TTuple
+          ( List.map snd
+              (StructMap.find body.scope_body_input_struct ctx.ctx_structs),
+            Some body.scope_body_input_struct ),
+        Expr.mark_pos mark_scope );
+    ]
+    mark_scope
+
+let rec unfold
+    (ctx : decl_ctx)
+    (s : 'e scopes)
+    (mark : 'm mark)
+    (main_scope : 'expr scope_name_or_var) : 'e marked Bindlib.box =
+  match s with
+  | Nil -> (
+    match main_scope with
+    | ScopeVar v -> Bindlib.box_apply (fun v -> v, mark) (Bindlib.box_var v)
+    | ScopeName _ -> failwith "should not happen")
+  | ScopeDef { scope_name; scope_body; scope_next } ->
+    let scope_var, scope_next = Bindlib.unbind scope_next in
+    let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
+    let scope_body_mark = get_body_mark scope_body in
+    let main_scope =
+      match main_scope with
+      | ScopeVar v -> ScopeVar v
+      | ScopeName n ->
+        if ScopeName.compare n scope_name = 0 then ScopeVar scope_var
+        else ScopeName n
+    in
+    Expr.make_let_in scope_var
+      (build_typ_from_sig ctx scope_body.scope_body_input_struct
+         scope_body.scope_body_output_struct scope_pos)
+      (to_expr ctx scope_body scope_body_mark)
+      (unfold ctx scope_next mark main_scope)
+      scope_pos
+
+let rec free_vars_body_expr scope_lets =
+  match scope_lets with
+  | Result e -> Expr.free_vars e
+  | ScopeLet { scope_let_expr = e; scope_let_next = next; _ } ->
+    let v, body = Bindlib.unbind next in
+    Var.Set.union (Expr.free_vars e)
+      (Var.Set.remove v (free_vars_body_expr body))
+
+let free_vars_body scope_body =
+  let { scope_body_expr = binder; _ } = scope_body in
+  let v, body = Bindlib.unbind binder in
+  Var.Set.remove v (free_vars_body_expr body)
+
+let rec free_vars scopes =
+  match scopes with
+  | Nil -> Var.Set.empty
+  | ScopeDef { scope_body = body; scope_next = next; _ } ->
+    let v, next = Bindlib.unbind next in
+    Var.Set.union (Var.Set.remove v (free_vars next)) (free_vars_body body)
