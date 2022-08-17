@@ -17,6 +17,7 @@
 module type Info = sig
   type info
 
+  val to_string : info -> string
   val format_info : Format.formatter -> info -> unit
 end
 
@@ -45,7 +46,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
   let compare (x : t) (y : t) : int = compare x.id y.id
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
-    Format.fprintf fmt "%a" X.format_info x.info
+    X.format_info fmt x.info
 
   let hash (x : t) : int = x.id
 end
@@ -53,5 +54,6 @@ end
 module MarkedString = struct
   type info = string Marked.pos
 
-  let format_info fmt (s, _) = Format.fprintf fmt "%s" s
+  let to_string (s, _) = s
+  let format_info fmt i = Format.pp_print_string fmt (to_string i)
 end

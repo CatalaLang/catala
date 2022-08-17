@@ -51,7 +51,7 @@ module To_jsoo = struct
     Format.fprintf fmt "%s" s
 
   let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
-    Dcalc.Print.format_base_type fmt
+    Print.base_type fmt
       (match l with
       | TUnit -> "unit"
       | TInt -> "int"

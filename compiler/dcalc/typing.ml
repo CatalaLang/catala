@@ -25,6 +25,7 @@ module Any =
     (struct
       type info = unit
 
+      let to_string _ = "any"
       let format_info fmt () = Format.fprintf fmt "any"
     end)
     ()
@@ -83,7 +84,7 @@ let rec format_typ
   in
   let typ = UnionFind.get (UnionFind.find typ) in
   match Marked.unmark typ with
-  | TLit l -> Format.fprintf fmt "%a" Print.format_tlit l
+  | TLit l -> Format.fprintf fmt "%a" A.Print.tlit l
   | TTuple (ts, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)]"
       (Format.pp_print_list
@@ -293,8 +294,8 @@ let rec typecheck_expr_bottom_up
     (ctx : A.decl_ctx)
     (env : 'm Ast.expr env)
     (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
-  (* Cli.debug_format "Looking for type of %a" (Print.format_expr ~debug:true
-     ctx) e; *)
+  (* Cli.debug_format "Looking for type of %a" (Expr.format ~debug:true ctx)
+     e; *)
   let pos_e = A.Expr.pos e in
   let mark (e : (A.dcalc, mark) A.gexpr) uf =
     Marked.mark { uf; pos = pos_e } e
@@ -451,7 +452,7 @@ and typecheck_expr_top_down
     (tau : typ Marked.pos UnionFind.elem)
     (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
   (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
-     (Print.format_expr ctx) e; *)
+     (Expr.format ctx) e; *)
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.gexpr) tau' =

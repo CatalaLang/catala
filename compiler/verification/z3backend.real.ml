@@ -429,7 +429,7 @@ let rec translate_op
         failwith
           (Format.asprintf
              "[Z3 encoding] Ill-formed ternary operator application: %a"
-             (Print.format_expr ctx.ctx_decl)
+             (Shared_ast.Expr.format ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
                    List.map
@@ -522,7 +522,7 @@ let rec translate_op
           failwith
             (Format.asprintf
                "[Z3 encoding] Ill-formed binary operator application: %a"
-               (Print.format_expr ctx.ctx_decl)
+               (Shared_ast.Expr.format ctx.ctx_decl)
                ( EApp
                    ( (EOp op, Untyped { pos = Pos.no_pos }),
                      List.map
@@ -575,7 +575,7 @@ let rec translate_op
         failwith
           (Format.asprintf
              "[Z3 encoding] Ill-formed unary operator application: %a"
-             (Print.format_expr ctx.ctx_decl)
+             (Shared_ast.Expr.format ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
                    List.map

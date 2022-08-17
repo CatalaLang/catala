@@ -97,7 +97,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed marked_expr)
       "Internal error: this expression does not have the structure expected by \
        the VC generator:\n\
        %a"
-      (Print.format_expr ~debug:true ctx.decl)
+      (Expr.format ~debug:true ctx.decl)
       e
 
 (** {1 Verification conditions generator}*)

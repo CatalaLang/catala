@@ -40,13 +40,11 @@ let find_enum (en : EnumName.t) (ctx : decl_ctx) :
 
 let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
   match Marked.unmark l with
-  | LBool b -> Dcalc.Print.format_lit fmt (LBool b)
+  | LBool b -> Print.lit fmt (LBool b)
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
-  | LUnit -> Dcalc.Print.format_lit fmt LUnit
-  | LRat i ->
-    Format.fprintf fmt "decimal_of_string \"%a\"" Dcalc.Print.format_lit
-      (LRat i)
+  | LUnit -> Print.lit fmt LUnit
+  | LRat i -> Format.fprintf fmt "decimal_of_string \"%a\"" Print.lit (LRat i)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string@ \"%s\""
       (Runtime.integer_to_string (Runtime.money_to_cents e))
@@ -210,7 +208,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
     else Format.fprintf fmt "%a" format_typ t
   in
   match Marked.unmark typ with
-  | TLit l -> Format.fprintf fmt "%a" Dcalc.Print.format_tlit l
+  | TLit l -> Format.fprintf fmt "%a" Print.tlit l
   | TTuple (ts, None) ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list

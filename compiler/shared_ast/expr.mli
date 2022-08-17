@@ -204,6 +204,13 @@ val remove_logging_calls :
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
+val format :
+  ?debug:bool (** [true] for debug printing *) ->
+  decl_ctx ->
+  Format.formatter ->
+  'e marked ->
+  unit
+
 (** {2 Analysis and tests} *)
 
 val is_value : (_ any, 'm mark) gexpr marked -> bool

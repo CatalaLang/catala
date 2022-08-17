@@ -20,6 +20,7 @@
 module type Info = sig
   type info
 
+  val to_string : info -> string
   val format_info : Format.formatter -> info -> unit
 end
 

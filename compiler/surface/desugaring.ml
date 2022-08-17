@@ -16,6 +16,7 @@
    the License. *)
 
 open Utils
+module SurfacePrint = Print
 open Shared_ast
 module Runtime = Runtime_ocaml.Runtime
 
@@ -580,7 +581,7 @@ let rec translate_expr
         Errors.raise_spanned_error pos
           "It is impossible to compute the arg-%s of two values of type %a"
           (if max_or_min then "max" else "min")
-          Print.format_primitive_typ pred_typ
+          SurfacePrint.format_primitive_typ pred_typ
     in
     let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
     let f_pred =
@@ -665,7 +666,7 @@ let rec translate_expr
       | Ast.Aggregate (Ast.AggregateSum t) ->
         Errors.raise_spanned_error pos
           "It is impossible to sum two values of type %a together"
-          Print.format_primitive_typ t
+          SurfacePrint.format_primitive_typ t
       | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
       | Ast.Aggregate Ast.AggregateCount ->
         Bindlib.box
@@ -727,7 +728,7 @@ let rec translate_expr
             Errors.raise_spanned_error pos
               "ssible to compute the %s of two values of type %a"
               (if max_or_min then "max" else "min")
-              Print.format_primitive_typ t
+              SurfacePrint.format_primitive_typ t
         in
         let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
         make_extr_body cmp_op typ

@@ -57,8 +57,7 @@ type 'm info = {
     matched (false) or if it never can be EmptyError (true). *)
 
 let pp_info (fmt : Format.formatter) (info : 'm info) =
-  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.format_var info.var
-    info.is_pure
+  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.var info.var info.is_pure
 
 type 'm ctx = {
   decl_ctx : decl_ctx;
@@ -70,7 +69,7 @@ let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
   let pp_binding
       (fmt : Format.formatter)
       ((v, info) : 'm D.expr Var.t * 'm info) =
-    Format.fprintf fmt "%a: %a" Dcalc.Print.format_var v pp_info info
+    Format.fprintf fmt "%a: %a" Print.var v pp_info info
   in
 
   let pp_bindings =
@@ -86,13 +85,13 @@ let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
 let find ?(info : string = "none") (n : 'm D.expr Var.t) (ctx : 'm ctx) :
     'm info =
   (* let _ = Format.asprintf "Searching for variable %a inside context %a"
-     Dcalc.Print.format_var n pp_ctx ctx |> Cli.debug_print in *)
+     Print.var n pp_ctx ctx |> Cli.debug_print in *)
   try Var.Map.find n ctx.vars
   with Not_found ->
     Errors.raise_spanned_error Pos.no_pos
       "Internal Error: Variable %a was not found in the current environment. \
        Additional informations : %s."
-      Dcalc.Print.format_var n info
+      Print.var n info
 
 (** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable
     var, creating a unique corresponding variable in Lcalc, with the
@@ -106,8 +105,8 @@ let add_var
   let new_var = Var.make (Bindlib.name_of var) in
   let expr = A.make_var (new_var, mark) in
 
-  (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Dcalc.Print.format_var
-     var Print.format_var new_var; *)
+  (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Print.var var Print.var
+     new_var; *)
   {
     ctx with
     vars =
@@ -185,16 +184,14 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Dcalc.Print.format_var v
-         Print.format_var v'; *)
+         created a variable %a to replace it" Print.var v Print.var v'; *)
       A.make_var (v', pos), Var.Map.singleton v' e
     else (find ~info:"should never happend" v ctx).expr, Var.Map.empty
   | EApp ((EVar v, p), [(ELit LUnit, _)]) ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Dcalc.Print.format_var v
-         Print.format_var v'; *)
+         created a variable %a to replace it" Print.var v Print.var v'; *)
       A.make_var (v', pos), Var.Map.singleton v' (EVar v, p)
     else
       Errors.raise_spanned_error (Expr.pos e)
@@ -311,12 +308,11 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
 
   (* build the hoists *)
   (* Cli.debug_print @@ Format.asprintf "hoist for the expression: [%a]"
-     (Format.pp_print_list Print.format_var) (List.map fst hoists); *)
+     (Format.pp_print_list Print.var) (List.map fst hoists); *)
   ListLabels.fold_left hoists
     ~init:(if append_esome then A.make_some e' else e')
     ~f:(fun acc (v, (hoist, mark_hoist)) ->
-      (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.format_var
-         v; *)
+      (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.var v; *)
       let c' : 'm A.marked_expr Bindlib.box =
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
@@ -365,8 +361,8 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
 
       (* [ match {{ c' }} with | None -> None | Some {{ v }} -> {{ acc }} end
          ] *)
-      (* Cli.debug_print @@ Format.asprintf "build matchopt using %a"
-         Print.format_var v; *)
+      (* Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.var
+         v; *)
       A.make_matchopt mark_hoist v
         (TAny, Expr.mark_pos mark_hoist)
         c' (A.make_none mark_hoist) acc)
@@ -392,8 +388,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
 
     let var_is_pure = true in
     let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
-       var; *)
+    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
     let vmark = Expr.map_mark (fun _ -> pos) (fun _ -> typ) emark in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
@@ -421,8 +416,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
     (* special case: regular input to the subscope *)
     let var_is_pure = true in
     let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
-       var; *)
+    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
     let vmark = Expr.map_mark (fun _ -> pos) (fun _ -> typ) emark in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
@@ -449,8 +443,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
       "Internal Error: found an SubScopeVarDefinition that does not satisfy \
        the invariants when translating Dcalc to Lcalc without exceptions: \
        @[<hov 2>%a@]"
-      (Dcalc.Print.format_expr ctx.decl_ctx)
-      expr
+      (Expr.format ctx.decl_ctx) expr
   | ScopeLet
       {
         scope_let_kind = kind;
@@ -474,8 +467,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
         true
     in
     let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
-       var; *)
+    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
     let vmark =
       Expr.map_mark (fun _ -> pos) (fun _ -> typ) (Marked.get_mark expr)
     in
@@ -575,10 +567,9 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
                if List.mem n inputs_structs then
                  ListLabels.map l ~f:(fun (n, tau) ->
                      (* Cli.debug_print @@ Format.asprintf "Input type: %a"
-                        (Dcalc.Print.format_typ decl_ctx) tau; Cli.debug_print
-                        @@ Format.asprintf "Output type: %a"
-                        (Dcalc.Print.format_typ decl_ctx) (translate_typ
-                        tau); *)
+                        (Print.typ decl_ctx) tau; Cli.debug_print @@
+                        Format.asprintf "Output type: %a" (Print.typ decl_ctx)
+                        (translate_typ tau); *)
                      n, translate_typ tau)
                else l);
     }

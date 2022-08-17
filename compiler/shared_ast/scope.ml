@@ -148,6 +148,20 @@ let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
     ]
     mark_scope
 
+let format
+    ?(debug : bool = false)
+    (ctx : decl_ctx)
+    (fmt : Format.formatter)
+    ((n, s) : ScopeName.t * 'm scope_body) =
+  Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" Print.keyword "let"
+    ScopeName.format_t n (Expr.format ctx ~debug)
+    (Bindlib.unbox
+       (to_expr ctx s
+          (Expr.map_mark
+             (fun _ -> Marked.get_mark (ScopeName.get_info n))
+             (fun ty -> ty)
+             (get_body_mark s))))
+
 let rec unfold
     (ctx : decl_ctx)
     (s : 'e scopes)

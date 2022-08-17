@@ -349,6 +349,8 @@ let remove_logging_calls e =
   in
   f () e
 
+let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
+
 let rec size : 'a. ('a, 't) gexpr marked -> int =
   fun (type a) (e : (a, 't) gexpr marked) ->
    match Marked.unmark e with

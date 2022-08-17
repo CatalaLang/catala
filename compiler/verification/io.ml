@@ -167,8 +167,7 @@ module MakeBackendIO (B : Backend) = struct
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
       | NoOverlappingExceptions -> "no two exceptions to ever overlap")
-      (Dcalc.Print.format_expr decl_ctx)
-      vc.vc_guard;
+      (Expr.format decl_ctx) vc.vc_guard;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (

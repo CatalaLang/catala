@@ -19,3 +19,4 @@ module Var = Var
 module Expr = Expr
 module Scope = Scope
 module Program = Program
+module Print = Print

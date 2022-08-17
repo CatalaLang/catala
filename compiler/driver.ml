@@ -197,7 +197,7 @@ let driver source_file (options : Cli.options) : int =
           @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+              (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
                   (Shared_ast.Scope.fold_left ~init:None
@@ -214,14 +214,14 @@ let driver source_file (options : Cli.options) : int =
               Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_expr prgm.decl_ctx)
+              (Shared_ast.Expr.format prgm.decl_ctx)
               prgrm_dcalc_expr
         | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
           | `Proof | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking...";
           let prgm = Dcalc.Typing.infer_types_program prgm in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
-             (Dcalc.Print.format_typ prgm.decl_ctx) typ); *)
+             (Print.typ prgm.decl_ctx) typ); *)
           match backend with
           | `Typecheck ->
             (* That's it! *)
@@ -264,7 +264,7 @@ let driver source_file (options : Cli.options) : int =
             List.iter
               (fun ((var, _), result) ->
                 Cli.result_format "@[<hov 2>%s@ =@ %a@]" var
-                  (Dcalc.Print.format_expr ~debug:options.debug prgm.decl_ctx)
+                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   result)
               results
           | (`OCaml | `Python | `Lcalc | `Scalc | `Plugin _) as backend -> (
@@ -296,7 +296,7 @@ let driver source_file (options : Cli.options) : int =
               @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
-                  (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+                  (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
                   ( scope_uid,
                     Option.get
                       (Shared_ast.Scope.fold_left ~init:None
@@ -313,7 +313,7 @@ let driver source_file (options : Cli.options) : int =
                   Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
-                  (Lcalc.Print.format_expr prgm.decl_ctx)
+                  (Shared_ast.Expr.format prgm.decl_ctx)
                   prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with

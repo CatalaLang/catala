@@ -32,8 +32,8 @@ let rec format_expr
   let format_expr = format_expr decl_ctx ~debug in
   let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
     if needs_parens e then
-      Format.fprintf fmt "%a%a%a" Dcalc.Print.format_punctuation "(" format_expr
-        e Dcalc.Print.format_punctuation ")"
+      Format.fprintf fmt "%a%a%a" Print.punctuation "(" format_expr e
+        Print.punctuation ")"
     else Format.fprintf fmt "%a" format_expr e
   in
   match Marked.unmark e with
@@ -41,60 +41,56 @@ let rec format_expr
   | EFunc v -> Format.fprintf fmt "%a" TopLevelName.format_t v
   | EStruct (es, s) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
-      Dcalc.Print.format_punctuation "{"
+      Print.punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, struct_field) ->
-           Format.fprintf fmt "%a%a%a%a %a" Dcalc.Print.format_punctuation "\""
-             StructFieldName.format_t struct_field
-             Dcalc.Print.format_punctuation "\"" Dcalc.Print.format_punctuation
-             ":" format_expr e))
+           Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
+             StructFieldName.format_t struct_field Print.punctuation "\""
+             Print.punctuation ":" format_expr e))
       (List.combine es (List.map fst (StructMap.find s decl_ctx.ctx_structs)))
-      Dcalc.Print.format_punctuation "}"
+      Print.punctuation "}"
   | EArray es ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Dcalc.Print.format_punctuation "["
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "["
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
-      es Dcalc.Print.format_punctuation "]"
+      es Print.punctuation "]"
   | EStructFieldAccess (e1, field, s) ->
-    Format.fprintf fmt "%a%a%a%a%a" format_expr e1
-      Dcalc.Print.format_punctuation "." Dcalc.Print.format_punctuation "\""
-      StructFieldName.format_t
+    Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
+      Print.punctuation "\"" StructFieldName.format_t
       (fst
          (List.find
             (fun (field', _) -> StructFieldName.compare field' field = 0)
             (StructMap.find s decl_ctx.ctx_structs)))
-      Dcalc.Print.format_punctuation "\""
+      Print.punctuation "\""
   | EInj (e, case, enum) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_enum_constructor
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor
       (fst
          (List.find
             (fun (case', _) -> EnumConstructor.compare case' case = 0)
             (EnumMap.find enum decl_ctx.ctx_enums)))
       format_expr e
-  | ELit l ->
-    Format.fprintf fmt "%a" Lcalc.Print.format_lit (Marked.same_mark_as l e)
+  | ELit l -> Print.lit fmt l
   | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop op
-      format_with_parens arg1 format_with_parens arg2
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Print.binop op format_with_parens
+      arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      Dcalc.Print.format_binop op format_with_parens arg2
+      Print.binop op format_with_parens arg2
   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop op
-      format_with_parens arg1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.unop op format_with_parens arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EOp (Ternop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_ternop op
-  | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop op
-  | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop op
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" Print.ternop op
+  | EOp (Binop op) -> Format.fprintf fmt "%a" Print.binop op
+  | EOp (Unop op) -> Format.fprintf fmt "%a" Print.unop op
 
 let rec format_statement
     (decl_ctx : decl_ctx)
@@ -104,71 +100,63 @@ let rec format_statement
   if debug then () else ();
   match Marked.unmark stmt with
   | SInnerFuncDef (name, func) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
-      Dcalc.Print.format_keyword "let" LocalName.format_t (Marked.unmark name)
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
+      "let" LocalName.format_t (Marked.unmark name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
-           Format.fprintf fmt "%a%a %a@ %a%a" Dcalc.Print.format_punctuation "("
-             LocalName.format_t name Dcalc.Print.format_punctuation ":"
-             (Dcalc.Print.format_typ decl_ctx)
-             (Marked.unmark typ) Dcalc.Print.format_punctuation ")"))
-      func.func_params Dcalc.Print.format_punctuation "="
+           Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
+             LocalName.format_t name Print.punctuation ":" (Print.typ decl_ctx)
+             (Marked.unmark typ) Print.punctuation ")"))
+      func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
   | SLocalDecl (name, typ) ->
-    Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Dcalc.Print.format_keyword
-      "decl" LocalName.format_t (Marked.unmark name)
-      Dcalc.Print.format_punctuation ":"
-      (Dcalc.Print.format_typ decl_ctx)
-      (Marked.unmark typ)
+    Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
+      LocalName.format_t (Marked.unmark name) Print.punctuation ":"
+      (Print.typ decl_ctx) (Marked.unmark typ)
   | SLocalDef (name, expr) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" LocalName.format_t
-      (Marked.unmark name) Dcalc.Print.format_punctuation "="
+      (Marked.unmark name) Print.punctuation "="
       (format_expr decl_ctx ~debug)
       expr
   | STryExcept (b_try, except, b_with) ->
-    Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]"
-      Dcalc.Print.format_keyword "try" Dcalc.Print.format_punctuation ":"
+    Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
+      "try" Print.punctuation ":"
       (format_block decl_ctx ~debug)
-      b_try Dcalc.Print.format_keyword "with" Lcalc.Print.format_exception
-      except Dcalc.Print.format_punctuation ":"
+      b_try Print.keyword "with" Print.except except Print.punctuation ":"
       (format_block decl_ctx ~debug)
       b_with
   | SRaise except ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Dcalc.Print.format_keyword "raise"
-      Lcalc.Print.format_exception except
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.except
+      except
   | SIfThenElse (e_if, b_true, b_false) ->
     Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@ @]@[<v 2>%a%a@ %a@]"
-      Dcalc.Print.format_keyword "if"
+      Print.keyword "if"
       (format_expr decl_ctx ~debug)
-      e_if Dcalc.Print.format_punctuation ":"
+      e_if Print.punctuation ":"
       (format_block decl_ctx ~debug)
-      b_true Dcalc.Print.format_keyword "else" Dcalc.Print.format_punctuation
-      ":"
+      b_true Print.keyword "else" Print.punctuation ":"
       (format_block decl_ctx ~debug)
       b_false
   | SReturn ret ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Dcalc.Print.format_keyword "return"
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "return"
       (format_expr decl_ctx ~debug)
       (ret, Marked.get_mark stmt)
   | SAssert expr ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Dcalc.Print.format_keyword "assert"
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
       (expr, Marked.get_mark stmt)
   | SSwitch (e_switch, enum, arms) ->
-    Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a"
-      Dcalc.Print.format_keyword "switch"
+    Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)
-      e_switch Dcalc.Print.format_punctuation ":"
+      e_switch Print.punctuation ":"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), (arm_block, payload_name)) ->
-           Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]"
-             Dcalc.Print.format_punctuation "|"
-             Dcalc.Print.format_enum_constructor case
-             Dcalc.Print.format_punctuation ":" LocalName.format_t payload_name
-             Dcalc.Print.format_punctuation "→"
+           Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
+             "|" Print.enum_constructor case Print.punctuation ":"
+             LocalName.format_t payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
       (List.combine (EnumMap.find enum decl_ctx.ctx_enums) arms)
@@ -179,8 +167,7 @@ and format_block
     (fmt : Format.formatter)
     (block : block) : unit =
   Format.pp_print_list
-    ~pp_sep:(fun fmt () ->
-      Format.fprintf fmt "%a@ " Dcalc.Print.format_punctuation ";")
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
     (format_statement decl_ctx ~debug)
     fmt block
 
@@ -190,15 +177,14 @@ let format_scope
     (fmt : Format.formatter)
     (body : scope_body) : unit =
   if debug then () else ();
-  Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
-    Dcalc.Print.format_keyword "let" TopLevelName.format_t body.scope_body_var
+  Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
+    "let" TopLevelName.format_t body.scope_body_var
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
        (fun fmt ((name, _), typ) ->
-         Format.fprintf fmt "%a%a %a@ %a%a" Dcalc.Print.format_punctuation "("
-           LocalName.format_t name Dcalc.Print.format_punctuation ":"
-           (Dcalc.Print.format_typ decl_ctx)
-           (Marked.unmark typ) Dcalc.Print.format_punctuation ")"))
-    body.scope_body_func.func_params Dcalc.Print.format_punctuation "="
+         Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
+           LocalName.format_t name Print.punctuation ":" (Print.typ decl_ctx)
+           (Marked.unmark typ) Print.punctuation ")"))
+    body.scope_body_func.func_params Print.punctuation "="
     (format_block decl_ctx ~debug)
     body.scope_body_func.func_body

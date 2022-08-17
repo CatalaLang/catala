@@ -267,15 +267,13 @@ let rec evaluate_operator
       | VarDef _ ->
         (* TODO: this usage of Format is broken, Formatting requires that all is
            formatted in one pass, without going through intermediate "%s" *)
-        Cli.log_format "%*s%a %a: %s" (!log_indent * 2) ""
-          Print.format_log_entry entry Print.format_uid_list infos
+        Cli.log_format "%*s%a %a: %s" (!log_indent * 2) "" Print.log_entry entry
+          Print.uid_list infos
           (match e' with
           | EAbs _ -> Cli.with_style [ANSITerminal.green] "<function>"
           | _ ->
             let expr_str =
-              Format.asprintf "%a"
-                (Print.format_expr ctx ~debug:false)
-                (List.hd args)
+              Format.asprintf "%a" (Expr.format ctx ~debug:false) (List.hd args)
             in
             let expr_str =
               Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
@@ -286,20 +284,20 @@ let rec evaluate_operator
       | PosRecordIfTrueBool -> (
         match pos <> Pos.no_pos, e' with
         | true, ELit (LBool true) ->
-          Cli.log_format "%*s%a%s:\n%s" (!log_indent * 2) ""
-            Print.format_log_entry entry
+          Cli.log_format "%*s%a%s:\n%s" (!log_indent * 2) "" Print.log_entry
+            entry
             (Cli.with_style [ANSITerminal.green] "Definition applied")
             (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
                  Format.asprintf "%*s" (!log_indent * 2) ""))
         | _ -> ())
       | BeginCall ->
-        Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry
-          entry Print.format_uid_list infos;
+        Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
+          Print.uid_list infos;
         log_indent := !log_indent + 1
       | EndCall ->
         log_indent := !log_indent - 1;
-        Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry
-          entry Print.format_uid_list infos)
+        Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
+          Print.uid_list infos)
     else ();
     e'
   | Unop _, [ELit LEmptyError] -> ELit LEmptyError
@@ -310,7 +308,7 @@ let rec evaluate_operator
           (fun i arg ->
             ( Some
                 (Format.asprintf "Argument n°%d, value %a" (i + 1)
-                   (Print.format_expr ctx ~debug:true)
+                   (Expr.format ctx ~debug:true)
                    arg),
               Expr.pos arg ))
           args)
@@ -374,7 +372,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
       Errors.raise_spanned_error (Expr.pos e1)
         "The expression %a should be a tuple with %d components but is not \
          (should not happen if the term was well-typed)"
-        (Print.format_expr ctx ~debug:true)
+        (Expr.format ctx ~debug:true)
         e n)
   | EInj (e1, n, en, ts) ->
     let e1' = evaluate_expr ctx e1 in
@@ -468,12 +466,12 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
       | EApp ((EOp (Binop op), _), [((ELit _, _) as e1); ((ELit _, _) as e2)])
         ->
         Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-          (Print.format_expr ctx ~debug:false)
-          e1 Print.format_binop op
-          (Print.format_expr ctx ~debug:false)
+          (Expr.format ctx ~debug:false)
+          e1 Print.binop op
+          (Expr.format ctx ~debug:false)
           e2
       | _ ->
-        Cli.debug_format "%a" (Print.format_expr ctx) e';
+        Cli.debug_format "%a" (Expr.format ctx) e';
         Errors.raise_spanned_error (Expr.pos e') "Assertion failed")
     | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
@@ -535,7 +533,7 @@ let interpret_program :
               Errors.raise_spanned_error bad_pos
                 "@[<hv 2>(bug) Result of interpretation doesn't have the \
                  expected type:@ @[%a@]@]"
-                (Print.format_typ ctx) (fst @@ ty))
+                (Print.typ ctx) (fst @@ ty))
           mark_e )
     in
     match Marked.unmark (evaluate_expr ctx to_interpret) with
