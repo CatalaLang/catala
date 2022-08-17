@@ -69,7 +69,7 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
                   ScopeName.format_t scope.Ast.scope_decl_name
               else
                 Ast.ScopeMap.add subscope
-                  (Marked.get_mark (Ast.SubScopeName.get_info subindex))
+                  (Marked.get_mark (SubScopeName.get_info subindex))
                   acc)
           Ast.ScopeMap.empty scope.Ast.scope_decl_rules
       in

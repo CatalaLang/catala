@@ -61,8 +61,8 @@ let translate_unop (op : Ast.unop) : unop =
     translation, bound variables are used to represent function parameters or
     pattern macthing bindings. *)
 
-module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
-module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
+module LiftStructFieldMap = Bindlib.Lift (StructFieldMap)
+module LiftEnumConstructorMap = Bindlib.Lift (EnumConstructorMap)
 
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
@@ -140,7 +140,7 @@ let rec translate_expr
       disambiguate_constructor ctxt constructors pos_pattern
     in
     let cases =
-      Scopelang.Ast.EnumConstructorMap.mapi
+      EnumConstructorMap.mapi
         (fun c_uid' tau ->
           if EnumConstructor.compare c_uid c_uid' <> 0 then
             let nop_var = Desugared.Ast.Var.make "_" in
@@ -300,7 +300,7 @@ let rec translate_expr
     match Marked.unmark e with
     | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
       (* In this case, y.x is a subscope variable *)
-      let subscope_uid : Scopelang.Ast.SubScopeName.t =
+      let subscope_uid : SubScopeName.t =
         Name_resolution.get_subscope_uid scope ctxt (Marked.same_mark_as y e)
       in
       let subscope_real_uid : ScopeName.t =
@@ -392,7 +392,7 @@ let rec translate_expr
                 "This identifier should refer to a field of struct %s"
                 (Marked.unmark s_name)
           in
-          (match Scopelang.Ast.StructFieldMap.find_opt f_uid s_fields with
+          (match StructFieldMap.find_opt f_uid s_fields with
           | None -> ()
           | Some e_field ->
             Errors.raise_multispanned_error
@@ -403,13 +403,13 @@ let rec translate_expr
               "The field %a has been defined twice:" StructFieldName.format_t
               f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
-          Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
-        Scopelang.Ast.StructFieldMap.empty fields
+          StructFieldMap.add f_uid f_e s_fields)
+        StructFieldMap.empty fields
     in
     let expected_s_fields = StructMap.find s_uid ctxt.structs in
-    Scopelang.Ast.StructFieldMap.iter
+    StructFieldMap.iter
       (fun expected_f _ ->
-        if not (Scopelang.Ast.StructFieldMap.mem expected_f s_fields) then
+        if not (StructFieldMap.mem expected_f s_fields) then
           Errors.raise_spanned_error pos
             "Missing field for structure %a: \"%a\"" StructName.format_t s_uid
             StructFieldName.format_t expected_f)
@@ -513,7 +513,7 @@ let rec translate_expr
         (Marked.get_mark pattern)
     in
     let cases =
-      Scopelang.Ast.EnumConstructorMap.mapi
+      EnumConstructorMap.mapi
         (fun c_uid' tau ->
           let nop_var = Desugared.Ast.Var.make "_" in
           Bindlib.unbox
@@ -851,8 +851,8 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr Marked.pos Bindlib.box Scopelang.Ast.EnumConstructorMap.t
-    * EnumName.t =
+    Desugared.Ast.expr Marked.pos Bindlib.box EnumConstructorMap.t * EnumName.t
+    =
   let create_var = function
     | None -> ctxt, Desugared.Ast.Var.make "_"
     | Some param ->
@@ -873,7 +873,7 @@ and disambiguate_match_and_build_expression
           (Desugared.Ast.EAbs
              ( e_binder,
                [
-                 Scopelang.Ast.EnumConstructorMap.find c_uid
+                 EnumConstructorMap.find c_uid
                    (EnumMap.find e_uid ctxt.Name_resolution.enums);
                ] ))
           case_body)
@@ -899,7 +899,7 @@ and disambiguate_match_and_build_expression
                case were matching constructors of enumeration %a"
               EnumName.format_t e_uid EnumName.format_t e_uid'
       in
-      (match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+      (match EnumConstructorMap.find_opt c_uid cases_d with
       | None -> ()
       | Some e_case ->
         Errors.raise_multispanned_error
@@ -915,9 +915,7 @@ and disambiguate_match_and_build_expression
       in
       let e_binder = Bindlib.bind_mvar [| param_var |] case_body in
       let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
-      ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
-        Some e_uid,
-        curr_index + 1 )
+      EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1
     | Ast.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
@@ -940,14 +938,12 @@ and disambiguate_match_and_build_expression
         if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
         let missing_constructors =
           EnumMap.find e_uid ctxt.Name_resolution.enums
-          |> Scopelang.Ast.EnumConstructorMap.filter_map (fun c_uid _ ->
-                 match
-                   Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d
-                 with
+          |> EnumConstructorMap.filter_map (fun c_uid _ ->
+                 match EnumConstructorMap.find_opt c_uid cases_d with
                  | Some _ -> None
                  | None -> Some c_uid)
         in
-        if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
+        if EnumConstructorMap.is_empty missing_constructors then
           Errors.format_spanned_warning case_pos
             "Unreachable match case, all constructors of the enumeration %a \
              are already specified"
@@ -971,21 +967,19 @@ and disambiguate_match_and_build_expression
         let e_binder = Bindlib.bind_mvar [| payload_var |] case_body in
 
         (* For each missing cases, binds the wildcard payload. *)
-        Scopelang.Ast.EnumConstructorMap.fold
+        EnumConstructorMap.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
             let case_expr =
               bind_case_body c_uid e_uid ctxt case_body e_binder
             in
-            ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
+            ( EnumConstructorMap.add c_uid case_expr cases_d,
               e_uid_opt,
               curr_index + 1 ))
           missing_constructors
           (cases_d, Some e_uid, curr_index))
   in
   let expr, e_name, _ =
-    List.fold_left bind_match_cases
-      (Scopelang.Ast.EnumConstructorMap.empty, None, 0)
-      cases
+    List.fold_left bind_match_cases (EnumConstructorMap.empty, None, 0) cases
   in
   expr, Option.get e_name
   [@@ocamlformat "wrap-comments=false"]
@@ -1304,11 +1298,9 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
   let empty_prgm =
     {
       Desugared.Ast.program_structs =
-        StructMap.map Scopelang.Ast.StructFieldMap.bindings
-          ctxt.Name_resolution.structs;
+        StructMap.map StructFieldMap.bindings ctxt.Name_resolution.structs;
       Desugared.Ast.program_enums =
-        EnumMap.map Scopelang.Ast.EnumConstructorMap.bindings
-          ctxt.Name_resolution.enums;
+        EnumMap.map EnumConstructorMap.bindings ctxt.Name_resolution.enums;
       Desugared.Ast.program_scopes =
         Scopelang.Ast.ScopeMap.mapi
           (fun s_uid s_context ->

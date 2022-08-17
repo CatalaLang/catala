@@ -22,20 +22,15 @@ open Shared_ast
 (** {1 Identifiers} *)
 
 module ScopeMap : Map.S with type key = ScopeName.t
-module SubScopeName : Uid.Id with type info = Uid.MarkedString.info
 module SubScopeNameSet : Set.S with type elt = SubScopeName.t
 module SubScopeMap : Map.S with type key = SubScopeName.t
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info
 module ScopeVarSet : Set.S with type elt = ScopeVar.t
 module ScopeVarMap : Map.S with type key = ScopeVar.t
-module StructFieldMap : Map.S with type key = StructFieldName.t
 
 module StructFieldMapLift : sig
   val lift_box :
     'a Bindlib.box StructFieldMap.t -> 'a StructFieldMap.t Bindlib.box
 end
-
-module EnumConstructorMap : Map.S with type key = EnumConstructor.t
 
 module EnumConstructorMapLift : sig
   val lift_box :

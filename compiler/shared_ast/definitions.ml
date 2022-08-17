@@ -42,7 +42,19 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
-(** Abstract syntax tree for the default calculus *)
+(** Only used by desugared/scopelang *)
+
+module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module StructFieldMap : Map.S with type key = StructFieldName.t =
+  Map.Make (StructFieldName)
+
+module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
+  Map.Make (EnumConstructor)
 
 (** {1 Abstract syntax tree} *)
 
@@ -119,6 +131,12 @@ type unop =
   | RoundDecimal
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
+
+type location =
+  | ScopeVar of ScopeVar.t Marked.pos
+  | SubScopeVar of
+      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
+
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 (** {2 Generic expressions} *)
@@ -173,15 +191,22 @@ and ('a, 't) gexpr =
   | EIfThenElse :
       ('a, 't) marked_gexpr * ('a, 't) marked_gexpr * ('a, 't) marked_gexpr
       -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
-  (* (* Early stages *) | ELocation: location -> ([< desugared | scopelang ] as
-     'a, 't) gexpr | EStruct: StructName.t * ('a, 't) marked_gexpr
-     StructFieldMap.t -> ([< desugared | scopelang ] as 'a, 't) gexpr |
-     EStructAccess: ('a, 't) marked_gexpr * StructFieldName.t * StructName.t ->
-     ([< desugared | scopelang ] as 'a, 't) gexpr | EEnumInj: ('a, 't)
-     marked_gexpr * EnumConstructor.t * EnumName.t -> ([< desugared | scopelang
-     ] as 'a, 't) gexpr | EMatchS: ('a, 't) marked_gexpr * EnumName.t * ('a, 't)
-     marked_gexpr EnumConstructorMap.t -> ([< desugared | scopelang ] as 'a, 't)
-     gexpr *)
+  (* Early stages *)
+  | ELocation : location -> (([< desugared | scopelang ] as 'a), 't) gexpr
+  | EStruct :
+      StructName.t * ('a, 't) marked_gexpr StructFieldMap.t
+      -> (([< desugared | scopelang ] as 'a), 't) gexpr
+  | EStructAccess :
+      ('a, 't) marked_gexpr * StructFieldName.t * StructName.t
+      -> (([< desugared | scopelang ] as 'a), 't) gexpr
+  | EEnumInj :
+      ('a, 't) marked_gexpr * EnumConstructor.t * EnumName.t
+      -> (([< desugared | scopelang ] as 'a), 't) gexpr
+  | EMatchS :
+      ('a, 't) marked_gexpr
+      * EnumName.t
+      * ('a, 't) marked_gexpr EnumConstructorMap.t
+      -> (([< desugared | scopelang ] as 'a), 't) gexpr
   (* Lambda-like *)
   | ETuple :
       ('a, 't) marked_gexpr list * StructName.t option

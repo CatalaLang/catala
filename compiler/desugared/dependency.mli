@@ -35,7 +35,7 @@ open Utils
 module Vertex : sig
   type t =
     | Var of Ast.ScopeVar.t * Ast.StateName.t option
-    | SubScope of Scopelang.Ast.SubScopeName.t
+    | SubScope of Shared_ast.SubScopeName.t
 
   val format_t : Format.formatter -> t -> unit
 

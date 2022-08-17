@@ -40,17 +40,17 @@ type scope_context = {
       (** Scope variables *)
   scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
-  sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
+  sub_scopes_idmap : SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
   sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
       (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ Marked.pos Scopelang.Ast.StructFieldMap.t
+type struct_context = typ Marked.pos StructFieldMap.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ Marked.pos Scopelang.Ast.EnumConstructorMap.t
+type enum_context = typ Marked.pos EnumConstructorMap.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
@@ -130,7 +130,7 @@ let get_var_uid
 let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    ((y, pos) : ident Marked.pos) : Scopelang.Ast.SubScopeName.t =
+    ((y, pos) : ident Marked.pos) : SubScopeName.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
   | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
@@ -187,15 +187,14 @@ let process_subscope_decl
   | Some use ->
     Errors.raise_multispanned_error
       [
-        ( Some "first use",
-          Marked.get_mark (Scopelang.Ast.SubScopeName.get_info use) );
+        Some "first use", Marked.get_mark (SubScopeName.get_info use);
         Some "second use", s_pos;
       ]
       "Subscope name \"%a\" already used"
       (Utils.Cli.format_with_style [ANSITerminal.yellow])
       subscope
   | None ->
-    let sub_scope_uid = Scopelang.Ast.SubScopeName.fresh (name, name_pos) in
+    let sub_scope_uid = SubScopeName.fresh (name, name_pos) in
     let original_subscope_uid =
       match Desugared.Ast.IdentMap.find_opt subscope ctxt.scope_idmap with
       | None -> raise_unknown_identifier "for a scope" (subscope, s_pos)
@@ -385,11 +384,11 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
               match fields with
               | None ->
                 Some
-                  (Scopelang.Ast.StructFieldMap.singleton f_uid
+                  (StructFieldMap.singleton f_uid
                      (process_type ctxt fdecl.Ast.struct_decl_field_typ))
               | Some fields ->
                 Some
-                  (Scopelang.Ast.StructFieldMap.add f_uid
+                  (StructFieldMap.add f_uid
                      (process_type ctxt fdecl.Ast.struct_decl_field_typ)
                      fields))
             ctxt.structs;
@@ -434,10 +433,8 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
                 | Some typ -> process_type ctxt typ
               in
               match cases with
-              | None ->
-                Some (Scopelang.Ast.EnumConstructorMap.singleton c_uid typ)
-              | Some fields ->
-                Some (Scopelang.Ast.EnumConstructorMap.add c_uid typ fields))
+              | None -> Some (EnumConstructorMap.singleton c_uid typ)
+              | Some fields -> Some (EnumConstructorMap.add c_uid typ fields))
             ctxt.enums;
       })
     ctxt edecl.enum_decl_cases
@@ -581,9 +578,7 @@ let get_def_key
               Desugared.Ast.ScopeVar.format_t x_uid
           else None )
   | [y; x] ->
-    let subscope_uid : Scopelang.Ast.SubScopeName.t =
-      get_subscope_uid scope_uid ctxt y
-    in
+    let subscope_uid : SubScopeName.t = get_subscope_uid scope_uid ctxt y in
     let subscope_real_uid : ScopeName.t =
       Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
     in

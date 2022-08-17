@@ -22,8 +22,8 @@ open Shared_ast
 (** {1 Expression translation}*)
 
 type target_scope_vars =
-  | WholeVar of Scopelang.Ast.ScopeVar.t
-  | States of (Ast.StateName.t * Scopelang.Ast.ScopeVar.t) list
+  | WholeVar of ScopeVar.t
+  | States of (Ast.StateName.t * ScopeVar.t) list
 
 type ctx = {
   scope_var_mapping : target_scope_vars Ast.ScopeVarMap.t;
@@ -85,7 +85,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     Bindlib.box_apply
       (fun new_fields -> Scopelang.Ast.EStruct (s_name, new_fields), m)
       (Scopelang.Ast.StructFieldMapLift.lift_box
-         (Scopelang.Ast.StructFieldMap.map (translate_expr ctx) fields))
+         (StructFieldMap.map (translate_expr ctx) fields))
   | EStructAccess (e1, s_name, f_name) ->
     Bindlib.box_apply
       (fun new_e1 -> Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), m)
@@ -100,7 +100,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
         Scopelang.Ast.EMatch (new_e1, e_name, new_arms), m)
       (translate_expr ctx e1)
       (Scopelang.Ast.EnumConstructorMapLift.lift_box
-         (Scopelang.Ast.EnumConstructorMap.map (translate_expr ctx) arms))
+         (EnumConstructorMap.map (translate_expr ctx) arms))
   | ELit l -> Bindlib.box (Scopelang.Ast.ELit l, m)
   | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
@@ -479,10 +479,8 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                  Scopelang.Ast.Definition
                    ( ( Scopelang.Ast.ScopeVar
                          ( scope_var,
-                           Marked.get_mark
-                             (Scopelang.Ast.ScopeVar.get_info scope_var) ),
-                       Marked.get_mark
-                         (Scopelang.Ast.ScopeVar.get_info scope_var) ),
+                           Marked.get_mark (ScopeVar.get_info scope_var) ),
+                       Marked.get_mark (ScopeVar.get_info scope_var) ),
                      var_typ,
                      scope_def.Ast.scope_def_io,
                      expr_def );
@@ -670,9 +668,7 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
                 ctx with
                 scope_var_mapping =
                   Ast.ScopeVarMap.add scope_var
-                    (WholeVar
-                       (Scopelang.Ast.ScopeVar.fresh
-                          (Ast.ScopeVar.get_info scope_var)))
+                    (WholeVar (ScopeVar.fresh (Ast.ScopeVar.get_info scope_var)))
                     ctx.scope_var_mapping;
               }
             | States states ->
@@ -684,7 +680,7 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
                        (List.map
                           (fun state ->
                             ( state,
-                              Scopelang.Ast.ScopeVar.fresh
+                              ScopeVar.fresh
                                 (let state_name, state_pos =
                                    Ast.StateName.get_info state
                                  in

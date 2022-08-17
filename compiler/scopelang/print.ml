@@ -76,7 +76,7 @@ let rec format_expr
            Format.fprintf fmt "%a%a%a%a@ %a" Print.punctuation "\""
              StructFieldName.format_t field_name Print.punctuation "\""
              Print.punctuation "=" format_expr field_expr))
-      (Ast.StructFieldMap.bindings fields)
+      (StructFieldMap.bindings fields)
       Print.punctuation "}"
   | EStructAccess (e1, field, _) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
@@ -93,7 +93,7 @@ let rec format_expr
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" Print.punctuation "|"
              Print.enum_constructor cons_name Print.punctuation "→" format_expr
              case_expr))
-      (Ast.EnumConstructorMap.bindings cases)
+      (EnumConstructorMap.bindings cases)
   | EApp ((EAbs (binder, taus), _), args) ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in

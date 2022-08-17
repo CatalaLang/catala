@@ -38,7 +38,7 @@ module ScopeVarMap : Map.S with type key = ScopeVar.t
 module ScopeDef : sig
   type t =
     | Var of ScopeVar.t * StateName.t option
-    | SubScopeVar of Scopelang.Ast.SubScopeName.t * ScopeVar.t
+    | SubScopeVar of SubScopeName.t * ScopeVar.t
 
   val compare : t -> t -> int
   val get_position : t -> Pos.t
@@ -55,9 +55,7 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 type location =
   | ScopeVar of ScopeVar.t Marked.pos * StateName.t option
   | SubScopeVar of
-      ScopeName.t
-      * Scopelang.Ast.SubScopeName.t Marked.pos
-      * ScopeVar.t Marked.pos
+      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
 
 module LocationSet : Set.S with type elt = location Marked.pos
 
@@ -68,11 +66,10 @@ type marked_expr = expr Marked.pos
 and expr =
   | ELocation of location
   | EVar of expr Bindlib.var
-  | EStruct of StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
+  | EStruct of StructName.t * marked_expr StructFieldMap.t
   | EStructAccess of marked_expr * StructFieldName.t * StructName.t
   | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
-  | EMatch of
-      marked_expr * EnumName.t * marked_expr Scopelang.Ast.EnumConstructorMap.t
+  | EMatch of marked_expr * EnumName.t * marked_expr EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
       (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list

@@ -18,7 +18,7 @@ open Utils
 open Shared_ast
 
 type scope_var_ctx = {
-  scope_var_name : Ast.ScopeVar.t;
+  scope_var_name : ScopeVar.t;
   scope_var_typ : typ;
   scope_var_io : Ast.io;
 }
@@ -158,12 +158,12 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     let d_fields, remaining_e_fields =
       List.fold_right
         (fun (field_name, _) (d_fields, e_fields) ->
-          let field_e = Ast.StructFieldMap.find field_name e_fields in
+          let field_e = StructFieldMap.find field_name e_fields in
           let field_d = translate_expr ctx field_e in
-          field_d :: d_fields, Ast.StructFieldMap.remove field_name e_fields)
+          field_d :: d_fields, StructFieldMap.remove field_name e_fields)
         struct_sig ([], e_fields)
     in
-    if Ast.StructFieldMap.cardinal remaining_e_fields > 0 then
+    if StructFieldMap.cardinal remaining_e_fields > 0 then
       Errors.raise_spanned_error (Marked.get_mark e)
         "The fields \"%a\" do not belong to the structure %a"
         StructName.format_t struct_name
@@ -171,7 +171,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun fmt (field_name, _) ->
              Format.fprintf fmt "%a" StructFieldName.format_t field_name))
-        (Ast.StructFieldMap.bindings remaining_e_fields)
+        (StructFieldMap.bindings remaining_e_fields)
     else
       Bindlib.box_apply
         (fun d_fields -> ETuple (d_fields, Some struct_name))
@@ -220,7 +220,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
       List.fold_right
         (fun (constructor, _) (d_cases, e_cases) ->
           let case_e =
-            try Ast.EnumConstructorMap.find constructor e_cases
+            try EnumConstructorMap.find constructor e_cases
             with Not_found ->
               Errors.raise_spanned_error (Marked.get_mark e)
                 "The constructor %a of enum %a is missing from this pattern \
@@ -228,10 +228,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
                 EnumConstructor.format_t constructor EnumName.format_t enum_name
           in
           let case_d = translate_expr ctx case_e in
-          case_d :: d_cases, Ast.EnumConstructorMap.remove constructor e_cases)
+          case_d :: d_cases, EnumConstructorMap.remove constructor e_cases)
         enum_sig ([], cases)
     in
-    if Ast.EnumConstructorMap.cardinal remaining_e_cases > 0 then
+    if EnumConstructorMap.cardinal remaining_e_cases > 0 then
       Errors.raise_spanned_error (Marked.get_mark e)
         "Patter matching is incomplete for enum %a: missing cases %a"
         EnumName.format_t enum_name
@@ -239,7 +239,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun fmt (case_name, _) ->
              Format.fprintf fmt "%a" EnumConstructor.format_t case_name))
-        (Ast.EnumConstructorMap.bindings remaining_e_cases)
+        (EnumConstructorMap.bindings remaining_e_cases)
     else
       let e1 = translate_expr ctx e1 in
       Bindlib.box_apply2
@@ -252,9 +252,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     let markings l =
       match l with
       | Ast.ScopeVar (v, _) ->
-        [ScopeName.get_info ctx.scope_name; Ast.ScopeVar.get_info v]
+        [ScopeName.get_info ctx.scope_name; ScopeVar.get_info v]
       | Ast.SubScopeVar (s, _, (v, _)) ->
-        [ScopeName.get_info s; Ast.ScopeVar.get_info v]
+        [ScopeName.get_info s; ScopeVar.get_info v]
     in
     let e1_func =
       match Marked.unmark e1 with
@@ -348,14 +348,14 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
         [
           Some "Incriminated variable usage:", Marked.get_mark e;
           ( Some "Incriminated subscope variable declaration:",
-            Marked.get_mark (Ast.ScopeVar.get_info (Marked.unmark a)) );
+            Marked.get_mark (ScopeVar.get_info (Marked.unmark a)) );
           ( Some "Incriminated subscope declaration:",
-            Marked.get_mark (Ast.SubScopeName.get_info (Marked.unmark s)) );
+            Marked.get_mark (SubScopeName.get_info (Marked.unmark s)) );
         ]
         "The variable %a.%a cannot be used here, as it is not part subscope \
          %a's results. Maybe you forgot to qualify it as an output?"
-        Ast.SubScopeName.format_t (Marked.unmark s) Ast.ScopeVar.format_t
-        (Marked.unmark a) Ast.SubScopeName.format_t (Marked.unmark s))
+        SubScopeName.format_t (Marked.unmark s) ScopeVar.format_t
+        (Marked.unmark a) SubScopeName.format_t (Marked.unmark s))
   | EIfThenElse (cond, et, ef) ->
     Bindlib.box_apply3
       (fun c t f -> EIfThenElse (c, t, f))
@@ -382,7 +382,7 @@ let translate_rule
     * ctx =
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, a_io, e) ->
-    let a_name = Ast.ScopeVar.get_info (Marked.unmark a) in
+    let a_name = ScopeVar.get_info (Marked.unmark a) in
     let a_var = Var.make (Marked.unmark a_name) in
     let tau = translate_typ ctx tau in
     let new_e = translate_expr ctx e in
@@ -431,10 +431,8 @@ let translate_rule
     let a_name =
       Marked.map_under_mark
         (fun str ->
-          str
-          ^ "."
-          ^ Marked.unmark (Ast.ScopeVar.get_info (Marked.unmark subs_var)))
-        (Ast.SubScopeName.get_info (Marked.unmark subs_index))
+          str ^ "." ^ Marked.unmark (ScopeVar.get_info (Marked.unmark subs_var)))
+        (SubScopeName.get_info (Marked.unmark subs_index))
     in
     let a_var = Var.make (Marked.unmark a_name) in
     let tau = translate_typ ctx tau in
@@ -517,7 +515,7 @@ let translate_rule
     let subscope_var_not_yet_defined subvar =
       not (Ast.ScopeVarMap.mem subvar subscope_vars_defined)
     in
-    let pos_call = Marked.get_mark (Ast.SubScopeName.get_info subindex) in
+    let pos_call = Marked.get_mark (SubScopeName.get_info subindex) in
     let subscope_args =
       List.map
         (fun (subvar : scope_var_ctx) ->
@@ -546,9 +544,9 @@ let translate_rule
         (fun (subvar : scope_var_ctx) ->
           let sub_dcalc_var =
             Var.make
-              (Marked.unmark (Ast.SubScopeName.get_info subindex)
+              (Marked.unmark (SubScopeName.get_info subindex)
               ^ "."
-              ^ Marked.unmark (Ast.ScopeVar.get_info subvar.scope_var_name))
+              ^ Marked.unmark (ScopeVar.get_info subvar.scope_var_name))
           in
           subvar, sub_dcalc_var)
         all_subscope_output_vars
@@ -556,11 +554,11 @@ let translate_rule
     let subscope_func =
       tag_with_log_entry
         (Expr.make_var
-           (scope_dcalc_var, pos_mark_as (Ast.SubScopeName.get_info subindex)))
+           (scope_dcalc_var, pos_mark_as (SubScopeName.get_info subindex)))
         BeginCall
         [
           sigma_name, pos_sigma;
-          Ast.SubScopeName.get_info subindex;
+          SubScopeName.get_info subindex;
           ScopeName.get_info subname;
         ]
     in
@@ -572,7 +570,7 @@ let translate_rule
         EndCall
         [
           sigma_name, pos_sigma;
-          Ast.SubScopeName.get_info subindex;
+          SubScopeName.get_info subindex;
           ScopeName.get_info subname;
         ]
     in
@@ -708,7 +706,7 @@ let translate_scope_decl
       (fun ctx scope_var ->
         match Marked.unmark scope_var.scope_var_io.io_input with
         | OnlyInput ->
-          let scope_var_name = Ast.ScopeVar.get_info scope_var.scope_var_name in
+          let scope_var_name = ScopeVar.get_info scope_var.scope_var_name in
           let scope_var_dcalc = Var.make (Marked.unmark scope_var_name) in
           {
             ctx with

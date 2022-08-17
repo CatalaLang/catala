@@ -18,29 +18,15 @@ open Utils
 open Shared_ast
 module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
 
-module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
 module SubScopeNameSet : Set.S with type elt = SubScopeName.t =
   Set.Make (SubScopeName)
 
 module SubScopeMap : Map.S with type key = SubScopeName.t =
   Map.Make (SubScopeName)
 
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
 module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
 module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
-
-module StructFieldMap : Map.S with type key = StructFieldName.t =
-  Map.Make (StructFieldName)
-
 module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
-
-module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
-  Map.Make (EnumConstructor)
-
 module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 
 type location =

@@ -49,7 +49,7 @@ module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
 module ScopeDef = struct
   type t =
     | Var of ScopeVar.t * StateName.t option
-    | SubScopeVar of Scopelang.Ast.SubScopeName.t * ScopeVar.t
+    | SubScopeVar of SubScopeName.t * ScopeVar.t
         (** In this case, the [ScopeVar.t] lives inside the context of the
             subscope's original declaration *)
 
@@ -65,15 +65,14 @@ module ScopeDef = struct
       let cmp = ScopeVar.compare x y in
       if cmp = 0 then StateName.compare sx sy else cmp
     | SubScopeVar (x', x), SubScopeVar (y', y) ->
-      let cmp = Scopelang.Ast.SubScopeName.compare x' y' in
+      let cmp = SubScopeName.compare x' y' in
       if cmp = 0 then ScopeVar.compare x y else cmp
 
   let get_position x =
     match x with
     | Var (x, None) -> Marked.get_mark (ScopeVar.get_info x)
     | Var (_, Some sx) -> Marked.get_mark (StateName.get_info sx)
-    | SubScopeVar (x, _) ->
-      Marked.get_mark (Scopelang.Ast.SubScopeName.get_info x)
+    | SubScopeVar (x, _) -> Marked.get_mark (SubScopeName.get_info x)
 
   let format_t fmt x =
     match x with
@@ -81,15 +80,13 @@ module ScopeDef = struct
     | Var (v, Some sv) ->
       Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
     | SubScopeVar (s, v) ->
-      Format.fprintf fmt "%a.%a" Scopelang.Ast.SubScopeName.format_t s
-        ScopeVar.format_t v
+      Format.fprintf fmt "%a.%a" SubScopeName.format_t s ScopeVar.format_t v
 
   let hash x =
     match x with
     | Var (v, None) -> ScopeVar.hash v
     | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
-    | SubScopeVar (w, v) ->
-      Int.logxor (Scopelang.Ast.SubScopeName.hash w) (ScopeVar.hash v)
+    | SubScopeVar (w, v) -> Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
 end
 
 module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
@@ -100,9 +97,7 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
 type location =
   | ScopeVar of ScopeVar.t Marked.pos * StateName.t option
   | SubScopeVar of
-      ScopeName.t
-      * Scopelang.Ast.SubScopeName.t Marked.pos
-      * ScopeVar.t Marked.pos
+      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
 
 module LocationSet : Set.S with type elt = location Marked.pos =
 Set.Make (struct
@@ -119,7 +114,7 @@ Set.Make (struct
       if cmp = 0 then StateName.compare sx sy else cmp
     | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
         SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
-      let c = Scopelang.Ast.SubScopeName.compare xsubindex ysubindex in
+      let c = SubScopeName.compare xsubindex ysubindex in
       if c = 0 then ScopeVar.compare xsubvar ysubvar else c
     | ScopeVar _, SubScopeVar _ -> -1
     | SubScopeVar _, ScopeVar _ -> 1
@@ -132,11 +127,10 @@ type marked_expr = expr Marked.pos
 and expr =
   | ELocation of location
   | EVar of expr Bindlib.var
-  | EStruct of StructName.t * marked_expr Scopelang.Ast.StructFieldMap.t
+  | EStruct of StructName.t * marked_expr StructFieldMap.t
   | EStructAccess of marked_expr * StructFieldName.t * StructName.t
   | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
-  | EMatch of
-      marked_expr * EnumName.t * marked_expr Scopelang.Ast.EnumConstructorMap.t
+  | EMatch of marked_expr * EnumName.t * marked_expr EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of
       (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list
@@ -168,8 +162,7 @@ module Expr = struct
     | EStruct (name1, field_map1), EStruct (name2, field_map2) -> (
       match StructName.compare name1 name2 with
       | 0 ->
-        Scopelang.Ast.StructFieldMap.compare (Marked.compare compare) field_map1
-          field_map2
+        StructFieldMap.compare (Marked.compare compare) field_map1 field_map2
       | n -> n)
     | ( EStructAccess ((e1, _), field_name1, struct_name1),
         EStructAccess ((e2, _), field_name2, struct_name2) ) -> (
@@ -190,9 +183,7 @@ module Expr = struct
       match compare e1 e2 with
       | 0 -> (
         match EnumName.compare name1 name2 with
-        | 0 ->
-          Scopelang.Ast.EnumConstructorMap.compare (Marked.compare compare)
-            emap1 emap2
+        | 0 -> EnumConstructorMap.compare (Marked.compare compare) emap1 emap2
         | n -> n)
       | n -> n)
     | ELit l1, ELit l2 -> Stdlib.compare l1 l2
@@ -387,13 +378,13 @@ let rec locations_used (e : expr Marked.pos) : LocationSet.t =
     let _, body = Bindlib.unmbind binder in
     locations_used body
   | EStruct (_, es) ->
-    Scopelang.Ast.StructFieldMap.fold
+    StructFieldMap.fold
       (fun _ e' acc -> LocationSet.union acc (locations_used e'))
       es LocationSet.empty
   | EStructAccess (e1, _, _) -> locations_used e1
   | EEnumInj (e1, _, _) -> locations_used e1
   | EMatch (e1, _, es) ->
-    Scopelang.Ast.EnumConstructorMap.fold
+    EnumConstructorMap.fold
       (fun _ e' acc -> LocationSet.union acc (locations_used e'))
       es (locations_used e1)
   | EApp (e1, args) ->

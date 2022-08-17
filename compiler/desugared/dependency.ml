@@ -35,14 +35,14 @@ open Shared_ast
 module Vertex = struct
   type t =
     | Var of Ast.ScopeVar.t * Ast.StateName.t option
-    | SubScope of Scopelang.Ast.SubScopeName.t
+    | SubScope of SubScopeName.t
 
   let hash x =
     match x with
     | Var (x, None) -> Ast.ScopeVar.hash x
     | Var (x, Some sx) ->
       Int.logxor (Ast.ScopeVar.hash x) (Ast.StateName.hash sx)
-    | SubScope x -> Scopelang.Ast.SubScopeName.hash x
+    | SubScope x -> SubScopeName.hash x
 
   let compare = compare
 
@@ -51,7 +51,7 @@ module Vertex = struct
     | Var (x, None), Var (y, None) -> Ast.ScopeVar.compare x y = 0
     | Var (x, Some sx), Var (y, Some sy) ->
       Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
-    | SubScope x, SubScope y -> Scopelang.Ast.SubScopeName.compare x y = 0
+    | SubScope x, SubScope y -> SubScopeName.compare x y = 0
     | _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
@@ -60,7 +60,7 @@ module Vertex = struct
     | Var (v, Some sv) ->
       Format.fprintf fmt "%a.%a" Ast.ScopeVar.format_t v Ast.StateName.format_t
         sv
-    | SubScope v -> Scopelang.Ast.SubScopeName.format_t fmt v
+    | SubScope v -> SubScopeName.format_t fmt v
 end
 
 (** On the edges, the label is the position of the expression responsible for
@@ -111,8 +111,8 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
                      Ast.StateName.format_t sv,
                    Ast.StateName.get_info sv )
                | Vertex.SubScope v ->
-                 ( Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v,
-                   Scopelang.Ast.SubScopeName.get_info v )
+                 ( Format.asprintf "%a" SubScopeName.format_t v,
+                   SubScopeName.get_info v )
              in
              let succs = ScopeDependencies.succ_e g v in
              let _, edge_pos, succ =
@@ -126,7 +126,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
                  Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
                    Ast.StateName.format_t sv
                | Vertex.SubScope v ->
-                 Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
+                 Format.asprintf "%a" SubScopeName.format_t v
              in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
@@ -161,7 +161,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   let g =
     Scopelang.Ast.SubScopeMap.fold
-      (fun (v : Scopelang.Ast.SubScopeName.t) _ g ->
+      (fun (v : SubScopeName.t) _ g ->
         ScopeDependencies.add_vertex g (Vertex.SubScope v))
       scope.scope_sub_scopes g
   in
@@ -209,7 +209,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Errors.raise_spanned_error fv_def_pos
                   "The subscope %a is used when defining one of its inputs, \
                    but recursion is forbidden in Catala"
-                  Scopelang.Ast.SubScopeName.format_t defined
+                  SubScopeName.format_t defined
               else
                 let edge =
                   ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos

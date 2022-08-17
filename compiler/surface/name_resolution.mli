@@ -40,17 +40,17 @@ type scope_context = {
       (** Scope variables *)
   scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
-  sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
+  sub_scopes_idmap : SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
   sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
       (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ Marked.pos Scopelang.Ast.StructFieldMap.t
+type struct_context = typ Marked.pos StructFieldMap.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ Marked.pos Scopelang.Ast.EnumConstructorMap.t
+type enum_context = typ Marked.pos EnumConstructorMap.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
@@ -109,7 +109,7 @@ val get_var_uid :
 (** Get the variable uid inside the scope given in argument *)
 
 val get_subscope_uid :
-  ScopeName.t -> context -> ident Marked.pos -> Scopelang.Ast.SubScopeName.t
+  ScopeName.t -> context -> ident Marked.pos -> SubScopeName.t
 (** Get the subscope uid inside the scope given in argument *)
 
 val is_subscope_uid : ScopeName.t -> context -> ident -> bool
