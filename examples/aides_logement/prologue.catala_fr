@@ -15,6 +15,7 @@ dans les sections suivantes.
 ```catala-metadata
 déclaration structure ConventionBailleurSocial:
   donnée conventionné_livre_III_titre_V_chap_III contenu booléen
+  donnée réduction_loyer_solidarité_perçue contenu argent
 
 déclaration structure ConventionANHA:
   donnée conventionné_livre_III_titre_II_chap_I_sec_3 contenu booléen
@@ -25,12 +26,8 @@ déclaration énumération TypeBailleur:
     ConventionANHA
   -- BailleurPrivé
 
-déclaration structure Bailleur:
-  donnée type_bailleur contenu TypeBailleur
-  donnée réduction_loyer_solidarité_perçue contenu argent
-
 déclaration structure Location:
-  donnée bailleur contenu Bailleur
+  donnée bailleur contenu TypeBailleur
   donnée loyer_principal contenu argent
   donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
   donnée logement_est_chambre contenu booléen
@@ -118,7 +115,7 @@ déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
   donnée date_conventionnement contenu date
   donnée remplit_conditions_r832_21 contenu booléen
-  donnée bailleur contenu Bailleur
+  donnée bailleur contenu TypeBailleur
   donnée construit_application_loi_1957_12_III contenu booléen
   donnée redevance contenu argent
   donnée catégorie_équivalence_loyer_d842_16 contenu

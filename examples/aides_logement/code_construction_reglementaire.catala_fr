@@ -1521,9 +1521,15 @@ champ d'application CalculAidePersonnaliséeLogement:
   définition locatif.réduction_loyer_solidarité égal à
     selon mode_occupation sous forme
     -- Locataire de location:
-      location.Location.bailleur.réduction_loyer_solidarité_perçue
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
     -- SousLocataire de location:
-      location.Location.bailleur.réduction_loyer_solidarité_perçue
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
     -- RésidentLogementFoyer: 0 € # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
     -- LocationAccession: 0 € # Valeur par défaut
@@ -1714,9 +1720,15 @@ champ d'application CalculAllocationLogement:
   définition locatif.réduction_loyer_solidarité égal à
     selon mode_occupation sous forme
     -- Locataire de location:
-      location.Location.bailleur.réduction_loyer_solidarité_perçue
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
     -- SousLocataire de location:
-      location.Location.bailleur.réduction_loyer_solidarité_perçue
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
     -- RésidentLogementFoyer: 0 € # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
     -- LocationAccession: 0 € # Valeur par défaut

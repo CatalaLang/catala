@@ -636,7 +636,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
-        (selon location.Location.bailleur.type_bailleur sous forme
+        (selon location.Location.bailleur sous forme
         -- BailleurSocial de convention:
           convention.conventionné_livre_III_titre_V_chap_III
         -- BailleurPrivéAvecConventionnementSocial de convention:
@@ -678,7 +678,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
-        (selon location.LogementFoyer.bailleur.type_bailleur sous forme
+        (selon location.LogementFoyer.bailleur sous forme
         -- BailleurSocial de convention:
           convention.conventionné_livre_III_titre_V_chap_III
         -- n'importe quel: faux)

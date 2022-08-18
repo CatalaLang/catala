@@ -59,12 +59,10 @@ champ d'application Exemple1 :
         -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
         -- logement_meublé_d842_2: faux
         -- changement_logement_d842_4: PasDeChangement
-        -- bailleur: Bailleur {
-          -- type_bailleur: BailleurSocial contenu (ConventionBailleurSocial{
-            -- conventionné_livre_III_titre_V_chap_III: vrai
-          })
+        -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+          -- conventionné_livre_III_titre_V_chap_III: vrai
           -- réduction_loyer_solidarité_perçue: 0 €
-        }
+        })
       })
       -- propriétaire : ParentOuAutre.Autre
       -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
@@ -124,12 +122,10 @@ champ d'application Exemple2 :
       -- résidence_principale : vrai
       -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
       -- mode_occupation : Locataire contenu (Location {
-        -- bailleur: Bailleur {
-          -- type_bailleur: BailleurSocial contenu (ConventionBailleurSocial{
-            -- conventionné_livre_III_titre_V_chap_III: vrai
-          })
+        -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+          -- conventionné_livre_III_titre_V_chap_III: vrai
           -- réduction_loyer_solidarité_perçue: 0 €
-        }
+        })
         -- loyer_principal: 450 €
         -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
         -- logement_est_chambre: faux
