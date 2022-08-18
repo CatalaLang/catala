@@ -1520,8 +1520,10 @@ champ d'application CalculAidePersonnaliséeLogement:
   définition locatif.type_aide égal à type_aide
   définition locatif.réduction_loyer_solidarité égal à
     selon mode_occupation sous forme
-    -- Locataire de location: location.réduction_loyer_solidarité
-    -- SousLocataire de location: location.réduction_loyer_solidarité
+    -- Locataire de location:
+      location.Location.bailleur.réduction_loyer_solidarité_perçue
+    -- SousLocataire de location:
+      location.Location.bailleur.réduction_loyer_solidarité_perçue
     -- RésidentLogementFoyer: 0 € # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
     -- LocationAccession: 0 € # Valeur par défaut
@@ -1711,8 +1713,10 @@ champ d'application CalculAllocationLogement:
   définition locatif.type_aide égal à type_aide
   définition locatif.réduction_loyer_solidarité égal à
     selon mode_occupation sous forme
-    -- Locataire de location: location.réduction_loyer_solidarité
-    -- SousLocataire de location: location.réduction_loyer_solidarité
+    -- Locataire de location:
+      location.Location.bailleur.réduction_loyer_solidarité_perçue
+    -- SousLocataire de location:
+      location.Location.bailleur.réduction_loyer_solidarité_perçue
     -- RésidentLogementFoyer: 0 € # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
     -- LocationAccession: 0 € # Valeur par défaut
@@ -2239,11 +2243,13 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       -- EnfantÀCharge: vrai
       -- AutrePersonneÀCharge: faux)
     ) +
-    ménage.nombre_enfants_à_naître_après_troisième_mois_grossesse >= 3
+    informations.nombre_enfants_à_naître_après_troisième_mois_grossesse >= 3
   conséquence rempli
 
   règle condition_période_déménagement sous condition
-    (selon ménage.date_naissance_troisième_enfant_ou_dernier_si_plus sous forme
+    (selon
+      informations.date_naissance_troisième_enfant_ou_dernier_si_plus
+    sous forme
     -- MoinsDeTroisEnfants: faux
     -- PlusDeTroisEnfants de date_naissance_ou_grossesse:
       (selon date_naissance_ou_grossesse sous forme

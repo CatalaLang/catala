@@ -57,15 +57,13 @@ champ d'application Exemple1 :
         -- logement_est_chambre: faux
         -- colocation: faux
         -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
-        -- réduction_loyer_solidarité: 0 €
         -- logement_meublé_d842_2: faux
         -- changement_logement_d842_4: PasDeChangement
         -- bailleur: Bailleur {
-          -- type_bailleur: BailleurPrivé
-          -- respecte_convention_titre_V: vrai
-          -- respecte_convention_titre_II: vrai
-          -- construit_amélioré_conditions_l831_1_4: faux
-          -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+          -- type_bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+            -- conventionné_livre_III_titre_V_chap_III: vrai
+          })
+          -- réduction_loyer_solidarité_perçue: 0 €
         }
       })
       -- propriétaire : ParentOuAutre.Autre
@@ -76,13 +74,9 @@ champ d'application Exemple1 :
     }
     -- nombre_autres_occupants_logement: 1
     -- condition_rattaché_foyer_fiscal_parent_ifi: faux
-    -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
-    -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-      PlusDeTroisEnfants contenu (DateDeNaissance contenu |2012-01-01|)
   }
   définition éligibilité.demandeur égal à Demandeur {
-    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
     -- date_naissance : |1970-05-02|
     -- nationalité : Française
     -- patrimoine : Patrimoine {
@@ -131,18 +125,16 @@ champ d'application Exemple2 :
       -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
       -- mode_occupation : Locataire contenu (Location {
         -- bailleur: Bailleur {
-          -- type_bailleur: BailleurPrivé
-          -- respecte_convention_titre_V: faux
-          -- respecte_convention_titre_II: faux
-          -- construit_amélioré_conditions_l831_1_4: faux
-          -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+          -- type_bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+            -- conventionné_livre_III_titre_V_chap_III: vrai
+          })
+          -- réduction_loyer_solidarité_perçue: 0 €
         }
         -- loyer_principal: 450 €
         -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
         -- logement_est_chambre: faux
         -- colocation: faux
         -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
-        -- réduction_loyer_solidarité: 0 €
         -- logement_meublé_d842_2: faux
         -- changement_logement_d842_4: PasDeChangement
       })
@@ -154,13 +146,9 @@ champ d'application Exemple2 :
     }
     -- nombre_autres_occupants_logement: 0
     -- condition_rattaché_foyer_fiscal_parent_ifi: faux
-    -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
-    -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-      MoinsDeTroisEnfants
   }
   définition éligibilité.demandeur égal à Demandeur {
-    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
     -- date_naissance : |1992-01-01|
     -- nationalité : Française
     -- patrimoine : Patrimoine {
@@ -205,12 +193,8 @@ champ d'application Exemple2 :
 #   }
 #   -- nombre_autres_occupants_logement: 0
 #   -- condition_rattaché_foyer_fiscal_parent_ifi: vrai
-#   -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
-#   -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-#     MoinsDeTroisEnfants
 #  }
 #  définition éligibilité.demandeur égal à Demandeur {
-#    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
 #    -- age_demandeur : 22
 #    -- date_naissance : |2000-01-03|
 #    -- nationalité : Française
@@ -253,12 +237,8 @@ champ d'application Exemple2 :
 #   }
 #   -- nombre_autres_occupants_logement: 0
 #   -- condition_rattaché_foyer_fiscal_parent_ifi: faux
-#   -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
-#   -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-#     MoinsDeTroisEnfants
 #  }
 #  définition éligibilité.demandeur égal à Demandeur {
-#    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
 #    -- age_demandeur : 22
 #    -- date_naissance : |2000-01-03|
 #    -- nationalité : Française

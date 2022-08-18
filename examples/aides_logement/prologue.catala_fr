@@ -13,16 +13,21 @@ dans les sections suivantes.
 #### Calcul et éligibilité pour le secteur locatif
 
 ```catala-metadata
+déclaration structure ConventionBailleurSocial:
+  donnée conventionné_livre_III_titre_V_chap_III contenu booléen
+
+déclaration structure ConventionANHA:
+  donnée conventionné_livre_III_titre_II_chap_I_sec_3 contenu booléen
+
 déclaration énumération TypeBailleur:
-  -- BailleurSocial
+  -- BailleurSocial contenu ConventionBailleurSocial
+  -- BailleurPrivéAvecConventionnementSocial contenu
+    ConventionANHA
   -- BailleurPrivé
 
 déclaration structure Bailleur:
   donnée type_bailleur contenu TypeBailleur
-  donnée respecte_convention_titre_V contenu booléen
-  donnée respecte_convention_titre_II contenu booléen
-  donnée construit_amélioré_conditions_l831_1_4 contenu booléen
-  donnée acquisition_aides_état_prêt_titre_II_ou_livre_III contenu booléen
+  donnée réduction_loyer_solidarité_perçue contenu argent
 
 déclaration structure Location:
   donnée bailleur contenu Bailleur
@@ -32,7 +37,6 @@ déclaration structure Location:
   donnée colocation contenu booléen
   donnée âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
-  donnée réduction_loyer_solidarité contenu argent
   donnée logement_meublé_d842_2 contenu booléen
   donnée changement_logement_d842_4 contenu ChangementLogementD842_4
 ```
@@ -215,29 +219,26 @@ déclaration structure Ménage:
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
-  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
-    contenu entier
-  donnée enfant_à_naître_après_quatrième_mois_grossesse
-    contenu booléen
-  donnée date_naissance_troisième_enfant_ou_dernier_si_plus contenu
-    DateNaissanceTroisièmeOuDernierPlusEnfant
+  donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
 
 déclaration structure Patrimoine:
   donnée produisant_revenu_période_r822_3_3_r822_4 contenu argent
   donnée ne_produisant_pas_revenu_période_r822_3_3_r822_4 contenu argent
 
 déclaration structure Demandeur:
-  donnée satisfait_conditions_l512_2_code_sécurité_sociale
-    contenu booléen
   donnée date_naissance contenu date
   donnée nationalité contenu Nationalité
   donnée patrimoine contenu Patrimoine
   donnée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
     contenu booléen
 
+déclaration structure ConditionsÉtrangers:
+  donnée satisfait_conditions_l512_2_code_sécurité_sociale
+    contenu booléen
+
 déclaration énumération Nationalité:
   -- Française
-  -- Étrangère
+  -- Étrangère contenu ConditionsÉtrangers
 
 déclaration énumération ZoneDHabitation:
   -- Zone1
@@ -440,7 +441,14 @@ champ d'application ÉligibilitéAllocationLogement:
 ### Éligibilité à la prime de déménagement
 
 ```catala-metadata
+déclaration structure InformationsPrimeDeDéménagement:
+  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
+    contenu entier
+  donnée date_naissance_troisième_enfant_ou_dernier_si_plus
+    contenu DateNaissanceTroisièmeOuDernierPlusEnfant
+
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
+  entrée informations contenu InformationsPrimeDeDéménagement
   entrée date_emménagement contenu date
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
@@ -1169,12 +1177,8 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
         ménage.situation_familiale
       -- condition_rattaché_foyer_fiscal_parent_ifi :
         ménage.condition_rattaché_foyer_fiscal_parent_ifi
-      -- nombre_enfants_à_naître_après_troisième_mois_grossesse :
-        ménage.nombre_enfants_à_naître_après_troisième_mois_grossesse
-      -- enfant_à_naître_après_quatrième_mois_grossesse :
+      -- enfant_à_naître_après_quatrième_mois_grossesse:
         ménage.enfant_à_naître_après_quatrième_mois_grossesse
-      -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-        ménage.date_naissance_troisième_enfant_ou_dernier_si_plus
     }
   définition éligibilité égal à calculette.éligibilité
 ```
