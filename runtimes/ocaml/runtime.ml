@@ -137,15 +137,9 @@ let date_of_numbers (year : int) (month : int) (day : int) : date =
 let date_to_string (d : date) : string =
   Format.asprintf "%a" Dates_calc.Dates.format_date d
 
-(* let first_day_of_month (d : date) : date =
- *   date_of_numbers (CalendarLib.Date.year d)
- *     (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
- *     1
- *
- * let last_day_of_month (d : date) : date =
- *   date_of_numbers (CalendarLib.Date.year d)
- *     (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
- *     (CalendarLib.Date.days_in_month d) *)
+let first_day_of_month = Dates_calc.Dates.first_day_of_month
+
+let last_day_of_month = Dates_calc.Dates.last_day_of_month
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
   Dates_calc.Dates.make_period ~years:year ~months:month ~days:day

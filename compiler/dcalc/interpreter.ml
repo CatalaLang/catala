@@ -253,10 +253,10 @@ let rec evaluate_operator
   | A.Unop A.GetMonth, [ELit (LDate d)] ->
     A.ELit (LInt Runtime.(month_number_of_date d))
   | A.Unop A.GetYear, [ELit (LDate d)] -> A.ELit (LInt Runtime.(year_of_date d))
-  (* | A.Unop A.FirstDayOfMonth, [ELit (LDate d)] ->
-   *   A.ELit (LDate Runtime.(first_day_of_month d))
-   * | A.Unop A.LastDayOfMonth, [ELit (LDate d)] ->
-   *   A.ELit (LDate Runtime.(first_day_of_month d)) *)
+  | A.Unop A.FirstDayOfMonth, [ELit (LDate d)] ->
+    A.ELit (LDate Runtime.(first_day_of_month d))
+  | A.Unop A.LastDayOfMonth, [ELit (LDate d)] ->
+    A.ELit (LDate Runtime.(first_day_of_month d))
   | A.Unop A.IntToRat, [ELit (LInt i)] ->
     A.ELit (LRat Runtime.(decimal_of_integer i))
   | A.Unop A.MoneyToRat, [ELit (LMoney i)] ->
