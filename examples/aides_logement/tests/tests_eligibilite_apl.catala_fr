@@ -21,7 +21,6 @@ champ d'application Exemple1 :
     -- personnes_à_charge: [
       EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
         -- identifiant: 0
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2001-01-01|
@@ -30,7 +29,6 @@ champ d'application Exemple1 :
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2009-01-01|
@@ -39,7 +37,6 @@ champ d'application Exemple1 :
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
         -- identifiant: 2
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2012-01-01|
@@ -100,7 +97,6 @@ champ d'application Exemple2 :
     -- personnes_à_charge: [
       EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
         -- identifiant: 0
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2016-01-01|
@@ -109,7 +105,6 @@ champ d'application Exemple2 :
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-        -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2015-01-01|

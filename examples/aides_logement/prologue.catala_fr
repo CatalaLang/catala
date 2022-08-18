@@ -178,7 +178,6 @@ déclaration structure EnfantÀCharge:
   donnée date_de_naissance contenu date
   donnée rémuneration_mensuelle contenu argent
   donnée obligation_scolaire contenu SituationObligationScolaire
-  donnée prise_en_charge contenu PriseEnCharge
   donnée situation_garde_alternée contenu SituationGardeAlternée
 
 déclaration énumération Parenté:

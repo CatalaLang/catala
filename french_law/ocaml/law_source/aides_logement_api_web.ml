@@ -1760,7 +1760,6 @@ class type enfant_a_charge =
     method remunerationMensuelle: Js.number Js.t Js.readonly_prop
     method obligationScolaire:
       situation_obligation_scolaire Js.t Js.readonly_prop
-    method priseEnCharge: prise_en_charge Js.t Js.readonly_prop
     method situationGardeAlternee:
       situation_garde_alternee Js.t Js.readonly_prop
   end
@@ -1777,8 +1776,6 @@ class type enfant_a_charge =
         Js.number_of_float @@ money_to_float enfant_a_charge.remuneration_mensuelle
       val obligationScolaire =
         situation_obligation_scolaire_to_jsoo enfant_a_charge.obligation_scolaire
-      val priseEnCharge =
-        prise_en_charge_to_jsoo enfant_a_charge.prise_en_charge
       val situationGardeAlternee =
         situation_garde_alternee_to_jsoo enfant_a_charge.situation_garde_alternee
       end
@@ -1798,8 +1795,6 @@ class type enfant_a_charge =
       obligation_scolaire =
         situation_obligation_scolaire_of_jsoo
           enfant_a_charge##.obligationScolaire;
-      prise_en_charge =
-        prise_en_charge_of_jsoo enfant_a_charge##.priseEnCharge;
       situation_garde_alternee =
         situation_garde_alternee_of_jsoo
           enfant_a_charge##.situationGardeAlternee

@@ -890,14 +890,11 @@ champ d'application ÉligibilitéAllocationLogement:
         -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
         -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
         -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
-        -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
-          -- PriseEnCharge.EffectiveEtPermanente:
-            PriseEnChargeEnfant.EffectiveEtPermanente
-          -- PriseEnCharge.RésidenceAlternéeAllocataireUnique:
-            PriseEnChargeEnfant.GardeAlternéeAllocataireUnique
-          -- PriseEnCharge.RésidenceAlternéeAllocationsPartagée:
+        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+          -- GardeAlternéeCoefficientPriseEnCharge:
             PriseEnChargeEnfant.GardeAlternéePartageAllocations
-        )
+          -- PasDeGardeAlternée:
+            PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
@@ -924,14 +921,11 @@ champ d'application ÉligibilitéAllocationLogement:
         -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
         -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
         -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
-        -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
-          -- PriseEnCharge.EffectiveEtPermanente:
-            PriseEnChargeEnfant.EffectiveEtPermanente
-          -- PriseEnCharge.RésidenceAlternéeAllocataireUnique:
-            PriseEnChargeEnfant.GardeAlternéeAllocataireUnique
-          -- PriseEnCharge.RésidenceAlternéeAllocationsPartagée:
+        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+          -- GardeAlternéeCoefficientPriseEnCharge:
             PriseEnChargeEnfant.GardeAlternéePartageAllocations
-        )
+          -- PasDeGardeAlternée:
+            PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
