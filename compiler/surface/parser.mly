@@ -352,6 +352,9 @@ let (pos, i,e1) = i_in_e1 in
 | IF e1 = expression THEN e2 = expression ELSE e3 = expression {
   (IfThenElse (e1, e2, e3), Pos.from_lpos $sloc)
 }
+| LET id = ident DEFINED_AS e1 = expression IN e2 = expression {
+  (LetIn (id, e1, e2), Pos.from_lpos $sloc)
+}
 | e = logical_expression { e }
 
 condition:
@@ -628,8 +631,8 @@ code:
 
 metadata_block:
 |  BEGIN_METADATA option(law_text) code_and_pos = code text = END_CODE {
-  let (code, pos) = code_and_pos in
-   (code, (text, pos))
+  let (code, _) = code_and_pos in
+   (code, (text, Pos.from_lpos $sloc))
 }
 
 
@@ -649,8 +652,8 @@ law_text:
 source_file_item:
 | text = law_text { LawText text }
 | BEGIN_CODE code_and_pos = code text = END_CODE  {
-  let (code, pos) = code_and_pos in
-  CodeBlock (code, (text, pos), false)
+  let (code, _) = code_and_pos in
+  CodeBlock (code, (text, Pos.from_lpos $sloc), false)
 }
 | heading = law_heading {
   LawHeading (heading, [])

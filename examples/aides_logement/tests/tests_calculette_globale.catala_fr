@@ -85,7 +85,6 @@ champ d'application Exemple1 :
     -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
     -- age_demandeur : 52
     -- date_naissance : |1970-05-02|
-    -- contrat_de_travail : CDI
     -- nationalité : Française
     -- patrimoine : Patrimoine {
       -- produisant_revenu_période_r822_3_3_r822_4: 0€

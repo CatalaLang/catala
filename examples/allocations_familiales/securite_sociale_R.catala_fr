@@ -18,7 +18,7 @@ alinéa du présent article.
 # à cette limitation.
 
 champ d'application PrestationsFamiliales :
-  définition âge_l512_3_2 égal à 20
+  définition âge_l512_3_2 égal à 20 an
 ```
 
 Le plafond de rémunération mentionné au 2° de l'article L. 512-3 est égal, pour
@@ -53,7 +53,7 @@ enfants ouvrent droit à la majoration des allocations familiales est fixé à
 
 ```catala
 champ d'application AllocationsFamiliales :
-  définition âge_minimum_alinéa_1_l521_3 de enfant égal à 14
+  définition âge_minimum_alinéa_1_l521_3 de enfant égal à 14 an
 ```
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article
@@ -75,7 +75,7 @@ le onzième anniversaire est postérieur au 30 avril 2008.
 # du décret de 2008 pour des raisons de place seulement.
 champ d'application AllocationFamilialesAvril2008:
   # Âge limite avant décret n° 2008-409 du 28 avril 2008
-  définition âge_minimum_alinéa_1_l521_3 égal à 16
+  définition âge_minimum_alinéa_1_l521_3 égal à 16 an
 
 champ d'application AllocationsFamiliales :
   exception

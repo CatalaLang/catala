@@ -332,9 +332,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     Bindlib.box_apply Marked.unmark new_e
   | EAbs (binder, typ) ->
     let xs, body = Bindlib.unmbind binder in
-    let new_xs =
-      Array.map (fun x -> Dcalc.Ast.new_var (Bindlib.name_of x)) xs
-    in
+    let new_xs = Array.map (fun x -> Var.make (Bindlib.name_of x)) xs in
     let both_xs = Array.map2 (fun x new_x -> x, new_x) xs new_xs in
     let body =
       translate_expr
@@ -415,7 +413,7 @@ let translate_rule
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, a_io, e) ->
     let a_name = Ast.ScopeVar.get_info (Marked.unmark a) in
-    let a_var = Dcalc.Ast.new_var (Marked.unmark a_name) in
+    let a_var = Var.make (Marked.unmark a_name) in
     let tau = translate_typ ctx tau in
     let new_e = translate_expr ctx e in
     let a_expr = Dcalc.Ast.make_var (a_var, pos_mark var_def_pos) in
@@ -469,14 +467,14 @@ let translate_rule
           ^ Marked.unmark (Ast.ScopeVar.get_info (Marked.unmark subs_var)))
         (Ast.SubScopeName.get_info (Marked.unmark subs_index))
     in
-    let a_var = Dcalc.Ast.new_var (Marked.unmark a_name) in
+    let a_var = Var.make (Marked.unmark a_name) in
     let tau = translate_typ ctx tau in
     let new_e =
       tag_with_log_entry (translate_expr ctx e)
         (Dcalc.Ast.VarDef (Marked.unmark tau))
         [sigma_name, pos_sigma; a_name]
     in
-    let silent_var = Dcalc.Ast.new_var "_" in
+    let silent_var = Var.make "_" in
     let thunked_or_nonempty_new_e =
       match Marked.unmark a_io.io_input with
       | NoInput -> failwith "should not happen"
@@ -582,7 +580,7 @@ let translate_rule
       List.map
         (fun (subvar : scope_var_ctx) ->
           let sub_dcalc_var =
-            Dcalc.Ast.new_var
+            Var.make
               (Marked.unmark (Ast.SubScopeName.get_info subindex)
               ^ "."
               ^ Marked.unmark (Ast.ScopeVar.get_info subvar.scope_var_name))
@@ -613,7 +611,7 @@ let translate_rule
           Ast.ScopeName.get_info subname;
         ]
     in
-    let result_tuple_var = Dcalc.Ast.new_var "result" in
+    let result_tuple_var = Var.make "result" in
     let result_tuple_typ =
       ( Dcalc.Ast.TTuple
           ( List.map
@@ -698,7 +696,7 @@ let translate_rule
                     new_e;
                 Dcalc.Ast.scope_let_kind = Dcalc.Ast.Assertion;
               })
-          (Bindlib.bind_var (Dcalc.Ast.new_var "_") next)
+          (Bindlib.bind_var (Var.make "_") next)
           new_e),
       ctx )
 
@@ -753,7 +751,7 @@ let translate_scope_decl
     (sigma : Ast.scope_decl) :
     (Dcalc.Ast.untyped Dcalc.Ast.expr, Dcalc.Ast.untyped) Dcalc.Ast.scope_body
     Bindlib.box
-    * Dcalc.Ast.struct_ctx =
+    * Astgen.struct_ctx =
   let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
@@ -765,9 +763,7 @@ let translate_scope_decl
         match Marked.unmark scope_var.scope_var_io.io_input with
         | OnlyInput ->
           let scope_var_name = Ast.ScopeVar.get_info scope_var.scope_var_name in
-          let scope_var_dcalc =
-            Dcalc.Ast.new_var (Marked.unmark scope_var_name)
-          in
+          let scope_var_dcalc = Var.make (Marked.unmark scope_var_name) in
           {
             ctx with
             scope_vars =
@@ -916,7 +912,7 @@ let translate_program (prgm : Ast.program) :
     Ast.ScopeMap.mapi
       (fun scope_name scope ->
         let scope_dvar =
-          Dcalc.Ast.new_var
+          Var.make
             (Marked.unmark (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
         in
         let scope_return_struct_name =
@@ -926,8 +922,7 @@ let translate_program (prgm : Ast.program) :
                (Ast.ScopeName.get_info scope_name))
         in
         let scope_input_var =
-          Dcalc.Ast.new_var
-            (Marked.unmark (Ast.ScopeName.get_info scope_name) ^ "_in")
+          Var.make (Marked.unmark (Ast.ScopeName.get_info scope_name) ^ "_in")
         in
         let scope_input_struct_name =
           Ast.StructName.fresh

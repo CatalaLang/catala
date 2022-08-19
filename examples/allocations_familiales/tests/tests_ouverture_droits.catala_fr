@@ -14,7 +14,6 @@ champ d'application Données:
     -- identifiant: 1
     -- obligation_scolaire : Pendant
     -- date_de_naissance: |2007-01-01|
-    -- âge: 13
     -- rémuneration_mensuelle: 0€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
@@ -24,7 +23,6 @@ champ d'application Données:
     -- identifiant: 2
     -- obligation_scolaire : Après
     -- date_de_naissance: |2003-01-01|
-    -- âge: 18
     -- rémuneration_mensuelle: 1000€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
@@ -34,7 +32,6 @@ champ d'application Données:
     -- identifiant: 3
     -- obligation_scolaire : Après
     -- date_de_naissance: |2003-01-01|
-    -- âge: 18
     -- rémuneration_mensuelle: 400€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
@@ -44,7 +41,6 @@ champ d'application Données:
     -- identifiant: 4
     -- obligation_scolaire : Après
     -- date_de_naissance: |1999-01-01|
-    -- âge: 21
     -- rémuneration_mensuelle: 0€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai

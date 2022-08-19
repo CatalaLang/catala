@@ -185,7 +185,11 @@ let check_exceeding_lines
   content
   |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
-         if String.length s > max_len then (
+         if
+           String.length (Ubase.from_utf8 s)
+           (* we remove diacritics to avoid false positives due to UFT8 encoding
+              not taken into account by String *) > max_len
+         then (
            Cli.warning_print "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
                 ANSITerminal.[Bold; yellow]
@@ -243,7 +247,7 @@ let rec law_structure_to_latex
        %s```\n\
        \\end{minted}"
       (pre_latexify (Filename.basename (Pos.get_file (Marked.get_mark c))))
-      (Pos.get_start_line (Marked.get_mark c) - 1)
+      (Pos.get_start_line (Marked.get_mark c) + 1)
       (get_language_extension language)
       (Marked.unmark c)
   | A.CodeBlock (_, c, true) when not print_only_law ->

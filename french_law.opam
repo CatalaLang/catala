@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "0.6.0"
+version: "0.7.0"
 synopsis: "A collection of algorithms and computations defined by French law"
 description:
   "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org"

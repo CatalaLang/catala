@@ -357,8 +357,16 @@ let translate_def
          aren't"
   in
   let top_list = def_map_to_tree def_info def in
+  let is_input =
+    match Marked.unmark io.Scopelang.Ast.io_input with
+    | OnlyInput -> true
+    | _ -> false
+  in
   let top_value =
-    if is_cond then
+    if is_cond && ((not is_subscope_var) || (is_subscope_var && is_input)) then
+      (* We add the bottom [false] value for conditions, only for the scope
+         where the condition is declared. Except when the variable is an input,
+         where we want the [false] to be added at each caller parent scope. *)
       Some
         (Ast.always_false_rule
            (Ast.ScopeDef.get_position def_info)
@@ -385,12 +393,7 @@ let translate_def
        for all subscope variables that are not defined. It covers the subtlety
        with functions described above but also conditions with the false default
        value. *)
-    && not
-         (is_cond
-         &&
-         match Marked.unmark io.Scopelang.Ast.io_input with
-         | OnlyInput -> true
-         | _ -> false)
+    && not (is_cond && is_input)
     (* However, this special case suffers from an exception: when a condition is
        defined as an OnlyInput to a subscope, since the [false] default value
        will not be provided by the calee scope, it has to be placed in the

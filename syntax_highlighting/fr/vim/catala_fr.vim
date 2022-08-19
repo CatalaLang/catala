@@ -24,7 +24,7 @@ syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôê
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn match Keyword contained "\<\(contexte\|entrée\|sortie\|interne\|champ\s\+d'application\|collection\|structure\|donnée\|énumération\|définition\|déclaration\|si\s\+et\s\+seulement\s\+si\|dépend\s\+de\|inclus\|contenu\|optionnel\|règle\|sous\s\+condition\|condition\|conséquence\|rempli\|égal\s\+à\|assertion\|état\|étiquette\|exception\|n'importe\s\+quel\)\>"
-syn match Statement contained "\<\(selon\|sous\s\+forme\|fixé\|par\|décroissante\|croissante\|varie\|avec\|on\s\+a\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\)\>"
+syn match Statement contained "\<\(selon\|sous\s\+forme\|fixé\|par\|décroissante\|croissante\|varie\|avec\|on\s\+a\|soit\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\)\>"
 syn keyword Conditional contained si alors sinon
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"

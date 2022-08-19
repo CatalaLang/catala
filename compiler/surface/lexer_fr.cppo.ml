@@ -86,6 +86,7 @@
 #define MS_BY "par"
 #define MS_RULE "règle"
 #define MR_RULE "r", 0xE8, "gle"
+#define MS_LET "soit"
 #define MS_EXISTS "existe"
 #define MS_IN "dans"
 #define MS_SUCH "tel"

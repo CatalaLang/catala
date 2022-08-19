@@ -127,6 +127,13 @@ them, use
 
         make help
 
+### Plugin backends
+
+While the compiler has some builtin backends for Catala (Python, Ocaml, etc.),
+it is also possible to add a custom backend to the Catala compiler without
+having to modify its source code. This plugin solution relies on dynamic
+linking: see [the dedicated README](compiler/plugins/README.md).
+
 ### Clerk
 
 Use `clerk --help` if you have installed it to get more information about the command line

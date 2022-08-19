@@ -13,28 +13,27 @@ dans les sections suivantes.
 #### Calcul et éligibilité pour le secteur locatif
 
 ```catala-metadata
+déclaration structure ConventionBailleurSocial:
+  donnée conventionné_livre_III_titre_V_chap_III contenu booléen
+  donnée réduction_loyer_solidarité_perçue contenu argent
+
+déclaration structure ConventionANHA:
+  donnée conventionné_livre_III_titre_II_chap_I_sec_3 contenu booléen
+
 déclaration énumération TypeBailleur:
-  -- BailleurSocial
+  -- BailleurSocial contenu ConventionBailleurSocial
+  -- BailleurPrivéAvecConventionnementSocial contenu
+    ConventionANHA
   -- BailleurPrivé
 
-déclaration structure Bailleur:
-  donnée type_bailleur contenu TypeBailleur
-  donnée respecte_convention_titre_V contenu booléen
-  donnée respecte_convention_titre_II contenu booléen
-  donnée construit_amélioré_conditions_l831_1_4 contenu booléen
-  donnée acquisition_aides_état_prêt_titre_II_ou_livre_III contenu booléen
-
 déclaration structure Location:
-  donnée bailleur contenu Bailleur
-
-déclaration structure InformationsCalculAPLLocatif:
+  donnée bailleur contenu TypeBailleur
   donnée loyer_principal contenu argent
   donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
   donnée logement_est_chambre contenu booléen
   donnée colocation contenu booléen
   donnée âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
-  donnée réduction_loyer_solidarité contenu argent
   donnée logement_meublé_d842_2 contenu booléen
   donnée changement_logement_d842_4 contenu ChangementLogementD842_4
 ```
@@ -59,6 +58,16 @@ déclaration structure Prêt:
   donnée titulaire_prêt contenu TitulairePrêt
 
 déclaration structure Propriétaire:
+  donnée logement_situé_commune_déséquilibre_l831_2 contenu booléen
+  donnée mensualité_principale contenu argent
+  donnée charges_mensuelles_prêt contenu argent
+  donnée date_entrée_logement contenu date
+  donnée type_travaux_logement_d832_15 contenu TypeTravauxLogementD832_15
+  donnée type_travaux_logement_r842_5 contenu TypeTravauxLogementR842_5
+  donnée local_habité_première_fois_bénéficiaire contenu booléen
+  donnée copropriété contenu booléen
+  donnée situation_r822_11_13_17 contenu booléen
+  donnée ancienneté_logement contenu NeufOuAncien
   donnée prêt contenu Prêt
 
 déclaration énumération TypeTravauxLogementD832_15:
@@ -79,20 +88,6 @@ déclaration énumération AmélioréParOccupant:
 déclaration énumération NeufOuAncien:
   -- Neuf
   -- Ancien contenu AmélioréParOccupant
-
-déclaration structure InformationsCalculAPLAccessionPropriété:
-  donnée mensualité_principale contenu argent
-  donnée charges_mensuelles_prêt contenu argent
-  donnée date_signature_prêt contenu date
-  donnée date_entrée_logement contenu date
-  donnée type_travaux_logement_d832_15 contenu TypeTravauxLogementD832_15
-  donnée type_travaux_logement_r842_5 contenu TypeTravauxLogementR842_5
-  donnée local_habité_première_fois_bénéficiaire contenu booléen
-  donnée copropriété contenu booléen
-  donnée situation_r822_11_13_17 contenu booléen
-  donnée type_prêt contenu TypePrêt
-  donnée ancienneté_logement contenu NeufOuAncien
-
 ```
 
 #### Calcul et éligibilité pour le secteur logement-foyer
@@ -118,15 +113,14 @@ déclaration structure TrancheRevenuDécimal:
 
 déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
-  donnée date_conventionnement contenu date
-  donnée location contenu Location
   donnée remplit_conditions_r832_21 contenu booléen
+  donnée conventionné_livre_III_titre_V_chap_III contenu booléen
+  donnée date_conventionnement contenu date
   donnée construit_application_loi_1957_12_III contenu booléen
-
-déclaration structure InformationsCalculAPLLogementFoyer:
   donnée redevance contenu argent
   donnée catégorie_équivalence_loyer_d842_16 contenu
     CatégorieÉquivalenceLoyerAllocationLogementFoyer
+
 ```
 
 #### Calcul et éligibilité pour tous les secteurs
@@ -140,9 +134,6 @@ déclaration énumération PrestationReçue:
   -- AllocationSoutienEnfantHandicapé
   -- AllocationAdulteHandicapé
 
-déclaration énumération TypeContratTravail:
-  -- CDI
-  -- Autres
 
 déclaration énumération ModeOccupation:
   -- Locataire contenu Location
@@ -157,7 +148,7 @@ déclaration énumération ParentOuAutre:
   -- Autre
 
 déclaration structure PersonneSousLocation:
-  donnée age_personne_sous_location contenu entier
+  donnée date_naissance_personne_sous_location contenu date
   donnée conforme_article_l442_1 contenu booléen
 
 déclaration énumération LouéOuSousLouéÀDesTiers:
@@ -173,8 +164,6 @@ déclaration structure Logement:
   donnée usufruit contenu ParentOuAutre
   donnée logement_decent_l89_462 contenu booléen
   donnée surface_m_carrés contenu entier
-  donnée est_ancien_l831_2 contenu booléen
-  donnée situé_commune_déséquilibre_l831_2 contenu booléen
   donnée zone contenu ZoneDHabitation
 
 déclaration énumération SituationGardeAlternée:
@@ -189,8 +178,6 @@ déclaration structure EnfantÀCharge:
   donnée date_de_naissance contenu date
   donnée rémuneration_mensuelle contenu argent
   donnée obligation_scolaire contenu SituationObligationScolaire
-  donnée prise_en_charge contenu PriseEnCharge
-  donnée âge contenu entier
   donnée situation_garde_alternée contenu SituationGardeAlternée
 
 déclaration énumération Parenté:
@@ -228,31 +215,26 @@ déclaration structure Ménage:
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
-  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
-    contenu entier
-  donnée enfant_à_naître_après_quatrième_mois_grossesse
-    contenu booléen
-  donnée date_naissance_troisième_enfant_ou_dernier_si_plus contenu
-    DateNaissanceTroisièmeOuDernierPlusEnfant
+  donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
 
 déclaration structure Patrimoine:
   donnée produisant_revenu_période_r822_3_3_r822_4 contenu argent
   donnée ne_produisant_pas_revenu_période_r822_3_3_r822_4 contenu argent
 
 déclaration structure Demandeur:
-  donnée satisfait_conditions_l512_2_code_sécurité_sociale
-    contenu booléen
-  donnée age_demandeur contenu entier
   donnée date_naissance contenu date
-  donnée contrat_de_travail contenu TypeContratTravail
   donnée nationalité contenu Nationalité
   donnée patrimoine contenu Patrimoine
   donnée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
     contenu booléen
 
+déclaration structure ConditionsÉtrangers:
+  donnée satisfait_conditions_l512_2_code_sécurité_sociale
+    contenu booléen
+
 déclaration énumération Nationalité:
   -- Française
-  -- Étrangère
+  -- Étrangère contenu ConditionsÉtrangers
 
 déclaration énumération ZoneDHabitation:
   -- Zone1
@@ -263,12 +245,6 @@ déclaration énumération CatégorieCalculAPL:
   -- Location
   -- AccessionPropriété
   -- LogementFoyer
-
-déclaration énumération InformationsCalculAPL:
-  -- InfosLocatif contenu InformationsCalculAPLLocatif
-  -- InfosLogementFoyer contenu InformationsCalculAPLLogementFoyer
-  -- InfosAccessionPropriété contenu
-    InformationsCalculAPLAccessionPropriété
 ```
 
 ### Informations concernant l'évaluation des ressources du ménage
@@ -318,12 +294,10 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   contexte condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
-  interne condition_logement_surface_minimale_sans_seuil_m_carrés
-    contenu entier
   contexte condition_logement_surface condition
   interne condition_non_ouverture_l822_8 condition
   interne condition_non_ouverture_l822_9_decence_logement condition
-  interne condition_non_ouverture_l822_10_peuplement_logement condition
+  interne condition_ouverture_l822_10_peuplement_logement condition
   interne condition_peuplement_logement_l822_10 condition
   interne éligibilité_logement condition
   interne prise_en_compte_personne_à_charge condition
@@ -333,7 +307,6 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
 
   # Autres variables
   interne patrimoine_total_demandeur contenu argent
-  interne nombre_personnes_logement contenu entier
   interne usufruit_ou_propriété_famille contenu booléen
   interne seuil_l822_3_parts_propriété contenu décimal
   interne seuil_l822_3_parts_usufruit contenu décimal
@@ -424,12 +397,10 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
   entrée bénéficie_aide_personnalisée_logement contenu booléen
-  entrée informations_calcul contenu InformationsCalculAPL
 
-  interne condition_logement condition
+  interne condition_accession_propriété condition
 
   interne éligibilité_allocation_logement_familiale condition
-  interne éligibilité_allocation_logement_sociale condition
   interne durée_l841_1_3 contenu durée
 
   prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
@@ -439,7 +410,6 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   sortie éligibilité contenu ÉligibilitéAllocationLogement
     état dispositions_communes
     état l841_2
-    état avec_condition_logement
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier
   sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
     collection décimal
@@ -458,12 +428,6 @@ champ d'application ÉligibilitéAllocationLogement:
   définition éligibilité_commune.demandeur égal à demandeur
   définition éligibilité_commune.date_courante égal à
     date_courante
-
-  définition éligibilité état avec_condition_logement égal à
-    si non condition_logement alors
-      PasÉligible
-    sinon
-      éligibilité
   définition nombre_personnes_à_charge_prises_en_compte égal à
     éligibilité_commune.nombre_personnes_à_charge_prises_en_compte
   définition coefficents_enfants_garde_alternée_pris_en_compte égal à
@@ -473,7 +437,14 @@ champ d'application ÉligibilitéAllocationLogement:
 ### Éligibilité à la prime de déménagement
 
 ```catala-metadata
+déclaration structure InformationsPrimeDeDéménagement:
+  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
+    contenu entier
+  donnée date_naissance_troisième_enfant_ou_dernier_si_plus
+    contenu DateNaissanceTroisièmeOuDernierPlusEnfant
+
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
+  entrée informations contenu InformationsPrimeDeDéménagement
   entrée date_emménagement contenu date
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
@@ -556,6 +527,8 @@ déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
 ```catala-metadata
 déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée loyer_principal contenu argent
+    état base
+    état avec_réduction_meublé
   entrée ressources_ménage_arrondies contenu argent
   entrée bénéficiaire_aide_adulte_ou_enfant_handicapés
     contenu booléen
@@ -569,6 +542,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
+  entrée logement_meublé_d842_2 contenu booléen
 
   interne loyer_éligible contenu argent
   interne taux_loyer_éligible contenu décimal
@@ -629,7 +603,8 @@ déclaration champ d'application CalculNombrePartLogementFoyer:
   sortie n_nombre_parts_d832_25 contenu décimal
 
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
-  entrée mode_occupation contenu ModeOccupation
+  entrée type_logement_foyer contenu TypeLogementFoyer
+  entrée date_conventionnement contenu date
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -750,7 +725,6 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 déclaration champ d'application CalculAidePersonnaliséeLogement:
   entrée mode_occupation contenu ModeOccupation
   entrée type_aide contenu TypeAidesPersonnelleLogement
-  entrée informations_calcul contenu InformationsCalculAPL
   entrée ressources_ménage contenu argent
     état sans_arrondi
     état avec_arrondi
@@ -801,9 +775,9 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée type_aide contenu TypeAidesPersonnelleLogement
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
+  entrée logement_meublé_d842_2 contenu booléen
 
   # Entrées spécifiques
-  entrée logement_meublé_d842_2 contenu booléen
   entrée changement_logement_d842_4 contenu ChangementLogementD842_4
 
   calcul_apl_locatif champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -841,6 +815,8 @@ champ d'application CalculAllocationLogementLocatif:
     colocation
   définition calcul_apl_locatif.réduction_loyer_solidarité égal à
     réduction_loyer_solidarité
+  définition calcul_apl_locatif.logement_meublé_d842_2 égal à
+    logement_meublé_d842_2
 
 
   définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
@@ -905,27 +881,16 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
     état montant_minimal
 
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition calcul_apl_logement_foyer.mode_occupation égal à
-    # Ici la valeur du mode d'occupation n'a pas de sens puisque l'on est
-    # dans le cas d'une accession à la propriété mais on nous demande de
-    # calculer des quantités comme si on était en logement foyer. Or il nous
-    # faut donner un argument au sous-champ d'application donc on met ici une
-    # valeur bidon.
-    RésidentLogementFoyer contenu (LogementFoyer {
-      -- type: RésidenceSociale
-      -- date_conventionnement: |2022-01-01|
-      -- construit_application_loi_1957_12_III: faux
-      -- location: Location {
-        -- bailleur: Bailleur {
-          -- type_bailleur: BailleurSocial
-          -- respecte_convention_titre_V: vrai
-          -- respecte_convention_titre_II: vrai
-          -- construit_amélioré_conditions_l831_1_4: vrai
-          -- acquisition_aides_état_prêt_titre_II_ou_livre_III: vrai
-        }
-      }
-      -- remplit_conditions_r832_21: faux
-    })
+  # Ici la valeur du type de foyer et de la date de conventionnement
+  # n'a pas de sens puisque l'on est
+  # dans le cas d'une accession à la propriété mais on nous demande de
+  # calculer des quantités comme si on était en logement foyer. Or il nous
+  # faut donner un argument au sous-champ d'application donc on met ici une
+  # valeur bidon.
+  définition calcul_apl_logement_foyer.type_logement_foyer égal à
+    TypeLogementFoyer.Autre # Valeur par défaut
+  définition calcul_apl_logement_foyer.date_conventionnement égal à
+    |1970-01-01| # Valeur par défaut
   définition calcul_apl_logement_foyer.redevance égal à
     0 € # Valeur par défaut
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
@@ -945,8 +910,9 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 
 ```catala-metadata
 déclaration champ d'application CalculAllocationLogementFoyer:
+  entrée type_logement_foyer contenu TypeLogementFoyer
+  entrée date_conventionnement contenu date
   entrée redevance contenu argent
-  entrée mode_occupation contenu ModeOccupation
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -982,8 +948,10 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     état montant_minimal
 
 champ d'application CalculAllocationLogementFoyer:
-  définition calcul_apl_logement_foyer.mode_occupation égal à
-    mode_occupation
+  définition calcul_apl_logement_foyer.type_logement_foyer égal à
+    type_logement_foyer
+  définition calcul_apl_logement_foyer.date_conventionnement égal à
+    date_conventionnement
   définition calcul_apl_logement_foyer.redevance égal à
     redevance
   définition calcul_apl_logement_foyer.ressources_ménage_arrondies égal à
@@ -1004,7 +972,6 @@ champ d'application CalculAllocationLogementFoyer:
 ```catala-metadata
 déclaration champ d'application CalculAllocationLogement:
   entrée mode_occupation contenu ModeOccupation
-  entrée informations_calcul contenu InformationsCalculAPL
   entrée ressources_ménage contenu argent
     état sans_arrondi
     état avec_arrondi
@@ -1065,7 +1032,6 @@ de toutes les aides disponibles : APL, ALS, ALF.
 déclaration champ d'application CalculetteAidesAuLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
-  entrée informations_calcul contenu InformationsCalculAPL
   entrée date_courante contenu date
   # TODO informatique et juridique: brancher le champ d'application de prise en
   # compte des ressources. Pour l'instant on ne fait pas calcul de prise en
@@ -1104,17 +1070,6 @@ champ d'application CalculetteAidesAuLogement:
     date_courante
   définition éligibilité_allocation_logement.date_courante égal à
     date_courante
-  définition éligibilité_allocation_logement.informations_calcul égal à
-    informations_calcul
-
-  définition calcul_aide_personnalisée_logement.informations_calcul égal à
-    informations_calcul
-  définition calcul_allocation_logement.informations_calcul égal à
-    informations_calcul
-  définition calcul_aide_personnalisée_logement.informations_calcul égal à
-    informations_calcul
-  définition calcul_allocation_logement.informations_calcul égal à
-    informations_calcul
   définition calcul_aide_personnalisée_logement.mode_occupation égal à
     ménage.logement.mode_occupation
   définition calcul_allocation_logement.mode_occupation égal à
@@ -1159,7 +1114,6 @@ d'État.
 déclaration champ d'application CalculetteAidesAuLogementGardeAlternée:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
-  entrée informations_calcul contenu InformationsCalculAPL
   entrée date_courante contenu date
   entrée ressources_ménage_prises_en_compte contenu argent
 
@@ -1178,8 +1132,6 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
     ménage
   définition calculette.demandeur égal à
     demandeur
-  définition calculette.informations_calcul égal à
-    informations_calcul
   définition calculette.date_courante égal à
     date_courante
   définition calculette.ressources_ménage_prises_en_compte égal à
@@ -1188,8 +1140,6 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
     ménage_sans_enfants_garde_alternée
   définition calculette_sans_garde_alternée.demandeur égal à
     demandeur
-  définition calculette_sans_garde_alternée.informations_calcul égal à
-    informations_calcul
   définition calculette_sans_garde_alternée.date_courante égal à
     date_courante
   définition
@@ -1223,12 +1173,8 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
         ménage.situation_familiale
       -- condition_rattaché_foyer_fiscal_parent_ifi :
         ménage.condition_rattaché_foyer_fiscal_parent_ifi
-      -- nombre_enfants_à_naître_après_troisième_mois_grossesse :
-        ménage.nombre_enfants_à_naître_après_troisième_mois_grossesse
-      -- enfant_à_naître_après_quatrième_mois_grossesse :
+      -- enfant_à_naître_après_quatrième_mois_grossesse:
         ménage.enfant_à_naître_après_quatrième_mois_grossesse
-      -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-        ménage.date_naissance_troisième_enfant_ou_dernier_si_plus
     }
   définition éligibilité égal à calculette.éligibilité
 ```

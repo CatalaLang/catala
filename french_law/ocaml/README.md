@@ -30,7 +30,7 @@ make run_french_law_library_ocaml_tests
 ```
 
 The `law_source` files rely on the Catala OCaml runtime, located in
-`compiler/runtime.{ml, mli}`. This runtime defines the types of the values
+`runtimes/ocaml/runtime.{ml, mli}`. This runtime defines the types of the values
 manipulated by the Catala programs in OCaml and the operations available for them.
 
 ### Wrappers

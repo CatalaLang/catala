@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "0.6.0"
+version: "0.7.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
 description:
@@ -25,7 +25,7 @@ depends: [
   "cppo" {>= "1"}
   "dates_calc" {>= "0.0.3"}
   "dune" {>= "2.8"}
-  "js_of_ocaml-ppx" {>= "3.8.0"}
+  "js_of_ocaml-ppx" {>= "4.0.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
   "ocaml" {>= "4.13.0"}

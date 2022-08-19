@@ -28,7 +28,7 @@
 
 buildDunePackage rec {
   pname = "catala";
-  version = "0.6.0"; # TODO parse `catala.opam` with opam2json
+  version = "0.7.0"; # TODO parse `catala.opam` with opam2json
 
   minimumOCamlVersion = "4.11";
 
@@ -42,7 +42,6 @@ buildDunePackage rec {
     benchmark
     bindlib
     calendar
-    camomile
     cmdliner_1_1_0
     cppo
     js_of_ocaml

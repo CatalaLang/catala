@@ -10,17 +10,16 @@ la fonction du bloc de code ci-dessous.
 ```catala-metadata
 champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé  égal à
-    contenu maximum entier initial Enfant {
+    contenu minimum date initial Enfant {
       -- identifiant: -1
       -- obligation_scolaire: Pendant
       -- rémuneration_mensuelle: 0€
-      -- date_de_naissance: |1900-01-01|
-      -- âge: 0
+      -- date_de_naissance: |2999-12-31|
       -- prise_en_charge: EffectiveEtPermanente
       -- a_déjà_ouvert_droit_aux_allocations_familiales: faux
       -- bénéficie_titre_personnel_aide_personnelle_logement: faux
     }
-    pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.âge
+    pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.date_de_naissance
 
 
 champ d'application AllocationsFamiliales:
@@ -120,8 +119,6 @@ champ d'application InterfaceAllocationsFamiliales:
       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
       -- date_de_naissance : enfant.d_date_de_naissance
       -- prise_en_charge : enfant.d_prise_en_charge
-      -- âge: accès_année de
-        (|0000-01-01| +@ (i_date_courante -@ enfant.d_date_de_naissance))
       -- obligation_scolaire :
         (si enfant.d_date_de_naissance +@ 3 an >=@ i_date_courante alors
           Avant
