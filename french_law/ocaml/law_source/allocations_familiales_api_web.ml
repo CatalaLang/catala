@@ -386,7 +386,6 @@ class type enfant =
       situation_obligation_scolaire Js.t Js.readonly_prop
     method remunerationMensuelle: Js.number Js.t Js.readonly_prop
     method dateDeNaissance: Js.js_string Js.t Js.readonly_prop
-    method age: int Js.readonly_prop
     method priseEnCharge: prise_en_charge Js.t Js.readonly_prop
     method aDejaOuvertDroitAuxAllocationsFamiliales:
       bool Js.t Js.readonly_prop
@@ -401,7 +400,6 @@ class type enfant =
       val remunerationMensuelle =
         Js.number_of_float @@ money_to_float enfant.remuneration_mensuelle
       val dateDeNaissance = date_to_jsoo enfant.date_de_naissance
-      val age = integer_to_int enfant.age
       val priseEnCharge = prise_en_charge_to_jsoo enfant.prise_en_charge
       val aDejaOuvertDroitAuxAllocationsFamiliales =
         Js.bool enfant.a_deja_ouvert_droit_aux_allocations_familiales
@@ -417,7 +415,6 @@ class type enfant =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           enfant##.remunerationMensuelle;
       date_de_naissance = date_of_jsoo enfant##.dateDeNaissance;
-      age = integer_of_int enfant##.age;
       prise_en_charge = prise_en_charge_of_jsoo enfant##.priseEnCharge;
       a_deja_ouvert_droit_aux_allocations_familiales =
         Js.to_bool enfant##.aDejaOuvertDroitAuxAllocationsFamiliales;
@@ -430,7 +427,7 @@ class type prestations_familiales_out =
     method droitOuvertOut: (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
     method conditionsHorsAgeOut:
       (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method ageL51232Out: int Js.readonly_prop
+    method ageL51232Out: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
     method regimeOutreMerL7511Out: bool Js.t Js.readonly_prop
   end
   let prestations_familiales_out_to_jsoo (prestations_familiales_out
@@ -445,7 +442,7 @@ class type prestations_familiales_out =
           fun input ->
           Js.bool (prestations_familiales_out.conditions_hors_age_out (enfant_of_jsoo input)))
       val ageL51232Out =
-        integer_to_int prestations_familiales_out.age_l512_3_2_out
+        duration_to_jsoo prestations_familiales_out.age_l512_3_2_out
       val regimeOutreMerL7511Out =
         Js.bool prestations_familiales_out.regime_outre_mer_l751_1_out
       end
@@ -456,7 +453,7 @@ class type prestations_familiales_out =
       droit_ouvert_out = failwith "The function 'droit_ouvert_out' translation isn't yet supported...";
       conditions_hors_age_out = failwith "The function 'conditions_hors_age_out' translation isn't yet supported...";
       age_l512_3_2_out =
-        integer_of_int prestations_familiales_out##.ageL51232Out;
+        duration_of_jsoo prestations_familiales_out##.ageL51232Out;
       regime_outre_mer_l751_1_out =
         Js.to_bool prestations_familiales_out##.regimeOutreMerL7511Out
     }
@@ -492,7 +489,9 @@ class type prestations_familiales_in =
     }
 
 class type allocation_familiales_avril2008_out =
-  object method ageMinimumAlinea1L5213Out: int Js.readonly_prop
+  object
+    method ageMinimumAlinea1L5213Out:
+      Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
   end
   let allocation_familiales_avril2008_out_to_jsoo
     (allocation_familiales_avril2008_out
@@ -500,7 +499,7 @@ class type allocation_familiales_avril2008_out =
     : allocation_familiales_avril2008_out Js.t =
     object%js
       val ageMinimumAlinea1L5213Out =
-        integer_to_int allocation_familiales_avril2008_out.age_minimum_alinea_1_l521_3_out
+        duration_to_jsoo allocation_familiales_avril2008_out.age_minimum_alinea_1_l521_3_out
       end
   let allocation_familiales_avril2008_out_of_jsoo
     (allocation_familiales_avril2008_out
@@ -508,7 +507,7 @@ class type allocation_familiales_avril2008_out =
     AllocationFamilialesAvril2008Out.t =
     {
       age_minimum_alinea_1_l521_3_out =
-        integer_of_int
+        duration_of_jsoo
           allocation_familiales_avril2008_out##.ageMinimumAlinea1L5213Out
     }
 

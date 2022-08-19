@@ -9,39 +9,6 @@ open Aides_logement
 
 (* Generated API *)
 
-class type type_bailleur =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "BailleurSocial"
-        - "BailleurPrive" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let type_bailleur_to_jsoo : TypeBailleur.t -> type_bailleur Js.t
-  = function
-  | BailleurSocial arg -> object%js
-      val kind = Js.string "BailleurSocial"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | BailleurPrive arg -> object%js
-      val kind = Js.string "BailleurPrive"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-
-let type_bailleur_of_jsoo (type_bailleur : type_bailleur Js.t)
-  : TypeBailleur.t =
-  match type_bailleur##.kind |> Js.to_string with
-  | "BailleurSocial" -> TypeBailleur.BailleurSocial ()
-  | "BailleurPrive" -> TypeBailleur.BailleurPrive ()
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'TypeBailleur.t'" cons)
-
-
 class type type_pret =
   object
     method kind :
@@ -544,38 +511,6 @@ let date_de_naissance_ou_mois_de_grossesse_of_jsoo
         cons)
 
 
-class type nationalite =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "Francaise"
-        - "Etrangere" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let nationalite_to_jsoo : Nationalite.t -> nationalite Js.t
-  = function
-  | Francaise arg -> object%js
-      val kind = Js.string "Francaise"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | Etrangere arg -> object%js
-      val kind = Js.string "Etrangere"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-
-let nationalite_of_jsoo (nationalite : nationalite Js.t) : Nationalite.t =
-  match nationalite##.kind |> Js.to_string with
-  | "Francaise" -> Nationalite.Francaise ()
-  | "Etrangere" -> Nationalite.Etrangere ()
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'Nationalite.t'" cons)
-
-
 class type zone_d_habitation =
   object
     method kind :
@@ -1057,8 +992,8 @@ class type categorie_equivalence_loyer_allocation_logement_foyer =
     method kind :
       Js.js_string Js.t Js.readonly_prop
       (** Expects one of:
-        - "EtudiantLogeEnChambre"
-        - "EtudiantLogeEnChambreRehabilitee"
+        - "EtudiantLogeEnChambreCROUS"
+        - "EtudiantLogeEnChambreCROUSRehabilitee"
         - "PersonnesAgeesSelon3DeD842_16"
         - "AutresPersonnes" *)
     
@@ -1068,12 +1003,12 @@ class type categorie_equivalence_loyer_allocation_logement_foyer =
 let categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo
   : CategorieEquivalenceLoyerAllocationLogementFoyer.t -> categorie_equivalence_loyer_allocation_logement_foyer Js.t
   = function
-  | EtudiantLogeEnChambre arg -> object%js
-      val kind = Js.string "EtudiantLogeEnChambre"
+  | EtudiantLogeEnChambreCROUS arg -> object%js
+      val kind = Js.string "EtudiantLogeEnChambreCROUS"
       val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
     end
-  | EtudiantLogeEnChambreRehabilitee arg -> object%js
-      val kind = Js.string "EtudiantLogeEnChambreRehabilitee"
+  | EtudiantLogeEnChambreCROUSRehabilitee arg -> object%js
+      val kind = Js.string "EtudiantLogeEnChambreCROUSRehabilitee"
       val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
     end
   | PersonnesAgeesSelon3DeD842_16 arg -> object%js
@@ -1091,10 +1026,10 @@ let categorie_equivalence_loyer_allocation_logement_foyer_of_jsoo
   : CategorieEquivalenceLoyerAllocationLogementFoyer.t =
   match categorie_equivalence_loyer_allocation_logement_foyer##.kind
     |> Js.to_string with
-  | "EtudiantLogeEnChambre" ->
-    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambre ()
-  | "EtudiantLogeEnChambreRehabilitee" ->
-    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambreRehabilitee ()
+  | "EtudiantLogeEnChambreCROUS" ->
+    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambreCROUS ()
+  | "EtudiantLogeEnChambreCROUSRehabilitee" ->
+    CategorieEquivalenceLoyerAllocationLogementFoyer.EtudiantLogeEnChambreCROUSRehabilitee ()
   | "PersonnesAgeesSelon3DeD842_16" ->
     CategorieEquivalenceLoyerAllocationLogementFoyer.PersonnesAgeesSelon3DeD842_16 ()
   | "AutresPersonnes" ->
@@ -1397,16 +1332,59 @@ let element_prestations_familiales_of_jsoo
         cons)
 
 
+class type convention_bailleur_social =
+  object
+    method conventionneLivreIIITitreVChapIII: bool Js.t Js.readonly_prop
+    method reductionLoyerSolidaritePercue: Js.number Js.t Js.readonly_prop
+  end
+  let convention_bailleur_social_to_jsoo (convention_bailleur_social
+    : ConventionBailleurSocial.t) : convention_bailleur_social Js.t =
+    object%js
+      val conventionneLivreIIITitreVChapIII =
+        Js.bool convention_bailleur_social.conventionne_livre_III_titre_V_chap_III
+      val reductionLoyerSolidaritePercue =
+        Js.number_of_float @@ money_to_float convention_bailleur_social.reduction_loyer_solidarite_percue
+      end
+  let convention_bailleur_social_of_jsoo
+    (convention_bailleur_social : convention_bailleur_social Js.t) :
+    ConventionBailleurSocial.t =
+    {
+      conventionne_livre_III_titre_V_chap_III =
+        Js.to_bool
+          convention_bailleur_social##.conventionneLivreIIITitreVChapIII;
+      reduction_loyer_solidarite_percue =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          convention_bailleur_social##.reductionLoyerSolidaritePercue
+    }
+
+class type convention_a_n_h_a =
+  object
+    method conventionneLivreIIITitreIIChapISec3: bool Js.t Js.readonly_prop
+  end
+  let convention_a_n_h_a_to_jsoo (convention_a_n_h_a : ConventionANHA.t)
+    : convention_a_n_h_a Js.t =
+    object%js
+      val conventionneLivreIIITitreIIChapISec3 =
+        Js.bool convention_a_n_h_a.conventionne_livre_III_titre_II_chap_I_sec_3
+      end
+  let convention_a_n_h_a_of_jsoo
+    (convention_a_n_h_a : convention_a_n_h_a Js.t) : ConventionANHA.t =
+    {
+      conventionne_livre_III_titre_II_chap_I_sec_3 =
+        Js.to_bool convention_a_n_h_a##.conventionneLivreIIITitreIIChapISec3
+    }
+
 class type personne_sous_location =
   object
-    method agePersonneSousLocation: int Js.readonly_prop
+    method dateNaissancePersonneSousLocation:
+      Js.js_string Js.t Js.readonly_prop
     method conformeArticleL4421: bool Js.t Js.readonly_prop
   end
   let personne_sous_location_to_jsoo (personne_sous_location
     : PersonneSousLocation.t) : personne_sous_location Js.t =
     object%js
-      val agePersonneSousLocation =
-        integer_to_int personne_sous_location.age_personne_sous_location
+      val dateNaissancePersonneSousLocation =
+        date_to_jsoo personne_sous_location.date_naissance_personne_sous_location
       val conformeArticleL4421 =
         Js.bool personne_sous_location.conforme_article_l442_1
       end
@@ -1414,8 +1392,9 @@ class type personne_sous_location =
     (personne_sous_location : personne_sous_location Js.t) :
     PersonneSousLocation.t =
     {
-      age_personne_sous_location =
-        integer_of_int personne_sous_location##.agePersonneSousLocation;
+      date_naissance_personne_sous_location =
+        date_of_jsoo
+          personne_sous_location##.dateNaissancePersonneSousLocation;
       conforme_article_l442_1 =
         Js.to_bool personne_sous_location##.conformeArticleL4421
     }
@@ -1442,6 +1421,26 @@ class type patrimoine =
       ne_produisant_pas_revenu_periode_r822_3_3_r822_4 =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           patrimoine##.neProduisantPasRevenuPeriodeR82233R8224
+    }
+
+class type conditions_etrangers =
+  object
+    method satisfaitConditionsL5122CodeSecuriteSociale:
+      bool Js.t Js.readonly_prop
+  end
+  let conditions_etrangers_to_jsoo (conditions_etrangers
+    : ConditionsEtrangers.t) : conditions_etrangers Js.t =
+    object%js
+      val satisfaitConditionsL5122CodeSecuriteSociale =
+        Js.bool conditions_etrangers.satisfait_conditions_l512_2_code_securite_sociale
+      end
+  let conditions_etrangers_of_jsoo
+    (conditions_etrangers : conditions_etrangers Js.t) :
+    ConditionsEtrangers.t =
+    {
+      satisfait_conditions_l512_2_code_securite_sociale =
+        Js.to_bool
+          conditions_etrangers##.satisfaitConditionsL5122CodeSecuriteSociale
     }
 
 class type personne_vivant_habituellement_au_foyer =
@@ -1499,40 +1498,6 @@ class type infos_changement_logement_d842_4 =
       ancienne_allocation_logement =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           infos_changement_logement_d842_4##.ancienneAllocationLogement
-    }
-
-class type bailleur =
-  object
-    method typeBailleur: type_bailleur Js.t Js.readonly_prop
-    method respecteConventionTitreV: bool Js.t Js.readonly_prop
-    method respecteConventionTitreII: bool Js.t Js.readonly_prop
-    method construitAmelioreConditionsL83114: bool Js.t Js.readonly_prop
-    method acquisitionAidesEtatPretTitreIIOuLivreIII:
-      bool Js.t Js.readonly_prop
-  end
-  let bailleur_to_jsoo (bailleur : Bailleur.t) : bailleur Js.t =
-    object%js
-      val typeBailleur = type_bailleur_to_jsoo bailleur.type_bailleur
-      val respecteConventionTitreV =
-        Js.bool bailleur.respecte_convention_titre_V
-      val respecteConventionTitreII =
-        Js.bool bailleur.respecte_convention_titre_II
-      val construitAmelioreConditionsL83114 =
-        Js.bool bailleur.construit_ameliore_conditions_l831_1_4
-      val acquisitionAidesEtatPretTitreIIOuLivreIII =
-        Js.bool bailleur.acquisition_aides_etat_pret_titre_II_ou_livre_III
-      end
-  let bailleur_of_jsoo (bailleur : bailleur Js.t) : Bailleur.t =
-    {
-      type_bailleur = type_bailleur_of_jsoo bailleur##.typeBailleur;
-      respecte_convention_titre_V =
-        Js.to_bool bailleur##.respecteConventionTitreV;
-      respecte_convention_titre_II =
-        Js.to_bool bailleur##.respecteConventionTitreII;
-      construit_ameliore_conditions_l831_1_4 =
-        Js.to_bool bailleur##.construitAmelioreConditionsL83114;
-      acquisition_aides_etat_pret_titre_II_ou_livre_III =
-        Js.to_bool bailleur##.acquisitionAidesEtatPretTitreIIOuLivreIII
     }
 
 class type pret =
@@ -1727,34 +1692,52 @@ let date_naissance_troisieme_ou_dernier_plus_enfant_of_jsoo
         cons)
 
 
-class type informations_calcul_a_p_l_logement_foyer =
+class type logement_foyer =
   object
+    method typeUser: type_logement_foyer Js.t Js.readonly_prop
+    method remplitConditionsR83221: bool Js.t Js.readonly_prop
+    method conventionneLivreIIITitreVChapIII: bool Js.t Js.readonly_prop
+    method dateConventionnement: Js.js_string Js.t Js.readonly_prop
+    method construitApplicationLoi195712III: bool Js.t Js.readonly_prop
     method redevance: Js.number Js.t Js.readonly_prop
     method categorieEquivalenceLoyerD84216:
       categorie_equivalence_loyer_allocation_logement_foyer Js.t Js.readonly_prop
   end
-  let informations_calcul_a_p_l_logement_foyer_to_jsoo
-    (informations_calcul_a_p_l_logement_foyer
-    : InformationsCalculAPLLogementFoyer.t)
-    : informations_calcul_a_p_l_logement_foyer Js.t =
+  let logement_foyer_to_jsoo (logement_foyer : LogementFoyer.t)
+    : logement_foyer Js.t =
     object%js
+      val typeUser = type_logement_foyer_to_jsoo logement_foyer.type_user
+      val remplitConditionsR83221 =
+        Js.bool logement_foyer.remplit_conditions_r832_21
+      val conventionneLivreIIITitreVChapIII =
+        Js.bool logement_foyer.conventionne_livre_III_titre_V_chap_III
+      val dateConventionnement =
+        date_to_jsoo logement_foyer.date_conventionnement
+      val construitApplicationLoi195712III =
+        Js.bool logement_foyer.construit_application_loi_1957_12_III
       val redevance =
-        Js.number_of_float @@ money_to_float informations_calcul_a_p_l_logement_foyer.redevance
+        Js.number_of_float @@ money_to_float logement_foyer.redevance
       val categorieEquivalenceLoyerD84216 =
-        categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo informations_calcul_a_p_l_logement_foyer.categorie_equivalence_loyer_d842_16
+        categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo logement_foyer.categorie_equivalence_loyer_d842_16
       end
-  let informations_calcul_a_p_l_logement_foyer_of_jsoo
-    (informations_calcul_a_p_l_logement_foyer
-      : informations_calcul_a_p_l_logement_foyer Js.t) :
-    InformationsCalculAPLLogementFoyer.t =
+  let logement_foyer_of_jsoo (logement_foyer : logement_foyer Js.t) :
+    LogementFoyer.t =
     {
+      type_user = type_logement_foyer_of_jsoo logement_foyer##.typeUser;
+      remplit_conditions_r832_21 =
+        Js.to_bool logement_foyer##.remplitConditionsR83221;
+      conventionne_livre_III_titre_V_chap_III =
+        Js.to_bool logement_foyer##.conventionneLivreIIITitreVChapIII;
+      date_conventionnement =
+        date_of_jsoo logement_foyer##.dateConventionnement;
+      construit_application_loi_1957_12_III =
+        Js.to_bool logement_foyer##.construitApplicationLoi195712III;
       redevance =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          informations_calcul_a_p_l_logement_foyer##.redevance;
+          logement_foyer##.redevance;
       categorie_equivalence_loyer_d842_16 =
         categorie_equivalence_loyer_allocation_logement_foyer_of_jsoo
-          informations_calcul_a_p_l_logement_foyer
-          ##.categorieEquivalenceLoyerD84216
+          logement_foyer##.categorieEquivalenceLoyerD84216
     }
 
 class type enfant_prestations_familiales =
@@ -1764,7 +1747,6 @@ class type enfant_prestations_familiales =
       situation_obligation_scolaire Js.t Js.readonly_prop
     method remunerationMensuelle: Js.number Js.t Js.readonly_prop
     method dateDeNaissance: Js.js_string Js.t Js.readonly_prop
-    method age: int Js.readonly_prop
     method priseEnCharge: prise_en_charge_enfant Js.t Js.readonly_prop
     method aDejaOuvertDroitAuxAllocationsFamiliales:
       bool Js.t Js.readonly_prop
@@ -1782,7 +1764,6 @@ class type enfant_prestations_familiales =
         Js.number_of_float @@ money_to_float enfant_prestations_familiales.remuneration_mensuelle
       val dateDeNaissance =
         date_to_jsoo enfant_prestations_familiales.date_de_naissance
-      val age = integer_to_int enfant_prestations_familiales.age
       val priseEnCharge =
         prise_en_charge_enfant_to_jsoo enfant_prestations_familiales.prise_en_charge
       val aDejaOuvertDroitAuxAllocationsFamiliales =
@@ -1803,7 +1784,6 @@ class type enfant_prestations_familiales =
           enfant_prestations_familiales##.remunerationMensuelle;
       date_de_naissance =
         date_of_jsoo enfant_prestations_familiales##.dateDeNaissance;
-      age = integer_of_int enfant_prestations_familiales##.age;
       prise_en_charge =
         prise_en_charge_enfant_of_jsoo
           enfant_prestations_familiales##.priseEnCharge;
@@ -1828,8 +1808,6 @@ class type enfant_a_charge =
     method remunerationMensuelle: Js.number Js.t Js.readonly_prop
     method obligationScolaire:
       situation_obligation_scolaire Js.t Js.readonly_prop
-    method priseEnCharge: prise_en_charge Js.t Js.readonly_prop
-    method age: int Js.readonly_prop
     method situationGardeAlternee:
       situation_garde_alternee Js.t Js.readonly_prop
   end
@@ -1846,9 +1824,6 @@ class type enfant_a_charge =
         Js.number_of_float @@ money_to_float enfant_a_charge.remuneration_mensuelle
       val obligationScolaire =
         situation_obligation_scolaire_to_jsoo enfant_a_charge.obligation_scolaire
-      val priseEnCharge =
-        prise_en_charge_to_jsoo enfant_a_charge.prise_en_charge
-      val age = integer_to_int enfant_a_charge.age
       val situationGardeAlternee =
         situation_garde_alternee_to_jsoo enfant_a_charge.situation_garde_alternee
       end
@@ -1868,13 +1843,51 @@ class type enfant_a_charge =
       obligation_scolaire =
         situation_obligation_scolaire_of_jsoo
           enfant_a_charge##.obligationScolaire;
-      prise_en_charge =
-        prise_en_charge_of_jsoo enfant_a_charge##.priseEnCharge;
-      age = integer_of_int enfant_a_charge##.age;
       situation_garde_alternee =
         situation_garde_alternee_of_jsoo
           enfant_a_charge##.situationGardeAlternee
     }
+
+class type type_bailleur =
+  object
+    method kind :
+      Js.js_string Js.t Js.readonly_prop
+      (** Expects one of:
+        - "BailleurSocial"
+        - "BailleurPriveAvecConventionnementSocial"
+        - "BailleurPrive" *)
+    
+    method payload : Js.Unsafe.any Js.t Js.readonly_prop
+  end
+
+let type_bailleur_to_jsoo : TypeBailleur.t -> type_bailleur Js.t
+  = function
+  | BailleurSocial arg -> object%js
+      val kind = Js.string "BailleurSocial"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (convention_bailleur_social_to_jsoo arg))
+    end
+  | BailleurPriveAvecConventionnementSocial arg -> object%js
+      val kind = Js.string "BailleurPriveAvecConventionnementSocial"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (convention_a_n_h_a_to_jsoo arg))
+    end
+  | BailleurPrive arg -> object%js
+      val kind = Js.string "BailleurPrive"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
+    end
+
+let type_bailleur_of_jsoo (type_bailleur : type_bailleur Js.t)
+  : TypeBailleur.t =
+  match type_bailleur##.kind |> Js.to_string with
+  | "BailleurSocial" ->
+  TypeBailleur.BailleurSocial (convention_bailleur_social_of_jsoo (Js.Unsafe.coerce type_bailleur##.payload))
+  | "BailleurPriveAvecConventionnementSocial" ->
+  TypeBailleur.BailleurPriveAvecConventionnementSocial (convention_a_n_h_a_of_jsoo (Js.Unsafe.coerce type_bailleur##.payload))
+  | "BailleurPrive" -> TypeBailleur.BailleurPrive ()
+  | cons ->
+    failwith
+      (Printf.sprintf
+        "Unexpected '%s' kind for the enumeration 'TypeBailleur.t'" cons)
+
 
 class type loue_ou_sous_loue_a_des_tiers =
   object
@@ -1913,40 +1926,38 @@ let loue_ou_sous_loue_a_des_tiers_of_jsoo
         cons)
 
 
-class type demandeur =
+class type nationalite =
   object
-    method satisfaitConditionsL5122CodeSecuriteSociale:
-      bool Js.t Js.readonly_prop
-    method ageDemandeur: int Js.readonly_prop
-    method dateNaissance: Js.js_string Js.t Js.readonly_prop
-    method nationalite: nationalite Js.t Js.readonly_prop
-    method patrimoine: patrimoine Js.t Js.readonly_prop
-    method personneHebergeeCentreSoinLL162223SecuriteSociale:
-      bool Js.t Js.readonly_prop
+    method kind :
+      Js.js_string Js.t Js.readonly_prop
+      (** Expects one of:
+        - "Francaise"
+        - "Etrangere" *)
+    
+    method payload : Js.Unsafe.any Js.t Js.readonly_prop
   end
-  let demandeur_to_jsoo (demandeur : Demandeur.t) : demandeur Js.t =
-    object%js
-      val satisfaitConditionsL5122CodeSecuriteSociale =
-        Js.bool demandeur.satisfait_conditions_l512_2_code_securite_sociale
-      val ageDemandeur = integer_to_int demandeur.age_demandeur
-      val dateNaissance = date_to_jsoo demandeur.date_naissance
-      val nationalite = nationalite_to_jsoo demandeur.nationalite
-      val patrimoine = patrimoine_to_jsoo demandeur.patrimoine
-      val personneHebergeeCentreSoinLL162223SecuriteSociale =
-        Js.bool demandeur.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale
-      end
-  let demandeur_of_jsoo (demandeur : demandeur Js.t) : Demandeur.t =
-    {
-      satisfait_conditions_l512_2_code_securite_sociale =
-        Js.to_bool demandeur##.satisfaitConditionsL5122CodeSecuriteSociale;
-      age_demandeur = integer_of_int demandeur##.ageDemandeur;
-      date_naissance = date_of_jsoo demandeur##.dateNaissance;
-      nationalite = nationalite_of_jsoo demandeur##.nationalite;
-      patrimoine = patrimoine_of_jsoo demandeur##.patrimoine;
-      personne_hebergee_centre_soin_l_L162_22_3_securite_sociale =
-        Js.to_bool
-          demandeur##.personneHebergeeCentreSoinLL162223SecuriteSociale
-    }
+
+let nationalite_to_jsoo : Nationalite.t -> nationalite Js.t
+  = function
+  | Francaise arg -> object%js
+      val kind = Js.string "Francaise"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
+    end
+  | Etrangere arg -> object%js
+      val kind = Js.string "Etrangere"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (conditions_etrangers_to_jsoo arg))
+    end
+
+let nationalite_of_jsoo (nationalite : nationalite Js.t) : Nationalite.t =
+  match nationalite##.kind |> Js.to_string with
+  | "Francaise" -> Nationalite.Francaise ()
+  | "Etrangere" ->
+  Nationalite.Etrangere (conditions_etrangers_of_jsoo (Js.Unsafe.coerce nationalite##.payload))
+  | cons ->
+    failwith
+      (Printf.sprintf
+        "Unexpected '%s' kind for the enumeration 'Nationalite.t'" cons)
+
 
 class type changement_logement_d842_4 =
   object
@@ -1985,30 +1996,9 @@ let changement_logement_d842_4_of_jsoo
         cons)
 
 
-class type location =
-  object method bailleur: bailleur Js.t Js.readonly_prop
-  end
-  let location_to_jsoo (location : Location.t) : location Js.t =
-    object%js
-      val bailleur = bailleur_to_jsoo location.bailleur
-      end
-  let location_of_jsoo (location : location Js.t) : Location.t =
-    {bailleur = bailleur_of_jsoo location##.bailleur
-    }
-
 class type proprietaire =
-  object method pret: pret Js.t Js.readonly_prop
-  end
-  let proprietaire_to_jsoo (proprietaire : Proprietaire.t)
-    : proprietaire Js.t = object%js
-                            val pret = pret_to_jsoo proprietaire.pret
-                            end
-  let proprietaire_of_jsoo (proprietaire : proprietaire Js.t) :
-    Proprietaire.t = {pret = pret_of_jsoo proprietaire##.pret
-    }
-
-class type informations_calcul_a_p_l_accession_propriete =
   object
+    method logementSitueCommuneDesequilibreL8312: bool Js.t Js.readonly_prop
     method mensualitePrincipale: Js.number Js.t Js.readonly_prop
     method chargesMensuellesPret: Js.number Js.t Js.readonly_prop
     method dateEntreeLogement: Js.js_string Js.t Js.readonly_prop
@@ -2020,68 +2010,86 @@ class type informations_calcul_a_p_l_accession_propriete =
     method copropriete: bool Js.t Js.readonly_prop
     method situationR822111317: bool Js.t Js.readonly_prop
     method ancienneteLogement: neuf_ou_ancien Js.t Js.readonly_prop
+    method pret: pret Js.t Js.readonly_prop
   end
-  let informations_calcul_a_p_l_accession_propriete_to_jsoo
-    (informations_calcul_a_p_l_accession_propriete
-    : InformationsCalculAPLAccessionPropriete.t)
-    : informations_calcul_a_p_l_accession_propriete Js.t =
+  let proprietaire_to_jsoo (proprietaire : Proprietaire.t)
+    : proprietaire Js.t =
     object%js
+      val logementSitueCommuneDesequilibreL8312 =
+        Js.bool proprietaire.logement_situe_commune_desequilibre_l831_2
       val mensualitePrincipale =
-        Js.number_of_float @@ money_to_float informations_calcul_a_p_l_accession_propriete.mensualite_principale
+        Js.number_of_float @@ money_to_float proprietaire.mensualite_principale
       val chargesMensuellesPret =
-        Js.number_of_float @@ money_to_float informations_calcul_a_p_l_accession_propriete.charges_mensuelles_pret
-      val dateEntreeLogement =
-        date_to_jsoo informations_calcul_a_p_l_accession_propriete.date_entree_logement
+        Js.number_of_float @@ money_to_float proprietaire.charges_mensuelles_pret
+      val dateEntreeLogement = date_to_jsoo proprietaire.date_entree_logement
       val typeTravauxLogementD83215 =
-        type_travaux_logement_d832_15_to_jsoo informations_calcul_a_p_l_accession_propriete.type_travaux_logement_d832_15
+        type_travaux_logement_d832_15_to_jsoo proprietaire.type_travaux_logement_d832_15
       val typeTravauxLogementR8425 =
-        type_travaux_logement_r842_5_to_jsoo informations_calcul_a_p_l_accession_propriete.type_travaux_logement_r842_5
+        type_travaux_logement_r842_5_to_jsoo proprietaire.type_travaux_logement_r842_5
       val localHabitePremiereFoisBeneficiaire =
-        Js.bool informations_calcul_a_p_l_accession_propriete.local_habite_premiere_fois_beneficiaire
-      val copropriete =
-        Js.bool informations_calcul_a_p_l_accession_propriete.copropriete
-      val situationR822111317 =
-        Js.bool informations_calcul_a_p_l_accession_propriete.situation_r822_11_13_17
+        Js.bool proprietaire.local_habite_premiere_fois_beneficiaire
+      val copropriete = Js.bool proprietaire.copropriete
+      val situationR822111317 = Js.bool proprietaire.situation_r822_11_13_17
       val ancienneteLogement =
-        neuf_ou_ancien_to_jsoo informations_calcul_a_p_l_accession_propriete.anciennete_logement
+        neuf_ou_ancien_to_jsoo proprietaire.anciennete_logement
+      val pret = pret_to_jsoo proprietaire.pret
       end
-  let informations_calcul_a_p_l_accession_propriete_of_jsoo
-    (informations_calcul_a_p_l_accession_propriete
-      : informations_calcul_a_p_l_accession_propriete Js.t) :
-    InformationsCalculAPLAccessionPropriete.t =
+  let proprietaire_of_jsoo (proprietaire : proprietaire Js.t) :
+    Proprietaire.t =
     {
+      logement_situe_commune_desequilibre_l831_2 =
+        Js.to_bool proprietaire##.logementSitueCommuneDesequilibreL8312;
       mensualite_principale =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          informations_calcul_a_p_l_accession_propriete
-          ##.mensualitePrincipale;
+          proprietaire##.mensualitePrincipale;
       charges_mensuelles_pret =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          informations_calcul_a_p_l_accession_propriete
-          ##.chargesMensuellesPret;
-      date_entree_logement =
-        date_of_jsoo
-          informations_calcul_a_p_l_accession_propriete##.dateEntreeLogement;
+          proprietaire##.chargesMensuellesPret;
+      date_entree_logement = date_of_jsoo proprietaire##.dateEntreeLogement;
       type_travaux_logement_d832_15 =
         type_travaux_logement_d832_15_of_jsoo
-          informations_calcul_a_p_l_accession_propriete
-          ##.typeTravauxLogementD83215;
+          proprietaire##.typeTravauxLogementD83215;
       type_travaux_logement_r842_5 =
         type_travaux_logement_r842_5_of_jsoo
-          informations_calcul_a_p_l_accession_propriete
-          ##.typeTravauxLogementR8425;
+          proprietaire##.typeTravauxLogementR8425;
       local_habite_premiere_fois_beneficiaire =
-        Js.to_bool
-          informations_calcul_a_p_l_accession_propriete
-          ##.localHabitePremiereFoisBeneficiaire;
-      copropriete =
-        Js.to_bool
-          informations_calcul_a_p_l_accession_propriete##.copropriete;
-      situation_r822_11_13_17 =
-        Js.to_bool
-          informations_calcul_a_p_l_accession_propriete##.situationR822111317;
+        Js.to_bool proprietaire##.localHabitePremiereFoisBeneficiaire;
+      copropriete = Js.to_bool proprietaire##.copropriete;
+      situation_r822_11_13_17 = Js.to_bool proprietaire##.situationR822111317;
       anciennete_logement =
-        neuf_ou_ancien_of_jsoo
-          informations_calcul_a_p_l_accession_propriete##.ancienneteLogement
+        neuf_ou_ancien_of_jsoo proprietaire##.ancienneteLogement;
+      pret = pret_of_jsoo proprietaire##.pret
+    }
+
+class type informations_prime_de_demenagement =
+  object
+    method nombreEnfantsANaitreApresTroisiemeMoisGrossesse:
+      int Js.readonly_prop
+    method dateNaissanceTroisiemeEnfantOuDernierSiPlus:
+      date_naissance_troisieme_ou_dernier_plus_enfant Js.t Js.readonly_prop
+  end
+  let informations_prime_de_demenagement_to_jsoo
+    (informations_prime_de_demenagement : InformationsPrimeDeDemenagement.t)
+    : informations_prime_de_demenagement Js.t =
+    object%js
+      val nombreEnfantsANaitreApresTroisiemeMoisGrossesse =
+        integer_to_int informations_prime_de_demenagement.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse
+      val dateNaissanceTroisiemeEnfantOuDernierSiPlus =
+        date_naissance_troisieme_ou_dernier_plus_enfant_to_jsoo informations_prime_de_demenagement.date_naissance_troisieme_enfant_ou_dernier_si_plus
+      end
+  let informations_prime_de_demenagement_of_jsoo
+    (informations_prime_de_demenagement
+      : informations_prime_de_demenagement Js.t) :
+    InformationsPrimeDeDemenagement.t =
+    {
+      nombre_enfants_a_naitre_apres_troisieme_mois_grossesse =
+        integer_of_int
+          informations_prime_de_demenagement
+          ##.nombreEnfantsANaitreApresTroisiemeMoisGrossesse;
+      date_naissance_troisieme_enfant_ou_dernier_si_plus =
+        date_naissance_troisieme_ou_dernier_plus_enfant_of_jsoo
+          informations_prime_de_demenagement
+          ##.dateNaissanceTroisiemeEnfantOuDernierSiPlus
     }
 
 class type personne_a_charge =
@@ -2119,8 +2127,35 @@ let personne_a_charge_of_jsoo (personne_a_charge : personne_a_charge Js.t)
         "Unexpected '%s' kind for the enumeration 'PersonneACharge.t'" cons)
 
 
-class type informations_calcul_a_p_l_locatif =
+class type demandeur =
   object
+    method dateNaissance: Js.js_string Js.t Js.readonly_prop
+    method nationalite: nationalite Js.t Js.readonly_prop
+    method patrimoine: patrimoine Js.t Js.readonly_prop
+    method personneHebergeeCentreSoinLL162223SecuriteSociale:
+      bool Js.t Js.readonly_prop
+  end
+  let demandeur_to_jsoo (demandeur : Demandeur.t) : demandeur Js.t =
+    object%js
+      val dateNaissance = date_to_jsoo demandeur.date_naissance
+      val nationalite = nationalite_to_jsoo demandeur.nationalite
+      val patrimoine = patrimoine_to_jsoo demandeur.patrimoine
+      val personneHebergeeCentreSoinLL162223SecuriteSociale =
+        Js.bool demandeur.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale
+      end
+  let demandeur_of_jsoo (demandeur : demandeur Js.t) : Demandeur.t =
+    {
+      date_naissance = date_of_jsoo demandeur##.dateNaissance;
+      nationalite = nationalite_of_jsoo demandeur##.nationalite;
+      patrimoine = patrimoine_of_jsoo demandeur##.patrimoine;
+      personne_hebergee_centre_soin_l_L162_22_3_securite_sociale =
+        Js.to_bool
+          demandeur##.personneHebergeeCentreSoinLL162223SecuriteSociale
+    }
+
+class type location =
+  object
+    method bailleur: type_bailleur Js.t Js.readonly_prop
     method loyerPrincipal: Js.number Js.t Js.readonly_prop
     method beneficiaireAideAdulteOuEnfantHandicapes:
       bool Js.t Js.readonly_prop
@@ -2128,137 +2163,42 @@ class type informations_calcul_a_p_l_locatif =
     method colocation: bool Js.t Js.readonly_prop
     method ageesOuHandicapAdultesHebergeesOnereuxParticuliers:
       bool Js.t Js.readonly_prop
-    method reductionLoyerSolidarite: Js.number Js.t Js.readonly_prop
     method logementMeubleD8422: bool Js.t Js.readonly_prop
     method changementLogementD8424:
       changement_logement_d842_4 Js.t Js.readonly_prop
   end
-  let informations_calcul_a_p_l_locatif_to_jsoo
-    (informations_calcul_a_p_l_locatif : InformationsCalculAPLLocatif.t)
-    : informations_calcul_a_p_l_locatif Js.t =
+  let location_to_jsoo (location : Location.t) : location Js.t =
     object%js
+      val bailleur = type_bailleur_to_jsoo location.bailleur
       val loyerPrincipal =
-        Js.number_of_float @@ money_to_float informations_calcul_a_p_l_locatif.loyer_principal
+        Js.number_of_float @@ money_to_float location.loyer_principal
       val beneficiaireAideAdulteOuEnfantHandicapes =
-        Js.bool informations_calcul_a_p_l_locatif.beneficiaire_aide_adulte_ou_enfant_handicapes
-      val logementEstChambre =
-        Js.bool informations_calcul_a_p_l_locatif.logement_est_chambre
-      val colocation = Js.bool informations_calcul_a_p_l_locatif.colocation
+        Js.bool location.beneficiaire_aide_adulte_ou_enfant_handicapes
+      val logementEstChambre = Js.bool location.logement_est_chambre
+      val colocation = Js.bool location.colocation
       val ageesOuHandicapAdultesHebergeesOnereuxParticuliers =
-        Js.bool informations_calcul_a_p_l_locatif.agees_ou_handicap_adultes_hebergees_onereux_particuliers
-      val reductionLoyerSolidarite =
-        Js.number_of_float @@ money_to_float informations_calcul_a_p_l_locatif.reduction_loyer_solidarite
-      val logementMeubleD8422 =
-        Js.bool informations_calcul_a_p_l_locatif.logement_meuble_d842_2
+        Js.bool location.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+      val logementMeubleD8422 = Js.bool location.logement_meuble_d842_2
       val changementLogementD8424 =
-        changement_logement_d842_4_to_jsoo informations_calcul_a_p_l_locatif.changement_logement_d842_4
+        changement_logement_d842_4_to_jsoo location.changement_logement_d842_4
       end
-  let informations_calcul_a_p_l_locatif_of_jsoo
-    (informations_calcul_a_p_l_locatif
-      : informations_calcul_a_p_l_locatif Js.t) :
-    InformationsCalculAPLLocatif.t =
+  let location_of_jsoo (location : location Js.t) : Location.t =
     {
+      bailleur = type_bailleur_of_jsoo location##.bailleur;
       loyer_principal =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          informations_calcul_a_p_l_locatif##.loyerPrincipal;
+          location##.loyerPrincipal;
       beneficiaire_aide_adulte_ou_enfant_handicapes =
-        Js.to_bool
-          informations_calcul_a_p_l_locatif
-          ##.beneficiaireAideAdulteOuEnfantHandicapes;
-      logement_est_chambre =
-        Js.to_bool informations_calcul_a_p_l_locatif##.logementEstChambre;
-      colocation = Js.to_bool informations_calcul_a_p_l_locatif##.colocation;
+        Js.to_bool location##.beneficiaireAideAdulteOuEnfantHandicapes;
+      logement_est_chambre = Js.to_bool location##.logementEstChambre;
+      colocation = Js.to_bool location##.colocation;
       agees_ou_handicap_adultes_hebergees_onereux_particuliers =
         Js.to_bool
-          informations_calcul_a_p_l_locatif
-          ##.ageesOuHandicapAdultesHebergeesOnereuxParticuliers;
-      reduction_loyer_solidarite =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          informations_calcul_a_p_l_locatif##.reductionLoyerSolidarite;
-      logement_meuble_d842_2 =
-        Js.to_bool informations_calcul_a_p_l_locatif##.logementMeubleD8422;
+          location##.ageesOuHandicapAdultesHebergeesOnereuxParticuliers;
+      logement_meuble_d842_2 = Js.to_bool location##.logementMeubleD8422;
       changement_logement_d842_4 =
-        changement_logement_d842_4_of_jsoo
-          informations_calcul_a_p_l_locatif##.changementLogementD8424
+        changement_logement_d842_4_of_jsoo location##.changementLogementD8424
     }
-
-class type logement_foyer =
-  object
-    method typeUser: type_logement_foyer Js.t Js.readonly_prop
-    method dateConventionnement: Js.js_string Js.t Js.readonly_prop
-    method location: location Js.t Js.readonly_prop
-    method remplitConditionsR83221: bool Js.t Js.readonly_prop
-    method construitApplicationLoi195712III: bool Js.t Js.readonly_prop
-  end
-  let logement_foyer_to_jsoo (logement_foyer : LogementFoyer.t)
-    : logement_foyer Js.t =
-    object%js
-      val typeUser = type_logement_foyer_to_jsoo logement_foyer.type_user
-      val dateConventionnement =
-        date_to_jsoo logement_foyer.date_conventionnement
-      val location = location_to_jsoo logement_foyer.location
-      val remplitConditionsR83221 =
-        Js.bool logement_foyer.remplit_conditions_r832_21
-      val construitApplicationLoi195712III =
-        Js.bool logement_foyer.construit_application_loi_1957_12_III
-      end
-  let logement_foyer_of_jsoo (logement_foyer : logement_foyer Js.t) :
-    LogementFoyer.t =
-    {
-      type_user = type_logement_foyer_of_jsoo logement_foyer##.typeUser;
-      date_conventionnement =
-        date_of_jsoo logement_foyer##.dateConventionnement;
-      location = location_of_jsoo logement_foyer##.location;
-      remplit_conditions_r832_21 =
-        Js.to_bool logement_foyer##.remplitConditionsR83221;
-      construit_application_loi_1957_12_III =
-        Js.to_bool logement_foyer##.construitApplicationLoi195712III
-    }
-
-class type informations_calcul_a_p_l =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "InfosLocatif"
-        - "InfosLogementFoyer"
-        - "InfosAccessionPropriete" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let informations_calcul_a_p_l_to_jsoo
-  : InformationsCalculAPL.t -> informations_calcul_a_p_l Js.t
-  = function
-  | InfosLocatif arg -> object%js
-      val kind = Js.string "InfosLocatif"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (informations_calcul_a_p_l_locatif_to_jsoo arg))
-    end
-  | InfosLogementFoyer arg -> object%js
-      val kind = Js.string "InfosLogementFoyer"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (informations_calcul_a_p_l_logement_foyer_to_jsoo arg))
-    end
-  | InfosAccessionPropriete arg -> object%js
-      val kind = Js.string "InfosAccessionPropriete"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (informations_calcul_a_p_l_accession_propriete_to_jsoo arg))
-    end
-
-let informations_calcul_a_p_l_of_jsoo
-  (informations_calcul_a_p_l : informations_calcul_a_p_l Js.t)
-  : InformationsCalculAPL.t =
-  match informations_calcul_a_p_l##.kind |> Js.to_string with
-  | "InfosLocatif" ->
-  InformationsCalculAPL.InfosLocatif (informations_calcul_a_p_l_locatif_of_jsoo (Js.Unsafe.coerce informations_calcul_a_p_l##.payload))
-  | "InfosLogementFoyer" ->
-  InformationsCalculAPL.InfosLogementFoyer (informations_calcul_a_p_l_logement_foyer_of_jsoo (Js.Unsafe.coerce informations_calcul_a_p_l##.payload))
-  | "InfosAccessionPropriete" ->
-  InformationsCalculAPL.InfosAccessionPropriete (informations_calcul_a_p_l_accession_propriete_of_jsoo (Js.Unsafe.coerce informations_calcul_a_p_l##.payload))
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'InformationsCalculAPL.t'"
-        cons)
-
 
 class type mode_occupation =
   object
@@ -2327,8 +2267,6 @@ class type logement =
     method usufruit: parent_ou_autre Js.t Js.readonly_prop
     method logementDecentL89462: bool Js.t Js.readonly_prop
     method surfaceMCarres: int Js.readonly_prop
-    method estAncienL8312: bool Js.t Js.readonly_prop
-    method situeCommuneDesequilibreL8312: bool Js.t Js.readonly_prop
     method zone: zone_d_habitation Js.t Js.readonly_prop
   end
   let logement_to_jsoo (logement : Logement.t) : logement Js.t =
@@ -2343,9 +2281,6 @@ class type logement =
       val usufruit = parent_ou_autre_to_jsoo logement.usufruit
       val logementDecentL89462 = Js.bool logement.logement_decent_l89_462
       val surfaceMCarres = integer_to_int logement.surface_m_carres
-      val estAncienL8312 = Js.bool logement.est_ancien_l831_2
-      val situeCommuneDesequilibreL8312 =
-        Js.bool logement.situe_commune_desequilibre_l831_2
       val zone = zone_d_habitation_to_jsoo logement.zone
       end
   let logement_of_jsoo (logement : logement Js.t) : Logement.t =
@@ -2361,9 +2296,6 @@ class type logement =
       usufruit = parent_ou_autre_of_jsoo logement##.usufruit;
       logement_decent_l89_462 = Js.to_bool logement##.logementDecentL89462;
       surface_m_carres = integer_of_int logement##.surfaceMCarres;
-      est_ancien_l831_2 = Js.to_bool logement##.estAncienL8312;
-      situe_commune_desequilibre_l831_2 =
-        Js.to_bool logement##.situeCommuneDesequilibreL8312;
       zone = zone_d_habitation_of_jsoo logement##.zone
     }
 
@@ -2377,12 +2309,8 @@ class type menage =
     method nombreAutresOccupantsLogement: int Js.readonly_prop
     method situationFamiliale: situation_familiale Js.t Js.readonly_prop
     method conditionRattacheFoyerFiscalParentIfi: bool Js.t Js.readonly_prop
-    method nombreEnfantsANaitreApresTroisiemeMoisGrossesse:
-      int Js.readonly_prop
     method enfantANaitreApresQuatriemeMoisGrossesse:
       bool Js.t Js.readonly_prop
-    method dateNaissanceTroisiemeEnfantOuDernierSiPlus:
-      date_naissance_troisieme_ou_dernier_plus_enfant Js.t Js.readonly_prop
   end
   let menage_to_jsoo (menage : Menage.t) : menage Js.t =
     object%js
@@ -2397,12 +2325,8 @@ class type menage =
         situation_familiale_to_jsoo menage.situation_familiale
       val conditionRattacheFoyerFiscalParentIfi =
         Js.bool menage.condition_rattache_foyer_fiscal_parent_ifi
-      val nombreEnfantsANaitreApresTroisiemeMoisGrossesse =
-        integer_to_int menage.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse
       val enfantANaitreApresQuatriemeMoisGrossesse =
         Js.bool menage.enfant_a_naitre_apres_quatrieme_mois_grossesse
-      val dateNaissanceTroisiemeEnfantOuDernierSiPlus =
-        date_naissance_troisieme_ou_dernier_plus_enfant_to_jsoo menage.date_naissance_troisieme_enfant_ou_dernier_si_plus
       end
   let menage_of_jsoo (menage : menage Js.t) : Menage.t =
     {
@@ -2419,14 +2343,8 @@ class type menage =
         situation_familiale_of_jsoo menage##.situationFamiliale;
       condition_rattache_foyer_fiscal_parent_ifi =
         Js.to_bool menage##.conditionRattacheFoyerFiscalParentIfi;
-      nombre_enfants_a_naitre_apres_troisieme_mois_grossesse =
-        integer_of_int
-          menage##.nombreEnfantsANaitreApresTroisiemeMoisGrossesse;
       enfant_a_naitre_apres_quatrieme_mois_grossesse =
-        Js.to_bool menage##.enfantANaitreApresQuatriemeMoisGrossesse;
-      date_naissance_troisieme_enfant_ou_dernier_si_plus =
-        date_naissance_troisieme_ou_dernier_plus_enfant_of_jsoo
-          menage##.dateNaissanceTroisiemeEnfantOuDernierSiPlus
+        Js.to_bool menage##.enfantANaitreApresQuatriemeMoisGrossesse
     }
 
 class type eligibilite_aides_personnelle_logement_out =
@@ -2604,7 +2522,7 @@ class type eligibilite_aide_personnalisee_logement_in =
 
 class type eligibilite_allocation_logement_out =
   object
-    method eligibiliteAvecConditionLogementOut:
+    method eligibiliteL8412Out:
       eligibilite_allocation_logement Js.t Js.readonly_prop
     method nombrePersonnesAChargePrisesEnCompteOut: int Js.readonly_prop
     method coefficentsEnfantsGardeAlterneePrisEnCompteOut:
@@ -2615,8 +2533,8 @@ class type eligibilite_allocation_logement_out =
     : EligibiliteAllocationLogementOut.t)
     : eligibilite_allocation_logement_out Js.t =
     object%js
-      val eligibiliteAvecConditionLogementOut =
-        eligibilite_allocation_logement_to_jsoo eligibilite_allocation_logement_out.eligibilite_avec_condition_logement_out
+      val eligibiliteL8412Out =
+        eligibilite_allocation_logement_to_jsoo eligibilite_allocation_logement_out.eligibilite_l841_2_out
       val nombrePersonnesAChargePrisesEnCompteOut =
         integer_to_int eligibilite_allocation_logement_out.nombre_personnes_a_charge_prises_en_compte_out
       val coefficentsEnfantsGardeAlterneePrisEnCompteOut =
@@ -2627,10 +2545,9 @@ class type eligibilite_allocation_logement_out =
       : eligibilite_allocation_logement_out Js.t) :
     EligibiliteAllocationLogementOut.t =
     {
-      eligibilite_avec_condition_logement_out =
+      eligibilite_l841_2_out =
         eligibilite_allocation_logement_of_jsoo
-          eligibilite_allocation_logement_out
-          ##.eligibiliteAvecConditionLogementOut;
+          eligibilite_allocation_logement_out##.eligibiliteL8412Out;
       nombre_personnes_a_charge_prises_en_compte_out =
         integer_of_int
           eligibilite_allocation_logement_out
@@ -2647,8 +2564,6 @@ class type eligibilite_allocation_logement_in =
     method menageIn: menage Js.t Js.readonly_prop
     method demandeurIn: demandeur Js.t Js.readonly_prop
     method beneficieAidePersonnaliseeLogementIn: bool Js.t Js.readonly_prop
-    method informationsCalculIn:
-      informations_calcul_a_p_l Js.t Js.readonly_prop
   end
   let eligibilite_allocation_logement_in_to_jsoo
     (eligibilite_allocation_logement_in : EligibiliteAllocationLogementIn.t)
@@ -2662,8 +2577,6 @@ class type eligibilite_allocation_logement_in =
         demandeur_to_jsoo eligibilite_allocation_logement_in.demandeur_in
       val beneficieAidePersonnaliseeLogementIn =
         Js.bool eligibilite_allocation_logement_in.beneficie_aide_personnalisee_logement_in
-      val informationsCalculIn =
-        informations_calcul_a_p_l_to_jsoo eligibilite_allocation_logement_in.informations_calcul_in
       end
   let eligibilite_allocation_logement_in_of_jsoo
     (eligibilite_allocation_logement_in
@@ -2679,10 +2592,7 @@ class type eligibilite_allocation_logement_in =
       beneficie_aide_personnalisee_logement_in =
         Js.to_bool
           eligibilite_allocation_logement_in
-          ##.beneficieAidePersonnaliseeLogementIn;
-      informations_calcul_in =
-        informations_calcul_a_p_l_of_jsoo
-          eligibilite_allocation_logement_in##.informationsCalculIn
+          ##.beneficieAidePersonnaliseeLogementIn
     }
 
 class type eligibilite_prime_de_demenagement_out =
@@ -2708,6 +2618,8 @@ class type eligibilite_prime_de_demenagement_out =
 
 class type eligibilite_prime_de_demenagement_in =
   object
+    method informationsIn:
+      informations_prime_de_demenagement Js.t Js.readonly_prop
     method dateEmmenagementIn: Js.js_string Js.t Js.readonly_prop
     method menageIn: menage Js.t Js.readonly_prop
     method demandeurIn: demandeur Js.t Js.readonly_prop
@@ -2720,6 +2632,8 @@ class type eligibilite_prime_de_demenagement_in =
     : EligibilitePrimeDeDemenagementIn.t)
     : eligibilite_prime_de_demenagement_in Js.t =
     object%js
+      val informationsIn =
+        informations_prime_de_demenagement_to_jsoo eligibilite_prime_de_demenagement_in.informations_in
       val dateEmmenagementIn =
         date_to_jsoo eligibilite_prime_de_demenagement_in.date_emmenagement_in
       val menageIn =
@@ -2736,6 +2650,9 @@ class type eligibilite_prime_de_demenagement_in =
       : eligibilite_prime_de_demenagement_in Js.t) :
     EligibilitePrimeDeDemenagementIn.t =
     {
+      informations_in =
+        informations_prime_de_demenagement_of_jsoo
+          eligibilite_prime_de_demenagement_in##.informationsIn;
       date_emmenagement_in =
         date_of_jsoo
           eligibilite_prime_de_demenagement_in##.dateEmmenagementIn;
@@ -2992,7 +2909,7 @@ class type calcul_aide_personnalisee_logement_locatif_out =
 
 class type calcul_aide_personnalisee_logement_locatif_in =
   object
-    method loyerPrincipalIn: Js.number Js.t Js.readonly_prop
+    method loyerPrincipalBaseIn: Js.number Js.t Js.readonly_prop
     method ressourcesMenageArrondiesIn: Js.number Js.t Js.readonly_prop
     method beneficiaireAideAdulteOuEnfantHandicapesIn:
       bool Js.t Js.readonly_prop
@@ -3007,14 +2924,15 @@ class type calcul_aide_personnalisee_logement_locatif_in =
     method typeAideIn: type_aides_personnelle_logement Js.t Js.readonly_prop
     method colocationIn: bool Js.t Js.readonly_prop
     method reductionLoyerSolidariteIn: Js.number Js.t Js.readonly_prop
+    method logementMeubleD8422In: bool Js.t Js.readonly_prop
   end
   let calcul_aide_personnalisee_logement_locatif_in_to_jsoo
     (calcul_aide_personnalisee_logement_locatif_in
     : CalculAidePersonnaliseeLogementLocatifIn.t)
     : calcul_aide_personnalisee_logement_locatif_in Js.t =
     object%js
-      val loyerPrincipalIn =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.loyer_principal_in
+      val loyerPrincipalBaseIn =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.loyer_principal_base_in
       val ressourcesMenageArrondiesIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.ressources_menage_arrondies_in
       val beneficiaireAideAdulteOuEnfantHandicapesIn =
@@ -3037,15 +2955,18 @@ class type calcul_aide_personnalisee_logement_locatif_in =
         Js.bool calcul_aide_personnalisee_logement_locatif_in.colocation_in
       val reductionLoyerSolidariteIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.reduction_loyer_solidarite_in
+      val logementMeubleD8422In =
+        Js.bool calcul_aide_personnalisee_logement_locatif_in.logement_meuble_d842_2_in
       end
   let calcul_aide_personnalisee_logement_locatif_in_of_jsoo
     (calcul_aide_personnalisee_logement_locatif_in
       : calcul_aide_personnalisee_logement_locatif_in Js.t) :
     CalculAidePersonnaliseeLogementLocatifIn.t =
     {
-      loyer_principal_in =
+      loyer_principal_base_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_in##.loyerPrincipalIn;
+          calcul_aide_personnalisee_logement_locatif_in
+          ##.loyerPrincipalBaseIn;
       ressources_menage_arrondies_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_locatif_in
@@ -3085,7 +3006,11 @@ class type calcul_aide_personnalisee_logement_locatif_in =
       reduction_loyer_solidarite_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_locatif_in
-          ##.reductionLoyerSolidariteIn
+          ##.reductionLoyerSolidariteIn;
+      logement_meuble_d842_2_in =
+        Js.to_bool
+          calcul_aide_personnalisee_logement_locatif_in
+          ##.logementMeubleD8422In
     }
 
 class type calcul_equivalence_loyer_minimale_out =
@@ -3281,7 +3206,8 @@ class type calcul_aide_personnalisee_logement_foyer_out =
 
 class type calcul_aide_personnalisee_logement_foyer_in =
   object
-    method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
+    method typeLogementFoyerIn: type_logement_foyer Js.t Js.readonly_prop
+    method dateConventionnementIn: Js.js_string Js.t Js.readonly_prop
     method ressourcesMenageArrondiesIn: Js.number Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn: int Js.readonly_prop
     method situationFamilialeCalculAplIn:
@@ -3298,8 +3224,10 @@ class type calcul_aide_personnalisee_logement_foyer_in =
     : CalculAidePersonnaliseeLogementFoyerIn.t)
     : calcul_aide_personnalisee_logement_foyer_in Js.t =
     object%js
-      val modeOccupationIn =
-        mode_occupation_to_jsoo calcul_aide_personnalisee_logement_foyer_in.mode_occupation_in
+      val typeLogementFoyerIn =
+        type_logement_foyer_to_jsoo calcul_aide_personnalisee_logement_foyer_in.type_logement_foyer_in
+      val dateConventionnementIn =
+        date_to_jsoo calcul_aide_personnalisee_logement_foyer_in.date_conventionnement_in
       val ressourcesMenageArrondiesIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_in.ressources_menage_arrondies_in
       val nombrePersonnesAChargeIn =
@@ -3326,9 +3254,13 @@ class type calcul_aide_personnalisee_logement_foyer_in =
       : calcul_aide_personnalisee_logement_foyer_in Js.t) :
     CalculAidePersonnaliseeLogementFoyerIn.t =
     {
-      mode_occupation_in =
-        mode_occupation_of_jsoo
-          calcul_aide_personnalisee_logement_foyer_in##.modeOccupationIn;
+      type_logement_foyer_in =
+        type_logement_foyer_of_jsoo
+          calcul_aide_personnalisee_logement_foyer_in##.typeLogementFoyerIn;
+      date_conventionnement_in =
+        date_of_jsoo
+          calcul_aide_personnalisee_logement_foyer_in
+          ##.dateConventionnementIn;
       ressources_menage_arrondies_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_foyer_in
@@ -3606,8 +3538,6 @@ class type calcul_aide_personnalisee_logement_in =
   object
     method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
     method typeAideIn: type_aides_personnelle_logement Js.t Js.readonly_prop
-    method informationsCalculIn:
-      informations_calcul_a_p_l Js.t Js.readonly_prop
     method ressourcesMenageSansArrondiIn: Js.number Js.t Js.readonly_prop
     method situationFamilialeIn: situation_familiale Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn: int Js.readonly_prop
@@ -3623,8 +3553,6 @@ class type calcul_aide_personnalisee_logement_in =
         mode_occupation_to_jsoo calcul_aide_personnalisee_logement_in.mode_occupation_in
       val typeAideIn =
         type_aides_personnelle_logement_to_jsoo calcul_aide_personnalisee_logement_in.type_aide_in
-      val informationsCalculIn =
-        informations_calcul_a_p_l_to_jsoo calcul_aide_personnalisee_logement_in.informations_calcul_in
       val ressourcesMenageSansArrondiIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_in.ressources_menage_sans_arrondi_in
       val situationFamilialeIn =
@@ -3647,9 +3575,6 @@ class type calcul_aide_personnalisee_logement_in =
       type_aide_in =
         type_aides_personnelle_logement_of_jsoo
           calcul_aide_personnalisee_logement_in##.typeAideIn;
-      informations_calcul_in =
-        informations_calcul_a_p_l_of_jsoo
-          calcul_aide_personnalisee_logement_in##.informationsCalculIn;
       ressources_menage_sans_arrondi_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_in
@@ -3992,8 +3917,9 @@ class type calcul_allocation_logement_foyer_out =
 
 class type calcul_allocation_logement_foyer_in =
   object
+    method typeLogementFoyerIn: type_logement_foyer Js.t Js.readonly_prop
+    method dateConventionnementIn: Js.js_string Js.t Js.readonly_prop
     method redevanceIn: Js.number Js.t Js.readonly_prop
-    method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
     method ressourcesMenageArrondiesIn: Js.number Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn: int Js.readonly_prop
     method situationFamilialeCalculAplIn:
@@ -4007,10 +3933,12 @@ class type calcul_allocation_logement_foyer_in =
     (calcul_allocation_logement_foyer_in : CalculAllocationLogementFoyerIn.t)
     : calcul_allocation_logement_foyer_in Js.t =
     object%js
+      val typeLogementFoyerIn =
+        type_logement_foyer_to_jsoo calcul_allocation_logement_foyer_in.type_logement_foyer_in
+      val dateConventionnementIn =
+        date_to_jsoo calcul_allocation_logement_foyer_in.date_conventionnement_in
       val redevanceIn =
         Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer_in.redevance_in
-      val modeOccupationIn =
-        mode_occupation_to_jsoo calcul_allocation_logement_foyer_in.mode_occupation_in
       val ressourcesMenageArrondiesIn =
         Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer_in.ressources_menage_arrondies_in
       val nombrePersonnesAChargeIn =
@@ -4029,12 +3957,15 @@ class type calcul_allocation_logement_foyer_in =
       : calcul_allocation_logement_foyer_in Js.t) :
     CalculAllocationLogementFoyerIn.t =
     {
+      type_logement_foyer_in =
+        type_logement_foyer_of_jsoo
+          calcul_allocation_logement_foyer_in##.typeLogementFoyerIn;
+      date_conventionnement_in =
+        date_of_jsoo
+          calcul_allocation_logement_foyer_in##.dateConventionnementIn;
       redevance_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_allocation_logement_foyer_in##.redevanceIn;
-      mode_occupation_in =
-        mode_occupation_of_jsoo
-          calcul_allocation_logement_foyer_in##.modeOccupationIn;
       ressources_menage_arrondies_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_allocation_logement_foyer_in##.ressourcesMenageArrondiesIn;
@@ -4084,8 +4015,6 @@ class type calcul_allocation_logement_out =
 class type calcul_allocation_logement_in =
   object
     method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
-    method informationsCalculIn:
-      informations_calcul_a_p_l Js.t Js.readonly_prop
     method ressourcesMenageSansArrondiIn: Js.number Js.t Js.readonly_prop
     method situationFamilialeIn: situation_familiale Js.t Js.readonly_prop
     method nombrePersonnesAChargeIn: int Js.readonly_prop
@@ -4098,8 +4027,6 @@ class type calcul_allocation_logement_in =
     object%js
       val modeOccupationIn =
         mode_occupation_to_jsoo calcul_allocation_logement_in.mode_occupation_in
-      val informationsCalculIn =
-        informations_calcul_a_p_l_to_jsoo calcul_allocation_logement_in.informations_calcul_in
       val ressourcesMenageSansArrondiIn =
         Js.number_of_float @@ money_to_float calcul_allocation_logement_in.ressources_menage_sans_arrondi_in
       val situationFamilialeIn =
@@ -4120,9 +4047,6 @@ class type calcul_allocation_logement_in =
       mode_occupation_in =
         mode_occupation_of_jsoo
           calcul_allocation_logement_in##.modeOccupationIn;
-      informations_calcul_in =
-        informations_calcul_a_p_l_of_jsoo
-          calcul_allocation_logement_in##.informationsCalculIn;
       ressources_menage_sans_arrondi_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_allocation_logement_in##.ressourcesMenageSansArrondiIn;
@@ -4287,8 +4211,6 @@ class type calculette_aides_au_logement_in =
   object
     method menageIn: menage Js.t Js.readonly_prop
     method demandeurIn: demandeur Js.t Js.readonly_prop
-    method informationsCalculIn:
-      informations_calcul_a_p_l Js.t Js.readonly_prop
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method ressourcesMenagePrisesEnCompteIn: Js.number Js.t Js.readonly_prop
   end
@@ -4299,8 +4221,6 @@ class type calculette_aides_au_logement_in =
       val menageIn = menage_to_jsoo calculette_aides_au_logement_in.menage_in
       val demandeurIn =
         demandeur_to_jsoo calculette_aides_au_logement_in.demandeur_in
-      val informationsCalculIn =
-        informations_calcul_a_p_l_to_jsoo calculette_aides_au_logement_in.informations_calcul_in
       val dateCouranteIn =
         date_to_jsoo calculette_aides_au_logement_in.date_courante_in
       val ressourcesMenagePrisesEnCompteIn =
@@ -4313,9 +4233,6 @@ class type calculette_aides_au_logement_in =
       menage_in = menage_of_jsoo calculette_aides_au_logement_in##.menageIn;
       demandeur_in =
         demandeur_of_jsoo calculette_aides_au_logement_in##.demandeurIn;
-      informations_calcul_in =
-        informations_calcul_a_p_l_of_jsoo
-          calculette_aides_au_logement_in##.informationsCalculIn;
       date_courante_in =
         date_of_jsoo calculette_aides_au_logement_in##.dateCouranteIn;
       ressources_menage_prises_en_compte_in =
@@ -4355,8 +4272,6 @@ class type calculette_aides_au_logement_garde_alternee_in =
   object
     method menageIn: menage Js.t Js.readonly_prop
     method demandeurIn: demandeur Js.t Js.readonly_prop
-    method informationsCalculIn:
-      informations_calcul_a_p_l Js.t Js.readonly_prop
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method ressourcesMenagePrisesEnCompteIn: Js.number Js.t Js.readonly_prop
   end
@@ -4369,8 +4284,6 @@ class type calculette_aides_au_logement_garde_alternee_in =
         menage_to_jsoo calculette_aides_au_logement_garde_alternee_in.menage_in
       val demandeurIn =
         demandeur_to_jsoo calculette_aides_au_logement_garde_alternee_in.demandeur_in
-      val informationsCalculIn =
-        informations_calcul_a_p_l_to_jsoo calculette_aides_au_logement_garde_alternee_in.informations_calcul_in
       val dateCouranteIn =
         date_to_jsoo calculette_aides_au_logement_garde_alternee_in.date_courante_in
       val ressourcesMenagePrisesEnCompteIn =
@@ -4387,10 +4300,6 @@ class type calculette_aides_au_logement_garde_alternee_in =
       demandeur_in =
         demandeur_of_jsoo
           calculette_aides_au_logement_garde_alternee_in##.demandeurIn;
-      informations_calcul_in =
-        informations_calcul_a_p_l_of_jsoo
-          calculette_aides_au_logement_garde_alternee_in
-          ##.informationsCalculIn;
       date_courante_in =
         date_of_jsoo
           calculette_aides_au_logement_garde_alternee_in##.dateCouranteIn;
@@ -4479,7 +4388,7 @@ class type eligibilite_prestations_familiales_out =
       (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
     method conditionsHorsAgeOut:
       (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method ageL51232Out: int Js.readonly_prop
+    method ageL51232Out: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
     method regimeOutreMerL7511Out: bool Js.t Js.readonly_prop
   end
   let eligibilite_prestations_familiales_out_to_jsoo
@@ -4496,7 +4405,7 @@ class type eligibilite_prestations_familiales_out =
           fun input ->
           Js.bool (eligibilite_prestations_familiales_out.conditions_hors_age_out (enfant_prestations_familiales_of_jsoo input)))
       val ageL51232Out =
-        integer_to_int eligibilite_prestations_familiales_out.age_l512_3_2_out
+        duration_to_jsoo eligibilite_prestations_familiales_out.age_l512_3_2_out
       val regimeOutreMerL7511Out =
         Js.bool eligibilite_prestations_familiales_out.regime_outre_mer_l751_1_out
       end
@@ -4508,7 +4417,8 @@ class type eligibilite_prestations_familiales_out =
       droit_ouvert_out = failwith "The function 'droit_ouvert_out' translation isn't yet supported...";
       conditions_hors_age_out = failwith "The function 'conditions_hors_age_out' translation isn't yet supported...";
       age_l512_3_2_out =
-        integer_of_int eligibilite_prestations_familiales_out##.ageL51232Out;
+        duration_of_jsoo
+          eligibilite_prestations_familiales_out##.ageL51232Out;
       regime_outre_mer_l751_1_out =
         Js.to_bool
           eligibilite_prestations_familiales_out##.regimeOutreMerL7511Out

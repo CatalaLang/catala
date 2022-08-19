@@ -65,13 +65,12 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
     condition_logement_résidence_principale et # L821-2
     condition_logement_mode_occupation et
     condition_logement_location_tiers et
-    condition_logement_surface
+    condition_ouverture_l822_10_peuplement_logement
   conséquence rempli
 
   exception règle éligibilité_logement sous condition
     condition_non_ouverture_l822_8 ou
-    condition_non_ouverture_l822_9_decence_logement ou
-    condition_non_ouverture_l822_10_peuplement_logement
+    condition_non_ouverture_l822_9_decence_logement
   conséquence non rempli
 ```
 
@@ -107,7 +106,8 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle condition_nationalité sous condition
     selon demandeur.nationalité sous forme
     -- Française: vrai
-    -- Étrangère: demandeur.satisfait_conditions_l512_2_code_sécurité_sociale
+    -- Étrangère de conditions:
+      conditions.satisfait_conditions_l512_2_code_sécurité_sociale
   conséquence rempli
 ```
 
@@ -203,7 +203,8 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      personne.age_personne_sous_location <= 30 ou
+      personne.date_naissance_personne_sous_location +@ 30 an >@
+        date_courante ou
       personne.conforme_article_l442_1
   conséquence rempli
 ```
@@ -376,9 +377,11 @@ L'attribution d'une aide personnelle au logement est subordonnée au
 respect de conditions de peuplement des logements.
 
 ```catala
+# Cet article fait référence à la condition sur la surface minimale du logement
+# de R822-25
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  règle condition_non_ouverture_l822_10_peuplement_logement
-  sous condition condition_peuplement_logement_l822_10
+  règle condition_ouverture_l822_10_peuplement_logement
+  sous condition condition_logement_surface
   conséquence rempli
 ```
 
@@ -630,14 +633,16 @@ régies par la section 3 du chapitre Ier du titre II du livre III ;
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  étiquette l831_1_2 règle condition_logement_bailleur sous condition
+  règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
-        (selon location.bailleur.type_bailleur sous forme
-        -- BailleurSocial:
-          location.bailleur.respecte_convention_titre_V
-        -- BailleurPrivé:
-          location.bailleur.respecte_convention_titre_II)
+        (selon location.Location.bailleur sous forme
+        -- BailleurSocial de convention:
+          convention.ConventionBailleurSocial.
+            conventionné_livre_III_titre_V_chap_III
+        -- BailleurPrivéAvecConventionnementSocial de convention:
+          convention.conventionné_livre_III_titre_II_chap_I_sec_3
+        -- n'importe quel: faux)
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -649,24 +654,9 @@ bailleurs de respecter les obligations précisées par des conventions régies
 par le chapitre III du titre V du livre III ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  # TODO recherche: citer cet exemple intéréssant d'un point de vue
-  # computationel.
-  # Ici attention à la structure d'exception! Le 2°) est le cas de base, le
-  # 4°) est une exception au 2°) plus permissive que le cas de base, tandis
-  # que le 3°) est une exception plus stricte que le cas de base. Si 3°) et
-  # 4°) s'appliquent en même temps alors il faudra prioriser le cas strict
-  # sur le cas permissif, d'où la structure d'exceptions ci-dessous.
-  exception l831_1_4 règle condition_logement_bailleur sous condition
-    selon ménage.logement.mode_occupation sous forme
-      -- Locataire de location:
-        (selon location.bailleur.type_bailleur sous forme
-        -- BailleurSocial: faux
-        -- BailleurPrivé:
-          location.bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
-            location.bailleur.respecte_convention_titre_V)
-      -- n'importe quel: faux
-  conséquence rempli
+# Cet alinéa apport une précision sur l'origine de la convention pour le
+# bailleur social, mais ne nous intéresse pas pour la formalisation puisque
+# tout ce qui nous intéresse c'est de savoir si la convention existe ou pas.
 ```
 
 4° Logements à usage locatif construits ou améliorés dans des conditions fixées
@@ -675,22 +665,9 @@ obligations précisées par des conventions régies par le chapitre III du titre
 ou par la section 3 du chapitre Ier du titre II du livre III ;
 
 ```catala
-champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  étiquette l831_1_4 exception l831_1_2
-  règle condition_logement_bailleur sous condition
-    selon ménage.logement.mode_occupation sous forme
-      -- Locataire de location:
-        (selon location.bailleur.type_bailleur sous forme
-        -- BailleurSocial:
-          location.bailleur.construit_amélioré_conditions_l831_1_4 et
-          (location.bailleur.respecte_convention_titre_V ou
-            location.bailleur.respecte_convention_titre_II)
-        -- BailleurPrivé:
-          location.bailleur.construit_amélioré_conditions_l831_1_4 et
-          (location.bailleur.respecte_convention_titre_V ou
-            location.bailleur.respecte_convention_titre_II))
-      -- n'importe quel: faux
-  conséquence rempli
+# Cet alinéa apport une précision sur l'origine de la convention pour le
+# bailleur social, mais ne nous intéresse pas pour la formalisation puisque
+# tout ce qui nous intéresse c'est de savoir si la convention existe ou pas.
 ```
 
 5° Logements-foyers assimilés dans des conditions fixées par voie réglementaire
@@ -698,7 +675,13 @@ aux logements mentionnés aux 2° et 3° ci-dessus, dès lors qu'ils font l'obje
 des conventions régies par le chapitre III du titre V du livre III ;
 
 ```catala
-# Voir R832-21.
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  règle condition_logement_bailleur sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- RésidentLogementFoyer de location:
+        location.LogementFoyer.conventionné_livre_III_titre_V_chap_III
+      -- n'importe quel: faux
+  conséquence rempli
 ```
 
 6° Logements occupés par des titulaires de contrats de location-accession
@@ -709,7 +692,6 @@ de l'Etat ou de prêts dont les caractéristiques et les conditions d'octroi son
 fixées par voie réglementaire, sous les réserves énoncées à l ‘ article L. 831-2.
 
 ```catala
-# TODO juridique: trouver quelles sont ces mystérieuses conditions d'octroi.
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
@@ -756,13 +738,13 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
         # 2018 nous a été confirmé le 25/05/2022 par DGALN/DHUP/FE4.
         propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
-        ménage.logement.est_ancien_l831_2 et
-        ménage.logement.situé_commune_déséquilibre_l831_2
+        propriété.ancienneté_logement sous forme Ancien et
+        propriété.logement_situé_commune_déséquilibre_l831_2
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
         propriété.prêt.date_signature >=@ |2018-01-01| et
         propriété.prêt.date_signature <@ |2020-01-01| et
-        ménage.logement.est_ancien_l831_2 et
-        ménage.logement.situé_commune_déséquilibre_l831_2
+        propriété.ancienneté_logement sous forme Ancien et
+        propriété.logement_situé_commune_déséquilibre_l831_2
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -818,13 +800,11 @@ est fixée par voie réglementaire.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale état réduction_loyer_solidarité égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
-      traitement_aide_finale de aide_finale -€
-        réduction_loyer_solidarité *€ fraction_l832_3 >=€
-        0€
+      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€ 0€
     alors
-      traitement_aide_finale de aide_finale -€
-        réduction_loyer_solidarité *€ fraction_l832_3
+      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3
     sinon 0€
 
   assertion fraction_l832_3 >=. 90% et fraction_l832_3 <=. 98%
@@ -851,7 +831,10 @@ champ d'application ÉligibilitéAllocationLogement:
   # personnelles au logement. Comme il n'existe pas d'article de loi ou de
   # règlement rappelant ce fait, nous le traduisons en code ici.
   définition éligibilité état dispositions_communes égal à
-    si non éligibilité_commune.éligibilité alors
+    si
+      (non éligibilité_commune.éligibilité) ou
+      (non condition_accession_propriété)
+    alors
       PasÉligible
     sinon
       # Valeur par défaut, sera réécrit à l'application de L841-2.
@@ -905,15 +888,11 @@ champ d'application ÉligibilitéAllocationLogement:
         -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
         -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
         -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
-        -- âge: enfant.EnfantÀCharge.âge
-        -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
-          -- PriseEnCharge.EffectiveEtPermanente:
-            PriseEnChargeEnfant.EffectiveEtPermanente
-          -- PriseEnCharge.RésidenceAlternéeAllocataireUnique:
-            PriseEnChargeEnfant.GardeAlternéeAllocataireUnique
-          -- PriseEnCharge.RésidenceAlternéeAllocationsPartagée:
+        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+          -- GardeAlternéeCoefficientPriseEnCharge:
             PriseEnChargeEnfant.GardeAlternéePartageAllocations
-        )
+          -- PasDeGardeAlternée:
+            PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
@@ -940,15 +919,11 @@ champ d'application ÉligibilitéAllocationLogement:
         -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
         -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
         -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
-        -- âge: enfant.EnfantÀCharge.âge
-        -- prise_en_charge: (selon enfant.EnfantÀCharge.prise_en_charge sous forme
-          -- PriseEnCharge.EffectiveEtPermanente:
-            PriseEnChargeEnfant.EffectiveEtPermanente
-          -- PriseEnCharge.RésidenceAlternéeAllocataireUnique:
-            PriseEnChargeEnfant.GardeAlternéeAllocataireUnique
-          -- PriseEnCharge.RésidenceAlternéeAllocationsPartagée:
+        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+          -- GardeAlternéeCoefficientPriseEnCharge:
             PriseEnChargeEnfant.GardeAlternéePartageAllocations
-        )
+          -- PasDeGardeAlternée:
+            PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
@@ -1047,10 +1022,9 @@ champ d'application ÉligibilitéAllocationLogement:
     si éligibilité = PasÉligible ou bénéficie_aide_personnalisée_logement alors
       PasÉligible
     sinon (si éligibilité_allocation_logement_familiale alors
-     ÉligibilitéAllocationLogement.AllocationLogementFamiliale
-    sinon (si éligibilité_allocation_logement_sociale alors
-     ÉligibilitéAllocationLogement.AllocationLogementSociale
-    sinon PasÉligible))
+      ÉligibilitéAllocationLogement.AllocationLogementFamiliale
+    sinon
+      ÉligibilitéAllocationLogement.AllocationLogementSociale)
 
 champ d'application CalculetteAidesAuLogement:
   # Le champ d'application CalculetteAidesAuLogement suppose un scenario type
@@ -1104,22 +1078,27 @@ champ d'application CalculetteAidesAuLogement:
     sinon calcul_allocation_logement.aide_finale_formule
 
   définition traitement_aide_finale de aide_finale égal à
-    si non éligibilité alors aide_finale sinon si
-      éligibilité_aide_personnalisée_logement.éligibilité et
-      non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
-    alors
-      (si calcul_aide_personnalisée_logement.traitement_aide_finale de
-        calcul_aide_personnalisée_logement.aide_finale_formule >€
-          calcul_allocation_logement.traitement_aide_finale de
-            calcul_allocation_logement.aide_finale_formule
-      alors
-        calcul_aide_personnalisée_logement.traitement_aide_finale de aide_finale
-      sinon
-        calcul_allocation_logement.traitement_aide_finale de aide_finale)
-    sinon si éligibilité_aide_personnalisée_logement.éligibilité
-    alors
+    soit aide_finale_apl égal à
       calcul_aide_personnalisée_logement.traitement_aide_finale de aide_finale
-    sinon calcul_allocation_logement.traitement_aide_finale de aide_finale
+    dans
+    soit aide_finale_al égal à
+      calcul_allocation_logement.traitement_aide_finale de aide_finale
+    dans
+    si non éligibilité alors
+      aide_finale
+    sinon si
+        éligibilité_aide_personnalisée_logement.éligibilité et
+        non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
+      alors
+        (si aide_finale_apl >€ aide_finale_al
+        alors aide_finale_apl
+        sinon aide_finale_al)
+      sinon si
+          éligibilité_aide_personnalisée_logement.éligibilité
+        alors
+          aide_finale_apl
+        sinon
+          aide_finale_al
 ```
 
 ###### Article L841-3 | LEGIARTI000038814860
@@ -1129,9 +1108,10 @@ soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la s
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  règle éligibilité_allocation_logement_sociale sous condition
+  exception définition éligibilité état l841_2 sous condition
     demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
-  conséquence rempli
+  conséquence égal à
+    ÉligibilitéAllocationLogement.AllocationLogementSociale
 ```
 
 ###### Article L841-4 | LEGIARTI000038814858

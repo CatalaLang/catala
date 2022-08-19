@@ -376,7 +376,8 @@ champ d'application AllocationsFamiliales :
     (droit_ouvert_majoration de enfant) et
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1) et
-    (enfant.âge >= 11 et enfant.âge < 16)
+    (enfant.date_de_naissance +@ 11 an <=@ date_courante et
+     enfant.date_de_naissance +@ 16 an >@ date_courante)
   conséquence égal à
     bmaf.montant *€ 3,69 %
 
@@ -385,7 +386,7 @@ champ d'application AllocationsFamiliales :
     (droit_ouvert_majoration de enfant) et
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1) et
-    (enfant.âge >= 16)
+    (enfant.date_de_naissance +@ 16 an <=@ date_courante)
   conséquence égal à
     bmaf.montant *€ 5,67 %
 ```

@@ -135,7 +135,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
       "style=colorful,anchorlinenos=True,lineanchors=\""
       ^ String_common.to_ascii (Pos.get_file (Marked.get_mark c))
       ^ "\",linenos=table,linenostart="
-      ^ string_of_int (Pos.get_start_line (Marked.get_mark c) + 1);
+      ^ string_of_int (Pos.get_start_line (Marked.get_mark c));
       "-o";
       temp_file_out;
       temp_file_in;
@@ -161,7 +161,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
 let sanitize_html_href str =
   str
   |> String_common.to_ascii
-  |> R.substitute ~rex:(R.regexp "[' '°]") ~subst:(function _ -> "%20")
+  |> R.substitute ~rex:(R.regexp "[' '°\"]") ~subst:(function _ -> "%20")
 
 let rec law_structure_to_html
     (language : C.backend_lang)

@@ -29,9 +29,6 @@ type 'e var = 'e expr Bindlib.var
 type 'e t = 'e var
 type 'e vars = 'e expr Bindlib.mvar
 
-type 'e binder = (('a, 't) gexpr, ('a, 't) marked_gexpr) Bindlib.binder
-  constraint 'e = ('a, 't) gexpr
-
 let make (name : string) : 'e var = Bindlib.new_var (fun x -> EVar x) name
 let compare = Bindlib.compare_vars
 let eq = Bindlib.eq_vars
@@ -62,7 +59,6 @@ module Generic = struct
   let t v = Var v
   let get (Var v) = Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
   let compare (Var x) (Var y) = Bindlib.compare_vars x y
-  let eq (Var x) (Var y) = Bindlib.eq_vars x y
 end
 
 (* Wrapper around Set.Make to re-add type parameters (avoid inconsistent

@@ -517,18 +517,13 @@ il est opéré sur ses ressources un abattement de :
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   définition abattement_r_822_10 égal à
-    selon situation_familiale sous forme
-    # TODO informatique: améliorer avec
-    # https://github.com/CatalaLang/catala/issues/203 ou
-    # https://github.com/CatalaLang/catala/issues/199
-    -- Célibataire:
-      (si nombre de personnes_à_charge = 0 alors 0 €
+    soit abattement égal à
+      si nombre de personnes_à_charge = 0 alors 0 €
       sinon (si nombre de personnes_à_charge <= 2 alors 901 €
-      sinon 1 350 €))
-    --  CélibataireSéparéDeFait:
-      (si nombre de personnes_à_charge = 0 alors 0 €
-      sinon (si nombre de personnes_à_charge <= 2 alors 901 €
-      sinon 1 350 €))
+      sinon 1 350 €)
+    dans selon situation_familiale sous forme
+    -- Célibataire: abattement
+    -- CélibataireSéparéDeFait: abattement
     -- n'importe quel: 0 €
 ```
 
@@ -851,7 +846,8 @@ sur le revenu.
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   exception définition ressources_prises_en_compte sous condition
-     mode_occupation sous forme Locataire et
+     mode_occupation sous forme Locataire ou
+     mode_occupation sous forme RésidentLogementFoyer et
      condition_âge_bourse_enseignement_supérieur et
      demandeur_poursuit_des_études
   conséquence égal à ressources_forfaitaires_r822_20
@@ -1030,9 +1026,9 @@ plus.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  # TODO informatique : remplacer par variables locales
-  définition nombre_personnes_logement égal à
-    (selon ménage.situation_familiale sous forme
+  règle condition_logement_surface sous condition
+    soit nombre_personnes_logement égal à
+      (selon ménage.situation_familiale sous forme
       -- Célibataire: 1
       -- Mariés: 2
       -- Pacsés: 2
@@ -1041,9 +1037,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- ConcubinageDontSéparéDeFait: 2) +
       ménage.nombre_autres_occupants_logement +
       nombre de ménage.personnes_à_charge
-
-  définition condition_logement_surface_minimale_sans_seuil_m_carrés égal à
-    (selon ménage.situation_familiale sous forme
+    dans
+    soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
+      (selon ménage.situation_familiale sous forme
       -- Célibataire: 9
       -- Mariés: 16
       -- Pacsés: 16
@@ -1052,9 +1048,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       -- ConcubinageDontSéparéDeFait: 16) +
       (ménage.nombre_autres_occupants_logement +
       nombre de ménage.personnes_à_charge) * 9
-
-  règle condition_logement_surface sous condition
-    si
+    dans si
       condition_logement_surface_minimale_sans_seuil_m_carrés >= 70 et
       nombre_personnes_logement >= 8
     alors
@@ -1148,7 +1142,8 @@ l'article L. 823-2 du présent code ;
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
-    -- EnfantÀCharge de enfant: enfant.EnfantÀCharge.âge <= 21
+    -- EnfantÀCharge de enfant:
+      enfant.EnfantÀCharge.date_de_naissance +@ 21 an >@ date_courante
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```
@@ -1457,19 +1452,6 @@ champ d'application CalculAidePersonnaliséeLogement:
   # de calcul non utilisés, valeurs par défaut qui n'ont aucune influence
   # sur le résultat puisque le mode de calcul n'est pas utilisé.
 champ d'application CalculAidePersonnaliséeLogement:
-  assertion
-    si catégorie_calcul_apl sous forme Location
-    alors informations_calcul sous forme InfosLocatif
-    sinon vrai
-  assertion
-    si catégorie_calcul_apl sous forme LogementFoyer
-    alors informations_calcul sous forme InfosLogementFoyer
-    sinon vrai
-  assertion
-    si catégorie_calcul_apl sous forme AccessionPropriété
-    alors informations_calcul sous forme InfosAccessionPropriété
-    sinon vrai
-
   définition locatif.ressources_ménage_arrondies égal à ressources_ménage
   définition logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage
@@ -1493,88 +1475,137 @@ champ d'application CalculAidePersonnaliséeLogement:
     situation_familiale_calcul_apl
   définition accession_propriété.situation_familiale_calcul_apl égal à
     situation_familiale_calcul_apl
-  définition logement_foyer.mode_occupation égal à
-    mode_occupation
 
   définition locatif.loyer_principal égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos: infos.loyer_principal
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété: 0 € # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.loyer_principal
+    -- SousLocataire de location: location.loyer_principal
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
+    -- LocationAccession: 0 € # Valeur par défaut
   définition locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.bénéficiaire_aide_adulte_ou_enfant_handicapés
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location:
+      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+    -- SousLocataire de location:
+      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.logement_est_chambre égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.logement_est_chambre
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.logement_est_chambre
+    -- SousLocataire de location: location.logement_est_chambre
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.colocation égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.colocation
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.colocation
+    -- SousLocataire de location: location.colocation
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition
     locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location:
+      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    -- SousLocataire de location:
+      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.type_aide égal à type_aide
   définition locatif.réduction_loyer_solidarité égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos: infos.réduction_loyer_solidarité
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété: 0 € # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location:
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
+    -- SousLocataire de location:
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
+    -- LocationAccession: 0 € # Valeur par défaut
+  définition locatif.logement_meublé_d842_2 égal à
+    selon mode_occupation sous forme
+    -- Locataire de location: location.logement_meublé_d842_2
+    -- SousLocataire de location: location.logement_meublé_d842_2
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
 
   définition accession_propriété.mensualité_principale égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: 0 € # Valeur par défaut
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.mensualité_principale
+    selon mode_occupation sous forme
+    -- Locataire: 0 € # Valeur par défaut
+    -- SousLocataire: 0 € # Valeur par défaut
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.mensualité_principale
+    -- LocationAccession  de propriétaire:
+      propriétaire.mensualité_principale
   définition accession_propriété.type_travaux_logement égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
-    -- InfosLogementFoyer: TypeTravauxLogementD832_15.PasDeTravaux
-    # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.type_travaux_logement_d832_15
+    selon mode_occupation sous forme
+    -- Locataire: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
+    -- SousLocataire:
+      TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
+    -- RésidentLogementFoyer: TypeTravauxLogementD832_15.PasDeTravaux
+      # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.type_travaux_logement_d832_15
+    -- LocationAccession  de propriétaire:
+      propriétaire.type_travaux_logement_d832_15
   définition accession_propriété.date_signature_prêt égal à
     selon mode_occupation sous forme
     -- Locataire: |2010-01-01| # Valeur par défaut
     -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- SousLocataire: |2010-01-01| # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       propriétaire.prêt.date_signature
-    -- SousLocataire: |2010-01-01| # Valeur par défaut
     -- LocationAccession de propriétaire:
       propriétaire.prêt.date_signature
   définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: faux # Valeur par défaut
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété de infos:
-      infos.local_habité_première_fois_bénéficiaire
+    selon mode_occupation sous forme
+    -- Locataire: faux # Valeur par défaut
+    -- SousLocataire: faux # Valeur par défaut
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.local_habité_première_fois_bénéficiaire
+    -- LocationAccession  de propriétaire:
+      propriétaire.local_habité_première_fois_bénéficiaire
   définition accession_propriété.date_entrée_logement égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: |2010-01-01| # Valeur par défaut
-    -- InfosLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.date_entrée_logement
+    selon mode_occupation sous forme
+    -- Locataire: |2010-01-01| # Valeur par défaut
+    -- SousLocataire: |2010-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.date_entrée_logement
+    -- LocationAccession  de propriétaire:
+      propriétaire.date_entrée_logement
   définition accession_propriété.copropriété égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: faux # Valeur par défaut
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.copropriété
+    selon mode_occupation sous forme
+    -- Locataire: faux # Valeur par défaut
+    -- SousLocataire: faux # Valeur par défaut
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.copropriété
+    -- LocationAccession  de propriétaire:
+      propriétaire.copropriété
   définition accession_propriété.situation_r822_11_13_17 égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: faux # Valeur par défaut
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.situation_r822_11_13_17
+    selon mode_occupation sous forme
+    -- Locataire: faux # Valeur par défaut
+    -- SousLocataire: faux # Valeur par défaut
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.situation_r822_11_13_17
+    -- LocationAccession  de propriétaire:
+      propriétaire.situation_r822_11_13_17
   définition accession_propriété.type_prêt égal à
     selon mode_occupation sous forme
     -- Locataire: D331_32 # Valeur par défaut
@@ -1585,32 +1616,41 @@ champ d'application CalculAidePersonnaliséeLogement:
     -- LocationAccession de propriétaire:
       propriétaire.prêt.type_prêt
   définition accession_propriété.ancienneté_logement égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: Neuf # Valeur par défaut
-    -- InfosLogementFoyer: Neuf # Valeur par défaut
-    -- InfosAccessionPropriété de infos:
-      infos.InformationsCalculAPLAccessionPropriété.ancienneté_logement
+    selon mode_occupation sous forme
+    -- Locataire: Neuf # Valeur par défaut
+    -- SousLocataire: Neuf # Valeur par défaut
+    -- RésidentLogementFoyer: Neuf # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.ancienneté_logement
+    -- LocationAccession  de propriétaire:
+      propriétaire.ancienneté_logement
 
   définition logement_foyer.redevance égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: 0 € # Valeur par défaut
-    -- InfosLogementFoyer de infos: infos.redevance
-    -- InfosAccessionPropriété:  0 € # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire: 0 € # Valeur par défaut
+    -- SousLocataire: 0 € # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_: logement_foyer_.redevance
+    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
+    -- LocationAccession: 0 € # Valeur par défaut
+  définition logement_foyer.type_logement_foyer égal à
+    selon mode_occupation sous forme
+    -- Locataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- SousLocataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.type
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      TypeLogementFoyer.Autre # Valeur par défaut
+    -- LocationAccession: TypeLogementFoyer.Autre # Valeur par défaut
+  définition logement_foyer.date_conventionnement égal à
+    selon mode_occupation sous forme
+    -- Locataire: |1970-01-01| # Valeur par défaut
+    -- SousLocataire: |1970-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.date_conventionnement
+    -- AccessionPropriétéLocalUsageExclusifHabitation: |1970-01-01| # Valeur par défaut
+    -- LocationAccession: |1970-01-01| # Valeur par défaut
 
 champ d'application CalculAllocationLogement:
-  assertion
-    si catégorie_calcul_apl sous forme Location
-    alors informations_calcul sous forme InfosLocatif
-    sinon vrai
-  assertion
-    si catégorie_calcul_apl sous forme LogementFoyer
-    alors informations_calcul sous forme InfosLogementFoyer
-    sinon vrai
-  assertion
-    si catégorie_calcul_apl sous forme AccessionPropriété
-    alors informations_calcul sous forme InfosAccessionPropriété
-    sinon vrai
-
   définition locatif.ressources_ménage_arrondies égal à ressources_ménage
   définition logement_foyer.ressources_ménage_arrondies égal à
     ressources_ménage
@@ -1634,114 +1674,187 @@ champ d'application CalculAllocationLogement:
     situation_familiale_calcul_apl
   définition accession_propriété.situation_familiale_calcul_apl égal à
     situation_familiale_calcul_apl
-  définition logement_foyer.mode_occupation égal à
-    mode_occupation
 
   définition locatif.loyer_principal égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos: infos.loyer_principal
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété: 0 € # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.loyer_principal
+    -- SousLocataire de location: location.loyer_principal
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
+    -- LocationAccession: 0 € # Valeur par défaut
   définition locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.bénéficiaire_aide_adulte_ou_enfant_handicapés
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location:
+      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+    -- SousLocataire de location:
+      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.logement_est_chambre égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.logement_est_chambre
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.logement_est_chambre
+    -- SousLocataire de location: location.logement_est_chambre
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.colocation égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.colocation
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.colocation
+    -- SousLocataire de location: location.colocation
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition
     locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos:
-      infos.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location:
+      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    -- SousLocataire de location:
+      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.type_aide égal à type_aide
   définition locatif.réduction_loyer_solidarité égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos: infos.réduction_loyer_solidarité
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété: 0 € # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location:
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
+    -- SousLocataire de location:
+      (selon location.Location.bailleur sous forme
+      -- BailleurSocial de bailleur:
+        bailleur.réduction_loyer_solidarité_perçue
+      -- n'importe quel: 0€)
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
+    -- LocationAccession: 0 € # Valeur par défaut
   définition locatif.logement_meublé_d842_2 égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos: infos.logement_meublé_d842_2
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété: faux # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.logement_meublé_d842_2
+    -- SousLocataire de location: location.logement_meublé_d842_2
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
+    -- LocationAccession: faux # Valeur par défaut
   définition locatif.changement_logement_d842_4 égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif de infos: infos.changement_logement_d842_4
-    -- InfosLogementFoyer: PasDeChangement # Valeur par défaut
-    -- InfosAccessionPropriété: PasDeChangement # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire de location: location.changement_logement_d842_4
+    -- SousLocataire de location: location.changement_logement_d842_4
+    -- RésidentLogementFoyer: PasDeChangement # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      PasDeChangement # Valeur par défaut
+    -- LocationAccession: PasDeChangement # Valeur par défaut
 
   définition accession_propriété.mensualité_principale égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: 0 € # Valeur par défaut
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.mensualité_principale
+    selon mode_occupation sous forme
+    -- Locataire: 0 € # Valeur par défaut
+    -- SousLocataire: 0 € # Valeur par défaut
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.mensualité_principale
+    -- LocationAccession  de propriétaire:
+      propriétaire.mensualité_principale
+  définition accession_propriété.charges_mensuelles_prêt égal à
+    selon mode_occupation sous forme
+    -- Locataire: 0 € # Valeur par défaut
+    -- SousLocataire: 0 € # Valeur par défaut
+    -- RésidentLogementFoyer: 0 € # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.charges_mensuelles_prêt
+    -- LocationAccession  de propriétaire:
+      propriétaire.charges_mensuelles_prêt
   définition accession_propriété.type_travaux_logement égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
-    -- InfosLogementFoyer: TypeTravauxLogementR842_5.PasDeTravaux
-    # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.type_travaux_logement_r842_5
+    selon mode_occupation sous forme
+    -- Locataire: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
+    -- SousLocataire: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
+    -- RésidentLogementFoyer: TypeTravauxLogementR842_5.PasDeTravaux
+      # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.type_travaux_logement_r842_5
+    -- LocationAccession  de propriétaire:
+      propriétaire.type_travaux_logement_r842_5
   définition accession_propriété.date_signature_prêt égal à
     selon mode_occupation sous forme
     -- Locataire: |2010-01-01| # Valeur par défaut
     -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- SousLocataire: |2010-01-01| # Valeur par défaut
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       propriétaire.prêt.date_signature
-    -- SousLocataire: |2010-01-01| # Valeur par défaut
     -- LocationAccession de propriétaire:
       propriétaire.prêt.date_signature
   définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: faux # Valeur par défaut
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété de infos:
-      infos.local_habité_première_fois_bénéficiaire
+    selon mode_occupation sous forme
+    -- Locataire: faux # Valeur par défaut
+    -- SousLocataire: faux # Valeur par défaut
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.local_habité_première_fois_bénéficiaire
+    -- LocationAccession  de propriétaire:
+      propriétaire.local_habité_première_fois_bénéficiaire
   définition accession_propriété.date_entrée_logement égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: |2010-01-01| # Valeur par défaut
-    -- InfosLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.date_entrée_logement
+    selon mode_occupation sous forme
+    -- Locataire: |2010-01-01| # Valeur par défaut
+    -- SousLocataire: |2010-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.date_entrée_logement
+    -- LocationAccession  de propriétaire:
+      propriétaire.date_entrée_logement
   définition accession_propriété.copropriété égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: faux # Valeur par défaut
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.copropriété
+    selon mode_occupation sous forme
+    -- Locataire: faux # Valeur par défaut
+    -- SousLocataire: faux # Valeur par défaut
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.copropriété
+    -- LocationAccession  de propriétaire:
+      propriétaire.copropriété
   définition accession_propriété.situation_r822_11_13_17 égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: faux # Valeur par défaut
-    -- InfosLogementFoyer: faux # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.situation_r822_11_13_17
-  définition accession_propriété.charges_mensuelles_prêt égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: 0 € # Valeur par défaut
-    -- InfosLogementFoyer: 0 € # Valeur par défaut
-    -- InfosAccessionPropriété de infos: infos.charges_mensuelles_prêt
+    selon mode_occupation sous forme
+    -- Locataire: faux # Valeur par défaut
+    -- SousLocataire: faux # Valeur par défaut
+    -- RésidentLogementFoyer: faux # Valeur par défaut
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      propriétaire.situation_r822_11_13_17
+    -- LocationAccession  de propriétaire:
+      propriétaire.situation_r822_11_13_17
 
   définition logement_foyer.redevance égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: 0 € # Valeur par défaut
-    -- InfosLogementFoyer de infos: infos.redevance
-    -- InfosAccessionPropriété:  0 € # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire: 0 € # Valeur par défaut
+    -- SousLocataire: 0 € # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_: logement_foyer_.redevance
+    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
+    -- LocationAccession: 0 € # Valeur par défaut
   définition logement_foyer.catégorie_équivalence_loyer_d842_16 égal à
-    selon informations_calcul sous forme
-    -- InfosLocatif: AutresPersonnes # Valeur par défaut
-    -- InfosLogementFoyer de infos: infos.catégorie_équivalence_loyer_d842_16
-    -- InfosAccessionPropriété: AutresPersonnes # Valeur par défaut
+    selon mode_occupation sous forme
+    -- Locataire: AutresPersonnes # Valeur par défaut
+    -- SousLocataire: AutresPersonnes # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.catégorie_équivalence_loyer_d842_16
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      AutresPersonnes # Valeur par défaut
+    -- LocationAccession: AutresPersonnes # Valeur par défaut
+  définition logement_foyer.type_logement_foyer égal à
+    selon mode_occupation sous forme
+    -- Locataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- SousLocataire: TypeLogementFoyer.Autre # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.type
+    -- AccessionPropriétéLocalUsageExclusifHabitation:
+      TypeLogementFoyer.Autre # Valeur par défaut
+    -- LocationAccession: TypeLogementFoyer.Autre # Valeur par défaut
+  définition logement_foyer.date_conventionnement égal à
+    selon mode_occupation sous forme
+    -- Locataire: |1970-01-01| # Valeur par défaut
+    -- SousLocataire: |1970-01-01| # Valeur par défaut
+    -- RésidentLogementFoyer de logement_foyer_:
+      logement_foyer_.date_conventionnement
+    -- AccessionPropriétéLocalUsageExclusifHabitation: |1970-01-01| # Valeur par défaut
+    -- LocationAccession: |1970-01-01| # Valeur par défaut
 ```
 
 ####### Sous-section 1 : Ouverture et extinction des droits
@@ -1871,11 +1984,11 @@ $$\textrm{Af} = \textrm{L} + \textrm{C}-\textrm{Pp}$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition aide_finale_formule égal à
-    si loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
-      participation_personnelle <€ 0 €
-    alors 0 € sinon
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
-        participation_personnelle)
+    soit aide_finale égal à
+      loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
+      participation_personnelle
+    dans
+    si aide_finale <€ 0 € alors 0 € sinon aide_finale
 ```
 
 où :
@@ -1945,11 +2058,11 @@ Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arr
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale état minoration_forfaitaire égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
-      traitement_aide_finale de aide_finale -€
-        montant_forfaitaire_d823_16 >=€ 0€
+      aide_finale -€ montant_forfaitaire_d823_16 >=€ 0€
     alors
-      traitement_aide_finale de aide_finale -€ montant_forfaitaire_d823_16
+      aide_finale -€ montant_forfaitaire_d823_16
     sinon 0€
 ```
 
@@ -1962,18 +2075,17 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à
+      contributions_sociales.montant de aide_finale
+    dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -1993,12 +2105,10 @@ n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
-      traitement_aide_finale de aide_finale <€ montant_minimal_aide_d823_16
-    alors
-      0 €
-    sinon
-      traitement_aide_finale de aide_finale
+      aide_finale <€ montant_minimal_aide_d823_16
+    alors 0 € sinon aide_finale
 ```
 
 ######## Article D823-17 | LEGIARTI000041419255
@@ -2007,14 +2117,19 @@ La participation personnelle du ménage, mentionnée au 4° de l'article D. 823-
 la somme d'une participation minimale et d'une participation au titre des ressources
 du ménage, calculée selon la formule suivante :
 
-$$\textrm{Pp} = \textrm{P0} + \textrm{Tp}* (\textrm{R}-\textrm{R0})$$
+$$\textrm{Pp} = \textrm{P0} + \textrm{Tp}\times (\textrm{R}-\textrm{R0})$$
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition participation_personnelle égal à
-    participation_minimale +€
-    (ressources_ménage_arrondies -€ abattement_forfaitaire_d823_17) *€
-      taux_prise_compte_ressources
+    soit participation_ressources égal à
+       (ressources_ménage_arrondies -€ abattement_forfaitaire_d823_17) *€
+        taux_prise_compte_ressources
+    dans
+    soit participation_ressources égal à
+      si participation_ressources <€ 0€ alors 0€ sinon participation_ressources
+    dans
+    participation_minimale +€ participation_ressources
 ```
 
 où :
@@ -2052,7 +2167,7 @@ champ d'application CalculAidePersonnaliséeLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi_argent de ((ressources_ménage +€ 49,99€) *€ 1%) *€ 100,0
+    arrondi_argent de ((ressources_ménage *€ 1%) +€ 0,49€) *€ 100,0
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
@@ -2140,11 +2255,13 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       -- EnfantÀCharge: vrai
       -- AutrePersonneÀCharge: faux)
     ) +
-    ménage.nombre_enfants_à_naître_après_troisième_mois_grossesse >= 3
+    informations.nombre_enfants_à_naître_après_troisième_mois_grossesse >= 3
   conséquence rempli
 
   règle condition_période_déménagement sous condition
-    (selon ménage.date_naissance_troisième_enfant_ou_dernier_si_plus sous forme
+    (selon
+      informations.date_naissance_troisième_enfant_ou_dernier_si_plus
+    sous forme
     -- MoinsDeTroisEnfants: faux
     -- PlusDeTroisEnfants de date_naissance_ou_grossesse:
       (selon date_naissance_ou_grossesse sous forme
@@ -3158,11 +3275,11 @@ $$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition aide_finale_formule égal à
-    si (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
-      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10 <€ 0 €
-    alors 0 € sinon
-    ((mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
-      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10)
+    soit aide_finale égal à
+      (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
+      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10
+    dans
+    si aide_finale <€ 0 € alors 0 € sinon aide_finale
 ```
 
 où :
@@ -3217,14 +3334,11 @@ de calcul sont fixées par l'article D. 832-17.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état abattement égal à
-    si traitement_aide_finale de aide_finale -€
-      abattement_dépense_nette_minimale_d832_10 de
-        (traitement_aide_finale de aide_finale) >=€ 0€
-    alors
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale_d832_10 de
-          (traitement_aide_finale de aide_finale)
-    sinon 0€
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit aide_finale égal à
+      aide_finale -€ abattement_dépense_nette_minimale_d832_10 de aide_finale
+    dans
+    si aide_finale >=€ 0€ alors aide_finale sinon 0€
 ```
 
 Ce dernier résultat, obtenu par application des dispositions précédentes, est diminué d'un montant
@@ -3236,20 +3350,15 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à contributions_sociales.montant de aide_finale dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -3259,9 +3368,10 @@ il n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d832_10
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d832_10
     alors 0 €
-    sinon traitement_aide_finale de aide_finale
+    sinon aide_finale
 ```
 
 ####### Article D832-11 | LEGIARTI000038878744
@@ -3447,14 +3557,15 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   exception définition plafond_mensualité_d832_10_3 état base sous condition
     local_habité_première_fois_bénéficiaire
   conséquence égal à
-    # TODO informatique: refactorer avec des let-bindings locaux.
-    si
-      calcul_plafond_mensualité_d832_10_3 de date_signature_prêt <€
-      calcul_plafond_mensualité_d832_10_3 de date_entrée_logement
-    alors
-      calcul_plafond_mensualité_d832_10_3 de date_entrée_logement
-    sinon
+    soit plafond_signature égal à
       calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
+    dans
+    soit plafond_entrée égal à
+      calcul_plafond_mensualité_d832_10_3 de date_entrée_logement
+    dans
+    si plafond_signature <€ plafond_entrée
+    alors plafond_entrée
+    sinon plafond_signature
 ```
 
 ####### Article D832-15 | LEGIARTI000039621211
@@ -3523,28 +3634,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     # durant toutes les étapes du calcul. En Catala, nous utilisons donc le type
     # décimal plutôt que argent qui arrondi systématiquement au centime près
     # à chaque étape de calcul.
+    soit ressources_ménage_arrondies égal à
+      argent_vers_décimal de ressources_ménage_arrondies
+    dans
+    soit montant_limite_tranches_d832_15_1 égal à
+      argent_vers_décimal de montant_limite_tranches_d832_15_1
+    dans
     décimal_vers_argent de (
       ((si
         # Pour la tranche supérieure
-        argent_vers_décimal de ressources_ménage_arrondies >=.
-          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-            n_nombre_parts_d832_11)
+        ressources_ménage_arrondies >=.
+          (montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11)
       alors
-        ((argent_vers_décimal de ressources_ménage_arrondies -.
-          (argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-          n_nombre_parts_d832_11)) *. taux_tranche_supérieure_d832_15_1)
+        ((ressources_ménage_arrondies -.
+          (montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11)) *.
+            taux_tranche_supérieure_d832_15_1)
       sinon 0,0) +.
       (si
         # Pour la tranche inférieure
-        argent_vers_décimal de ressources_ménage_arrondies <=.
-          argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-            n_nombre_parts_d832_11
+        ressources_ménage_arrondies <=.
+          montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11
       alors
-        argent_vers_décimal de ressources_ménage_arrondies *.
-          taux_tranche_inférieure_d832_15_1
+        ressources_ménage_arrondies *. taux_tranche_inférieure_d832_15_1
       sinon
-        ((argent_vers_décimal de montant_limite_tranches_d832_15_1 *.
-          n_nombre_parts_d832_11) *.
+        ((montant_limite_tranches_d832_15_1 *. n_nombre_parts_d832_11) *.
             taux_tranche_inférieure_d832_15_1))) /. 12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
@@ -3632,11 +3745,14 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale_d832_10
     de aide_calculée_2_9_d832_10
   égal à
-    si dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 <=€
+    soit dépense_nette_minimale égal à
+      dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+    dans
+    si dépense_nette_minimale<=€
       ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
     alors
       ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3 -€
-         dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+        dépense_nette_minimale
     sinon
       0€
 ```
@@ -3810,11 +3926,11 @@ $$\textrm{Af} = \textrm{K} \times (\textrm{E}-\textrm{E0})$$
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition aide_finale_formule égal à
-    si (équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
-      coefficient_prise_en_charge_d832_25 <€ 0 €
-    alors 0 € sinon
-      ((équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
-      coefficient_prise_en_charge_d832_25)
+    soit aide_finale égal à
+      (équivalence_loyer_éligible -€ équivalence_loyer_minimale) *€
+        coefficient_prise_en_charge_d832_25
+    dans
+    si aide_finale <€ 0 € alors 0 € sinon aide_finale
 ```
 
 où :
@@ -3871,14 +3987,11 @@ de calcul sont fixées à l'article D. 832-27.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition traitement_aide_finale de aide_finale état abattement égal à
-    si traitement_aide_finale de aide_finale -€
-      abattement_dépense_nette_minimale_d832_27 de
-        (traitement_aide_finale de aide_finale) >=€ 0€
-    alors
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale_d832_27 de
-          (traitement_aide_finale de aide_finale)
-    sinon 0€
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit aide_finale égal à
+      aide_finale -€  abattement_dépense_nette_minimale_d832_27 de aide_finale
+    dans
+    si aide_finale >=€ 0€ alors aide_finale sinon 0€
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -3890,20 +4003,16 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
-    si
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à
+      contributions_sociales.montant de aide_finale
+    dans
+    soit aide_finale_moins_crds_arrondie égal à
+       arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans si
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de (traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale) -€
-        0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -3913,8 +4022,9 @@ Lorsque le montant mensuel de l'aide, calculé selon les modalités précédente
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d823_24
-    alors 0 € sinon traitement_aide_finale de aide_finale
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d823_24
+    alors 0 € sinon aide_finale
 ```
 
 ######## Article D832-25 | LEGIARTI000038878710
@@ -3930,14 +4040,11 @@ selon la formule et les modalités précisées au 2° du présent article.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition condition_2_du_832_25 égal à
-    selon mode_occupation sous forme
-    -- RésidentLogementFoyer de logement_foyer: (
-      selon logement_foyer.type sous forme
-      -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995:
-        logement_foyer.date_conventionnement >=@ |1990-09-30|
-      -- RésidenceSociale:
-        logement_foyer.date_conventionnement >=@ |1994-12-31|
-      -- n'importe quel: faux)
+    selon type_logement_foyer sous forme
+    -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995:
+      date_conventionnement >=@ |1990-09-30|
+    -- RésidenceSociale:
+      date_conventionnement >=@ |1994-12-31|
     -- n'importe quel: faux
 ```
 
@@ -3948,9 +4055,14 @@ $$\textrm{K} = 0,95 - \frac{\textrm{R} - \textrm{r} \times \textrm{N}}{\textrm{c
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état formule égal à
+    soit dénominateur égal à ressources_ménage_arrondies -€
+        coefficient_r_d832_25 *€ n_nombre_parts_d832_25
+    dans
+    soit dénominateur égal à
+      si dénominateur <€ 0€ alors 0€ sinon dénominateur
+    dans
     0,95 -.
-      ((ressources_ménage_arrondies -€
-        coefficient_r_d832_25 *€ n_nombre_parts_d832_25) /€
+      (dénominateur /€
         (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
       )
 ```
@@ -4129,29 +4241,29 @@ champ d'application CalculÉquivalenceLoyerMinimale:
       }
 
   définition montant égal à
+    soit ressources_ménage_arrondies égal à
+      argent_vers_décimal de ressources_ménage_arrondies
+    dans
     décimal_vers_argent de (
       (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
         (si
-          argent_vers_décimal de ressources_ménage_arrondies <=.
-            tranche.TrancheRevenuDécimal.bas
+          ressources_ménage_arrondies <=. tranche.TrancheRevenuDécimal.bas
         alors 0,0
         sinon
           (selon tranche.TrancheRevenuDécimal.haut sous forme
           -- LimiteTrancheDécimal.Revenu de tranche_haut:
             (si
-              argent_vers_décimal de ressources_ménage_arrondies >=.
-                tranche_haut
+              ressources_ménage_arrondies >=. tranche_haut
             alors
               (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
                 tranche.TrancheRevenuDécimal.taux
             sinon
-              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+              ((ressources_ménage_arrondies -.
                 tranche.TrancheRevenuDécimal.bas) *.
                   tranche.TrancheRevenuDécimal.taux))
           -- LimiteTrancheDécimal.Infini:
-            (argent_vers_décimal de ressources_ménage_arrondies -.
-              tranche.TrancheRevenuDécimal.bas) *.
-                tranche.TrancheRevenuDécimal.taux)
+            (ressources_ménage_arrondies -. tranche.TrancheRevenuDécimal.bas) *.
+              tranche.TrancheRevenuDécimal.taux)
         ))) +.
       argent_vers_décimal de montant_forfaitaire_d832_26 *.
         n_nombre_parts_d832_25) /. 12,0)
@@ -4168,29 +4280,29 @@ champ d'application CalculÉquivalenceLoyerMinimale:
   exception définition montant sous condition
     condition_2_du_832_25
   conséquence égal à
+    soit ressources_ménage_arrondies égal à
+      argent_vers_décimal de ressources_ménage_arrondies
+    dans
     décimal_vers_argent de (
       (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
         (si
-          argent_vers_décimal de ressources_ménage_arrondies <=.
-            tranche.TrancheRevenuDécimal.bas
+          ressources_ménage_arrondies <=. tranche.TrancheRevenuDécimal.bas
         alors 0,0
         sinon
           (selon tranche.TrancheRevenuDécimal.haut sous forme
           -- LimiteTrancheDécimal.Revenu de tranche_haut:
             (si
-              argent_vers_décimal de ressources_ménage_arrondies >=.
-                tranche_haut
+              ressources_ménage_arrondies >=. tranche_haut
             alors
               (tranche_haut -. tranche.TrancheRevenuDécimal.bas) *.
                 tranche.TrancheRevenuDécimal.taux
             sinon
-              (((argent_vers_décimal de ressources_ménage_arrondies) -.
+              ((ressources_ménage_arrondies -.
                 tranche.TrancheRevenuDécimal.bas) *.
                   tranche.TrancheRevenuDécimal.taux))
           -- LimiteTrancheDécimal.Infini:
-            (argent_vers_décimal de ressources_ménage_arrondies -.
-              tranche.TrancheRevenuDécimal.bas) *.
-                tranche.TrancheRevenuDécimal.taux)
+            (ressources_ménage_arrondies -. tranche.TrancheRevenuDécimal.bas) *.
+              tranche.TrancheRevenuDécimal.taux)
         ))) +.
       argent_vers_décimal de montant_forfaitaire_d832_26) /. 12,0)
 ```
@@ -4221,13 +4333,12 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition abattement_dépense_nette_minimale_d832_27
     de aide_calculée_1_8_d832_24
   égal à
-    si dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24 <=€
-      montant_forfaitaire_d832_27
-    alors
-      montant_forfaitaire_d832_27 -€
-        dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
-    sinon
-      0€
+    soit dépense_nette_minimale égal à
+      dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+    dans
+    si dépense_nette_minimale <=€ montant_forfaitaire_d832_27
+    alors montant_forfaitaire_d832_27 -€ dépense_nette_minimale
+    sinon 0€
 
 ```
 ######## Article D832-28 | LEGIARTI000038878704
@@ -4284,11 +4395,16 @@ un logement loué en meublé, le prix du loyer est remplacé par les deux tiers 
 payé dans la limite du loyer-plafond.
 
 ```catala
-champ d'application CalculAllocationLogementLocatif:
-  exception définition calcul_apl_locatif.loyer_principal sous condition
-    logement_meublé_d842_2
-  conséquence égal à
-    loyer_principal *€ (2,0/.3,0)
+# D'après D823-18, cet article s'applique aussi pour l'aide personnalisée au
+# logement. Puisque CalculAllocationLogementLocatif appelle toujours
+# CalculAidePersonnaliséeLogementLocatif, il suffit de définir la manipulation
+# dans CalculAidePersonnaliséeLogementLocatif.
+champ d'application CalculAidePersonnaliséeLogementLocatif:
+  définition loyer_principal état avec_réduction_meublé égal à
+    si logement_meublé_d842_2 alors
+      loyer_principal *€ (2,0 /. 3,0)
+    sinon
+      loyer_principal
 ```
 
 Dans le cas d'un local à usage mixte d'habitation et professionnel, il n'est pas tenu compte
@@ -4364,6 +4480,21 @@ champ d'application CalculAllocationLogementLocatif sous condition
 
 L'allocation de logement est accordée au titre de la résidence principale :
 
+```catala
+# Cet article dispose qu'en cas d'accession à la propriété, l'allocation
+# logement est plus restrictive. On définit donc une variable qui va
+# être vraie tout le temps sauf en cas d'accession propriété. Puis
+# on définit des exceptions à cette règle pour les 1°, 2° et 3° de cet
+# article.
+# TODO juridique: vérifier si cela s'applique à la location-accession ou pas
+champ d'application ÉligibilitéAllocationLogement:
+  règle condition_accession_propriété sous condition
+    selon ménage.logement.mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation: faux
+    -- n'importe quel: vrai
+  conséquence rempli
+```
+
 1° Aux personnes propriétaires du logement pendant la période au cours de laquelle elles se
 libèrent de la dette contractée pour accéder à la propriété de ce logement et, le cas échéant,
 de celle contractée en même temps pour réaliser des travaux permettant de remplir les
@@ -4387,16 +4518,14 @@ conditions de décence ;
 # "Soit la demande est globale avec 2 prêts « en même temps » (cf. 1°), soit
 # les travaux arrivent ultérieurement, dans ce cas c’est le 2°."
 champ d'application ÉligibilitéAllocationLogement:
-  règle condition_logement sous condition
-    selon informations_calcul sous forme
-    -- InfosAccessionPropriété de infos: (
-      selon ménage.logement.mode_occupation sous forme
-      -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-         propriétaire.prêt.titulaire_prêt sous forme Demandeur et
-         (infos.type_travaux_logement_r842_5 sous forme
-           TypeTravauxLogementR842_5.PasDeTravaux
-           ou infos.type_travaux_logement_r842_5 sous forme ObjectifDécenceLogement)
-      -- n'importe quel: faux)
+  exception règle condition_accession_propriété sous condition
+    selon ménage.logement.mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+        propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+        (propriétaire.type_travaux_logement_r842_5 sous forme
+          TypeTravauxLogementR842_5.PasDeTravaux ou
+        propriétaire.type_travaux_logement_r842_5 sous forme
+          ObjectifDécenceLogement)
     -- n'importe quel: faux
   conséquence rempli
 ```
@@ -4406,14 +4535,12 @@ figurant sur la liste mentionnée à l'article R. 321-15 ;
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  règle condition_logement sous condition
-    selon informations_calcul sous forme
-    -- InfosAccessionPropriété de infos: (
-      selon ménage.logement.mode_occupation sous forme
-      -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-         propriétaire.prêt.titulaire_prêt sous forme Demandeur et
-         infos.type_travaux_logement_r842_5 sous forme PrévuDansListeR321_15
-      -- n'importe quel: faux)
+  exception règle condition_accession_propriété sous condition
+    selon ménage.logement.mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+        propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+        propriétaire.type_travaux_logement_r842_5 sous forme
+          PrévuDansListeR321_15
     -- n'importe quel: faux
   conséquence rempli
 ```
@@ -4425,15 +4552,12 @@ mentionnés à l'article D. 331-63.
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  règle condition_logement sous condition
-    selon informations_calcul sous forme
-    -- InfosAccessionPropriété de infos: (
-      selon ménage.logement.mode_occupation sous forme
-      -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-         propriétaire.prêt.titulaire_prêt sous forme Demandeur et
-         infos.type_travaux_logement_r842_5 sous forme
-            AgrandirOuRendreHabitableD331_63
-      -- n'importe quel: faux)
+  exception règle condition_accession_propriété sous condition
+    selon ménage.logement.mode_occupation sous forme
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+       propriétaire.prêt.titulaire_prêt sous forme Demandeur et
+       propriétaire.type_travaux_logement_r842_5 sous forme
+          AgrandirOuRendreHabitableD331_63
     -- n'importe quel: faux
   conséquence rempli
 ```
@@ -4537,16 +4661,11 @@ dont les modalités de calcul sont précisées par l'article D. 842-11.
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état dépense_nette_minimale
   égal à
-    si
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale de
-          (traitement_aide_finale de aide_finale) <€ 0€
-    alors
-      0 €
-    sinon
-      (traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale de
-          (traitement_aide_finale de aide_finale))
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit abattement égal à abattement_dépense_nette_minimale de aide_finale dans
+    si aide_finale <€ abattement
+    alors 0 €
+    sinon aide_finale -€ abattement
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
@@ -4557,18 +4676,15 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à contributions_sociales.montant de aide_finale dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -4578,8 +4694,9 @@ par arrêté, il n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d842_6
-    alors 0 € sinon traitement_aide_finale de aide_finale
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d842_6
+    alors 0 € sinon aide_finale
 ```
 
 ####### Article D842-7 | LEGIARTI000038878673
@@ -4660,14 +4777,16 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   exception définition plafond_mensualité_d842_6 sous condition
     local_habité_première_fois_bénéficiaire
   conséquence égal à
-    # TODO informatique: refactorer avec des let-bindings locaux.
-    si
-      calcul_plafond_mensualité_d842_6 de date_signature_prêt <€
-      calcul_plafond_mensualité_d842_6 de date_entrée_logement
-    alors
-      calcul_plafond_mensualité_d842_6 de date_entrée_logement
-    sinon
+    soit plafond_signature égal à
       calcul_plafond_mensualité_d842_6 de date_signature_prêt
+    dans
+    soit plafond_entrée égal à
+      calcul_plafond_mensualité_d842_6 de date_entrée_logement
+    dans
+    si
+      plafond_signature <€ plafond_entrée
+    alors plafond_entrée
+    sinon plafond_signature
 ```
 
 ####### Article D842-10 | LEGIARTI000038878667
@@ -4718,12 +4837,12 @@ constatée.
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale de allocation_mensuelle
   égal à
-    si
-      dépense_nette_minimale de allocation_mensuelle <€
-        seuil_minimal_dépense_nette_minimale
+    soit dépense_nette_minimale égal à
+      dépense_nette_minimale de allocation_mensuelle
+    dans si
+      dépense_nette_minimale <€ seuil_minimal_dépense_nette_minimale
     alors
-      seuil_minimal_dépense_nette_minimale -€
-        dépense_nette_minimale de allocation_mensuelle
+      seuil_minimal_dépense_nette_minimale -€ dépense_nette_minimale
     sinon
      0 €
 
@@ -4882,7 +5001,7 @@ champ d'application CalculAllocationLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi_argent de ((ressources_ménage +€ 49,99€) *€ 1%) *€ 100,0
+    arrondi_argent de ((ressources_ménage *€ 1%) +€ 0,49€) *€ 100,0
 ```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions
@@ -4919,7 +5038,8 @@ Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition traitement_aide_finale de aide_finale état minoration_forfaitaire égal à
+  définition traitement_aide_finale de aide_finale
+  état minoration_forfaitaire égal à
     si aide_finale -€ montant_forfaitaire_d842_15 <€ 0€ alors
       0 €
     sinon
@@ -4934,16 +5054,11 @@ sont fixées à l'article D. 842-17.
 champ d'application CalculAllocationLogementFoyer:
   définition traitement_aide_finale de aide_finale état dépense_nette_minimale
   égal à
-    si
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale de
-          (traitement_aide_finale de aide_finale) <€ 0€
-    alors
-      0 €
-    sinon
-      traitement_aide_finale de aide_finale -€
-        abattement_dépense_nette_minimale de
-          (traitement_aide_finale de aide_finale)
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit abattement égal à abattement_dépense_nette_minimale de aide_finale dans
+    si aide_finale -€ abattement <€ 0€
+    alors 0 €
+    sinon aide_finale -€ abattement
 ```
 
 Si le montant obtenu par application des dispositions des alinéas précédents est
@@ -4956,9 +5071,11 @@ au montant de cette redevance.
 # OUI, selon réponse de DGALN/DHUP/FE4 du 25/05/2022.
 champ d'application CalculAllocationLogementFoyer:
   définition traitement_aide_finale de aide_finale état redevance
-  égal à si traitement_aide_finale de aide_finale >€ redevance
-  alors redevance
-  sinon traitement_aide_finale de aide_finale
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale >€ redevance
+    alors redevance
+    sinon aide_finale
 ```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions
@@ -4970,18 +5087,15 @@ champ d'application CalculAllocationLogementFoyer:
   définition traitement_aide_finale de aide_finale
   état contributions_sociales_arrondi
   égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    soit crds égal à contributions_sociales.montant de aide_finale dans
+    soit aide_finale_moins_crds_arrondie égal à
+      arrondi_argent de ((aide_finale -€ crds) -€ 0,50€)
+    dans
     si
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale) >=€ 0€
+      aide_finale_moins_crds_arrondie +€ crds >=€ 0€
     alors
-      arrondi_argent de ((traitement_aide_finale de aide_finale -€
-        contributions_sociales.montant de
-          (traitement_aide_finale de aide_finale)) -€ 0,50€) +€
-      contributions_sociales.montant de
-        (traitement_aide_finale de aide_finale)
+      aide_finale_moins_crds_arrondie +€ crds
     sinon 0€
 ```
 
@@ -4992,8 +5106,9 @@ son versement.
 ```catala
 champ d'application CalculAllocationLogementFoyer:
   définition traitement_aide_finale de aide_finale état montant_minimal égal à
-    si traitement_aide_finale de aide_finale <€ montant_minimal_aide_d842_15
-    alors 0 € sinon traitement_aide_finale de aide_finale
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    si aide_finale <€ montant_minimal_aide_d842_15
+    alors 0 € sinon aide_finale
 ```
 
 ####### Article D842-16 | LEGIARTI000038878653
@@ -5018,8 +5133,10 @@ que les personnes handicapées ;
 
 ```catala-metadata
 déclaration énumération CatégorieÉquivalenceLoyerAllocationLogementFoyer:
-  -- ÉtudiantLogéEnChambre
-  -- ÉtudiantLogéEnChambreRéhabilitée
+  # Les catégories 1° et 2° ici ne s'appliquent qu'aux chambres pour étudiants
+  # gérées par les CROUS, comme décrit au 30 de l'article D823-9.
+  -- ÉtudiantLogéEnChambreCROUS
+  -- ÉtudiantLogéEnChambreCROUSRéhabilitée
   -- PersonnesÂgéesSelon3DeD842_16
   -- AutresPersonnes
 ```

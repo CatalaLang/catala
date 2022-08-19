@@ -320,6 +320,32 @@ champ d'application Test13:
   définition f.i_résidence égal à Mayotte
   règle f.i_personne_charge_effective_permanente_est_parent rempli
   assertion f.i_montant_versé = 34,99€
+
+déclaration champ d'application Test14:
+  f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test14:
+  définition f.i_enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2004-12-22|
+    -- d_rémuneration_mensuelle: 435€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
+  };
+  EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2001-12-05|
+    -- d_rémuneration_mensuelle: 1682€
+    -- d_prise_en_charge: GardeAlternéeAllocataireUnique
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
+  }]
+  définition f.i_ressources_ménage égal à 64033 €
+  définition f.i_date_courante égal à |2022-05-01|
+  définition f.i_résidence égal à Guadeloupe
+  règle f.i_personne_charge_effective_permanente_est_parent rempli
+  assertion f.i_montant_versé = 48,77€
 ```
 
 ```catala-test {id="Test1.Interpret"}
@@ -371,5 +397,9 @@ catala Interpret -s Test12
 ```
 
 ```catala-test {id="Test13.Interpret"}
+catala Interpret -s Test13
+```
+
+```catala-test {id="Test14.Interpret"}
 catala Interpret -s Test13
 ```
