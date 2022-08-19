@@ -346,11 +346,6 @@ val ( <@ ) : date -> date -> bool
 
 val ( +^ ) : duration -> duration -> duration
 val ( -^ ) : duration -> duration -> duration
-
-(* val ( /^ ) : duration -> duration -> decimal *)
-(** @raise Division_by_zero
-    @raise IndivisableDurations *)
-
 val ( *^ ) : duration -> integer -> duration
 val ( ~-^ ) : duration -> duration
 val ( =^ ) : duration -> duration -> bool

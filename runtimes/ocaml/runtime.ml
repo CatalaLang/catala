@@ -138,7 +138,6 @@ let date_to_string (d : date) : string =
   Format.asprintf "%a" Dates_calc.Dates.format_date d
 
 let first_day_of_month = Dates_calc.Dates.first_day_of_month
-
 let last_day_of_month = Dates_calc.Dates.last_day_of_month
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
@@ -597,16 +596,6 @@ let ( +@ ) : date -> duration -> date = Dates_calc.Dates.add_dates
 let ( -@ ) : date -> date -> duration = Dates_calc.Dates.sub_dates
 let ( +^ ) : duration -> duration -> duration = Dates_calc.Dates.add_periods
 let ( -^ ) : duration -> duration -> duration = Dates_calc.Dates.sub_periods
-
-(* (EmileRolley) NOTE: {!CalendarLib.Date.Period.nb_days} is deprecated,
-   {!CalendarLib.Date.Period.safe_nb_days} should be used. But the current
-   {!duration} is greater that the supported polymorphic variants.*)
-(* let ( /^ ) (d1 : duration) (d2 : duration) : decimal =
- *   try
- *     let nb_day1 = CalendarLib.Date.Period.nb_days d1 in
- *     let nb_day2 = CalendarLib.Date.Period.nb_days d2 in
- *     if 0 = nb_day2 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
- *   with CalendarLib.Date.Period.Not_computable -> raise IndivisableDurations *)
 
 let ( *^ ) (d : duration) (m : integer) : duration =
   Dates_calc.Dates.mul_period d (Z.to_int m)

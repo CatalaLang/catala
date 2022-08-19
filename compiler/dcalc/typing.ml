@@ -219,7 +219,6 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
   | A.Binop (A.Add KDuration | A.Sub KDuration) -> arr dut (arr dut dut)
   | A.Binop (A.Sub KDate) -> arr dat (arr dat dut)
   | A.Binop (A.Add KDate) -> arr dat (arr dut dat)
-  | A.Binop (A.Div KDuration) -> arr dut (arr dut rt)
   | A.Binop (A.Mult KDuration) -> arr dut (arr it dut)
   | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
   | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)

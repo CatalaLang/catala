@@ -20,9 +20,6 @@ scope A:
   definition z3 equals x -@ y
   definition z2 equals z3 = 5937 day
 
-  definition d equals z3 /^ z3
-  definition d2 equals z3 /^ 2 day
-
   definition m equals z3 *^ 2
 
   definition m2 equals (2 month) *^ 3
