@@ -746,6 +746,37 @@ let embed_enfant_a_charge (x: EnfantACharge.t) : runtime_value =
     x.EnfantACharge.situation_garde_alternee)])
 
 
+module LogementFoyer = struct
+  type t = {
+    type_user: TypeLogementFoyer.t;
+    remplit_conditions_r832_21: bool;
+    bailleur: ConventionBailleurSocial.t;
+    date_conventionnement: date;
+    construit_application_loi_1957_12_III: bool;
+    redevance: money;
+    categorie_equivalence_loyer_d842_16:
+      CategorieEquivalenceLoyerAllocationLogementFoyer.t
+  }
+end
+let embed_logement_foyer (x: LogementFoyer.t) : runtime_value =
+  Struct(["LogementFoyer"],
+  [("type", embed_type_logement_foyer
+    x.LogementFoyer.type_user);
+    ("remplit_conditions_r832_21", embed_bool
+    x.LogementFoyer.remplit_conditions_r832_21);
+    ("bailleur", embed_convention_bailleur_social
+    x.LogementFoyer.bailleur);
+    ("date_conventionnement", embed_date
+    x.LogementFoyer.date_conventionnement);
+    ("construit_application_loi_1957_12_III", embed_bool
+    x.LogementFoyer.construit_application_loi_1957_12_III);
+    ("redevance", embed_money
+    x.LogementFoyer.redevance);
+    ("catégorie_équivalence_loyer_d842_16",
+    embed_categorie_equivalence_loyer_allocation_logement_foyer
+    x.LogementFoyer.categorie_equivalence_loyer_d842_16)])
+
+
 module TypeBailleur = struct
 
   type t =
@@ -872,37 +903,6 @@ let embed_personne_a_charge (x: PersonneACharge.t) : runtime_value =
     | EnfantACharge x -> ("EnfantÀCharge", embed_enfant_a_charge x)
     | AutrePersonneACharge x ->
       ("AutrePersonneÀCharge", embed_autre_personne_a_charge x))
-
-
-module LogementFoyer = struct
-  type t = {
-    type_user: TypeLogementFoyer.t;
-    date_conventionnement: date;
-    remplit_conditions_r832_21: bool;
-    bailleur: TypeBailleur.t;
-    construit_application_loi_1957_12_III: bool;
-    redevance: money;
-    categorie_equivalence_loyer_d842_16:
-      CategorieEquivalenceLoyerAllocationLogementFoyer.t
-  }
-end
-let embed_logement_foyer (x: LogementFoyer.t) : runtime_value =
-  Struct(["LogementFoyer"],
-  [("type", embed_type_logement_foyer
-    x.LogementFoyer.type_user);
-    ("date_conventionnement", embed_date
-    x.LogementFoyer.date_conventionnement);
-    ("remplit_conditions_r832_21", embed_bool
-    x.LogementFoyer.remplit_conditions_r832_21);
-    ("bailleur", embed_type_bailleur
-    x.LogementFoyer.bailleur);
-    ("construit_application_loi_1957_12_III", embed_bool
-    x.LogementFoyer.construit_application_loi_1957_12_III);
-    ("redevance", embed_money
-    x.LogementFoyer.redevance);
-    ("catégorie_équivalence_loyer_d842_16",
-    embed_categorie_equivalence_loyer_allocation_logement_foyer
-    x.LogementFoyer.categorie_equivalence_loyer_d842_16)])
 
 
 module Demandeur = struct
@@ -5722,8 +5722,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                   start_line=804; start_column=14;
-                   end_line=804; end_column=36;
+                   start_line=801; start_column=14;
+                   end_line=801; end_column=36;
                    law_headings=["Article L832-3";
                                   "Chapitre Ier : Champ d'application";
                                   "Titre III : Aide personnalisée au logement";
@@ -5981,8 +5981,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   with
                   EmptyError -> (raise (NoValueProvided
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=812; start_column=13;
-                      end_line=812; end_column=63;
+                      start_line=809; start_column=13;
+                      end_line=809; end_column=63;
                       law_headings=["Article L832-3";
                                      "Chapitre Ier : Champ d'application";
                                      "Titre III : Aide personnalisée au logement";
@@ -5991,8 +5991,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                      "Code de la construction et de l'habitation"]})))
                   then () else
                   raise (AssertionFailed {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                           start_line=812; start_column=13;
-                                           end_line=812; end_column=63;
+                                           start_line=809; start_column=13;
+                                           end_line=809; end_column=63;
                                            law_headings=["Article L832-3";
                                                           "Chapitre Ier : Champ d'application";
                                                           "Titre III : Aide personnalisée au logement";
@@ -23803,8 +23803,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                  ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                      start_line=737; start_column=5;
-                                      end_line=750; end_column=30;
+                                      start_line=734; start_column=5;
+                                      end_line=747; end_column=30;
                                       law_headings=["Article L831-2";
                                                      "Chapitre Ier : Champ d'application";
                                                      "Titre III : Aide personnalisée au logement";
@@ -23856,8 +23856,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                  (fun (_: _) -> true))|])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=718; start_column=5;
-                              end_line=723; end_column=30;
+                              start_line=715; start_column=5;
+                              end_line=720; end_column=30;
                               law_headings=["Article L831-2";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre III : Aide personnalisée au logement";
@@ -23880,8 +23880,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                          (fun (_: _) -> false))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=714; start_column=31;
-                      end_line=714; end_column=54;
+                      start_line=711; start_column=31;
+                      end_line=711; end_column=54;
                       law_headings=["Article L831-2";
                                      "Chapitre Ier : Champ d'application";
                                      "Titre III : Aide personnalisée au logement";
@@ -24101,9 +24101,9 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                  (fun (_: _) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                      start_line=699;
+                                                      start_line=696;
                                                       start_column=5;
-                                                      end_line=702; end_column=30;
+                                                      end_line=699; end_column=30;
                                                       law_headings=["Article L831-1";
                                                                     "Chapitre Ier : Champ d'application";
                                                                     "Titre III : Aide personnalisée au logement";
@@ -24144,7 +24144,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                          (fun (_: _) -> (log_decision_taken
                                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
                                               start_line=679; start_column=5;
-                                              end_line=685; end_column=30;
+                                              end_line=682; end_column=30;
                                               law_headings=["Article L831-1";
                                                              "Chapitre Ier : Champ d'application";
                                                              "Titre III : Aide personnalisée au logement";
@@ -24157,15 +24157,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                              | ModeOccupation.Locataire _ ->
                                                  false
                                              | ModeOccupation.ResidentLogementFoyer location_ ->
-                                                 (match
-                                                    (location_.LogementFoyer.bailleur)
-                                                  with
-                                                  | TypeBailleur.BailleurSocial convention_ ->
-                                                      (convention_.ConventionBailleurSocial.conventionne_livre_III_titre_V_chap_III)
-                                                  | TypeBailleur.BailleurPriveAvecConventionnementSocial _ ->
-                                                      false
-                                                  | TypeBailleur.BailleurPrive _ ->
-                                                      false)
+                                                 ((location_.LogementFoyer.bailleur).ConventionBailleurSocial.conventionne_livre_III_titre_V_chap_III)
                                              | ModeOccupation.AccessionProprieteLocalUsageExclusifHabitation _ ->
                                                  false
                                              | ModeOccupation.SousLocataire _ ->
@@ -24922,7 +24914,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=835; start_column=14; end_line=835; end_column=25;
+              start_line=832; start_column=14; end_line=832; end_column=25;
               law_headings=["Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
                              "Livre VIII : Aides personnelles au logement";
@@ -24997,9 +24989,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                  (fun (_: _) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                      start_line=992;
+                                                      start_line=989;
                                                       start_column=5;
-                                                      end_line=996; end_column=29;
+                                                      end_line=993; end_column=29;
                                                       law_headings=["Article L841-1";
                                                                     "Chapitre Ier : Champ d'application";
                                                                     "Titre IV : Allocations de logement";
@@ -25061,9 +25053,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                               (fun (_: _) ->
                                                                  (log_decision_taken
                                                                  {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                                   start_line=969;
+                                                                   start_line=966;
                                                                    start_column=5;
-                                                                   end_line=980; end_column=12;
+                                                                   end_line=977; end_column=12;
                                                                    law_headings=
                                                                    ["Article L841-1";
                                                                     "Chapitre Ier : Champ d'application";
@@ -25106,9 +25098,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                       (fun (_: _) ->
                                                          (log_decision_taken
                                                          {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                           start_line=952;
+                                                           start_line=949;
                                                            start_column=5;
-                                                           end_line=953; end_column=72;
+                                                           end_line=950; end_column=72;
                                                            law_headings=
                                                            ["Article L841-1";
                                                              "Chapitre Ier : Champ d'application";
@@ -25158,8 +25150,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                               (fun (_: _) -> raise EmptyError)))|])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                      start_line=915; start_column=5;
-                                      end_line=938; end_column=29;
+                                      start_line=912; start_column=5;
+                                      end_line=935; end_column=29;
                                       law_headings=["Article L841-1";
                                                      "Chapitre Ier : Champ d'application";
                                                      "Titre IV : Allocations de logement";
@@ -25238,8 +25230,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                             false)))) (fun (_: _) -> true))|])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=884; start_column=5;
-                              end_line=904; end_column=11;
+                              start_line=881; start_column=5;
+                              end_line=901; end_column=11;
                               law_headings=["Article L841-1";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25298,8 +25290,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          (fun (_: _) -> true))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=865; start_column=5;
-                      end_line=869; end_column=52;
+                      start_line=862; start_column=5;
+                      end_line=866; end_column=52;
                       law_headings=["Article L841-1";
                                      "Chapitre Ier : Champ d'application";
                                      "Titre IV : Allocations de logement";
@@ -25366,8 +25358,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=1114; start_column=5;
-                              end_line=1114; end_column=73;
+                              start_line=1111; start_column=5;
+                              end_line=1111; end_column=73;
                               law_headings=["Article L841-3";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25389,8 +25381,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=1127; start_column=5;
-                              end_line=1130; end_column=28;
+                              start_line=1124; start_column=5;
+                              end_line=1127; end_column=28;
                               law_headings=["Article L841-4";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25413,7 +25405,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                  (fun (_: _) -> false) (fun (_: _) -> raise EmptyError))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1023; start_column=14; end_line=1023; end_column=25;
+              start_line=1020; start_column=14; end_line=1020; end_column=25;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27126,7 +27118,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1039; start_column=5; end_line=1039; end_column=74;
+              start_line=1036; start_column=5; end_line=1036; end_column=74;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27392,7 +27384,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1055; start_column=14; end_line=1055; end_column=50;
+              start_line=1052; start_column=14; end_line=1052; end_column=50;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27473,7 +27465,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1053; start_column=14; end_line=1053; end_column=58;
+              start_line=1050; start_column=14; end_line=1050; end_column=58;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27664,7 +27656,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1044; start_column=14; end_line=1044; end_column=25;
+              start_line=1041; start_column=14; end_line=1041; end_column=25;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27699,8 +27691,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                   start_line=1082; start_column=14;
-                   end_line=1082; end_column=36;
+                   start_line=1079; start_column=14;
+                   end_line=1079; end_column=36;
                    law_headings=["Article L841-2";
                                   "Chapitre Ier : Champ d'application";
                                   "Titre IV : Allocations de logement";
@@ -27774,7 +27766,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1065; start_column=14; end_line=1065; end_column=33;
+              start_line=1062; start_column=14; end_line=1062; end_column=33;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";

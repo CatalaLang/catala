@@ -678,10 +678,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
-        (selon location.LogementFoyer.bailleur sous forme
-        -- BailleurSocial de convention:
-          convention.conventionné_livre_III_titre_V_chap_III
-        -- n'importe quel: faux)
+        location.LogementFoyer.bailleur.conventionné_livre_III_titre_V_chap_III
       -- n'importe quel: faux
   conséquence rempli
 ```

@@ -1800,6 +1800,53 @@ class type enfant_a_charge =
           enfant_a_charge##.situationGardeAlternee
     }
 
+class type logement_foyer =
+  object
+    method typeUser: type_logement_foyer Js.t Js.readonly_prop
+    method remplitConditionsR83221: bool Js.t Js.readonly_prop
+    method bailleur: convention_bailleur_social Js.t Js.readonly_prop
+    method dateConventionnement: Js.js_string Js.t Js.readonly_prop
+    method construitApplicationLoi195712III: bool Js.t Js.readonly_prop
+    method redevance: Js.number Js.t Js.readonly_prop
+    method categorieEquivalenceLoyerD84216:
+      categorie_equivalence_loyer_allocation_logement_foyer Js.t Js.readonly_prop
+  end
+  let logement_foyer_to_jsoo (logement_foyer : LogementFoyer.t)
+    : logement_foyer Js.t =
+    object%js
+      val typeUser = type_logement_foyer_to_jsoo logement_foyer.type_user
+      val remplitConditionsR83221 =
+        Js.bool logement_foyer.remplit_conditions_r832_21
+      val bailleur =
+        convention_bailleur_social_to_jsoo logement_foyer.bailleur
+      val dateConventionnement =
+        date_to_jsoo logement_foyer.date_conventionnement
+      val construitApplicationLoi195712III =
+        Js.bool logement_foyer.construit_application_loi_1957_12_III
+      val redevance =
+        Js.number_of_float @@ money_to_float logement_foyer.redevance
+      val categorieEquivalenceLoyerD84216 =
+        categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo logement_foyer.categorie_equivalence_loyer_d842_16
+      end
+  let logement_foyer_of_jsoo (logement_foyer : logement_foyer Js.t) :
+    LogementFoyer.t =
+    {
+      type_user = type_logement_foyer_of_jsoo logement_foyer##.typeUser;
+      remplit_conditions_r832_21 =
+        Js.to_bool logement_foyer##.remplitConditionsR83221;
+      bailleur = convention_bailleur_social_of_jsoo logement_foyer##.bailleur;
+      date_conventionnement =
+        date_of_jsoo logement_foyer##.dateConventionnement;
+      construit_application_loi_1957_12_III =
+        Js.to_bool logement_foyer##.construitApplicationLoi195712III;
+      redevance =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          logement_foyer##.redevance;
+      categorie_equivalence_loyer_d842_16 =
+        categorie_equivalence_loyer_allocation_logement_foyer_of_jsoo
+          logement_foyer##.categorieEquivalenceLoyerD84216
+    }
+
 class type type_bailleur =
   object
     method kind :
@@ -2078,52 +2125,6 @@ let personne_a_charge_of_jsoo (personne_a_charge : personne_a_charge Js.t)
       (Printf.sprintf
         "Unexpected '%s' kind for the enumeration 'PersonneACharge.t'" cons)
 
-
-class type logement_foyer =
-  object
-    method typeUser: type_logement_foyer Js.t Js.readonly_prop
-    method dateConventionnement: Js.js_string Js.t Js.readonly_prop
-    method remplitConditionsR83221: bool Js.t Js.readonly_prop
-    method bailleur: type_bailleur Js.t Js.readonly_prop
-    method construitApplicationLoi195712III: bool Js.t Js.readonly_prop
-    method redevance: Js.number Js.t Js.readonly_prop
-    method categorieEquivalenceLoyerD84216:
-      categorie_equivalence_loyer_allocation_logement_foyer Js.t Js.readonly_prop
-  end
-  let logement_foyer_to_jsoo (logement_foyer : LogementFoyer.t)
-    : logement_foyer Js.t =
-    object%js
-      val typeUser = type_logement_foyer_to_jsoo logement_foyer.type_user
-      val dateConventionnement =
-        date_to_jsoo logement_foyer.date_conventionnement
-      val remplitConditionsR83221 =
-        Js.bool logement_foyer.remplit_conditions_r832_21
-      val bailleur = type_bailleur_to_jsoo logement_foyer.bailleur
-      val construitApplicationLoi195712III =
-        Js.bool logement_foyer.construit_application_loi_1957_12_III
-      val redevance =
-        Js.number_of_float @@ money_to_float logement_foyer.redevance
-      val categorieEquivalenceLoyerD84216 =
-        categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo logement_foyer.categorie_equivalence_loyer_d842_16
-      end
-  let logement_foyer_of_jsoo (logement_foyer : logement_foyer Js.t) :
-    LogementFoyer.t =
-    {
-      type_user = type_logement_foyer_of_jsoo logement_foyer##.typeUser;
-      date_conventionnement =
-        date_of_jsoo logement_foyer##.dateConventionnement;
-      remplit_conditions_r832_21 =
-        Js.to_bool logement_foyer##.remplitConditionsR83221;
-      bailleur = type_bailleur_of_jsoo logement_foyer##.bailleur;
-      construit_application_loi_1957_12_III =
-        Js.to_bool logement_foyer##.construitApplicationLoi195712III;
-      redevance =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          logement_foyer##.redevance;
-      categorie_equivalence_loyer_d842_16 =
-        categorie_equivalence_loyer_allocation_logement_foyer_of_jsoo
-          logement_foyer##.categorieEquivalenceLoyerD84216
-    }
 
 class type demandeur =
   object
