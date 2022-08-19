@@ -114,7 +114,7 @@ déclaration structure TrancheRevenuDécimal:
 déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
   donnée remplit_conditions_r832_21 contenu booléen
-  donnée bailleur contenu ConventionBailleurSocial
+  donnée conventionné_livre_III_titre_V_chap_III contenu booléen
   donnée date_conventionnement contenu date
   donnée construit_application_loi_1957_12_III contenu booléen
   donnée redevance contenu argent
