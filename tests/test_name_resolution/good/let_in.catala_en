@@ -28,3 +28,20 @@ scope S:
 ```catala-test {id="S.Interpret"}
 catala Interpret -s S
 ```
+
+## Check scope of let-in vs scope variable
+
+```catala
+declaration scope S2:
+   x scope S
+   output y content integer
+
+scope S2:
+  definition y equals
+    let x equals 0 in
+    x + 1
+```
+
+```catala-test {id="S2.Interpret"}
+catala Interpret -s S2
+```
