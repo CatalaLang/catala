@@ -96,7 +96,7 @@ let add_z3constraint (e : Expr.expr) (ctx : context) : context =
 
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900
     **)
-let base_day = Dates_calc.Dates.make_date ~year:1900 ~month:1 ~day:1
+let base_day = Runtime.date_of_numbers 1900 1 1
 
 (** [unique_name] returns the full, unique name corresponding to variable [v],
     as given by Bindlib **)
@@ -109,7 +109,7 @@ let date_to_int (d : Runtime.date) : int =
   (* Alternatively, could expose this from Runtime as a (noop) coercion, but
      would allow to break abstraction more easily elsewhere *)
   let period = Runtime.( -@ ) d base_day in
-  let y, m, d = Runtime.duration_to_string period in
+  let y, m, d = Runtime.duration_to_years_months_days period in
   assert (y = 0 && m = 0);
   d
 
@@ -410,6 +410,9 @@ let find_or_create_funcdecl (ctx : context) (v : typed var) :
         "[Z3 Encoding] Ill-formed VC, a function application does not have a \
          function type")
 
+let is_leap_year (n : int) = failwith "Unimplemented!"
+(* Replace with [Dates_calc.Dates.is_leap_year] when existing *)
+
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
 let rec translate_op
@@ -452,7 +455,7 @@ let rec translate_op
       ->
       let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if CalendarLib.Date.is_leap_year n then 365 else 364 in
+      let nb_days = if is_leap_year n then 365 else 364 in
       (* We want that the year corresponding to e1 is smaller or equal to n. We
          encode this as the day corresponding to e1 is smaller or equal than the
          last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
@@ -466,7 +469,7 @@ let rec translate_op
       ->
       let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if CalendarLib.Date.is_leap_year n then 365 else 364 in
+      let nb_days = if is_leap_year n then 365 else 364 in
       (* We want that the year corresponding to e1 is greater to n. We encode
          this as the day corresponding to e1 is greater than the last day of the
          year [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st +
