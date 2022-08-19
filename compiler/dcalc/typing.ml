@@ -455,6 +455,9 @@ and typecheck_expr_top_down
   let pos_e = Ast.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.gexpr) tau' =
+    (* This try...with was added because of
+       [tests/test_bool/bad/bad_assert.catala_en] but we shouldn't need it.
+       TODO: debug why it is needed here. *)
     (try unify ctx e tau tau'
      with Type_error (e', t1, t2) -> handle_type_error ctx e' t1 t2);
     Marked.mark { uf = tau; pos = pos_e } e'
