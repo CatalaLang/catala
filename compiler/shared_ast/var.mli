@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Types
+open Definitions
 
 (** {1 Variables and their collections} *)
 

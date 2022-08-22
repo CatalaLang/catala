@@ -15,13 +15,24 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Types
+open Definitions
 
 (** {2 Transformations} *)
 
-val untype : ('a any, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
+val map_exprs :
+  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
+  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
+  'expr1 program ->
+  'expr2 program Bindlib.box
 
-val to_expr : 'e anyexpr program -> ScopeName.t -> 'e marked Bindlib.box
+val untype :
+  (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
+  ('a, untyped mark) gexpr program
+
+val to_expr :
+  (([< dcalc | lcalc ], _) gexpr as 'e) program ->
+  ScopeName.t ->
+  'e marked Bindlib.box
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)

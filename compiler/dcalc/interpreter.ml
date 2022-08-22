@@ -18,7 +18,6 @@
 
 open Utils
 open Shared_ast
-module A = Ast
 module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
@@ -48,15 +47,15 @@ let rec evaluate_operator
         "division by zero at runtime"
   in
   let get_binop_args_pos = function
-    | (arg0 :: arg1 :: _ : 'm A.marked_expr list) ->
+    | (arg0 :: arg1 :: _ : 'm Ast.marked_expr list) ->
       [None, Expr.pos arg0; None, Expr.pos arg1]
     | _ -> assert false
   in
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
      use [args] to raise multispanned errors. *)
   let apply_cmp_or_raise_err
-      (cmp : unit -> 'm A.expr)
-      (args : 'm A.marked_expr list) : 'm A.expr =
+      (cmp : unit -> 'm Ast.expr)
+      (args : 'm Ast.marked_expr list) : 'm Ast.expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
       Errors.raise_multispanned_error (get_binop_args_pos args)

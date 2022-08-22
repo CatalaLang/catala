@@ -46,22 +46,22 @@ and typ =
 let rec typ_to_ast (ty : unionfind_typ) : A.marked_typ =
   let ty, pos = UnionFind.get (UnionFind.find ty) in
   match ty with
-  | TLit l -> TLit l, pos
-  | TTuple (ts, s) -> TTuple (List.map typ_to_ast ts, s), pos
-  | TEnum (ts, e) -> TEnum (List.map typ_to_ast ts, e), pos
-  | TArrow (t1, t2) -> TArrow (typ_to_ast t1, typ_to_ast t2), pos
-  | TAny _ -> TAny, pos
-  | TArray t1 -> TArray (typ_to_ast t1), pos
+  | TLit l -> A.TLit l, pos
+  | TTuple (ts, s) -> A.TTuple (List.map typ_to_ast ts, s), pos
+  | TEnum (ts, e) -> A.TEnum (List.map typ_to_ast ts, e), pos
+  | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
+  | TAny _ -> A.TAny, pos
+  | TArray t1 -> A.TArray (typ_to_ast t1), pos
 
 let rec ast_to_typ (ty : A.marked_typ) : unionfind_typ =
   let ty' =
     match Marked.unmark ty with
-    | TLit l -> TLit l
-    | TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
-    | TTuple (ts, s) -> TTuple (List.map (fun t -> ast_to_typ t) ts, s)
-    | TEnum (ts, e) -> TEnum (List.map (fun t -> ast_to_typ t) ts, e)
-    | TArray t -> TArray (ast_to_typ t)
-    | TAny -> TAny (Any.fresh ())
+    | A.TLit l -> TLit l
+    | A.TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
+    | A.TTuple (ts, s) -> TTuple (List.map (fun t -> ast_to_typ t) ts, s)
+    | A.TEnum (ts, e) -> TEnum (List.map (fun t -> ast_to_typ t) ts, e)
+    | A.TArray t -> TArray (ast_to_typ t)
+    | A.TAny -> TAny (Any.fresh ())
   in
   UnionFind.make (Marked.same_mark_as ty' ty)
 

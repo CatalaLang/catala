@@ -15,16 +15,17 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Types
+open Definitions
 
-let untype (prg : ('a, 'm mark) gexpr program) :
-    ('a, untyped mark) gexpr program =
-  {
-    prg with
-    scopes =
-      Bindlib.unbox
-        (Scope.map_exprs ~f:Expr.untype ~varf:Var.translate prg.scopes);
-  }
+let map_exprs ~f ~varf { scopes; decl_ctx } =
+  Bindlib.box_apply
+    (fun scopes -> { scopes; decl_ctx })
+    (Scope.map_exprs ~f ~varf scopes)
+
+let untype : 'm. ('a, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
+    =
+ fun (prg : ('a, 'm mark) gexpr program) ->
+  Bindlib.unbox (map_exprs ~f:Expr.untype ~varf:Var.translate prg)
 
 let rec find_scope name vars = function
   | Nil -> raise Not_found

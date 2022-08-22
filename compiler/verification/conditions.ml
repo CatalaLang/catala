@@ -132,10 +132,10 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed marked_expr) :
         (generate_vc_must_not_return_empty ctx) body
       in
       ( vc_body_expr,
-        List.fold_left
-          (fun acc (var, ty) -> Var.Map.add var ty acc)
-          vc_body_ty
-          (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
+        snd
+        @@ List.fold_left
+             (fun (i, acc) ty -> i + 1, Var.Map.add vars.(i) ty acc)
+             (0, vc_body_ty) typs )
     | EApp (f, args) ->
       (* We assume here that function calls never return empty error, which implies
          all functions have been checked never to return empty errors. *)

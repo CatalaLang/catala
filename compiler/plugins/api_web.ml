@@ -121,7 +121,7 @@ module To_jsoo = struct
         format_typ_of_jsoo t
     | _ -> Format.fprintf fmt ""
 
-  let format_var_camel_case (fmt : Format.formatter) (v : 'm var) : unit =
+  let format_var_camel_case (fmt : Format.formatter) (v : 'm Var.t) : unit =
     let lowercase_name =
       Bindlib.name_of v
       |> to_ascii

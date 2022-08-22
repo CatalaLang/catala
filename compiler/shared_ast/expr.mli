@@ -18,7 +18,7 @@
 (** Functions handling the expressions of [shared_ast] *)
 
 open Utils
-open Types
+open Definitions
 
 (** {2 Boxed constructors} *)
 
@@ -191,10 +191,18 @@ val empty_thunked_term :
 
 val make_let_in :
   'e Bindlib.var ->
-  typ Utils.Marked.pos ->
-  ((_ any, 'm mark) gexpr as 'e) marked Bindlib.box ->
+  marked_typ ->
+  'e anyexpr marked Bindlib.box ->
   'e marked Bindlib.box ->
   Utils.Pos.t ->
+  'e marked Bindlib.box
+
+val make_multiple_let_in :
+  'e Var.vars ->
+  marked_typ list ->
+  'e marked Bindlib.box list ->
+  'e marked Bindlib.box ->
+  Pos.t ->
   'e marked Bindlib.box
 
 (** {2 Transformations} *)

@@ -455,9 +455,7 @@ let translate_rule
           (fun new_e -> ErrorOnEmpty new_e, pos_mark_as subs_var)
           new_e
       | Reentrant ->
-        Expr.make_abs
-          (Array.of_list [silent_var])
-          new_e
+        Expr.make_abs [| silent_var |] new_e
           [TLit TUnit, var_def_pos]
           (pos_mark var_def_pos)
     in

@@ -28,6 +28,7 @@ module type Id = sig
   val fresh : info -> t
   val get_info : t -> info
   val compare : t -> t -> int
+  val equal : t -> t -> bool
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
 end
@@ -44,6 +45,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
 
   let get_info (uid : t) : X.info = uid.info
   let compare (x : t) (y : t) : int = compare x.id y.id
+  let equal x y = Int.equal x.id y.id
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     X.format_info fmt x.info

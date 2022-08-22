@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-include Types
+include Definitions
 module Var = Var
 module Expr = Expr
 module Scope = Scope

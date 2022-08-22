@@ -913,7 +913,7 @@ and disambiguate_match_and_build_expression
       let case_body =
         translate_expr scope inside_definition_of ctxt case.Ast.match_case_expr
       in
-      let e_binder = Bindlib.bind_mvar (Array.of_list [param_var]) case_body in
+      let e_binder = Bindlib.bind_mvar [| param_var |] case_body in
       let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
       ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
         Some e_uid,
@@ -968,9 +968,7 @@ and disambiguate_match_and_build_expression
         let case_body =
           translate_expr scope inside_definition_of ctxt match_case_expr
         in
-        let e_binder =
-          Bindlib.bind_mvar (Array.of_list [payload_var]) case_body
-        in
+        let e_binder = Bindlib.bind_mvar [| payload_var |] case_body in
 
         (* For each missing cases, binds the wildcard payload. *)
         Scopelang.Ast.EnumConstructorMap.fold

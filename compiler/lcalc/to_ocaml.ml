@@ -231,7 +231,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 
-let format_var (fmt : Format.formatter) (v : 'm var) : unit =
+let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   let lowercase_name = to_snake_case (to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")

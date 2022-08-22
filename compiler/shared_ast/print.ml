@@ -16,7 +16,7 @@
 
 open Utils
 open String_common
-open Types
+open Definitions
 
 let typ_needs_parens (e : typ) : bool =
   match e with TArrow _ | TArray _ -> true | _ -> false

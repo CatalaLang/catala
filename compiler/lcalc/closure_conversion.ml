@@ -139,7 +139,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
       let inner_c_var = Var.make "env" in
       let any_ty = TAny, binder_pos in
       let new_closure_body =
-        make_multiple_let_in
+        Expr.make_multiple_let_in
           (Array.of_list extra_vars_list)
           (List.map (fun _ -> any_ty) extra_vars_list)
           (List.mapi
@@ -158,13 +158,13 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
           (Expr.mark_pos binder_mark)
       in
       let new_closure =
-        make_abs
+        Expr.make_abs
           (Array.concat [Array.make 1 inner_c_var; vars])
           new_closure_body
           ((TAny, binder_pos) :: typs)
           (Marked.get_mark e)
       in
-      ( make_let_in code_var
+      ( Expr.make_let_in code_var
           (TAny, Expr.pos e)
           new_closure
           (Bindlib.box_apply2
@@ -223,7 +223,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
           args ([], free_vars)
       in
       let call_expr =
-        make_let_in code_var
+        Expr.make_let_in code_var
           (TAny, Expr.pos e)
           (Bindlib.box_apply
              (fun env_var ->
@@ -241,7 +241,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
              (Bindlib.box_list new_args))
           (Expr.pos e)
       in
-      ( make_let_in env_var (TAny, Expr.pos e) new_e1 call_expr (Expr.pos e),
+      ( Expr.make_let_in env_var (TAny, Expr.pos e) new_e1 call_expr (Expr.pos e),
         free_vars )
     | EAssert e1 ->
       let new_e1, free_vars = aux e1 in

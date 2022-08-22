@@ -37,7 +37,7 @@ let translate_lit (l : D.lit) : 'm A.expr =
 let thunk_expr (e : 'm A.marked_expr Bindlib.box) (mark : 'm mark) :
     'm A.marked_expr Bindlib.box =
   let dummy_var = Var.make "_" in
-  A.make_abs [| dummy_var |] e [TAny, Expr.mark_pos mark] mark
+  Expr.make_abs [| dummy_var |] e [TAny, Expr.mark_pos mark] mark
 
 let rec translate_default
     (ctx : 'm ctx)
@@ -51,8 +51,8 @@ let rec translate_default
       exceptions
   in
   let exceptions =
-    A.make_app
-      (A.make_var (Var.translate A.handle_default, mark_default))
+    Expr.make_app
+      (Expr.make_var (Var.translate A.handle_default, mark_default))
       [
         Expr.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just) mark_default;
@@ -65,7 +65,7 @@ let rec translate_default
 and translate_expr (ctx : 'm ctx) (e : 'm D.marked_expr) :
     'm A.marked_expr Bindlib.box =
   match Marked.unmark e with
-  | EVar v -> A.make_var (Var.Map.find v ctx, Marked.get_mark e)
+  | EVar v -> Expr.make_var (Var.Map.find v ctx, Marked.get_mark e)
   | ETuple (args, s) ->
     Expr.etuple (List.map (translate_expr ctx) args) s (Marked.get_mark e)
   | ETupleAccess (e1, i, s, ts) ->

@@ -103,7 +103,7 @@ let add_var
     (is_pure : bool)
     (ctx : 'm ctx) : 'm ctx =
   let new_var = Var.make (Bindlib.name_of var) in
-  let expr = A.make_var (new_var, mark) in
+  let expr = Expr.make_var (new_var, mark) in
 
   (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Print.var var Print.var
      new_var; *)
@@ -185,23 +185,23 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
          created a variable %a to replace it" Print.var v Print.var v'; *)
-      A.make_var (v', pos), Var.Map.singleton v' e
+      Expr.make_var (v', pos), Var.Map.singleton v' e
     else (find ~info:"should never happend" v ctx).expr, Var.Map.empty
   | EApp ((EVar v, p), [(ELit LUnit, _)]) ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
          created a variable %a to replace it" Print.var v Print.var v'; *)
-      A.make_var (v', pos), Var.Map.singleton v' (EVar v, p)
+      Expr.make_var (v', pos), Var.Map.singleton v' (EVar v, p)
     else
       Errors.raise_spanned_error (Expr.pos e)
         "Internal error: an pure variable was found in an unpure environment."
   | EDefault (_exceptions, _just, _cons) ->
     let v' = Var.make "default_term" in
-    A.make_var (v', pos), Var.Map.singleton v' e
+    Expr.make_var (v', pos), Var.Map.singleton v' e
   | ELit LEmptyError ->
     let v' = Var.make "empty_litteral" in
-    A.make_var (v', pos), Var.Map.singleton v' e
+    Expr.make_var (v', pos), Var.Map.singleton v' e
   (* This one is a very special case. It transform an unpure expression
      environement to a pure expression. *)
   | ErrorOnEmpty arg ->
@@ -212,11 +212,11 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     let arg' = translate_expr ctx arg in
 
     ( A.make_matchopt_with_abs_arms arg'
-        (A.make_abs [| silent_var |]
+        (Expr.make_abs [| silent_var |]
            (Bindlib.box (ERaise NoValueProvided, pos))
            [TAny, Expr.pos e]
            pos)
-        (A.make_abs [| x |] (A.make_var (x, pos)) [TAny, Expr.pos e] pos),
+        (Expr.make_abs [| x |] (Expr.make_var (x, pos)) [TAny, Expr.pos e] pos),
       Var.Map.empty )
   (* pure terms *)
   | ELit l -> Expr.elit (translate_lit l (Expr.pos e)) pos, Var.Map.empty
@@ -323,8 +323,8 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
           let just' = translate_expr ctx just in
           let cons' = translate_expr ctx cons in
           (* calls handle_option. *)
-          A.make_app
-            (A.make_var (Var.translate A.handle_default_opt, mark_hoist))
+          Expr.make_app
+            (Expr.make_var (Var.translate A.handle_default_opt, mark_hoist))
             [
               Bindlib.box_apply
                 (fun excep' -> EArray excep', mark_hoist)
@@ -343,14 +343,14 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
           let x = Var.make "assertion_argument" in
 
           A.make_matchopt_with_abs_arms arg'
-            (A.make_abs [| silent_var |]
+            (Expr.make_abs [| silent_var |]
                (Bindlib.box (ERaise NoValueProvided, mark_hoist))
                [TAny, Expr.mark_pos mark_hoist]
                mark_hoist)
-            (A.make_abs [| x |]
+            (Expr.make_abs [| x |]
                (Bindlib.box_apply
                   (fun arg -> EAssert arg, mark_hoist)
-                  (A.make_var (x, mark_hoist)))
+                  (Expr.make_var (x, mark_hoist)))
                [TAny, Expr.mark_pos mark_hoist]
                mark_hoist)
         | _ ->

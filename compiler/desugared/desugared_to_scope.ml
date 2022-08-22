@@ -297,7 +297,7 @@ let rec rule_tree_to_expr
           default
       in
       Scopelang.Ast.make_abs
-        (Array.of_list [Ast.VarMap.find new_param ctx.var_mapping])
+        [| Ast.VarMap.find new_param ctx.var_mapping |]
         default [typ] def_pos
     else default
   | _ -> (* should not happen *) assert false

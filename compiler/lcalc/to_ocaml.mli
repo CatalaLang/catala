@@ -42,7 +42,7 @@ val format_to_module_name :
 
 val format_lit : Format.formatter -> lit Marked.pos -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
-val format_var : Format.formatter -> 'm var -> unit
+val format_var : Format.formatter -> 'm Var.t -> unit
 
 val format_program :
   Format.formatter ->

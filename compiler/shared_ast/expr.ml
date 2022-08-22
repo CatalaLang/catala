@@ -16,7 +16,7 @@
    the License. *)
 
 open Utils
-open Types
+open Definitions
 
 (** Functions handling the types of [shared_ast] *)
 
@@ -72,7 +72,7 @@ let ecatch e1 exn e2 pos =
 
 (* - Manipulation of marks - *)
 
-let no_mark (type m) : m mark -> m mark = function
+let no_mark : type m. m mark -> m mark = function
   | Untyped _ -> Untyped { pos = Pos.no_pos }
   | Typed _ -> Typed { pos = Pos.no_pos; ty = Marked.mark Pos.no_pos TAny }
 
@@ -208,6 +208,23 @@ let make_let_in x tau e1 e2 pos =
   in
   make_app (make_abs [| x |] e2 [tau] m_abs) [e1] m_e2
 
+let make_multiple_let_in xs taus e1s e2 pos =
+  (* let m_e1s = List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s in *)
+  let m_e1s =
+    fold_marks List.hd
+      (fun tys ->
+        TTuple (List.map (fun t -> t.ty) tys, None), (List.hd tys).pos)
+      (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s)
+  in
+  let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
+  let m_abs =
+    map_mark2
+      (fun _ _ -> pos)
+      (fun m1 m2 -> Marked.mark pos (TArrow (m1.ty, m2.ty)))
+      m_e1s m_e2
+  in
+  make_app (make_abs xs e2 taus m_abs) e1s m_e2
+
 (* Tests *)
 
 let is_value (type a) (e : (a, 'm mark) gexpr marked) =
@@ -223,13 +240,10 @@ let rec equal_typs ty1 ty2 =
   | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typs t1 t2 && equal_typs t1' t2'
   | TArray t1, TArray t2 -> equal_typs t1 t2
   | TAny, TAny -> true
-  | _, _ -> false
+  | (TLit _ | TTuple _ | TEnum _ | TArrow _ | TArray _ | TAny), _ -> false
 
 and equal_typs_list tys1 tys2 =
-  List.length tys1 = List.length tys2
-  && (* OCaml && operator short-circuits when a clause is false, we can safely
-        assume here that both lists have equal length *)
-  List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+  try List.for_all2 equal_typs tys1 tys2 with Invalid_argument _ -> false
 
 let equal_log_entries l1 l2 =
   match l1, l2 with
@@ -241,8 +255,13 @@ let equal_unops op1 op2 =
   (* Log entries contain a typ which contain position information, we thus need
      to descend into them *)
   | Log (l1, info1), Log (l2, info2) -> equal_log_entries l1 l2 && info1 = info2
+  | Log _, _ | _, Log _ -> false
   (* All the other cases can be discharged through equality *)
-  | _ -> op1 = op2
+  | ( ( Not | Minus _ | Length | IntToRat | MoneyToRat | RatToMoney | GetDay
+      | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | RoundMoney
+      | RoundDecimal ),
+      _ ) ->
+    op1 = op2
 
 let equal_ops op1 op2 =
   match op1, op2 with
@@ -260,86 +279,71 @@ let rec equal_list :
  fun es1 es2 ->
   try List.for_all2 equal es1 es2 with Invalid_argument _ -> false
 
-and equal : 'a. ('a, 't) gexpr marked -> ('a, 't) gexpr marked -> bool =
-  fun (type a) (e1 : (a, 't) gexpr marked) (e2 : (a, 't) gexpr marked) ->
-   match Marked.unmark e1, Marked.unmark e2 with
-   | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
-   | ETuple (es1, n1), ETuple (es2, n2) -> n1 = n2 && equal_list es1 es2
-   | ETupleAccess (e1, id1, n1, tys1), ETupleAccess (e2, id2, n2, tys2) ->
-     equal e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
-   | EInj (e1, id1, n1, tys1), EInj (e2, id2, n2, tys2) ->
-     equal e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
-   | EMatch (e1, cases1, n1), EMatch (e2, cases2, n2) ->
-     n1 = n2 && equal e1 e2 && equal_list cases1 cases2
-   | EArray es1, EArray es2 -> equal_list es1 es2
-   | ELit l1, ELit l2 -> l1 = l2
-   | EAbs (b1, tys1), EAbs (b2, tys2) ->
-     equal_typs_list tys1 tys2
-     &&
-     let vars1, body1 = Bindlib.unmbind b1 in
-     let body2 = Bindlib.msubst b2 (Array.map (fun x -> EVar x) vars1) in
-     equal body1 body2
-   | EAssert e1, EAssert e2 -> equal e1 e2
-   | EOp op1, EOp op2 -> equal_ops op1 op2
-   | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
-     equal def1 def2 && equal cons1 cons2 && equal_list exc1 exc2
-   | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
-     equal if1 if2 && equal then1 then2 && equal else1 else2
-   | ErrorOnEmpty e1, ErrorOnEmpty e2 -> equal e1 e2
-   | ERaise ex1, ERaise ex2 -> equal_except ex1 ex2
-   | ECatch (etry1, ex1, ewith1), ECatch (etry2, ex2, ewith2) ->
-     equal etry1 etry2 && equal_except ex1 ex2 && equal ewith1 ewith2
-   | _, _ -> false
+and equal : type a. (a, 't) gexpr marked -> (a, 't) gexpr marked -> bool =
+ fun e1 e2 ->
+  match Marked.unmark e1, Marked.unmark e2 with
+  | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
+  | ETuple (es1, n1), ETuple (es2, n2) -> n1 = n2 && equal_list es1 es2
+  | ETupleAccess (e1, id1, n1, tys1), ETupleAccess (e2, id2, n2, tys2) ->
+    equal e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
+  | EInj (e1, id1, n1, tys1), EInj (e2, id2, n2, tys2) ->
+    equal e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
+  | EMatch (e1, cases1, n1), EMatch (e2, cases2, n2) ->
+    n1 = n2 && equal e1 e2 && equal_list cases1 cases2
+  | EArray es1, EArray es2 -> equal_list es1 es2
+  | ELit l1, ELit l2 -> l1 = l2
+  | EAbs (b1, tys1), EAbs (b2, tys2) ->
+    equal_typs_list tys1 tys2
+    &&
+    let vars1, body1 = Bindlib.unmbind b1 in
+    let body2 = Bindlib.msubst b2 (Array.map (fun x -> EVar x) vars1) in
+    equal body1 body2
+  | EApp (e1, args1), EApp (e2, args2) -> equal e1 e2 && equal_list args1 args2
+  | EAssert e1, EAssert e2 -> equal e1 e2
+  | EOp op1, EOp op2 -> equal_ops op1 op2
+  | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
+    equal def1 def2 && equal cons1 cons2 && equal_list exc1 exc2
+  | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
+    equal if1 if2 && equal then1 then2 && equal else1 else2
+  | ErrorOnEmpty e1, ErrorOnEmpty e2 -> equal e1 e2
+  | ERaise ex1, ERaise ex2 -> equal_except ex1 ex2
+  | ECatch (etry1, ex1, ewith1), ECatch (etry2, ex2, ewith2) ->
+    equal etry1 etry2 && equal_except ex1 ex2 && equal ewith1 ewith2
+  | ( ( EVar _ | ETuple _ | ETupleAccess _ | EInj _ | EMatch _ | EArray _
+      | ELit _ | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _
+      | EIfThenElse _ | ErrorOnEmpty _ | ERaise _ | ECatch _ ),
+      _ ) ->
+    false
 
-let free_vars : 'a. ('a, 't) gexpr marked -> ('a, 't) gexpr Var.Set.t =
-  fun (type a) (e : (a, 't) gexpr marked) ->
-   let rec aux : (a, 't) gexpr marked -> (a, 't) gexpr Var.Set.t =
-    fun e ->
-     match Marked.unmark e with
-     | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
-     | EVar v -> Var.Set.singleton v
-     | ETuple (es, _) ->
-       es |> List.map aux |> List.fold_left Var.Set.union Var.Set.empty
-     | EArray es ->
-       es |> List.map aux |> List.fold_left Var.Set.union Var.Set.empty
-     | _ -> Var.Set.empty
-   in
-   aux e
-
-let rec free_vars : 'a. ('a, 't) gexpr marked -> ('a, 't) gexpr Var.Set.t =
-  fun (type a) (e : (a, 't) gexpr marked) : (a, 't) gexpr Var.Set.t ->
-   match Marked.unmark e with
-   | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
-   | EVar v -> Var.Set.singleton v
-   | ETuple (es, _) ->
-     es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-   | EArray es ->
-     es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-   | ETupleAccess (e1, _, _, _) -> free_vars e1
-   | EAssert e1 -> free_vars e1
-   | EInj (e1, _, _, _) -> free_vars e1
-   | ErrorOnEmpty e1 -> free_vars e1
-   | ECatch (etry, ex, ewith) ->
-     Var.Set.union (free_vars etry) (free_vars ewith)
-   | EApp (e1, es) ->
-     e1 :: es
-     |> List.map free_vars
-     |> List.fold_left Var.Set.union Var.Set.empty
-   | EMatch (e1, es, _) ->
-     e1 :: es
-     |> List.map free_vars
-     |> List.fold_left Var.Set.union Var.Set.empty
-   | EDefault (es, ejust, econs) ->
-     ejust :: econs :: es
-     |> List.map free_vars
-     |> List.fold_left Var.Set.union Var.Set.empty
-   | EIfThenElse (e1, e2, e3) ->
-     [e1; e2; e3]
-     |> List.map free_vars
-     |> List.fold_left Var.Set.union Var.Set.empty
-   | EAbs (binder, _) ->
-     let vs, body = Bindlib.unmbind binder in
-     Array.fold_right Var.Set.remove vs (free_vars body)
+let rec free_vars : type a. (a, 't) gexpr marked -> (a, 't) gexpr Var.Set.t =
+ fun e ->
+  match Marked.unmark e with
+  | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
+  | EVar v -> Var.Set.singleton v
+  | ETuple (es, _) ->
+    es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
+  | EArray es ->
+    es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
+  | ETupleAccess (e1, _, _, _) -> free_vars e1
+  | EAssert e1 -> free_vars e1
+  | EInj (e1, _, _, _) -> free_vars e1
+  | ErrorOnEmpty e1 -> free_vars e1
+  | ECatch (etry, _, ewith) -> Var.Set.union (free_vars etry) (free_vars ewith)
+  | EApp (e1, es) ->
+    e1 :: es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
+  | EMatch (e1, es, _) ->
+    e1 :: es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
+  | EDefault (es, ejust, econs) ->
+    ejust :: econs :: es
+    |> List.map free_vars
+    |> List.fold_left Var.Set.union Var.Set.empty
+  | EIfThenElse (e1, e2, e3) ->
+    [e1; e2; e3]
+    |> List.map free_vars
+    |> List.fold_left Var.Set.union Var.Set.empty
+  | EAbs (binder, _) ->
+    let vs, body = Bindlib.unmbind binder in
+    Array.fold_right Var.Set.remove vs (free_vars body)
 
 let remove_logging_calls e =
   let rec f () e =
@@ -351,28 +355,28 @@ let remove_logging_calls e =
 
 let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
 
-let rec size : 'a. ('a, 't) gexpr marked -> int =
-  fun (type a) (e : (a, 't) gexpr marked) ->
-   match Marked.unmark e with
-   | EVar _ | ELit _ | EOp _ -> 1
-   | ETuple (args, _) -> List.fold_left (fun acc arg -> acc + size arg) 1 args
-   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
-   | ETupleAccess (e1, _, _, _) -> size e1 + 1
-   | EInj (e1, _, _, _) -> size e1 + 1
-   | EAssert e1 -> size e1 + 1
-   | ErrorOnEmpty e1 -> size e1 + 1
-   | EMatch (arg, args, _) ->
-     List.fold_left (fun acc arg -> acc + size arg) (1 + size arg) args
-   | EApp (arg, args) ->
-     List.fold_left (fun acc arg -> acc + size arg) (1 + size arg) args
-   | EAbs (binder, _) ->
-     let _, body = Bindlib.unmbind binder in
-     1 + size body
-   | EIfThenElse (e1, e2, e3) -> 1 + size e1 + size e2 + size e3
-   | EDefault (exceptions, just, cons) ->
-     List.fold_left
-       (fun acc except -> acc + size except)
-       (1 + size just + size cons)
-       exceptions
-   | ERaise _ -> 1
-   | ECatch (etry, _, ewith) -> 1 + size etry + size ewith
+let rec size : type a. (a, 't) gexpr marked -> int =
+ fun e ->
+  match Marked.unmark e with
+  | EVar _ | ELit _ | EOp _ -> 1
+  | ETuple (args, _) -> List.fold_left (fun acc arg -> acc + size arg) 1 args
+  | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
+  | ETupleAccess (e1, _, _, _) -> size e1 + 1
+  | EInj (e1, _, _, _) -> size e1 + 1
+  | EAssert e1 -> size e1 + 1
+  | ErrorOnEmpty e1 -> size e1 + 1
+  | EMatch (arg, args, _) ->
+    List.fold_left (fun acc arg -> acc + size arg) (1 + size arg) args
+  | EApp (arg, args) ->
+    List.fold_left (fun acc arg -> acc + size arg) (1 + size arg) args
+  | EAbs (binder, _) ->
+    let _, body = Bindlib.unmbind binder in
+    1 + size body
+  | EIfThenElse (e1, e2, e3) -> 1 + size e1 + size e2 + size e3
+  | EDefault (exceptions, just, cons) ->
+    List.fold_left
+      (fun acc except -> acc + size except)
+      (1 + size just + size cons)
+      exceptions
+  | ERaise _ -> 1
+  | ECatch (etry, _, ewith) -> 1 + size etry + size ewith

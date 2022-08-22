@@ -28,43 +28,7 @@ and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
-(** {1 Variable helpers} *)
-
-type 'm var = 'm expr Var.t
-type 'm vars = 'm expr Var.vars
-
 (** {1 Language terms construction}*)
-
-val make_var : ('m var, 'm mark) Marked.t -> 'm marked_expr Bindlib.box
-
-val make_abs :
-  'm vars ->
-  'm marked_expr Bindlib.box ->
-  typ Marked.pos list ->
-  'm mark ->
-  'm marked_expr Bindlib.box
-
-val make_app :
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box list ->
-  'm mark ->
-  'm marked_expr Bindlib.box
-
-val make_let_in :
-  'm var ->
-  typ Marked.pos ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  Pos.t ->
-  'm marked_expr Bindlib.box
-
-val make_multiple_let_in :
-  'm vars ->
-  typ Marked.pos list ->
-  'm marked_expr Bindlib.box list ->
-  'm marked_expr Bindlib.box ->
-  Pos.t ->
-  'm marked_expr Bindlib.box
 
 val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
@@ -81,7 +45,7 @@ val make_matchopt_with_abs_arms :
 
 val make_matchopt :
   'm mark ->
-  'm var ->
+  'm expr Var.t ->
   typ Marked.pos ->
   'm marked_expr Bindlib.box ->
   'm marked_expr Bindlib.box ->
@@ -92,5 +56,5 @@ val make_matchopt :
 
 (** {1 Special symbols} *)
 
-val handle_default : untyped var
-val handle_default_opt : untyped var
+val handle_default : untyped expr Var.t
+val handle_default_opt : untyped expr Var.t

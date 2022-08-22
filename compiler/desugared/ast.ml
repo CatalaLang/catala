@@ -460,7 +460,7 @@ let make_let_in
     (e2 : expr Marked.pos Bindlib.box) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2
     (fun e u -> EApp (e, u), Marked.get_mark (Bindlib.unbox e2))
-    (make_abs (Array.of_list [x]) e2 [tau] (Marked.get_mark (Bindlib.unbox e2)))
+    (make_abs [| x |] e2 [tau] (Marked.get_mark (Bindlib.unbox e2)))
     (Bindlib.box_list [e1])
 
 module VarMap = Map.Make (Var)

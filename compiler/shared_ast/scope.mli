@@ -18,7 +18,7 @@
 (** Functions handling the scope structures of [shared_ast] *)
 
 open Utils
-open Types
+open Definitions
 
 (** {2 Traversal functions} *)
 

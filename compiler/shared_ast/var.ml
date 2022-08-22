@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Types
+open Definitions
 
 (** {1 Variables and their collections} *)
 
@@ -24,6 +24,7 @@ open Types
 type 'e t = 'e anyexpr Bindlib.var
 type 'e vars = 'e anyexpr Bindlib.mvar
 type 'e binder = ('e, 'e marked) Bindlib.binder
+
 let make (name : string) : 'e t = Bindlib.new_var (fun x -> EVar x) name
 let compare = Bindlib.compare_vars
 let eq = Bindlib.eq_vars

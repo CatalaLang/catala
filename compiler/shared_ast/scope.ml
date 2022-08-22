@@ -16,7 +16,7 @@
    the License. *)
 
 open Utils
-open Types
+open Definitions
 
 let rec fold_left_lets ~f ~init scope_body_expr =
   match scope_body_expr with

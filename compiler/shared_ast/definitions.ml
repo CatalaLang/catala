@@ -221,7 +221,6 @@ type 'e anyexpr = 'e constraint 'e = (_ any, _) gexpr
 
 type untyped = { pos : Pos.t } [@@ocaml.unboxed]
 type typed = { pos : Pos.t; ty : marked_typ }
-(* type inferring = { pos : Pos.t; uf : Infer.unionfind_typ } *)
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
@@ -232,6 +231,9 @@ type typed = { pos : Pos.t; ty : marked_typ }
 type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
 
 type 'e marked = ('e, 'm mark) Marked.t constraint 'e = ('a, 'm mark) gexpr
+(** [('a, 't) gexpr marked] is equivalent to [('a, 'm mark) marked_gexpr] but
+    often more convenient to write since we generally use the type of
+    expressions ['e = (_, _ mark) gexpr] as type parameter. *)
 
 (** Useful for errors and printing, for example *)
 type any_marked_expr =
@@ -239,10 +241,11 @@ type any_marked_expr =
 
 (** {2 Higher-level program structure} *)
 
-(** Constructs scopes and programs on top of expressions. We may use the [gexpr]
-    type above at some point, but at the moment this is polymorphic in the types
-    of the expressions. Their markings are constrained to belong to the [mark]
-    GADT defined above. *)
+(** Constructs scopes and programs on top of expressions. The ['e] type
+    parameter throughout is expected to match instances of the [gexpr] type
+    defined above. Markings are constrained to the [mark] GADT defined above.
+    Note that this structure is at the moment only relevant for [dcalc] and
+    [lcalc], as [scopelang] has its own scope structure, as the name implies. *)
 
 (** This kind annotation signals that the let-binding respects a structural
     invariant. These invariants concern the shape of the expression in the
