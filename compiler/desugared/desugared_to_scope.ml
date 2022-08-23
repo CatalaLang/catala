@@ -17,6 +17,7 @@
 (** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
 
 open Utils
+open Shared_ast
 
 (** {1 Expression translation}*)
 
@@ -31,13 +32,11 @@ type ctx = {
 
 let tag_with_log_entry
     (e : Scopelang.Ast.expr Marked.pos)
-    (l : Dcalc.Ast.log_entry)
+    (l : log_entry)
     (markings : Utils.Uid.MarkedString.info list) :
     Scopelang.Ast.expr Marked.pos =
   ( Scopelang.Ast.EApp
-      ( ( Scopelang.Ast.EOp (Dcalc.Ast.Unop (Dcalc.Ast.Log (l, markings))),
-          Marked.get_mark e ),
-        [e] ),
+      ((Scopelang.Ast.EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
@@ -263,11 +262,11 @@ let rec rule_tree_to_expr
                Scopelang.Ast.make_default ~pos:def_pos []
                  (* Here we insert the logging command that records when a
                     decision is taken for the value of a variable. *)
-                 (tag_with_log_entry base_just Dcalc.Ast.PosRecordIfTrueBool [])
+                 (tag_with_log_entry base_just PosRecordIfTrueBool [])
                  base_cons)
              base_just_list base_cons_list)
-          (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), def_pos)
-          (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, def_pos))
+          (Scopelang.Ast.ELit (LBool false), def_pos)
+          (Scopelang.Ast.ELit LEmptyError, def_pos))
       (Bindlib.box_list (translate_and_unbox_list base_just_list))
       (Bindlib.box_list (translate_and_unbox_list base_cons_list))
   in
@@ -281,7 +280,7 @@ let rec rule_tree_to_expr
     Bindlib.box_apply2
       (fun exceptions default_containing_base_cases ->
         Scopelang.Ast.make_default exceptions
-          (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), def_pos)
+          (Scopelang.Ast.ELit (LBool true), def_pos)
           default_containing_base_cases)
       exceptions default_containing_base_cases
   in
@@ -298,7 +297,7 @@ let rec rule_tree_to_expr
           default
       in
       Scopelang.Ast.make_abs
-        (Array.of_list [Ast.VarMap.find new_param ctx.var_mapping])
+        [| Ast.VarMap.find new_param ctx.var_mapping |]
         default [typ] def_pos
     else default
   | _ -> (* should not happen *) assert false

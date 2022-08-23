@@ -29,7 +29,7 @@ val format_expr :
 val format_scope :
   ?debug:bool (** [true] for debug printing *) ->
   Format.formatter ->
-  Ast.ScopeName.t * Ast.scope_decl ->
+  Shared_ast.ScopeName.t * Ast.scope_decl ->
   unit
 
 val format_program :

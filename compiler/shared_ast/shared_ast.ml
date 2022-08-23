@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,24 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
-
-(** {1 Formatters} *)
-
-val format_lit : Format.formatter -> Ast.lit Marked.pos -> unit
-val format_var : Format.formatter -> 'm Ast.var -> unit
-val format_exception : Format.formatter -> Ast.except -> unit
-
-val format_expr :
-  ?debug:bool ->
-  Dcalc.Ast.decl_ctx ->
-  Format.formatter ->
-  'm Ast.marked_expr ->
-  unit
-
-val format_scope :
-  ?debug:bool ->
-  Dcalc.Ast.decl_ctx ->
-  Format.formatter ->
-  Dcalc.Ast.ScopeName.t * ('m Ast.expr, 'm) Dcalc.Ast.scope_body ->
-  unit
+include Definitions
+module Var = Var
+module Expr = Expr
+module Scope = Scope
+module Program = Program
+module Print = Print

@@ -22,6 +22,7 @@ let extension = "_schema.json"
 
 open Utils
 open String_common
+open Shared_ast
 open Lcalc.Ast
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
@@ -37,9 +38,9 @@ module To_json = struct
 
   let format_struct_field_name_camel_case
       (fmt : Format.formatter)
-      (v : Dcalc.Ast.StructFieldName.t) : unit =
+      (v : StructFieldName.t) : unit =
     let s =
-      Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v
+      Format.asprintf "%a" StructFieldName.format_t v
       |> to_ascii
       |> to_snake_case
       |> avoid_keywords
@@ -48,18 +49,16 @@ module To_json = struct
     Format.fprintf fmt "%s" s
 
   let rec find_scope_def (target_name : string) :
-      ('m expr, 'm) D.scopes -> ('m expr, 'm) D.scope_def option = function
-    | D.Nil -> None
-    | D.ScopeDef scope_def ->
-      let name =
-        Format.asprintf "%a" D.ScopeName.format_t scope_def.scope_name
-      in
+      'm expr scopes -> 'm expr scope_def option = function
+    | Nil -> None
+    | ScopeDef scope_def ->
+      let name = Format.asprintf "%a" ScopeName.format_t scope_def.scope_name in
       if name = target_name then Some scope_def
       else
         let _, next_scope = Bindlib.unbind scope_def.scope_next in
         find_scope_def target_name next_scope
 
-  let fmt_tlit fmt (tlit : D.typ_lit) =
+  let fmt_tlit fmt (tlit : typ_lit) =
     match tlit with
     | TUnit -> Format.fprintf fmt "\"type\": \"null\",@\n\"default\": null"
     | TInt | TRat -> Format.fprintf fmt "\"type\": \"number\",@\n\"default\": 0"
@@ -70,15 +69,15 @@ module To_json = struct
     | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
     | TDuration -> failwith "TODO: tlit duration"
 
-  let rec fmt_type fmt (typ : D.marked_typ) =
+  let rec fmt_type fmt (typ : marked_typ) =
     match Marked.unmark typ with
-    | D.TLit tlit -> fmt_tlit fmt tlit
-    | D.TTuple (_, Some sname) ->
+    | TLit tlit -> fmt_tlit fmt tlit
+    | TTuple (_, Some sname) ->
       Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_struct_name
         sname
-    | D.TEnum (_, ename) ->
+    | TEnum (_, ename) ->
       Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_enum_name ename
-    | D.TArray t ->
+    | TArray t ->
       Format.fprintf fmt
         "\"type\": \"array\",@\n\
          \"default\": [],@\n\
@@ -89,9 +88,9 @@ module To_json = struct
     | _ -> ()
 
   let fmt_struct_properties
-      (ctx : D.decl_ctx)
+      (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (sname : D.StructName.t) =
+      (sname : StructName.t) =
     Format.fprintf fmt "%a"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
@@ -101,26 +100,25 @@ module To_json = struct
       (find_struct sname ctx)
 
   let fmt_definitions
-      (ctx : D.decl_ctx)
+      (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scope_def : ('m expr, 'm) D.scope_def) =
+      (scope_def : 'e scope_def) =
     let get_name t =
       match Marked.unmark t with
-      | D.TTuple (_, Some sname) ->
-        Format.asprintf "%a" format_struct_name sname
-      | D.TEnum (_, ename) -> Format.asprintf "%a" format_enum_name ename
+      | TTuple (_, Some sname) -> Format.asprintf "%a" format_struct_name sname
+      | TEnum (_, ename) -> Format.asprintf "%a" format_enum_name ename
       | _ -> failwith "unreachable: only structs and enums are collected."
     in
     let rec collect_required_type_defs_from_scope_input
-        (input_struct : D.StructName.t) : D.marked_typ list =
-      let rec collect (acc : D.marked_typ list) (t : D.marked_typ) :
-          D.marked_typ list =
+        (input_struct : StructName.t) : marked_typ list =
+      let rec collect (acc : marked_typ list) (t : marked_typ) : marked_typ list
+          =
         match Marked.unmark t with
-        | D.TTuple (_, Some s) ->
+        | TTuple (_, Some s) ->
           (* Scope's input is a struct. *)
           (t :: acc) @ collect_required_type_defs_from_scope_input s
-        | D.TEnum (ts, _) -> List.fold_left collect (t :: acc) ts
-        | D.TArray t -> collect acc t
+        | TEnum (ts, _) -> List.fold_left collect (t :: acc) ts
+        | TArray t -> collect acc t
         | _ -> acc
       in
       find_struct input_struct ctx
@@ -177,7 +175,7 @@ module To_json = struct
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
          (fun fmt typ ->
            match Marked.unmark typ with
-           | D.TTuple (_, Some sname) ->
+           | TTuple (_, Some sname) ->
              Format.fprintf fmt
                "@[<hov 2>\"%a\": {@\n\
                 \"type\": \"object\",@\n\
@@ -188,7 +186,7 @@ module To_json = struct
                format_struct_name sname
                (fmt_struct_properties ctx)
                sname
-           | D.TEnum (_, ename) ->
+           | TEnum (_, ename) ->
              Format.fprintf fmt
                "@[<hov 2>\"%a\": {@\n\
                 \"type\": \"object\",@\n\

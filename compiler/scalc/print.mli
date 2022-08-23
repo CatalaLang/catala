@@ -15,7 +15,7 @@
    the License. *)
 
 val format_scope :
-  Dcalc.Ast.decl_ctx ->
+  Shared_ast.decl_ctx ->
   ?debug:bool ->
   Format.formatter ->
   Ast.scope_body ->

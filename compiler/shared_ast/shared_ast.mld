@@ -1,0 +1,40 @@
+{0 Default calculus}
+
+This module contains a generic AST structure, various type definitions and
+helpers that are reused in various passes of the compiler.
+
+{1 The {!modules: Shared_ast.Definitions} module}
+
+The main module {!modules: Shared_ast.Definitions} is exposed at top-level of
+the library (so that [open Shared_ast] gives access to the structures). It
+defines literals, operators, and in particular the type {!types:
+Shared_ast.gexpr}.
+
+The {!types: Shared_ast.gexpr} type regroups all the cases for the {{:
+../dcalc.html} Dcalc} and {{: ../lcalc.html} Lcalc} ASTs, with unconstrained
+annotations (used for positions, types, etc.). A GADT is used to eliminate
+irrelevant cases, so that e.g. [(dcalc, _) gexpr] doesn't have the [ERaise] and
+[ECatch] cases, while [(lcalc, _) gexpr] doesn't have [EDefault].
+
+For example, Lcalc expressions are then defined as
+[type 'm expr = (Shared_ast.lcalc, 'm mark) Shared_ast.gexpr].
+
+This makes it possible to write a single function that works on the different
+ASTs, by having it take a [('a, _) gexpr] as input, while retaining a much
+stricter policy than polymorphic variants.
+
+The module additionally defines the encompassing [scope] and [program]
+structures that are also shared between different compiler passes.
+
+{1 Helper library}
+
+The {!modules: Shared_ast.Var} defines ['e Var.Set.t] and [('e, _) Var.Map.t]
+types that are useful to handle variables for the different ['e] expression
+types without re-instanciating [Set.Make] and [Map.Make] each time.
+
+{!modules: Shared_ast.Expr} contains various helpers to build well-formed
+expressions, and for traversal.
+
+{!modules: Shared_ast.Scope Shared_ast.Program} are dedicated to handling the
+program structure around expressions. Note that these don't make sense for the
+early compiler passes (up to [Scopelang]).

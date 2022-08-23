@@ -115,7 +115,7 @@ let run_test () =
     exit (-1)
   | Runtime.AssertionFailed _ -> ()
 
-let bench =
+let _bench =
   Random.init (int_of_float (Unix.time ()));
   let num_iter = 10000 in
   let _ =

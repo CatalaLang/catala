@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 module TopLevelName = Uid.Make (Uid.MarkedString) ()
@@ -27,24 +28,24 @@ let handle_default_opt = TopLevelName.fresh ("handle_default_opt", Pos.no_pos)
 type expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t
-  | EStruct of expr Marked.pos list * D.StructName.t
-  | EStructFieldAccess of expr Marked.pos * D.StructFieldName.t * D.StructName.t
-  | EInj of expr Marked.pos * D.EnumConstructor.t * D.EnumName.t
+  | EStruct of expr Marked.pos list * StructName.t
+  | EStructFieldAccess of expr Marked.pos * StructFieldName.t * StructName.t
+  | EInj of expr Marked.pos * EnumConstructor.t * EnumName.t
   | EArray of expr Marked.pos list
   | ELit of L.lit
   | EApp of expr Marked.pos * expr Marked.pos list
-  | EOp of Dcalc.Ast.operator
+  | EOp of operator
 
 type stmt =
   | SInnerFuncDef of LocalName.t Marked.pos * func
-  | SLocalDecl of LocalName.t Marked.pos * D.typ Marked.pos
+  | SLocalDecl of LocalName.t Marked.pos * typ Marked.pos
   | SLocalDef of LocalName.t Marked.pos * expr Marked.pos
-  | STryExcept of block * L.except * block
-  | SRaise of L.except
+  | STryExcept of block * except * block
+  | SRaise of except
   | SIfThenElse of expr Marked.pos * block * block
   | SSwitch of
       expr Marked.pos
-      * D.EnumName.t
+      * EnumName.t
       * (block (* Statements corresponding to arm closure body*)
         * (* Variable instantiated with enum payload *) LocalName.t)
         list  (** Each block corresponds to one case of the enum *)
@@ -54,14 +55,14 @@ type stmt =
 and block = stmt Marked.pos list
 
 and func = {
-  func_params : (LocalName.t Marked.pos * D.typ Marked.pos) list;
+  func_params : (LocalName.t Marked.pos * typ Marked.pos) list;
   func_body : block;
 }
 
 type scope_body = {
-  scope_body_name : Dcalc.Ast.ScopeName.t;
+  scope_body_name : ScopeName.t;
   scope_body_var : TopLevelName.t;
   scope_body_func : func;
 }
 
-type program = { decl_ctx : D.decl_ctx; scopes : scope_body list }
+type program = { decl_ctx : decl_ctx; scopes : scope_body list }

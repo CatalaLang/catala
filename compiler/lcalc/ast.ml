@@ -15,160 +15,49 @@
    the License. *)
 
 open Utils
-include Astgen
-module D = Dcalc.Ast
+include Shared_ast
 
 type lit = lcalc glit
 
 type 'm expr = (lcalc, 'm mark) gexpr
 and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
 
-type 'm program = ('m expr, 'm) Dcalc.Ast.program_generic
-type 'm var = 'm expr Var.t
-type 'm vars = 'm expr Var.vars
+type 'm program = 'm expr Shared_ast.program
 
-(* <copy-paste from dcalc/ast.ml> *)
+let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
+let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
+let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
-let evar v mark = Bindlib.box_apply (Marked.mark mark) (Bindlib.box_var v)
-
-let etuple args s mark =
-  Bindlib.box_apply (fun args -> ETuple (args, s), mark) (Bindlib.box_list args)
-
-let etupleaccess e1 i s typs mark =
-  Bindlib.box_apply (fun e1 -> ETupleAccess (e1, i, s, typs), mark) e1
-
-let einj e1 i e_name typs mark =
-  Bindlib.box_apply (fun e1 -> EInj (e1, i, e_name, typs), mark) e1
-
-let ematch arg arms e_name mark =
-  Bindlib.box_apply2
-    (fun arg arms -> EMatch (arg, arms, e_name), mark)
-    arg (Bindlib.box_list arms)
-
-let earray args mark =
-  Bindlib.box_apply (fun args -> EArray args, mark) (Bindlib.box_list args)
-
-let elit l mark = Bindlib.box (ELit l, mark)
-
-let eabs binder typs mark =
-  Bindlib.box_apply (fun binder -> EAbs (binder, typs), mark) binder
-
-let eapp e1 args mark =
-  Bindlib.box_apply2
-    (fun e1 args -> EApp (e1, args), mark)
-    e1 (Bindlib.box_list args)
-
-let eassert e1 mark = Bindlib.box_apply (fun e1 -> EAssert e1, mark) e1
-let eop op mark = Bindlib.box (EOp op, mark)
-
-let eifthenelse e1 e2 e3 pos =
-  Bindlib.box_apply3 (fun e1 e2 e3 -> EIfThenElse (e1, e2, e3), pos) e1 e2 e3
-
-(* </copy-paste> *)
-
-let eraise e1 pos = Bindlib.box (ERaise e1, pos)
-
-let ecatch e1 exn e2 pos =
-  Bindlib.box_apply2 (fun e1 e2 -> ECatch (e1, exn, e2), pos) e1 e2
-
-let map_expr ctx ~f e = Astgen_utils.map_gexpr ctx ~f e
-
-let rec map_expr_top_down ~f e =
-  map_expr () ~f:(fun () -> map_expr_top_down ~f) (f e)
-
-let map_expr_marks ~f e =
-  map_expr_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
-
-let untype_expr e =
-  map_expr_marks ~f:(fun m -> Untyped { pos = D.mark_pos m }) e
-
-let untype_program prg =
-  {
-    prg with
-    D.scopes =
-      Bindlib.unbox
-        (D.map_exprs_in_scopes
-           ~f:(fun e -> untype_expr e)
-           ~varf:Var.translate prg.D.scopes);
-  }
-
-(** See [Bindlib.box_term] documentation for why we are doing that. *)
-let box_expr (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
-  let rec id_t () e = map_expr () ~f:id_t e in
-  id_t () e
-
-let make_var (x, mark) =
-  Bindlib.box_apply (fun x -> x, mark) (Bindlib.box_var x)
-
-let make_abs xs e taus mark =
-  Bindlib.box_apply (fun b -> EAbs (b, taus), mark) (Bindlib.bind_mvar xs e)
-
-let make_app e u mark =
-  Bindlib.box_apply2 (fun e u -> EApp (e, u), mark) e (Bindlib.box_list u)
-
-let make_let_in x tau e1 e2 pos =
-  let m_e1 = Marked.get_mark (Bindlib.unbox e1) in
-  let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
-  let m_abs =
-    D.map_mark2
-      (fun _ _ -> pos)
-      (fun m1 m2 -> TArrow (m1.ty, m2.ty), m1.pos)
-      m_e1 m_e2
-  in
-  make_app (make_abs [| x |] e2 [tau] m_abs) [e1] m_e2
-
-let make_multiple_let_in xs taus e1s e2 pos =
-  (* let m_e1s = List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s in *)
-  let m_e1s =
-    D.fold_marks List.hd
-      (fun tys ->
-        D.TTuple (List.map (fun t -> t.D.ty) tys, None), (List.hd tys).D.pos)
-      (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s)
-  in
-  let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
-  let m_abs =
-    D.map_mark2
-      (fun _ _ -> pos)
-      (fun m1 m2 -> Marked.mark pos (D.TArrow (m1.ty, m2.ty)))
-      m_e1s m_e2
-  in
-  make_app (make_abs xs e2 taus m_abs) e1s m_e2
-
-let ( let+ ) x f = Bindlib.box_apply f x
-let ( and+ ) x y = Bindlib.box_pair x y
-let option_enum : D.EnumName.t = D.EnumName.fresh ("eoption", Pos.no_pos)
-
-let none_constr : D.EnumConstructor.t =
-  D.EnumConstructor.fresh ("ENone", Pos.no_pos)
-
-let some_constr : D.EnumConstructor.t =
-  D.EnumConstructor.fresh ("ESome", Pos.no_pos)
-
-let option_enum_config : (D.EnumConstructor.t * D.typ Marked.pos) list =
-  [none_constr, (D.TLit D.TUnit, Pos.no_pos); some_constr, (D.TAny, Pos.no_pos)]
+let option_enum_config : (EnumConstructor.t * typ Marked.pos) list =
+  [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
 
 (* FIXME: proper typing in all the constructors below *)
 
 let make_none m =
   let mark = Marked.mark m in
-  let tunit = D.TLit D.TUnit, D.mark_pos m in
+  let tunit = TLit TUnit, Expr.mark_pos m in
   Bindlib.box
   @@ mark
   @@ EInj
        ( Marked.mark
-           (D.map_mark (fun pos -> pos) (fun _ -> tunit) m)
+           (Expr.map_mark (fun pos -> pos) (fun _ -> tunit) m)
            (ELit LUnit),
          0,
          option_enum,
-         [D.TLit D.TUnit, Pos.no_pos; D.TAny, Pos.no_pos] )
+         [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos] )
 
 let make_some e =
   let m = Marked.get_mark @@ Bindlib.unbox e in
   let mark = Marked.mark m in
-  let+ e in
-  mark
-  @@ EInj
-       (e, 1, option_enum, [D.TLit D.TUnit, D.mark_pos m; D.TAny, D.mark_pos m])
+  Bindlib.box_apply
+    (fun e ->
+      mark
+      @@ EInj
+           ( e,
+             1,
+             option_enum,
+             [TLit TUnit, Expr.mark_pos m; TAny, Expr.mark_pos m] ))
+    e
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and
@@ -176,8 +65,10 @@ let make_some e =
 let make_matchopt_with_abs_arms arg e_none e_some =
   let m = Marked.get_mark @@ Bindlib.unbox arg in
   let mark = Marked.mark m in
-  let+ arg and+ e_none and+ e_some in
-  mark @@ EMatch (arg, [e_none; e_some], option_enum)
+  Bindlib.box_apply3
+    (fun arg e_none e_some ->
+      mark @@ EMatch (arg, [e_none; e_some], option_enum))
+    arg e_none e_some
 
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to
@@ -187,8 +78,8 @@ let make_matchopt m v tau arg e_none e_some =
   let x = Var.make "_" in
 
   make_matchopt_with_abs_arms arg
-    (make_abs (Array.of_list [x]) e_none [D.TLit D.TUnit, D.mark_pos m] m)
-    (make_abs (Array.of_list [v]) e_some [tau] m)
+    (Expr.make_abs [| x |] e_none [TLit TUnit, Expr.mark_pos m] m)
+    (Expr.make_abs [| v |] e_some [tau] m)
 
 let handle_default = Var.make "handle_default"
 let handle_default_opt = Var.make "handle_default_opt"

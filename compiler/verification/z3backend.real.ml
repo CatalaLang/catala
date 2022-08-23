@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Dcalc
 open Ast
 open Z3
@@ -32,7 +33,7 @@ type context = {
   ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
   (* A map from Catala function names (represented as variables) to Z3 function
      declarations, used to only define once functions in Z3 queries *)
-  ctx_z3vars : typed var StringMap.t;
+  ctx_z3vars : typed expr Var.t StringMap.t;
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
@@ -64,13 +65,15 @@ type context = {
 
 (** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3
     function declaration [fd] to the context **)
-let add_funcdecl (v : typed var) (fd : FuncDecl.func_decl) (ctx : context) :
-    context =
+let add_funcdecl
+    (v : typed expr Var.t)
+    (fd : FuncDecl.func_decl)
+    (ctx : context) : context =
   { ctx with ctx_funcdecl = Var.Map.add v fd ctx.ctx_funcdecl }
 
 (** [add_z3var] adds the mapping between [name] and the Catala variable [v] to
     the context **)
-let add_z3var (name : string) (v : typed var) (ctx : context) : context =
+let add_z3var (name : string) (v : typed expr Var.t) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
 
 (** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the
@@ -81,7 +84,8 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
 
 (** [add_z3var] adds the mapping between temporary variable [v] and the Z3
     expression [e] representing an accessor application to the context **)
-let add_z3matchsubst (v : typed var) (e : Expr.expr) (ctx : context) : context =
+let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
+    context =
   { ctx with ctx_z3matchsubsts = Var.Map.add v e ctx.ctx_z3matchsubsts }
 
 (** [add_z3struct] adds the mapping between the Catala struct [s] and the
@@ -99,7 +103,7 @@ let base_day = CalendarLib.Date.make 1900 1 1
 
 (** [unique_name] returns the full, unique name corresponding to variable [v],
     as given by Bindlib **)
-let unique_name (v : 'm var) : string =
+let unique_name (v : 'e Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 (** [date_to_int] translates [date] to an integer corresponding to the number of
@@ -385,7 +389,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
     corresponding to the variable [v]. If no such function declaration exists
     yet, we construct it and add it to the context, thus requiring to return a
     new context *)
-let find_or_create_funcdecl (ctx : context) (v : typed var) :
+let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
     context * FuncDecl.func_decl =
   match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
@@ -425,10 +429,12 @@ let rec translate_op
         failwith
           (Format.asprintf
              "[Z3 encoding] Ill-formed ternary operator application: %a"
-             (Print.format_expr ctx.ctx_decl)
+             (Shared_ast.Expr.format ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
-                   List.map (fun arg -> Bindlib.unbox (untype_expr arg)) args ),
+                   List.map
+                     (fun arg -> Bindlib.unbox (Shared_ast.Expr.untype arg))
+                     args ),
                Untyped { pos = Pos.no_pos } ))
     in
 
@@ -516,11 +522,12 @@ let rec translate_op
           failwith
             (Format.asprintf
                "[Z3 encoding] Ill-formed binary operator application: %a"
-               (Print.format_expr ctx.ctx_decl)
+               (Shared_ast.Expr.format ctx.ctx_decl)
                ( EApp
                    ( (EOp op, Untyped { pos = Pos.no_pos }),
                      List.map
-                       (fun arg -> arg |> untype_expr |> Bindlib.unbox)
+                       (fun arg ->
+                         arg |> Shared_ast.Expr.untype |> Bindlib.unbox)
                        args ),
                  Untyped { pos = Pos.no_pos } ))
       in
@@ -568,11 +575,11 @@ let rec translate_op
         failwith
           (Format.asprintf
              "[Z3 encoding] Ill-formed unary operator application: %a"
-             (Print.format_expr ctx.ctx_decl)
+             (Shared_ast.Expr.format ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
                    List.map
-                     (fun arg -> arg |> untype_expr |> Bindlib.unbox)
+                     (fun arg -> arg |> Shared_ast.Expr.untype |> Bindlib.unbox)
                      args ),
                Untyped { pos = Pos.no_pos } ))
     in

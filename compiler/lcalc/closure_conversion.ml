@@ -14,8 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Ast
 open Utils
+open Shared_ast
+open Ast
 module D = Dcalc.Ast
 
 (** TODO: This version is not yet debugged and ought to be specialized when
@@ -28,26 +29,21 @@ type 'm ctx = { name_context : string; globally_bound_vars : 'm expr Var.Set.t }
     http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
 let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
     m marked_expr Bindlib.box =
-  let module MVarSet = Set.Make (struct
-    type t = m var
-
-    let compare = Bindlib.compare_vars
-  end) in
   let rec aux e =
     match Marked.unmark e with
     | EVar v ->
       ( Bindlib.box_apply
           (fun new_v -> new_v, Marked.get_mark e)
           (Bindlib.box_var v),
-        if Var.Set.mem v ctx.globally_bound_vars then MVarSet.empty
-        else MVarSet.singleton v )
+        if Var.Set.mem v ctx.globally_bound_vars then Var.Set.empty
+        else Var.Set.singleton v )
     | ETuple (args, s) ->
       let new_args, free_vars =
         List.fold_left
           (fun (new_args, free_vars) arg ->
             let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, MVarSet.union new_free_vars free_vars)
-          ([], MVarSet.empty) args
+            new_arg :: new_args, Var.Set.union new_free_vars free_vars)
+          ([], Var.Set.empty) args
       in
       ( Bindlib.box_apply
           (fun new_args -> ETuple (List.rev new_args, s), Marked.get_mark e)
@@ -82,7 +78,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                     EAbs (new_binder, typs), Marked.get_mark arm)
                   new_binder
                 :: new_arms,
-                MVarSet.union free_vars new_free_vars )
+                Var.Set.union free_vars new_free_vars )
             | _ -> failwith "should not happen")
           arms ([], free_vars)
       in
@@ -97,14 +93,14 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
         List.fold_right
           (fun arg (new_args, free_vars) ->
             let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, MVarSet.union free_vars new_free_vars)
-          args ([], MVarSet.empty)
+            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
+          args ([], Var.Set.empty)
       in
       ( Bindlib.box_apply
           (fun new_args -> EArray new_args, Marked.get_mark e)
           (Bindlib.box_list new_args),
         free_vars )
-    | ELit l -> Bindlib.box (ELit l, Marked.get_mark e), MVarSet.empty
+    | ELit l -> Bindlib.box (ELit l, Marked.get_mark e), Var.Set.empty
     | EApp ((EAbs (binder, typs_abs), e1_pos), args) ->
       (* let-binding, we should not close these *)
       let vars, body = Bindlib.unmbind binder in
@@ -114,7 +110,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
         List.fold_right
           (fun arg (new_args, free_vars) ->
             let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, MVarSet.union free_vars new_free_vars)
+            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
           args ([], free_vars)
       in
       ( Bindlib.box_apply2
@@ -127,23 +123,23 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
     | EAbs (binder, typs) ->
       (* λ x.t *)
       let binder_mark = Marked.get_mark e in
-      let binder_pos = D.mark_pos binder_mark in
+      let binder_pos = Expr.mark_pos binder_mark in
       (* Converting the closure. *)
       let vars, body = Bindlib.unmbind binder in
       (* t *)
       let new_body, body_vars = aux body in
       (* [[t]] *)
       let extra_vars =
-        MVarSet.diff body_vars (MVarSet.of_list (Array.to_list vars))
+        Var.Set.diff body_vars (Var.Set.of_list (Array.to_list vars))
       in
-      let extra_vars_list = MVarSet.elements extra_vars in
+      let extra_vars_list = Var.Set.elements extra_vars in
       (* x1, ..., xn *)
       let code_var = Var.make ctx.name_context in
       (* code *)
       let inner_c_var = Var.make "env" in
-      let any_ty = Dcalc.Ast.TAny, binder_pos in
+      let any_ty = TAny, binder_pos in
       let new_closure_body =
-        make_multiple_let_in
+        Expr.make_multiple_let_in
           (Array.of_list extra_vars_list)
           (List.map (fun _ -> any_ty) extra_vars_list)
           (List.mapi
@@ -158,17 +154,18 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                      binder_mark ))
                  (Bindlib.box_var inner_c_var))
              extra_vars_list)
-          new_body (D.mark_pos binder_mark)
+          new_body
+          (Expr.mark_pos binder_mark)
       in
       let new_closure =
-        make_abs
+        Expr.make_abs
           (Array.concat [Array.make 1 inner_c_var; vars])
           new_closure_body
-          ((Dcalc.Ast.TAny, binder_pos) :: typs)
+          ((TAny, binder_pos) :: typs)
           (Marked.get_mark e)
       in
-      ( make_let_in code_var
-          (Dcalc.Ast.TAny, D.pos e)
+      ( Expr.make_let_in code_var
+          (TAny, Expr.pos e)
           new_closure
           (Bindlib.box_apply2
              (fun code_var extra_vars ->
@@ -184,7 +181,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                 (List.map
                    (fun extra_var -> Bindlib.box_var extra_var)
                    extra_vars_list)))
-          (D.pos e),
+          (Expr.pos e),
         extra_vars )
     | EApp ((EOp op, pos_op), args) ->
       (* This corresponds to an operator call, which we don't want to
@@ -193,8 +190,8 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
         List.fold_right
           (fun arg (new_args, free_vars) ->
             let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, MVarSet.union free_vars new_free_vars)
-          args ([], MVarSet.empty)
+            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
+          args ([], Var.Set.empty)
       in
       ( Bindlib.box_apply
           (fun new_e2 -> EApp ((EOp op, pos_op), new_e2), Marked.get_mark e)
@@ -206,8 +203,8 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
         List.fold_right
           (fun arg (new_args, free_vars) ->
             let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, MVarSet.union free_vars new_free_vars)
-          args ([], MVarSet.empty)
+            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
+          args ([], Var.Set.empty)
       in
       ( Bindlib.box_apply2
           (fun new_v new_e2 -> EApp ((new_v, v_pos), new_e2), Marked.get_mark e)
@@ -222,12 +219,12 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
         List.fold_right
           (fun arg (new_args, free_vars) ->
             let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, MVarSet.union free_vars new_free_vars)
+            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
           args ([], free_vars)
       in
       let call_expr =
-        make_let_in code_var
-          (Dcalc.Ast.TAny, D.pos e)
+        Expr.make_let_in code_var
+          (TAny, Expr.pos e)
           (Bindlib.box_apply
              (fun env_var ->
                ( ETupleAccess
@@ -242,9 +239,9 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
                  Marked.get_mark e ))
              (Bindlib.box_var code_var) (Bindlib.box_var env_var)
              (Bindlib.box_list new_args))
-          (D.pos e)
+          (Expr.pos e)
       in
-      ( make_let_in env_var (Dcalc.Ast.TAny, D.pos e) new_e1 call_expr (D.pos e),
+      ( Expr.make_let_in env_var (TAny, Expr.pos e) new_e1 call_expr (Expr.pos e),
         free_vars )
     | EAssert e1 ->
       let new_e1, free_vars = aux e1 in
@@ -252,7 +249,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
           (fun new_e1 -> EAssert new_e1, Marked.get_mark e)
           new_e1,
         free_vars )
-    | EOp op -> Bindlib.box (EOp op, Marked.get_mark e), MVarSet.empty
+    | EOp op -> Bindlib.box (EOp op, Marked.get_mark e), Var.Set.empty
     | EIfThenElse (e1, e2, e3) ->
       let new_e1, free_vars1 = aux e1 in
       let new_e2, free_vars2 = aux e2 in
@@ -261,9 +258,9 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
           (fun new_e1 new_e2 new_e3 ->
             EIfThenElse (new_e1, new_e2, new_e3), Marked.get_mark e)
           new_e1 new_e2 new_e3,
-        MVarSet.union (MVarSet.union free_vars1 free_vars2) free_vars3 )
+        Var.Set.union (Var.Set.union free_vars1 free_vars2) free_vars3 )
     | ERaise except ->
-      Bindlib.box (ERaise except, Marked.get_mark e), MVarSet.empty
+      Bindlib.box (ERaise except, Marked.get_mark e), Var.Set.empty
     | ECatch (e1, except, e2) ->
       let new_e1, free_vars1 = aux e1 in
       let new_e2, free_vars2 = aux e2 in
@@ -271,14 +268,14 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
           (fun new_e1 new_e2 ->
             ECatch (new_e1, except, new_e2), Marked.get_mark e)
           new_e1 new_e2,
-        MVarSet.union free_vars1 free_vars2 )
+        Var.Set.union free_vars1 free_vars2 )
   in
   let e', _vars = aux e in
   e'
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
   let new_scopes, _ =
-    D.fold_left_scope_defs
+    Scope.fold_left
       ~f:(fun (acc_new_scopes, global_vars) scope scope_var ->
         (* [acc_new_scopes] represents what has been translated in the past, it
            needs a continuation to attach the rest of the translated scopes. *)
@@ -288,13 +285,12 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
         let global_vars = Var.Set.add scope_var global_vars in
         let ctx =
           {
-            name_context =
-              Marked.unmark (Dcalc.Ast.ScopeName.get_info scope.scope_name);
+            name_context = Marked.unmark (ScopeName.get_info scope.scope_name);
             globally_bound_vars = global_vars;
           }
         in
         let new_scope_lets =
-          D.map_exprs_in_scope_lets
+          Scope.map_exprs_in_lets
             ~f:(closure_conversion_expr ctx)
             ~varf:(fun v -> v)
             scope_body_expr
@@ -306,7 +302,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
             acc_new_scopes
               (Bindlib.box_apply2
                  (fun new_scope_body_expr next ->
-                   D.ScopeDef
+                   ScopeDef
                      {
                        scope with
                        scope_body =
@@ -327,4 +323,4 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
   in
   Bindlib.box_apply
     (fun new_scopes -> { p with scopes = new_scopes })
-    (new_scopes (Bindlib.box D.Nil))
+    (new_scopes (Bindlib.box Nil))

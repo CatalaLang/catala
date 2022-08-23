@@ -16,6 +16,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Dcalc
 open Ast
 
@@ -28,7 +29,7 @@ type vc_return = typed marked_expr * (typed expr, typ Marked.pos) Var.Map.t
 type ctx = {
   current_scope_name : ScopeName.t;
   decl : decl_ctx;
-  input_vars : typed var list;
+  input_vars : typed expr Var.t list;
   scope_variables_typs : (typed expr, typ Marked.pos) Var.Map.t;
 }
 
@@ -92,11 +93,11 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed marked_expr)
   | ErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
   | _ ->
-    Errors.raise_spanned_error (pos e)
+    Errors.raise_spanned_error (Expr.pos e)
       "Internal error: this expression does not have the structure expected by \
        the VC generator:\n\
        %a"
-      (Print.format_expr ~debug:true ctx.decl)
+      (Expr.format ~debug:true ctx.decl)
       e
 
 (** {1 Verification conditions generator}*)
@@ -131,10 +132,10 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed marked_expr) :
         (generate_vc_must_not_return_empty ctx) body
       in
       ( vc_body_expr,
-        List.fold_left
-          (fun acc (var, ty) -> Var.Map.add var ty acc)
-          vc_body_ty
-          (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
+        snd
+        @@ List.fold_left
+             (fun (i, acc) ty -> i + 1, Var.Map.add vars.(i) ty acc)
+             (0, vc_body_ty) typs )
     | EApp (f, args) ->
       (* We assume here that function calls never return empty error, which implies
          all functions have been checked never to return empty errors. *)
@@ -286,13 +287,13 @@ type verification_condition = {
   (* should have type bool *)
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
-  vc_variable : typed var Marked.pos;
+  vc_variable : typed expr Var.t Marked.pos;
   vc_free_vars_typ : (typed expr, typ Marked.pos) Var.Map.t;
 }
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
-    (scope_body_expr : ('m expr, 'm) scope_body_expr) :
+    (scope_body_expr : 'm expr scope_body_expr) :
     ctx * verification_condition list =
   match scope_body_expr with
   | Result _ -> ctx, []
@@ -310,7 +311,9 @@ let rec generate_verification_conditions_scope_body_expr
            what we're really doing is adding exceptions to something defined in
            the subscope so we just ought to verify only that the exceptions
            overlap. *)
-        let e = Bindlib.unbox (remove_logging_calls scope_let.scope_let_expr) in
+        let e =
+          Bindlib.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
+        in
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl, vc_confl_typs =
           generate_vs_must_not_return_confict ctx e
@@ -375,15 +378,14 @@ let rec generate_verification_conditions_scope_body_expr
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)
-    (scopes : ('m expr, 'm) scopes)
+    (scopes : 'm expr scopes)
     (s : ScopeName.t option) : verification_condition list =
   match scopes with
   | Nil -> []
   | ScopeDef scope_def ->
     let is_selected_scope =
       match s with
-      | Some s when Dcalc.Ast.ScopeName.compare s scope_def.scope_name = 0 ->
-        true
+      | Some s when ScopeName.compare s scope_def.scope_name = 0 -> true
       | None -> true
       | _ -> false
     in
@@ -414,9 +416,8 @@ let rec generate_verification_conditions_scopes
     let _scope_var, next = Bindlib.unbind scope_def.scope_next in
     generate_verification_conditions_scopes decl_ctx next s @ vcs
 
-let generate_verification_conditions
-    (p : 'm program)
-    (s : Dcalc.Ast.ScopeName.t option) : verification_condition list =
+let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
+    verification_condition list =
   let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
   (* We sort this list by scope name and then variable name to ensure consistent
      output for testing*)

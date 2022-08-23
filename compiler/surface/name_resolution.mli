@@ -19,6 +19,7 @@
     lexical scopes into account *)
 
 open Utils
+open Shared_ast
 
 (** {1 Name resolution context} *)
 
@@ -41,7 +42,7 @@ type scope_context = {
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
-  sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
       (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
@@ -64,28 +65,22 @@ type context = {
   local_var_idmap : Desugared.Ast.Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
-  scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;
+  scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
       (** The names of the scopes *)
-  struct_idmap : Scopelang.Ast.StructName.t Desugared.Ast.IdentMap.t;
+  struct_idmap : StructName.t Desugared.Ast.IdentMap.t;
       (** The names of the structs *)
-  field_idmap :
-    Scopelang.Ast.StructFieldName.t Scopelang.Ast.StructMap.t
-    Desugared.Ast.IdentMap.t;
+  field_idmap : StructFieldName.t StructMap.t Desugared.Ast.IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  enum_idmap : Scopelang.Ast.EnumName.t Desugared.Ast.IdentMap.t;
+  enum_idmap : EnumName.t Desugared.Ast.IdentMap.t;
       (** The names of the enums *)
-  constructor_idmap :
-    Scopelang.Ast.EnumConstructor.t Scopelang.Ast.EnumMap.t
-    Desugared.Ast.IdentMap.t;
+  constructor_idmap : EnumConstructor.t EnumMap.t Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
       (** For each scope, its context *)
-  structs : struct_context Scopelang.Ast.StructMap.t;
-      (** For each struct, its context *)
-  enums : enum_context Scopelang.Ast.EnumMap.t;
-      (** For each enum, its context *)
+  structs : struct_context StructMap.t;  (** For each struct, its context *)
+  enums : enum_context EnumMap.t;  (** For each enum, its context *)
   var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
 }
@@ -110,25 +105,18 @@ val get_var_io :
   context -> Desugared.Ast.ScopeVar.t -> Ast.scope_decl_context_io
 
 val get_var_uid :
-  Scopelang.Ast.ScopeName.t ->
-  context ->
-  ident Marked.pos ->
-  Desugared.Ast.ScopeVar.t
+  ScopeName.t -> context -> ident Marked.pos -> Desugared.Ast.ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
 val get_subscope_uid :
-  Scopelang.Ast.ScopeName.t ->
-  context ->
-  ident Marked.pos ->
-  Scopelang.Ast.SubScopeName.t
+  ScopeName.t -> context -> ident Marked.pos -> Scopelang.Ast.SubScopeName.t
 (** Get the subscope uid inside the scope given in argument *)
 
-val is_subscope_uid : Scopelang.Ast.ScopeName.t -> context -> ident -> bool
+val is_subscope_uid : ScopeName.t -> context -> ident -> bool
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
 
-val belongs_to :
-  context -> Desugared.Ast.ScopeVar.t -> Scopelang.Ast.ScopeName.t -> bool
+val belongs_to : context -> Desugared.Ast.ScopeVar.t -> ScopeName.t -> bool
 (** Checks if the var_uid belongs to the scope scope_uid *)
 
 val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Marked.pos
@@ -143,7 +131,7 @@ val add_def_local_var : context -> ident -> context * Desugared.Ast.Var.t
 val get_def_key :
   Ast.qident ->
   Ast.ident Marked.pos option ->
-  Scopelang.Ast.ScopeName.t ->
+  ScopeName.t ->
   context ->
   Pos.t ->
   Desugared.Ast.ScopeDef.t
