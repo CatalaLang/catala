@@ -212,8 +212,7 @@ let make_multiple_let_in xs taus e1s e2 pos =
   (* let m_e1s = List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s in *)
   let m_e1s =
     fold_marks List.hd
-      (fun tys ->
-        TTuple (List.map (fun t -> t.ty) tys, None), (List.hd tys).pos)
+      (fun tys -> TTuple (List.map (fun t -> t.ty) tys), (List.hd tys).pos)
       (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s)
   in
   let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
@@ -235,12 +234,17 @@ let is_value (type a) (e : (a, 'm mark) gexpr marked) =
 let rec equal_typs ty1 ty2 =
   match Marked.unmark ty1, Marked.unmark ty2 with
   | TLit l1, TLit l2 -> l1 = l2
-  | TTuple (tys1, n1), TTuple (tys2, n2) -> n1 = n2 && equal_typs_list tys1 tys2
-  | TEnum (tys1, n1), TEnum (tys2, n2) -> n1 = n2 && equal_typs_list tys1 tys2
+  | TTuple tys1, TTuple tys2 -> equal_typs_list tys1 tys2
+  | TStruct n1, TStruct n2 -> StructName.equal n1 n2
+  | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
+  | TOption t1, TOption t2 -> equal_typs t1 t2
   | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typs t1 t2 && equal_typs t1' t2'
   | TArray t1, TArray t2 -> equal_typs t1 t2
   | TAny, TAny -> true
-  | (TLit _ | TTuple _ | TEnum _ | TArrow _ | TArray _ | TAny), _ -> false
+  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
+      | TArray _ | TAny ),
+      _ ) ->
+    false
 
 and equal_typs_list tys1 tys2 =
   try List.for_all2 equal_typs tys1 tys2 with Invalid_argument _ -> false

@@ -72,10 +72,10 @@ module To_json = struct
   let rec fmt_type fmt (typ : marked_typ) =
     match Marked.unmark typ with
     | TLit tlit -> fmt_tlit fmt tlit
-    | TTuple (_, Some sname) ->
+    | TStruct sname ->
       Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_struct_name
         sname
-    | TEnum (_, ename) ->
+    | TEnum ename ->
       Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_enum_name ename
     | TArray t ->
       Format.fprintf fmt
@@ -105,8 +105,8 @@ module To_json = struct
       (scope_def : 'e scope_def) =
     let get_name t =
       match Marked.unmark t with
-      | TTuple (_, Some sname) -> Format.asprintf "%a" format_struct_name sname
-      | TEnum (_, ename) -> Format.asprintf "%a" format_enum_name ename
+      | TStruct sname -> Format.asprintf "%a" format_struct_name sname
+      | TEnum ename -> Format.asprintf "%a" format_enum_name ename
       | _ -> failwith "unreachable: only structs and enums are collected."
     in
     let rec collect_required_type_defs_from_scope_input
@@ -114,10 +114,12 @@ module To_json = struct
       let rec collect (acc : marked_typ list) (t : marked_typ) : marked_typ list
           =
         match Marked.unmark t with
-        | TTuple (_, Some s) ->
+        | TStruct s ->
           (* Scope's input is a struct. *)
           (t :: acc) @ collect_required_type_defs_from_scope_input s
-        | TEnum (ts, _) -> List.fold_left collect (t :: acc) ts
+        | TEnum e ->
+          List.fold_left collect (t :: acc)
+            (List.map snd (EnumMap.find e ctx.ctx_enums))
         | TArray t -> collect acc t
         | _ -> acc
       in
@@ -175,7 +177,7 @@ module To_json = struct
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
          (fun fmt typ ->
            match Marked.unmark typ with
-           | TTuple (_, Some sname) ->
+           | TStruct sname ->
              Format.fprintf fmt
                "@[<hov 2>\"%a\": {@\n\
                 \"type\": \"object\",@\n\
@@ -186,7 +188,7 @@ module To_json = struct
                format_struct_name sname
                (fmt_struct_properties ctx)
                sname
-           | TEnum (_, ename) ->
+           | TEnum ename ->
              Format.fprintf fmt
                "@[<hov 2>\"%a\": {@\n\
                 \"type\": \"object\",@\n\

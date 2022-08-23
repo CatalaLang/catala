@@ -162,7 +162,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
 
   match Marked.unmark ty with
   | TLit ty -> print_lit ty
-  | TTuple (_, Some name) ->
+  | TStruct name ->
     let s = StructMap.find name ctx.ctx_decl.ctx_structs in
     let get_fieldname (fn : StructFieldName.t) : string =
       Marked.unmark (StructFieldName.get_info fn)
@@ -180,9 +180,9 @@ let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
     Format.asprintf "%s { %s }"
       (Marked.unmark (StructName.get_info name))
       fields_str
-  | TTuple (_, None) ->
+  | TTuple _ ->
     failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
-  | TEnum (_tys, name) ->
+  | TEnum name ->
     (* The value associated to the enum is a single argument *)
     let e' = List.hd (Expr.get_args e) in
     let fd = Expr.get_func_decl e in
@@ -197,6 +197,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
     in
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
+  | TOption _ -> failwith "[Z3 model]: Pretty-printing of options not supported"
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ ->
     (* For now, only the length of arrays is modeled *)
@@ -265,10 +266,10 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
 let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
-  | TTuple (_, Some name) -> find_or_create_struct ctx name
-  | TTuple (_, None) ->
-    failwith "[Z3 encoding] TTuple type of unnamed struct not supported"
-  | TEnum (_, e) -> find_or_create_enum ctx e
+  | TStruct name -> find_or_create_struct ctx name
+  | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
+  | TEnum e -> find_or_create_enum ctx e
+  | TOption _ -> failwith "[Z3 encoding] TOption type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
   | TArray _ ->
     (* For now, we are only encoding the (symbolic) length of an array.

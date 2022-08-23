@@ -488,15 +488,16 @@ let interpret_program :
  fun (ctx : decl_ctx) (e : 'm Ast.marked_expr) :
      (Uid.MarkedString.info * 'm Ast.marked_expr) list ->
   match evaluate_expr ctx e with
-  | EAbs (_, [((TTuple (taus, Some s_in), _) as targs)]), mark_e -> begin
+  | EAbs (_, [((TStruct s_in, _) as targs)]), mark_e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
-       the types of the scope arguments. For [context] arguments, we cann
-       provide an empty thunked term. But for [input] arguments of another type,
-       we cannot provide anything so we have to fail. *)
+       the types of the scope arguments. For [context] arguments, we can provide
+       an empty thunked term. But for [input] arguments of another type, we
+       cannot provide anything so we have to fail. *)
+    let taus = StructMap.find s_in ctx.ctx_structs in
     let application_term =
       List.map
-        (fun ty ->
+        (fun (_, ty) ->
           match Marked.unmark ty with
           | TArrow ((TLit TUnit, _), ty_in) ->
             Expr.empty_thunked_term

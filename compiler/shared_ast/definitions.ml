@@ -54,8 +54,10 @@ type marked_typ = typ Marked.pos
 
 and typ =
   | TLit of typ_lit
-  | TTuple of marked_typ list * StructName.t option
-  | TEnum of marked_typ list * EnumName.t
+  | TTuple of marked_typ list
+  | TStruct of StructName.t
+  | TEnum of EnumName.t
+  | TOption of marked_typ
   | TArrow of marked_typ * marked_typ
   | TArray of marked_typ
   | TAny

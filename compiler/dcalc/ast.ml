@@ -15,7 +15,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
 open Shared_ast
 
 type lit = dcalc glit
