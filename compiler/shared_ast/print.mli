@@ -33,7 +33,7 @@ val uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val enum_constructor : Format.formatter -> EnumConstructor.t -> unit
 val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
-val typ : decl_ctx -> Format.formatter -> marked_typ -> unit
+val typ : decl_ctx -> Format.formatter -> typ -> unit
 val lit : Format.formatter -> 'a glit -> unit
 val op_kind : Format.formatter -> op_kind -> unit
 val binop : Format.formatter -> binop -> unit

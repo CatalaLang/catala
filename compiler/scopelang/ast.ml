@@ -36,8 +36,8 @@ Set.Make (struct
   let compare = Expr.compare_location
 end)
 
+type expr = (scopelang, Pos.t) gexpr
 type naked_expr = (scopelang, Pos.t) naked_gexpr
-type expr = naked_expr Marked.pos
 
 module ExprMap = Map.Make (struct
   type t = expr
@@ -45,7 +45,7 @@ module ExprMap = Map.Make (struct
   let compare = Expr.compare
 end)
 
-let rec locations_used (e : naked_expr Marked.pos) : LocationSet.t =
+let rec locations_used (e : expr) : LocationSet.t =
   match Marked.unmark e with
   | ELocation l -> LocationSet.singleton (l, Marked.get_mark e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
@@ -84,13 +84,13 @@ type io_input = NoInput | OnlyInput | Reentrant
 type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
 
 type rule =
-  | Definition of location Marked.pos * marked_typ * io * naked_expr Marked.pos
-  | Assertion of naked_expr Marked.pos
+  | Definition of location Marked.pos * typ * io * expr
+  | Assertion of expr
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (marked_typ * io) ScopeVarMap.t;
+  scope_sig : (typ * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 

@@ -117,7 +117,7 @@ let build_typ_from_sig
     (_ctx : decl_ctx)
     (scope_input_struct_name : StructName.t)
     (scope_return_struct_name : StructName.t)
-    (pos : Pos.t) : typ Marked.pos =
+    (pos : Pos.t) : typ =
   let input_typ = Marked.mark pos (TStruct scope_input_struct_name) in
   let result_typ = Marked.mark pos (TStruct scope_return_struct_name) in
   Marked.mark pos (TArrow (input_typ, result_typ))

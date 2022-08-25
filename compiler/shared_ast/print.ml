@@ -18,7 +18,7 @@ open Utils
 open String_common
 open Definitions
 
-let typ_needs_parens (ty : marked_typ) : bool =
+let typ_needs_parens (ty : typ) : bool =
   match Marked.unmark ty with TArrow _ | TArray _ -> true | _ -> false
 
 let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
@@ -74,9 +74,9 @@ let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
-let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : marked_typ) : unit =
+let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
   let typ = typ ctx in
-  let typ_with_parens (fmt : Format.formatter) (t : marked_typ) =
+  let typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" typ t
     else Format.fprintf fmt "%a" typ t
   in

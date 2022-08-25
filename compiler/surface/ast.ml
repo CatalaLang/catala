@@ -134,7 +134,8 @@ type func_typ = {
         nude = true;
       }]
 
-type typ = Base of base_typ | Func of func_typ
+type typ = naked_typ Marked.pos
+and naked_typ = Base of base_typ | Func of func_typ
 [@@deriving
   visitors
     {
@@ -153,7 +154,7 @@ type typ = Base of base_typ | Func of func_typ
 
 type struct_decl_field = {
   struct_decl_field_name : ident Marked.pos;
-  struct_decl_field_typ : typ Marked.pos;
+  struct_decl_field_typ : typ;
 }
 [@@deriving
   visitors
@@ -189,7 +190,7 @@ type struct_decl = {
 
 type enum_decl_case = {
   enum_decl_case_name : constructor Marked.pos;
-  enum_decl_case_typ : typ Marked.pos option;
+  enum_decl_case_typ : typ option;
 }
 [@@deriving
   visitors
@@ -671,7 +672,7 @@ type scope_decl_context_scope = {
 
 type scope_decl_context_data = {
   scope_decl_context_item_name : ident Marked.pos;
-  scope_decl_context_item_typ : typ Marked.pos;
+  scope_decl_context_item_typ : typ;
   scope_decl_context_item_attribute : scope_decl_context_io;
   scope_decl_context_item_states : ident Marked.pos list;
 }

@@ -49,6 +49,6 @@ module TVertexSet : Set.S with type elt = TVertex.t
 module TDependencies :
   Graph.Sig.P with type V.t = TVertex.t and type E.label = Pos.t
 
-val get_structs_or_enums_in_type : typ Marked.pos -> TVertexSet.t
+val get_structs_or_enums_in_type : typ -> TVertexSet.t
 val build_type_graph : struct_ctx -> enum_ctx -> TDependencies.t
 val check_type_cycles : struct_ctx -> enum_ctx -> TVertex.t list

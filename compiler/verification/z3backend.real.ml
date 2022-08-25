@@ -27,7 +27,7 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : (typed naked_expr, typ Marked.pos) Var.Map.t;
+  ctx_var : (typed naked_expr, typ) Var.Map.t;
   (* A map from Catala variables to their types, needed to create Z3 expressions
      of the right sort *)
   ctx_funcdecl : (typed naked_expr, FuncDecl.func_decl) Var.Map.t;
@@ -129,7 +129,7 @@ let nb_days_to_date (nb : int) : string =
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
-let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
+let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr)
     : string =
   let print_lit (ty : typ_lit) =
     match ty with
@@ -263,7 +263,7 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TDuration -> Arithmetic.Integer.mk_sort ctx.ctx_z3
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
-let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
+let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name -> find_or_create_struct ctx name
@@ -286,7 +286,7 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor
       (ctx : context)
-      (c : EnumConstructor.t * typ Marked.pos) :
+      (c : EnumConstructor.t * typ) :
       context * Datatype.Constructor.constructor =
     let name, ty = c in
     let name = Marked.unmark (EnumConstructor.get_info name) in
@@ -810,7 +810,7 @@ module Backend = struct
 
   let make_context
       (decl_ctx : decl_ctx)
-      (free_vars_typ : (typed naked_expr, typ Marked.pos) Var.Map.t) : backend_context
+      (free_vars_typ : (typed naked_expr, typ) Var.Map.t) : backend_context
       =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])

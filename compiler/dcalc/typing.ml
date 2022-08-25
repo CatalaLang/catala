@@ -32,12 +32,12 @@ module Any =
     end)
     ()
 
-type unionfind_typ = typ Marked.pos UnionFind.elem
-(** We do not reuse {!type: Dcalc.Ast.typ} because we have to include a new
+type unionfind_typ = naked_typ Marked.pos UnionFind.elem
+(** We do not reuse {!type: Dcalc.Ast.naked_typ} because we have to include a new
     [TAny] variant. Indeed, error terms can have any type and this has to be
     captured by the type sytem. *)
 
-and typ =
+and naked_typ =
   | TLit of A.typ_lit
   | TArrow of unionfind_typ * unionfind_typ
   | TTuple of unionfind_typ list
@@ -47,7 +47,7 @@ and typ =
   | TArray of unionfind_typ
   | TAny of Any.t
 
-let rec typ_to_ast (ty : unionfind_typ) : A.marked_typ =
+let rec typ_to_ast (ty : unionfind_typ) : A.typ =
   let ty, pos = UnionFind.get (UnionFind.find ty) in
   match ty with
   | TLit l -> A.TLit l, pos
@@ -59,7 +59,7 @@ let rec typ_to_ast (ty : unionfind_typ) : A.marked_typ =
   | TAny _ -> A.TAny, pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
 
-let rec ast_to_typ (ty : A.marked_typ) : unionfind_typ =
+let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
     match Marked.unmark ty with
     | A.TLit l -> TLit l
@@ -75,23 +75,23 @@ let rec ast_to_typ (ty : A.marked_typ) : unionfind_typ =
 
 (** {1 Types and unification} *)
 
-let typ_needs_parens (t : typ Marked.pos UnionFind.elem) : bool =
+let typ_needs_parens (t : unionfind_typ) : bool =
   let t = UnionFind.get (UnionFind.find t) in
   match Marked.unmark t with TArrow _ | TArray _ -> true | _ -> false
 
 let rec format_typ
     (ctx : A.decl_ctx)
     (fmt : Format.formatter)
-    (typ : typ Marked.pos UnionFind.elem) : unit =
+    (naked_typ : unionfind_typ) : unit =
   let format_typ = format_typ ctx in
   let format_typ_with_parens
       (fmt : Format.formatter)
-      (t : typ Marked.pos UnionFind.elem) =
+      (t : unionfind_typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
-  let typ = UnionFind.get (UnionFind.find typ) in
-  match Marked.unmark typ with
+  let naked_typ = UnionFind.get (UnionFind.find naked_typ) in
+  match Marked.unmark naked_typ with
   | TLit l -> Format.fprintf fmt "%a" A.Print.tlit l
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)]"
@@ -112,8 +112,8 @@ let rec format_typ
 exception
   Type_error of
     A.any_marked_expr
-    * typ Marked.pos UnionFind.elem
-    * typ Marked.pos UnionFind.elem
+    * unionfind_typ
+    * unionfind_typ
 
 type mark = { pos : Pos.t; uf : unionfind_typ }
 
@@ -121,8 +121,8 @@ type mark = { pos : Pos.t; uf : unionfind_typ }
 let rec unify
     (ctx : A.decl_ctx)
     (e : ('a, 'm A.mark) A.gexpr) (* used for error context *)
-    (t1 : typ Marked.pos UnionFind.elem)
-    (t2 : typ Marked.pos UnionFind.elem) : unit =
+    (t1 : unionfind_typ)
+    (t2 : unionfind_typ) : unit =
   let unify = unify ctx in
   (* Cli.debug_format "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
      t2; *)
@@ -209,7 +209,7 @@ let handle_type_error ctx e t1 t2 =
     This allows us to have a simpler type system, while we argue the syntactic
     burden of operator annotations helps the programmer visualize the type flow
     in the code. *)
-let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
+let op_type (op : A.operator Marked.pos) : unionfind_typ =
   let pos = Marked.get_mark op in
   let bt = UnionFind.make (TLit TBool, pos) in
   let it = UnionFind.make (TLit TInt, pos) in
@@ -276,7 +276,7 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
 
 (** {1 Double-directed typing} *)
 
-type 'e env = ('e, typ Marked.pos UnionFind.elem) A.Var.Map.t
+type 'e env = ('e, unionfind_typ) A.Var.Map.t
 
 let add_pos e ty = Marked.mark (A.Expr.pos e) ty
 let ty (_, { uf; _ }) = uf
@@ -470,7 +470,7 @@ let rec typecheck_expr_bottom_up
 and typecheck_expr_top_down
     (ctx : A.decl_ctx)
     (env : 'm Ast.naked_expr env)
-    (tau : typ Marked.pos UnionFind.elem)
+    (tau : unionfind_typ)
     (e : 'm Ast.expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
   (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx) tau
      (Expr.format ctx) e; *)
@@ -670,7 +670,7 @@ let infer_type (type m) ctx (e : m Ast.expr) =
 let check_type
     (ctx : A.decl_ctx)
     (e : 'm Ast.expr)
-    (tau : A.typ Marked.pos) =
+    (tau : A.typ) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
   ignore
   @@ wrap ctx (typecheck_expr_top_down ctx A.Var.Map.empty (ast_to_typ tau)) e

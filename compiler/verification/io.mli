@@ -26,7 +26,7 @@ module type Backend = sig
 
   val make_context :
     decl_ctx ->
-    (typed Dcalc.Ast.naked_expr, typ Utils.Marked.pos) Var.Map.t ->
+    (typed Dcalc.Ast.naked_expr, typ) Var.Map.t ->
     backend_context
 
   type vc_encoding
@@ -53,7 +53,7 @@ module type BackendIO = sig
 
   val make_context :
     decl_ctx ->
-    (typed Dcalc.Ast.naked_expr, typ Utils.Marked.pos) Var.Map.t ->
+    (typed Dcalc.Ast.naked_expr, typ) Var.Map.t ->
     backend_context
 
   type vc_encoding

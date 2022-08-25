@@ -72,17 +72,17 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Bindlib.box;
   rule_cons : expr Bindlib.box;
-  rule_parameter : (naked_expr Var.t * marked_typ) option;
+  rule_parameter : (naked_expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
 
 module Rule : Set.OrderedType with type t = rule
 
-val empty_rule : Pos.t -> typ Marked.pos option -> rule
-val always_false_rule : Pos.t -> typ Marked.pos option -> rule
+val empty_rule : Pos.t -> typ option -> rule
+val always_false_rule : Pos.t -> typ option -> rule
 
-type assertion = naked_expr Marked.pos Bindlib.box
+type assertion = expr Bindlib.box
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 
@@ -92,7 +92,7 @@ type meta_assertion =
 
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
-  scope_def_typ : typ Marked.pos;
+  scope_def_typ : typ;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
 }
@@ -115,5 +115,5 @@ type program = {
 
 (** {1 Helpers} *)
 
-val locations_used : naked_expr Marked.pos -> LocationSet.t
+val locations_used : expr -> LocationSet.t
 val free_variables : rule RuleMap.t -> Pos.t ScopeDefMap.t

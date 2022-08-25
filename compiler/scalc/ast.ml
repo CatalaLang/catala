@@ -25,26 +25,27 @@ let dead_value = LocalName.fresh ("dead_value", Pos.no_pos)
 let handle_default = TopLevelName.fresh ("handle_default", Pos.no_pos)
 let handle_default_opt = TopLevelName.fresh ("handle_default_opt", Pos.no_pos)
 
-type naked_expr =
+type expr = naked_expr Marked.pos
+and naked_expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t
-  | EStruct of naked_expr Marked.pos list * StructName.t
-  | EStructFieldAccess of naked_expr Marked.pos * StructFieldName.t * StructName.t
-  | EInj of naked_expr Marked.pos * EnumConstructor.t * EnumName.t
-  | EArray of naked_expr Marked.pos list
+  | EStruct of expr list * StructName.t
+  | EStructFieldAccess of expr * StructFieldName.t * StructName.t
+  | EInj of expr * EnumConstructor.t * EnumName.t
+  | EArray of expr list
   | ELit of L.lit
-  | EApp of naked_expr Marked.pos * naked_expr Marked.pos list
+  | EApp of expr * expr list
   | EOp of operator
 
 type stmt =
   | SInnerFuncDef of LocalName.t Marked.pos * func
-  | SLocalDecl of LocalName.t Marked.pos * typ Marked.pos
-  | SLocalDef of LocalName.t Marked.pos * naked_expr Marked.pos
+  | SLocalDecl of LocalName.t Marked.pos * typ
+  | SLocalDef of LocalName.t Marked.pos * expr
   | STryExcept of block * except * block
   | SRaise of except
-  | SIfThenElse of naked_expr Marked.pos * block * block
+  | SIfThenElse of expr * block * block
   | SSwitch of
-      naked_expr Marked.pos
+      expr
       * EnumName.t
       * (block (* Statements corresponding to arm closure body*)
         * (* Variable instantiated with enum payload *) LocalName.t)
@@ -55,7 +56,7 @@ type stmt =
 and block = stmt Marked.pos list
 
 and func = {
-  func_params : (LocalName.t Marked.pos * typ Marked.pos) list;
+  func_params : (LocalName.t Marked.pos * typ) list;
   func_body : block;
 }
 

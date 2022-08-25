@@ -22,7 +22,7 @@ open Ast
 
 (** {1 Helpers and type definitions}*)
 
-type vc_return = typed expr * (typed naked_expr, typ Marked.pos) Var.Map.t
+type vc_return = typed expr * (typed naked_expr, typ) Var.Map.t
 (** The return type of VC generators is the VC expression plus the types of any
     locally free variable inside that expression. *)
 
@@ -30,7 +30,7 @@ type ctx = {
   current_scope_name : ScopeName.t;
   decl : decl_ctx;
   input_vars : typed naked_expr Var.t list;
-  scope_variables_typs : (typed naked_expr, typ Marked.pos) Var.Map.t;
+  scope_variables_typs : (typed naked_expr, typ) Var.Map.t;
 }
 
 let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
@@ -288,7 +288,7 @@ type verification_condition = {
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
   vc_variable : typed naked_expr Var.t Marked.pos;
-  vc_free_vars_typ : (typed naked_expr, typ Marked.pos) Var.Map.t;
+  vc_free_vars_typ : (typed naked_expr, typ) Var.Map.t;
 }
 
 let rec generate_verification_conditions_scope_body_expr
