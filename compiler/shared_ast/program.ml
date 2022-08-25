@@ -22,9 +22,9 @@ let map_exprs ~f ~varf { scopes; decl_ctx } =
     (fun scopes -> { scopes; decl_ctx })
     (Scope.map_exprs ~f ~varf scopes)
 
-let untype : 'm. ('a, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
+let untype : 'm. ('a, 'm mark) naked_gexpr program -> ('a, untyped mark) naked_gexpr program
     =
- fun (prg : ('a, 'm mark) gexpr program) ->
+ fun (prg : ('a, 'm mark) naked_gexpr program) ->
   Bindlib.unbox (map_exprs ~f:Expr.untype ~varf:Var.translate prg)
 
 let rec find_scope name vars = function

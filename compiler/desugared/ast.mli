@@ -49,8 +49,8 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (** {2 Expressions} *)
 
-type expr = (desugared, Pos.t) gexpr
-(** See {!type:Shared_ast.gexpr} for the complete definition *)
+type expr = (desugared, Pos.t) naked_gexpr
+(** See {!type:Shared_ast.naked_gexpr} for the complete definition *)
 
 and marked_expr = expr Marked.pos
 

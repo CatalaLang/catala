@@ -26,11 +26,11 @@ val map_exprs :
   'expr2 program Bindlib.box
 
 val untype :
-  (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
-  ('a, untyped mark) gexpr program
+  (([< dcalc | lcalc ] as 'a), 'm mark) naked_gexpr program ->
+  ('a, untyped mark) naked_gexpr program
 
 val to_expr :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program ->
+  (([< dcalc | lcalc ], _) naked_gexpr as 'e) program ->
   ScopeName.t ->
   'e marked Bindlib.box
 (** Usage: [build_whole_program_expr program main_scope] builds an expression

@@ -147,8 +147,8 @@ let fold_marks
 let map
     (type a)
     (ctx : 'ctx)
-    ~(f : 'ctx -> (a, 'm1) marked_gexpr -> (a, 'm2) marked_gexpr Bindlib.box)
-    (e : ((a, 'm1) gexpr, 'm2) Marked.t) : (a, 'm2) marked_gexpr Bindlib.box =
+    ~(f : 'ctx -> (a, 'm1) gexpr -> (a, 'm2) gexpr Bindlib.box)
+    (e : ((a, 'm1) naked_gexpr, 'm2) Marked.t) : (a, 'm2) gexpr Bindlib.box =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELit l -> elit l m
@@ -281,7 +281,7 @@ let make_default exceptions just cons mark =
 
 (* Tests *)
 
-let is_value (type a) (e : (a, 'm mark) gexpr marked) =
+let is_value (type a) (e : (a, 'm mark) naked_gexpr marked) =
   match Marked.unmark e with
   | ELit _ | EAbs _ | EOp _ | ERaise _ -> true
   | _ -> false
@@ -531,11 +531,11 @@ let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
 (* weird indentation; see
    https://github.com/ocaml-ppx/ocamlformat/issues/2143 *)
 let rec equal_list :
-          'a. ('a, 't) marked_gexpr list -> ('a, 't) marked_gexpr list -> bool =
+          'a. ('a, 't) gexpr list -> ('a, 't) gexpr list -> bool =
  fun es1 es2 ->
   try List.for_all2 equal es1 es2 with Invalid_argument _ -> false
 
-and equal : type a. (a, 't) marked_gexpr -> (a, 't) marked_gexpr -> bool =
+and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
  fun e1 e2 ->
   match Marked.unmark e1, Marked.unmark e2 with
   | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
@@ -584,7 +584,7 @@ and equal : type a. (a, 't) marked_gexpr -> (a, 't) marked_gexpr -> bool =
       _ ) ->
     false
 
-let rec compare : type a. (a, _) marked_gexpr -> (a, _) marked_gexpr -> int =
+let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
  fun e1 e2 ->
   (* Infix operator to chain comparisons lexicographically. *)
   let ( @@< ) cmp1 cmpf = match cmp1 with 0 -> cmpf () | n -> n in
@@ -681,7 +681,7 @@ let rec compare : type a. (a, _) marked_gexpr -> (a, _) marked_gexpr -> int =
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
 
-let rec free_vars : type a. (a, 't) gexpr marked -> (a, 't) gexpr Var.Set.t =
+let rec free_vars : type a. (a, 't) naked_gexpr marked -> (a, 't) naked_gexpr Var.Set.t =
  fun e ->
   match Marked.unmark e with
   | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
@@ -731,7 +731,7 @@ let remove_logging_calls e =
 
 let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
 
-let rec size : type a. (a, 't) gexpr marked -> int =
+let rec size : type a. (a, 't) naked_gexpr marked -> int =
  fun e ->
   match Marked.unmark e with
   | EVar _ | ELit _ | EOp _ -> 1

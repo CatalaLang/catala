@@ -18,7 +18,7 @@ open Definitions
 
 (** {1 Variables and their collections} *)
 
-(** This module provides types and helpers for Bindlib variables on the [gexpr]
+(** This module provides types and helpers for Bindlib variables on the [naked_gexpr]
     type *)
 
 type 'e t = 'e anyexpr Bindlib.var

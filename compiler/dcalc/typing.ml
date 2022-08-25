@@ -120,7 +120,7 @@ type mark = { pos : Pos.t; uf : unionfind_typ }
 (** Raises an error if unification cannot be performed *)
 let rec unify
     (ctx : A.decl_ctx)
-    (e : ('a, 'm A.mark) A.marked_gexpr) (* used for error context *)
+    (e : ('a, 'm A.mark) A.gexpr) (* used for error context *)
     (t1 : typ Marked.pos UnionFind.elem)
     (t2 : typ Marked.pos UnionFind.elem) : unit =
   let unify = unify ctx in
@@ -307,11 +307,11 @@ let box_ty e = Bindlib.unbox (Bindlib.box_apply ty e)
 let rec typecheck_expr_bottom_up
     (ctx : A.decl_ctx)
     (env : 'm Ast.expr env)
-    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
+    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
   (* Cli.debug_format "Looking for type of %a" (Expr.format ~debug:true ctx)
      e; *)
   let pos_e = A.Expr.pos e in
-  let mark (e : (A.dcalc, mark) A.gexpr) uf =
+  let mark (e : (A.dcalc, mark) A.naked_gexpr) uf =
     Marked.mark { uf; pos = pos_e } e
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
@@ -471,12 +471,12 @@ and typecheck_expr_top_down
     (ctx : A.decl_ctx)
     (env : 'm Ast.expr env)
     (tau : typ Marked.pos UnionFind.elem)
-    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.marked_gexpr Bindlib.box =
+    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
   (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
      (Expr.format ctx) e; *)
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
-  let unify_and_mark (e' : (A.dcalc, mark) A.gexpr) tau' =
+  let unify_and_mark (e' : (A.dcalc, mark) A.naked_gexpr) tau' =
     (* This try...with was added because of
        [tests/test_bool/bad/bad_assert.catala_en] but we shouldn't need it.
        TODO: debug why it is needed here. *)
