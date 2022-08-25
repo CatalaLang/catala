@@ -23,10 +23,10 @@ open Shared_ast
 
 type lit = lcalc glit
 
-type 'm expr = (lcalc, 'm mark) naked_gexpr
-and 'm marked_expr = (lcalc, 'm mark) gexpr
+type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
+and 'm expr = (lcalc, 'm mark) gexpr
 
-type 'm program = 'm expr Shared_ast.program
+type 'm program = 'm naked_expr Shared_ast.program
 
 (** {1 Language terms construction}*)
 
@@ -34,27 +34,27 @@ val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : (EnumConstructor.t * typ Marked.pos) list
-val make_none : 'm mark -> 'm marked_expr Bindlib.box
-val make_some : 'm marked_expr Bindlib.box -> 'm marked_expr Bindlib.box
+val make_none : 'm mark -> 'm expr Bindlib.box
+val make_some : 'm expr Bindlib.box -> 'm expr Bindlib.box
 
 val make_matchopt_with_abs_arms :
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box
 
 val make_matchopt :
   'm mark ->
-  'm expr Var.t ->
+  'm naked_expr Var.t ->
   typ Marked.pos ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 
 (** {1 Special symbols} *)
 
-val handle_default : untyped expr Var.t
-val handle_default_opt : untyped expr Var.t
+val handle_default : untyped naked_expr Var.t
+val handle_default_opt : untyped naked_expr Var.t

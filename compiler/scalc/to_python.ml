@@ -232,7 +232,7 @@ let format_toplevel_name (fmt : Format.formatter) (v : TopLevelName.t) : unit =
   let v_str = Marked.unmark (TopLevelName.get_info v) in
   format_name_cleaned fmt v_str
 
-let needs_parens (e : expr Marked.pos) : bool =
+let needs_parens (e : naked_expr Marked.pos) : bool =
   match Marked.unmark e with
   | ELit (LBool _ | LUnit) | EVar _ | EOp _ -> false
   | _ -> true
@@ -262,7 +262,7 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
 let rec format_expression
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (e : expr Marked.pos) : unit =
+    (e : naked_expr Marked.pos) : unit =
   match Marked.unmark e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_toplevel_name fmt f

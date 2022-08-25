@@ -21,24 +21,24 @@ module L = Lcalc.Ast
 module D = Dcalc.Ast
 
 type 'm ctxt = {
-  func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t;
+  func_dict : ('m L.naked_expr, A.TopLevelName.t) Var.Map.t;
   decl_ctx : decl_ctx;
-  var_dict : ('m L.expr, A.LocalName.t) Var.Map.t;
+  var_dict : ('m L.naked_expr, A.LocalName.t) Var.Map.t;
   inside_definition_of : A.LocalName.t option;
   context_name : string;
 }
 
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
-let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
-    A.block * A.expr Marked.pos =
-  match Marked.unmark expr with
+let rec translate_expr (ctxt : 'm ctxt) (naked_expr : 'm L.expr) :
+    A.block * A.naked_expr Marked.pos =
+  match Marked.unmark naked_expr with
   | EVar v ->
     let local_var =
       try A.EVar (Var.Map.find v ctxt.var_dict)
       with Not_found -> A.EFunc (Var.Map.find v ctxt.func_dict)
     in
-    [], (local_var, Expr.pos expr)
+    [], (local_var, Expr.pos naked_expr)
   | ETuple (args, Some s_name) ->
     let args_stmts, new_args =
       List.fold_left
@@ -49,14 +49,14 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
     in
     let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
-    args_stmts, (A.EStruct (new_args, s_name), Expr.pos expr)
+    args_stmts, (A.EStruct (new_args, s_name), Expr.pos naked_expr)
   | ETuple (_, None) -> failwith "Non-struct tuples cannot be compiled to scalc"
   | ETupleAccess (e1, num_field, Some s_name, _) ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     let field_name =
       fst (List.nth (StructMap.find s_name ctxt.decl_ctx.ctx_structs) num_field)
     in
-    e1_stmts, (A.EStructFieldAccess (new_e1, field_name, s_name), Expr.pos expr)
+    e1_stmts, (A.EStructFieldAccess (new_e1, field_name, s_name), Expr.pos naked_expr)
   | ETupleAccess (_, _, None, _) ->
     failwith "Non-struct tuples cannot be compiled to scalc"
   | EInj (e1, num_cons, e_name, _) ->
@@ -64,7 +64,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
     let cons_name =
       fst (List.nth (EnumMap.find e_name ctxt.decl_ctx.ctx_enums) num_cons)
     in
-    e1_stmts, (A.EInj (new_e1, cons_name, e_name), Expr.pos expr)
+    e1_stmts, (A.EInj (new_e1, cons_name, e_name), Expr.pos naked_expr)
   | EApp (f, args) ->
     let f_stmts, new_f = translate_expr ctxt f in
     let args_stmts, new_args =
@@ -75,7 +75,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
         ([], []) args
     in
     let new_args = List.rev new_args in
-    f_stmts @ args_stmts, (A.EApp (new_f, new_args), Expr.pos expr)
+    f_stmts @ args_stmts, (A.EApp (new_f, new_args), Expr.pos naked_expr)
   | EArray args ->
     let args_stmts, new_args =
       List.fold_left
@@ -85,9 +85,9 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
         ([], []) args
     in
     let new_args = List.rev new_args in
-    args_stmts, (A.EArray new_args, Expr.pos expr)
-  | EOp op -> [], (A.EOp op, Expr.pos expr)
-  | ELit l -> [], (A.ELit l, Expr.pos expr)
+    args_stmts, (A.EArray new_args, Expr.pos naked_expr)
+  | EOp op -> [], (A.EOp op, Expr.pos naked_expr)
+  | ELit l -> [], (A.ELit l, Expr.pos naked_expr)
   | _ ->
     let tmp_var =
       A.LocalName.fresh
@@ -100,7 +100,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
             let v = Marked.unmark (A.LocalName.get_info v) in
             let tmp_rex = Re.Pcre.regexp "^temp_" in
             if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
-          Expr.pos expr )
+          Expr.pos naked_expr )
     in
     let ctxt =
       {
@@ -109,13 +109,13 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
         context_name = Marked.unmark (A.LocalName.get_info tmp_var);
       }
     in
-    let tmp_stmts = translate_statements ctxt expr in
-    ( ( A.SLocalDecl ((tmp_var, Expr.pos expr), (TAny, Expr.pos expr)),
-        Expr.pos expr )
+    let tmp_stmts = translate_statements ctxt naked_expr in
+    ( ( A.SLocalDecl ((tmp_var, Expr.pos naked_expr), (TAny, Expr.pos naked_expr)),
+        Expr.pos naked_expr )
       :: tmp_stmts,
-      (A.EVar tmp_var, Expr.pos expr) )
+      (A.EVar tmp_var, Expr.pos naked_expr) )
 
-and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.marked_expr) :
+and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
     A.block =
   match Marked.unmark block_expr with
   | EAssert e ->
@@ -273,9 +273,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.marked_expr) :
 let rec translate_scope_body_expr
     (scope_name : ScopeName.t)
     (decl_ctx : decl_ctx)
-    (var_dict : ('m L.expr, A.LocalName.t) Var.Map.t)
-    (func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t)
-    (scope_expr : 'm L.expr scope_body_expr) : A.block =
+    (var_dict : ('m L.naked_expr, A.LocalName.t) Var.Map.t)
+    (func_dict : ('m L.naked_expr, A.TopLevelName.t) Var.Map.t)
+    (scope_expr : 'm L.naked_expr scope_body_expr) : A.block =
   match scope_expr with
   | Result e ->
     let block, new_e =

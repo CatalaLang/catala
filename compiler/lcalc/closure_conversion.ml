@@ -22,13 +22,13 @@ module D = Dcalc.Ast
 (** TODO: This version is not yet debugged and ought to be specialized when
     Lcalc has more structure. *)
 
-type 'm ctx = { name_context : string; globally_bound_vars : 'm expr Var.Set.t }
+type 'm ctx = { name_context : string; globally_bound_vars : 'm naked_expr Var.Set.t }
 
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
     http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
-let closure_conversion_expr (type m) (ctx : m ctx) (e : m marked_expr) :
-    m marked_expr Bindlib.box =
+let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) :
+    m expr Bindlib.box =
   let rec aux e =
     match Marked.unmark e with
     | EVar v ->

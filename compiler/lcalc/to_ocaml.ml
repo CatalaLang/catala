@@ -242,7 +242,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
     Cli.debug_print "lowercase_name: %s " lowercase_name;
     Format.fprintf fmt "%s_" lowercase_name)
 
-let needs_parens (e : 'm marked_expr) : bool =
+let needs_parens (e : 'm expr) : bool =
   match Marked.unmark e with
   | EApp ((EAbs (_, _), _), _)
   | ELit (LBool _ | LUnit)
@@ -274,9 +274,9 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
 let rec format_expr
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (e : 'm marked_expr) : unit =
+    (e : 'm expr) : unit =
   let format_expr = format_expr ctx in
-  let format_with_parens (fmt : Format.formatter) (e : 'm marked_expr) =
+  let format_with_parens (fmt : Format.formatter) (e : 'm expr) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
   in
@@ -556,7 +556,7 @@ let format_ctx
 let rec format_scope_body_expr
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scope_lets : 'm Ast.expr scope_body_expr) : unit =
+    (scope_lets : 'm Ast.naked_expr scope_body_expr) : unit =
   match scope_lets with
   | Result e -> format_expr ctx fmt e
   | ScopeLet scope_let ->
@@ -572,7 +572,7 @@ let rec format_scope_body_expr
 let rec format_scopes
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scopes : 'm Ast.expr scopes) : unit =
+    (scopes : 'm Ast.naked_expr scopes) : unit =
   match scopes with
   | Nil -> ()
   | ScopeDef scope_def ->

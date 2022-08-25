@@ -49,7 +49,7 @@ module To_json = struct
     Format.fprintf fmt "%s" s
 
   let rec find_scope_def (target_name : string) :
-      'm expr scopes -> 'm expr scope_def option = function
+      'm naked_expr scopes -> 'm naked_expr scope_def option = function
     | Nil -> None
     | ScopeDef scope_def ->
       let name = Format.asprintf "%a" ScopeName.format_t scope_def.scope_name in

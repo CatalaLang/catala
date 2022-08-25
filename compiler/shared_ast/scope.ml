@@ -152,7 +152,7 @@ let rec unfold
     (ctx : decl_ctx)
     (s : 'e scopes)
     (mark : 'm mark)
-    (main_scope : 'expr scope_name_or_var) : 'e marked Bindlib.box =
+    (main_scope : 'naked_expr scope_name_or_var) : 'e marked Bindlib.box =
   match s with
   | Nil -> (
     match main_scope with

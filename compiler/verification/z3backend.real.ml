@@ -27,20 +27,20 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : (typed expr, typ Marked.pos) Var.Map.t;
+  ctx_var : (typed naked_expr, typ Marked.pos) Var.Map.t;
   (* A map from Catala variables to their types, needed to create Z3 expressions
      of the right sort *)
-  ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
+  ctx_funcdecl : (typed naked_expr, FuncDecl.func_decl) Var.Map.t;
   (* A map from Catala function names (represented as variables) to Z3 function
      declarations, used to only define once functions in Z3 queries *)
-  ctx_z3vars : typed expr Var.t StringMap.t;
+  ctx_z3vars : typed naked_expr Var.t StringMap.t;
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
   ctx_z3datatypes : Sort.sort EnumMap.t;
   (* A map from Catala enumeration names to the corresponding Z3 sort, from
      which we can retrieve constructors and accessors *)
-  ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t;
+  ctx_z3matchsubsts : (typed naked_expr, Expr.expr) Var.Map.t;
   (* A map from Catala temporary variables, generated when translating a match,
      to the corresponding enum accessor call as a Z3 expression *)
   ctx_z3structs : Sort.sort StructMap.t;
@@ -66,14 +66,14 @@ type context = {
 (** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3
     function declaration [fd] to the context **)
 let add_funcdecl
-    (v : typed expr Var.t)
+    (v : typed naked_expr Var.t)
     (fd : FuncDecl.func_decl)
     (ctx : context) : context =
   { ctx with ctx_funcdecl = Var.Map.add v fd ctx.ctx_funcdecl }
 
 (** [add_z3var] adds the mapping between [name] and the Catala variable [v] to
     the context **)
-let add_z3var (name : string) (v : typed expr Var.t) (ctx : context) : context =
+let add_z3var (name : string) (v : typed naked_expr Var.t) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
 
 (** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the
@@ -84,7 +84,7 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
 
 (** [add_z3var] adds the mapping between temporary variable [v] and the Z3
     expression [e] representing an accessor application to the context **)
-let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
+let add_z3matchsubst (v : typed naked_expr Var.t) (e : Expr.expr) (ctx : context) :
     context =
   { ctx with ctx_z3matchsubsts = Var.Map.add v e ctx.ctx_z3matchsubsts }
 
@@ -390,7 +390,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
     corresponding to the variable [v]. If no such function declaration exists
     yet, we construct it and add it to the context, thus requiring to return a
     new context *)
-let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
+let find_or_create_funcdecl (ctx : context) (v : typed naked_expr Var.t) :
     context * FuncDecl.func_decl =
   match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
@@ -420,7 +420,7 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
 let rec translate_op
     (ctx : context)
     (op : operator)
-    (args : 'm marked_expr list) : context * Expr.expr =
+    (args : 'm expr list) : context * Expr.expr =
   match op with
   | Ternop _top ->
     let _e1, _e2, _e3 =
@@ -628,11 +628,11 @@ let rec translate_op
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
+and translate_expr (ctx : context) (vc : 'm expr) : context * Expr.expr =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)
-      (e : 'm marked_expr * FuncDecl.func_decl list) : context * Expr.expr =
+      (e : 'm expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Marked.unmark e with
     | EAbs (e, _) ->
@@ -802,7 +802,7 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
-  let translate_expr (ctx : backend_context) (e : 'm marked_expr) =
+  let translate_expr (ctx : backend_context) (e : 'm expr) =
     translate_expr ctx e
 
   let init_backend () =
@@ -810,7 +810,7 @@ module Backend = struct
 
   let make_context
       (decl_ctx : decl_ctx)
-      (free_vars_typ : (typed expr, typ Marked.pos) Var.Map.t) : backend_context
+      (free_vars_typ : (typed naked_expr, typ Marked.pos) Var.Map.t) : backend_context
       =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])

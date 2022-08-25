@@ -306,8 +306,8 @@ let box_ty e = Bindlib.unbox (Bindlib.box_apply ty e)
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up
     (ctx : A.decl_ctx)
-    (env : 'm Ast.expr env)
-    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
+    (env : 'm Ast.naked_expr env)
+    (e : 'm Ast.expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
   (* Cli.debug_format "Looking for type of %a" (Expr.format ~debug:true ctx)
      e; *)
   let pos_e = A.Expr.pos e in
@@ -469,10 +469,10 @@ let rec typecheck_expr_bottom_up
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down
     (ctx : A.decl_ctx)
-    (env : 'm Ast.expr env)
+    (env : 'm Ast.naked_expr env)
     (tau : typ Marked.pos UnionFind.elem)
-    (e : 'm Ast.marked_expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
-  (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
+    (e : 'm Ast.expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
+  (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx) tau
      (Expr.format ctx) e; *)
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
@@ -655,13 +655,13 @@ let wrap ctx f e =
 let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 
 (* Infer the type of an expression *)
-let infer_types (ctx : A.decl_ctx) (e : 'm Ast.marked_expr) :
-    A.typed Ast.marked_expr Bindlib.box =
+let infer_types (ctx : A.decl_ctx) (e : 'm Ast.expr) :
+    A.typed Ast.expr Bindlib.box =
   A.Expr.map_marks ~f:get_ty_mark
   @@ Bindlib.unbox
   @@ wrap ctx (typecheck_expr_bottom_up ctx A.Var.Map.empty) e
 
-let infer_type (type m) ctx (e : m Ast.marked_expr) =
+let infer_type (type m) ctx (e : m Ast.expr) =
   match Marked.get_mark e with
   | A.Typed { ty; _ } -> ty
   | A.Untyped _ -> A.Expr.ty (Bindlib.unbox (infer_types ctx e))
@@ -669,7 +669,7 @@ let infer_type (type m) ctx (e : m Ast.marked_expr) =
 (** Typechecks an expression given an expected type *)
 let check_type
     (ctx : A.decl_ctx)
-    (e : 'm Ast.marked_expr)
+    (e : 'm Ast.expr)
     (tau : A.typ Marked.pos) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
   ignore
