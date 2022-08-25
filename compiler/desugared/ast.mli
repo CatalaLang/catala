@@ -49,10 +49,8 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (** {2 Expressions} *)
 
-type naked_expr = (desugared, Pos.t) naked_gexpr
+type expr = (desugared, Pos.t) gexpr
 (** See {!type:Shared_ast.naked_gexpr} for the complete definition *)
-
-and expr = naked_expr Marked.pos
 
 type location = desugared glocation
 
@@ -72,7 +70,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Bindlib.box;
   rule_cons : expr Bindlib.box;
-  rule_parameter : (naked_expr Var.t * typ) option;
+  rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }

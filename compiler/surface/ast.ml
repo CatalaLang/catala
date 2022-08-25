@@ -135,6 +135,7 @@ type func_typ = {
       }]
 
 type typ = naked_typ Marked.pos
+
 and naked_typ = Base of base_typ | Func of func_typ
 [@@deriving
   visitors

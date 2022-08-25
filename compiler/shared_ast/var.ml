@@ -18,12 +18,13 @@ open Definitions
 
 (** {1 Variables and their collections} *)
 
-(** This module provides types and helpers for Bindlib variables on the [naked_gexpr]
+(** This module provides types and helpers for Bindlib variables on the [gexpr]
     type *)
 
-type 'e t = 'e anyexpr Bindlib.var
-type 'e vars = 'e anyexpr Bindlib.mvar
-type 'e binder = ('e, 'e marked) Bindlib.binder
+type 'e t = ('a, 't) naked_gexpr Bindlib.var constraint 'e = ('a any, 't) gexpr
+
+type 'e vars = ('a, 't) naked_gexpr Bindlib.mvar
+  constraint 'e = ('a any, 't) gexpr
 
 let make (name : string) : 'e t = Bindlib.new_var (fun x -> EVar x) name
 let compare = Bindlib.compare_vars
@@ -36,7 +37,7 @@ type 'e var = 'e t
 
 (* The purpose of this module is just to lift a type parameter outside of
    [Set.S] and [Map.S], so that we can have ['e Var.Set.t] for sets of variables
-   bound to the ['e = ('a, 't) naked_gexpr] expression type. This is made possible by
+   bound to the ['e = ('a, 't) gexpr] expression type. This is made possible by
    the fact that [Bindlib.compare_vars] is polymorphic in that parameter; we
    first hide that parameter inside an existential, then re-add a phantom type
    outside of the set to ensure consistency. Extracting the elements is then

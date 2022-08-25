@@ -94,8 +94,7 @@ Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type naked_expr = (desugared, Pos.t) naked_gexpr
-type expr = naked_expr Marked.pos
+type expr = (desugared, Pos.t) gexpr
 
 module ExprMap = Map.Make (struct
   type t = expr
@@ -114,7 +113,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Bindlib.box;
   rule_cons : expr Bindlib.box;
-  rule_parameter : (naked_expr Var.t * typ) option;
+  rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -167,8 +166,7 @@ let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule
-    =
+let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
     rule_just = Bindlib.box (ELit (LBool true), pos);
     rule_cons = Bindlib.box (ELit (LBool false), pos);

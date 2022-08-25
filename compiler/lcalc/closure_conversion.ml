@@ -22,7 +22,7 @@ module D = Dcalc.Ast
 (** TODO: This version is not yet debugged and ought to be specialized when
     Lcalc has more structure. *)
 
-type 'm ctx = { name_context : string; globally_bound_vars : 'm naked_expr Var.Set.t }
+type 'm ctx = { name_context : string; globally_bound_vars : 'm expr Var.Set.t }
 
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by

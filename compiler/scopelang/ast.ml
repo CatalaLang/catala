@@ -37,7 +37,6 @@ Set.Make (struct
 end)
 
 type expr = (scopelang, Pos.t) gexpr
-type naked_expr = (scopelang, Pos.t) naked_gexpr
 
 module ExprMap = Map.Make (struct
   type t = expr

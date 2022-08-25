@@ -27,14 +27,13 @@ type target_scope_vars =
 
 type ctx = {
   scope_var_mapping : target_scope_vars ScopeVarMap.t;
-  var_mapping : (Ast.naked_expr, Scopelang.Ast.naked_expr Var.t) Var.Map.t;
+  var_mapping : (Ast.expr, Scopelang.Ast.expr Var.t) Var.Map.t;
 }
 
 let tag_with_log_entry
     (e : Scopelang.Ast.expr)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) :
-    Scopelang.Ast.expr =
+    (markings : Utils.Uid.MarkedString.info list) : Scopelang.Ast.expr =
   ( EApp ((EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
@@ -186,7 +185,7 @@ let rec rule_tree_to_expr
     ~(toplevel : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
-    (is_func : Ast.naked_expr Var.t option)
+    (is_func : Ast.expr Var.t option)
     (tree : rule_tree) : Scopelang.Ast.expr Bindlib.box =
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
@@ -194,9 +193,8 @@ let rec rule_tree_to_expr
   (* because each rule has its own variable parameter and we want to convert the
      whole rule tree into a function, we need to perform some alpha-renaming of
      all the expressions *)
-  let substitute_parameter
-      (e : Ast.expr Bindlib.box)
-      (rule : Ast.rule) : Ast.expr Bindlib.box =
+  let substitute_parameter (e : Ast.expr Bindlib.box) (rule : Ast.rule) :
+      Ast.expr Bindlib.box =
     match is_func, rule.Ast.rule_parameter with
     | Some new_param, Some (old_param, _) ->
       let binder = Bindlib.bind_var old_param e in
@@ -286,8 +284,7 @@ let rec rule_tree_to_expr
          that the result returned by the function is not empty *)
       let default =
         Bindlib.box_apply
-          (fun (default : Scopelang.Ast.naked_expr * Pos.t) ->
-            ErrorOnEmpty default, def_pos)
+          (fun (default : Scopelang.Ast.expr) -> ErrorOnEmpty default, def_pos)
           default
       in
       Expr.make_abs

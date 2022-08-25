@@ -22,15 +22,15 @@ open Ast
 
 (** {1 Helpers and type definitions}*)
 
-type vc_return = typed expr * (typed naked_expr, typ) Var.Map.t
+type vc_return = typed expr * (typed expr, typ) Var.Map.t
 (** The return type of VC generators is the VC expression plus the types of any
     locally free variable inside that expression. *)
 
 type ctx = {
   current_scope_name : ScopeName.t;
   decl : decl_ctx;
-  input_vars : typed naked_expr Var.t list;
-  scope_variables_typs : (typed naked_expr, typ) Var.Map.t;
+  input_vars : typed expr Var.t list;
+  scope_variables_typs : (typed expr, typ) Var.Map.t;
 }
 
 let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
@@ -74,8 +74,8 @@ let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
     variables, or [fun () -> e1] for subscope variables. But what we really want
     to analyze is only [e1], so we match this outermost structure explicitely
     and have a clean verification condition generator that only runs on [e1] *)
-let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr)
-    : typed expr =
+let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
+    typed expr =
   match Marked.unmark e with
   | ErrorOnEmpty
       ( EDefault
@@ -200,8 +200,8 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
     [b] such that if [b] is true, then [e] will never return a conflict error.
     It also returns a map of all the types of locally free variables inside the
     expression. *)
-let rec generate_vs_must_not_return_confict (ctx : ctx) (e : typed expr)
-    : vc_return =
+let rec generate_vs_must_not_return_confict (ctx : ctx) (e : typed expr) :
+    vc_return =
   let out =
     (* See the code of [generate_vc_must_not_return_empty] for a list of invariants on which this
        function relies on. *)
@@ -287,13 +287,13 @@ type verification_condition = {
   (* should have type bool *)
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
-  vc_variable : typed naked_expr Var.t Marked.pos;
-  vc_free_vars_typ : (typed naked_expr, typ) Var.Map.t;
+  vc_variable : typed expr Var.t Marked.pos;
+  vc_free_vars_typ : (typed expr, typ) Var.Map.t;
 }
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
-    (scope_body_expr : 'm naked_expr scope_body_expr) :
+    (scope_body_expr : 'm expr scope_body_expr) :
     ctx * verification_condition list =
   match scope_body_expr with
   | Result _ -> ctx, []
@@ -378,7 +378,7 @@ let rec generate_verification_conditions_scope_body_expr
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)
-    (scopes : 'm naked_expr scopes)
+    (scopes : 'm expr scopes)
     (s : ScopeName.t option) : verification_condition list =
   match scopes with
   | Nil -> []

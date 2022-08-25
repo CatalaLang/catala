@@ -95,7 +95,6 @@ let rec beta_expr (_ : unit) (e : 'm expr) : 'm expr Bindlib.box =
     and+ args = List.map (beta_expr ()) args |> Bindlib.box_list in
     match Marked.unmark e1 with
     | EAbs (binder, _ts) ->
-      let (_ : (_, _) Bindlib.mbinder) = binder in
       Bindlib.msubst binder (List.map fst args |> Array.of_list)
     | _ -> default_mark @@ EApp (e1, args))
   | _ -> visitor_map beta_expr () e
@@ -116,8 +115,7 @@ let _beta_optimizations (p : 'm program) : 'm program =
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let rec peephole_expr (_ : unit) (e : 'm expr) :
-    'm expr Bindlib.box =
+let rec peephole_expr (_ : unit) (e : 'm expr) : 'm expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
 
   match Marked.unmark e with

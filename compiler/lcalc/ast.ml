@@ -18,11 +18,8 @@ open Utils
 include Shared_ast
 
 type lit = lcalc glit
-
-type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
-and 'm expr = (lcalc, 'm mark) gexpr
-
-type 'm program = 'm naked_expr Shared_ast.program
+type 'm expr = (lcalc, 'm mark) gexpr
+type 'm program = 'm expr Shared_ast.program
 
 let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
 let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)

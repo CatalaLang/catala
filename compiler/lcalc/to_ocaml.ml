@@ -183,8 +183,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
-let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit
-    =
+let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
   match Marked.unmark ty with
   | TLit TUnit -> Format.fprintf fmt "embed_unit"
   | TLit TBool -> Format.fprintf fmt "embed_bool"
@@ -271,10 +270,8 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
 
-let rec format_expr
-    (ctx : decl_ctx)
-    (fmt : Format.formatter)
-    (e : 'm expr) : unit =
+let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
+    unit =
   let format_expr = format_expr ctx in
   let format_with_parens (fmt : Format.formatter) (e : 'm expr) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
@@ -472,8 +469,7 @@ let format_struct_embedding
 
 let format_enum_embedding
     (fmt : Format.formatter)
-    ((enum_name, enum_cases) :
-      EnumName.t * (EnumConstructor.t * typ) list) =
+    ((enum_name, enum_cases) : EnumName.t * (EnumConstructor.t * typ) list) =
   if List.length enum_cases = 0 then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_to_module_name (`Ename enum_name) format_enum_name enum_name
@@ -556,7 +552,7 @@ let format_ctx
 let rec format_scope_body_expr
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scope_lets : 'm Ast.naked_expr scope_body_expr) : unit =
+    (scope_lets : 'm Ast.expr scope_body_expr) : unit =
   match scope_lets with
   | Result e -> format_expr ctx fmt e
   | ScopeLet scope_let ->
@@ -572,7 +568,7 @@ let rec format_scope_body_expr
 let rec format_scopes
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scopes : 'm Ast.naked_expr scopes) : unit =
+    (scopes : 'm Ast.expr scopes) : unit =
   match scopes with
   | Nil -> ()
   | ScopeDef scope_def ->

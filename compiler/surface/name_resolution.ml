@@ -60,7 +60,7 @@ type var_sig = {
 }
 
 type context = {
-  local_var_idmap : Desugared.Ast.naked_expr Var.t Desugared.Ast.IdentMap.t;
+  local_var_idmap : Desugared.Ast.expr Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
   scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
@@ -148,8 +148,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     scope.var_idmap
 
 (** Retrieves the type of a scope definition from the context *)
-let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) :
-    typ =
+let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ =
   match def with
   | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
   (* we don't need to look at the subscope prefix because [x] is already the uid
@@ -249,8 +248,7 @@ let rec process_base_typ
             ident)))
 
 (** Process a type (function or not) *)
-let process_type (ctxt : context) ((naked_typ, typ_pos) : Ast.typ) :
-    typ =
+let process_type (ctxt : context) ((naked_typ, typ_pos) : Ast.typ) : typ =
   match naked_typ with
   | Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Ast.Func { arg_typ; return_typ } ->
@@ -321,7 +319,7 @@ let process_item_decl
 
 (** Adds a binding to the context *)
 let add_def_local_var (ctxt : context) (name : ident) :
-    context * Desugared.Ast.naked_expr Var.t =
+    context * Desugared.Ast.expr Var.t =
   let local_var_uid = Var.make name in
   let ctxt =
     {

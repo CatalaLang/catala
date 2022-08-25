@@ -21,17 +21,16 @@ module L = Lcalc.Ast
 module D = Dcalc.Ast
 
 type 'm ctxt = {
-  func_dict : ('m L.naked_expr, A.TopLevelName.t) Var.Map.t;
+  func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t;
   decl_ctx : decl_ctx;
-  var_dict : ('m L.naked_expr, A.LocalName.t) Var.Map.t;
+  var_dict : ('m L.expr, A.LocalName.t) Var.Map.t;
   inside_definition_of : A.LocalName.t option;
   context_name : string;
 }
 
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
-let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
-    A.block * A.expr =
+let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
   match Marked.unmark expr with
   | EVar v ->
     let local_var =
@@ -115,8 +114,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
       :: tmp_stmts,
       (A.EVar tmp_var, Expr.pos expr) )
 
-and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
-    A.block =
+and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   match Marked.unmark block_expr with
   | EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
@@ -273,9 +271,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
 let rec translate_scope_body_expr
     (scope_name : ScopeName.t)
     (decl_ctx : decl_ctx)
-    (var_dict : ('m L.naked_expr, A.LocalName.t) Var.Map.t)
-    (func_dict : ('m L.naked_expr, A.TopLevelName.t) Var.Map.t)
-    (scope_expr : 'm L.naked_expr scope_body_expr) : A.block =
+    (var_dict : ('m L.expr, A.LocalName.t) Var.Map.t)
+    (func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t)
+    (scope_expr : 'm L.expr scope_body_expr) : A.block =
   match scope_expr with
   | Result e ->
     let block, new_e =

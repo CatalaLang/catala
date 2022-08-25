@@ -19,8 +19,7 @@
 
 open Shared_ast
 
-val infer_types :
-  decl_ctx -> untyped Ast.expr -> typed Ast.expr Bindlib.box
+val infer_types : decl_ctx -> untyped Ast.expr -> typed Ast.expr Bindlib.box
 (** Infers types everywhere on the given expression, and adds (or replaces) type
     annotations on each node *)
 

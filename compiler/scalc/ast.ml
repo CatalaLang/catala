@@ -26,6 +26,7 @@ let handle_default = TopLevelName.fresh ("handle_default", Pos.no_pos)
 let handle_default_opt = TopLevelName.fresh ("handle_default_opt", Pos.no_pos)
 
 type expr = naked_expr Marked.pos
+
 and naked_expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t

@@ -116,19 +116,18 @@ let disambiguate_constructor
       Errors.raise_spanned_error (Marked.get_mark enum)
         "Enum %s has not been defined before" (Marked.unmark enum))
 
-(** Usage: [translate_expr scope ctxt naked_expr]
+(** Usage: [translate_expr scope ctxt expr]
 
-    Translates [naked_expr] into its desugared equivalent. [scope] is used to
+    Translates [expr] into its desugared equivalent. [scope] is used to
     disambiguate the scope and subscopes variables than occur in the expression *)
 let rec translate_expr
     (scope : ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    ((naked_expr, pos) : Ast.expression Marked.pos) :
-    Desugared.Ast.expr Bindlib.box =
+    ((expr, pos) : Ast.expression Marked.pos) : Desugared.Ast.expr Bindlib.box =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
-  match naked_expr with
+  match expr with
   | Binop
       ( (Ast.And, _pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
@@ -785,8 +784,7 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr Bindlib.box EnumConstructorMap.t * EnumName.t
-    =
+    Desugared.Ast.expr Bindlib.box EnumConstructorMap.t * EnumName.t =
   let create_var = function
     | None -> ctxt, Var.make "_"
     | Some param ->
@@ -798,9 +796,8 @@ and disambiguate_match_and_build_expression
       (e_uid : EnumName.t)
       (ctxt : Name_resolution.context)
       (case_body : ('a * Pos.t) Bindlib.box)
-      (e_binder :
-        (Desugared.Ast.naked_expr, Desugared.Ast.naked_expr * Pos.t) Bindlib.mbinder
-        Bindlib.box) : 'c Bindlib.box =
+      (e_binder : (Desugared.Ast.expr, Desugared.Ast.expr) mbinder Bindlib.box)
+      : 'c Bindlib.box =
     Bindlib.box_apply2
       (fun e_binder case_body ->
         Marked.same_mark_as
@@ -912,10 +909,10 @@ and disambiguate_match_and_build_expression
           missing_constructors
           (cases_d, Some e_uid, curr_index))
   in
-  let naked_expr, e_name, _ =
+  let expr, e_name, _ =
     List.fold_left bind_match_cases (EnumConstructorMap.empty, None, 0) cases
   in
-  naked_expr, Option.get e_name
+  expr, Option.get e_name
   [@@ocamlformat "wrap-comments=false"]
 
 (** {1 Translating scope definitions} *)
@@ -948,7 +945,7 @@ let process_default
     (scope : ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t Marked.pos)
     (rule_id : Desugared.Ast.RuleName.t)
-    (param_uid : Desugared.Ast.naked_expr Var.t Marked.pos option)
+    (param_uid : Desugared.Ast.expr Var.t Marked.pos option)
     (precond : Desugared.Ast.expr Bindlib.box option)
     (exception_situation : Desugared.Ast.exception_situation)
     (label_situation : Desugared.Ast.label_situation)

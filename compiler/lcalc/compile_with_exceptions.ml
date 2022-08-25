@@ -19,7 +19,7 @@ open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
 
-type 'm ctx = ('m D.naked_expr, 'm A.naked_expr Var.t) Var.Map.t
+type 'm ctx = ('m D.expr, 'm A.expr Var.t) Var.Map.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
@@ -51,8 +51,7 @@ let rec translate_default
   in
   exceptions
 
-and translate_expr (ctx : 'm ctx) (e : 'm D.expr) :
-    'm A.expr Bindlib.box =
+and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr Bindlib.box =
   match Marked.unmark e with
   | EVar v -> Expr.make_var (Var.Map.find v ctx, Marked.get_mark e)
   | ETuple (args, s) ->
@@ -112,8 +111,8 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) :
 let rec translate_scope_lets
     (decl_ctx : decl_ctx)
     (ctx : 'm ctx)
-    (scope_lets : 'm D.naked_expr scope_body_expr) :
-    'm A.naked_expr scope_body_expr Bindlib.box =
+    (scope_lets : 'm D.expr scope_body_expr) :
+    'm A.expr scope_body_expr Bindlib.box =
   match scope_lets with
   | Result e -> Bindlib.box_apply (fun e -> Result e) (translate_expr ctx e)
   | ScopeLet scope_let ->
@@ -140,7 +139,7 @@ let rec translate_scope_lets
 let rec translate_scopes
     (decl_ctx : decl_ctx)
     (ctx : 'm ctx)
-    (scopes : 'm D.naked_expr scopes) : 'm A.naked_expr scopes Bindlib.box =
+    (scopes : 'm D.expr scopes) : 'm A.expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
@@ -159,7 +158,7 @@ let rec translate_scopes
     let new_scope_body_expr =
       Bindlib.bind_var new_scope_input_var new_scope_body_expr
     in
-    let new_scope : 'm A.naked_expr scope_body Bindlib.box =
+    let new_scope : 'm A.expr scope_body Bindlib.box =
       Bindlib.box_apply
         (fun new_scope_body_expr ->
           {

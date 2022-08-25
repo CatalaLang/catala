@@ -259,10 +259,8 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
 
-let rec format_expression
-    (ctx : decl_ctx)
-    (fmt : Format.formatter)
-    (e : expr) : unit =
+let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
+    unit =
   match Marked.unmark e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_toplevel_name fmt f
