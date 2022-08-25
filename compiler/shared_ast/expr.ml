@@ -18,8 +18,6 @@
 open Utils
 open Definitions
 
-type 'a box = 'a Bindlib.box
-
 (** Functions handling the types of [shared_ast] *)
 
 (* Basic block constructors *)
@@ -108,11 +106,8 @@ let with_ty (type m) (ty : typ) (x : ('a, m mark) Marked.t) :
     | Typed m -> Typed { m with ty })
     (Marked.unmark x)
 
-let map_mark
-    (type m)
-    (pos_f : Pos.t -> Pos.t)
-    (ty_f : typ -> typ)
-    (m : m mark) : m mark =
+let map_mark (type m) (pos_f : Pos.t -> Pos.t) (ty_f : typ -> typ) (m : m mark)
+    : m mark =
   match m with
   | Untyped { pos } -> Untyped { pos = pos_f pos }
   | Typed { pos; ty } -> Typed { pos = pos_f pos; ty = ty_f ty }
@@ -283,7 +278,7 @@ let make_default exceptions just cons mark =
 
 (* Tests *)
 
-let is_value (type a) (e : (a, 'm mark) naked_gexpr marked) =
+let is_value (type a) (e : (a, _) gexpr) =
   match Marked.unmark e with
   | ELit _ | EAbs _ | EOp _ | ERaise _ -> true
   | _ -> false
@@ -532,8 +527,7 @@ let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
 
 (* weird indentation; see
    https://github.com/ocaml-ppx/ocamlformat/issues/2143 *)
-let rec equal_list :
-          'a. ('a, 't) gexpr list -> ('a, 't) gexpr list -> bool =
+let rec equal_list : 'a. ('a, 't) gexpr list -> ('a, 't) gexpr list -> bool =
  fun es1 es2 ->
   try List.for_all2 equal es1 es2 with Invalid_argument _ -> false
 
@@ -683,7 +677,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
 
-let rec free_vars : type a. (a, 't) naked_gexpr marked -> (a, 't) naked_gexpr Var.Set.t =
+let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t =
  fun e ->
   match Marked.unmark e with
   | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
@@ -733,7 +727,7 @@ let remove_logging_calls e =
 
 let format ?debug decl_ctx ppf e = Print.naked_expr ?debug decl_ctx ppf e
 
-let rec size : type a. (a, 't) naked_gexpr marked -> int =
+let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
   match Marked.unmark e with
   | EVar _ | ELit _ | EOp _ -> 1

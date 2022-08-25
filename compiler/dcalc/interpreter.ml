@@ -36,7 +36,8 @@ let rec evaluate_operator
     (args : 'm Ast.expr list) : 'm Ast.naked_expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
      [op] to raise multispanned errors. *)
-  let apply_div_or_raise_err (div : unit -> 'm Ast.naked_expr) : 'm Ast.naked_expr =
+  let apply_div_or_raise_err (div : unit -> 'm Ast.naked_expr) :
+      'm Ast.naked_expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error
@@ -314,8 +315,7 @@ let rec evaluate_operator
       "Operator applied to the wrong arguments\n\
        (should not happen if the term was well-typed)"
 
-and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr
-    =
+and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
   match Marked.unmark e with
   | EVar _ ->
     Errors.raise_spanned_error (Expr.pos e)
@@ -481,10 +481,8 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr
 (** {1 API} *)
 
 let interpret_program :
-      'm.
-      decl_ctx ->
-      'm Ast.expr ->
-      (Uid.MarkedString.info * 'm Ast.expr) list =
+      'm. decl_ctx -> 'm Ast.expr -> (Uid.MarkedString.info * 'm Ast.expr) list
+    =
  fun (ctx : decl_ctx) (e : 'm Ast.expr) :
      (Uid.MarkedString.info * 'm Ast.expr) list ->
   match evaluate_expr ctx e with

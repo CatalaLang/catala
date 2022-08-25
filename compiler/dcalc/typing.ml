@@ -33,8 +33,8 @@ module Any =
     ()
 
 type unionfind_typ = naked_typ Marked.pos UnionFind.elem
-(** We do not reuse {!type: Dcalc.Ast.naked_typ} because we have to include a new
-    [TAny] variant. Indeed, error terms can have any type and this has to be
+(** We do not reuse {!type: Dcalc.Ast.naked_typ} because we have to include a
+    new [TAny] variant. Indeed, error terms can have any type and this has to be
     captured by the type sytem. *)
 
 and naked_typ =
@@ -84,9 +84,7 @@ let rec format_typ
     (fmt : Format.formatter)
     (naked_typ : unionfind_typ) : unit =
   let format_typ = format_typ ctx in
-  let format_typ_with_parens
-      (fmt : Format.formatter)
-      (t : unionfind_typ) =
+  let format_typ_with_parens (fmt : Format.formatter) (t : unionfind_typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
@@ -109,11 +107,7 @@ let rec format_typ
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
   | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
 
-exception
-  Type_error of
-    A.any_marked_expr
-    * unionfind_typ
-    * unionfind_typ
+exception Type_error of A.any_marked_expr * unionfind_typ * unionfind_typ
 
 type mark = { pos : Pos.t; uf : unionfind_typ }
 
@@ -306,7 +300,7 @@ let box_ty e = Bindlib.unbox (Bindlib.box_apply ty e)
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up
     (ctx : A.decl_ctx)
-    (env : 'm Ast.naked_expr env)
+    (env : 'm Ast.expr env)
     (e : 'm Ast.expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
   (* Cli.debug_format "Looking for type of %a" (Expr.format ~debug:true ctx)
      e; *)
@@ -469,11 +463,11 @@ let rec typecheck_expr_bottom_up
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down
     (ctx : A.decl_ctx)
-    (env : 'm Ast.naked_expr env)
+    (env : 'm Ast.expr env)
     (tau : unionfind_typ)
     (e : 'm Ast.expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
-  (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx) tau
-     (Expr.format ctx) e; *)
+  (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx)
+     tau (Expr.format ctx) e; *)
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.naked_gexpr) tau' =
@@ -667,10 +661,7 @@ let infer_type (type m) ctx (e : m Ast.expr) =
   | A.Untyped _ -> A.Expr.ty (Bindlib.unbox (infer_types ctx e))
 
 (** Typechecks an expression given an expected type *)
-let check_type
-    (ctx : A.decl_ctx)
-    (e : 'm Ast.expr)
-    (tau : A.typ) =
+let check_type (ctx : A.decl_ctx) (e : 'm Ast.expr) (tau : A.typ) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
   ignore
   @@ wrap ctx (typecheck_expr_top_down ctx A.Var.Map.empty (ast_to_typ tau)) e

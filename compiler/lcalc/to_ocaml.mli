@@ -21,13 +21,8 @@ open Ast
 (** Formats a lambda calculus program into a valid OCaml program *)
 
 val avoid_keywords : string -> string
-
-val find_struct :
-  StructName.t -> decl_ctx -> (StructFieldName.t * typ) list
-
-val find_enum :
-  EnumName.t -> decl_ctx -> (EnumConstructor.t * typ) list
-
+val find_struct : StructName.t -> decl_ctx -> (StructFieldName.t * typ) list
+val find_enum : EnumName.t -> decl_ctx -> (EnumConstructor.t * typ) list
 val typ_needs_parens : typ -> bool
 val needs_parens : 'm expr -> bool
 val format_enum_name : Format.formatter -> EnumName.t -> unit

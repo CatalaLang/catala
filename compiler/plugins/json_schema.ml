@@ -49,7 +49,7 @@ module To_json = struct
     Format.fprintf fmt "%s" s
 
   let rec find_scope_def (target_name : string) :
-      'm naked_expr scopes -> 'm naked_expr scope_def option = function
+      'm expr scopes -> 'm expr scope_def option = function
     | Nil -> None
     | ScopeDef scope_def ->
       let name = Format.asprintf "%a" ScopeName.format_t scope_def.scope_name in
@@ -111,8 +111,7 @@ module To_json = struct
     in
     let rec collect_required_type_defs_from_scope_input
         (input_struct : StructName.t) : typ list =
-      let rec collect (acc : typ list) (t : typ) : typ list
-          =
+      let rec collect (acc : typ list) (t : typ) : typ list =
         match Marked.unmark t with
         | TStruct s ->
           (* Scope's input is a struct. *)

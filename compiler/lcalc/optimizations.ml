@@ -116,8 +116,7 @@ let _beta_optimizations (p : 'm program) : 'm program =
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let rec peephole_expr (_ : unit) (e : 'm expr) :
-    'm expr Bindlib.box =
+let rec peephole_expr (_ : unit) (e : 'm expr) : 'm expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
 
   match Marked.unmark e with

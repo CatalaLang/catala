@@ -785,8 +785,7 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr Bindlib.box EnumConstructorMap.t * EnumName.t
-    =
+    Desugared.Ast.expr Bindlib.box EnumConstructorMap.t * EnumName.t =
   let create_var = function
     | None -> ctxt, Var.make "_"
     | Some param ->
@@ -799,7 +798,9 @@ and disambiguate_match_and_build_expression
       (ctxt : Name_resolution.context)
       (case_body : ('a * Pos.t) Bindlib.box)
       (e_binder :
-        (Desugared.Ast.naked_expr, Desugared.Ast.naked_expr * Pos.t) Bindlib.mbinder
+        ( Desugared.Ast.naked_expr,
+          Desugared.Ast.naked_expr * Pos.t )
+        Bindlib.mbinder
         Bindlib.box) : 'c Bindlib.box =
     Bindlib.box_apply2
       (fun e_binder case_body ->
@@ -948,7 +949,7 @@ let process_default
     (scope : ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t Marked.pos)
     (rule_id : Desugared.Ast.RuleName.t)
-    (param_uid : Desugared.Ast.naked_expr Var.t Marked.pos option)
+    (param_uid : Desugared.Ast.expr Var.t Marked.pos option)
     (precond : Desugared.Ast.expr Bindlib.box option)
     (exception_situation : Desugared.Ast.exception_situation)
     (label_situation : Desugared.Ast.label_situation)

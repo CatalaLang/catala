@@ -114,7 +114,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Bindlib.box;
   rule_cons : expr Bindlib.box;
-  rule_parameter : (naked_expr Var.t * typ) option;
+  rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -167,8 +167,7 @@ let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule
-    =
+let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
     rule_just = Bindlib.box (ELit (LBool true), pos);
     rule_cons = Bindlib.box (ELit (LBool false), pos);

@@ -25,7 +25,7 @@ type lit = lcalc glit
 type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
 and 'm expr = (lcalc, 'm mark) gexpr
 
-type 'm program = 'm naked_expr Shared_ast.program
+type 'm program = 'm expr Shared_ast.program
 
 (** {1 Language terms construction}*)
 
@@ -44,7 +44,7 @@ val make_matchopt_with_abs_arms :
 
 val make_matchopt :
   'm mark ->
-  'm naked_expr Var.t ->
+  'm expr Var.t ->
   typ ->
   'm expr Bindlib.box ->
   'm expr Bindlib.box ->
@@ -55,5 +55,5 @@ val make_matchopt :
 
 (** {1 Special symbols} *)
 
-val handle_default : untyped naked_expr Var.t
-val handle_default_opt : untyped naked_expr Var.t
+val handle_default : untyped expr Var.t
+val handle_default_opt : untyped expr Var.t

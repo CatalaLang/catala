@@ -213,11 +213,8 @@ let needs_parens (type a) (e : (a, _) gexpr) : bool =
 
 let rec naked_expr :
           'a.
-          ?debug:bool ->
-          decl_ctx ->
-          Format.formatter ->
-          ('a, 't) gexpr ->
-          unit =
+          ?debug:bool -> decl_ctx -> Format.formatter -> ('a, 't) gexpr -> unit
+    =
   fun (type a) ?(debug : bool = false) (ctx : decl_ctx) (fmt : Format.formatter)
       (e : (a, 't) gexpr) ->
    let naked_expr e = naked_expr ~debug ctx e in
@@ -257,8 +254,8 @@ let rec naked_expr :
      match s with
      | None -> Format.fprintf fmt "%a%a%d" naked_expr e1 punctuation "." n
      | Some s ->
-       Format.fprintf fmt "%a%a%a%a%a" naked_expr e1 operator "." punctuation "\""
-         StructFieldName.format_t
+       Format.fprintf fmt "%a%a%a%a%a" naked_expr e1 operator "." punctuation
+         "\"" StructFieldName.format_t
          (fst (List.nth (StructMap.find s ctx.ctx_structs) n))
          punctuation "\"")
    | EInj (e, n, en, _ts) ->
@@ -303,7 +300,8 @@ let rec naked_expr :
    | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" with_parens arg1 binop op
        with_parens arg2
-   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug -> naked_expr fmt arg1
+   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
+     naked_expr fmt arg1
    | EApp ((EOp (Unop op), _), [arg1]) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@]" unop op with_parens arg1
    | EApp (f, args) ->
@@ -313,22 +311,22 @@ let rec naked_expr :
           with_parens)
        args
    | EIfThenElse (e1, e2, e3) ->
-     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" keyword "if" naked_expr e1
-       keyword "then" naked_expr e2 keyword "else" naked_expr e3
+     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" keyword "if"
+       naked_expr e1 keyword "then" naked_expr e2 keyword "else" naked_expr e3
    | EOp (Ternop op) -> Format.fprintf fmt "%a" ternop op
    | EOp (Binop op) -> Format.fprintf fmt "%a" binop op
    | EOp (Unop op) -> Format.fprintf fmt "%a" unop op
    | EDefault (exceptions, just, cons) ->
      if List.length exceptions = 0 then
-       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" naked_expr just
-         punctuation "⊢" naked_expr cons punctuation "⟩"
+       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" naked_expr
+         just punctuation "⊢" naked_expr cons punctuation "⟩"
      else
        Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a@ %a@ %a%a@]" punctuation "⟨"
          (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ",")
             naked_expr)
-         exceptions punctuation "|" naked_expr just punctuation "⊢" naked_expr cons
-         punctuation "⟩"
+         exceptions punctuation "|" naked_expr just punctuation "⊢" naked_expr
+         cons punctuation "⟩"
    | ErrorOnEmpty e' ->
      Format.fprintf fmt "%a@ %a" operator "error_empty" with_parens e'
    | EAssert e' ->
@@ -352,8 +350,8 @@ let rec naked_expr :
        (StructFieldMap.bindings fields)
        punctuation "}"
    | EStructAccess (e1, field, _) ->
-     Format.fprintf fmt "%a%a%a%a%a" naked_expr e1 punctuation "." punctuation "\""
-       StructFieldName.format_t field punctuation "\""
+     Format.fprintf fmt "%a%a%a%a%a" naked_expr e1 punctuation "." punctuation
+       "\"" StructFieldName.format_t field punctuation "\""
    | EEnumInj (e1, cons, _) ->
      Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons naked_expr e1
    | EMatchS (e1, _, cases) ->

@@ -23,9 +23,7 @@ val evaluate_expr : decl_ctx -> 'm Ast.expr -> 'm Ast.expr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program :
-  decl_ctx ->
-  'm Ast.expr ->
-  (Uid.MarkedString.info * 'm Ast.expr) list
+  decl_ctx -> 'm Ast.expr -> (Uid.MarkedString.info * 'm Ast.expr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all

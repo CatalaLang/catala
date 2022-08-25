@@ -72,7 +72,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Bindlib.box;
   rule_cons : expr Bindlib.box;
-  rule_parameter : (naked_expr Var.t * typ) option;
+  rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
