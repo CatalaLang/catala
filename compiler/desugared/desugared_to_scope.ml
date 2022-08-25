@@ -23,11 +23,11 @@ open Shared_ast
 
 type target_scope_vars =
   | WholeVar of ScopeVar.t
-  | States of (Ast.StateName.t * ScopeVar.t) list
+  | States of (StateName.t * ScopeVar.t) list
 
 type ctx = {
   scope_var_mapping : target_scope_vars Ast.ScopeVarMap.t;
-  var_mapping : Scopelang.Ast.Var.t Ast.VarMap.t;
+  var_mapping : Scopelang.Ast.expr Var.t Ast.VarMap.t;
 }
 
 let tag_with_log_entry
@@ -35,8 +35,7 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Utils.Uid.MarkedString.info list) :
     Scopelang.Ast.expr Marked.pos =
-  ( Scopelang.Ast.EApp
-      ((Scopelang.Ast.EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
+  ( EApp ((EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
@@ -54,22 +53,21 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
       | States states ->
         Marked.same_mark_as (snd (List.hd (List.rev states))) s_var
     in
+    Bindlib.box (ELocation (SubScopeVar (s_name, ss_name, new_s_var)), m)
+  | Ast.ELocation (Ast.ScopeVar (s_var, None)) ->
     Bindlib.box
-      (Scopelang.Ast.ELocation (SubScopeVar (s_name, ss_name, new_s_var)), m)
-  | Ast.ELocation (ScopeVar (s_var, None)) ->
-    Bindlib.box
-      ( Scopelang.Ast.ELocation
-          (ScopeVar
+      ( ELocation
+          (ScopelangScopeVar
              (match
                 Ast.ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
               with
              | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
              | States _ -> failwith "should not happen")),
         m )
-  | Ast.ELocation (ScopeVar (s_var, Some state)) ->
+  | Ast.ELocation (Ast.ScopeVar (s_var, Some state)) ->
     Bindlib.box
-      ( Scopelang.Ast.ELocation
-          (ScopeVar
+      ( ELocation
+          (ScopelangScopeVar
              (match
                 Ast.ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
               with
@@ -83,30 +81,30 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
       (Bindlib.box_var (Ast.VarMap.find v ctx.var_mapping))
   | EStruct (s_name, fields) ->
     Bindlib.box_apply
-      (fun new_fields -> Scopelang.Ast.EStruct (s_name, new_fields), m)
+      (fun new_fields -> EStruct (s_name, new_fields), m)
       (Scopelang.Ast.StructFieldMapLift.lift_box
          (StructFieldMap.map (translate_expr ctx) fields))
   | EStructAccess (e1, s_name, f_name) ->
     Bindlib.box_apply
-      (fun new_e1 -> Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), m)
+      (fun new_e1 -> EStructAccess (new_e1, s_name, f_name), m)
       (translate_expr ctx e1)
   | EEnumInj (e1, cons, e_name) ->
     Bindlib.box_apply
-      (fun new_e1 -> Scopelang.Ast.EEnumInj (new_e1, cons, e_name), m)
+      (fun new_e1 -> EEnumInj (new_e1, cons, e_name), m)
       (translate_expr ctx e1)
   | EMatch (e1, e_name, arms) ->
     Bindlib.box_apply2
-      (fun new_e1 new_arms ->
-        Scopelang.Ast.EMatch (new_e1, e_name, new_arms), m)
+      (fun new_e1 new_arms -> EMatchS (new_e1, e_name, new_arms), m)
       (translate_expr ctx e1)
       (Scopelang.Ast.EnumConstructorMapLift.lift_box
          (EnumConstructorMap.map (translate_expr ctx) arms))
-  | ELit l -> Bindlib.box (Scopelang.Ast.ELit l, m)
+  | ELit
+      (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
+       | LDuration _ ) as l) ->
+    Bindlib.box (ELit l, m)
   | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
-    let new_vars =
-      Array.map (fun var -> Scopelang.Ast.Var.make (Bindlib.name_of var)) vars
-    in
+    let new_vars = Array.map (fun var -> Var.make (Bindlib.name_of var)) vars in
     let ctx =
       List.fold_left2
         (fun ctx var new_var ->
@@ -114,32 +112,31 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
     Bindlib.box_apply
-      (fun new_binder -> Scopelang.Ast.EAbs (new_binder, typs), m)
+      (fun new_binder -> EAbs (new_binder, typs), m)
       (Bindlib.bind_mvar new_vars (translate_expr ctx body))
   | EApp (e1, args) ->
     Bindlib.box_apply2
-      (fun new_e1 new_args -> Scopelang.Ast.EApp (new_e1, new_args), m)
+      (fun new_e1 new_args -> EApp (new_e1, new_args), m)
       (translate_expr ctx e1)
       (Bindlib.box_list (List.map (translate_expr ctx) args))
-  | EOp op -> Bindlib.box (Scopelang.Ast.EOp op, m)
+  | EOp op -> Bindlib.box (EOp op, m)
   | EDefault (excepts, just, cons) ->
     Bindlib.box_apply3
       (fun new_excepts new_just new_cons ->
-        Scopelang.Ast.make_default ~pos:m new_excepts new_just new_cons)
+        Expr.make_default new_excepts new_just new_cons m)
       (Bindlib.box_list (List.map (translate_expr ctx) excepts))
       (translate_expr ctx just) (translate_expr ctx cons)
   | EIfThenElse (e1, e2, e3) ->
     Bindlib.box_apply3
-      (fun new_e1 new_e2 new_e3 ->
-        Scopelang.Ast.EIfThenElse (new_e1, new_e2, new_e3), m)
+      (fun new_e1 new_e2 new_e3 -> EIfThenElse (new_e1, new_e2, new_e3), m)
       (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
   | EArray args ->
     Bindlib.box_apply
-      (fun new_args -> Scopelang.Ast.EArray new_args, m)
+      (fun new_args -> EArray new_args, m)
       (Bindlib.box_list (List.map (translate_expr ctx) args))
   | ErrorOnEmpty e1 ->
     Bindlib.box_apply
-      (fun new_e1 -> Scopelang.Ast.ErrorOnEmpty new_e1, m)
+      (fun new_e1 -> ErrorOnEmpty new_e1, m)
       (translate_expr ctx e1)
 
 (** {1 Rule tree construction} *)
@@ -219,9 +216,7 @@ let rec rule_tree_to_expr
     | Some new_param -> (
       match Ast.VarMap.find_opt new_param ctx.var_mapping with
       | None ->
-        let new_param_scope =
-          Scopelang.Ast.Var.make (Bindlib.name_of new_param)
-        in
+        let new_param_scope = Var.make (Bindlib.name_of new_param) in
         {
           ctx with
           var_mapping = Ast.VarMap.add new_param new_param_scope ctx.var_mapping;
@@ -256,17 +251,18 @@ let rec rule_tree_to_expr
   let default_containing_base_cases =
     Bindlib.box_apply2
       (fun base_just_list base_cons_list ->
-        Scopelang.Ast.make_default
+        Expr.make_default
           (List.map2
              (fun base_just base_cons ->
-               Scopelang.Ast.make_default ~pos:def_pos []
+               Expr.make_default []
                  (* Here we insert the logging command that records when a
                     decision is taken for the value of a variable. *)
                  (tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 base_cons)
+                 base_cons def_pos)
              base_just_list base_cons_list)
-          (Scopelang.Ast.ELit (LBool false), def_pos)
-          (Scopelang.Ast.ELit LEmptyError, def_pos))
+          (ELit (LBool false), def_pos)
+          (ELit LEmptyError, def_pos)
+          def_pos)
       (Bindlib.box_list (translate_and_unbox_list base_just_list))
       (Bindlib.box_list (translate_and_unbox_list base_cons_list))
   in
@@ -279,9 +275,9 @@ let rec rule_tree_to_expr
   let default =
     Bindlib.box_apply2
       (fun exceptions default_containing_base_cases ->
-        Scopelang.Ast.make_default exceptions
-          (Scopelang.Ast.ELit (LBool true), def_pos)
-          default_containing_base_cases)
+        Expr.make_default exceptions
+          (ELit (LBool true), def_pos)
+          default_containing_base_cases def_pos)
       exceptions default_containing_base_cases
   in
   match is_func, (List.hd base_rules).Ast.rule_parameter with
@@ -293,10 +289,10 @@ let rec rule_tree_to_expr
       let default =
         Bindlib.box_apply
           (fun (default : Scopelang.Ast.expr * Pos.t) ->
-            Scopelang.Ast.ErrorOnEmpty default, def_pos)
+            ErrorOnEmpty default, def_pos)
           default
       in
-      Scopelang.Ast.make_abs
+      Expr.make_abs
         [| Ast.VarMap.find new_param ctx.var_mapping |]
         default [typ] def_pos
     else default
@@ -310,15 +306,13 @@ let translate_def
     (ctx : ctx)
     (def_info : Ast.ScopeDef.t)
     (def : Ast.rule Ast.RuleMap.t)
-    (typ : Scopelang.Ast.typ Marked.pos)
+    (typ : typ Marked.pos)
     (io : Scopelang.Ast.io)
     ~(is_cond : bool)
     ~(is_subscope_var : bool) : Scopelang.Ast.expr Marked.pos =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func =
-    match Marked.unmark typ with
-    | Scopelang.Ast.TArrow (_, _) -> true
-    | _ -> false
+    match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
   in
   let is_rule_func _ (r : Ast.rule) : bool =
     Option.is_some r.Ast.rule_parameter
@@ -327,15 +321,15 @@ let translate_def
   let all_rules_not_func =
     Ast.RuleMap.for_all (fun n r -> not (is_rule_func n r)) def
   in
-  let is_def_func_param_typ : Scopelang.Ast.typ Marked.pos option =
+  let is_def_func_param_typ : typ Marked.pos option =
     if is_def_func && all_rules_func then
       match Marked.unmark typ with
-      | Scopelang.Ast.TArrow (t_param, _) -> Some t_param
+      | TArrow (t_param, _) -> Some t_param
       | _ ->
         Errors.raise_spanned_error (Marked.get_mark typ)
-          "The definitions of %a are function but its type, %a, is not a \
-           function type"
-          Ast.ScopeDef.format_t def_info Scopelang.Print.format_typ typ
+          "The definitions of %a are function but it doesn't have a function \
+           type"
+          Ast.ScopeDef.format_t def_info
     else if (not is_def_func) && all_rules_not_func then None
     else
       let spans =
@@ -449,7 +443,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                   redefined. *)
                Errors.raise_multispanned_error
                  (( Some "Incriminated variable:",
-                    Marked.get_mark (Ast.ScopeVar.get_info var) )
+                    Marked.get_mark (ScopeVar.get_info var) )
                  :: List.map
                       (fun (rule, _) ->
                         ( Some "Incriminated variable definition:",
@@ -477,7 +471,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                in
                [
                  Scopelang.Ast.Definition
-                   ( ( Scopelang.Ast.ScopeVar
+                   ( ( ScopelangScopeVar
                          ( scope_var,
                            Marked.get_mark (ScopeVar.get_info scope_var) ),
                        Marked.get_mark (ScopeVar.get_info scope_var) ),
@@ -531,8 +525,8 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          (( Some "Incriminated subscope:",
                             Ast.ScopeDef.get_position def_key )
                          :: ( Some "Incriminated variable:",
-                              Marked.get_mark
-                                (Ast.ScopeVar.get_info sub_scope_var) )
+                              Marked.get_mark (ScopeVar.get_info sub_scope_var)
+                            )
                          :: List.map
                               (fun (rule, _) ->
                                 ( Some
@@ -549,8 +543,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                            ( Some "Incriminated subscope:",
                              Ast.ScopeDef.get_position def_key );
                            ( Some "Incriminated variable:",
-                             Marked.get_mark
-                               (Ast.ScopeVar.get_info sub_scope_var) );
+                             Marked.get_mark (ScopeVar.get_info sub_scope_var) );
                          ]
                          "This subscope variable is a mandatory input but no \
                           definition was provided."
@@ -567,10 +560,10 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          scope.scope_sub_scopes
                      in
                      let var_pos =
-                       Marked.get_mark (Ast.ScopeVar.get_info sub_scope_var)
+                       Marked.get_mark (ScopeVar.get_info sub_scope_var)
                      in
                      Scopelang.Ast.Definition
-                       ( ( Scopelang.Ast.SubScopeVar
+                       ( ( SubScopeVar
                              ( subscop_real_name,
                                (sub_scope_index, var_pos),
                                match
@@ -630,7 +623,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
              interesting. We need to create as many Scopelang.Var entries in the
              scope signature as there are states. *)
           List.fold_left
-            (fun acc (state : Ast.StateName.t) ->
+            (fun acc (state : StateName.t) ->
               let scope_def =
                 Ast.ScopeDefMap.find
                   (Ast.ScopeDef.Var (var, Some state))
@@ -668,7 +661,7 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
                 ctx with
                 scope_var_mapping =
                   Ast.ScopeVarMap.add scope_var
-                    (WholeVar (ScopeVar.fresh (Ast.ScopeVar.get_info scope_var)))
+                    (WholeVar (ScopeVar.fresh (ScopeVar.get_info scope_var)))
                     ctx.scope_var_mapping;
               }
             | States states ->
@@ -682,10 +675,9 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
                             ( state,
                               ScopeVar.fresh
                                 (let state_name, state_pos =
-                                   Ast.StateName.get_info state
+                                   StateName.get_info state
                                  in
-                                 ( Marked.unmark
-                                     (Ast.ScopeVar.get_info scope_var)
+                                 ( Marked.unmark (ScopeVar.get_info scope_var)
                                    ^ "_"
                                    ^ state_name,
                                    state_pos )) ))
@@ -702,6 +694,6 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
   {
     Scopelang.Ast.program_scopes =
       Scopelang.Ast.ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
-    Scopelang.Ast.program_structs = pgrm.program_structs;
-    Scopelang.Ast.program_enums = pgrm.program_enums;
+    Scopelang.Ast.program_ctx =
+      { ctx_structs = pgrm.program_structs; ctx_enums = pgrm.program_enums };
   }

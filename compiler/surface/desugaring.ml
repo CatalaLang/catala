@@ -253,19 +253,15 @@ let rec translate_expr
           | [] -> None
           | states -> (
             match inside_definition_of with
-            | Some (Desugared.Ast.ScopeDef.Var (x'_uid, sx'), _)
-              when Desugared.Ast.ScopeVar.compare uid x'_uid = 0 -> (
+            | Some (Var (x'_uid, sx'), _) when ScopeVar.compare uid x'_uid = 0
+              -> (
               match sx' with
               | None ->
                 failwith
                   "inconsistent state: inside a definition of a variable with \
                    no state but variable has states"
               | Some inside_def_state ->
-                if
-                  Desugared.Ast.StateName.compare inside_def_state
-                    (List.hd states)
-                  = 0
-                then
+                if StateName.compare inside_def_state (List.hd states) = 0 then
                   Errors.raise_spanned_error pos
                     "It is impossible to refer to the variable you are \
                      defining when defining its first state."
@@ -276,11 +272,8 @@ let rec translate_expr
                   ignore
                     (List.fold_left
                        (fun previous_state state ->
-                         if
-                           Desugared.Ast.StateName.compare inside_def_state
-                             state
-                           = 0
-                         then correct_state := previous_state;
+                         if StateName.equal inside_def_state state then
+                           correct_state := previous_state;
                          Some state)
                        None states);
                   !correct_state)
@@ -362,7 +355,7 @@ let rec translate_expr
       (rec_helper f) (rec_helper arg)
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
-    let tau = Scopelang.Ast.TAny, Marked.get_mark x in
+    let tau = TAny, Marked.get_mark x in
     let fn =
       Desugared.Ast.make_abs [| v |]
         (translate_expr scope inside_definition_of ctxt e2)
@@ -544,7 +537,7 @@ let rec translate_expr
     let f_pred =
       Desugared.Ast.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
-        [Scopelang.Ast.TAny, pos]
+        [TAny, pos]
         pos
     in
     Bindlib.box_apply2
@@ -587,7 +580,7 @@ let rec translate_expr
     let f_pred =
       Desugared.Ast.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
-        [Scopelang.Ast.TAny, pos]
+        [TAny, pos]
         pos
     in
     let f_pred_var = Desugared.Ast.Var.make "predicate" in
@@ -619,7 +612,7 @@ let rec translate_expr
     in
     let fold_f =
       Desugared.Ast.make_abs [| acc_var; item_var |] fold_body
-        [Scopelang.Ast.TAny, pos; Scopelang.Ast.TAny, pos]
+        [TAny, pos; TAny, pos]
         pos
     in
     let fold =
@@ -631,7 +624,7 @@ let rec translate_expr
             pos ))
         fold_f collection init
     in
-    Desugared.Ast.make_let_in f_pred_var (Scopelang.Ast.TAny, pos) f_pred fold
+    Desugared.Ast.make_let_in f_pred_var (TAny, pos) f_pred fold
   | CollectionOp (op', param', collection, predicate) ->
     let ctxt, param =
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
@@ -686,7 +679,7 @@ let rec translate_expr
           (translate_expr scope inside_definition_of ctxt predicate)
           acc
       in
-      let make_extr_body (cmp_op : binop) (t : Scopelang.Ast.typ Marked.pos) =
+      let make_extr_body (cmp_op : binop) (t : typ Marked.pos) =
         let tmp_var = Desugared.Ast.Var.make "tmp" in
         let tmp = Desugared.Ast.make_var (tmp_var, Marked.get_mark param') in
         Desugared.Ast.make_let_in tmp_var t
@@ -719,11 +712,11 @@ let rec translate_expr
       | Ast.Aggregate (Ast.AggregateExtremum (max_or_min, t, _)) ->
         let op_kind, typ =
           match t with
-          | Ast.Integer -> KInt, (Scopelang.Ast.TLit TInt, pos)
-          | Ast.Decimal -> KRat, (Scopelang.Ast.TLit TRat, pos)
-          | Ast.Money -> KMoney, (Scopelang.Ast.TLit TMoney, pos)
-          | Ast.Duration -> KDuration, (Scopelang.Ast.TLit TDuration, pos)
-          | Ast.Date -> KDate, (Scopelang.Ast.TLit TDate, pos)
+          | Ast.Integer -> KInt, (TLit TInt, pos)
+          | Ast.Decimal -> KRat, (TLit TRat, pos)
+          | Ast.Money -> KMoney, (TLit TMoney, pos)
+          | Ast.Duration -> KDuration, (TLit TDuration, pos)
+          | Ast.Date -> KDate, (TLit TDate, pos)
           | _ ->
             Errors.raise_spanned_error pos
               "ssible to compute the %s of two values of type %a"
@@ -758,8 +751,8 @@ let rec translate_expr
             ( Desugared.Ast.EAbs
                 ( binder,
                   [
-                    Scopelang.Ast.TLit t, Marked.get_mark op';
-                    Scopelang.Ast.TAny, pos
+                    TLit t, Marked.get_mark op';
+                    TAny, pos
                     (* we put any here because the type of the elements of the
                        arrays is not always the type of the accumulator; for
                        instance in AggregateCount. *);
@@ -820,9 +813,7 @@ let rec translate_expr
     let f =
       Bindlib.box_apply
         (fun binder ->
-          ( Desugared.Ast.EAbs
-              (binder, [Scopelang.Ast.TLit TBool, pos; Scopelang.Ast.TAny, pos]),
-            pos ))
+          Desugared.Ast.EAbs (binder, [TLit TBool, pos; TAny, pos]), pos)
         (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
     in
     Bindlib.box_apply3
@@ -1037,9 +1028,8 @@ let process_default
          Name_resolution.get_def_typ ctxt (Marked.unmark def_key)
        in
        match Marked.unmark def_key_typ, param_uid with
-       | Scopelang.Ast.TArrow (t_in, _), Some param_uid ->
-         Some (Marked.unmark param_uid, t_in)
-       | Scopelang.Ast.TArrow _, None ->
+       | TArrow (t_in, _), Some param_uid -> Some (Marked.unmark param_uid, t_in)
+       | TArrow _, None ->
          Errors.raise_spanned_error
            (Marked.get_mark (Bindlib.unbox cons))
            "This definition has a function type but the parameter is missing"
@@ -1375,8 +1365,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                                            else
                                              ( Scopelang.Ast.NoInput,
                                                Marked.get_mark
-                                                 (Desugared.Ast.StateName
-                                                  .get_info state) )
+                                                 (StateName.get_info state) )
                                          in
                                          let io_output =
                                            if i = List.length states - 1 then
@@ -1384,8 +1373,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                                            else
                                              ( false,
                                                Marked.get_mark
-                                                 (Desugared.Ast.StateName
-                                                  .get_info state) )
+                                                 (StateName.get_info state) )
                                          in
                                          { io_input; io_output });
                                     }

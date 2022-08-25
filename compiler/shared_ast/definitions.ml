@@ -56,6 +56,9 @@ module StructFieldMap : Map.S with type key = StructFieldName.t =
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
   Map.Make (EnumConstructor)
 
+module StateName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
 (** {1 Abstract syntax tree} *)
 
 (** {2 Types} *)
@@ -131,12 +134,6 @@ type unop =
   | RoundDecimal
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
-
-type location =
-  | ScopeVar of ScopeVar.t Marked.pos
-  | SubScopeVar of
-      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
-
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 (** {2 Generic expressions} *)
@@ -164,11 +161,28 @@ type 'a glit =
   | LDate : date -> 'a glit
   | LDuration : duration -> 'a glit
 
+(** Locations are handled differently in [desugared] and [scopelang] *)
+type 'a glocation =
+  | DesugaredScopeVar :
+      ScopeVar.t Marked.pos * StateName.t option
+      -> desugared glocation
+  | ScopelangScopeVar : ScopeVar.t Marked.pos -> scopelang glocation
+  | SubScopeVar :
+      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
+      -> [< desugared | scopelang ] glocation
+
 type ('a, 't) marked_gexpr = (('a, 't) gexpr, 't) Marked.t
 (** General expressions: groups all expression cases of the different ASTs, and
     uses a GADT to eliminate irrelevant cases for each one. The ['t] annotations
     are also totally unconstrained at this point. The dcalc exprs, for example,
-    are then defined with [type expr = dcalc gexpr] plus the annotations. *)
+    are then defined with [type expr = dcalc gexpr] plus the annotations.
+
+    A few tips on using this GADT:
+
+    - To write a function that handles cases from different ASTs, explicit the
+      type variables: [fun (type a) (x: a gexpr) -> ...]
+    - For recursive functions, you may need to additionally explicit the
+      generalisation of the variable: [let rec f: type a . a gexpr -> ...] *)
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax *)
@@ -185,14 +199,13 @@ and ('a, 't) gexpr =
       ('a, 't) gexpr Bindlib.var
       -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
   | EAbs :
-      (('a, 't) gexpr, ('a, 't) marked_gexpr) Bindlib.mbinder
-      * typ Marked.pos list
+      (('a, 't) gexpr, ('a, 't) marked_gexpr) Bindlib.mbinder * marked_typ list
       -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
   | EIfThenElse :
       ('a, 't) marked_gexpr * ('a, 't) marked_gexpr * ('a, 't) marked_gexpr
       -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) gexpr
   (* Early stages *)
-  | ELocation : location -> (([< desugared | scopelang ] as 'a), 't) gexpr
+  | ELocation : 'a glocation -> (([< desugared | scopelang ] as 'a), 't) gexpr
   | EStruct :
       StructName.t * ('a, 't) marked_gexpr StructFieldMap.t
       -> (([< desugared | scopelang ] as 'a), 't) gexpr
@@ -212,10 +225,10 @@ and ('a, 't) gexpr =
       ('a, 't) marked_gexpr list * StructName.t option
       -> (([< dcalc | lcalc ] as 'a), 't) gexpr
   | ETupleAccess :
-      ('a, 't) marked_gexpr * int * StructName.t option * typ Marked.pos list
+      ('a, 't) marked_gexpr * int * StructName.t option * marked_typ list
       -> (([< dcalc | lcalc ] as 'a), 't) gexpr
   | EInj :
-      ('a, 't) marked_gexpr * int * EnumName.t * typ Marked.pos list
+      ('a, 't) marked_gexpr * int * EnumName.t * marked_typ list
       -> (([< dcalc | lcalc ] as 'a), 't) gexpr
   | EMatch :
       ('a, 't) marked_gexpr * ('a, 't) marked_gexpr list * EnumName.t
@@ -330,10 +343,6 @@ and 'e scopes =
   constraint 'e = ('a, 'm mark) gexpr
 
 type struct_ctx = (StructFieldName.t * marked_typ) list StructMap.t
-
-type decl_ctx = {
-  ctx_enums : (EnumConstructor.t * marked_typ) list EnumMap.t;
-  ctx_structs : struct_ctx;
-}
-
+type enum_ctx = (EnumConstructor.t * marked_typ) list EnumMap.t
+type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

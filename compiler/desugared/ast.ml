@@ -34,13 +34,6 @@ module LabelName : Uid.Id with type info = Uid.MarkedString.info =
 
 module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
 module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
-
-module StateName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
 module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
 module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
 
@@ -132,8 +125,7 @@ and expr =
   | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
   | EMatch of marked_expr * EnumName.t * marked_expr EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of
-      (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list
+  | EAbs of (expr, marked_expr) Bindlib.mbinder * typ Marked.pos list
   | EApp of marked_expr * marked_expr list
   | EOp of operator
   | EDefault of marked_expr list * marked_expr * marked_expr
@@ -188,9 +180,7 @@ module Expr = struct
       | n -> n)
     | ELit l1, ELit l2 -> Stdlib.compare l1 l2
     | EAbs (binder1, typs1), EAbs (binder2, typs2) -> (
-      match
-        list_compare (Marked.compare Scopelang.Ast.Typ.compare) typs1 typs2
-      with
+      match list_compare Expr.compare_typ typs1 typs2 with
       | 0 ->
         let _, (e1, _), (e2, _) = Bindlib.unmbind2 binder1 binder2 in
         compare e1 e2
@@ -268,7 +258,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Marked.pos Bindlib.box;
   rule_cons : expr Marked.pos Bindlib.box;
-  rule_parameter : (Var.t * Scopelang.Ast.typ Marked.pos) option;
+  rule_parameter : (Var.t * typ Marked.pos) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -289,8 +279,8 @@ module Rule = struct
         let c2, _ = Bindlib.unbox r2.rule_cons in
         Expr.compare c1 c2
       | n -> n)
-    | Some (v1, (t1, _)), Some (v2, (t2, _)) -> (
-      match Scopelang.Ast.Typ.compare t1 t2 with
+    | Some (v1, t1), Some (v2, t2) -> (
+      match Shared_ast.Expr.compare_typ t1 t2 with
       | 0 -> (
         let open Bindlib in
         let b1 = unbox (bind_var v1 r1.rule_just) in
@@ -308,9 +298,7 @@ module Rule = struct
     | Some _, None -> 1
 end
 
-let empty_rule
-    (pos : Pos.t)
-    (have_parameter : Scopelang.Ast.typ Marked.pos option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : typ Marked.pos option) : rule =
   {
     rule_just = Bindlib.box (ELit (LBool false), pos);
     rule_cons = Bindlib.box (ELit LEmptyError, pos);
@@ -323,9 +311,8 @@ let empty_rule
     rule_label = Unlabeled;
   }
 
-let always_false_rule
-    (pos : Pos.t)
-    (have_parameter : Scopelang.Ast.typ Marked.pos option) : rule =
+let always_false_rule (pos : Pos.t) (have_parameter : typ Marked.pos option) :
+    rule =
   {
     rule_just = Bindlib.box (ELit (LBool true), pos);
     rule_cons = Bindlib.box (ELit (LBool false), pos);
@@ -348,7 +335,7 @@ type meta_assertion =
 
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
-  scope_def_typ : Scopelang.Ast.typ Marked.pos;
+  scope_def_typ : typ Marked.pos;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
 }
@@ -366,8 +353,8 @@ type scope = {
 
 type program = {
   program_scopes : scope Scopelang.Ast.ScopeMap.t;
-  program_enums : Scopelang.Ast.enum_ctx;
-  program_structs : Scopelang.Ast.struct_ctx;
+  program_enums : enum_ctx;
+  program_structs : struct_ctx;
 }
 
 let rec locations_used (e : expr Marked.pos) : LocationSet.t =
@@ -434,7 +421,7 @@ let make_var ((x, pos) : Var.t Marked.pos) : expr Marked.pos Bindlib.box =
 let make_abs
     (xs : vars)
     (e : expr Marked.pos Bindlib.box)
-    (taus : Scopelang.Ast.typ Marked.pos list)
+    (taus : typ Marked.pos list)
     (pos : Pos.t) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply (fun b -> EAbs (b, taus), pos) (Bindlib.bind_mvar xs e)
 
@@ -446,7 +433,7 @@ let make_app
 
 let make_let_in
     (x : Var.t)
-    (tau : Scopelang.Ast.typ Marked.pos)
+    (tau : typ Marked.pos)
     (e1 : expr Marked.pos Bindlib.box)
     (e2 : expr Marked.pos Bindlib.box) : expr Marked.pos Bindlib.box =
   Bindlib.box_apply2

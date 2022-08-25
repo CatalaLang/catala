@@ -28,8 +28,6 @@ module RuleSet : Set.S with type elt = RuleName.t
 module LabelName : Uid.Id with type info = Uid.MarkedString.info
 module LabelMap : Map.S with type key = LabelName.t
 module LabelSet : Set.S with type elt = LabelName.t
-module StateName : Uid.Id with type info = Uid.MarkedString.info
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info
 module ScopeVarSet : Set.S with type elt = ScopeVar.t
 module ScopeVarMap : Map.S with type key = ScopeVar.t
 
@@ -71,8 +69,7 @@ and expr =
   | EEnumInj of marked_expr * EnumConstructor.t * EnumName.t
   | EMatch of marked_expr * EnumName.t * marked_expr EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of
-      (expr, marked_expr) Bindlib.mbinder * Scopelang.Ast.typ Marked.pos list
+  | EAbs of (expr, marked_expr) Bindlib.mbinder * marked_typ list
   | EApp of marked_expr * marked_expr list
   | EOp of operator
   | EDefault of marked_expr list * marked_expr * marked_expr
@@ -100,7 +97,7 @@ val make_var : Var.t Marked.pos -> expr Marked.pos Bindlib.box
 val make_abs :
   vars ->
   expr Marked.pos Bindlib.box ->
-  Scopelang.Ast.typ Marked.pos list ->
+  typ Marked.pos list ->
   Pos.t ->
   expr Marked.pos Bindlib.box
 
@@ -112,7 +109,7 @@ val make_app :
 
 val make_let_in :
   Var.t ->
-  Scopelang.Ast.typ Marked.pos ->
+  typ Marked.pos ->
   expr Marked.pos Bindlib.box ->
   expr Marked.pos Bindlib.box ->
   expr Marked.pos Bindlib.box
@@ -130,15 +127,15 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Marked.pos Bindlib.box;
   rule_cons : expr Marked.pos Bindlib.box;
-  rule_parameter : (Var.t * Scopelang.Ast.typ Marked.pos) option;
+  rule_parameter : (Var.t * typ Marked.pos) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
 
 module Rule : Set.OrderedType with type t = rule
 
-val empty_rule : Pos.t -> Scopelang.Ast.typ Marked.pos option -> rule
-val always_false_rule : Pos.t -> Scopelang.Ast.typ Marked.pos option -> rule
+val empty_rule : Pos.t -> typ Marked.pos option -> rule
+val always_false_rule : Pos.t -> typ Marked.pos option -> rule
 
 type assertion = expr Marked.pos Bindlib.box
 type variation_typ = Increasing | Decreasing
@@ -150,7 +147,7 @@ type meta_assertion =
 
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
-  scope_def_typ : Scopelang.Ast.typ Marked.pos;
+  scope_def_typ : typ Marked.pos;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
 }
@@ -168,8 +165,8 @@ type scope = {
 
 type program = {
   program_scopes : scope Scopelang.Ast.ScopeMap.t;
-  program_enums : Scopelang.Ast.enum_ctx;
-  program_structs : Scopelang.Ast.struct_ctx;
+  program_enums : enum_ctx;
+  program_structs : struct_ctx;
 }
 
 (** {1 Helpers} *)

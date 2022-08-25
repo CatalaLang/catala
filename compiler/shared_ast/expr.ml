@@ -259,6 +259,23 @@ let make_multiple_let_in xs taus e1s e2 pos =
   in
   make_app (make_abs xs e2 taus m_abs) e1s m_e2
 
+let make_default exceptions just cons mark =
+  let rec bool_value = function
+    | ELit (LBool b), _ -> Some b
+    | EApp ((EOp (Unop (Log (l, _))), _), [e]), _
+      when l <> PosRecordIfTrueBool
+           (* we don't remove the log calls corresponding to source code
+              definitions !*) ->
+      bool_value e
+    | _ -> None
+  in
+  match exceptions, bool_value just, cons with
+  | [], Some true, cons -> cons
+  | exceptions, Some true, (EDefault ([], just, cons), mark) ->
+    EDefault (exceptions, just, cons), mark
+  | [except], Some false, _ -> except
+  | exceptions, _, cons -> EDefault (exceptions, just, cons), mark
+
 (* Tests *)
 
 let is_value (type a) (e : (a, 'm mark) gexpr marked) =
@@ -266,34 +283,137 @@ let is_value (type a) (e : (a, 'm mark) gexpr marked) =
   | ELit _ | EAbs _ | EOp _ | ERaise _ -> true
   | _ -> false
 
-let rec equal_typs ty1 ty2 =
+let equal_tlit l1 l2 = l1 = l2
+let compare_tlit l1 l2 = Stdlib.compare l1 l2
+
+let rec equal_typ ty1 ty2 =
   match Marked.unmark ty1, Marked.unmark ty2 with
-  | TLit l1, TLit l2 -> l1 = l2
-  | TTuple tys1, TTuple tys2 -> equal_typs_list tys1 tys2
+  | TLit l1, TLit l2 -> equal_tlit l1 l2
+  | TTuple tys1, TTuple tys2 -> equal_typ_list tys1 tys2
   | TStruct n1, TStruct n2 -> StructName.equal n1 n2
   | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
-  | TOption t1, TOption t2 -> equal_typs t1 t2
-  | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typs t1 t2 && equal_typs t1' t2'
-  | TArray t1, TArray t2 -> equal_typs t1 t2
+  | TOption t1, TOption t2 -> equal_typ t1 t2
+  | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typ t1 t2 && equal_typ t1' t2'
+  | TArray t1, TArray t2 -> equal_typ t1 t2
   | TAny, TAny -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
       | TArray _ | TAny ),
       _ ) ->
     false
 
-and equal_typs_list tys1 tys2 =
-  try List.for_all2 equal_typs tys1 tys2 with Invalid_argument _ -> false
+and equal_typ_list tys1 tys2 =
+  try List.for_all2 equal_typ tys1 tys2 with Invalid_argument _ -> false
+
+let rec compare_typ ty1 ty2 =
+  match Marked.unmark ty1, Marked.unmark ty2 with
+  | TLit l1, TLit l2 -> compare_tlit l1 l2
+  | TTuple tys1, TTuple tys2 -> List.compare compare_typ tys1 tys2
+  | TStruct n1, TStruct n2 -> StructName.compare n1 n2
+  | TEnum en1, TEnum en2 -> EnumName.compare en1 en2
+  | TOption t1, TOption t2 -> compare_typ t1 t2
+  | TArrow (a1, b1), TArrow (a2, b2) -> (
+    match compare_typ a1 a2 with 0 -> compare_typ b1 b2 | n -> n)
+  | TArray t1, TArray t2 -> compare_typ t1 t2
+  | TAny, TAny -> 0
+  | TLit _, _ -> -1
+  | _, TLit _ -> 1
+  | TTuple _, _ -> -1
+  | _, TTuple _ -> 1
+  | TStruct _, _ -> -1
+  | _, TStruct _ -> 1
+  | TEnum _, _ -> -1
+  | _, TEnum _ -> 1
+  | TOption _, _ -> -1
+  | _, TOption _ -> 1
+  | TArrow _, _ -> -1
+  | _, TArrow _ -> 1
+  | TArray _, _ -> -1
+  | _, TArray _ -> 1
+
+let equal_lit (type a) (l1 : a glit) (l2 : a glit) =
+  match l1, l2 with
+  | LBool b1, LBool b2 -> Bool.equal b1 b2
+  | LEmptyError, LEmptyError -> true
+  | LInt n1, LInt n2 -> Runtime.( =! ) n1 n2
+  | LRat r1, LRat r2 -> Runtime.( =& ) r1 r2
+  | LMoney m1, LMoney m2 -> Runtime.( =$ ) m1 m2
+  | LUnit, LUnit -> true
+  | LDate d1, LDate d2 -> Runtime.( =@ ) d1 d2
+  | LDuration d1, LDuration d2 -> Runtime.( =^ ) d1 d2
+  | ( ( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
+      | LDuration _ ),
+      _ ) ->
+    false
+
+let compare_lit (type a) (l1 : a glit) (l2 : a glit) =
+  match l1, l2 with
+  | LBool b1, LBool b2 -> Bool.compare b1 b2
+  | LEmptyError, LEmptyError -> 0
+  | LInt n1, LInt n2 ->
+    if Runtime.( <! ) n1 n2 then -1 else if Runtime.( =! ) n1 n2 then 0 else 1
+  | LRat r1, LRat r2 ->
+    if Runtime.( <& ) r1 r2 then -1 else if Runtime.( =& ) r1 r2 then 0 else 1
+  | LMoney m1, LMoney m2 ->
+    if Runtime.( <$ ) m1 m2 then -1 else if Runtime.( =$ ) m1 m2 then 0 else 1
+  | LUnit, LUnit -> 0
+  | LDate d1, LDate d2 ->
+    if Runtime.( <@ ) d1 d2 then -1 else if Runtime.( =@ ) d1 d2 then 0 else 1
+  | LDuration d1, LDuration d2 -> (
+    (* Duration comparison in the runtime may fail, so rely on a basic
+       lexicographic comparison instead *)
+    let y1, m1, d1 = Runtime.duration_to_years_months_days d1 in
+    let y2, m2, d2 = Runtime.duration_to_years_months_days d2 in
+    match compare y1 y2 with
+    | 0 -> ( match compare m1 m2 with 0 -> compare d1 d2 | n -> n)
+    | n -> n)
+  | LBool _, _ -> -1
+  | _, LBool _ -> 1
+  | LEmptyError, _ -> -1
+  | _, LEmptyError -> 1
+  | LInt _, _ -> -1
+  | _, LInt _ -> 1
+  | LRat _, _ -> -1
+  | _, LRat _ -> 1
+  | LMoney _, _ -> -1
+  | _, LMoney _ -> 1
+  | LUnit, _ -> -1
+  | _, LUnit -> 1
+  | LDate _, _ -> -1
+  | _, LDate _ -> 1
+  | LDuration _, _ -> .
+  | _, LDuration _ -> .
 
 let equal_log_entries l1 l2 =
   match l1, l2 with
-  | VarDef t1, VarDef t2 -> equal_typs (t1, Pos.no_pos) (t2, Pos.no_pos)
+  | VarDef t1, VarDef t2 -> equal_typ (t1, Pos.no_pos) (t2, Pos.no_pos)
   | x, y -> x = y
+
+let compare_log_entries l1 l2 =
+  match l1, l2 with
+  | VarDef t1, VarDef t2 -> compare_typ (t1, Pos.no_pos) (t2, Pos.no_pos)
+  | BeginCall, BeginCall
+  | EndCall, EndCall
+  | PosRecordIfTrueBool, PosRecordIfTrueBool ->
+    0
+  | VarDef _, _ -> -1
+  | _, VarDef _ -> 1
+  | BeginCall, _ -> -1
+  | _, BeginCall -> 1
+  | EndCall, _ -> -1
+  | _, EndCall -> 1
+  | PosRecordIfTrueBool, _ -> .
+  | _, PosRecordIfTrueBool -> .
+
+(* let equal_op_kind = Stdlib.(=) *)
+
+let compare_op_kind = Stdlib.compare
 
 let equal_unops op1 op2 =
   match op1, op2 with
   (* Log entries contain a typ which contain position information, we thus need
      to descend into them *)
-  | Log (l1, info1), Log (l2, info2) -> equal_log_entries l1 l2 && info1 = info2
+  | Log (l1, info1), Log (l2, info2) ->
+    equal_log_entries l1 l2 && List.equal Uid.MarkedString.equal info1 info2
   | Log _, _ | _, Log _ -> false
   (* All the other cases can be discharged through equality *)
   | ( ( Not | Minus _ | Length | IntToRat | MoneyToRat | RatToMoney | GetDay
@@ -302,37 +422,104 @@ let equal_unops op1 op2 =
       _ ) ->
     op1 = op2
 
+let compare_unops op1 op2 =
+  match op1, op2 with
+  | Not, Not -> 0
+  | Minus k1, Minus k2 -> compare_op_kind k1 k2
+  | Log (l1, info1), Log (l2, info2) -> (
+    match compare_log_entries l1 l2 with
+    | 0 -> List.compare Uid.MarkedString.compare info1 info2
+    | n -> n)
+  | Length, Length
+  | IntToRat, IntToRat
+  | MoneyToRat, MoneyToRat
+  | RatToMoney, RatToMoney
+  | GetDay, GetDay
+  | GetMonth, GetMonth
+  | GetYear, GetYear
+  | FirstDayOfMonth, FirstDayOfMonth
+  | LastDayOfMonth, LastDayOfMonth
+  | RoundMoney, RoundMoney
+  | RoundDecimal, RoundDecimal ->
+    0
+  | Not, _ -> -1
+  | _, Not -> 1
+  | Minus _, _ -> -1
+  | _, Minus _ -> 1
+  | Log _, _ -> -1
+  | _, Log _ -> 1
+  | Length, _ -> -1
+  | _, Length -> 1
+  | IntToRat, _ -> -1
+  | _, IntToRat -> 1
+  | MoneyToRat, _ -> -1
+  | _, MoneyToRat -> 1
+  | RatToMoney, _ -> -1
+  | _, RatToMoney -> 1
+  | GetDay, _ -> -1
+  | _, GetDay -> 1
+  | GetMonth, _ -> -1
+  | _, GetMonth -> 1
+  | GetYear, _ -> -1
+  | _, GetYear -> 1
+  | FirstDayOfMonth, _ -> -1
+  | _, FirstDayOfMonth -> 1
+  | LastDayOfMonth, _ -> -1
+  | _, LastDayOfMonth -> 1
+  | RoundMoney, _ -> -1
+  | _, RoundMoney -> 1
+  | RoundDecimal, _ -> .
+  | _, RoundDecimal -> .
+
+let equal_binop = Stdlib.( = )
+let compare_binop = Stdlib.compare
+let equal_ternop = Stdlib.( = )
+let compare_ternop = Stdlib.compare
+
 let equal_ops op1 op2 =
   match op1, op2 with
-  | Ternop op1, Ternop op2 -> op1 = op2
-  | Binop op1, Binop op2 -> op1 = op2
+  | Ternop op1, Ternop op2 -> equal_ternop op1 op2
+  | Binop op1, Binop op2 -> equal_binop op1 op2
   | Unop op1, Unop op2 -> equal_unops op1 op2
   | _, _ -> false
 
+let compare_op op1 op2 =
+  match op1, op2 with
+  | Ternop op1, Ternop op2 -> compare_ternop op1 op2
+  | Binop op1, Binop op2 -> compare_binop op1 op2
+  | Unop op1, Unop op2 -> compare_unops op1 op2
+  | Ternop _, _ -> -1
+  | _, Ternop _ -> 1
+  | Binop _, _ -> -1
+  | _, Binop _ -> 1
+  | Unop _, _ -> .
+  | _, Unop _ -> .
+
 let equal_except ex1 ex2 = ex1 = ex2
+let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
 
 (* weird indentation; see
    https://github.com/ocaml-ppx/ocamlformat/issues/2143 *)
 let rec equal_list :
-          'a. ('a, 't) gexpr marked list -> ('a, 't) gexpr marked list -> bool =
+          'a. ('a, 't) marked_gexpr list -> ('a, 't) marked_gexpr list -> bool =
  fun es1 es2 ->
   try List.for_all2 equal es1 es2 with Invalid_argument _ -> false
 
-and equal : type a. (a, 't) gexpr marked -> (a, 't) gexpr marked -> bool =
+and equal : type a. (a, 't) marked_gexpr -> (a, 't) marked_gexpr -> bool =
  fun e1 e2 ->
   match Marked.unmark e1, Marked.unmark e2 with
   | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
   | ETuple (es1, n1), ETuple (es2, n2) -> n1 = n2 && equal_list es1 es2
   | ETupleAccess (e1, id1, n1, tys1), ETupleAccess (e2, id2, n2, tys2) ->
-    equal e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
+    equal e1 e2 && id1 = id2 && n1 = n2 && equal_typ_list tys1 tys2
   | EInj (e1, id1, n1, tys1), EInj (e2, id2, n2, tys2) ->
-    equal e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
+    equal e1 e2 && id1 = id2 && n1 = n2 && equal_typ_list tys1 tys2
   | EMatch (e1, cases1, n1), EMatch (e2, cases2, n2) ->
     n1 = n2 && equal e1 e2 && equal_list cases1 cases2
   | EArray es1, EArray es2 -> equal_list es1 es2
   | ELit l1, ELit l2 -> l1 = l2
   | EAbs (b1, tys1), EAbs (b2, tys2) ->
-    equal_typs_list tys1 tys2
+    equal_typ_list tys1 tys2
     &&
     let vars1, body1 = Bindlib.unmbind b1 in
     let body2 = Bindlib.msubst b2 (Array.map (fun x -> EVar x) vars1) in
@@ -365,6 +552,103 @@ and equal : type a. (a, 't) gexpr marked -> (a, 't) gexpr marked -> bool =
       | EStruct _ | EStructAccess _ | EEnumInj _ | EMatchS _ ),
       _ ) ->
     false
+
+let rec compare : type a. (a, _) marked_gexpr -> (a, _) marked_gexpr -> int =
+ fun e1 e2 ->
+  (* Infix operator to chain comparisons lexicographically. *)
+  let ( @@< ) cmp1 cmpf = match cmp1 with 0 -> cmpf () | n -> n in
+  (* OCamlformat doesn't know to keep consistency in match cases so disabled
+     locally for readability *)
+  match[@ocamlformat "disable"] Marked.unmark e1, Marked.unmark e2 with
+  | ELit l1, ELit l2 ->
+    compare_lit l1 l2
+  | EApp (f1, args1), EApp (f2, args2) ->
+    compare f1 f2 @@< fun () ->
+    List.compare compare args1 args2
+  | EOp op1, EOp op2 ->
+    compare_op op1 op2
+  | EArray a1, EArray a2 ->
+    List.compare compare a1 a2
+  | EVar v1, EVar v2 ->
+    Bindlib.compare_vars v1 v2
+  | EAbs (binder1, typs1), EAbs (binder2, typs2) ->
+    List.compare compare_typ typs1 typs2 @@< fun () ->
+    let _, e1, e2 = Bindlib.unmbind2 binder1 binder2 in
+    compare e1 e2
+  | EIfThenElse (i1, t1, e1), EIfThenElse (i2, t2, e2) ->
+    compare i1 i2 @@< fun () ->
+    compare t1 t2 @@< fun () ->
+    compare e1 e2
+  | ELocation _, ELocation _ ->
+    0
+  | EStruct (name1, field_map1), EStruct (name2, field_map2) ->
+    StructName.compare name1 name2 @@< fun () ->
+    StructFieldMap.compare compare field_map1 field_map2
+  | EStructAccess (e1, field_name1, struct_name1),
+    EStructAccess (e2, field_name2, struct_name2) ->
+    compare e1 e2 @@< fun () ->
+    StructFieldName.compare field_name1 field_name2 @@< fun () ->
+    StructName.compare struct_name1 struct_name2
+  | EEnumInj (e1, cstr1, name1), EEnumInj (e2, cstr2, name2) ->
+    compare e1 e2 @@< fun () ->
+    EnumName.compare name1 name2 @@< fun () ->
+    EnumConstructor.compare cstr1 cstr2
+  | EMatchS (e1, name1, emap1), EMatchS (e2, name2, emap2) ->
+    compare e1 e2 @@< fun () ->
+    EnumName.compare name1 name2 @@< fun () ->
+    EnumConstructorMap.compare compare emap1 emap2
+  | ETuple (es1, s1), ETuple (es2, s2) ->
+    Option.compare StructName.compare s1 s2 @@< fun () ->
+    List.compare compare es1 es2
+  | ETupleAccess (e1, n1, s1, tys1), ETupleAccess (e2, n2, s2, tys2) ->
+    Option.compare StructName.compare s1 s2 @@< fun () ->
+    Int.compare n1 n2 @@< fun () ->
+    List.compare compare_typ tys1 tys2 @@< fun () ->
+    compare e1 e2
+  | EInj (e1, n1, name1, ts1), EInj (e2, n2, name2, ts2) ->
+    EnumName.compare name1 name2 @@< fun () ->
+    Int.compare n1 n2 @@< fun () ->
+    List.compare compare_typ ts1 ts2 @@< fun () ->
+    compare e1 e2
+  | EMatch (e1, cases1, n1), EMatch (e2, cases2, n2) ->
+    EnumName.compare n1 n2 @@< fun () ->
+    compare e1 e2 @@< fun () ->
+    List.compare compare cases1 cases2
+  | EAssert e1, EAssert e2 ->
+    compare e1 e2
+  | EDefault (exs1, just1, cons1), EDefault (exs2, just2, cons2) ->
+    compare just1 just2 @@< fun () ->
+    compare cons1 cons2 @@< fun () ->
+    List.compare compare exs1 exs2
+  | ErrorOnEmpty e1, ErrorOnEmpty e2 ->
+    compare e1 e2
+  | ERaise ex1, ERaise ex2 ->
+    compare_except ex1 ex2
+  | ECatch (etry1, ex1, ewith1), ECatch (etry2, ex2, ewith2) ->
+    compare_except ex1 ex2 @@< fun () ->
+    compare etry1 etry2 @@< fun () ->
+    compare ewith1 ewith2
+  | ELit _, _ -> -1 | _, ELit _ -> 1
+  | EApp _, _ -> -1 | _, EApp _ -> 1
+  | EOp _, _ -> -1 | _, EOp _ -> 1
+  | EArray _, _ -> -1 | _, EArray _ -> 1
+  | EVar _, _ -> -1 | _, EVar _ -> 1
+  | EAbs _, _ -> -1 | _, EAbs _ -> 1
+  | EIfThenElse _, _ -> -1 | _, EIfThenElse _ -> 1
+  | ELocation _, _ -> -1 | _, ELocation _ -> 1
+  | EStruct _, _ -> -1 | _, EStruct _ -> 1
+  | EStructAccess _, _ -> -1 | _, EStructAccess _ -> 1
+  | EEnumInj _, _ -> -1 | _, EEnumInj _ -> 1
+  | EMatchS _, _ -> -1 | _, EMatchS _ -> 1
+  | ETuple _, _ -> -1 | _, ETuple _ -> 1
+  | ETupleAccess _, _ -> -1 | _, ETupleAccess _ -> 1
+  | EInj _, _ -> -1 | _, EInj _ -> 1
+  | EMatch _, _ -> -1 | _, EMatch _ -> 1
+  | EAssert _, _ -> -1 | _, EAssert _ -> 1
+  | EDefault _, _ -> -1 | _, EDefault _ -> 1
+  | ErrorOnEmpty _, _ -> . | _, ErrorOnEmpty _ -> .
+  | ERaise _, _ -> -1 | _, ERaise _ -> 1
+  | ECatch _, _ -> . | _, ECatch _ -> .
 
 let rec free_vars : type a. (a, 't) gexpr marked -> (a, 't) gexpr Var.Set.t =
  fun e ->

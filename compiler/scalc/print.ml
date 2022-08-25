@@ -107,14 +107,14 @@ let rec format_statement
          (fun fmt ((name, _), typ) ->
            Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
              LocalName.format_t name Print.punctuation ":" (Print.typ decl_ctx)
-             (Marked.unmark typ) Print.punctuation ")"))
+             typ Print.punctuation ")"))
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
   | SLocalDecl (name, typ) ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
       LocalName.format_t (Marked.unmark name) Print.punctuation ":"
-      (Print.typ decl_ctx) (Marked.unmark typ)
+      (Print.typ decl_ctx) typ
   | SLocalDef (name, expr) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" LocalName.format_t
       (Marked.unmark name) Print.punctuation "="
@@ -184,7 +184,7 @@ let format_scope
        (fun fmt ((name, _), typ) ->
          Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
            LocalName.format_t name Print.punctuation ":" (Print.typ decl_ctx)
-           (Marked.unmark typ) Print.punctuation ")"))
+           typ Print.punctuation ")"))
     body.scope_body_func.func_params Print.punctuation "="
     (format_block decl_ctx ~debug)
     body.scope_body_func.func_body

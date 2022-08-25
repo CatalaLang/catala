@@ -533,7 +533,7 @@ let interpret_program :
               Errors.raise_spanned_error bad_pos
                 "@[<hv 2>(bug) Result of interpretation doesn't have the \
                  expected type:@ @[%a@]@]"
-                (Print.typ ctx) (fst @@ ty))
+                (Print.typ ctx) ty)
           mark_e )
     in
     match Marked.unmark (evaluate_expr ctx to_interpret) with

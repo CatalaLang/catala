@@ -18,8 +18,8 @@ open Utils
 open String_common
 open Definitions
 
-let typ_needs_parens (e : typ) : bool =
-  match e with TArrow _ | TArray _ -> true | _ -> false
+let typ_needs_parens (ty : marked_typ) : bool =
+  match Marked.unmark ty with TArrow _ | TArray _ -> true | _ -> false
 
 let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
     unit =
@@ -59,9 +59,12 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TDuration -> "duration"
     | TDate -> "date")
 
-let location (fmt : Format.formatter) (l : location) : unit =
+let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
-  | ScopeVar v -> Format.fprintf fmt "%a" ScopeVar.format_t (Marked.unmark v)
+  | DesugaredScopeVar (v, _st) ->
+    Format.fprintf fmt "%a" ScopeVar.format_t (Marked.unmark v)
+  | ScopelangScopeVar v ->
+    Format.fprintf fmt "%a" ScopeVar.format_t (Marked.unmark v)
   | SubScopeVar (_, subindex, subvar) ->
     Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
       ScopeVar.format_t (Marked.unmark subvar)
@@ -71,20 +74,20 @@ let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
-let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
+let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : marked_typ) : unit =
   let typ = typ ctx in
-  let typ_with_parens (fmt : Format.formatter) (t : typ) =
+  let typ_with_parens (fmt : Format.formatter) (t : marked_typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" typ t
     else Format.fprintf fmt "%a" typ t
   in
-  match ty with
+  match Marked.unmark ty with
   | TLit l -> tlit fmt l
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " operator "*")
          (fun fmt t -> Format.fprintf fmt "%a" typ t))
-      (List.map Marked.unmark ts)
+      ts
   | TStruct s ->
     Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" StructName.format_t s punctuation
       "{"
@@ -93,7 +96,7 @@ let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
          (fun fmt (field, mty) ->
            Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
              StructFieldName.format_t field punctuation "\"" punctuation ":" typ
-             (Marked.unmark mty)))
+             mty))
       (StructMap.find s ctx.ctx_structs)
       punctuation "}"
   | TEnum e ->
@@ -102,18 +105,14 @@ let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
          (fun fmt (case, mty) ->
            Format.fprintf fmt "%a%a@ %a" enum_constructor case punctuation ":"
-             typ (Marked.unmark mty)))
+             typ mty))
       (EnumMap.find e ctx.ctx_enums)
       punctuation "]"
-  | TOption t ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ
-      (Marked.unmark t)
+  | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens (Marked.unmark t1)
-      operator "→" typ (Marked.unmark t2)
-  | TArray t1 ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "array" typ
-      (Marked.unmark t1)
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens t1 operator "→"
+      typ t2
+  | TArray t1 -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "array" typ t1
   | TAny -> base_type fmt "any"
 
 let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
@@ -206,21 +205,21 @@ let except (fmt : Format.formatter) (exn : except) : unit =
     | Crash -> "Crash"
     | NoValueProvided -> "NoValueProvided")
 
-let needs_parens (type a) (e : (a, _) gexpr marked) : bool =
-  match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
-
 let var fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
+
+let needs_parens (type a) (e : (a, _) marked_gexpr) : bool =
+  match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
 let rec expr :
           'a.
           ?debug:bool ->
           decl_ctx ->
           Format.formatter ->
-          ('a, 't) gexpr marked ->
+          ('a, 't) marked_gexpr ->
           unit =
   fun (type a) ?(debug : bool = false) (ctx : decl_ctx) (fmt : Format.formatter)
-      (e : (a, 't) gexpr marked) ->
+      (e : (a, 't) marked_gexpr) ->
    let expr e = expr ~debug ctx e in
    let with_parens fmt e =
      if needs_parens e then (
@@ -278,9 +277,7 @@ let rec expr :
    | ELit l -> lit fmt l
    | EApp ((EAbs (binder, taus), _), args) ->
      let xs, body = Bindlib.unmbind binder in
-     let xs_tau =
-       List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus
-     in
+     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) taus in
      let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
      Format.fprintf fmt "%a%a"
        (Format.pp_print_list
@@ -292,9 +289,7 @@ let rec expr :
        xs_tau_arg expr body
    | EAbs (binder, taus) ->
      let xs, body = Bindlib.unmbind binder in
-     let xs_tau =
-       List.map2 (fun x tau -> x, Marked.unmark tau) (Array.to_list xs) taus
-     in
+     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) taus in
      Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" punctuation "λ"
        (Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")

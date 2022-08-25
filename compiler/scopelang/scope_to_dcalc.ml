@@ -36,20 +36,20 @@ type scope_sig_ctx = {
 type scope_sigs_ctx = scope_sig_ctx Ast.ScopeMap.t
 
 type ctx = {
-  structs : Ast.struct_ctx;
-  enums : Ast.enum_ctx;
+  structs : struct_ctx;
+  enums : enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : scope_sigs_ctx;
   scope_vars : (untyped Dcalc.Ast.expr Var.t * typ * Ast.io) Ast.ScopeVarMap.t;
   subscope_vars :
     (untyped Dcalc.Ast.expr Var.t * typ * Ast.io) Ast.ScopeVarMap.t
     Ast.SubScopeMap.t;
-  local_vars : untyped Dcalc.Ast.expr Var.t Ast.VarMap.t;
+  local_vars : (Ast.expr, untyped Dcalc.Ast.expr Var.t) Var.Map.t;
 }
 
 let empty_ctx
-    (struct_ctx : Ast.struct_ctx)
-    (enum_ctx : Ast.enum_ctx)
+    (struct_ctx : struct_ctx)
+    (enum_ctx : enum_ctx)
     (scopes_ctx : scope_sigs_ctx)
     (scope_name : ScopeName.t) =
   {
@@ -59,20 +59,8 @@ let empty_ctx
     scopes_parameters = scopes_ctx;
     scope_vars = Ast.ScopeVarMap.empty;
     subscope_vars = Ast.SubScopeMap.empty;
-    local_vars = Ast.VarMap.empty;
+    local_vars = Var.Map.empty;
   }
-
-let rec translate_typ (_ctx : ctx) (t : Ast.typ Marked.pos) : typ Marked.pos =
-  Marked.same_mark_as
-    (match Marked.unmark t with
-    | Ast.TLit l -> TLit l
-    | Ast.TArrow (t1, t2) ->
-      TArrow (translate_typ _ctx t1, translate_typ _ctx t2)
-    | Ast.TStruct s_uid -> TStruct s_uid
-    | Ast.TEnum e_uid -> TEnum e_uid
-    | Ast.TArray t1 -> TArray (translate_typ _ctx (Marked.same_mark_as t1 t))
-    | Ast.TAny -> TAny)
-    t
 
 let pos_mark (pos : Pos.t) : untyped mark = Untyped { pos }
 let pos_mark_as e = pos_mark (Marked.get_mark e)
@@ -118,7 +106,7 @@ let collapse_similar_outcomes (excepts : Ast.expr Marked.pos list) :
   let cons_map =
     List.fold_left
       (fun map -> function
-        | (Ast.EDefault ([], _, (cons, _)), _) as e ->
+        | (EDefault ([], _, cons), _) as e ->
           Ast.ExprMap.update cons
             (fun prev -> Some (e :: Option.value ~default:[] prev))
             map
@@ -129,12 +117,12 @@ let collapse_similar_outcomes (excepts : Ast.expr Marked.pos list) :
     List.fold_right
       (fun e (cons_map, excepts) ->
         match e with
-        | Ast.EDefault ([], _, (cons, _)), _ ->
+        | EDefault ([], _, cons), _ ->
           let collapsed_exc =
             List.fold_left
               (fun acc -> function
-                | Ast.EDefault ([], just, cons), pos ->
-                  [Ast.EDefault (acc, just, cons), pos]
+                | EDefault ([], just, cons), pos ->
+                  [EDefault (acc, just, cons), pos]
                 | _ -> assert false)
               []
               (Ast.ExprMap.find cons cons_map)
@@ -151,8 +139,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
       Marked.mark (pos_mark_as e) x)
   @@
   match Marked.unmark e with
-  | EVar v -> Bindlib.box_var (Ast.VarMap.find v ctx.local_vars)
-  | ELit l -> Bindlib.box (ELit l)
+  | EVar v -> Bindlib.box_var (Var.Map.find v ctx.local_vars)
+  | ELit
+      (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
+       | LDuration _ ) as l) ->
+    Bindlib.box (ELit l)
   | EStruct (struct_name, e_fields) ->
     let struct_sig = StructMap.find struct_name ctx.structs in
     let d_fields, remaining_e_fields =
@@ -189,11 +180,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     let e1 = translate_expr ctx e1 in
     Bindlib.box_apply
       (fun e1 ->
-        ETupleAccess
-          ( e1,
-            field_index,
-            Some struct_name,
-            List.map (fun (_, t) -> translate_typ ctx t) struct_sig ))
+        ETupleAccess (e1, field_index, Some struct_name, List.map snd struct_sig))
       e1
   | EEnumInj (e1, constructor, enum_name) ->
     let enum_sig = EnumMap.find enum_name ctx.enums in
@@ -207,14 +194,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     in
     let e1 = translate_expr ctx e1 in
     Bindlib.box_apply
-      (fun e1 ->
-        EInj
-          ( e1,
-            constructor_index,
-            enum_name,
-            List.map (fun (_, t) -> translate_typ ctx t) enum_sig ))
+      (fun e1 -> EInj (e1, constructor_index, enum_name, List.map snd enum_sig))
       e1
-  | EMatch (e1, enum_name, cases) ->
+  | EMatchS (e1, enum_name, cases) ->
     let enum_sig = EnumMap.find enum_name ctx.enums in
     let d_cases, remaining_e_cases =
       List.fold_right
@@ -251,9 +233,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     let e1_func = translate_expr ctx e1 in
     let markings l =
       match l with
-      | Ast.ScopeVar (v, _) ->
+      | ScopelangScopeVar (v, _) ->
         [ScopeName.get_info ctx.scope_name; ScopeVar.get_info v]
-      | Ast.SubScopeVar (s, _, (v, _)) ->
+      | SubScopeVar (s, _, (v, _)) ->
         [ScopeName.get_info s; ScopeVar.get_info v]
     in
     let e1_func =
@@ -275,7 +257,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
         | _ -> TAny, TAny
       in
       match Marked.unmark e1 with
-      | ELocation (ScopeVar var) ->
+      | ELocation (ScopelangScopeVar var) ->
         retrieve_in_and_out_typ_or_any var ctx.scope_vars
       | ELocation (SubScopeVar (_, sname, var)) ->
         ctx.subscope_vars
@@ -318,22 +300,20 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
           ctx with
           local_vars =
             Array.fold_left
-              (fun local_vars (x, new_x) -> Ast.VarMap.add x new_x local_vars)
+              (fun local_vars (x, new_x) -> Var.Map.add x new_x local_vars)
               ctx.local_vars both_xs;
         }
         body
     in
     let binder = Bindlib.bind_mvar new_xs body in
-    Bindlib.box_apply
-      (fun b -> EAbs (b, List.map (translate_typ ctx) typ))
-      binder
+    Bindlib.box_apply (fun b -> EAbs (b, typ)) binder
   | EDefault (excepts, just, cons) ->
     let excepts = collapse_similar_outcomes excepts in
     Bindlib.box_apply3
       (fun e j c -> EDefault (e, j, c))
       (Bindlib.box_list (List.map (translate_expr ctx) excepts))
       (translate_expr ctx just) (translate_expr ctx cons)
-  | ELocation (ScopeVar a) ->
+  | ELocation (ScopelangScopeVar a) ->
     let v, _, _ = Ast.ScopeVarMap.find (Marked.unmark a) ctx.scope_vars in
     Bindlib.box_var v
   | ELocation (SubScopeVar (_, s, a)) -> (
@@ -381,10 +361,9 @@ let translate_rule
     untyped Dcalc.Ast.expr scope_body_expr Bindlib.box)
     * ctx =
   match rule with
-  | Definition ((ScopeVar a, var_def_pos), tau, a_io, e) ->
+  | Definition ((ScopelangScopeVar a, var_def_pos), tau, a_io, e) ->
     let a_name = ScopeVar.get_info (Marked.unmark a) in
     let a_var = Var.make (Marked.unmark a_name) in
-    let tau = translate_typ ctx tau in
     let new_e = translate_expr ctx e in
     let a_expr = Expr.make_var (a_var, pos_mark var_def_pos) in
     let merged_expr =
@@ -435,7 +414,6 @@ let translate_rule
         (SubScopeName.get_info (Marked.unmark subs_index))
     in
     let a_var = Var.make (Marked.unmark a_name) in
-    let tau = translate_typ ctx tau in
     let new_e =
       tag_with_log_entry (translate_expr ctx e)
         (VarDef (Marked.unmark tau))
@@ -690,8 +668,8 @@ let translate_rules
     new_ctx )
 
 let translate_scope_decl
-    (struct_ctx : Ast.struct_ctx)
-    (enum_ctx : Ast.enum_ctx)
+    (struct_ctx : struct_ctx)
+    (enum_ctx : enum_ctx)
     (sctx : scope_sigs_ctx)
     (scope_name : ScopeName.t)
     (sigma : Ast.scope_decl) :
@@ -826,29 +804,11 @@ let translate_program (prgm : Ast.program) :
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
   let types_ordering =
-    Dependency.check_type_cycles prgm.program_structs prgm.program_enums
+    Dependency.check_type_cycles prgm.program_ctx.ctx_structs
+      prgm.program_ctx.ctx_enums
   in
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
-  let struct_ctx = prgm.program_structs in
-  let enum_ctx = prgm.program_enums in
-  let ctx_for_typ_translation scope_name =
-    empty_ctx struct_ctx enum_ctx Ast.ScopeMap.empty scope_name
-  in
-  let dummy_scope = ScopeName.fresh ("dummy", Pos.no_pos) in
-  let decl_ctx =
-    {
-      ctx_structs =
-        StructMap.map
-          (List.map (fun (x, y) ->
-               x, translate_typ (ctx_for_typ_translation dummy_scope) y))
-          struct_ctx;
-      ctx_enums =
-        EnumMap.map
-          (List.map (fun (x, y) ->
-               x, (translate_typ (ctx_for_typ_translation dummy_scope)) y))
-          enum_ctx;
-    }
-  in
+  let decl_ctx = prgm.program_ctx in
   let sctx : scope_sigs_ctx =
     Ast.ScopeMap.mapi
       (fun scope_name scope ->
@@ -875,9 +835,6 @@ let translate_program (prgm : Ast.program) :
           scope_sig_local_vars =
             List.map
               (fun (scope_var, (tau, vis)) ->
-                let tau =
-                  translate_typ (ctx_for_typ_translation scope_name) tau
-                in
                 {
                   scope_var_name = scope_var;
                   scope_var_typ = Marked.unmark tau;
@@ -898,7 +855,8 @@ let translate_program (prgm : Ast.program) :
       (fun scope_name (scopes, decl_ctx) ->
         let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
         let scope_body, scope_out_struct =
-          translate_scope_decl struct_ctx enum_ctx sctx scope_name scope
+          translate_scope_decl decl_ctx.ctx_structs decl_ctx.ctx_enums sctx
+            scope_name scope
         in
         let dvar = (Ast.ScopeMap.find scope_name sctx).scope_sig_scope_var in
         let decl_ctx =

@@ -33,33 +33,29 @@ open Shared_ast
 
     Indeed, during interpretation, subscopes are executed atomically. *)
 module Vertex = struct
-  type t =
-    | Var of Ast.ScopeVar.t * Ast.StateName.t option
-    | SubScope of SubScopeName.t
+  type t = Var of ScopeVar.t * StateName.t option | SubScope of SubScopeName.t
 
   let hash x =
     match x with
-    | Var (x, None) -> Ast.ScopeVar.hash x
-    | Var (x, Some sx) ->
-      Int.logxor (Ast.ScopeVar.hash x) (Ast.StateName.hash sx)
+    | Var (x, None) -> ScopeVar.hash x
+    | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
     | SubScope x -> SubScopeName.hash x
 
   let compare = compare
 
   let equal x y =
     match x, y with
-    | Var (x, None), Var (y, None) -> Ast.ScopeVar.compare x y = 0
+    | Var (x, None), Var (y, None) -> ScopeVar.compare x y = 0
     | Var (x, Some sx), Var (y, Some sy) ->
-      Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
+      ScopeVar.compare x y = 0 && StateName.compare sx sy = 0
     | SubScope x, SubScope y -> SubScopeName.compare x y = 0
     | _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
-    | Var (v, None) -> Ast.ScopeVar.format_t fmt v
+    | Var (v, None) -> ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
-      Format.fprintf fmt "%a.%a" Ast.ScopeVar.format_t v Ast.StateName.format_t
-        sv
+      Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
     | SubScope v -> SubScopeName.format_t fmt v
 end
 
@@ -104,12 +100,11 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              let var_str, var_info =
                match v with
                | Vertex.Var (v, None) ->
-                 ( Format.asprintf "%a" Ast.ScopeVar.format_t v,
-                   Ast.ScopeVar.get_info v )
+                 Format.asprintf "%a" ScopeVar.format_t v, ScopeVar.get_info v
                | Vertex.Var (v, Some sv) ->
-                 ( Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
-                     Ast.StateName.format_t sv,
-                   Ast.StateName.get_info sv )
+                 ( Format.asprintf "%a.%a" ScopeVar.format_t v
+                     StateName.format_t sv,
+                   StateName.get_info sv )
                | Vertex.SubScope v ->
                  ( Format.asprintf "%a" SubScopeName.format_t v,
                    SubScopeName.get_info v )
@@ -121,10 +116,10 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              let succ_str =
                match succ with
                | Vertex.Var (v, None) ->
-                 Format.asprintf "%a" Ast.ScopeVar.format_t v
+                 Format.asprintf "%a" ScopeVar.format_t v
                | Vertex.Var (v, Some sv) ->
-                 Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
-                   Ast.StateName.format_t sv
+                 Format.asprintf "%a.%a" ScopeVar.format_t v StateName.format_t
+                   sv
                | Vertex.SubScope v ->
                  Format.asprintf "%a" SubScopeName.format_t v
              in
@@ -149,7 +144,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   (* Add all the vertices to the graph *)
   let g =
     Ast.ScopeVarMap.fold
-      (fun (v : Ast.ScopeVar.t) var_or_state g ->
+      (fun (v : ScopeVar.t) var_or_state g ->
         match var_or_state with
         | Ast.WholeVar -> ScopeDependencies.add_vertex g (Vertex.Var (v, None))
         | Ast.States states ->

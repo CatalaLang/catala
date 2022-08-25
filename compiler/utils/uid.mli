@@ -22,6 +22,12 @@ module type Info = sig
 
   val to_string : info -> string
   val format_info : Format.formatter -> info -> unit
+
+  val equal : info -> info -> bool
+  (** Equality disregards position *)
+
+  val compare : info -> info -> int
+  (** Comparison disregards position *)
 end
 
 module MarkedString : Info with type info = string Marked.pos

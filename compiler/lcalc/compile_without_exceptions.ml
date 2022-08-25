@@ -137,20 +137,6 @@ let rec translate_typ (tau : typ Marked.pos) : typ Marked.pos =
       | TArrow (t1, t2) -> TArrow (translate_typ t1, translate_typ t2)
     end
 
-let translate_lit (l : D.lit) (pos : Pos.t) : A.lit =
-  match l with
-  | LBool l -> LBool l
-  | LInt i -> LInt i
-  | LRat r -> LRat r
-  | LMoney m -> LMoney m
-  | LUnit -> LUnit
-  | LDate d -> LDate d
-  | LDuration d -> LDuration d
-  | LEmptyError ->
-    Errors.raise_spanned_error pos
-      "Internal Error: An empty error was found in a place that shouldn't be \
-       possible."
-
 (** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
     Raises an internal error if there is two identicals keys in differnts parts. *)
 let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
@@ -219,7 +205,10 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
         (Expr.make_abs [| x |] (Expr.make_var (x, pos)) [TAny, Expr.pos e] pos),
       Var.Map.empty )
   (* pure terms *)
-  | ELit l -> Expr.elit (translate_lit l (Expr.pos e)) pos, Var.Map.empty
+  | ELit
+      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l) ->
+    Expr.elit l pos, Var.Map.empty
   | EIfThenElse (e1, e2, e3) ->
     let e1', h1 = translate_and_hoist ctx e1 in
     let e2', h2 = translate_and_hoist ctx e2 in

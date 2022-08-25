@@ -20,5 +20,5 @@ Type integer coming from expression:
  --> tests/test_array/bad/fold_error.catala_en
   | 
 5 |   context list content collection integer
-  |                        ^^^^^^^^^^^^^^^^^^
+  |                                   ^^^^^^^
   + Article
