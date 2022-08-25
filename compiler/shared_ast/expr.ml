@@ -18,6 +18,8 @@
 open Utils
 open Definitions
 
+type 'a box = 'a Bindlib.box
+
 (** Functions handling the types of [shared_ast] *)
 
 (* Basic block constructors *)
@@ -147,8 +149,8 @@ let fold_marks
 let map
     (type a)
     (ctx : 'ctx)
-    ~(f : 'ctx -> (a, 'm1) gexpr -> (a, 'm2) gexpr Bindlib.box)
-    (e : ((a, 'm1) naked_gexpr, 'm2) Marked.t) : (a, 'm2) gexpr Bindlib.box =
+    ~(f : 'ctx -> (a, 'm1) gexpr -> (a, 'm2) gexpr box)
+    (e : ((a, 'm1) naked_gexpr, 'm2) Marked.t) : (a, 'm2) gexpr box =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELit l -> elit l m

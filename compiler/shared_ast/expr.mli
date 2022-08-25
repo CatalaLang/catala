@@ -20,93 +20,95 @@
 open Utils
 open Definitions
 
+type 'a box = 'a Bindlib.box
+
 (** {2 Boxed constructors} *)
 
-val box : ('a, 't) gexpr -> ('a, 't) gexpr Bindlib.box
-val evar : ('a, 't) naked_gexpr Bindlib.var -> 't -> ('a, 't) gexpr Bindlib.box
+val box : ('a, 't) gexpr -> ('a, 't) gexpr box
+val evar : ('a, 't) naked_gexpr Bindlib.var -> 't -> ('a, 't) gexpr box
 
 val etuple :
-  (([< dcalc | lcalc ] as 'a), 't) gexpr Bindlib.box list ->
+  (([< dcalc | lcalc ] as 'a), 't) gexpr box list ->
   StructName.t option ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val etupleaccess :
-  (([< dcalc | lcalc ] as 'a), 't) gexpr Bindlib.box ->
+  (([< dcalc | lcalc ] as 'a), 't) gexpr box ->
   int ->
   StructName.t option ->
   marked_typ list ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val einj :
-  (([< dcalc | lcalc ] as 'a), 't) gexpr Bindlib.box ->
+  (([< dcalc | lcalc ] as 'a), 't) gexpr box ->
   int ->
   EnumName.t ->
   marked_typ list ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val ematch :
-  (([< dcalc | lcalc ] as 'a), 't) gexpr Bindlib.box ->
-  ('a, 't) gexpr Bindlib.box list ->
+  (([< dcalc | lcalc ] as 'a), 't) gexpr box ->
+  ('a, 't) gexpr box list ->
   EnumName.t ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val earray :
-  ('a any, 't) gexpr Bindlib.box list ->
+  ('a any, 't) gexpr box list ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
-val elit : 'a any glit -> 't -> ('a, 't) gexpr Bindlib.box
+val elit : 'a any glit -> 't -> ('a, 't) gexpr box
 
 val eabs :
-  (('a any, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder Bindlib.box ->
+  (('a any, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder box ->
   marked_typ list ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val eapp :
-  ('a any, 't) gexpr Bindlib.box ->
-  ('a, 't) gexpr Bindlib.box list ->
+  ('a any, 't) gexpr box ->
+  ('a, 't) gexpr box list ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val eassert :
-  (([< dcalc | lcalc ] as 'a), 't) gexpr Bindlib.box ->
+  (([< dcalc | lcalc ] as 'a), 't) gexpr box ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
-val eop : operator -> 't -> (_ any, 't) gexpr Bindlib.box
+val eop : operator -> 't -> (_ any, 't) gexpr box
 
 val edefault :
-  (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr Bindlib.box list ->
-  ('a, 't) gexpr Bindlib.box ->
-  ('a, 't) gexpr Bindlib.box ->
+  (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr box list ->
+  ('a, 't) gexpr box ->
+  ('a, 't) gexpr box ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val eifthenelse :
-  ('a any, 't) gexpr Bindlib.box ->
-  ('a, 't) gexpr Bindlib.box ->
-  ('a, 't) gexpr Bindlib.box ->
+  ('a any, 't) gexpr box ->
+  ('a, 't) gexpr box ->
+  ('a, 't) gexpr box ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val eerroronempty :
-  (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr Bindlib.box ->
+  (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr box ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val ecatch :
-  (lcalc, 't) gexpr Bindlib.box ->
+  (lcalc, 't) gexpr box ->
   except ->
-  (lcalc, 't) gexpr Bindlib.box ->
+  (lcalc, 't) gexpr box ->
   't ->
-  (lcalc, 't) gexpr Bindlib.box
+  (lcalc, 't) gexpr box
 
-val eraise : except -> 't -> (lcalc, 't) gexpr Bindlib.box
+val eraise : except -> 't -> (lcalc, 't) gexpr box
 
 (** Manipulation of marks *)
 
@@ -130,15 +132,15 @@ val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
 
 val untype :
-  ('a, 'm mark) gexpr -> ('a, untyped mark) gexpr Bindlib.box
+  ('a, 'm mark) gexpr -> ('a, untyped mark) gexpr box
 
 (** {2 Traversal functions} *)
 
 val map :
   'ctx ->
-  f:('ctx -> ('a, 't1) gexpr -> ('a, 't2) gexpr Bindlib.box) ->
+  f:('ctx -> ('a, 't1) gexpr -> ('a, 't2) gexpr box) ->
   (('a, 't1) naked_gexpr, 't2) Marked.t ->
-  ('a, 't2) gexpr Bindlib.box
+  ('a, 't2) gexpr box
 (** Flat (non-recursive) mapping on expressions.
 
     If you want to apply a map transform to an expression, you can save up
@@ -161,30 +163,30 @@ val map :
 val map_top_down :
   f:(('a, 't1) gexpr -> (('a, 't1) naked_gexpr, 't2) Marked.t) ->
   ('a, 't1) gexpr ->
-  ('a, 't2) gexpr Bindlib.box
+  ('a, 't2) gexpr box
 (** Recursively applies [f] to the nodes of the expression tree. The type
     returned by [f] is hybrid since the mark at top-level has been rewritten,
     but not yet the marks in the subtrees. *)
 
 val map_marks :
-  f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) gexpr Bindlib.box
+  f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) gexpr box
 
 (** {2 Expression building helpers} *)
 
-val make_var : 'a Bindlib.var * 'b -> ('a * 'b) Bindlib.box
+val make_var : 'a Bindlib.var * 'b -> ('a * 'b) box
 
 val make_abs :
   ('a, 't) naked_gexpr Var.vars ->
-  ('a, 't) gexpr Bindlib.box ->
+  ('a, 't) gexpr box ->
   typ Marked.pos list ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 
 val make_app :
-  ((_ any, 'm mark) naked_gexpr as 'e) marked Bindlib.box ->
-  'e marked Bindlib.box list ->
+  ((_ any, 'm mark) naked_gexpr as 'e) marked box ->
+  'e marked box list ->
   'm mark ->
-  'e marked Bindlib.box
+  'e marked box
 
 val empty_thunked_term :
   'm mark -> ([< dcalc | desugared | scopelang ], 'm mark) naked_gexpr marked
@@ -192,27 +194,27 @@ val empty_thunked_term :
 val make_let_in :
   'e Bindlib.var ->
   marked_typ ->
-  'e anyexpr marked Bindlib.box ->
-  'e marked Bindlib.box ->
+  'e anyexpr marked box ->
+  'e marked box ->
   Utils.Pos.t ->
-  'e marked Bindlib.box
+  'e marked box
 
 val make_let_in_raw :
   ('a any, 't) naked_gexpr Bindlib.var ->
   marked_typ ->
-  ('a, 't) gexpr Bindlib.box ->
-  ('a, 't) gexpr Bindlib.box ->
+  ('a, 't) gexpr box ->
+  ('a, 't) gexpr box ->
   't ->
-  ('a, 't) gexpr Bindlib.box
+  ('a, 't) gexpr box
 (** Version with any mark; to be removed once we use the [mark] type everywhere. *)
 
 val make_multiple_let_in :
   'e Var.vars ->
   marked_typ list ->
-  'e marked Bindlib.box list ->
-  'e marked Bindlib.box ->
+  'e marked box list ->
+  'e marked box ->
   Pos.t ->
-  'e marked Bindlib.box
+  'e marked box
 
 val make_default :
   (([< desugared | scopelang | dcalc ] as 'a), 't) gexpr list ->
@@ -236,7 +238,7 @@ val make_default :
 (** {2 Transformations} *)
 
 val remove_logging_calls :
-  ((_ any, 't) naked_gexpr as 'e) marked -> 'e marked Bindlib.box
+  ((_ any, 't) naked_gexpr as 'e) marked -> 'e marked box
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
