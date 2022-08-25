@@ -197,6 +197,15 @@ val make_let_in :
   Utils.Pos.t ->
   'e marked Bindlib.box
 
+val make_let_in_raw :
+  ('a any, 't) gexpr Bindlib.var ->
+  marked_typ ->
+  ('a, 't) marked_gexpr Bindlib.box ->
+  ('a, 't) marked_gexpr Bindlib.box ->
+  't ->
+  ('a, 't) marked_gexpr Bindlib.box
+(** Version with any mark; to be removed once we use the [mark] type everywhere. *)
+
 val make_multiple_let_in :
   'e Var.vars ->
   marked_typ list ->
@@ -242,6 +251,8 @@ val format :
 
 val equal_lit : 'a glit -> 'a glit -> bool
 val compare_lit : 'a glit -> 'a glit -> int
+val equal_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> bool
+val compare_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> int
 
 val equal : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr -> bool
 (** Determines if two expressions are equal, omitting their position information *)

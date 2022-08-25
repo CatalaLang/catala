@@ -47,6 +47,9 @@ module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
   Uid.Make (Uid.MarkedString) ()
 
+module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
+module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
+
 module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =
   Uid.Make (Uid.MarkedString) ()
 

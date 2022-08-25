@@ -60,7 +60,7 @@ type var_sig = {
 }
 
 type context = {
-  local_var_idmap : Desugared.Ast.Var.t Desugared.Ast.IdentMap.t;
+  local_var_idmap : Desugared.Ast.expr Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
   scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
@@ -79,7 +79,7 @@ type context = {
       (** For each scope, its context *)
   structs : struct_context StructMap.t;  (** For each struct, its context *)
   enums : enum_context EnumMap.t;  (** For each enum, its context *)
-  var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
+  var_typs : var_sig ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
@@ -120,7 +120,7 @@ val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Marked.pos
 val is_def_cond : context -> Desugared.Ast.ScopeDef.t -> bool
 val is_type_cond : Ast.typ Marked.pos -> bool
 
-val add_def_local_var : context -> ident -> context * Desugared.Ast.Var.t
+val add_def_local_var : context -> ident -> context * Desugared.Ast.expr Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :

@@ -24,8 +24,6 @@ open Shared_ast
 module ScopeMap : Map.S with type key = ScopeName.t
 module SubScopeNameSet : Set.S with type elt = SubScopeName.t
 module SubScopeMap : Map.S with type key = SubScopeName.t
-module ScopeVarSet : Set.S with type elt = ScopeVar.t
-module ScopeVarMap : Map.S with type key = ScopeVar.t
 
 module StructFieldMapLift : sig
   val lift_box :

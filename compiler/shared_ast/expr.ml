@@ -232,6 +232,9 @@ let empty_thunked_term mark =
             Marked.mark pos (TArrow (Marked.mark pos (TLit TUnit), ty)))
           mark))
 
+let make_let_in_raw x tau e1 e2 mark =
+  make_app (make_abs [| x |] e2 [tau] mark) [e1] mark
+
 let make_let_in x tau e1 e2 pos =
   let m_e1 = Marked.get_mark (Bindlib.unbox e1) in
   let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
@@ -382,6 +385,33 @@ let compare_lit (type a) (l1 : a glit) (l2 : a glit) =
   | _, LDate _ -> 1
   | LDuration _, _ -> .
   | _, LDuration _ -> .
+
+let compare_location
+    (type a)
+    (x : a glocation Marked.pos)
+    (y : a glocation Marked.pos) =
+  match Marked.unmark x, Marked.unmark y with
+  | DesugaredScopeVar (vx, None), DesugaredScopeVar (vy, None)
+  | DesugaredScopeVar (vx, Some _), DesugaredScopeVar (vy, None)
+  | DesugaredScopeVar (vx, None), DesugaredScopeVar (vy, Some _) ->
+    ScopeVar.compare (Marked.unmark vx) (Marked.unmark vy)
+  | DesugaredScopeVar ((x, _), Some sx), DesugaredScopeVar ((y, _), Some sy) ->
+    let cmp = ScopeVar.compare x y in
+    if cmp = 0 then StateName.compare sx sy else cmp
+  | ScopelangScopeVar (vx, _), ScopelangScopeVar (vy, _) ->
+    ScopeVar.compare vx vy
+  | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
+      SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
+    let c = SubScopeName.compare xsubindex ysubindex in
+    if c = 0 then ScopeVar.compare xsubvar ysubvar else c
+  | DesugaredScopeVar _, _ -> -1
+  | _, DesugaredScopeVar _ -> 1
+  | ScopelangScopeVar _, _ -> -1
+  | _, ScopelangScopeVar _ -> 1
+  | SubScopeVar _, _ -> .
+  | _, SubScopeVar _ -> .
+
+let equal_location a b = compare_location a b = 0
 
 let equal_log_entries l1 l2 =
   match l1, l2 with
@@ -535,7 +565,8 @@ and equal : type a. (a, 't) marked_gexpr -> (a, 't) marked_gexpr -> bool =
   | ERaise ex1, ERaise ex2 -> equal_except ex1 ex2
   | ECatch (etry1, ex1, ewith1), ECatch (etry2, ex2, ewith2) ->
     equal etry1 etry2 && equal_except ex1 ex2 && equal ewith1 ewith2
-  | ELocation _, ELocation _ -> true
+  | ELocation l1, ELocation l2 ->
+    equal_location (Marked.mark Pos.no_pos l1) (Marked.mark Pos.no_pos l2)
   | EStruct (s1, fields1), EStruct (s2, fields2) ->
     StructName.equal s1 s2 && StructFieldMap.equal equal fields1 fields2
   | EStructAccess (e1, f1, s1), EStructAccess (e2, f2, s2) ->
@@ -579,8 +610,8 @@ let rec compare : type a. (a, _) marked_gexpr -> (a, _) marked_gexpr -> int =
     compare i1 i2 @@< fun () ->
     compare t1 t2 @@< fun () ->
     compare e1 e2
-  | ELocation _, ELocation _ ->
-    0
+  | ELocation l1, ELocation l2 ->
+    compare_location (Marked.mark Pos.no_pos l1) (Marked.mark Pos.no_pos l2)
   | EStruct (name1, field_map1), EStruct (name2, field_map2) ->
     StructName.compare name1 name2 @@< fun () ->
     StructFieldMap.compare compare field_map1 field_map2

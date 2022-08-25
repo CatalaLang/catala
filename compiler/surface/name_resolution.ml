@@ -60,7 +60,7 @@ type var_sig = {
 }
 
 type context = {
-  local_var_idmap : Desugared.Ast.Var.t Desugared.Ast.IdentMap.t;
+  local_var_idmap : Desugared.Ast.expr Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
   scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
@@ -79,7 +79,7 @@ type context = {
       (** For each scope, its context *)
   structs : struct_context StructMap.t;  (** For each struct, its context *)
   enums : enum_context EnumMap.t;  (** For each enum, its context *)
-  var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
+  var_typs : var_sig ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
@@ -101,13 +101,13 @@ let raise_unknown_identifier (msg : string) (ident : ident Marked.pos) =
 
 (** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : ScopeVar.t) : typ Marked.pos =
-  (Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
+  (ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
 
 let is_var_cond (ctxt : context) (uid : ScopeVar.t) : bool =
-  (Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
+  (ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
 
 let get_var_io (ctxt : context) (uid : ScopeVar.t) : Ast.scope_decl_context_io =
-  (Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_io
+  (ScopeVarMap.find uid ctxt.var_typs).var_sig_io
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid
@@ -299,7 +299,7 @@ let process_data_decl
       ctxt with
       scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
       var_typs =
-        Desugared.Ast.ScopeVarMap.add uid
+        ScopeVarMap.add uid
           {
             var_sig_typ = data_typ;
             var_sig_is_condition = is_cond;
@@ -321,8 +321,8 @@ let process_item_decl
 
 (** Adds a binding to the context *)
 let add_def_local_var (ctxt : context) (name : ident) :
-    context * Desugared.Ast.Var.t =
-  let local_var_uid = Desugared.Ast.Var.make name in
+    context * Desugared.Ast.expr Var.t =
+  let local_var_uid = Var.make name in
   let ctxt =
     {
       ctxt with
@@ -537,7 +537,7 @@ let get_def_key
   match name with
   | [x] ->
     let x_uid = get_var_uid scope_uid ctxt x in
-    let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
+    let var_sig = ScopeVarMap.find x_uid ctxt.var_typs in
     Desugared.Ast.ScopeDef.Var
       ( x_uid,
         match state with
@@ -730,7 +730,7 @@ let form_context (prgm : Ast.program) : context =
       local_var_idmap = Desugared.Ast.IdentMap.empty;
       scope_idmap = Desugared.Ast.IdentMap.empty;
       scopes = Scopelang.Ast.ScopeMap.empty;
-      var_typs = Desugared.Ast.ScopeVarMap.empty;
+      var_typs = ScopeVarMap.empty;
       structs = StructMap.empty;
       struct_idmap = Desugared.Ast.IdentMap.empty;
       field_idmap = Desugared.Ast.IdentMap.empty;

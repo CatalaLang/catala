@@ -26,8 +26,8 @@ type target_scope_vars =
   | States of (StateName.t * ScopeVar.t) list
 
 type ctx = {
-  scope_var_mapping : target_scope_vars Ast.ScopeVarMap.t;
-  var_mapping : Scopelang.Ast.expr Var.t Ast.VarMap.t;
+  scope_var_mapping : target_scope_vars ScopeVarMap.t;
+  var_mapping : (Ast.expr, Scopelang.Ast.expr Var.t) Var.Map.t;
 }
 
 let tag_with_log_entry
@@ -42,43 +42,41 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     Scopelang.Ast.expr Marked.pos Bindlib.box =
   let m = Marked.get_mark e in
   match Marked.unmark e with
-  | Ast.ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
+  | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
     let new_s_var =
-      match
-        Ast.ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
-      with
+      match ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping with
       | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
       | States states ->
         Marked.same_mark_as (snd (List.hd (List.rev states))) s_var
     in
     Bindlib.box (ELocation (SubScopeVar (s_name, ss_name, new_s_var)), m)
-  | Ast.ELocation (Ast.ScopeVar (s_var, None)) ->
+  | ELocation (DesugaredScopeVar (s_var, None)) ->
     Bindlib.box
       ( ELocation
           (ScopelangScopeVar
              (match
-                Ast.ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
+                ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
               with
              | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
              | States _ -> failwith "should not happen")),
         m )
-  | Ast.ELocation (Ast.ScopeVar (s_var, Some state)) ->
+  | ELocation (DesugaredScopeVar (s_var, Some state)) ->
     Bindlib.box
       ( ELocation
           (ScopelangScopeVar
              (match
-                Ast.ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
+                ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
               with
              | WholeVar _ -> failwith "should not happen"
              | States states ->
                Marked.same_mark_as (List.assoc state states) s_var)),
         m )
-  | Ast.EVar v ->
+  | EVar v ->
     Bindlib.box_apply
       (fun v -> Marked.same_mark_as v e)
-      (Bindlib.box_var (Ast.VarMap.find v ctx.var_mapping))
+      (Bindlib.box_var (Var.Map.find v ctx.var_mapping))
   | EStruct (s_name, fields) ->
     Bindlib.box_apply
       (fun new_fields -> EStruct (s_name, new_fields), m)
@@ -92,7 +90,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     Bindlib.box_apply
       (fun new_e1 -> EEnumInj (new_e1, cons, e_name), m)
       (translate_expr ctx e1)
-  | EMatch (e1, e_name, arms) ->
+  | EMatchS (e1, e_name, arms) ->
     Bindlib.box_apply2
       (fun new_e1 new_arms -> EMatchS (new_e1, e_name, new_arms), m)
       (translate_expr ctx e1)
@@ -108,7 +106,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
     let ctx =
       List.fold_left2
         (fun ctx var new_var ->
-          { ctx with var_mapping = Ast.VarMap.add var new_var ctx.var_mapping })
+          { ctx with var_mapping = Var.Map.add var new_var ctx.var_mapping })
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
     Bindlib.box_apply
@@ -181,14 +179,14 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
   in
   List.map build_tree base_cases
 
-(** From the {!type: rule_tree}, builds an {!constructor: Dcalc.Ast.EDefault}
+(** From the {!type: rule_tree}, builds an {!constructor: Dcalc.EDefault}
     expression in the scope language. The [~toplevel] parameter is used to know
     when to place the toplevel binding in the case of functions. *)
 let rec rule_tree_to_expr
     ~(toplevel : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
-    (is_func : Ast.Var.t option)
+    (is_func : Ast.expr Var.t option)
     (tree : rule_tree) : Scopelang.Ast.expr Marked.pos Bindlib.box =
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
@@ -214,12 +212,12 @@ let rec rule_tree_to_expr
     match is_func with
     | None -> ctx
     | Some new_param -> (
-      match Ast.VarMap.find_opt new_param ctx.var_mapping with
+      match Var.Map.find_opt new_param ctx.var_mapping with
       | None ->
         let new_param_scope = Var.make (Bindlib.name_of new_param) in
         {
           ctx with
-          var_mapping = Ast.VarMap.add new_param new_param_scope ctx.var_mapping;
+          var_mapping = Var.Map.add new_param new_param_scope ctx.var_mapping;
         }
       | Some _ ->
         (* We only create a mapping if none exists because [rule_tree_to_expr]
@@ -293,7 +291,7 @@ let rec rule_tree_to_expr
           default
       in
       Expr.make_abs
-        [| Ast.VarMap.find new_param ctx.var_mapping |]
+        [| Var.Map.find new_param ctx.var_mapping |]
         default [typ] def_pos
     else default
   | _ -> (* should not happen *) assert false
@@ -301,7 +299,7 @@ let rec rule_tree_to_expr
 (** {1 AST translation} *)
 
 (** Translates a definition inside a scope, the resulting expression should be
-    an {!constructor: Dcalc.Ast.EDefault} *)
+    an {!constructor: Dcalc.EDefault} *)
 let translate_def
     (ctx : ctx)
     (def_info : Ast.ScopeDef.t)
@@ -396,7 +394,7 @@ let translate_def
     Bindlib.unbox
       (rule_tree_to_expr ~toplevel:true ctx
          (Ast.ScopeDef.get_position def_info)
-         (Option.map (fun _ -> Ast.Var.make "param") is_def_func_param_typ)
+         (Option.map (fun _ -> Var.make "param") is_def_func_param_typ)
          (match top_list, top_value with
          | [], None ->
            (* In this case, there are no rules to define the expression and no
@@ -462,9 +460,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                    ~is_subscope_var:false
                in
                let scope_var =
-                 match
-                   Ast.ScopeVarMap.find var ctx.scope_var_mapping, state
-                 with
+                 match ScopeVarMap.find var ctx.scope_var_mapping, state with
                  | WholeVar v, None -> v
                  | States states, Some state -> List.assoc state states
                  | _ -> failwith "should not happen"
@@ -567,7 +563,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                              ( subscop_real_name,
                                (sub_scope_index, var_pos),
                                match
-                                 Ast.ScopeVarMap.find sub_scope_var
+                                 ScopeVarMap.find sub_scope_var
                                    ctx.scope_var_mapping
                                with
                                | WholeVar v -> v, var_pos
@@ -604,7 +600,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
         (Bindlib.unbox (Bindlib.box_list scope.Ast.scope_assertions))
   in
   let scope_sig =
-    Ast.ScopeVarMap.fold
+    ScopeVarMap.fold
       (fun var (states : Ast.var_or_states) acc ->
         match states with
         | WholeVar ->
@@ -612,8 +608,8 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
             Ast.ScopeDefMap.find (Ast.ScopeDef.Var (var, None)) scope.scope_defs
           in
           let typ = scope_def.scope_def_typ in
-          Scopelang.Ast.ScopeVarMap.add
-            (match Ast.ScopeVarMap.find var ctx.scope_var_mapping with
+          ScopeVarMap.add
+            (match ScopeVarMap.find var ctx.scope_var_mapping with
             | WholeVar v -> v
             | States _ -> failwith "should not happen")
             (typ, scope_def.scope_def_io)
@@ -629,14 +625,14 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                   (Ast.ScopeDef.Var (var, Some state))
                   scope.scope_defs
               in
-              Scopelang.Ast.ScopeVarMap.add
-                (match Ast.ScopeVarMap.find var ctx.scope_var_mapping with
+              ScopeVarMap.add
+                (match ScopeVarMap.find var ctx.scope_var_mapping with
                 | WholeVar _ -> failwith "should not happen"
                 | States states' -> List.assoc state states')
                 (scope_def.scope_def_typ, scope_def.scope_def_io)
                 acc)
             acc states)
-      scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
+      scope.scope_vars ScopeVarMap.empty
   in
   {
     Scopelang.Ast.scope_decl_name = scope.scope_uid;
@@ -653,14 +649,14 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
   let ctx =
     Scopelang.Ast.ScopeMap.fold
       (fun _scope scope_decl ctx ->
-        Ast.ScopeVarMap.fold
+        ScopeVarMap.fold
           (fun scope_var (states : Ast.var_or_states) ctx ->
             match states with
             | Ast.WholeVar ->
               {
                 ctx with
                 scope_var_mapping =
-                  Ast.ScopeVarMap.add scope_var
+                  ScopeVarMap.add scope_var
                     (WholeVar (ScopeVar.fresh (ScopeVar.get_info scope_var)))
                     ctx.scope_var_mapping;
               }
@@ -668,7 +664,7 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
               {
                 ctx with
                 scope_var_mapping =
-                  Ast.ScopeVarMap.add scope_var
+                  ScopeVarMap.add scope_var
                     (States
                        (List.map
                           (fun state ->
@@ -686,14 +682,10 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
               })
           scope_decl.Ast.scope_vars ctx)
       pgrm.Ast.program_scopes
-      {
-        scope_var_mapping = Ast.ScopeVarMap.empty;
-        var_mapping = Ast.VarMap.empty;
-      }
+      { scope_var_mapping = ScopeVarMap.empty; var_mapping = Var.Map.empty }
   in
   {
     Scopelang.Ast.program_scopes =
       Scopelang.Ast.ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
-    Scopelang.Ast.program_ctx =
-      { ctx_structs = pgrm.program_structs; ctx_enums = pgrm.program_enums };
+    Scopelang.Ast.program_ctx = pgrm.program_ctx;
   }

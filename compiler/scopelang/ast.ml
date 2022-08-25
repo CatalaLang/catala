@@ -24,8 +24,6 @@ module SubScopeNameSet : Set.S with type elt = SubScopeName.t =
 module SubScopeMap : Map.S with type key = SubScopeName.t =
   Map.Make (SubScopeName)
 
-module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
-module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
 module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
 module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 
@@ -35,16 +33,7 @@ module LocationSet : Set.S with type elt = location Marked.pos =
 Set.Make (struct
   type t = location Marked.pos
 
-  let compare x y =
-    match Marked.unmark x, Marked.unmark y with
-    | ScopelangScopeVar (vx, _), ScopelangScopeVar (vy, _) ->
-      ScopeVar.compare vx vy
-    | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
-        SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
-      let c = SubScopeName.compare xsubindex ysubindex in
-      if c = 0 then ScopeVar.compare xsubvar ysubvar else c
-    | ScopelangScopeVar _, SubScopeVar _ -> -1
-    | SubScopeVar _, ScopelangScopeVar _ -> 1
+  let compare = Expr.compare_location
 end)
 
 type expr = (scopelang, Pos.t) gexpr

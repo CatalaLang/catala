@@ -143,7 +143,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   let g = ScopeDependencies.empty in
   (* Add all the vertices to the graph *)
   let g =
-    Ast.ScopeVarMap.fold
+    ScopeVarMap.fold
       (fun (v : ScopeVar.t) var_or_state g ->
         match var_or_state with
         | Ast.WholeVar -> ScopeDependencies.add_vertex g (Vertex.Var (v, None))
