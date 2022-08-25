@@ -111,7 +111,7 @@ val unfold :
   'e marked Bindlib.box
 
 val build_typ_from_sig :
-  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ Marked.pos
+  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ
 (** [build_typ_from_sig ctx in_struct out_struct pos] builds the arrow type for
     the specified scope *)
 

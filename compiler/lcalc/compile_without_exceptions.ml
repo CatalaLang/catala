@@ -120,7 +120,7 @@ let add_var
     Since positions where there is thunked expressions is exactly where we will
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
     into ['a option] recursivly. There is no polymorphism inside catala. *)
-let rec translate_typ (tau : typ Marked.pos) : typ Marked.pos =
+let rec translate_typ (tau : typ) : typ =
   (Fun.flip Marked.same_mark_as)
     tau
     begin

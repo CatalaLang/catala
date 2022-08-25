@@ -70,13 +70,13 @@ type io = {
 (** Characterization of the input/output status of a scope variable. *)
 
 type rule =
-  | Definition of location Marked.pos * marked_typ * io * naked_expr Marked.pos
-  | Assertion of naked_expr Marked.pos
+  | Definition of location Marked.pos * typ * io * expr
+  | Assertion of expr
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (marked_typ * io) ScopeVarMap.t;
+  scope_sig : (typ * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 

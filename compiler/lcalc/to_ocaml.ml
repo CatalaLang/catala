@@ -21,7 +21,7 @@ open String_common
 module D = Dcalc.Ast
 
 let find_struct (s : StructName.t) (ctx : decl_ctx) :
-    (StructFieldName.t * typ Marked.pos) list =
+    (StructFieldName.t * typ) list =
   try StructMap.find s ctx.ctx_structs
   with Not_found ->
     let s_name, pos = StructName.get_info s in
@@ -30,7 +30,7 @@ let find_struct (s : StructName.t) (ctx : decl_ctx) :
       s_name
 
 let find_enum (en : EnumName.t) (ctx : decl_ctx) :
-    (EnumConstructor.t * typ Marked.pos) list =
+    (EnumConstructor.t * typ) list =
   try EnumMap.find en ctx.ctx_enums
   with Not_found ->
     let en_name, pos = EnumName.get_info en in
@@ -183,7 +183,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
-let rec typ_embedding_name (fmt : Format.formatter) (ty : typ Marked.pos) : unit
+let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit
     =
   match Marked.unmark ty with
   | TLit TUnit -> Format.fprintf fmt "embed_unit"
@@ -198,11 +198,11 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : typ Marked.pos) : unit
   | TArray ty -> Format.fprintf fmt "embed_array (%a)" typ_embedding_name ty
   | _ -> Format.fprintf fmt "unembeddable"
 
-let typ_needs_parens (e : typ Marked.pos) : bool =
+let typ_needs_parens (e : typ) : bool =
   match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
-  let format_typ_with_parens (fmt : Format.formatter) (t : typ Marked.pos) =
+let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
@@ -450,7 +450,7 @@ let rec format_expr
 let format_struct_embedding
     (fmt : Format.formatter)
     ((struct_name, struct_fields) :
-      StructName.t * (StructFieldName.t * typ Marked.pos) list) =
+      StructName.t * (StructFieldName.t * typ) list) =
   if List.length struct_fields = 0 then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_struct_name struct_name format_to_module_name (`Sname struct_name)
@@ -473,7 +473,7 @@ let format_struct_embedding
 let format_enum_embedding
     (fmt : Format.formatter)
     ((enum_name, enum_cases) :
-      EnumName.t * (EnumConstructor.t * typ Marked.pos) list) =
+      EnumName.t * (EnumConstructor.t * typ) list) =
   if List.length enum_cases = 0 then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_to_module_name (`Ename enum_name) format_enum_name enum_name

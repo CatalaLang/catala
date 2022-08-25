@@ -19,7 +19,7 @@ open Shared_ast
 
 type scope_var_ctx = {
   scope_var_name : ScopeVar.t;
-  scope_var_typ : typ;
+  scope_var_typ : naked_typ;
   scope_var_io : Ast.io;
 }
 
@@ -40,9 +40,9 @@ type ctx = {
   enums : enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : scope_sigs_ctx;
-  scope_vars : (untyped Dcalc.Ast.naked_expr Var.t * typ * Ast.io) ScopeVarMap.t;
+  scope_vars : (untyped Dcalc.Ast.naked_expr Var.t * naked_typ * Ast.io) ScopeVarMap.t;
   subscope_vars :
-    (untyped Dcalc.Ast.naked_expr Var.t * typ * Ast.io) ScopeVarMap.t
+    (untyped Dcalc.Ast.naked_expr Var.t * naked_typ * Ast.io) ScopeVarMap.t
     Ast.SubScopeMap.t;
   local_vars : (Ast.naked_expr, untyped Dcalc.Ast.naked_expr Var.t) Var.Map.t;
 }
@@ -101,8 +101,8 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (excepts : Ast.naked_expr Marked.pos list) :
-    Ast.naked_expr Marked.pos list =
+let collapse_similar_outcomes (excepts : Ast.expr list) :
+    Ast.expr list =
   let cons_map =
     List.fold_left
       (fun map -> function
@@ -133,7 +133,7 @@ let collapse_similar_outcomes (excepts : Ast.naked_expr Marked.pos list) :
   in
   excepts
 
-let rec translate_expr (ctx : ctx) (e : Ast.naked_expr Marked.pos) :
+let rec translate_expr (ctx : ctx) (e : Ast.expr) :
     untyped Dcalc.Ast.expr Bindlib.box =
   Bindlib.box_apply (fun (x : untyped Dcalc.Ast.naked_expr) ->
       Marked.mark (pos_mark_as e) x)

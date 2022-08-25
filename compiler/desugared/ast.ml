@@ -114,7 +114,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr Bindlib.box;
   rule_cons : expr Bindlib.box;
-  rule_parameter : (naked_expr Var.t * marked_typ) option;
+  rule_parameter : (naked_expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -154,7 +154,7 @@ module Rule = struct
     | Some _, None -> 1
 end
 
-let empty_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
     rule_just = Bindlib.box (ELit (LBool false), pos);
     rule_cons = Bindlib.box (ELit LEmptyError, pos);
@@ -167,7 +167,7 @@ let empty_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule =
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule
+let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule
     =
   {
     rule_just = Bindlib.box (ELit (LBool true), pos);
@@ -191,7 +191,7 @@ type meta_assertion =
 
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
-  scope_def_typ : marked_typ;
+  scope_def_typ : typ;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
 }

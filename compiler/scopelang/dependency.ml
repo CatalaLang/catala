@@ -164,7 +164,7 @@ module TTopologicalTraversal = Graph.Topological.Make (TDependencies)
 module TSCC = Graph.Components.Make (TDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
-let rec get_structs_or_enums_in_type (t : typ Marked.pos) : TVertexSet.t =
+let rec get_structs_or_enums_in_type (t : typ) : TVertexSet.t =
   match Marked.unmark t with
   | TStruct s -> TVertexSet.singleton (TVertex.Struct s)
   | TEnum e -> TVertexSet.singleton (TVertex.Enum e)

@@ -68,16 +68,16 @@ module StateName : Uid.Id with type info = Uid.MarkedString.info =
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
-type marked_typ = typ Marked.pos
+type typ = naked_typ Marked.pos
 
-and typ =
+and naked_typ =
   | TLit of typ_lit
-  | TTuple of marked_typ list
+  | TTuple of typ list
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TOption of marked_typ
-  | TArrow of marked_typ * marked_typ
-  | TArray of marked_typ
+  | TOption of typ
+  | TArrow of typ * typ
+  | TArray of typ
   | TAny
 
 (** {2 Constants and operators} *)
@@ -113,7 +113,7 @@ type binop =
   | Filter
 
 type log_entry =
-  | VarDef of typ
+  | VarDef of naked_typ
       (** During code generation, we need to know the type of the variable being
           logged for embedding *)
   | BeginCall
@@ -202,7 +202,7 @@ and ('a, 't) naked_gexpr =
       ('a, 't) naked_gexpr Bindlib.var
       -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
   | EAbs :
-      (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder * marked_typ list
+      (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder * typ list
       -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
   | EIfThenElse :
       ('a, 't) gexpr * ('a, 't) gexpr * ('a, 't) gexpr
@@ -228,10 +228,10 @@ and ('a, 't) naked_gexpr =
       ('a, 't) gexpr list * StructName.t option
       -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   | ETupleAccess :
-      ('a, 't) gexpr * int * StructName.t option * marked_typ list
+      ('a, 't) gexpr * int * StructName.t option * typ list
       -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   | EInj :
-      ('a, 't) gexpr * int * EnumName.t * marked_typ list
+      ('a, 't) gexpr * int * EnumName.t * typ list
       -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   | EMatch :
       ('a, 't) gexpr * ('a, 't) gexpr list * EnumName.t
@@ -263,7 +263,7 @@ type 'e anyexpr = 'e constraint 'e = (_ any, _) naked_gexpr
 (** {2 Markings} *)
 
 type untyped = { pos : Pos.t } [@@ocaml.unboxed]
-type typed = { pos : Pos.t; ty : marked_typ }
+type typed = { pos : Pos.t; ty : typ }
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
@@ -305,7 +305,7 @@ type scope_let_kind =
 
 type 'e scope_let = {
   scope_let_kind : scope_let_kind;
-  scope_let_typ : marked_typ;
+  scope_let_typ : typ;
   scope_let_expr : 'e marked;
   scope_let_next : ('e, 'e scope_body_expr) Bindlib.binder;
   scope_let_pos : Pos.t;
@@ -345,7 +345,7 @@ and 'e scopes =
   | ScopeDef of 'e scope_def
   constraint 'e = ('a, 'm mark) naked_gexpr
 
-type struct_ctx = (StructFieldName.t * marked_typ) list StructMap.t
-type enum_ctx = (EnumConstructor.t * marked_typ) list EnumMap.t
+type struct_ctx = (StructFieldName.t * typ) list StructMap.t
+type enum_ctx = (EnumConstructor.t * typ) list EnumMap.t
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

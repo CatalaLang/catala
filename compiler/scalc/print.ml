@@ -18,7 +18,7 @@ open Utils
 open Shared_ast
 open Ast
 
-let needs_parens (_e : naked_expr Marked.pos) : bool = false
+let needs_parens (_e : expr) : bool = false
 
 let format_local_name (fmt : Format.formatter) (v : LocalName.t) : unit =
   Format.fprintf fmt "%a_%s" LocalName.format_t v
@@ -28,9 +28,9 @@ let rec format_expr
     (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
-    (e : naked_expr Marked.pos) : unit =
+    (e : expr) : unit =
   let format_expr = format_expr decl_ctx ~debug in
-  let format_with_parens (fmt : Format.formatter) (e : naked_expr Marked.pos) =
+  let format_with_parens (fmt : Format.formatter) (e : expr) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" Print.punctuation "(" format_expr e
         Print.punctuation ")"

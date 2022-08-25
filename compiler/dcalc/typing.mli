@@ -24,9 +24,9 @@ val infer_types :
 (** Infers types everywhere on the given expression, and adds (or replaces) type
     annotations on each node *)
 
-val infer_type : decl_ctx -> 'm Ast.expr -> typ Utils.Marked.pos
+val infer_type : decl_ctx -> 'm Ast.expr -> typ
 (** Gets the outer type of the given expression, using either the existing
     annotations or inference *)
 
-val check_type : decl_ctx -> 'm Ast.expr -> typ Utils.Marked.pos -> unit
+val check_type : decl_ctx -> 'm Ast.expr -> typ -> unit
 val infer_types_program : untyped Ast.program -> typed Ast.program

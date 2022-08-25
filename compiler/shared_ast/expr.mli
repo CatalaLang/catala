@@ -37,7 +37,7 @@ val etupleaccess :
   (([< dcalc | lcalc ] as 'a), 't) gexpr box ->
   int ->
   StructName.t option ->
-  marked_typ list ->
+  typ list ->
   't ->
   ('a, 't) gexpr box
 
@@ -45,7 +45,7 @@ val einj :
   (([< dcalc | lcalc ] as 'a), 't) gexpr box ->
   int ->
   EnumName.t ->
-  marked_typ list ->
+  typ list ->
   't ->
   ('a, 't) gexpr box
 
@@ -65,7 +65,7 @@ val elit : 'a any glit -> 't -> ('a, 't) gexpr box
 
 val eabs :
   (('a any, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder box ->
-  marked_typ list ->
+  typ list ->
   't ->
   ('a, 't) gexpr box
 
@@ -115,21 +115,21 @@ val eraise : except -> 't -> (lcalc, 't) gexpr box
 val no_mark : 'm mark -> 'm mark
 val mark_pos : 'm mark -> Pos.t
 val pos : ('e, _) naked_gexpr marked -> Pos.t
-val ty : (_, typed mark) Marked.t -> marked_typ
-val with_ty : marked_typ -> ('a, _ mark) Marked.t -> ('a, typed mark) Marked.t
+val ty : (_, typed mark) Marked.t -> typ
+val with_ty : typ -> ('a, _ mark) Marked.t -> ('a, typed mark) Marked.t
 
 val map_mark :
-  (Pos.t -> Pos.t) -> (marked_typ -> marked_typ) -> 'm mark -> 'm mark
+  (Pos.t -> Pos.t) -> (typ -> typ) -> 'm mark -> 'm mark
 
 val map_mark2 :
   (Pos.t -> Pos.t -> Pos.t) ->
-  (typed -> typed -> marked_typ) ->
+  (typed -> typed -> typ) ->
   'm mark ->
   'm mark ->
   'm mark
 
 val fold_marks :
-  (Pos.t list -> Pos.t) -> (typed list -> marked_typ) -> 'm mark list -> 'm mark
+  (Pos.t list -> Pos.t) -> (typed list -> typ) -> 'm mark list -> 'm mark
 
 val untype :
   ('a, 'm mark) gexpr -> ('a, untyped mark) gexpr box
@@ -178,7 +178,7 @@ val make_var : 'a Bindlib.var * 'b -> ('a * 'b) box
 val make_abs :
   ('a, 't) naked_gexpr Var.vars ->
   ('a, 't) gexpr box ->
-  typ Marked.pos list ->
+  typ list ->
   't ->
   ('a, 't) gexpr box
 
@@ -193,7 +193,7 @@ val empty_thunked_term :
 
 val make_let_in :
   'e Bindlib.var ->
-  marked_typ ->
+  typ ->
   'e anyexpr marked box ->
   'e marked box ->
   Utils.Pos.t ->
@@ -201,7 +201,7 @@ val make_let_in :
 
 val make_let_in_raw :
   ('a any, 't) naked_gexpr Bindlib.var ->
-  marked_typ ->
+  typ ->
   ('a, 't) gexpr box ->
   ('a, 't) gexpr box ->
   't ->
@@ -210,7 +210,7 @@ val make_let_in_raw :
 
 val make_multiple_let_in :
   'e Var.vars ->
-  marked_typ list ->
+  typ list ->
   'e marked box list ->
   'e marked box ->
   Pos.t ->
@@ -263,7 +263,7 @@ val compare : ('a, 't) gexpr -> ('a, 't) gexpr -> int
 (** Standard comparison function, suitable for e.g. [Set.Make]. Ignores position
     information *)
 
-val compare_typ : marked_typ -> marked_typ -> int
+val compare_typ : typ -> typ -> int
 val is_value : (_ any, 'm mark) naked_gexpr marked -> bool
 val free_vars : 'e marked -> 'e Var.Set.t
 

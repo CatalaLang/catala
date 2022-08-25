@@ -98,9 +98,9 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 let pos (type m) (x : ('a, m mark) Marked.t) : Pos.t =
   mark_pos (Marked.get_mark x)
 
-let ty (_, m) : marked_typ = match m with Typed { ty; _ } -> ty
+let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
-let with_ty (type m) (ty : marked_typ) (x : ('a, m mark) Marked.t) :
+let with_ty (type m) (ty : typ) (x : ('a, m mark) Marked.t) :
     ('a, typed mark) Marked.t =
   Marked.mark
     (match Marked.get_mark x with
@@ -111,7 +111,7 @@ let with_ty (type m) (ty : marked_typ) (x : ('a, m mark) Marked.t) :
 let map_mark
     (type m)
     (pos_f : Pos.t -> Pos.t)
-    (ty_f : marked_typ -> marked_typ)
+    (ty_f : typ -> typ)
     (m : m mark) : m mark =
   match m with
   | Untyped { pos } -> Untyped { pos = pos_f pos }
@@ -120,7 +120,7 @@ let map_mark
 let map_mark2
     (type m)
     (pos_f : Pos.t -> Pos.t -> Pos.t)
-    (ty_f : typed -> typed -> marked_typ)
+    (ty_f : typed -> typed -> typ)
     (m1 : m mark)
     (m2 : m mark) : m mark =
   match m1, m2 with
@@ -130,7 +130,7 @@ let map_mark2
 let fold_marks
     (type m)
     (pos_f : Pos.t list -> Pos.t)
-    (ty_f : typed list -> marked_typ)
+    (ty_f : typed list -> typ)
     (ms : m mark list) : m mark =
   match ms with
   | [] -> invalid_arg "Dcalc.Ast.fold_mark"
