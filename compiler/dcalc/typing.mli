@@ -20,13 +20,13 @@
 open Shared_ast
 
 val infer_types :
-  decl_ctx -> untyped Ast.marked_expr -> typed Ast.marked_expr Bindlib.box
+  decl_ctx -> untyped Ast.expr -> typed Ast.expr Bindlib.box
 (** Infers types everywhere on the given expression, and adds (or replaces) type
     annotations on each node *)
 
-val infer_type : decl_ctx -> 'm Ast.marked_expr -> typ Utils.Marked.pos
+val infer_type : decl_ctx -> 'm Ast.expr -> typ Utils.Marked.pos
 (** Gets the outer type of the given expression, using either the existing
     annotations or inference *)
 
-val check_type : decl_ctx -> 'm Ast.marked_expr -> typ Utils.Marked.pos -> unit
+val check_type : decl_ctx -> 'm Ast.expr -> typ Utils.Marked.pos -> unit
 val infer_types_program : untyped Ast.program -> typed Ast.program

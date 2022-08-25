@@ -22,7 +22,7 @@ module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
 
-let is_empty_error (e : 'm Ast.marked_expr) : bool =
+let is_empty_error (e : 'm Ast.expr) : bool =
   match Marked.unmark e with ELit LEmptyError -> true | _ -> false
 
 let log_indent = ref 0
@@ -33,10 +33,10 @@ let rec evaluate_operator
     (ctx : decl_ctx)
     (op : operator)
     (pos : Pos.t)
-    (args : 'm Ast.marked_expr list) : 'm Ast.expr =
+    (args : 'm Ast.expr list) : 'm Ast.naked_expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
      [op] to raise multispanned errors. *)
-  let apply_div_or_raise_err (div : unit -> 'm Ast.expr) : 'm Ast.expr =
+  let apply_div_or_raise_err (div : unit -> 'm Ast.naked_expr) : 'm Ast.naked_expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error
@@ -47,15 +47,15 @@ let rec evaluate_operator
         "division by zero at runtime"
   in
   let get_binop_args_pos = function
-    | (arg0 :: arg1 :: _ : 'm Ast.marked_expr list) ->
+    | (arg0 :: arg1 :: _ : 'm Ast.expr list) ->
       [None, Expr.pos arg0; None, Expr.pos arg1]
     | _ -> assert false
   in
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
      use [args] to raise multispanned errors. *)
   let apply_cmp_or_raise_err
-      (cmp : unit -> 'm Ast.expr)
-      (args : 'm Ast.marked_expr list) : 'm Ast.expr =
+      (cmp : unit -> 'm Ast.naked_expr)
+      (args : 'm Ast.expr list) : 'm Ast.naked_expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
       Errors.raise_multispanned_error (get_binop_args_pos args)
@@ -314,7 +314,7 @@ let rec evaluate_operator
       "Operator applied to the wrong arguments\n\
        (should not happen if the term was well-typed)"
 
-and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
+and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr
     =
   match Marked.unmark e with
   | EVar _ ->
@@ -483,10 +483,10 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.marked_expr) : 'm Ast.marked_expr
 let interpret_program :
       'm.
       decl_ctx ->
-      'm Ast.marked_expr ->
-      (Uid.MarkedString.info * 'm Ast.marked_expr) list =
- fun (ctx : decl_ctx) (e : 'm Ast.marked_expr) :
-     (Uid.MarkedString.info * 'm Ast.marked_expr) list ->
+      'm Ast.expr ->
+      (Uid.MarkedString.info * 'm Ast.expr) list =
+ fun (ctx : decl_ctx) (e : 'm Ast.expr) :
+     (Uid.MarkedString.info * 'm Ast.expr) list ->
   match evaluate_expr ctx e with
   | EAbs (_, [((TStruct s_in, _) as targs)]), mark_e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not

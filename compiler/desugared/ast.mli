@@ -49,15 +49,15 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (** {2 Expressions} *)
 
-type expr = (desugared, Pos.t) naked_gexpr
+type naked_expr = (desugared, Pos.t) naked_gexpr
 (** See {!type:Shared_ast.naked_gexpr} for the complete definition *)
 
-and marked_expr = expr Marked.pos
+and expr = naked_expr Marked.pos
 
 type location = desugared glocation
 
 module LocationSet : Set.S with type elt = location Marked.pos
-module ExprMap : Map.S with type key = marked_expr
+module ExprMap : Map.S with type key = expr
 
 (** {2 Rules and scopes}*)
 
@@ -70,9 +70,9 @@ type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
 
 type rule = {
   rule_id : RuleName.t;
-  rule_just : marked_expr Bindlib.box;
-  rule_cons : marked_expr Bindlib.box;
-  rule_parameter : (expr Var.t * marked_typ) option;
+  rule_just : expr Bindlib.box;
+  rule_cons : expr Bindlib.box;
+  rule_parameter : (naked_expr Var.t * marked_typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -82,7 +82,7 @@ module Rule : Set.OrderedType with type t = rule
 val empty_rule : Pos.t -> typ Marked.pos option -> rule
 val always_false_rule : Pos.t -> typ Marked.pos option -> rule
 
-type assertion = expr Marked.pos Bindlib.box
+type assertion = naked_expr Marked.pos Bindlib.box
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 
@@ -115,5 +115,5 @@ type program = {
 
 (** {1 Helpers} *)
 
-val locations_used : expr Marked.pos -> LocationSet.t
+val locations_used : naked_expr Marked.pos -> LocationSet.t
 val free_variables : rule RuleMap.t -> Pos.t ScopeDefMap.t

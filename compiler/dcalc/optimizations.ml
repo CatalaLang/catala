@@ -19,12 +19,12 @@ open Shared_ast
 open Ast
 
 type partial_evaluation_ctx = {
-  var_values : (typed expr, typed marked_expr) Var.Map.t;
+  var_values : (typed naked_expr, typed expr) Var.Map.t;
   decl_ctx : decl_ctx;
 }
 
-let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
-    'm marked_expr Bindlib.box =
+let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
+    'm expr Bindlib.box =
   let pos = Marked.get_mark e in
   let rec_helper = partial_evaluation ctx in
   match Marked.unmark e with
@@ -184,14 +184,14 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
   | ErrorOnEmpty e1 ->
     Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) (rec_helper e1)
 
-let optimize_expr (decl_ctx : decl_ctx) (e : 'm marked_expr) =
+let optimize_expr (decl_ctx : decl_ctx) (e : 'm expr) =
   partial_evaluation { var_values = Var.Map.empty; decl_ctx } e
 
 let rec scope_lets_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
-    (scope_body_expr : 'm expr scope_body_expr) :
-    'm expr scope_body_expr Bindlib.box =
+    (scope_body_expr : 'm naked_expr scope_body_expr) :
+    'm naked_expr scope_body_expr Bindlib.box =
   match scope_body_expr with
   | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
   | ScopeLet scope_let ->
@@ -210,9 +210,9 @@ let rec scope_lets_map
       new_scope_let_expr new_next
 
 let rec scopes_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
-    (scopes : 'm expr scopes) : 'm expr scopes Bindlib.box =
+    (scopes : 'm naked_expr scopes) : 'm naked_expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
@@ -241,7 +241,7 @@ let rec scopes_map
       new_scope_body_expr new_scope_next
 
 let program_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
     (p : 'm program) : 'm program Bindlib.box =
   Bindlib.box_apply

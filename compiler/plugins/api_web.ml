@@ -328,10 +328,10 @@ module To_jsoo = struct
           Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
       (type_ordering @ scope_structs)
 
-  let fmt_input_struct_name fmt (scope_def : 'a expr scope_def) =
+  let fmt_input_struct_name fmt (scope_def : 'a naked_expr scope_def) =
     format_struct_name fmt scope_def.scope_body.scope_body_input_struct
 
-  let fmt_output_struct_name fmt (scope_def : 'a expr scope_def) =
+  let fmt_output_struct_name fmt (scope_def : 'a naked_expr scope_def) =
     format_struct_name fmt scope_def.scope_body.scope_body_output_struct
 
   let rec format_scopes_to_fun

@@ -18,7 +18,7 @@ open Utils
 open Shared_ast
 open Ast
 
-let needs_parens (_e : expr Marked.pos) : bool = false
+let needs_parens (_e : naked_expr Marked.pos) : bool = false
 
 let format_local_name (fmt : Format.formatter) (v : LocalName.t) : unit =
   Format.fprintf fmt "%a_%s" LocalName.format_t v
@@ -28,9 +28,9 @@ let rec format_expr
     (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
-    (e : expr Marked.pos) : unit =
+    (e : naked_expr Marked.pos) : unit =
   let format_expr = format_expr decl_ctx ~debug in
-  let format_with_parens (fmt : Format.formatter) (e : expr Marked.pos) =
+  let format_with_parens (fmt : Format.formatter) (e : naked_expr Marked.pos) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" Print.punctuation "(" format_expr e
         Print.punctuation ")"
@@ -115,11 +115,11 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
       LocalName.format_t (Marked.unmark name) Print.punctuation ":"
       (Print.typ decl_ctx) typ
-  | SLocalDef (name, expr) ->
+  | SLocalDef (name, naked_expr) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" LocalName.format_t
       (Marked.unmark name) Print.punctuation "="
       (format_expr decl_ctx ~debug)
-      expr
+      naked_expr
   | STryExcept (b_try, except, b_with) ->
     Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
       "try" Print.punctuation ":"
@@ -143,10 +143,10 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "return"
       (format_expr decl_ctx ~debug)
       (ret, Marked.get_mark stmt)
-  | SAssert expr ->
+  | SAssert naked_expr ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
-      (expr, Marked.get_mark stmt)
+      (naked_expr, Marked.get_mark stmt)
   | SSwitch (e_switch, enum, arms) ->
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)

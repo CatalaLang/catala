@@ -25,9 +25,9 @@ type scope_var_ctx = {
 
 type scope_sig_ctx = {
   scope_sig_local_vars : scope_var_ctx list;  (** List of scope variables *)
-  scope_sig_scope_var : untyped Dcalc.Ast.expr Var.t;
+  scope_sig_scope_var : untyped Dcalc.Ast.naked_expr Var.t;
       (** Var representing the scope *)
-  scope_sig_input_var : untyped Dcalc.Ast.expr Var.t;
+  scope_sig_input_var : untyped Dcalc.Ast.naked_expr Var.t;
       (** Var representing the scope input inside the scope func *)
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
@@ -40,11 +40,11 @@ type ctx = {
   enums : enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : scope_sigs_ctx;
-  scope_vars : (untyped Dcalc.Ast.expr Var.t * typ * Ast.io) ScopeVarMap.t;
+  scope_vars : (untyped Dcalc.Ast.naked_expr Var.t * typ * Ast.io) ScopeVarMap.t;
   subscope_vars :
-    (untyped Dcalc.Ast.expr Var.t * typ * Ast.io) ScopeVarMap.t
+    (untyped Dcalc.Ast.naked_expr Var.t * typ * Ast.io) ScopeVarMap.t
     Ast.SubScopeMap.t;
-  local_vars : (Ast.expr, untyped Dcalc.Ast.expr Var.t) Var.Map.t;
+  local_vars : (Ast.naked_expr, untyped Dcalc.Ast.naked_expr Var.t) Var.Map.t;
 }
 
 let empty_ctx
@@ -66,9 +66,9 @@ let pos_mark (pos : Pos.t) : untyped mark = Untyped { pos }
 let pos_mark_as e = pos_mark (Marked.get_mark e)
 
 let merge_defaults
-    (caller : untyped Dcalc.Ast.marked_expr Bindlib.box)
-    (callee : untyped Dcalc.Ast.marked_expr Bindlib.box) :
-    untyped Dcalc.Ast.marked_expr Bindlib.box =
+    (caller : untyped Dcalc.Ast.expr Bindlib.box)
+    (callee : untyped Dcalc.Ast.expr Bindlib.box) :
+    untyped Dcalc.Ast.expr Bindlib.box =
   let caller =
     let m = Marked.get_mark (Bindlib.unbox caller) in
     Expr.make_app caller [Bindlib.box (ELit LUnit, m)] m
@@ -83,10 +83,10 @@ let merge_defaults
   body
 
 let tag_with_log_entry
-    (e : untyped Dcalc.Ast.marked_expr Bindlib.box)
+    (e : untyped Dcalc.Ast.expr Bindlib.box)
     (l : log_entry)
     (markings : Utils.Uid.MarkedString.info list) :
-    untyped Dcalc.Ast.marked_expr Bindlib.box =
+    untyped Dcalc.Ast.expr Bindlib.box =
   Bindlib.box_apply
     (fun e ->
       Marked.same_mark_as
@@ -101,8 +101,8 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (excepts : Ast.expr Marked.pos list) :
-    Ast.expr Marked.pos list =
+let collapse_similar_outcomes (excepts : Ast.naked_expr Marked.pos list) :
+    Ast.naked_expr Marked.pos list =
   let cons_map =
     List.fold_left
       (fun map -> function
@@ -133,9 +133,9 @@ let collapse_similar_outcomes (excepts : Ast.expr Marked.pos list) :
   in
   excepts
 
-let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
-    untyped Dcalc.Ast.marked_expr Bindlib.box =
-  Bindlib.box_apply (fun (x : untyped Dcalc.Ast.expr) ->
+let rec translate_expr (ctx : ctx) (e : Ast.naked_expr Marked.pos) :
+    untyped Dcalc.Ast.expr Bindlib.box =
+  Bindlib.box_apply (fun (x : untyped Dcalc.Ast.naked_expr) ->
       Marked.mark (pos_mark_as e) x)
   @@
   match Marked.unmark e with
@@ -357,8 +357,8 @@ let translate_rule
     (ctx : ctx)
     (rule : Ast.rule)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
-    (untyped Dcalc.Ast.expr scope_body_expr Bindlib.box ->
-    untyped Dcalc.Ast.expr scope_body_expr Bindlib.box)
+    (untyped Dcalc.Ast.naked_expr scope_body_expr Bindlib.box ->
+    untyped Dcalc.Ast.naked_expr scope_body_expr Bindlib.box)
     * ctx =
   match rule with
   | Definition ((ScopelangScopeVar a, var_def_pos), tau, a_io, e) ->
@@ -636,7 +636,7 @@ let translate_rules
     (rules : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
     (sigma_return_struct_name : StructName.t) :
-    untyped Dcalc.Ast.expr scope_body_expr Bindlib.box * ctx =
+    untyped Dcalc.Ast.naked_expr scope_body_expr Bindlib.box * ctx =
   let scope_lets, new_ctx =
     List.fold_left
       (fun (scope_lets, ctx) rule ->
@@ -673,7 +673,7 @@ let translate_scope_decl
     (sctx : scope_sigs_ctx)
     (scope_name : ScopeName.t)
     (sigma : Ast.scope_decl) :
-    untyped Dcalc.Ast.expr scope_body Bindlib.box * struct_ctx =
+    untyped Dcalc.Ast.naked_expr scope_body Bindlib.box * struct_ctx =
   let sigma_info = ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
@@ -850,7 +850,7 @@ let translate_program (prgm : Ast.program) :
   in
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. *)
-  let (scopes, decl_ctx) : untyped Dcalc.Ast.expr scopes Bindlib.box * _ =
+  let (scopes, decl_ctx) : untyped Dcalc.Ast.naked_expr scopes Bindlib.box * _ =
     List.fold_right
       (fun scope_name (scopes, decl_ctx) ->
         let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in

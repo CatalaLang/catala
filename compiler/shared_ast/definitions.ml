@@ -178,7 +178,7 @@ type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 (** General expressions: groups all expression cases of the different ASTs, and
     uses a GADT to eliminate irrelevant cases for each one. The ['t] annotations
     are also totally unconstrained at this point. The dcalc exprs, for example,
-    are then defined with [type expr = dcalc naked_gexpr] plus the annotations.
+    are then defined with [type naked_expr = dcalc naked_gexpr] plus the annotations.
 
     A few tips on using this GADT:
 

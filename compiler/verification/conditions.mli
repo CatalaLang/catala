@@ -29,12 +29,12 @@ type verification_condition_kind =
           a conflict error *)
 
 type verification_condition = {
-  vc_guard : typed Dcalc.Ast.marked_expr;
+  vc_guard : typed Dcalc.Ast.expr;
       (** This expression should have type [bool]*)
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
-  vc_variable : typed Dcalc.Ast.expr Var.t Marked.pos;
-  vc_free_vars_typ : (typed Dcalc.Ast.expr, typ Marked.pos) Var.Map.t;
+  vc_variable : typed Dcalc.Ast.naked_expr Var.t Marked.pos;
+  vc_free_vars_typ : (typed Dcalc.Ast.naked_expr, typ Marked.pos) Var.Map.t;
       (** Types of the locally free variables in [vc_guard]. The types of other
           free variables linked to scope variables can be obtained with
           [Dcalc.Ast.variable_types]. *)

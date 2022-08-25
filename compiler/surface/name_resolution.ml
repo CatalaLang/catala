@@ -60,7 +60,7 @@ type var_sig = {
 }
 
 type context = {
-  local_var_idmap : Desugared.Ast.expr Var.t Desugared.Ast.IdentMap.t;
+  local_var_idmap : Desugared.Ast.naked_expr Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
   scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
@@ -321,7 +321,7 @@ let process_item_decl
 
 (** Adds a binding to the context *)
 let add_def_local_var (ctxt : context) (name : ident) :
-    context * Desugared.Ast.expr Var.t =
+    context * Desugared.Ast.naked_expr Var.t =
   let local_var_uid = Var.make name in
   let ctxt =
     {

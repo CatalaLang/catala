@@ -29,7 +29,7 @@ val find_enum :
   EnumName.t -> decl_ctx -> (EnumConstructor.t * typ Marked.pos) list
 
 val typ_needs_parens : typ Marked.pos -> bool
-val needs_parens : 'm marked_expr -> bool
+val needs_parens : 'm expr -> bool
 val format_enum_name : Format.formatter -> EnumName.t -> unit
 val format_enum_cons_name : Format.formatter -> EnumConstructor.t -> unit
 val format_struct_name : Format.formatter -> StructName.t -> unit
