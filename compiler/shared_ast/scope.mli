@@ -80,7 +80,7 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
-val get_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
+val get_body_mark : (_, 'm mark) naked_gexpr scope_body -> 'm mark
 
 (** {2 Conversions} *)
 
@@ -93,7 +93,7 @@ val format :
 
 val to_expr :
   decl_ctx ->
-  ((_ any, 'm mark) gexpr as 'e) scope_body ->
+  ((_ any, 'm mark) naked_gexpr as 'e) scope_body ->
   'm mark ->
   'e marked Bindlib.box
 (** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
@@ -105,7 +105,7 @@ type 'e scope_name_or_var =
 
 val unfold :
   decl_ctx ->
-  ((_ any, 'm mark) gexpr as 'e) scopes ->
+  ((_ any, 'm mark) naked_gexpr as 'e) scopes ->
   'm mark ->
   'e scope_name_or_var ->
   'e marked Bindlib.box

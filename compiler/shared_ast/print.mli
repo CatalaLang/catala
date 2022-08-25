@@ -47,5 +47,5 @@ val expr :
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->
-  ('a, 't) marked_gexpr ->
+  ('a, 't) gexpr ->
   unit

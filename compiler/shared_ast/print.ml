@@ -208,7 +208,7 @@ let except (fmt : Format.formatter) (exn : except) : unit =
 let var fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
-let needs_parens (type a) (e : (a, _) marked_gexpr) : bool =
+let needs_parens (type a) (e : (a, _) gexpr) : bool =
   match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
 let rec expr :
@@ -216,10 +216,10 @@ let rec expr :
           ?debug:bool ->
           decl_ctx ->
           Format.formatter ->
-          ('a, 't) marked_gexpr ->
+          ('a, 't) gexpr ->
           unit =
   fun (type a) ?(debug : bool = false) (ctx : decl_ctx) (fmt : Format.formatter)
-      (e : (a, 't) marked_gexpr) ->
+      (e : (a, 't) gexpr) ->
    let expr e = expr ~debug ctx e in
    let with_parens fmt e =
      if needs_parens e then (

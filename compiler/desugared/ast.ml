@@ -94,7 +94,7 @@ Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type expr = (desugared, Pos.t) gexpr
+type expr = (desugared, Pos.t) naked_gexpr
 type marked_expr = expr Marked.pos
 
 module ExprMap = Map.Make (struct

@@ -36,7 +36,7 @@ Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type expr = (scopelang, Pos.t) gexpr
+type expr = (scopelang, Pos.t) naked_gexpr
 type marked_expr = expr Marked.pos
 
 module ExprMap = Map.Make (struct
