@@ -72,13 +72,13 @@ let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
   in
   match ty with
   | TLit l -> tlit fmt l
-  | TTuple (ts, None) ->
+  | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " operator "*")
          (fun fmt t -> Format.fprintf fmt "%a" typ t))
       (List.map Marked.unmark ts)
-  | TTuple (_args, Some s) ->
+  | TStruct s ->
     Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" StructName.format_t s punctuation
       "{"
       (Format.pp_print_list
@@ -89,7 +89,7 @@ let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
              (Marked.unmark mty)))
       (StructMap.find s ctx.ctx_structs)
       punctuation "}"
-  | TEnum (_, e) ->
+  | TEnum e ->
     Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format_t e punctuation "["
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
@@ -98,6 +98,9 @@ let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
              typ (Marked.unmark mty)))
       (EnumMap.find e ctx.ctx_enums)
       punctuation "]"
+  | TOption t ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ
+      (Marked.unmark t)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens (Marked.unmark t1)
       operator "→" typ (Marked.unmark t2)

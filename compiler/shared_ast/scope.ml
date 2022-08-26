@@ -114,21 +114,13 @@ let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
       scope_let_pos
 
 let build_typ_from_sig
-    (ctx : decl_ctx)
+    (_ctx : decl_ctx)
     (scope_input_struct_name : StructName.t)
     (scope_return_struct_name : StructName.t)
     (pos : Pos.t) : typ Marked.pos =
-  let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
-  let scope_return_typ =
-    StructMap.find scope_return_struct_name ctx.ctx_structs
-  in
-  let result_typ =
-    TTuple (List.map snd scope_return_typ, Some scope_return_struct_name), pos
-  in
-  let input_typ =
-    TTuple (List.map snd scope_sig, Some scope_input_struct_name), pos
-  in
-  TArrow (input_typ, result_typ), pos
+  let input_typ = Marked.mark pos (TStruct scope_input_struct_name) in
+  let result_typ = Marked.mark pos (TStruct scope_return_struct_name) in
+  Marked.mark pos (TArrow (input_typ, result_typ))
 
 type 'e scope_name_or_var =
   | ScopeName of ScopeName.t
@@ -139,13 +131,7 @@ let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr
-    [
-      ( TTuple
-          ( List.map snd
-              (StructMap.find body.scope_body_input_struct ctx.ctx_structs),
-            Some body.scope_body_input_struct ),
-        Expr.mark_pos mark_scope );
-    ]
+    [TStruct body.scope_body_input_struct, Expr.mark_pos mark_scope]
     mark_scope
 
 let format

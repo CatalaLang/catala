@@ -366,15 +366,7 @@ let translate_program (p : 'm L.program) : A.program =
                      A.func_params =
                        [
                          ( (scope_input_var_id, input_pos),
-                           ( TTuple
-                               ( List.map snd
-                                   (StructMap.find
-                                      scope_def.scope_body
-                                        .scope_body_input_struct
-                                      p.decl_ctx.ctx_structs),
-                                 Some
-                                   scope_def.scope_body.scope_body_input_struct
-                               ),
+                           ( TStruct scope_def.scope_body.scope_body_input_struct,
                              input_pos ) );
                        ];
                      A.func_body = new_scope_body;

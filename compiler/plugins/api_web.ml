@@ -67,18 +67,14 @@ module To_jsoo = struct
     in
     match Marked.unmark typ with
     | TLit l -> Format.fprintf fmt "%a" format_tlit l
-    | TTuple (_, Some s) -> Format.fprintf fmt "%a Js.t" format_struct_name s
-    | TTuple (_, None) ->
+    | TStruct s -> Format.fprintf fmt "%a Js.t" format_struct_name s
+    | TTuple _ ->
       (* Tuples are encoded as an javascript polymorphic array. *)
       Format.fprintf fmt "Js.Unsafe.any_js_array Js.t "
-    | TEnum ([t], e) when EnumName.compare e option_enum = 0 ->
+    | TOption t ->
       Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
-        format_enum_name e
-    | TEnum (_, e) when EnumName.compare e option_enum = 0 ->
-      Errors.raise_spanned_error (Marked.get_mark typ)
-        "Internal Error: found an typing parameter for an eoption type of the \
-         wrong length."
-    | TEnum (_, e) -> Format.fprintf fmt "%a Js.t" format_enum_name e
+        format_enum_name Lcalc.Ast.option_enum
+    | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
     | TAny -> Format.fprintf fmt "Js.Unsafe.any Js.t"
@@ -94,13 +90,12 @@ module To_jsoo = struct
     | TLit TMoney -> Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
     | TLit TDuration -> Format.fprintf fmt "duration_to_jsoo"
     | TLit TDate -> Format.fprintf fmt "date_to_jsoo"
-    | TEnum (_, ename) -> Format.fprintf fmt "%a_to_jsoo" format_enum_name ename
-    | TTuple (_, Some sname) ->
-      Format.fprintf fmt "%a_to_jsoo" format_struct_name sname
+    | TEnum ename -> Format.fprintf fmt "%a_to_jsoo" format_enum_name ename
+    | TStruct sname -> Format.fprintf fmt "%a_to_jsoo" format_struct_name sname
     | TArray t ->
       Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)"
         format_typ_to_jsoo t
-    | TAny | TTuple (_, None) -> Format.fprintf fmt "Js.Unsafe.inject"
+    | TAny | TTuple _ -> Format.fprintf fmt "Js.Unsafe.inject"
     | _ -> Format.fprintf fmt ""
 
   let rec format_typ_of_jsoo fmt typ =
@@ -113,9 +108,8 @@ module To_jsoo = struct
         "money_of_decimal %@%@ decimal_of_float %@%@ Js.float_of_number"
     | TLit TDuration -> Format.fprintf fmt "duration_of_jsoo"
     | TLit TDate -> Format.fprintf fmt "date_of_jsoo"
-    | TEnum (_, ename) -> Format.fprintf fmt "%a_of_jsoo" format_enum_name ename
-    | TTuple (_, Some sname) ->
-      Format.fprintf fmt "%a_of_jsoo" format_struct_name sname
+    | TEnum ename -> Format.fprintf fmt "%a_of_jsoo" format_enum_name ename
+    | TStruct sname -> Format.fprintf fmt "%a_of_jsoo" format_struct_name sname
     | TArray t ->
       Format.fprintf fmt "Array.map (fun x -> %a x) %@%@ Js.to_array"
         format_typ_of_jsoo t
@@ -241,7 +235,7 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
                match Marked.unmark typ with
-               | TTuple (_, None) ->
+               | TTuple _ ->
                  Cli.error_print
                    "Tuples aren't supported yet in the conversion to JS"
                | _ ->
@@ -266,7 +260,7 @@ module To_jsoo = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
                match Marked.unmark typ with
-               | TTuple (_, None) ->
+               | TTuple _ ->
                  Cli.error_print
                    "Tuples aren't yet supported in the conversion to JS..."
                | TLit TUnit ->

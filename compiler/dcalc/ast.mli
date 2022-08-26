@@ -17,7 +17,6 @@
 
 (** Abstract syntax tree of the default calculus intermediate representation *)
 
-open Utils
 open Shared_ast
 
 type lit = dcalc glit

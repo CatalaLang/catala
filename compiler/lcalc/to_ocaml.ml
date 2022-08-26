@@ -193,9 +193,8 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : typ Marked.pos) : unit
   | TLit TMoney -> Format.fprintf fmt "embed_money"
   | TLit TDate -> Format.fprintf fmt "embed_date"
   | TLit TDuration -> Format.fprintf fmt "embed_duration"
-  | TTuple (_, Some s_name) ->
-    Format.fprintf fmt "embed_%a" format_struct_name s_name
-  | TEnum (_, e_name) -> Format.fprintf fmt "embed_%a" format_enum_name e_name
+  | TStruct s_name -> Format.fprintf fmt "embed_%a" format_struct_name s_name
+  | TEnum e_name -> Format.fprintf fmt "embed_%a" format_enum_name e_name
   | TArray ty -> Format.fprintf fmt "embed_array (%a)" typ_embedding_name ty
   | _ -> Format.fprintf fmt "unembeddable"
 
@@ -209,22 +208,17 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
   in
   match Marked.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
-  | TTuple (ts, None) ->
+  | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          format_typ_with_parens)
       ts
-  | TTuple (_, Some s) ->
-    Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
-  | TEnum ([t], e) when EnumName.compare e Ast.option_enum = 0 ->
+  | TStruct s -> Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
+  | TOption t ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
-      format_enum_name e
-  | TEnum (_, e) when EnumName.compare e Ast.option_enum = 0 ->
-    Errors.raise_spanned_error (Marked.get_mark typ)
-      "Internal Error: found an typing parameter for an eoption type of the \
-       wrong length."
-  | TEnum (_ts, e) -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
+      format_enum_name Ast.option_enum
+  | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1
       format_typ_with_parens t2

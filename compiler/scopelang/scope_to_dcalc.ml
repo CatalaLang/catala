@@ -62,18 +62,15 @@ let empty_ctx
     local_vars = Ast.VarMap.empty;
   }
 
-let rec translate_typ (ctx : ctx) (t : Ast.typ Marked.pos) : typ Marked.pos =
+let rec translate_typ (_ctx : ctx) (t : Ast.typ Marked.pos) : typ Marked.pos =
   Marked.same_mark_as
     (match Marked.unmark t with
     | Ast.TLit l -> TLit l
-    | Ast.TArrow (t1, t2) -> TArrow (translate_typ ctx t1, translate_typ ctx t2)
-    | Ast.TStruct s_uid ->
-      let s_fields = StructMap.find s_uid ctx.structs in
-      TTuple (List.map (fun (_, t) -> translate_typ ctx t) s_fields, Some s_uid)
-    | Ast.TEnum e_uid ->
-      let e_cases = EnumMap.find e_uid ctx.enums in
-      TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases, e_uid)
-    | Ast.TArray t1 -> TArray (translate_typ ctx (Marked.same_mark_as t1 t))
+    | Ast.TArrow (t1, t2) ->
+      TArrow (translate_typ _ctx t1, translate_typ _ctx t2)
+    | Ast.TStruct s_uid -> TStruct s_uid
+    | Ast.TEnum e_uid -> TEnum e_uid
+    | Ast.TArray t1 -> TArray (translate_typ _ctx (Marked.same_mark_as t1 t))
     | Ast.TAny -> TAny)
     t
 
@@ -580,14 +577,7 @@ let translate_rule
         ]
     in
     let result_tuple_var = Var.make "result" in
-    let result_tuple_typ =
-      ( TTuple
-          ( List.map
-              (fun (subvar, _) -> subvar.scope_var_typ, pos_sigma)
-              all_subscope_output_vars_dcalc,
-            Some called_scope_return_struct ),
-        pos_sigma )
-    in
+    let result_tuple_typ = TStruct called_scope_return_struct, pos_sigma in
     let call_scope_let next =
       Bindlib.box_apply2
         (fun next call_expr ->

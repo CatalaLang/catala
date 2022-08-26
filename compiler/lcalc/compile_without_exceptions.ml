@@ -126,14 +126,14 @@ let rec translate_typ (tau : typ Marked.pos) : typ Marked.pos =
     begin
       match Marked.unmark tau with
       | TLit l -> TLit l
-      | TTuple (ts, s) -> TTuple (List.map translate_typ ts, s)
-      | TEnum (ts, en) -> TEnum (List.map translate_typ ts, en)
+      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TStruct s -> TStruct s
+      | TEnum en -> TEnum en
+      | TOption t -> TOption t
       | TAny -> TAny
       | TArray ts -> TArray (translate_typ ts)
       (* catala is not polymorphic *)
-      | TArrow ((TLit TUnit, pos_unit), t2) ->
-        TEnum ([TLit TUnit, pos_unit; translate_typ t2], A.option_enum)
-        (* TAny *)
+      | TArrow ((TLit TUnit, _), t2) -> TOption (translate_typ t2)
       | TArrow (t1, t2) -> TArrow (translate_typ t1, translate_typ t2)
     end
 

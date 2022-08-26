@@ -38,8 +38,10 @@ type unionfind_typ = typ Marked.pos UnionFind.elem
 and typ =
   | TLit of A.typ_lit
   | TArrow of unionfind_typ * unionfind_typ
-  | TTuple of unionfind_typ list * A.StructName.t option
-  | TEnum of unionfind_typ list * A.EnumName.t
+  | TTuple of unionfind_typ list
+  | TStruct of A.StructName.t
+  | TEnum of A.EnumName.t
+  | TOption of unionfind_typ
   | TArray of unionfind_typ
   | TAny of Any.t
 
@@ -47,8 +49,10 @@ let rec typ_to_ast (ty : unionfind_typ) : A.marked_typ =
   let ty, pos = UnionFind.get (UnionFind.find ty) in
   match ty with
   | TLit l -> A.TLit l, pos
-  | TTuple (ts, s) -> A.TTuple (List.map typ_to_ast ts, s), pos
-  | TEnum (ts, e) -> A.TEnum (List.map typ_to_ast ts, e), pos
+  | TTuple ts -> A.TTuple (List.map typ_to_ast ts), pos
+  | TStruct s -> A.TStruct s, pos
+  | TEnum e -> A.TEnum e, pos
+  | TOption t -> A.TOption (typ_to_ast t), pos
   | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
   | TAny _ -> A.TAny, pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
@@ -58,8 +62,10 @@ let rec ast_to_typ (ty : A.marked_typ) : unionfind_typ =
     match Marked.unmark ty with
     | A.TLit l -> TLit l
     | A.TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
-    | A.TTuple (ts, s) -> TTuple (List.map (fun t -> ast_to_typ t) ts, s)
-    | A.TEnum (ts, e) -> TEnum (List.map (fun t -> ast_to_typ t) ts, e)
+    | A.TTuple ts -> TTuple (List.map ast_to_typ ts)
+    | A.TStruct s -> TStruct s
+    | A.TEnum e -> TEnum e
+    | A.TOption t -> TOption (ast_to_typ t)
     | A.TArray t -> TArray (ast_to_typ t)
     | A.TAny -> TAny (Any.fresh ())
   in
@@ -85,14 +91,16 @@ let rec format_typ
   let typ = UnionFind.get (UnionFind.find typ) in
   match Marked.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" A.Print.tlit l
-  | TTuple (ts, None) ->
+  | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
       ts
-  | TTuple (_ts, Some s) -> Format.fprintf fmt "%a" A.StructName.format_t s
-  | TEnum (_ts, e) -> Format.fprintf fmt "%a" A.EnumName.format_t e
+  | TStruct s -> Format.fprintf fmt "%a" A.StructName.format_t s
+  | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
+  | TOption t ->
+    Format.fprintf fmt "@[<hov 2>%a@ %s@]" format_typ_with_parens t "eoption"
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1
       format_typ t2
@@ -126,25 +134,29 @@ let rec unify
       unify e t11 t21;
       unify e t12 t22;
       None
-    | TTuple (ts1, s1), TTuple (ts2, s2) ->
-      if s1 = s2 && List.length ts1 = List.length ts2 then begin
+    | TTuple ts1, TTuple ts2 ->
+      if List.length ts1 = List.length ts2 then begin
         List.iter2 (unify e) ts1 ts2;
         None
       end
       else raise_type_error ()
-    | TEnum (ts1, e1), TEnum (ts2, e2) ->
-      if e1 = e2 && List.length ts1 = List.length ts2 then begin
-        List.iter2 (unify e) ts1 ts2;
-        None
-      end
-      else raise_type_error ()
+    | TStruct s1, TStruct s2 ->
+      if A.StructName.equal s1 s2 then None else raise_type_error ()
+    | TEnum e1, TEnum e2 ->
+      if A.EnumName.equal e1 e2 then None else raise_type_error ()
+    | TOption t1, TOption t2 ->
+      unify e t1 t2;
+      None
     | TArray t1', TArray t2' ->
       unify e t1' t2';
       None
     | TAny _, TAny _ -> None
     | TAny _, _ -> Some t2_repr
     | _, TAny _ -> Some t1_repr
-    | _ -> raise_type_error ()
+    | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
+        | TArray _ ),
+        _ ) ->
+      raise_type_error ()
   in
   let t_union = UnionFind.union t1 t2 in
   match repr with None -> () | Some t_repr -> UnionFind.set t_union t_repr
@@ -322,14 +334,21 @@ let rec typecheck_expr_bottom_up
   | A.ELit LUnit as e1 -> Bindlib.box @@ mark_with_uf e1 (TLit TUnit)
   | A.ELit LEmptyError as e1 ->
     Bindlib.box @@ mark_with_uf e1 (TAny (Any.fresh ()))
-  | A.ETuple (es, s) ->
+  | A.ETuple (es, None) ->
     let+ es = bmap (typecheck_expr_bottom_up ctx env) es in
-    mark_with_uf (ETuple (es, s)) (TTuple (List.map ty es, s))
+    mark_with_uf (ETuple (es, None)) (TTuple (List.map ty es))
+  | A.ETuple (es, Some s_name) ->
+    let tys =
+      List.map
+        (fun (_, ty) -> ast_to_typ ty)
+        (A.StructMap.find s_name ctx.A.ctx_structs)
+    in
+    let+ es = bmap2 (typecheck_expr_top_down ctx env) tys es in
+    mark_with_uf (ETuple (es, Some s_name)) (TStruct s_name)
   | A.ETupleAccess (e1, n, s, typs) -> begin
     let utyps = List.map ast_to_typ typs in
-    let+ e1 =
-      typecheck_expr_top_down ctx env (unionfind_make (TTuple (utyps, s))) e1
-    in
+    let tuple_ty = match s with None -> TTuple utyps | Some s -> TStruct s in
+    let+ e1 = typecheck_expr_top_down ctx env (unionfind_make tuple_ty) e1 in
     match List.nth_opt utyps n with
     | Some t' -> mark (ETupleAccess (e1, n, s, typs)) t'
     | None ->
@@ -350,12 +369,12 @@ let rec typecheck_expr_bottom_up
           n (List.length ts')
     in
     let+ e1' = typecheck_expr_top_down ctx env ts_n e1 in
-    mark_with_uf (A.EInj (e1', n, e_name, ts)) (TEnum (ts', e_name))
+    mark_with_uf (A.EInj (e1', n, e_name, ts)) (TEnum e_name)
   | A.EMatch (e1, es, e_name) ->
     let enum_cases =
       List.map (fun e' -> unionfind_make ~pos:e' (TAny (Any.fresh ()))) es
     in
-    let t_e1 = UnionFind.make (add_pos e1 (TEnum (enum_cases, e_name))) in
+    let t_e1 = UnionFind.make (add_pos e1 (TEnum e_name)) in
     let t_ret = unionfind_make ~pos:e (TAny (Any.fresh ())) in
     let+ e1' = typecheck_expr_top_down ctx env t_e1 e1
     and+ es' =
@@ -490,16 +509,25 @@ and typecheck_expr_top_down
     Bindlib.box @@ unify_and_mark e1 (unionfind_make (TLit TUnit))
   | A.ELit LEmptyError as e1 ->
     Bindlib.box @@ unify_and_mark e1 (unionfind_make (TAny (Any.fresh ())))
-  | A.ETuple (es, s) ->
+  | A.ETuple (es, None) ->
     let+ es' = bmap (typecheck_expr_bottom_up ctx env) es in
     unify_and_mark
-      (A.ETuple (es', s))
-      (unionfind_make (TTuple (List.map ty es', s)))
+      (A.ETuple (es', None))
+      (unionfind_make (TTuple (List.map ty es')))
+  | A.ETuple (es, Some s_name) ->
+    let tys =
+      List.map
+        (fun (_, ty) -> ast_to_typ ty)
+        (A.StructMap.find s_name ctx.A.ctx_structs)
+    in
+    let+ es' = bmap2 (typecheck_expr_top_down ctx env) tys es in
+    unify_and_mark
+      (A.ETuple (es', Some s_name))
+      (unionfind_make (TStruct s_name))
   | A.ETupleAccess (e1, n, s, typs) -> begin
     let typs' = List.map ast_to_typ typs in
-    let+ e1' =
-      typecheck_expr_top_down ctx env (unionfind_make (TTuple (typs', s))) e1
-    in
+    let tuple_ty = match s with None -> TTuple typs' | Some s -> TStruct s in
+    let+ e1' = typecheck_expr_top_down ctx env (unionfind_make tuple_ty) e1 in
     match List.nth_opt typs' n with
     | Some t1n -> unify_and_mark (A.ETupleAccess (e1', n, s, typs)) t1n
     | None ->
@@ -520,17 +548,13 @@ and typecheck_expr_top_down
           n (List.length ts)
     in
     let+ e1' = typecheck_expr_top_down ctx env ts_n e1 in
-    unify_and_mark
-      (A.EInj (e1', n, e_name, ts))
-      (unionfind_make (TEnum (ts', e_name)))
+    unify_and_mark (A.EInj (e1', n, e_name, ts)) (unionfind_make (TEnum e_name))
   | A.EMatch (e1, es, e_name) ->
     let enum_cases =
       List.map (fun e' -> unionfind_make ~pos:e' (TAny (Any.fresh ()))) es
     in
     let e1' =
-      typecheck_expr_top_down ctx env
-        (unionfind_make ~pos:e1 (TEnum (enum_cases, e_name)))
-        e1
+      typecheck_expr_top_down ctx env (unionfind_make ~pos:e1 (TEnum e_name)) e1
     in
     let t_ret = unionfind_make ~pos:e (TAny (Any.fresh ())) in
     let+ e1'
@@ -666,10 +690,7 @@ let infer_types_program prg =
         } ->
       let scope_pos = Marked.get_mark (A.ScopeName.get_info scope_name) in
       let struct_ty struct_name =
-        let struc = A.StructMap.find struct_name ctx.A.ctx_structs in
-        ast_to_typ
-          (Marked.mark scope_pos
-             (A.TTuple (List.map snd struc, Some struct_name)))
+        UnionFind.make (Marked.mark scope_pos (TStruct struct_name))
       in
       let ty_in = struct_ty s_in in
       let ty_out = struct_ty s_out in

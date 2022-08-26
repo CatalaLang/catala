@@ -161,17 +161,17 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
   | TLit TDate -> Format.fprintf fmt "Date"
   | TLit TDuration -> Format.fprintf fmt "Duration"
   | TLit TBool -> Format.fprintf fmt "bool"
-  | TTuple (ts, None) ->
+  | TTuple ts ->
     Format.fprintf fmt "Tuple[%a]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
       ts
-  | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
-  | TEnum ([_; some_typ], e) when EnumName.compare e L.option_enum = 0 ->
+  | TStruct s -> Format.fprintf fmt "%a" format_struct_name s
+  | TOption some_typ ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
-  | TEnum (_, e) -> Format.fprintf fmt "%a" format_enum_name e
+  | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
     Format.fprintf fmt "Callable[[%a], %a]" format_typ_with_parens t1
       format_typ_with_parens t2
