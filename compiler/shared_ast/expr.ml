@@ -229,9 +229,6 @@ let empty_thunked_term mark =
             Marked.mark pos (TArrow (Marked.mark pos (TLit TUnit), ty)))
           mark))
 
-let make_let_in_raw x tau e1 e2 mark =
-  make_app (make_abs [| x |] e2 [tau] mark) [e1] mark
-
 let make_let_in x tau e1 e2 pos =
   let m_e1 = Marked.get_mark (Bindlib.unbox e1) in
   let m_e2 = Marked.get_mark (Bindlib.unbox e2) in

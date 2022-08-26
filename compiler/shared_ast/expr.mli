@@ -184,15 +184,6 @@ val make_let_in :
   Utils.Pos.t ->
   ('a, 'm mark) gexpr box
 
-val make_let_in_raw :
-  ('a, 't) gexpr Var.t ->
-  typ ->
-  ('a, 't) gexpr box ->
-  ('a, 't) gexpr box ->
-  't ->
-  ('a, 't) gexpr box
-(** Version with any mark; to be removed once we use the [mark] type everywhere. *)
-
 val make_multiple_let_in :
   ('a, 'm mark) gexpr Var.vars ->
   typ list ->

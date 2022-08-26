@@ -147,7 +147,6 @@ type desugared = [ `Desugared ]
 type scopelang = [ `Scopelang ]
 type dcalc = [ `Dcalc ]
 type lcalc = [ `Lcalc ]
-
 type 'a any = [< desugared | scopelang | dcalc | lcalc ] as 'a
 
 (** Literals are the same throughout compilation except for the [LEmptyError]
@@ -192,9 +191,7 @@ and ('a, 't) naked_gexpr =
   | EApp : ('a, 't) gexpr * ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
   | EOp : operator -> ('a any, 't) naked_gexpr
   | EArray : ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
-  | EVar :
-      ('a, 't) naked_gexpr Bindlib.var
-      -> ('a any, 't) naked_gexpr
+  | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a any, 't) naked_gexpr
   | EAbs :
       (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder * typ list
       -> ('a any, 't) naked_gexpr
@@ -250,6 +247,9 @@ type ('e, 'b) binder = (('a, 't) naked_gexpr, 'b) Bindlib.binder
   constraint 'e = ('a, 't) gexpr
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
     library, based on higher-order abstract syntax *)
+
+type ('e, 'b) mbinder = (('a, 't) naked_gexpr, 'b) Bindlib.mbinder
+  constraint 'e = ('a, 't) gexpr
 
 (** {2 Markings} *)
 

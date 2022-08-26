@@ -124,11 +124,12 @@ let rec translate_expr
     (scope : ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    ((naked_expr, pos) : Ast.expression Marked.pos) :
-    Desugared.Ast.expr Bindlib.box =
+    (expr : Ast.expression Marked.pos) : Desugared.Ast.expr Bindlib.box =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
-  match naked_expr with
+  let pos = Marked.get_mark expr in
+  let emark = Untyped { pos } in
+  match Marked.unmark expr with
   | Binop
       ( (Ast.And, _pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
@@ -146,35 +147,35 @@ let rec translate_expr
             let nop_var = Var.make "_" in
             Bindlib.unbox
               (Expr.make_abs [| nop_var |]
-                 (Bindlib.box (ELit (LBool false), pos))
-                 [tau] pos)
+                 (Bindlib.box (ELit (LBool false), emark))
+                 [tau] emark)
           else
             let ctxt, binding_var =
               Name_resolution.add_def_local_var ctxt (Marked.unmark binding)
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
-            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] pos))
+            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] emark))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
-      (fun e1_sub -> EMatchS (e1_sub, enum_uid, cases), pos)
+      (fun e1_sub -> EMatchS (e1_sub, enum_uid, cases), emark)
       (translate_expr scope inside_definition_of ctxt e1_sub)
   | IfThenElse (e_if, e_then, e_else) ->
     Bindlib.box_apply3
-      (fun e_if e_then e_else -> EIfThenElse (e_if, e_then, e_else), pos)
+      (fun e_if e_then e_else -> EIfThenElse (e_if, e_then, e_else), emark)
       (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
-  | Binop (op, e1, e2) ->
+  | Binop ((op, pos), e1, e2) ->
     let op_term =
-      Marked.same_mark_as (EOp (Binop (translate_binop (Marked.unmark op)))) op
+      Marked.mark (Untyped { pos }) (EOp (Binop (translate_binop op)))
     in
     Bindlib.box_apply2
-      (fun e1 e2 -> EApp (op_term, [e1; e2]), pos)
+      (fun e1 e2 -> EApp (op_term, [e1; e2]), emark)
       (rec_helper e1) (rec_helper e2)
-  | Unop (op, e) ->
+  | Unop ((op, pos), e) ->
     let op_term =
-      Marked.same_mark_as (EOp (Unop (translate_unop (Marked.unmark op)))) op
+      Marked.mark (Untyped { pos }) (EOp (Unop (translate_unop op)))
     in
-    Bindlib.box_apply (fun e -> EApp (op_term, [e]), pos) (rec_helper e)
+    Bindlib.box_apply (fun e -> EApp (op_term, [e]), emark) (rec_helper e)
   | Literal l ->
     let untyped_term =
       match l with
@@ -222,7 +223,7 @@ let rec translate_expr
                   "There is an error in this date, it does not correspond to a \
                    correct calendar day"))
     in
-    Bindlib.box (untyped_term, pos)
+    Bindlib.box (untyped_term, emark)
   | Ident x -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables *)
@@ -268,12 +269,12 @@ let rec translate_expr
               (* we take the last state in the chain *)
               Some (List.hd (List.rev states)))
         in
-        Bindlib.box (ELocation (DesugaredScopeVar ((uid, pos), x_state)), pos)
+        Bindlib.box (ELocation (DesugaredScopeVar ((uid, pos), x_state)), emark)
       | None ->
         Name_resolution.raise_unknown_identifier
           "for a local or scope-wide variable" (x, pos))
     | Some uid ->
-      Expr.make_var (uid, pos)
+      Expr.make_var (uid, emark)
       (* the whole box thing is to accomodate for this case *))
   | Dotted (e, c, x) -> (
     match Marked.unmark e with
@@ -292,7 +293,7 @@ let rec translate_expr
         ( ELocation
             (SubScopeVar
                (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
-          pos )
+          emark )
     | _ -> (
       (* In this case e.x is the struct field x access of expression e *)
       let e = translate_expr scope inside_definition_of ctxt e in
@@ -316,7 +317,7 @@ let rec translate_expr
             (StructMap.bindings x_possible_structs)
         else
           let s_uid, f_uid = StructMap.choose x_possible_structs in
-          Bindlib.box_apply (fun e -> EStructAccess (e, f_uid, s_uid), pos) e
+          Bindlib.box_apply (fun e -> EStructAccess (e, f_uid, s_uid), emark) e
       | Some c_name -> (
         try
           let c_uid =
@@ -324,7 +325,9 @@ let rec translate_expr
           in
           try
             let f_uid = StructMap.find c_uid x_possible_structs in
-            Bindlib.box_apply (fun e -> EStructAccess (e, f_uid, c_uid), pos) e
+            Bindlib.box_apply
+              (fun e -> EStructAccess (e, f_uid, c_uid), emark)
+              e
           with Not_found ->
             Errors.raise_spanned_error pos "Struct %s does not contain field %s"
               (Marked.unmark c_name) (Marked.unmark x)
@@ -333,7 +336,7 @@ let rec translate_expr
             "Struct %s has not been defined before" (Marked.unmark c_name))))
   | FunCall (f, arg) ->
     Bindlib.box_apply2
-      (fun f arg -> EApp (f, [arg]), pos)
+      (fun f arg -> EApp (f, [arg]), emark)
       (rec_helper f) (rec_helper arg)
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
@@ -341,9 +344,11 @@ let rec translate_expr
     let fn =
       Expr.make_abs [| v |]
         (translate_expr scope inside_definition_of ctxt e2)
-        [tau] pos
+        [tau] emark
     in
-    Bindlib.box_apply2 (fun fn arg -> EApp (fn, [arg]), pos) fn (rec_helper e1)
+    Bindlib.box_apply2
+      (fun fn arg -> EApp (fn, [arg]), emark)
+      fn (rec_helper e1)
   | StructLit (s_name, fields) ->
     let s_uid =
       try Desugared.Ast.IdentMap.find (Marked.unmark s_name) ctxt.struct_idmap
@@ -370,8 +375,7 @@ let rec translate_expr
           | Some e_field ->
             Errors.raise_multispanned_error
               [
-                None, Marked.get_mark f_e;
-                None, Marked.get_mark (Bindlib.unbox e_field);
+                None, Marked.get_mark f_e; None, Expr.pos (Bindlib.unbox e_field);
               ]
               "The field %a has been defined twice:" StructFieldName.format_t
               f_uid);
@@ -389,20 +393,17 @@ let rec translate_expr
       expected_s_fields;
 
     Bindlib.box_apply
-      (fun s_fields -> EStruct (s_uid, s_fields), pos)
+      (fun s_fields -> EStruct (s_uid, s_fields), emark)
       (LiftStructFieldMap.lift_box s_fields)
-  | EnumInject (enum, constructor, payload) -> (
+  | EnumInject (enum, (constructor, pos_constructor), payload) -> (
     let possible_c_uids =
-      try
-        Desugared.Ast.IdentMap.find
-          (Marked.unmark constructor)
-          ctxt.constructor_idmap
+      try Desugared.Ast.IdentMap.find constructor ctxt.constructor_idmap
       with Not_found ->
-        Errors.raise_spanned_error
-          (Marked.get_mark constructor)
+        Errors.raise_spanned_error pos_constructor
           "The name of this constructor has not been defined before, maybe it \
            is a typo?"
     in
+    let mark_constructor = Untyped { pos = pos_constructor } in
 
     match enum with
     | None ->
@@ -410,8 +411,7 @@ let rec translate_expr
         (* No constructor name was specified *)
         EnumMap.cardinal possible_c_uids > 1
       then
-        Errors.raise_spanned_error
-          (Marked.get_mark constructor)
+        Errors.raise_spanned_error pos_constructor
           "This constructor name is ambiguous, it can belong to %a. \
            Desambiguate it by prefixing it with the enum name."
           (Format.pp_print_list
@@ -429,10 +429,10 @@ let rec translate_expr
             ( EEnumInj
                 ( (match payload with
                   | Some e' -> e'
-                  | None -> ELit LUnit, Marked.get_mark constructor),
+                  | None -> ELit LUnit, mark_constructor),
                   c_uid,
                   e_uid ),
-              pos ))
+              emark ))
           (Bindlib.box_opt payload)
     | Some enum -> (
       try
@@ -450,15 +450,14 @@ let rec translate_expr
               ( EEnumInj
                   ( (match payload with
                     | Some e' -> e'
-                    | None -> ELit LUnit, Marked.get_mark constructor),
+                    | None -> ELit LUnit, mark_constructor),
                     c_uid,
                     e_uid ),
-                pos ))
+                emark ))
             (Bindlib.box_opt payload)
         with Not_found ->
           Errors.raise_spanned_error pos "Enum %s does not contain case %s"
-            (Marked.unmark enum)
-            (Marked.unmark constructor)
+            (Marked.unmark enum) constructor
       with Not_found ->
         Errors.raise_spanned_error (Marked.get_mark enum)
           "Enum %s has not been defined before" (Marked.unmark enum)))
@@ -469,7 +468,7 @@ let rec translate_expr
         cases
     in
     Bindlib.box_apply2
-      (fun e1 cases_d -> EMatchS (e1, e_uid, cases_d), pos)
+      (fun e1 cases_d -> EMatchS (e1, e_uid, cases_d), emark)
       e1
       (LiftEnumConstructorMap.lift_box cases_d)
   | TestMatchCase (e1, pattern) ->
@@ -490,16 +489,17 @@ let rec translate_expr
           Bindlib.unbox
             (Expr.make_abs [| nop_var |]
                (Bindlib.box
-                  (ELit (LBool (EnumConstructor.compare c_uid c_uid' = 0)), pos))
-               [tau] pos))
+                  ( ELit (LBool (EnumConstructor.compare c_uid c_uid' = 0)),
+                    emark ))
+               [tau] emark))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
-      (fun e -> EMatchS (e, enum_uid, cases), pos)
+      (fun e -> EMatchS (e, enum_uid, cases), emark)
       (translate_expr scope inside_definition_of ctxt e1)
   | ArrayLit es ->
     Bindlib.box_apply
-      (fun es -> EArray es, pos)
+      (fun es -> EArray es, emark)
       (Bindlib.box_list (List.map rec_helper es))
   | CollectionOp
       ( (((Ast.Filter | Ast.Map) as op'), _pos_op'),
@@ -514,7 +514,7 @@ let rec translate_expr
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
-        pos
+        emark
     in
     Bindlib.box_apply2
       (fun f_pred collection ->
@@ -524,9 +524,9 @@ let rec translate_expr
                   | Ast.Map -> Binop Map
                   | Ast.Filter -> Binop Filter
                   | _ -> assert false (* should not happen *)),
-                pos ),
+                emark ),
               [f_pred; collection] ),
-          pos ))
+          emark ))
       f_pred collection
   | CollectionOp
       ( ( Ast.Aggregate (Ast.AggregateArgExtremum (max_or_min, pred_typ, init)),
@@ -557,12 +557,14 @@ let rec translate_expr
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
-        pos
+        emark
     in
     let f_pred_var = Var.make "predicate" in
-    let f_pred_var_e = Expr.make_var (f_pred_var, Marked.get_mark predicate) in
+    let f_pred_var_e =
+      Expr.make_var (f_pred_var, Untyped { pos = Marked.get_mark predicate })
+    in
     let acc_var = Var.make "acc" in
-    let acc_var_e = Expr.make_var (acc_var, pos) in
+    let acc_var_e = Expr.make_var (acc_var, emark) in
     let item_var = Var.make "item" in
     let item_var_e =
       Expr.make_var (item_var, Marked.get_mark (Bindlib.unbox collection))
@@ -572,85 +574,87 @@ let rec translate_expr
         (fun acc_var_e item_var_e f_pred_var_e ->
           ( EIfThenElse
               ( ( EApp
-                    ( (EOp (Binop cmp_op), pos_op'),
+                    ( (EOp (Binop cmp_op), Untyped { pos = pos_op' }),
                       [
-                        EApp (f_pred_var_e, [acc_var_e]), pos;
-                        EApp (f_pred_var_e, [item_var_e]), pos;
+                        EApp (f_pred_var_e, [acc_var_e]), emark;
+                        EApp (f_pred_var_e, [item_var_e]), emark;
                       ] ),
-                  pos ),
+                  emark ),
                 acc_var_e,
                 item_var_e ),
-            pos ))
+            emark ))
         acc_var_e item_var_e f_pred_var_e
     in
     let fold_f =
-      Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
+      Expr.make_abs [| acc_var; item_var |] fold_body
+        [TAny, pos; TAny, pos]
+        emark
     in
     let fold =
       Bindlib.box_apply3
         (fun fold_f collection init ->
-          EApp ((EOp (Ternop Fold), pos), [fold_f; init; collection]), pos)
+          EApp ((EOp (Ternop Fold), emark), [fold_f; init; collection]), emark)
         fold_f collection init
     in
-    Expr.make_let_in_raw f_pred_var (TAny, pos) f_pred fold pos
+    Expr.make_let_in f_pred_var (TAny, pos) f_pred fold pos
   | CollectionOp (op', param', collection, predicate) ->
     let ctxt, param =
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
     in
     let collection = rec_helper collection in
+    let mark = Untyped { pos = Marked.get_mark op' } in
     let init =
       match Marked.unmark op' with
       | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Exists -> Bindlib.box (ELit (LBool false), Marked.get_mark op')
-      | Ast.Forall -> Bindlib.box (ELit (LBool true), Marked.get_mark op')
+      | Ast.Exists -> Bindlib.box (ELit (LBool false), mark)
+      | Ast.Forall -> Bindlib.box (ELit (LBool true), mark)
       | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
-        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), Marked.get_mark op')
+        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), mark)
       | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
-        Bindlib.box
-          (ELit (LRat (Runtime.decimal_of_string "0")), Marked.get_mark op')
+        Bindlib.box (ELit (LRat (Runtime.decimal_of_string "0")), mark)
       | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
         Bindlib.box
           ( ELit
               (LMoney
                  (Runtime.money_of_cents_integer (Runtime.integer_of_int 0))),
-            Marked.get_mark op' )
+            mark )
       | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
-        Bindlib.box
-          ( ELit (LDuration (Runtime.duration_of_numbers 0 0 0)),
-            Marked.get_mark op' )
+        Bindlib.box (ELit (LDuration (Runtime.duration_of_numbers 0 0 0)), mark)
       | Ast.Aggregate (Ast.AggregateSum t) ->
         Errors.raise_spanned_error pos
           "It is impossible to sum two values of type %a together"
           SurfacePrint.format_primitive_typ t
       | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
       | Ast.Aggregate Ast.AggregateCount ->
-        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), Marked.get_mark op')
+        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), mark)
     in
     let acc_var = Var.make "acc" in
-    let acc = Expr.make_var (acc_var, Marked.get_mark param') in
+    let acc =
+      Expr.make_var (acc_var, Untyped { pos = Marked.get_mark param' })
+    in
     let f_body =
       let make_body (op : binop) =
         Bindlib.box_apply2
           (fun predicate acc ->
-            EApp ((EOp (Binop op), Marked.get_mark op'), [acc; predicate]), pos)
+            EApp ((EOp (Binop op), mark), [acc; predicate]), emark)
           (translate_expr scope inside_definition_of ctxt predicate)
           acc
       in
       let make_extr_body (cmp_op : binop) (t : typ) =
         let tmp_var = Var.make "tmp" in
-        let tmp = Expr.make_var (tmp_var, Marked.get_mark param') in
-        Expr.make_let_in_raw tmp_var t
+        let tmp =
+          Expr.make_var (tmp_var, Untyped { pos = Marked.get_mark param' })
+        in
+        Expr.make_let_in tmp_var t
           (translate_expr scope inside_definition_of ctxt predicate)
           (Bindlib.box_apply2
              (fun acc tmp ->
                ( EIfThenElse
-                   ( ( EApp
-                         ((EOp (Binop cmp_op), Marked.get_mark op'), [acc; tmp]),
-                       pos ),
+                   ( (EApp ((EOp (Binop cmp_op), mark), [acc; tmp]), emark),
                      acc,
                      tmp ),
-                 pos ))
+                 emark ))
              acc tmp)
           pos
       in
@@ -688,15 +692,15 @@ let rec translate_expr
             ( EIfThenElse
                 ( predicate,
                   ( EApp
-                      ( (EOp (Binop (Add KInt)), Marked.get_mark op'),
+                      ( (EOp (Binop (Add KInt)), mark),
                         [
                           acc;
                           ( ELit (LInt (Runtime.integer_of_int 1)),
                             Marked.get_mark predicate );
                         ] ),
-                    pos ),
+                    emark ),
                   acc ),
-              pos ))
+              emark ))
           (translate_expr scope inside_definition_of ctxt predicate)
           acc
     in
@@ -713,7 +717,7 @@ let rec translate_expr
                        arrays is not always the type of the accumulator; for
                        instance in AggregateCount. *);
                   ] ),
-              pos ))
+              emark ))
           (Bindlib.bind_mvar [| acc_var; param |] f_body)
       in
       match Marked.unmark op' with
@@ -740,45 +744,45 @@ let rec translate_expr
     in
     Bindlib.box_apply3
       (fun f collection init ->
-        EApp ((EOp (Ternop Fold), pos), [f; init; collection]), pos)
+        EApp ((EOp (Ternop Fold), emark), [f; init; collection]), emark)
       f collection init
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
-    let param = Expr.make_var (param_var, pos) in
+    let param = Expr.make_var (param_var, emark) in
     let collection = rec_helper collection in
-    let init = Bindlib.box (ELit (LBool false), pos) in
+    let init = Bindlib.box (ELit (LBool false), emark) in
     let acc_var = Var.make "acc" in
-    let acc = Expr.make_var (acc_var, pos) in
+    let acc = Expr.make_var (acc_var, emark) in
     let f_body =
       Bindlib.box_apply3
         (fun member acc param ->
           ( EApp
-              ( (EOp (Binop Or), pos),
-                [EApp ((EOp (Binop Eq), pos), [member; param]), pos; acc] ),
-            pos ))
+              ( (EOp (Binop Or), emark),
+                [EApp ((EOp (Binop Eq), emark), [member; param]), emark; acc] ),
+            emark ))
         (translate_expr scope inside_definition_of ctxt member)
         acc param
     in
     let f =
       Bindlib.box_apply
-        (fun binder -> EAbs (binder, [TLit TBool, pos; TAny, pos]), pos)
+        (fun binder -> EAbs (binder, [TLit TBool, pos; TAny, pos]), emark)
         (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
     in
     Bindlib.box_apply3
       (fun f collection init ->
-        EApp ((EOp (Ternop Fold), pos), [f; init; collection]), pos)
+        EApp ((EOp (Ternop Fold), emark), [f; init; collection]), emark)
       f collection init
-  | Builtin IntToDec -> Bindlib.box (EOp (Unop IntToRat), pos)
-  | Builtin MoneyToDec -> Bindlib.box (EOp (Unop MoneyToRat), pos)
-  | Builtin DecToMoney -> Bindlib.box (EOp (Unop RatToMoney), pos)
-  | Builtin Cardinal -> Bindlib.box (EOp (Unop Length), pos)
-  | Builtin GetDay -> Bindlib.box (EOp (Unop GetDay), pos)
-  | Builtin GetMonth -> Bindlib.box (EOp (Unop GetMonth), pos)
-  | Builtin GetYear -> Bindlib.box (EOp (Unop GetYear), pos)
-  | Builtin FirstDayOfMonth -> Bindlib.box (EOp (Unop FirstDayOfMonth), pos)
-  | Builtin LastDayOfMonth -> Bindlib.box (EOp (Unop LastDayOfMonth), pos)
-  | Builtin RoundMoney -> Bindlib.box (EOp (Unop RoundMoney), pos)
-  | Builtin RoundDecimal -> Bindlib.box (EOp (Unop RoundDecimal), pos)
+  | Builtin IntToDec -> Bindlib.box (EOp (Unop IntToRat), emark)
+  | Builtin MoneyToDec -> Bindlib.box (EOp (Unop MoneyToRat), emark)
+  | Builtin DecToMoney -> Bindlib.box (EOp (Unop RatToMoney), emark)
+  | Builtin Cardinal -> Bindlib.box (EOp (Unop Length), emark)
+  | Builtin GetDay -> Bindlib.box (EOp (Unop GetDay), emark)
+  | Builtin GetMonth -> Bindlib.box (EOp (Unop GetMonth), emark)
+  | Builtin GetYear -> Bindlib.box (EOp (Unop GetYear), emark)
+  | Builtin FirstDayOfMonth -> Bindlib.box (EOp (Unop FirstDayOfMonth), emark)
+  | Builtin LastDayOfMonth -> Bindlib.box (EOp (Unop LastDayOfMonth), emark)
+  | Builtin RoundMoney -> Bindlib.box (EOp (Unop RoundMoney), emark)
+  | Builtin RoundDecimal -> Bindlib.box (EOp (Unop RoundDecimal), emark)
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)
@@ -796,12 +800,9 @@ and disambiguate_match_and_build_expression
       (c_uid : EnumConstructor.t)
       (e_uid : EnumName.t)
       (ctxt : Name_resolution.context)
-      (case_body : ('a * Pos.t) Bindlib.box)
-      (e_binder :
-        ( Desugared.Ast.naked_expr,
-          Desugared.Ast.naked_expr * Pos.t )
-        Bindlib.mbinder
-        Bindlib.box) : 'c Bindlib.box =
+      (case_body : ('a * untyped mark) Bindlib.box)
+      (e_binder : (Desugared.Ast.expr, Desugared.Ast.expr) mbinder box) :
+      'c Bindlib.box =
     Bindlib.box_apply2
       (fun e_binder case_body ->
         Marked.same_mark_as
@@ -840,7 +841,7 @@ and disambiguate_match_and_build_expression
         Errors.raise_multispanned_error
           [
             None, Marked.get_mark case.match_case_expr;
-            None, Marked.get_mark (Bindlib.unbox e_case);
+            None, Expr.pos (Bindlib.unbox e_case);
           ]
           "The constructor %a has been matched twice:" EnumConstructor.format_t
           c_uid);
@@ -937,10 +938,10 @@ let merge_conditions
       precond cond
   | Some precond, None ->
     Bindlib.box_apply
-      (fun precond -> Marked.unmark precond, default_pos)
+      (fun precond -> Marked.unmark precond, Untyped { pos = default_pos })
       precond
   | None, Some cond -> cond
-  | None, None -> Bindlib.box (ELit (LBool true), default_pos)
+  | None, None -> Bindlib.box (ELit (LBool true), Untyped { pos = default_pos })
 
 (** Translates a surface definition into condition into a desugared {!type:
     Desugared.Ast.rule} *)
@@ -973,11 +974,11 @@ let process_default
        | TArrow (t_in, _), Some param_uid -> Some (Marked.unmark param_uid, t_in)
        | TArrow _, None ->
          Errors.raise_spanned_error
-           (Marked.get_mark (Bindlib.unbox cons))
+           (Expr.pos (Bindlib.unbox cons))
            "This definition has a function type but the parameter is missing"
        | _, Some _ ->
          Errors.raise_spanned_error
-           (Marked.get_mark (Bindlib.unbox cons))
+           (Expr.pos (Bindlib.unbox cons))
            "This definition has a parameter but its type is not a function"
        | _ -> None);
     rule_exception = exception_situation;

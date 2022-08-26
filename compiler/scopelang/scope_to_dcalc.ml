@@ -135,7 +135,7 @@ let collapse_similar_outcomes (excepts : Ast.expr list) : Ast.expr list =
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr) :
     untyped Dcalc.Ast.expr Bindlib.box =
-  Bindlib.box_apply (fun x -> Marked.mark (pos_mark_as e) x)
+  Bindlib.box_apply (fun x -> Marked.same_mark_as x e)
   @@
   match Marked.unmark e with
   | EVar v -> Bindlib.box_var (Var.Map.find v ctx.local_vars)
@@ -154,7 +154,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
         struct_sig ([], e_fields)
     in
     if StructFieldMap.cardinal remaining_e_fields > 0 then
-      Errors.raise_spanned_error (Marked.get_mark e)
+      Errors.raise_spanned_error (Expr.pos e)
         "The fields \"%a\" do not belong to the structure %a"
         StructName.format_t struct_name
         (Format.pp_print_list
@@ -172,7 +172,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
       try
         List.assoc field_name (List.mapi (fun i (x, y) -> x, (y, i)) struct_sig)
       with Not_found ->
-        Errors.raise_spanned_error (Marked.get_mark e)
+        Errors.raise_spanned_error (Expr.pos e)
           "The field \"%a\" does not belong to the structure %a"
           StructFieldName.format_t field_name StructName.format_t struct_name
     in
@@ -187,7 +187,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
       try
         List.assoc constructor (List.mapi (fun i (x, y) -> x, (y, i)) enum_sig)
       with Not_found ->
-        Errors.raise_spanned_error (Marked.get_mark e)
+        Errors.raise_spanned_error (Expr.pos e)
           "The constructor \"%a\" does not belong to the enum %a"
           EnumConstructor.format_t constructor EnumName.format_t enum_name
     in
@@ -203,7 +203,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
           let case_e =
             try EnumConstructorMap.find constructor e_cases
             with Not_found ->
-              Errors.raise_spanned_error (Marked.get_mark e)
+              Errors.raise_spanned_error (Expr.pos e)
                 "The constructor %a of enum %a is missing from this pattern \
                  matching"
                 EnumConstructor.format_t constructor EnumName.format_t enum_name
@@ -213,7 +213,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
         enum_sig ([], cases)
     in
     if EnumConstructorMap.cardinal remaining_e_cases > 0 then
-      Errors.raise_spanned_error (Marked.get_mark e)
+      Errors.raise_spanned_error (Expr.pos e)
         "Patter matching is incomplete for enum %a: missing cases %a"
         EnumName.format_t enum_name
         (Format.pp_print_list
@@ -269,13 +269,13 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
       | ELocation l, [new_arg] ->
         [
           tag_with_log_entry new_arg (VarDef input_typ)
-            (markings l @ [Marked.same_mark_as "input" e]);
+            (markings l @ [Marked.mark (Expr.pos e) "input"]);
         ]
       | _ -> new_args
     in
     let new_e =
       Bindlib.box_apply2
-        (fun e' u -> EApp (e', u), pos_mark_as e)
+        (fun e' u -> Marked.same_mark_as (EApp (e', u)) e)
         e1_func
         (Bindlib.box_list new_args)
     in
@@ -284,7 +284,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
       | ELocation l ->
         tag_with_log_entry
           (tag_with_log_entry new_e (VarDef output_typ)
-             (markings l @ [Marked.same_mark_as "output" e]))
+             (markings l @ [Marked.mark (Expr.pos e) "output"]))
           EndCall (markings l)
       | _ -> new_e
     in
@@ -325,7 +325,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
     with Not_found ->
       Errors.raise_multispanned_error
         [
-          Some "Incriminated variable usage:", Marked.get_mark e;
+          Some "Incriminated variable usage:", Expr.pos e;
           ( Some "Incriminated subscope variable declaration:",
             Marked.get_mark (ScopeVar.get_info (Marked.unmark a)) );
           ( Some "Incriminated subscope declaration:",
@@ -616,13 +616,13 @@ let translate_rule
             ScopeLet
               {
                 scope_let_next = next;
-                scope_let_pos = Marked.get_mark e;
-                scope_let_typ = TLit TUnit, Marked.get_mark e;
+                scope_let_pos = Expr.pos e;
+                scope_let_typ = TLit TUnit, Expr.pos e;
                 scope_let_expr =
                   (* To ensure that we throw an error if the value is not
                      defined, we add an check "ErrorOnEmpty" here. *)
                   Marked.same_mark_as
-                    (EAssert (ErrorOnEmpty new_e, pos_mark_as e))
+                    (EAssert (Marked.same_mark_as (ErrorOnEmpty new_e) e))
                     new_e;
                 scope_let_kind = Assertion;
               })
