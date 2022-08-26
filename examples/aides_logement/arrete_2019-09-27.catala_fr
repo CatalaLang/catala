@@ -2518,8 +2518,8 @@ dispositions sont applicables pour les prestations dues à compter
 du 1er octobre 2021.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété sous condition
-  date_courante >=@ |2021-10-01|:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >=@ |2021-10-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
     54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)

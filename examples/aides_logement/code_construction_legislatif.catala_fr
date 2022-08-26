@@ -313,7 +313,8 @@ contrat de travail autre qu'un contrat à durée indéterminée.
 ```catala
 # Information donnée par le bureau DGALN/DHUP/FE4 le 25/05/2022:
 # "Historiquement, cet article avait été créé pour déroger (pour les moins
-# de 25 ans) au dispositif « d’évaluation forfaitaire » appliqué, avant réforme,
+# de 25 ans) au dispositif « d’évaluation forfaitaire » appliqué,
+# avant réforme,
 # pour les ménages présentant un revenu moindre en N-2 mais ayant une activité
 # professionnelle lors de la demande ou du recalcul du droit (anciens articles
 # R. 822-18 à 20 du CCH abrogés en 2020). Cet article n’a de fait plus lieu
@@ -712,7 +713,8 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   étiquette l831_2_base règle condition_logement_prêt rempli
   # Cas de base implicite
 
-  étiquette l831_2_1 exception l831_2_base règle condition_logement_prêt sous condition
+  étiquette l831_2_1 exception l831_2_base règle condition_logement_prêt
+  sous condition
     selon ménage.logement.mode_occupation sous forme
       -- LocationAccession de propriété:
         propriété.prêt.date_signature >=@ |2017-12-31|
@@ -799,7 +801,9 @@ est fixée par voie réglementaire.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition traitement_aide_finale de aide_finale état réduction_loyer_solidarité égal à
+  définition traitement_aide_finale de aide_finale
+  état réduction_loyer_solidarité
+  égal à
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
       aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€ 0€
@@ -896,7 +900,8 @@ champ d'application ÉligibilitéAllocationLogement:
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.EnfantÀCharge.bénéficie_titre_personnel_aide_personnelle_logement
+          enfant.EnfantÀCharge.
+            bénéficie_titre_personnel_aide_personnelle_logement
       }
       )
     )) = 1
@@ -927,7 +932,8 @@ champ d'application ÉligibilitéAllocationLogement:
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.EnfantÀCharge.bénéficie_titre_personnel_aide_personnelle_logement
+          enfant.EnfantÀCharge.
+            bénéficie_titre_personnel_aide_personnelle_logement
       }
       )
     )) = 0 et

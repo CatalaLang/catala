@@ -13,9 +13,9 @@ ans sous réserve que leur rémunération n'excède pas le plafond fixé au deux
 alinéa du présent article.
 
 ```catala
-# Attention: ici la condition de ressources au dessous du plafond est une répétition
-# par rapport au texte de L512-3. On ne remet donc pas le code ici correspondant
-# à cette limitation.
+# Attention: ici la condition de ressources au dessous du plafond est une
+# répétition par rapport au texte de L512-3. On ne remet donc pas le code
+# ici correspondant à cette limitation.
 
 champ d'application ÉligibilitéPrestationsFamiliales :
   définition âge_l512_3_2 égal à 20 an
