@@ -107,7 +107,7 @@ let rec format_typ
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
   | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
 
-exception Type_error of A.any_marked_expr * unionfind_typ * unionfind_typ
+exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
 type mark = { pos : Pos.t; uf : unionfind_typ }
 
