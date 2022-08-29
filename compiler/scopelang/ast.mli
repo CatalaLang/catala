@@ -42,11 +42,10 @@ module LocationSet : Set.S with type elt = location Marked.pos
 (** {1 Abstract syntax tree} *)
 
 type expr = (scopelang, Pos.t) gexpr
-type marked_expr = (scopelang, Pos.t) marked_gexpr
 
-module ExprMap : Map.S with type key = marked_expr
+module ExprMap : Map.S with type key = expr
 
-val locations_used : marked_expr -> LocationSet.t
+val locations_used : expr -> LocationSet.t
 
 (** This type characterizes the three levels of visibility for a given scope
     variable with regards to the scope's input and possible redefinitions inside
@@ -70,13 +69,13 @@ type io = {
 (** Characterization of the input/output status of a scope variable. *)
 
 type rule =
-  | Definition of location Marked.pos * marked_typ * io * expr Marked.pos
-  | Assertion of expr Marked.pos
+  | Definition of location Marked.pos * typ * io * expr
+  | Assertion of expr
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (marked_typ * io) ScopeVarMap.t;
+  scope_sig : (typ * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 

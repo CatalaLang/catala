@@ -30,8 +30,7 @@ type 'm ctxt = {
 
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
-let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
-    A.block * A.expr Marked.pos =
+let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
   match Marked.unmark expr with
   | EVar v ->
     let local_var =
@@ -115,8 +114,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.marked_expr) :
       :: tmp_stmts,
       (A.EVar tmp_var, Expr.pos expr) )
 
-and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.marked_expr) :
-    A.block =
+and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   match Marked.unmark block_expr with
   | EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)

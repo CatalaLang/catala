@@ -42,12 +42,12 @@ module A = Ast
 
 open Shared_ast
 
-type 'm hoists = ('m A.expr, 'm D.marked_expr) Var.Map.t
+type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 
 type 'm info = {
-  expr : 'm A.marked_expr Bindlib.box;
-  var : 'm A.expr Bindlib.var;
+  expr : 'm A.expr Bindlib.box;
+  var : 'm A.expr Var.t;
   is_pure : bool;
 }
 (** Information about each encontered Dcalc variable is stored inside a context
@@ -120,7 +120,7 @@ let add_var
     Since positions where there is thunked expressions is exactly where we will
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
     into ['a option] recursivly. There is no polymorphism inside catala. *)
-let rec translate_typ (tau : typ Marked.pos) : typ Marked.pos =
+let rec translate_typ (tau : typ) : typ =
   (Fun.flip Marked.same_mark_as)
     tau
     begin
@@ -155,8 +155,8 @@ let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
     the equivalence between the execution of e and the execution of e' are
     equivalent in an environement where each variable v, where (v, e_v) is in
     hoists, has the non-empty value in e_v. *)
-let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
-    'm A.marked_expr Bindlib.box * 'm hoists =
+let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
+    'm A.expr Bindlib.box * 'm hoists =
   let pos = Marked.get_mark e in
   match Marked.unmark e with
   (* empty-producing/using terms. We hoist those. (D.EVar in some cases,
@@ -288,8 +288,8 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     Expr.earray es' pos, disjoint_union_maps (Expr.pos e) hoists
   | EOp op -> Bindlib.box (EOp op, pos), Var.Map.empty
 
-and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
-    : 'm A.marked_expr Bindlib.box =
+and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
+    'm A.expr Bindlib.box =
   let e', hoists = translate_and_hoist ctx e in
   let hoists = Var.Map.bindings hoists in
 
@@ -302,7 +302,7 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
     ~init:(if append_esome then A.make_some e' else e')
     ~f:(fun acc (v, (hoist, mark_hoist)) ->
       (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.var v; *)
-      let c' : 'm A.marked_expr Bindlib.box =
+      let c' : 'm A.expr Bindlib.box =
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)

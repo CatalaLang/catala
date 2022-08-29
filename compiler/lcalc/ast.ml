@@ -18,17 +18,14 @@ open Utils
 include Shared_ast
 
 type lit = lcalc glit
-
 type 'm expr = (lcalc, 'm mark) gexpr
-and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
-
 type 'm program = 'm expr Shared_ast.program
 
 let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
 let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
-let option_enum_config : (EnumConstructor.t * typ Marked.pos) list =
+let option_enum_config : (EnumConstructor.t * typ) list =
   [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
 
 (* FIXME: proper typing in all the constructors below *)

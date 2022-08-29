@@ -45,14 +45,14 @@ type scope_context = {
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ Marked.pos StructFieldMap.t
+type struct_context = typ StructFieldMap.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ Marked.pos EnumConstructorMap.t
+type enum_context = typ EnumConstructorMap.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
-  var_sig_typ : typ Marked.pos;
+  var_sig_typ : typ;
   var_sig_is_condition : bool;
   var_sig_io : Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t Desugared.Ast.IdentMap.t;
@@ -94,7 +94,7 @@ val raise_unknown_identifier : string -> ident Marked.pos -> 'a
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
 
-val get_var_typ : context -> ScopeVar.t -> typ Marked.pos
+val get_var_typ : context -> ScopeVar.t -> typ
 (** Gets the type associated to an uid *)
 
 val is_var_cond : context -> ScopeVar.t -> bool
@@ -114,11 +114,11 @@ val is_subscope_uid : ScopeName.t -> context -> ident -> bool
 val belongs_to : context -> ScopeVar.t -> ScopeName.t -> bool
 (** Checks if the var_uid belongs to the scope scope_uid *)
 
-val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Marked.pos
+val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ
 (** Retrieves the type of a scope definition from the context *)
 
 val is_def_cond : context -> Desugared.Ast.ScopeDef.t -> bool
-val is_type_cond : Ast.typ Marked.pos -> bool
+val is_type_cond : Ast.typ -> bool
 
 val add_def_local_var : context -> ident -> context * Desugared.Ast.expr Var.t
 (** Adds a binding to the context *)

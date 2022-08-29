@@ -95,10 +95,9 @@ Set.Make (struct
 end)
 
 type expr = (desugared, Pos.t) gexpr
-type marked_expr = expr Marked.pos
 
 module ExprMap = Map.Make (struct
-  type t = marked_expr
+  type t = expr
 
   let compare = Expr.compare
 end)
@@ -112,9 +111,9 @@ type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
 
 type rule = {
   rule_id : RuleName.t;
-  rule_just : marked_expr Bindlib.box;
-  rule_cons : marked_expr Bindlib.box;
-  rule_parameter : (expr Var.t * marked_typ) option;
+  rule_just : expr Bindlib.box;
+  rule_cons : expr Bindlib.box;
+  rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -154,7 +153,7 @@ module Rule = struct
     | Some _, None -> 1
 end
 
-let empty_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
     rule_just = Bindlib.box (ELit (LBool false), pos);
     rule_cons = Bindlib.box (ELit LEmptyError, pos);
@@ -167,8 +166,7 @@ let empty_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule =
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule
-    =
+let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
     rule_just = Bindlib.box (ELit (LBool true), pos);
     rule_cons = Bindlib.box (ELit (LBool false), pos);
@@ -181,7 +179,7 @@ let always_false_rule (pos : Pos.t) (have_parameter : marked_typ option) : rule
     rule_label = Unlabeled;
   }
 
-type assertion = marked_expr Bindlib.box
+type assertion = expr Bindlib.box
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 
@@ -191,7 +189,7 @@ type meta_assertion =
 
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
-  scope_def_typ : marked_typ;
+  scope_def_typ : typ;
   scope_def_is_condition : bool;
   scope_def_io : Scopelang.Ast.io;
 }
@@ -212,7 +210,7 @@ type program = {
   program_ctx : decl_ctx;
 }
 
-let rec locations_used (e : marked_expr) : LocationSet.t =
+let rec locations_used (e : expr) : LocationSet.t =
   match Marked.unmark e with
   | ELocation l -> LocationSet.singleton (l, Marked.get_mark e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty

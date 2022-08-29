@@ -97,7 +97,7 @@ let get_body_mark scope_body =
   | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
 
 let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
-    'e marked Bindlib.box =
+    'e box =
   match scope_let with
   | Result e -> Expr.box e
   | ScopeLet
@@ -117,17 +117,15 @@ let build_typ_from_sig
     (_ctx : decl_ctx)
     (scope_input_struct_name : StructName.t)
     (scope_return_struct_name : StructName.t)
-    (pos : Pos.t) : typ Marked.pos =
+    (pos : Pos.t) : typ =
   let input_typ = Marked.mark pos (TStruct scope_input_struct_name) in
   let result_typ = Marked.mark pos (TStruct scope_return_struct_name) in
   Marked.mark pos (TArrow (input_typ, result_typ))
 
-type 'e scope_name_or_var =
-  | ScopeName of ScopeName.t
-  | ScopeVar of 'e Bindlib.var
+type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
-    'e marked Bindlib.box =
+    'e box =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr
@@ -152,7 +150,7 @@ let rec unfold
     (ctx : decl_ctx)
     (s : 'e scopes)
     (mark : 'm mark)
-    (main_scope : 'expr scope_name_or_var) : 'e marked Bindlib.box =
+    (main_scope : 'expr scope_name_or_var) : 'e Bindlib.box =
   match s with
   | Nil -> (
     match main_scope with

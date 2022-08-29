@@ -144,12 +144,12 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     (avoid_keywords
        (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
-let typ_needs_parens (e : typ Marked.pos) : bool =
+let typ_needs_parens (e : typ) : bool =
   match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
+let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   let format_typ = format_typ in
-  let format_typ_with_parens (fmt : Format.formatter) (t : typ Marked.pos) =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
@@ -232,7 +232,7 @@ let format_toplevel_name (fmt : Format.formatter) (v : TopLevelName.t) : unit =
   let v_str = Marked.unmark (TopLevelName.get_info v) in
   format_name_cleaned fmt v_str
 
-let needs_parens (e : expr Marked.pos) : bool =
+let needs_parens (e : expr) : bool =
   match Marked.unmark e with
   | ELit (LBool _ | LUnit) | EVar _ | EOp _ -> false
   | _ -> true
@@ -259,10 +259,8 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
 
-let rec format_expression
-    (ctx : decl_ctx)
-    (fmt : Format.formatter)
-    (e : expr Marked.pos) : unit =
+let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
+    unit =
   match Marked.unmark e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_toplevel_name fmt f

@@ -23,7 +23,7 @@ open Definitions
 (** {2 Traversal functions} *)
 
 val fold_left_lets :
-  f:('a -> 'e scope_let -> 'e Bindlib.var -> 'a) ->
+  f:('a -> 'e scope_let -> 'e Var.t -> 'a) ->
   init:'a ->
   'e scope_body_expr ->
   'a
@@ -33,8 +33,8 @@ val fold_left_lets :
     scope lets to be examined. *)
 
 val fold_right_lets :
-  f:('expr1 scope_let -> 'expr1 Bindlib.var -> 'a -> 'a) ->
-  init:('expr1 marked -> 'a) ->
+  f:('expr1 scope_let -> 'expr1 Var.t -> 'a -> 'a) ->
+  init:('expr1 -> 'a) ->
   'expr1 scope_body_expr ->
   'a
 (** Usage:
@@ -43,13 +43,13 @@ val fold_right_lets :
     scope lets to be examined (which are before in the program order). *)
 
 val map_exprs_in_lets :
-  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
-  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
+  f:('expr1 -> 'expr2 box) ->
+  varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scope_body_expr ->
-  'expr2 scope_body_expr Bindlib.box
+  'expr2 scope_body_expr box
 
 val fold_left :
-  f:('a -> 'expr1 scope_def -> 'expr1 Bindlib.var -> 'a) ->
+  f:('a -> 'expr1 scope_def -> 'expr1 Var.t -> 'a) ->
   init:'a ->
   'expr1 scopes ->
   'a
@@ -58,7 +58,7 @@ val fold_left :
     be examined. *)
 
 val fold_right :
-  f:('expr1 scope_def -> 'expr1 Bindlib.var -> 'a -> 'a) ->
+  f:('expr1 scope_def -> 'expr1 Var.t -> 'a -> 'a) ->
   init:'a ->
   'expr1 scopes ->
   'a
@@ -67,16 +67,13 @@ val fold_right :
     where [scope_var] is the variable bound to the scope in the next scopes to
     be examined (which are before in the program order). *)
 
-val map :
-  f:('e scope_def -> 'e scope_def Bindlib.box) ->
-  'e scopes ->
-  'e scopes Bindlib.box
+val map : f:('e scope_def -> 'e scope_def box) -> 'e scopes -> 'e scopes box
 
 val map_exprs :
-  f:('expr1 marked -> 'expr2 marked Bindlib.box) ->
-  varf:('expr1 Bindlib.var -> 'expr2 Bindlib.var) ->
+  f:('expr1 -> 'expr2 box) ->
+  varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scopes ->
-  'expr2 scopes Bindlib.box
+  'expr2 scopes box
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
@@ -93,25 +90,23 @@ val format :
 
 val to_expr :
   decl_ctx ->
-  ((_ any, 'm mark) gexpr as 'e) scope_body ->
+  ('a any, 'm mark) gexpr scope_body ->
   'm mark ->
-  'e marked Bindlib.box
+  ('a, 'm mark) gexpr box
 (** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
     to the line of the scope declaration for instance. *)
 
-type 'e scope_name_or_var =
-  | ScopeName of ScopeName.t
-  | ScopeVar of 'e Bindlib.var
+type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 val unfold :
   decl_ctx ->
-  ((_ any, 'm mark) gexpr as 'e) scopes ->
+  ((_, 'm mark) gexpr as 'e) scopes ->
   'm mark ->
   'e scope_name_or_var ->
-  'e marked Bindlib.box
+  'e box
 
 val build_typ_from_sig :
-  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ Marked.pos
+  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ
 (** [build_typ_from_sig ctx in_struct out_struct pos] builds the arrow type for
     the specified scope *)
 

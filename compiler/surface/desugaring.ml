@@ -124,8 +124,7 @@ let rec translate_expr
     (scope : ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    ((expr, pos) : Ast.expression Marked.pos) :
-    Desugared.Ast.expr Marked.pos Bindlib.box =
+    ((expr, pos) : Ast.expression Marked.pos) : Desugared.Ast.expr Bindlib.box =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   match expr with
@@ -637,7 +636,7 @@ let rec translate_expr
           (translate_expr scope inside_definition_of ctxt predicate)
           acc
       in
-      let make_extr_body (cmp_op : binop) (t : typ Marked.pos) =
+      let make_extr_body (cmp_op : binop) (t : typ) =
         let tmp_var = Var.make "tmp" in
         let tmp = Expr.make_var (tmp_var, Marked.get_mark param') in
         Expr.make_let_in_raw tmp_var t
@@ -785,8 +784,7 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr Marked.pos Bindlib.box EnumConstructorMap.t * EnumName.t
-    =
+    Desugared.Ast.expr Bindlib.box EnumConstructorMap.t * EnumName.t =
   let create_var = function
     | None -> ctxt, Var.make "_"
     | Some param ->
@@ -798,9 +796,8 @@ and disambiguate_match_and_build_expression
       (e_uid : EnumName.t)
       (ctxt : Name_resolution.context)
       (case_body : ('a * Pos.t) Bindlib.box)
-      (e_binder :
-        (Desugared.Ast.expr, Desugared.Ast.expr * Pos.t) Bindlib.mbinder
-        Bindlib.box) : 'c Bindlib.box =
+      (e_binder : (Desugared.Ast.expr, Desugared.Ast.expr) mbinder Bindlib.box)
+      : 'c Bindlib.box =
     Bindlib.box_apply2
       (fun e_binder case_body ->
         Marked.same_mark_as
@@ -924,9 +921,9 @@ and disambiguate_match_and_build_expression
     this precondition has to be appended to the justifications of each
     definition in the subscope use. This is what this function does. *)
 let merge_conditions
-    (precond : Desugared.Ast.expr Marked.pos Bindlib.box option)
-    (cond : Desugared.Ast.expr Marked.pos Bindlib.box option)
-    (default_pos : Pos.t) : Desugared.Ast.expr Marked.pos Bindlib.box =
+    (precond : Desugared.Ast.expr Bindlib.box option)
+    (cond : Desugared.Ast.expr Bindlib.box option)
+    (default_pos : Pos.t) : Desugared.Ast.expr Bindlib.box =
   match precond, cond with
   | Some precond, Some cond ->
     let op_term = EOp (Binop And), Marked.get_mark (Bindlib.unbox cond) in
@@ -949,7 +946,7 @@ let process_default
     (def_key : Desugared.Ast.ScopeDef.t Marked.pos)
     (rule_id : Desugared.Ast.RuleName.t)
     (param_uid : Desugared.Ast.expr Var.t Marked.pos option)
-    (precond : Desugared.Ast.expr Marked.pos Bindlib.box option)
+    (precond : Desugared.Ast.expr Bindlib.box option)
     (exception_situation : Desugared.Ast.exception_situation)
     (label_situation : Desugared.Ast.label_situation)
     (just : Ast.expression Marked.pos option)
@@ -987,7 +984,7 @@ let process_default
 (** Wrapper around {!val: process_default} that performs some name
     disambiguation *)
 let process_def
-    (precond : Desugared.Ast.expr Marked.pos Bindlib.box option)
+    (precond : Desugared.Ast.expr Bindlib.box option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)
@@ -1076,7 +1073,7 @@ let process_def
 
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
 let process_rule
-    (precond : Desugared.Ast.expr Marked.pos Bindlib.box option)
+    (precond : Desugared.Ast.expr Bindlib.box option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)
@@ -1086,7 +1083,7 @@ let process_rule
 
 (** Translates assertions *)
 let process_assert
-    (precond : Desugared.Ast.expr Marked.pos Bindlib.box option)
+    (precond : Desugared.Ast.expr Bindlib.box option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)

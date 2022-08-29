@@ -31,15 +31,14 @@ type ctx = {
 }
 
 let tag_with_log_entry
-    (e : Scopelang.Ast.expr Marked.pos)
+    (e : Scopelang.Ast.expr)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) :
-    Scopelang.Ast.expr Marked.pos =
+    (markings : Utils.Uid.MarkedString.info list) : Scopelang.Ast.expr =
   ( EApp ((EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
-let rec translate_expr (ctx : ctx) (e : Ast.expr Marked.pos) :
-    Scopelang.Ast.expr Marked.pos Bindlib.box =
+let rec translate_expr (ctx : ctx) (e : Ast.expr) :
+    Scopelang.Ast.expr Bindlib.box =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
@@ -187,16 +186,15 @@ let rec rule_tree_to_expr
     (ctx : ctx)
     (def_pos : Pos.t)
     (is_func : Ast.expr Var.t option)
-    (tree : rule_tree) : Scopelang.Ast.expr Marked.pos Bindlib.box =
+    (tree : rule_tree) : Scopelang.Ast.expr Bindlib.box =
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
   (* because each rule has its own variable parameter and we want to convert the
      whole rule tree into a function, we need to perform some alpha-renaming of
      all the expressions *)
-  let substitute_parameter
-      (e : Ast.expr Marked.pos Bindlib.box)
-      (rule : Ast.rule) : Ast.expr Marked.pos Bindlib.box =
+  let substitute_parameter (e : Ast.expr Bindlib.box) (rule : Ast.rule) :
+      Ast.expr Bindlib.box =
     match is_func, rule.Ast.rule_parameter with
     | Some new_param, Some (old_param, _) ->
       let binder = Bindlib.bind_var old_param e in
@@ -236,8 +234,8 @@ let rec rule_tree_to_expr
       (fun rule -> substitute_parameter rule.Ast.rule_cons rule)
       base_rules
   in
-  let translate_and_unbox_list (list : Ast.expr Marked.pos Bindlib.box list) :
-      Scopelang.Ast.expr Marked.pos Bindlib.box list =
+  let translate_and_unbox_list (list : Ast.expr Bindlib.box list) :
+      Scopelang.Ast.expr Bindlib.box list =
     List.map
       (fun e ->
         (* There are two levels of boxing here, the outermost is introduced by
@@ -286,8 +284,7 @@ let rec rule_tree_to_expr
          that the result returned by the function is not empty *)
       let default =
         Bindlib.box_apply
-          (fun (default : Scopelang.Ast.expr * Pos.t) ->
-            ErrorOnEmpty default, def_pos)
+          (fun (default : Scopelang.Ast.expr) -> ErrorOnEmpty default, def_pos)
           default
       in
       Expr.make_abs
@@ -304,10 +301,10 @@ let translate_def
     (ctx : ctx)
     (def_info : Ast.ScopeDef.t)
     (def : Ast.rule Ast.RuleMap.t)
-    (typ : typ Marked.pos)
+    (typ : typ)
     (io : Scopelang.Ast.io)
     ~(is_cond : bool)
-    ~(is_subscope_var : bool) : Scopelang.Ast.expr Marked.pos =
+    ~(is_subscope_var : bool) : Scopelang.Ast.expr =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func =
     match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
@@ -319,7 +316,7 @@ let translate_def
   let all_rules_not_func =
     Ast.RuleMap.for_all (fun n r -> not (is_rule_func n r)) def
   in
-  let is_def_func_param_typ : typ Marked.pos option =
+  let is_def_func_param_typ : typ option =
     if is_def_func && all_rules_func then
       match Marked.unmark typ with
       | TArrow (t_param, _) -> Some t_param

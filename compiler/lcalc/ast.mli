@@ -14,7 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
 open Shared_ast
 
 (** Abstract syntax tree for the lambda calculus *)
@@ -22,10 +21,7 @@ open Shared_ast
 (** {1 Abstract syntax tree} *)
 
 type lit = lcalc glit
-
 type 'm expr = (lcalc, 'm mark) gexpr
-and 'm marked_expr = (lcalc, 'm mark) marked_gexpr
-
 type 'm program = 'm expr Shared_ast.program
 
 (** {1 Language terms construction}*)
@@ -33,24 +29,24 @@ type 'm program = 'm expr Shared_ast.program
 val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
-val option_enum_config : (EnumConstructor.t * typ Marked.pos) list
-val make_none : 'm mark -> 'm marked_expr Bindlib.box
-val make_some : 'm marked_expr Bindlib.box -> 'm marked_expr Bindlib.box
+val option_enum_config : (EnumConstructor.t * typ) list
+val make_none : 'm mark -> 'm expr Bindlib.box
+val make_some : 'm expr Bindlib.box -> 'm expr Bindlib.box
 
 val make_matchopt_with_abs_arms :
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box
 
 val make_matchopt :
   'm mark ->
   'm expr Var.t ->
-  typ Marked.pos ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box ->
-  'm marked_expr Bindlib.box
+  typ ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box ->
+  'm expr Bindlib.box
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 

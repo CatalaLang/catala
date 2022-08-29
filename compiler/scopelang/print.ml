@@ -21,8 +21,7 @@ open Ast
 let struc
     ctx
     (fmt : Format.formatter)
-    ((name, fields) : StructName.t * (StructFieldName.t * typ Marked.pos) list)
-    : unit =
+    ((name, fields) : StructName.t * (StructFieldName.t * typ) list) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "type"
     StructName.format_t name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
@@ -35,8 +34,7 @@ let struc
 let enum
     ctx
     (fmt : Format.formatter)
-    ((name, cases) : EnumName.t * (EnumConstructor.t * typ Marked.pos) list) :
-    unit =
+    ((name, cases) : EnumName.t * (EnumConstructor.t * typ) list) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "type"
     EnumName.format_t name Print.punctuation "="
     (Format.pp_print_list

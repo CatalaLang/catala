@@ -23,17 +23,17 @@ type 'm ctx = ('m D.expr, 'm A.expr Var.t) Var.Map.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
-let thunk_expr (e : 'm A.marked_expr Bindlib.box) (mark : 'm mark) :
-    'm A.marked_expr Bindlib.box =
+let thunk_expr (e : 'm A.expr Bindlib.box) (mark : 'm mark) :
+    'm A.expr Bindlib.box =
   let dummy_var = Var.make "_" in
   Expr.make_abs [| dummy_var |] e [TAny, Expr.mark_pos mark] mark
 
 let rec translate_default
     (ctx : 'm ctx)
-    (exceptions : 'm D.marked_expr list)
-    (just : 'm D.marked_expr)
-    (cons : 'm D.marked_expr)
-    (mark_default : 'm mark) : 'm A.marked_expr Bindlib.box =
+    (exceptions : 'm D.expr list)
+    (just : 'm D.expr)
+    (cons : 'm D.expr)
+    (mark_default : 'm mark) : 'm A.expr Bindlib.box =
   let exceptions =
     List.map
       (fun except -> thunk_expr (translate_expr ctx except) mark_default)
@@ -51,8 +51,7 @@ let rec translate_default
   in
   exceptions
 
-and translate_expr (ctx : 'm ctx) (e : 'm D.marked_expr) :
-    'm A.marked_expr Bindlib.box =
+and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr Bindlib.box =
   match Marked.unmark e with
   | EVar v -> Expr.make_var (Var.Map.find v ctx, Marked.get_mark e)
   | ETuple (args, s) ->

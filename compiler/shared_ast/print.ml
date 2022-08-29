@@ -18,7 +18,7 @@ open Utils
 open String_common
 open Definitions
 
-let typ_needs_parens (ty : marked_typ) : bool =
+let typ_needs_parens (ty : typ) : bool =
   match Marked.unmark ty with TArrow _ | TArray _ -> true | _ -> false
 
 let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
@@ -74,9 +74,9 @@ let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
     (Utils.Cli.format_with_style [ANSITerminal.magenta])
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
-let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : marked_typ) : unit =
+let rec typ (ctx : decl_ctx) (fmt : Format.formatter) (ty : typ) : unit =
   let typ = typ ctx in
-  let typ_with_parens (fmt : Format.formatter) (t : marked_typ) =
+  let typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" typ t
     else Format.fprintf fmt "%a" typ t
   in
@@ -208,18 +208,15 @@ let except (fmt : Format.formatter) (exn : except) : unit =
 let var fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
-let needs_parens (type a) (e : (a, _) marked_gexpr) : bool =
+let needs_parens (type a) (e : (a, _) gexpr) : bool =
   match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
 let rec expr :
           'a.
-          ?debug:bool ->
-          decl_ctx ->
-          Format.formatter ->
-          ('a, 't) marked_gexpr ->
-          unit =
+          ?debug:bool -> decl_ctx -> Format.formatter -> ('a, 't) gexpr -> unit
+    =
   fun (type a) ?(debug : bool = false) (ctx : decl_ctx) (fmt : Format.formatter)
-      (e : (a, 't) marked_gexpr) ->
+      (e : (a, 't) gexpr) ->
    let expr e = expr ~debug ctx e in
    let with_parens fmt e =
      if needs_parens e then (

@@ -60,8 +60,8 @@ module To_jsoo = struct
       | TBool -> "bool Js.t"
       | TDate -> "Js.js_string Js.t")
 
-  let rec format_typ (fmt : Format.formatter) (typ : typ Marked.pos) : unit =
-    let format_typ_with_parens (fmt : Format.formatter) (t : typ Marked.pos) =
+  let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
+    let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
       if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
       else Format.fprintf fmt "%a" format_typ t
     in
@@ -137,7 +137,7 @@ module To_jsoo = struct
       (type_ordering : Scopelang.Dependency.TVertex.t list)
       (fmt : Format.formatter)
       (ctx : decl_ctx) : unit =
-    let format_prop_or_meth fmt (struct_field_type : typ Marked.pos) =
+    let format_prop_or_meth fmt (struct_field_type : typ) =
       match Marked.unmark struct_field_type with
       | TArrow _ -> Format.fprintf fmt "Js.meth"
       | _ -> Format.fprintf fmt "Js.readonly_prop"
@@ -224,7 +224,7 @@ module To_jsoo = struct
     in
     let format_enum_decl
         fmt
-        (enum_name, (enum_cons : (EnumConstructor.t * typ Marked.pos) list)) =
+        (enum_name, (enum_cons : (EnumConstructor.t * typ) list)) =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt _ =
         To_ocaml.format_to_module_name fmt (`Ename enum_name)

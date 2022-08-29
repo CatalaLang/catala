@@ -22,9 +22,9 @@ let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x y = Bindlib.box_pair x y
 
 let visitor_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
-    (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
+    (e : 'm expr) : 'm expr Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract
      syntax tree modified. Used in other transformations. *)
   let default_mark e' = Marked.same_mark_as e' e in
@@ -68,7 +68,7 @@ let visitor_map
     default_mark @@ ECatch (e1, exn, e2)
   | ERaise _ | ELit _ | EOp _ -> Bindlib.box e
 
-let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
+let rec iota_expr (_ : unit) (e : 'm expr) : 'm expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
   match Marked.unmark e with
   | EMatch ((EInj (e1, i, n', _ts), _), cases, n) when EnumName.compare n n' = 0
@@ -87,7 +87,7 @@ let rec iota_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
     visitor_map iota_expr () e'
   | _ -> visitor_map iota_expr () e
 
-let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
+let rec beta_expr (_ : unit) (e : 'm expr) : 'm expr Bindlib.box =
   let default_mark e' = Marked.same_mark_as e' e in
   match Marked.unmark e with
   | EApp (e1, args) -> (
@@ -95,7 +95,6 @@ let rec beta_expr (_ : unit) (e : 'm marked_expr) : 'm marked_expr Bindlib.box =
     and+ args = List.map (beta_expr ()) args |> Bindlib.box_list in
     match Marked.unmark e1 with
     | EAbs (binder, _ts) ->
-      let (_ : (_, _) Bindlib.mbinder) = binder in
       Bindlib.msubst binder (List.map fst args |> Array.of_list)
     | _ -> default_mark @@ EApp (e1, args))
   | _ -> visitor_map beta_expr () e
@@ -116,8 +115,7 @@ let _beta_optimizations (p : 'm program) : 'm program =
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
-let rec peephole_expr (_ : unit) (e : 'm marked_expr) :
-    'm marked_expr Bindlib.box =
+let rec peephole_expr (_ : unit) (e : 'm expr) : 'm expr Bindlib.box =
   let default_mark e' = Marked.mark (Marked.get_mark e) e' in
 
   match Marked.unmark e with

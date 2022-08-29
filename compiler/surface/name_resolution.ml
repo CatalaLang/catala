@@ -45,14 +45,14 @@ type scope_context = {
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ Marked.pos StructFieldMap.t
+type struct_context = typ StructFieldMap.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ Marked.pos EnumConstructorMap.t
+type enum_context = typ EnumConstructorMap.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
-  var_sig_typ : typ Marked.pos;
+  var_sig_typ : typ;
   var_sig_is_condition : bool;
   var_sig_io : Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t Desugared.Ast.IdentMap.t;
@@ -100,7 +100,7 @@ let raise_unknown_identifier (msg : string) (ident : ident Marked.pos) =
     msg
 
 (** Gets the type associated to an uid *)
-let get_var_typ (ctxt : context) (uid : ScopeVar.t) : typ Marked.pos =
+let get_var_typ (ctxt : context) (uid : ScopeVar.t) : typ =
   (ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
 
 let is_var_cond (ctxt : context) (uid : ScopeVar.t) : bool =
@@ -148,8 +148,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     scope.var_idmap
 
 (** Retrieves the type of a scope definition from the context *)
-let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) :
-    typ Marked.pos =
+let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ =
   match def with
   | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
   (* we don't need to look at the subscope prefix because [x] is already the uid
@@ -210,7 +209,7 @@ let process_subscope_decl
       scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
     }
 
-let is_type_cond ((typ, _) : Ast.typ Marked.pos) =
+let is_type_cond ((typ, _) : Ast.typ) =
   match typ with
   | Ast.Base Ast.Condition
   | Ast.Func { arg_typ = _; return_typ = Ast.Condition, _ } ->
@@ -220,7 +219,7 @@ let is_type_cond ((typ, _) : Ast.typ Marked.pos) =
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ
     (ctxt : context)
-    ((typ, typ_pos) : Ast.base_typ Marked.pos) : typ Marked.pos =
+    ((typ, typ_pos) : Ast.base_typ Marked.pos) : typ =
   match typ with
   | Ast.Condition -> TLit TBool, typ_pos
   | Ast.Data (Ast.Collection t) ->
@@ -249,9 +248,8 @@ let rec process_base_typ
             ident)))
 
 (** Process a type (function or not) *)
-let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Marked.pos) :
-    typ Marked.pos =
-  match typ with
+let process_type (ctxt : context) ((naked_typ, typ_pos) : Ast.typ) : typ =
+  match naked_typ with
   | Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Ast.Func { arg_typ; return_typ } ->
     ( TArrow (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),

@@ -27,7 +27,7 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : (typed expr, typ Marked.pos) Var.Map.t;
+  ctx_var : (typed expr, typ) Var.Map.t;
   (* A map from Catala variables to their types, needed to create Z3 expressions
      of the right sort *)
   ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
@@ -129,8 +129,7 @@ let nb_days_to_date (nb : int) : string =
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
-let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
-    : string =
+let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   let print_lit (ty : typ_lit) =
     match ty with
     (* TODO: Print boolean according to current language *)
@@ -263,7 +262,7 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TDuration -> Arithmetic.Integer.mk_sort ctx.ctx_z3
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
-let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
+let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name -> find_or_create_struct ctx name
@@ -284,9 +283,7 @@ let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
 and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
-  let create_constructor
-      (ctx : context)
-      (c : EnumConstructor.t * typ Marked.pos) :
+  let create_constructor (ctx : context) (c : EnumConstructor.t * typ) :
       context * Datatype.Constructor.constructor =
     let name, ty = c in
     let name = Marked.unmark (EnumConstructor.get_info name) in
@@ -417,10 +414,8 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
-let rec translate_op
-    (ctx : context)
-    (op : operator)
-    (args : 'm marked_expr list) : context * Expr.expr =
+let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
+    context * Expr.expr =
   match op with
   | Ternop _top ->
     let _e1, _e2, _e3 =
@@ -628,11 +623,11 @@ let rec translate_op
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
+and translate_expr (ctx : context) (vc : 'm expr) : context * Expr.expr =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)
-      (e : 'm marked_expr * FuncDecl.func_decl list) : context * Expr.expr =
+      (e : 'm expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Marked.unmark e with
     | EAbs (e, _) ->
@@ -802,7 +797,7 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
-  let translate_expr (ctx : backend_context) (e : 'm marked_expr) =
+  let translate_expr (ctx : backend_context) (e : 'm expr) =
     translate_expr ctx e
 
   let init_backend () =
@@ -810,8 +805,7 @@ module Backend = struct
 
   let make_context
       (decl_ctx : decl_ctx)
-      (free_vars_typ : (typed expr, typ Marked.pos) Var.Map.t) : backend_context
-      =
+      (free_vars_typ : (typed expr, typ) Var.Map.t) : backend_context =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])
       @ ["proof", "false"]

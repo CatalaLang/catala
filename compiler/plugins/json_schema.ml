@@ -69,7 +69,7 @@ module To_json = struct
     | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
     | TDuration -> failwith "TODO: tlit duration"
 
-  let rec fmt_type fmt (typ : marked_typ) =
+  let rec fmt_type fmt (typ : typ) =
     match Marked.unmark typ with
     | TLit tlit -> fmt_tlit fmt tlit
     | TStruct sname ->
@@ -110,9 +110,8 @@ module To_json = struct
       | _ -> failwith "unreachable: only structs and enums are collected."
     in
     let rec collect_required_type_defs_from_scope_input
-        (input_struct : StructName.t) : marked_typ list =
-      let rec collect (acc : marked_typ list) (t : marked_typ) : marked_typ list
-          =
+        (input_struct : StructName.t) : typ list =
+      let rec collect (acc : typ list) (t : typ) : typ list =
         match Marked.unmark t with
         | TStruct s ->
           (* Scope's input is a struct. *)
