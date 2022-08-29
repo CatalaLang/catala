@@ -2310,7 +2310,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4231; start_column=14; end_line=4231; end_column=50;
+              start_line=4235; start_column=14; end_line=4235; end_column=50;
               law_headings=["Article D832-26";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -2366,8 +2366,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4282; start_column=5;
-                      end_line=4282; end_column=26;
+                      start_line=4286; start_column=5;
+                      end_line=4286; end_column=26;
                       law_headings=["Article D832-26";
                                      "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                      "Section 3 : Logements-foyers";
@@ -2416,7 +2416,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                           /& (decimal_of_string "12."))))))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4244; start_column=14; end_line=4244; end_column=21;
+              start_line=4248; start_column=14; end_line=4248; end_column=21;
               law_headings=["Article D832-26";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -2497,8 +2497,8 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4196; start_column=5;
-                      end_line=4196; end_column=26;
+                      start_line=4200; start_column=5;
+                      end_line=4200; end_column=26;
                       law_headings=["Article D832-25";
                                      "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                      "Section 3 : Logements-foyers";
@@ -2539,7 +2539,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                                               (integer_of_string "4")))))))))))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4109; start_column=14; end_line=4109; end_column=36;
+              start_line=4113; start_column=14; end_line=4113; end_column=36;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -2599,7 +2599,7 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3453; start_column=14; end_line=3453; end_column=36;
+              start_line=3457; start_column=14; end_line=3457; end_column=36;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -2836,7 +2836,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2539; start_column=14; end_line=2539; end_column=36;
+              start_line=2543; start_column=14; end_line=2543; end_column=36;
               law_headings=["Article R824-3";
                              "Section 1 : Seuils de constitution d'un impayé";
                              "Chapitre IV : Impayés de dépenses de logement";
@@ -2894,8 +2894,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                              start_line=2507; start_column=14;
-                              end_line=2507; end_column=36;
+                              start_line=2511; start_column=14;
+                              end_line=2511; end_column=36;
                               law_headings=["Article R824-2";
                                              "Section 1 : Seuils de constitution d'un impayé";
                                              "Chapitre IV : Impayés de dépenses de logement";
@@ -2910,8 +2910,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                          (fun (_: _) -> depense_logement_))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2411; start_column=14;
-                      end_line=2411; end_column=36;
+                      start_line=2415; start_column=14;
+                      end_line=2415; end_column=36;
                       law_headings=["Article R824-1";
                                      "Section 1 : Seuils de constitution d'un impayé";
                                      "Chapitre IV : Impayés de dépenses de logement";
@@ -2952,8 +2952,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2420; start_column=14;
-                      end_line=2420; end_column=36;
+                      start_line=2424; start_column=14;
+                      end_line=2424; end_column=36;
                       law_headings=["Article R824-1";
                                      "Section 1 : Seuils de constitution d'un impayé";
                                      "Chapitre IV : Impayés de dépenses de logement";
@@ -2985,8 +2985,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2516; start_column=14;
-                      end_line=2516; end_column=36;
+                      start_line=2520; start_column=14;
+                      end_line=2520; end_column=36;
                       law_headings=["Article R824-2";
                                      "Section 1 : Seuils de constitution d'un impayé";
                                      "Chapitre IV : Impayés de dépenses de logement";
@@ -3035,51 +3035,11 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                    end_line=1015; end_column=43;
                    law_headings=["Quantification des impayés de dépense de logement";
                                   "Calcul du montant de l'allocation logement";
-                                  "Prologue : aides au logement"]}
-                 ([|(fun (_: _) ->
-                       handle_default
-                         {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=1015; start_column=11;
-                           end_line=1015; end_column=43;
-                           law_headings=["Quantification des impayés de dépense de logement";
-                                          "Calcul du montant de l'allocation logement";
-                                          "Prologue : aides au logement"]}
-                         ([||])
-                         (fun (_: _) -> (log_decision_taken
-                            {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                              start_line=2397; start_column=20;
-                              end_line=2397; end_column=51;
-                              law_headings=["Article R824-1";
-                                             "Section 1 : Seuils de constitution d'un impayé";
-                                             "Chapitre IV : Impayés de dépenses de logement";
-                                             "Titre II : Dispositions communes aux aides personnelles au logement";
-                                             "Livre VIII : Aides personnelles au logement";
-                                             "Partie réglementaire";
-                                             "Code de la construction et de l'habitation"]}
-                            ((match mode_occupation_impaye_
-                              with
-                              | ModeOccupationImpaye.ImpayeLoyer _ -> true
-                              | ModeOccupationImpaye.ImpayePret _ -> false)
-                               &&
-                               (match aide_versee_
-                                with
-                                | VersementA.Bailleur _ -> true
-                                | VersementA.Beneficiaire _ -> false
-                                | VersementA.EtablissementHabilite _ -> false))))
-                         (fun (_: _) ->
-                            match depense_logement_nette_
-                            with
-                            | DepenseLogement.TotalAnnuelEcheances _ ->
-                                (money_of_cents_string "0")
-                            | DepenseLogement.Mensualite _ ->
-                                (money_of_cents_string "0")
-                            | DepenseLogement.Loyer loyer_net_ ->
-                                ((loyer_net_ +$ montant_charges_) *$
-                                   (decimal_of_string "2."))))|])
+                                  "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2381; start_column=20;
-                      end_line=2381; end_column=55;
+                      start_line=2385; start_column=20;
+                      end_line=2385; end_column=55;
                       law_headings=["Article R824-1";
                                      "Section 1 : Seuils de constitution d'un impayé";
                                      "Chapitre IV : Impayés de dépenses de logement";
@@ -3113,52 +3073,49 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                    end_line=1015; end_column=43;
                    law_headings=["Quantification des impayés de dépense de logement";
                                   "Calcul du montant de l'allocation logement";
-                                  "Prologue : aides au logement"]}
-                 ([|(fun (_: _) ->
-                       handle_default
-                         {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=1015; start_column=11;
-                           end_line=1015; end_column=43;
-                           law_headings=["Quantification des impayés de dépense de logement";
-                                          "Calcul du montant de l'allocation logement";
-                                          "Prologue : aides au logement"]}
-                         ([||])
-                         (fun (_: _) -> (log_decision_taken
-                            {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                              start_line=2491; start_column=7;
-                              end_line=2491; end_column=51;
-                              law_headings=["Article R824-2";
-                                             "Section 1 : Seuils de constitution d'un impayé";
-                                             "Chapitre IV : Impayés de dépenses de logement";
-                                             "Titre II : Dispositions communes aux aides personnelles au logement";
-                                             "Livre VIII : Aides personnelles au logement";
-                                             "Partie réglementaire";
-                                             "Code de la construction et de l'habitation"]}
-                            ((match mode_occupation_impaye_
-                              with
-                              | ModeOccupationImpaye.ImpayeLoyer _ -> false
-                              | ModeOccupationImpaye.ImpayePret _ -> true) &&
-                               (match aide_versee_
-                                with
-                                | VersementA.Bailleur _ -> false
-                                | VersementA.Beneficiaire _ -> false
-                                | VersementA.EtablissementHabilite _ -> true))))
-                         (fun (_: _) ->
-                            match depense_logement_nette_
-                            with
-                            | DepenseLogement.TotalAnnuelEcheances echeance_pret_nette_ ->
-                                (echeance_pret_nette_ *$
-                                   ((decimal_of_string "1.") /&
-                                      (decimal_of_string "6.")))
-                            | DepenseLogement.Mensualite mensualite_nette_ ->
-                                (mensualite_nette_ *$
-                                   (decimal_of_string "2."))
-                            | DepenseLogement.Loyer _ ->
-                                (money_of_cents_string "0")))|])
+                                  "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2463; start_column=7;
-                      end_line=2463; end_column=42;
+                      start_line=2401; start_column=20;
+                      end_line=2401; end_column=51;
+                      law_headings=["Article R824-1";
+                                     "Section 1 : Seuils de constitution d'un impayé";
+                                     "Chapitre IV : Impayés de dépenses de logement";
+                                     "Titre II : Dispositions communes aux aides personnelles au logement";
+                                     "Livre VIII : Aides personnelles au logement";
+                                     "Partie réglementaire";
+                                     "Code de la construction et de l'habitation"]}
+                    ((match mode_occupation_impaye_
+                      with
+                      | ModeOccupationImpaye.ImpayeLoyer _ -> true
+                      | ModeOccupationImpaye.ImpayePret _ -> false) &&
+                       (match aide_versee_
+                        with
+                        | VersementA.Bailleur _ -> true
+                        | VersementA.Beneficiaire _ -> false
+                        | VersementA.EtablissementHabilite _ -> false))))
+                 (fun (_: _) ->
+                    match depense_logement_nette_
+                    with
+                    | DepenseLogement.TotalAnnuelEcheances _ ->
+                        (money_of_cents_string "0")
+                    | DepenseLogement.Mensualite _ -> (money_of_cents_string
+                        "0")
+                    | DepenseLogement.Loyer loyer_net_ ->
+                        ((loyer_net_ +$ montant_charges_) *$
+                           (decimal_of_string "2."))));
+            (fun (_: _) ->
+               handle_default
+                 {filename = "examples/aides_logement/prologue.catala_fr";
+                   start_line=1015; start_column=11;
+                   end_line=1015; end_column=43;
+                   law_headings=["Quantification des impayés de dépense de logement";
+                                  "Calcul du montant de l'allocation logement";
+                                  "Prologue : aides au logement"]} ([||])
+                 (fun (_: _) -> (log_decision_taken
+                    {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                      start_line=2467; start_column=7;
+                      end_line=2467; end_column=42;
                       law_headings=["Article R824-2";
                                      "Section 1 : Seuils de constitution d'un impayé";
                                      "Chapitre IV : Impayés de dépenses de logement";
@@ -3184,6 +3141,44 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                               (decimal_of_string "6.")))
                     | DepenseLogement.Mensualite mensualite_brute_ ->
                         (mensualite_brute_ *$ (decimal_of_string "2."))
+                    | DepenseLogement.Loyer _ -> (money_of_cents_string "0")));
+            (fun (_: _) ->
+               handle_default
+                 {filename = "examples/aides_logement/prologue.catala_fr";
+                   start_line=1015; start_column=11;
+                   end_line=1015; end_column=43;
+                   law_headings=["Quantification des impayés de dépense de logement";
+                                  "Calcul du montant de l'allocation logement";
+                                  "Prologue : aides au logement"]} ([||])
+                 (fun (_: _) -> (log_decision_taken
+                    {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
+                      start_line=2495; start_column=7;
+                      end_line=2495; end_column=51;
+                      law_headings=["Article R824-2";
+                                     "Section 1 : Seuils de constitution d'un impayé";
+                                     "Chapitre IV : Impayés de dépenses de logement";
+                                     "Titre II : Dispositions communes aux aides personnelles au logement";
+                                     "Livre VIII : Aides personnelles au logement";
+                                     "Partie réglementaire";
+                                     "Code de la construction et de l'habitation"]}
+                    ((match mode_occupation_impaye_
+                      with
+                      | ModeOccupationImpaye.ImpayeLoyer _ -> false
+                      | ModeOccupationImpaye.ImpayePret _ -> true) &&
+                       (match aide_versee_
+                        with
+                        | VersementA.Bailleur _ -> false
+                        | VersementA.Beneficiaire _ -> false
+                        | VersementA.EtablissementHabilite _ -> true))))
+                 (fun (_: _) ->
+                    match depense_logement_nette_
+                    with
+                    | DepenseLogement.TotalAnnuelEcheances echeance_pret_nette_ ->
+                        (echeance_pret_nette_ *$
+                           ((decimal_of_string "1.") /&
+                              (decimal_of_string "6.")))
+                    | DepenseLogement.Mensualite mensualite_nette_ ->
+                        (mensualite_nette_ *$ (decimal_of_string "2."))
                     | DepenseLogement.Loyer _ -> (money_of_cents_string "0")))|])
          (fun (_: _) -> false) (fun (_: _) -> raise EmptyError))
     with
@@ -3221,8 +3216,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                              start_line=2439; start_column=14;
-                              end_line=2439; end_column=28;
+                              start_line=2443; start_column=14;
+                              end_line=2443; end_column=28;
                               law_headings=["Article R824-2";
                                              "Section 1 : Seuils de constitution d'un impayé";
                                              "Chapitre IV : Impayés de dépenses de logement";
@@ -3241,8 +3236,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                               montant_dette_ else (money_of_cents_string "0")))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2376; start_column=14;
-                      end_line=2376; end_column=28;
+                      start_line=2380; start_column=14;
+                      end_line=2380; end_column=28;
                       law_headings=["Article R824-1";
                                      "Section 1 : Seuils de constitution d'un impayé";
                                      "Chapitre IV : Impayés de dépenses de logement";
@@ -3665,7 +3660,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2099; start_column=14; end_line=2099; end_column=29;
+              start_line=2103; start_column=14; end_line=2103; end_column=29;
               law_headings=["Article D823-16";
                              "Sous-section 2 : Calcul de l'aide en secteur locatif";
                              "Section 1 : Calcul, liquidation et versement des aides";
@@ -5042,7 +5037,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4404; start_column=14; end_line=4404; end_column=29;
+              start_line=4408; start_column=14; end_line=4408; end_column=29;
               law_headings=["Article D842-2";
                              "Section 1 : Secteur locatif ordinaire";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -5195,8 +5190,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([||])
                       (fun (_: _) -> (log_decision_taken
                          {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                           start_line=2051; start_column=5;
-                           end_line=2051; end_column=50;
+                           start_line=2053; start_column=5;
+                           end_line=2053; end_column=50;
                            law_headings=["Article D823-16";
                                           "Sous-section 2 : Calcul de l'aide en secteur locatif";
                                           "Section 1 : Calcul, liquidation et versement des aides";
@@ -5411,8 +5406,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=2061; start_column=14;
-                   end_line=2061; end_column=36;
+                   start_line=2063; start_column=14;
+                   end_line=2063; end_column=36;
                    law_headings=["Article D823-16";
                                   "Sous-section 2 : Calcul de l'aide en secteur locatif";
                                   "Section 1 : Calcul, liquidation et versement des aides";
@@ -5574,8 +5569,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=2076; start_column=14;
-                   end_line=2076; end_column=36;
+                   start_line=2080; start_column=14;
+                   end_line=2080; end_column=36;
                    law_headings=["Article D823-16";
                                   "Sous-section 2 : Calcul de l'aide en secteur locatif";
                                   "Section 1 : Calcul, liquidation et versement des aides";
@@ -5722,8 +5717,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                   start_line=802; start_column=14;
-                   end_line=802; end_column=36;
+                   start_line=804; start_column=14;
+                   end_line=804; end_column=36;
                    law_headings=["Article L832-3";
                                   "Chapitre Ier : Champ d'application";
                                   "Titre III : Aide personnalisée au logement";
@@ -5783,7 +5778,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2159; start_column=14; end_line=2159; end_column=42;
+              start_line=2163; start_column=14; end_line=2163; end_column=42;
               law_headings=["Article D823-17";
                              "Sous-section 2 : Calcul de l'aide en secteur locatif";
                              "Section 1 : Calcul, liquidation et versement des aides";
@@ -5818,8 +5813,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=2108; start_column=14;
-                   end_line=2108; end_column=36;
+                   start_line=2112; start_column=14;
+                   end_line=2112; end_column=36;
                    law_headings=["Article D823-16";
                                   "Sous-section 2 : Calcul de l'aide en secteur locatif";
                                   "Section 1 : Calcul, liquidation et versement des aides";
@@ -5876,7 +5871,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2125; start_column=14; end_line=2125; end_column=39;
+              start_line=2129; start_column=14; end_line=2129; end_column=39;
               law_headings=["Article D823-17";
                              "Sous-section 2 : Calcul de l'aide en secteur locatif";
                              "Section 1 : Calcul, liquidation et versement des aides";
@@ -5952,8 +5947,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   with
                   EmptyError -> (raise (NoValueProvided
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2054; start_column=13;
-                      end_line=2054; end_column=76;
+                      start_line=2056; start_column=13;
+                      end_line=2056; end_column=76;
                       law_headings=["Article D823-16";
                                      "Sous-section 2 : Calcul de l'aide en secteur locatif";
                                      "Section 1 : Calcul, liquidation et versement des aides";
@@ -5964,8 +5959,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                      "Code de la construction et de l'habitation"]})))
                   then () else
                   raise (AssertionFailed {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                           start_line=2054; start_column=13;
-                                           end_line=2054; end_column=76;
+                                           start_line=2056; start_column=13;
+                                           end_line=2056; end_column=76;
                                            law_headings=["Article D823-16";
                                                           "Sous-section 2 : Calcul de l'aide en secteur locatif";
                                                           "Section 1 : Calcul, liquidation et versement des aides";
@@ -5981,8 +5976,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   with
                   EmptyError -> (raise (NoValueProvided
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=810; start_column=13;
-                      end_line=810; end_column=63;
+                      start_line=814; start_column=13;
+                      end_line=814; end_column=63;
                       law_headings=["Article L832-3";
                                      "Chapitre Ier : Champ d'application";
                                      "Titre III : Aide personnalisée au logement";
@@ -5991,8 +5986,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                      "Code de la construction et de l'habitation"]})))
                   then () else
                   raise (AssertionFailed {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                           start_line=810; start_column=13;
-                                           end_line=810; end_column=63;
+                                           start_line=814; start_column=13;
+                                           end_line=814; end_column=63;
                                            law_headings=["Article L832-3";
                                                           "Chapitre Ier : Champ d'application";
                                                           "Titre III : Aide personnalisée au logement";
@@ -6125,8 +6120,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4043; start_column=14;
-                   end_line=4043; end_column=35;
+                   start_line=4047; start_column=14;
+                   end_line=4047; end_column=35;
                    law_headings=["Article D832-25";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -6430,8 +6425,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3976; start_column=14;
-                   end_line=3976; end_column=36;
+                   start_line=3980; start_column=14;
+                   end_line=3980; end_column=36;
                    law_headings=["Article D832-24";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -6476,7 +6471,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4132; start_column=14; end_line=4132; end_column=55;
+              start_line=4136; start_column=14; end_line=4136; end_column=55;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6507,7 +6502,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4128; start_column=14; end_line=4128; end_column=59;
+              start_line=4132; start_column=14; end_line=4132; end_column=59;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6539,7 +6534,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4130; start_column=14; end_line=4130; end_column=64;
+              start_line=4134; start_column=14; end_line=4134; end_column=64;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6640,7 +6635,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3950; start_column=14; end_line=3950; end_column=40;
+              start_line=3954; start_column=14; end_line=3954; end_column=40;
               law_headings=["Article D832-24";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6684,8 +6679,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4134; start_column=14;
-                   end_line=4134; end_column=36;
+                   start_line=4138; start_column=14;
+                   end_line=4138; end_column=36;
                    law_headings=["Article D832-25";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -6719,8 +6714,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4330; start_column=14;
-                   end_line=4330; end_column=44;
+                   start_line=4334; start_column=14;
+                   end_line=4334; end_column=44;
                    law_headings=["Article D832-27";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -6760,7 +6755,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3966; start_column=14; end_line=3966; end_column=75;
+              start_line=3970; start_column=14; end_line=3970; end_column=75;
               law_headings=["Article D832-24";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6792,7 +6787,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3964; start_column=14; end_line=3964; end_column=69;
+              start_line=3968; start_column=14; end_line=3968; end_column=69;
               law_headings=["Article D832-24";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6824,7 +6819,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3968; start_column=14; end_line=3968; end_column=70;
+              start_line=3972; start_column=14; end_line=3972; end_column=70;
               law_headings=["Article D832-24";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6878,8 +6873,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4146; start_column=5;
-                      end_line=4146; end_column=26;
+                      start_line=4150; start_column=5;
+                      end_line=4150; end_column=26;
                       law_headings=["Article D832-25";
                                      "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                      "Section 3 : Logements-foyers";
@@ -6896,7 +6891,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                             n_nombre_parts_d832_25_))))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4058; start_column=14; end_line=4058; end_column=49;
+              start_line=4062; start_column=14; end_line=4062; end_column=49;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -6942,8 +6937,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4334; start_column=14;
-                   end_line=4334; end_column=55;
+                   start_line=4338; start_column=14;
+                   end_line=4338; end_column=55;
                    law_headings=["Article D832-27";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -7003,7 +6998,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3962; start_column=14; end_line=3962; end_column=40;
+              start_line=3966; start_column=14; end_line=3966; end_column=40;
               law_headings=["Article D832-24";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -7044,8 +7039,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4163; start_column=5;
-                      end_line=4163; end_column=26;
+                      start_line=4167; start_column=5;
+                      end_line=4167; end_column=26;
                       law_headings=["Article D832-25";
                                      "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                      "Section 3 : Logements-foyers";
@@ -7063,7 +7058,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                       (decimal_of_string "100.")))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4079; start_column=14; end_line=4079; end_column=49;
+              start_line=4083; start_column=14; end_line=4083; end_column=49;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -7101,8 +7096,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3990; start_column=14;
-                   end_line=3990; end_column=36;
+                   start_line=3994; start_column=14;
+                   end_line=3994; end_column=36;
                    law_headings=["Article D832-24";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -7184,8 +7179,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4169; start_column=5;
-                      end_line=4169; end_column=26;
+                      start_line=4173; start_column=5;
+                      end_line=4173; end_column=26;
                       law_headings=["Article D832-25";
                                      "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                      "Section 3 : Logements-foyers";
@@ -7203,7 +7198,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                       coefficient_prise_en_charge_d832_25_arrondi_))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4082; start_column=14; end_line=4082; end_column=49;
+              start_line=4086; start_column=14; end_line=4086; end_column=49;
               law_headings=["Article D832-25";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -7242,8 +7237,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4004; start_column=14;
-                   end_line=4004; end_column=36;
+                   start_line=4008; start_column=14;
+                   end_line=4008; end_column=36;
                    law_headings=["Article D832-24";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -7319,7 +7314,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3929; start_column=14; end_line=3929; end_column=33;
+              start_line=3933; start_column=14; end_line=3933; end_column=33;
               law_headings=["Article D832-24";
                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                              "Section 3 : Logements-foyers";
@@ -7359,8 +7354,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4025; start_column=14;
-                   end_line=4025; end_column=36;
+                   start_line=4029; start_column=14;
+                   end_line=4029; end_column=36;
                    law_headings=["Article D832-24";
                                   "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer";
                                   "Section 3 : Logements-foyers";
@@ -7633,7 +7628,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/autres_sources.catala_fr";
-              start_line=275; start_column=14; end_line=275; end_column=36;
+              start_line=276; start_column=14; end_line=276; end_column=36;
               law_headings=["Article premier";
                              "Règlement (CE) n°2866/98 du conseil du 31 décembre 1998 concernant les taux de conversion entre l'euro et les monnaies des États membres adoptant l'euro"]}
             true))
@@ -7660,7 +7655,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3474; start_column=14; end_line=3474; end_column=59;
+              start_line=3478; start_column=14; end_line=3478; end_column=59;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -7691,7 +7686,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3476; start_column=14; end_line=3476; end_column=64;
+              start_line=3480; start_column=14; end_line=3480; end_column=64;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -7968,8 +7963,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3323; start_column=14;
-                   end_line=3323; end_column=36;
+                   start_line=3327; start_column=14;
+                   end_line=3327; end_column=36;
                    law_headings=["Article D832-10";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -8022,8 +8017,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=3788; start_column=5;
-                      end_line=3788; end_column=28;
+                      start_line=3792; start_column=5;
+                      end_line=3792; end_column=28;
                       law_headings=["Article D832-18";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -8035,7 +8030,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                  (fun (_: _) -> ressources_menage_arrondies_))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3780; start_column=14; end_line=3780; end_column=44;
+              start_line=3784; start_column=14; end_line=3784; end_column=44;
               law_headings=["Article D832-18";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11465,7 +11460,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3472; start_column=14; end_line=3472; end_column=36;
+              start_line=3476; start_column=14; end_line=3476; end_column=36;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11508,8 +11503,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                       ([||])
                       (fun (_: _) -> (log_decision_taken
                          {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                           start_line=3724; start_column=5;
-                           end_line=3724; end_column=41;
+                           start_line=3728; start_column=5;
+                           end_line=3728; end_column=41;
                            law_headings=["Article D832-17";
                                           "Section 2 : Accession à la propriété";
                                           "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11524,8 +11519,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                             montant_forfaitaire_charges_d832_10_) -$ param_))|])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3735; start_column=14;
-                   end_line=3735; end_column=44;
+                   start_line=3739; start_column=14;
+                   end_line=3739; end_column=44;
                    law_headings=["Article D832-17";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11572,8 +11567,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=3559; start_column=5;
-                      end_line=3559; end_column=44;
+                      start_line=3563; start_column=5;
+                      end_line=3563; end_column=44;
                       law_headings=["Article D832-14";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11617,7 +11612,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        plafond_entree_ else plafond_signature_)))))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3539; start_column=14; end_line=3539; end_column=42;
+              start_line=3543; start_column=14; end_line=3543; end_column=42;
               law_headings=["Article D832-14";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11661,7 +11656,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3680; start_column=14; end_line=3680; end_column=75;
+              start_line=3684; start_column=14; end_line=3684; end_column=75;
               law_headings=["Article D832-15";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11692,7 +11687,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3679; start_column=14; end_line=3679; end_column=69;
+              start_line=3683; start_column=14; end_line=3683; end_column=69;
               law_headings=["Article D832-15";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11723,7 +11718,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3682; start_column=14; end_line=3682; end_column=70;
+              start_line=3686; start_column=14; end_line=3686; end_column=70;
               law_headings=["Article D832-15";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11767,7 +11762,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3387; start_column=14; end_line=3387; end_column=49;
+              start_line=3391; start_column=14; end_line=3391; end_column=49;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11804,8 +11799,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3746; start_column=14;
-                   end_line=3746; end_column=55;
+                   start_line=3750; start_column=14;
+                   end_line=3750; end_column=55;
                    law_headings=["Article D832-17";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -11945,8 +11940,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=3619; start_column=5;
-                      end_line=3631; end_column=77;
+                      start_line=3623; start_column=5;
+                      end_line=3635; end_column=77;
                       law_headings=["Article D832-15";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12006,8 +12001,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=3674; start_column=5;
-                      end_line=3674; end_column=75;
+                      start_line=3678; start_column=5;
+                      end_line=3678; end_column=75;
                       law_headings=["Article D832-15";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12046,7 +12041,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3403; start_column=14; end_line=3403; end_column=49;
+              start_line=3407; start_column=14; end_line=3407; end_column=49;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12083,8 +12078,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3337; start_column=14;
-                   end_line=3337; end_column=36;
+                   start_line=3341; start_column=14;
+                   end_line=3341; end_column=36;
                    law_headings=["Article D832-10";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12156,7 +12151,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3298; start_column=14; end_line=3298; end_column=33;
+              start_line=3302; start_column=14; end_line=3302; end_column=33;
               law_headings=["Article D832-10";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12192,7 +12187,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3406; start_column=14; end_line=3406; end_column=49;
+              start_line=3410; start_column=14; end_line=3410; end_column=49;
               law_headings=["Article D832-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12230,8 +12225,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3351; start_column=14;
-                   end_line=3351; end_column=36;
+                   start_line=3355; start_column=14;
+                   end_line=3355; end_column=36;
                    law_headings=["Article D832-10";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12306,7 +12301,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=3278; start_column=14; end_line=3278; end_column=33;
+              start_line=3282; start_column=14; end_line=3282; end_column=33;
               law_headings=["Article D832-10";
                              "Section 2 : Accession à la propriété";
                              "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12347,8 +12342,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=3371; start_column=14;
-                   end_line=3371; end_column=36;
+                   start_line=3375; start_column=14;
+                   end_line=3375; end_column=36;
                    law_headings=["Article D832-10";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -12609,8 +12604,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=359; start_column=18;
-                      end_line=359; end_column=61;
+                      start_line=360; start_column=18;
+                      end_line=360; end_column=61;
                       law_headings=["Article L822-9";
                                      "Chapitre II : Conditions générales d'attribution";
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
@@ -12654,8 +12649,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=345; start_column=18;
-                      end_line=345; end_column=67;
+                      start_line=346; start_column=18;
+                      end_line=346; end_column=67;
                       law_headings=["Article L822-8";
                                      "Chapitre II : Conditions générales d'attribution";
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
@@ -13294,8 +13289,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=384; start_column=18;
-                      end_line=384; end_column=44;
+                      start_line=385; start_column=18;
+                      end_line=385; end_column=44;
                       law_headings=["Article L822-10";
                                      "Chapitre II : Conditions générales d'attribution";
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
@@ -14472,8 +14467,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                  [||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
-                      start_line=104; start_column=5;
-                      end_line=109; end_column=30;
+                      start_line=106; start_column=5;
+                      end_line=111; end_column=30;
                       law_headings=["Article L751-1";
                                      "Chapitre 1er : Généralités";
                                      "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
@@ -14564,8 +14559,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                       ([||])
                       (fun (_: _) -> (log_decision_taken
                          {filename = "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
-                           start_line=67; start_column=5;
-                           end_line=70; end_column=85;
+                           start_line=68; start_column=5;
+                           end_line=72; end_column=24;
                            law_headings=["Article L512-3";
                                           "Chapitre 2 : Champ d'application";
                                           "Titre 1 : Champ d'application - Généralités";
@@ -14645,7 +14640,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                                       (fun (_: _) -> (log_decision_taken
                                          {filename = "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
                                            start_line=58; start_column=5;
-                                           end_line=61; end_column=21;
+                                           end_line=62; end_column=21;
                                            law_headings=["Article L512-3";
                                                           "Chapitre 2 : Champ d'application";
                                                           "Titre 1 : Champ d'application - Généralités";
@@ -15126,8 +15121,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                       ([||])
                       (fun (_: _) -> (log_decision_taken
                          {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                           start_line=4474; start_column=24;
-                           end_line=4474; end_column=46;
+                           start_line=4478; start_column=24;
+                           end_line=4478; end_column=46;
                            law_headings=["Article D842-4";
                                           "Section 1 : Secteur locatif ordinaire";
                                           "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15197,8 +15192,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4466; start_column=24;
-                      end_line=4466; end_column=43;
+                      start_line=4470; start_column=24;
+                      end_line=4470; end_column=43;
                       law_headings=["Article D842-4";
                                      "Section 1 : Secteur locatif ordinaire";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15335,7 +15330,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5030; start_column=14; end_line=5030; end_column=55;
+              start_line=5034; start_column=14; end_line=5034; end_column=55;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15364,7 +15359,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5026; start_column=14; end_line=5026; end_column=59;
+              start_line=5030; start_column=14; end_line=5030; end_column=59;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15394,7 +15389,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5028; start_column=14; end_line=5028; end_column=64;
+              start_line=5032; start_column=14; end_line=5032; end_column=64;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15672,7 +15667,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4993; start_column=14; end_line=4993; end_column=61;
+              start_line=4997; start_column=14; end_line=4997; end_column=61;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15920,8 +15915,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5042; start_column=14;
-                   end_line=5042; end_column=36;
+                   start_line=5046; start_column=14;
+                   end_line=5046; end_column=36;
                    law_headings=["Article D842-15";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15963,7 +15958,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5023; start_column=14; end_line=5023; end_column=75;
+              start_line=5027; start_column=14; end_line=5027; end_column=75;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -15993,7 +15988,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5022; start_column=14; end_line=5022; end_column=69;
+              start_line=5026; start_column=14; end_line=5026; end_column=69;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16023,7 +16018,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5032; start_column=14; end_line=5032; end_column=70;
+              start_line=5036; start_column=14; end_line=5036; end_column=70;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16065,7 +16060,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4996; start_column=14; end_line=4996; end_column=41;
+              start_line=5000; start_column=14; end_line=5000; end_column=41;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16097,8 +16092,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5154; start_column=14;
-                   end_line=5154; end_column=36;
+                   start_line=5158; start_column=14;
+                   end_line=5158; end_column=36;
                    law_headings=["Article D842-17";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16135,7 +16130,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5034; start_column=14; end_line=5034; end_column=27;
+              start_line=5038; start_column=14; end_line=5038; end_column=27;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16166,8 +16161,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5163; start_column=14;
-                   end_line=5163; end_column=47;
+                   start_line=5167; start_column=14;
+                   end_line=5167; end_column=47;
                    law_headings=["Article D842-17";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16228,7 +16223,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4975; start_column=14; end_line=4975; end_column=33;
+              start_line=4979; start_column=14; end_line=4979; end_column=33;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16261,8 +16256,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5056; start_column=14;
-                   end_line=5056; end_column=36;
+                   start_line=5060; start_column=14;
+                   end_line=5060; end_column=36;
                    law_headings=["Article D842-15";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16334,8 +16329,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5074; start_column=14;
-                   end_line=5074; end_column=36;
+                   start_line=5078; start_column=14;
+                   end_line=5078; end_column=36;
                    law_headings=["Article D842-15";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16391,8 +16386,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5088; start_column=14;
-                   end_line=5088; end_column=36;
+                   start_line=5092; start_column=14;
+                   end_line=5092; end_column=36;
                    law_headings=["Article D842-15";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16466,8 +16461,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=5109; start_column=14;
-                   end_line=5109; end_column=36;
+                   start_line=5113; start_column=14;
+                   end_line=5113; end_column=36;
                    law_headings=["Article D842-15";
                                   "Section 3 : Logements-foyers";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16570,7 +16565,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/autres_sources.catala_fr";
-              start_line=278; start_column=14; end_line=278; end_column=36;
+              start_line=279; start_column=14; end_line=279; end_column=36;
               law_headings=["Article premier";
                              "Règlement (CE) n°2866/98 du conseil du 31 décembre 1998 concernant les taux de conversion entre l'euro et les monnaies des États membres adoptant l'euro"]}
             true))
@@ -16715,7 +16710,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4639; start_column=14; end_line=4639; end_column=59;
+              start_line=4643; start_column=14; end_line=4643; end_column=59;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16745,7 +16740,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4641; start_column=14; end_line=4641; end_column=64;
+              start_line=4645; start_column=14; end_line=4645; end_column=64;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -16878,8 +16873,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4649; start_column=14;
-                   end_line=4649; end_column=36;
+                   start_line=4653; start_column=14;
+                   end_line=4653; end_column=36;
                    law_headings=["Article D842-6";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20263,8 +20258,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4887; start_column=6;
-                      end_line=4893; end_column=6;
+                      start_line=4891; start_column=6;
+                      end_line=4897; end_column=6;
                       law_headings=["Article D842-12";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20320,8 +20315,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4905; start_column=5;
-                      end_line=4906; end_column=59;
+                      start_line=4909; start_column=5;
+                      end_line=4910; end_column=59;
                       law_headings=["Article D842-12";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20363,8 +20358,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4828; start_column=15;
-                   end_line=4828; end_column=37;
+                   start_line=4832; start_column=15;
+                   end_line=4832; end_column=37;
                    law_headings=["Article D842-11";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20508,8 +20503,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4926; start_column=5;
-                      end_line=4926; end_column=28;
+                      start_line=4930; start_column=5;
+                      end_line=4930; end_column=28;
                       law_headings=["Article D842-12";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20521,7 +20516,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                  (fun (_: _) -> ressources_menage_arrondies_base_))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4916; start_column=14; end_line=4916; end_column=41;
+              start_line=4920; start_column=14; end_line=4920; end_column=41;
               law_headings=["Article D842-12";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20567,8 +20562,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4779; start_column=5;
-                      end_line=4779; end_column=44;
+                      start_line=4783; start_column=5;
+                      end_line=4783; end_column=44;
                       law_headings=["Article D842-9";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20612,7 +20607,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        plafond_entree_ else plafond_signature_)))))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4761; start_column=14; end_line=4761; end_column=39;
+              start_line=4765; start_column=14; end_line=4765; end_column=39;
               law_headings=["Article D842-9";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20655,7 +20650,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4635; start_column=14; end_line=4635; end_column=75;
+              start_line=4639; start_column=14; end_line=4639; end_column=75;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20685,7 +20680,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4634; start_column=14; end_line=4634; end_column=69;
+              start_line=4638; start_column=14; end_line=4638; end_column=69;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20715,7 +20710,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4637; start_column=14; end_line=4637; end_column=70;
+              start_line=4641; start_column=14; end_line=4641; end_column=70;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20963,7 +20958,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4594; start_column=14; end_line=4594; end_column=61;
+              start_line=4598; start_column=14; end_line=4598; end_column=61;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -20984,7 +20979,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4601; start_column=14; end_line=4601; end_column=62;
+              start_line=4605; start_column=14; end_line=4605; end_column=62;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21051,8 +21046,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4862; start_column=7;
-                      end_line=4865; end_column=45;
+                      start_line=4866; start_column=7;
+                      end_line=4869; end_column=45;
                       law_headings=["Article D842-11";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21096,7 +21091,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       coefficient_d842_11_))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4850; start_column=14; end_line=4850; end_column=50;
+              start_line=4854; start_column=14; end_line=4854; end_column=50;
               law_headings=["Article D842-11";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21124,7 +21119,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4615; start_column=14; end_line=4615; end_column=33;
+              start_line=4619; start_column=14; end_line=4619; end_column=33;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21155,7 +21150,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4630; start_column=14; end_line=4630; end_column=33;
+              start_line=4634; start_column=14; end_line=4634; end_column=33;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21184,7 +21179,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4604; start_column=14; end_line=4604; end_column=41;
+              start_line=4608; start_column=14; end_line=4608; end_column=41;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21216,8 +21211,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4839; start_column=14;
-                   end_line=4839; end_column=47;
+                   start_line=4843; start_column=14;
+                   end_line=4843; end_column=47;
                    law_headings=["Article D842-11";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21272,7 +21267,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4575; start_column=14; end_line=4575; end_column=33;
+              start_line=4579; start_column=14; end_line=4579; end_column=33;
               law_headings=["Article D842-6";
                              "Section 2 : Accession à la propriété";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21305,8 +21300,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4663; start_column=14;
-                   end_line=4663; end_column=36;
+                   start_line=4667; start_column=14;
+                   end_line=4667; end_column=36;
                    law_headings=["Article D842-6";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21378,8 +21373,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4677; start_column=14;
-                   end_line=4677; end_column=36;
+                   start_line=4681; start_column=14;
+                   end_line=4681; end_column=36;
                    law_headings=["Article D842-6";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21453,8 +21448,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                   start_line=4697; start_column=14;
-                   end_line=4697; end_column=36;
+                   start_line=4701; start_column=14;
+                   end_line=4701; end_column=36;
                    law_headings=["Article D842-6";
                                   "Section 2 : Accession à la propriété";
                                   "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -21563,7 +21558,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2168; start_column=14; end_line=2168; end_column=31;
+              start_line=2172; start_column=14; end_line=2172; end_column=31;
               law_headings=["Article D823-17";
                              "Sous-section 2 : Calcul de l'aide en secteur locatif";
                              "Section 1 : Calcul, liquidation et versement des aides";
@@ -23191,7 +23186,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2277; start_column=14; end_line=2277; end_column=47;
+              start_line=2281; start_column=14; end_line=2281; end_column=47;
               law_headings=["Article D823-20";
                              "Section 2 : Prime de déménagement";
                              "Chapitre III : Modalités de liquidation et de versement";
@@ -23227,8 +23222,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2254; start_column=5;
-                      end_line=2259; end_column=77;
+                      start_line=2258; start_column=5;
+                      end_line=2263; end_column=77;
                       law_headings=["Article D823-20";
                                      "Section 2 : Prime de déménagement";
                                      "Chapitre III : Modalités de liquidation et de versement";
@@ -23421,8 +23416,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2263; start_column=6;
-                      end_line=2273; end_column=77;
+                      start_line=2267; start_column=6;
+                      end_line=2277; end_column=77;
                       law_headings=["Article D823-20";
                                      "Section 2 : Prime de déménagement";
                                      "Chapitre III : Modalités de liquidation et de versement";
@@ -23536,8 +23531,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=559; start_column=5;
-                      end_line=562; end_column=43;
+                      start_line=560; start_column=5;
+                      end_line=563; end_column=43;
                       law_headings=["Article L823-8";
                                      "Chapitre III : Modalités de liquidation et de versement";
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
@@ -23577,7 +23572,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=2303; start_column=14; end_line=2303; end_column=40;
+              start_line=2307; start_column=14; end_line=2307; end_column=40;
               law_headings=["Article D823-22";
                              "Section 2 : Prime de déménagement";
                              "Chapitre III : Modalités de liquidation et de versement";
@@ -23644,8 +23639,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                       ([||])
                                       (fun (_: _) -> (log_decision_taken
                                          {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                           start_line=3214; start_column=5;
-                                           end_line=3217; end_column=46;
+                                           start_line=3218; start_column=5;
+                                           end_line=3221; end_column=46;
                                            law_headings=["Article R832-7";
                                                           "Section 2 : Accession à la propriété";
                                                           "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -23680,8 +23675,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                       (fun (_: _) -> true))|])
                               (fun (_: _) -> (log_decision_taken
                                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                   start_line=3179; start_column=5;
-                                   end_line=3181; end_column=47;
+                                   start_line=3183; start_column=5;
+                                   end_line=3185; end_column=47;
                                    law_headings=["Article R832-5";
                                                   "Section 2 : Accession à la propriété";
                                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -23803,8 +23798,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                  ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                      start_line=735; start_column=5;
-                                      end_line=748; end_column=30;
+                                      start_line=737; start_column=5;
+                                      end_line=750; end_column=30;
                                       law_headings=["Article L831-2";
                                                      "Chapitre Ier : Champ d'application";
                                                      "Titre III : Aide personnalisée au logement";
@@ -23856,8 +23851,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                  (fun (_: _) -> true))|])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=716; start_column=5;
-                              end_line=721; end_column=30;
+                              start_line=718; start_column=5;
+                              end_line=723; end_column=30;
                               law_headings=["Article L831-2";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre III : Aide personnalisée au logement";
@@ -23880,8 +23875,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                          (fun (_: _) -> false))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=712; start_column=31;
-                      end_line=712; end_column=54;
+                      start_line=713; start_column=31;
+                      end_line=713; end_column=54;
                       law_headings=["Article L831-2";
                                      "Chapitre Ier : Champ d'application";
                                      "Titre III : Aide personnalisée au logement";
@@ -24072,9 +24067,9 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                          (fun (_: _) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                                              start_line=3886;
+                                                              start_line=3890;
                                                               start_column=5;
-                                                              end_line=3891; end_column=30;
+                                                              end_line=3895; end_column=30;
                                                               law_headings=
                                                               ["Article R832-21";
                                                                 "Sous-Section 1 : Conditions d'assimilation des logements-foyers aux logements à usage locatif";
@@ -24101,9 +24096,9 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                  (fun (_: _) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                      start_line=697;
+                                                      start_line=698;
                                                       start_column=5;
-                                                      end_line=700; end_column=30;
+                                                      end_line=701; end_column=30;
                                                       law_headings=["Article L831-1";
                                                                     "Chapitre Ier : Champ d'application";
                                                                     "Titre III : Aide personnalisée au logement";
@@ -24143,8 +24138,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                  (fun (_: _) -> true))|])
                                          (fun (_: _) -> (log_decision_taken
                                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                              start_line=680; start_column=5;
-                                              end_line=683; end_column=30;
+                                              start_line=681; start_column=5;
+                                              end_line=684; end_column=30;
                                               law_headings=["Article L831-1";
                                                              "Chapitre Ier : Champ d'application";
                                                              "Titre III : Aide personnalisée au logement";
@@ -24167,8 +24162,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                          (fun (_: _) -> true))|])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                      start_line=637; start_column=5;
-                                      end_line=646; end_column=30;
+                                      start_line=638; start_column=5;
+                                      end_line=647; end_column=30;
                                       law_headings=["Article L831-1";
                                                      "Chapitre Ier : Champ d'application";
                                                      "Titre III : Aide personnalisée au logement";
@@ -24197,8 +24192,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                          false))) (fun (_: _) -> true))|])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=616; start_column=5;
-                              end_line=619; end_column=30;
+                              start_line=617; start_column=5;
+                              end_line=620; end_column=30;
                               law_headings=["Article L831-1";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre III : Aide personnalisée au logement";
@@ -24316,8 +24311,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=587; start_column=5;
-                      end_line=589; end_column=36;
+                      start_line=588; start_column=5;
+                      end_line=590; end_column=36;
                       law_headings=["Chapitre Ier : Champ d'application";
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
@@ -24364,7 +24359,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4364; start_column=14; end_line=4364; end_column=28;
+              start_line=4368; start_column=14; end_line=4368; end_column=28;
               law_headings=["Article D841-1";
                              "Chapitre 1 : Champ d'application";
                              "Titre IV : Allocations de Logement";
@@ -24519,9 +24514,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                  (fun (_: _) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                                      start_line=4557;
+                                                      start_line=4561;
                                                       start_column=5;
-                                                      end_line=4562; end_column=28;
+                                                      end_line=4566; end_column=28;
                                                       law_headings=["Article R842-5";
                                                                     "Section 2 : Accession à la propriété";
                                                                     "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24562,9 +24557,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                  (fun (_: _) -> true))|])
                                          (fun (_: _) -> (log_decision_taken
                                             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                              start_line=4540;
+                                              start_line=4544;
                                               start_column=5;
-                                              end_line=4545; end_column=28;
+                                              end_line=4549; end_column=28;
                                               law_headings=["Article R842-5";
                                                              "Section 2 : Accession à la propriété";
                                                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24605,8 +24600,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                          (fun (_: _) -> true))|])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                      start_line=4523; start_column=5;
-                                      end_line=4530; end_column=28;
+                                      start_line=4527; start_column=5;
+                                      end_line=4534; end_column=28;
                                       law_headings=["Article R842-5";
                                                      "Section 2 : Accession à la propriété";
                                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24658,8 +24653,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          (fun (_: _) -> raise EmptyError))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4493; start_column=5;
-                      end_line=4495; end_column=28;
+                      start_line=4497; start_column=5;
+                      end_line=4499; end_column=28;
                       law_headings=["Article R842-5";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24778,8 +24773,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                         ([||])
                         (fun (_: _) -> (log_decision_taken
                            {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                             start_line=4959; start_column=9;
-                             end_line=4959; end_column=68;
+                             start_line=4963; start_column=9;
+                             end_line=4963; end_column=68;
                              law_headings=["Article R842-14";
                                             "Section 3 : Logements-foyers";
                                             "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24810,7 +24805,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=4960; start_column=9; end_line=4960; end_column=55;
+              start_line=4964; start_column=9; end_line=4964; end_column=55;
               law_headings=["Article R842-14";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24914,7 +24909,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=833; start_column=14; end_line=833; end_column=25;
+              start_line=837; start_column=14; end_line=837; end_column=25;
               law_headings=["Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
                              "Livre VIII : Aides personnelles au logement";
@@ -24989,9 +24984,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                  (fun (_: _) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                      start_line=990;
+                                                      start_line=996;
                                                       start_column=5;
-                                                      end_line=994; end_column=29;
+                                                      end_line=1000; end_column=29;
                                                       law_headings=["Article L841-1";
                                                                     "Chapitre Ier : Champ d'application";
                                                                     "Titre IV : Allocations de logement";
@@ -25053,9 +25048,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                               (fun (_: _) ->
                                                                  (log_decision_taken
                                                                  {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                                   start_line=967;
+                                                                   start_line=973;
                                                                    start_column=5;
-                                                                   end_line=978; end_column=12;
+                                                                   end_line=984; end_column=12;
                                                                    law_headings=
                                                                    ["Article L841-1";
                                                                     "Chapitre Ier : Champ d'application";
@@ -25098,9 +25093,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                       (fun (_: _) ->
                                                          (log_decision_taken
                                                          {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                                           start_line=950;
+                                                           start_line=956;
                                                            start_column=5;
-                                                           end_line=951; end_column=72;
+                                                           end_line=957; end_column=72;
                                                            law_headings=
                                                            ["Article L841-1";
                                                              "Chapitre Ier : Champ d'application";
@@ -25150,8 +25145,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                               (fun (_: _) -> raise EmptyError)))|])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                                      start_line=913; start_column=5;
-                                      end_line=936; end_column=29;
+                                      start_line=918; start_column=5;
+                                      end_line=942; end_column=29;
                                       law_headings=["Article L841-1";
                                                      "Chapitre Ier : Champ d'application";
                                                      "Titre IV : Allocations de logement";
@@ -25230,8 +25225,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                             false)))) (fun (_: _) -> true))|])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=882; start_column=5;
-                              end_line=902; end_column=11;
+                              start_line=886; start_column=5;
+                              end_line=907; end_column=11;
                               law_headings=["Article L841-1";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25290,8 +25285,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          (fun (_: _) -> true))|])
                  (fun (_: _) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                      start_line=863; start_column=5;
-                      end_line=867; end_column=52;
+                      start_line=867; start_column=5;
+                      end_line=871; end_column=52;
                       law_headings=["Article L841-1";
                                      "Chapitre Ier : Champ d'application";
                                      "Titre IV : Allocations de logement";
@@ -25358,8 +25353,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=1112; start_column=5;
-                              end_line=1112; end_column=73;
+                              start_line=1118; start_column=5;
+                              end_line=1118; end_column=73;
                               law_headings=["Article L841-3";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25381,8 +25376,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                          ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                              start_line=1125; start_column=5;
-                              end_line=1128; end_column=28;
+                              start_line=1131; start_column=5;
+                              end_line=1134; end_column=28;
                               law_headings=["Article L841-4";
                                              "Chapitre Ier : Champ d'application";
                                              "Titre IV : Allocations de logement";
@@ -25405,7 +25400,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                  (fun (_: _) -> false) (fun (_: _) -> raise EmptyError))|])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1021; start_column=14; end_line=1021; end_column=25;
+              start_line=1027; start_column=14; end_line=1027; end_column=25;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -25497,7 +25492,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-              start_line=5002; start_column=14; end_line=5002; end_column=31;
+              start_line=5006; start_column=14; end_line=5006; end_column=31;
               law_headings=["Article D842-15";
                              "Section 3 : Logements-foyers";
                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -27118,7 +27113,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1037; start_column=5; end_line=1037; end_column=74;
+              start_line=1043; start_column=5; end_line=1043; end_column=74;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27384,7 +27379,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1053; start_column=14; end_line=1053; end_column=50;
+              start_line=1059; start_column=14; end_line=1059; end_column=50;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27465,7 +27460,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1051; start_column=14; end_line=1051; end_column=58;
+              start_line=1057; start_column=14; end_line=1057; end_column=58;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27656,7 +27651,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1042; start_column=14; end_line=1042; end_column=25;
+              start_line=1048; start_column=14; end_line=1048; end_column=25;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";
@@ -27691,8 +27686,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                                "Prologue : aides au logement"]} ([||])
               (fun (_: _) -> (log_decision_taken
                  {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-                   start_line=1080; start_column=14;
-                   end_line=1080; end_column=36;
+                   start_line=1086; start_column=14;
+                   end_line=1086; end_column=36;
                    law_headings=["Article L841-2";
                                   "Chapitre Ier : Champ d'application";
                                   "Titre IV : Allocations de logement";
@@ -27766,7 +27761,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Prologue : aides au logement"]} ([||])
          (fun (_: _) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
-              start_line=1063; start_column=14; end_line=1063; end_column=33;
+              start_line=1069; start_column=14; end_line=1069; end_column=33;
               law_headings=["Article L841-2";
                              "Chapitre Ier : Champ d'application";
                              "Titre IV : Allocations de logement";

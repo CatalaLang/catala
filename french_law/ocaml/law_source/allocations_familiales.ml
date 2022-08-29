@@ -3375,39 +3375,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                 end_line=134; end_column=31;
                                 law_headings=["Allocations familiales";
                                                "Champs d'applications";
-                                               "Prologue"]}
-                              ([|(fun (_: _) ->
-                                    handle_default
-                                      {filename = "examples/allocations_familiales/prologue.catala_fr";
-                                        start_line=134; start_column=11;
-                                        end_line=134; end_column=31;
-                                        law_headings=["Allocations familiales";
-                                                       "Champs d'applications";
-                                                       "Prologue"]} (
-                                      [||])
-                                      (fun (_: _) -> (log_decision_taken
-                                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                                           start_line=173; start_column=5;
-                                           end_line=174; end_column=68;
-                                           law_headings=["Article D521-1";
-                                                          "Chapitre 1er : Allocations familiales";
-                                                          "Titre 2 : Prestations générales d'entretien";
-                                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                                          "Partie réglementaire - Décrets simples";
-                                                          "Code de la sécurité sociale"]}
-                                         ((ressources_menage_ >$
-                                             plafond__i_i_d521_3_) &&
-                                            (ressources_menage_ <=$
-                                               (plafond__i_i_d521_3_ +$
-                                                  (param_ *$
-                                                     (decimal_of_string "12.")))))))
-                                      (fun (_: _) ->
-                                         ((plafond__i_i_d521_3_ +$
-                                             (param_ *$
-                                                (decimal_of_string "12.")))
-                                            -$ ressources_menage_) *$
-                                           ((decimal_of_string "1.") /&
-                                              (decimal_of_string "12."))))|])
+                                               "Prologue"]} ([||])
                               (fun (_: _) -> (log_decision_taken
                                  {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                                    start_line=165; start_column=5;
@@ -3426,6 +3394,36 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              (decimal_of_string "12.")))))))
                               (fun (_: _) ->
                                  ((plafond__i_d521_3_ +$
+                                     (param_ *$ (decimal_of_string "12.")))
+                                    -$ ressources_menage_) *$
+                                   ((decimal_of_string "1.") /&
+                                      (decimal_of_string "12."))));
+                         (fun (_: _) ->
+                            handle_default
+                              {filename = "examples/allocations_familiales/prologue.catala_fr";
+                                start_line=134; start_column=11;
+                                end_line=134; end_column=31;
+                                law_headings=["Allocations familiales";
+                                               "Champs d'applications";
+                                               "Prologue"]} ([||])
+                              (fun (_: _) -> (log_decision_taken
+                                 {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                                   start_line=173; start_column=5;
+                                   end_line=174; end_column=68;
+                                   law_headings=["Article D521-1";
+                                                  "Chapitre 1er : Allocations familiales";
+                                                  "Titre 2 : Prestations générales d'entretien";
+                                                  "Livre 5 : Prestations familiales et prestations assimilées";
+                                                  "Partie réglementaire - Décrets simples";
+                                                  "Code de la sécurité sociale"]}
+                                 ((ressources_menage_ >$ plafond__i_i_d521_3_)
+                                    &&
+                                    (ressources_menage_ <=$
+                                       (plafond__i_i_d521_3_ +$
+                                          (param_ *$
+                                             (decimal_of_string "12.")))))))
+                              (fun (_: _) ->
+                                 ((plafond__i_i_d521_3_ +$
                                      (param_ *$ (decimal_of_string "12.")))
                                     -$ ressources_menage_) *$
                                    ((decimal_of_string "1.") /&
@@ -4554,38 +4552,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                            end_line=136; end_column=52;
                            law_headings=["Allocations familiales";
                                           "Champs d'applications";
-                                          "Prologue"]}
-                         ([|(fun (_: _) ->
-                               handle_default
-                                 {filename = "examples/allocations_familiales/prologue.catala_fr";
-                                   start_line=136; start_column=11;
-                                   end_line=136; end_column=52;
-                                   law_headings=["Allocations familiales";
-                                                  "Champs d'applications";
-                                                  "Prologue"]} ([||])
-                                 (fun (_: _) -> (log_decision_taken
-                                    {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                                      start_line=275; start_column=5;
-                                      end_line=277; end_column=41;
-                                      law_headings=["Article D521-2";
-                                                     "Chapitre 1er : Allocations familiales";
-                                                     "Titre 2 : Prestations générales d'entretien";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie réglementaire - Décrets simples";
-                                                     "Code de la sécurité sociale"]}
-                                    ((ressources_menage_ >$
-                                        plafond__i_i_d521_3_) &&
-                                       (ressources_menage_ <=$
-                                          (plafond__i_i_d521_3_ +$
-                                             (montant_verse_forfaitaire_ *$
-                                                (decimal_of_string "12.")))))))
-                                 (fun (_: _) ->
-                                    ((plafond__i_i_d521_3_ +$
-                                        (montant_verse_forfaitaire_ *$
-                                           (decimal_of_string "12."))) -$
-                                       ressources_menage_) *$
-                                      ((decimal_of_string "1.") /&
-                                         (decimal_of_string "12."))))|])
+                                          "Prologue"]} ([||])
                          (fun (_: _) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                               start_line=265; start_column=5;
@@ -4603,6 +4570,36 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                         (decimal_of_string "12.")))))))
                          (fun (_: _) ->
                             ((plafond__i_d521_3_ +$
+                                (montant_verse_forfaitaire_ *$
+                                   (decimal_of_string "12."))) -$
+                               ressources_menage_) *$
+                              ((decimal_of_string "1.") /&
+                                 (decimal_of_string "12."))));
+                    (fun (_: _) ->
+                       handle_default
+                         {filename = "examples/allocations_familiales/prologue.catala_fr";
+                           start_line=136; start_column=11;
+                           end_line=136; end_column=52;
+                           law_headings=["Allocations familiales";
+                                          "Champs d'applications";
+                                          "Prologue"]} ([||])
+                         (fun (_: _) -> (log_decision_taken
+                            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                              start_line=275; start_column=5;
+                              end_line=277; end_column=41;
+                              law_headings=["Article D521-2";
+                                             "Chapitre 1er : Allocations familiales";
+                                             "Titre 2 : Prestations générales d'entretien";
+                                             "Livre 5 : Prestations familiales et prestations assimilées";
+                                             "Partie réglementaire - Décrets simples";
+                                             "Code de la sécurité sociale"]}
+                            ((ressources_menage_ >$ plafond__i_i_d521_3_) &&
+                               (ressources_menage_ <=$
+                                  (plafond__i_i_d521_3_ +$
+                                     (montant_verse_forfaitaire_ *$
+                                        (decimal_of_string "12.")))))))
+                         (fun (_: _) ->
+                            ((plafond__i_i_d521_3_ +$
                                 (montant_verse_forfaitaire_ *$
                                    (decimal_of_string "12."))) -$
                                ressources_menage_) *$
