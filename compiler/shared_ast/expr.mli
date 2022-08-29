@@ -174,11 +174,11 @@ val map_marks :
 val make_var : 'a Bindlib.var * 'b -> ('a * 'b) Bindlib.box
 
 val make_abs :
-  'e Var.vars ->
-  (('a, 'm mark) gexpr as 'e) marked Bindlib.box ->
+  ('a, 't) gexpr Var.vars ->
+  ('a, 't) marked_gexpr Bindlib.box ->
   typ Marked.pos list ->
-  'm mark ->
-  'e marked Bindlib.box
+  't ->
+  ('a, 't) marked_gexpr Bindlib.box
 
 val make_app :
   ((_ any, 'm mark) gexpr as 'e) marked Bindlib.box ->
@@ -197,6 +197,15 @@ val make_let_in :
   Utils.Pos.t ->
   'e marked Bindlib.box
 
+val make_let_in_raw :
+  ('a any, 't) gexpr Bindlib.var ->
+  marked_typ ->
+  ('a, 't) marked_gexpr Bindlib.box ->
+  ('a, 't) marked_gexpr Bindlib.box ->
+  't ->
+  ('a, 't) marked_gexpr Bindlib.box
+(** Version with any mark; to be removed once we use the [mark] type everywhere. *)
+
 val make_multiple_let_in :
   'e Var.vars ->
   marked_typ list ->
@@ -204,6 +213,25 @@ val make_multiple_let_in :
   'e marked Bindlib.box ->
   Pos.t ->
   'e marked Bindlib.box
+
+val make_default :
+  (([< desugared | scopelang | dcalc ] as 'a), 't) marked_gexpr list ->
+  ('a, 't) marked_gexpr ->
+  ('a, 't) marked_gexpr ->
+  't ->
+  ('a, 't) marked_gexpr
+(** [make_default ?pos exceptions just cons] builds a term semantically
+    equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
+    while avoiding redundant nested constructions. The position is extracted
+    from [just] by default.
+
+    Note that, due to the simplifications taking place, the result might not be
+    of the form [EDefault]:
+
+    - [<true :- x>] is rewritten as [x]
+    - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
+      exceptions, is collapsed into [<ex | def>]
+    - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
 
 (** {2 Transformations} *)
 
@@ -221,11 +249,20 @@ val format :
 
 (** {2 Analysis and tests} *)
 
-val is_value : (_ any, 'm mark) gexpr marked -> bool
+val equal_lit : 'a glit -> 'a glit -> bool
+val compare_lit : 'a glit -> 'a glit -> int
+val equal_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> bool
+val compare_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> int
 
-val equal : ('a, 'm mark) gexpr marked -> ('a, 'm mark) gexpr marked -> bool
+val equal : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr -> bool
 (** Determines if two expressions are equal, omitting their position information *)
 
+val compare : ('a, 't) marked_gexpr -> ('a, 't) marked_gexpr -> int
+(** Standard comparison function, suitable for e.g. [Set.Make]. Ignores position
+    information *)
+
+val compare_typ : marked_typ -> marked_typ -> int
+val is_value : (_ any, 'm mark) gexpr marked -> bool
 val free_vars : 'e marked -> 'e Var.Set.t
 
 val size : (_ any, 't) gexpr marked -> int

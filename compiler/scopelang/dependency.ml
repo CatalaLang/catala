@@ -69,7 +69,7 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
                   ScopeName.format_t scope.Ast.scope_decl_name
               else
                 Ast.ScopeMap.add subscope
-                  (Marked.get_mark (Ast.SubScopeName.get_info subindex))
+                  (Marked.get_mark (SubScopeName.get_info subindex))
                   acc)
           Ast.ScopeMap.empty scope.Ast.scope_decl_rules
       in
@@ -164,19 +164,23 @@ module TTopologicalTraversal = Graph.Topological.Make (TDependencies)
 module TSCC = Graph.Components.Make (TDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
-let rec get_structs_or_enums_in_type (t : Ast.typ Marked.pos) : TVertexSet.t =
+let rec get_structs_or_enums_in_type (t : typ Marked.pos) : TVertexSet.t =
   match Marked.unmark t with
-  | Ast.TStruct s -> TVertexSet.singleton (TVertex.Struct s)
-  | Ast.TEnum e -> TVertexSet.singleton (TVertex.Enum e)
-  | Ast.TArrow (t1, t2) ->
+  | TStruct s -> TVertexSet.singleton (TVertex.Struct s)
+  | TEnum e -> TVertexSet.singleton (TVertex.Enum e)
+  | TArrow (t1, t2) ->
     TVertexSet.union
       (get_structs_or_enums_in_type t1)
       (get_structs_or_enums_in_type t2)
-  | Ast.TLit _ | Ast.TAny -> TVertexSet.empty
-  | Ast.TArray t1 -> get_structs_or_enums_in_type (Marked.same_mark_as t1 t)
+  | TLit _ | TAny -> TVertexSet.empty
+  | TOption t1 | TArray t1 -> get_structs_or_enums_in_type t1
+  | TTuple ts ->
+    List.fold_left
+      (fun acc t -> TVertexSet.union acc (get_structs_or_enums_in_type t))
+      TVertexSet.empty ts
 
-let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
-    TDependencies.t =
+let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
+    =
   let g = TDependencies.empty in
   let g =
     StructMap.fold
@@ -228,8 +232,8 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
   in
   g
 
-let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
-    TVertex.t list =
+let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
+    =
   let g = build_type_graph structs enums in
   (* if there is a cycle, there will be an strongly connected component of
      cardinality > 1 *)

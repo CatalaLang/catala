@@ -27,6 +27,8 @@ module Any =
 
       let to_string _ = "any"
       let format_info fmt () = Format.fprintf fmt "any"
+      let equal _ _ = true
+      let compare _ _ = 0
     end)
     ()
 

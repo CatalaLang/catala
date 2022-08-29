@@ -23,17 +23,6 @@ type 'm ctx = ('m D.expr, 'm A.expr Var.t) Var.Map.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
-let translate_lit (l : D.lit) : 'm A.expr =
-  match l with
-  | LBool l -> ELit (LBool l)
-  | LInt i -> ELit (LInt i)
-  | LRat r -> ELit (LRat r)
-  | LMoney m -> ELit (LMoney m)
-  | LUnit -> ELit LUnit
-  | LDate d -> ELit (LDate d)
-  | LDuration d -> ELit (LDuration d)
-  | LEmptyError -> ERaise EmptyError
-
 let thunk_expr (e : 'm A.marked_expr Bindlib.box) (mark : 'm mark) :
     'm A.marked_expr Bindlib.box =
   let dummy_var = Var.make "_" in
@@ -78,7 +67,11 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.marked_expr) :
       en (Marked.get_mark e)
   | EArray es ->
     Expr.earray (List.map (translate_expr ctx) es) (Marked.get_mark e)
-  | ELit l -> Bindlib.box (Marked.same_mark_as (translate_lit l) e)
+  | ELit
+      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l) ->
+    Bindlib.box (Marked.same_mark_as (ELit l) e)
+  | ELit LEmptyError -> Bindlib.box (Marked.same_mark_as (ERaise EmptyError) e)
   | EOp op -> Expr.eop op (Marked.get_mark e)
   | EIfThenElse (e1, e2, e3) ->
     Expr.eifthenelse (translate_expr ctx e1) (translate_expr ctx e2)

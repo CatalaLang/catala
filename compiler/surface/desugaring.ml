@@ -61,8 +61,8 @@ let translate_unop (op : Ast.unop) : unop =
     translation, bound variables are used to represent function parameters or
     pattern macthing bindings. *)
 
-module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
-module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
+module LiftStructFieldMap = Bindlib.Lift (StructFieldMap)
+module LiftEnumConstructorMap = Bindlib.Lift (EnumConstructorMap)
 
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
@@ -140,81 +140,68 @@ let rec translate_expr
       disambiguate_constructor ctxt constructors pos_pattern
     in
     let cases =
-      Scopelang.Ast.EnumConstructorMap.mapi
+      EnumConstructorMap.mapi
         (fun c_uid' tau ->
           if EnumConstructor.compare c_uid c_uid' <> 0 then
-            let nop_var = Desugared.Ast.Var.make "_" in
+            let nop_var = Var.make "_" in
             Bindlib.unbox
-              (Desugared.Ast.make_abs [| nop_var |]
-                 (Bindlib.box (Desugared.Ast.ELit (LBool false), pos))
+              (Expr.make_abs [| nop_var |]
+                 (Bindlib.box (ELit (LBool false), pos))
                  [tau] pos)
           else
             let ctxt, binding_var =
               Name_resolution.add_def_local_var ctxt (Marked.unmark binding)
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
-            Bindlib.unbox
-              (Desugared.Ast.make_abs [| binding_var |] e2 [tau] pos))
+            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
-      (fun e1_sub -> Desugared.Ast.EMatch (e1_sub, enum_uid, cases), pos)
+      (fun e1_sub -> EMatchS (e1_sub, enum_uid, cases), pos)
       (translate_expr scope inside_definition_of ctxt e1_sub)
   | IfThenElse (e_if, e_then, e_else) ->
     Bindlib.box_apply3
-      (fun e_if e_then e_else ->
-        Desugared.Ast.EIfThenElse (e_if, e_then, e_else), pos)
+      (fun e_if e_then e_else -> EIfThenElse (e_if, e_then, e_else), pos)
       (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
   | Binop (op, e1, e2) ->
     let op_term =
-      Marked.same_mark_as
-        (Desugared.Ast.EOp (Binop (translate_binop (Marked.unmark op))))
-        op
+      Marked.same_mark_as (EOp (Binop (translate_binop (Marked.unmark op)))) op
     in
     Bindlib.box_apply2
-      (fun e1 e2 -> Desugared.Ast.EApp (op_term, [e1; e2]), pos)
+      (fun e1 e2 -> EApp (op_term, [e1; e2]), pos)
       (rec_helper e1) (rec_helper e2)
   | Unop (op, e) ->
     let op_term =
-      Marked.same_mark_as
-        (Desugared.Ast.EOp (Unop (translate_unop (Marked.unmark op))))
-        op
+      Marked.same_mark_as (EOp (Unop (translate_unop (Marked.unmark op)))) op
     in
-    Bindlib.box_apply
-      (fun e -> Desugared.Ast.EApp (op_term, [e]), pos)
-      (rec_helper e)
+    Bindlib.box_apply (fun e -> EApp (op_term, [e]), pos) (rec_helper e)
   | Literal l ->
     let untyped_term =
       match l with
-      | LNumber ((Int i, _), None) ->
-        Desugared.Ast.ELit (LInt (Runtime.integer_of_string i))
+      | LNumber ((Int i, _), None) -> ELit (LInt (Runtime.integer_of_string i))
       | LNumber ((Int i, _), Some (Percent, _)) ->
-        Desugared.Ast.ELit
-          (LRat Runtime.(decimal_of_string i /& decimal_of_string "100"))
+        ELit (LRat Runtime.(decimal_of_string i /& decimal_of_string "100"))
       | LNumber ((Dec (i, f), _), None) ->
-        Desugared.Ast.ELit (LRat Runtime.(decimal_of_string (i ^ "." ^ f)))
+        ELit (LRat Runtime.(decimal_of_string (i ^ "." ^ f)))
       | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
-        Desugared.Ast.ELit
+        ELit
           (LRat
              Runtime.(
                decimal_of_string (i ^ "." ^ f) /& decimal_of_string "100"))
-      | LBool b -> Desugared.Ast.ELit (LBool b)
+      | LBool b -> ELit (LBool b)
       | LMoneyAmount i ->
-        Desugared.Ast.ELit
+        ELit
           (LMoney
              Runtime.(
                money_of_cents_integer
                  ((integer_of_string i.money_amount_units *! integer_of_int 100)
                  +! integer_of_string i.money_amount_cents)))
       | LNumber ((Int i, _), Some (Year, _)) ->
-        Desugared.Ast.ELit
-          (LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0))
+        ELit (LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0))
       | LNumber ((Int i, _), Some (Month, _)) ->
-        Desugared.Ast.ELit
-          (LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0))
+        ELit (LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0))
       | LNumber ((Int i, _), Some (Day, _)) ->
-        Desugared.Ast.ELit
-          (LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i)))
+        ELit (LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i)))
       | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
         Errors.raise_spanned_error pos
           "Impossible to specify decimal amounts of days, months or years"
@@ -225,7 +212,7 @@ let rec translate_expr
         if date.literal_date_day > 31 then
           Errors.raise_spanned_error pos
             "There is an error in this date: the day number is bigger than 31";
-        Desugared.Ast.ELit
+        ELit
           (LDate
              (try
                 Runtime.date_of_numbers date.literal_date_year
@@ -247,25 +234,21 @@ let rec translate_expr
            desambiguate. In general, only the last state can be referenced.
            Except if defining a state of the same variable, then it references
            the previous state in the chain. *)
-        let x_sig = Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs in
+        let x_sig = ScopeVarMap.find uid ctxt.var_typs in
         let x_state =
           match x_sig.var_sig_states_list with
           | [] -> None
           | states -> (
             match inside_definition_of with
-            | Some (Desugared.Ast.ScopeDef.Var (x'_uid, sx'), _)
-              when Desugared.Ast.ScopeVar.compare uid x'_uid = 0 -> (
+            | Some (Var (x'_uid, sx'), _) when ScopeVar.compare uid x'_uid = 0
+              -> (
               match sx' with
               | None ->
                 failwith
                   "inconsistent state: inside a definition of a variable with \
                    no state but variable has states"
               | Some inside_def_state ->
-                if
-                  Desugared.Ast.StateName.compare inside_def_state
-                    (List.hd states)
-                  = 0
-                then
+                if StateName.compare inside_def_state (List.hd states) = 0 then
                   Errors.raise_spanned_error pos
                     "It is impossible to refer to the variable you are \
                      defining when defining its first state."
@@ -276,11 +259,8 @@ let rec translate_expr
                   ignore
                     (List.fold_left
                        (fun previous_state state ->
-                         if
-                           Desugared.Ast.StateName.compare inside_def_state
-                             state
-                           = 0
-                         then correct_state := previous_state;
+                         if StateName.equal inside_def_state state then
+                           correct_state := previous_state;
                          Some state)
                        None states);
                   !correct_state)
@@ -288,19 +268,18 @@ let rec translate_expr
               (* we take the last state in the chain *)
               Some (List.hd (List.rev states)))
         in
-        Bindlib.box
-          (Desugared.Ast.ELocation (ScopeVar ((uid, pos), x_state)), pos)
+        Bindlib.box (ELocation (DesugaredScopeVar ((uid, pos), x_state)), pos)
       | None ->
         Name_resolution.raise_unknown_identifier
           "for a local or scope-wide variable" (x, pos))
     | Some uid ->
-      Desugared.Ast.make_var (uid, pos)
+      Expr.make_var (uid, pos)
       (* the whole box thing is to accomodate for this case *))
   | Dotted (e, c, x) -> (
     match Marked.unmark e with
     | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
       (* In this case, y.x is a subscope variable *)
-      let subscope_uid : Scopelang.Ast.SubScopeName.t =
+      let subscope_uid : SubScopeName.t =
         Name_resolution.get_subscope_uid scope ctxt (Marked.same_mark_as y e)
       in
       let subscope_real_uid : ScopeName.t =
@@ -310,7 +289,7 @@ let rec translate_expr
         Name_resolution.get_var_uid subscope_real_uid ctxt x
       in
       Bindlib.box
-        ( Desugared.Ast.ELocation
+        ( ELocation
             (SubScopeVar
                (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
           pos )
@@ -337,9 +316,7 @@ let rec translate_expr
             (StructMap.bindings x_possible_structs)
         else
           let s_uid, f_uid = StructMap.choose x_possible_structs in
-          Bindlib.box_apply
-            (fun e -> Desugared.Ast.EStructAccess (e, f_uid, s_uid), pos)
-            e
+          Bindlib.box_apply (fun e -> EStructAccess (e, f_uid, s_uid), pos) e
       | Some c_name -> (
         try
           let c_uid =
@@ -347,9 +324,7 @@ let rec translate_expr
           in
           try
             let f_uid = StructMap.find c_uid x_possible_structs in
-            Bindlib.box_apply
-              (fun e -> Desugared.Ast.EStructAccess (e, f_uid, c_uid), pos)
-              e
+            Bindlib.box_apply (fun e -> EStructAccess (e, f_uid, c_uid), pos) e
           with Not_found ->
             Errors.raise_spanned_error pos "Struct %s does not contain field %s"
               (Marked.unmark c_name) (Marked.unmark x)
@@ -358,19 +333,17 @@ let rec translate_expr
             "Struct %s has not been defined before" (Marked.unmark c_name))))
   | FunCall (f, arg) ->
     Bindlib.box_apply2
-      (fun f arg -> Desugared.Ast.EApp (f, [arg]), pos)
+      (fun f arg -> EApp (f, [arg]), pos)
       (rec_helper f) (rec_helper arg)
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
-    let tau = Scopelang.Ast.TAny, Marked.get_mark x in
+    let tau = TAny, Marked.get_mark x in
     let fn =
-      Desugared.Ast.make_abs [| v |]
+      Expr.make_abs [| v |]
         (translate_expr scope inside_definition_of ctxt e2)
         [tau] pos
     in
-    Bindlib.box_apply2
-      (fun fn arg -> Desugared.Ast.(EApp (fn, [arg]), pos))
-      fn (rec_helper e1)
+    Bindlib.box_apply2 (fun fn arg -> EApp (fn, [arg]), pos) fn (rec_helper e1)
   | StructLit (s_name, fields) ->
     let s_uid =
       try Desugared.Ast.IdentMap.find (Marked.unmark s_name) ctxt.struct_idmap
@@ -392,7 +365,7 @@ let rec translate_expr
                 "This identifier should refer to a field of struct %s"
                 (Marked.unmark s_name)
           in
-          (match Scopelang.Ast.StructFieldMap.find_opt f_uid s_fields with
+          (match StructFieldMap.find_opt f_uid s_fields with
           | None -> ()
           | Some e_field ->
             Errors.raise_multispanned_error
@@ -403,20 +376,20 @@ let rec translate_expr
               "The field %a has been defined twice:" StructFieldName.format_t
               f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
-          Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
-        Scopelang.Ast.StructFieldMap.empty fields
+          StructFieldMap.add f_uid f_e s_fields)
+        StructFieldMap.empty fields
     in
     let expected_s_fields = StructMap.find s_uid ctxt.structs in
-    Scopelang.Ast.StructFieldMap.iter
+    StructFieldMap.iter
       (fun expected_f _ ->
-        if not (Scopelang.Ast.StructFieldMap.mem expected_f s_fields) then
+        if not (StructFieldMap.mem expected_f s_fields) then
           Errors.raise_spanned_error pos
             "Missing field for structure %a: \"%a\"" StructName.format_t s_uid
             StructFieldName.format_t expected_f)
       expected_s_fields;
 
     Bindlib.box_apply
-      (fun s_fields -> Desugared.Ast.EStruct (s_uid, s_fields), pos)
+      (fun s_fields -> EStruct (s_uid, s_fields), pos)
       (LiftStructFieldMap.lift_box s_fields)
   | EnumInject (enum, constructor, payload) -> (
     let possible_c_uids =
@@ -453,11 +426,10 @@ let rec translate_expr
         in
         Bindlib.box_apply
           (fun payload ->
-            ( Desugared.Ast.EEnumInj
+            ( EEnumInj
                 ( (match payload with
                   | Some e' -> e'
-                  | None ->
-                    Desugared.Ast.ELit LUnit, Marked.get_mark constructor),
+                  | None -> ELit LUnit, Marked.get_mark constructor),
                   c_uid,
                   e_uid ),
               pos ))
@@ -475,11 +447,10 @@ let rec translate_expr
           in
           Bindlib.box_apply
             (fun payload ->
-              ( Desugared.Ast.EEnumInj
+              ( EEnumInj
                   ( (match payload with
                     | Some e' -> e'
-                    | None ->
-                      Desugared.Ast.ELit LUnit, Marked.get_mark constructor),
+                    | None -> ELit LUnit, Marked.get_mark constructor),
                     c_uid,
                     e_uid ),
                 pos ))
@@ -498,7 +469,7 @@ let rec translate_expr
         cases
     in
     Bindlib.box_apply2
-      (fun e1 cases_d -> Desugared.Ast.EMatch (e1, e_uid, cases_d), pos)
+      (fun e1 cases_d -> EMatchS (e1, e_uid, cases_d), pos)
       e1
       (LiftEnumConstructorMap.lift_box cases_d)
   | TestMatchCase (e1, pattern) ->
@@ -513,24 +484,22 @@ let rec translate_expr
         (Marked.get_mark pattern)
     in
     let cases =
-      Scopelang.Ast.EnumConstructorMap.mapi
+      EnumConstructorMap.mapi
         (fun c_uid' tau ->
-          let nop_var = Desugared.Ast.Var.make "_" in
+          let nop_var = Var.make "_" in
           Bindlib.unbox
-            (Desugared.Ast.make_abs [| nop_var |]
+            (Expr.make_abs [| nop_var |]
                (Bindlib.box
-                  ( Desugared.Ast.ELit
-                      (LBool (EnumConstructor.compare c_uid c_uid' = 0)),
-                    pos ))
+                  (ELit (LBool (EnumConstructor.compare c_uid c_uid' = 0)), pos))
                [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
-      (fun e -> Desugared.Ast.EMatch (e, enum_uid, cases), pos)
+      (fun e -> EMatchS (e, enum_uid, cases), pos)
       (translate_expr scope inside_definition_of ctxt e1)
   | ArrayLit es ->
     Bindlib.box_apply
-      (fun es -> Desugared.Ast.EArray es, pos)
+      (fun es -> EArray es, pos)
       (Bindlib.box_list (List.map rec_helper es))
   | CollectionOp
       ( (((Ast.Filter | Ast.Map) as op'), _pos_op'),
@@ -542,15 +511,15 @@ let rec translate_expr
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
     in
     let f_pred =
-      Desugared.Ast.make_abs [| param |]
+      Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
-        [Scopelang.Ast.TAny, pos]
+        [TAny, pos]
         pos
     in
     Bindlib.box_apply2
       (fun f_pred collection ->
-        ( Desugared.Ast.EApp
-            ( ( Desugared.Ast.EOp
+        ( EApp
+            ( ( EOp
                   (match op' with
                   | Ast.Map -> Binop Map
                   | Ast.Filter -> Binop Filter
@@ -585,31 +554,28 @@ let rec translate_expr
     in
     let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
     let f_pred =
-      Desugared.Ast.make_abs [| param |]
+      Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
-        [Scopelang.Ast.TAny, pos]
+        [TAny, pos]
         pos
     in
-    let f_pred_var = Desugared.Ast.Var.make "predicate" in
-    let f_pred_var_e =
-      Desugared.Ast.make_var (f_pred_var, Marked.get_mark predicate)
-    in
-    let acc_var = Desugared.Ast.Var.make "acc" in
-    let acc_var_e = Desugared.Ast.make_var (acc_var, pos) in
-    let item_var = Desugared.Ast.Var.make "item" in
+    let f_pred_var = Var.make "predicate" in
+    let f_pred_var_e = Expr.make_var (f_pred_var, Marked.get_mark predicate) in
+    let acc_var = Var.make "acc" in
+    let acc_var_e = Expr.make_var (acc_var, pos) in
+    let item_var = Var.make "item" in
     let item_var_e =
-      Desugared.Ast.make_var
-        (item_var, Marked.get_mark (Bindlib.unbox collection))
+      Expr.make_var (item_var, Marked.get_mark (Bindlib.unbox collection))
     in
     let fold_body =
       Bindlib.box_apply3
         (fun acc_var_e item_var_e f_pred_var_e ->
-          ( Desugared.Ast.EIfThenElse
-              ( ( Desugared.Ast.EApp
-                    ( (Desugared.Ast.EOp (Binop cmp_op), pos_op'),
+          ( EIfThenElse
+              ( ( EApp
+                    ( (EOp (Binop cmp_op), pos_op'),
                       [
-                        Desugared.Ast.EApp (f_pred_var_e, [acc_var_e]), pos;
-                        Desugared.Ast.EApp (f_pred_var_e, [item_var_e]), pos;
+                        EApp (f_pred_var_e, [acc_var_e]), pos;
+                        EApp (f_pred_var_e, [item_var_e]), pos;
                       ] ),
                   pos ),
                 acc_var_e,
@@ -618,20 +584,15 @@ let rec translate_expr
         acc_var_e item_var_e f_pred_var_e
     in
     let fold_f =
-      Desugared.Ast.make_abs [| acc_var; item_var |] fold_body
-        [Scopelang.Ast.TAny, pos; Scopelang.Ast.TAny, pos]
-        pos
+      Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
     in
     let fold =
       Bindlib.box_apply3
         (fun fold_f collection init ->
-          ( Desugared.Ast.EApp
-              ( (Desugared.Ast.EOp (Ternop Fold), pos),
-                [fold_f; init; collection] ),
-            pos ))
+          EApp ((EOp (Ternop Fold), pos), [fold_f; init; collection]), pos)
         fold_f collection init
     in
-    Desugared.Ast.make_let_in f_pred_var (Scopelang.Ast.TAny, pos) f_pred fold
+    Expr.make_let_in_raw f_pred_var (TAny, pos) f_pred fold pos
   | CollectionOp (op', param', collection, predicate) ->
     let ctxt, param =
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
@@ -641,27 +602,22 @@ let rec translate_expr
       match Marked.unmark op' with
       | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Exists ->
-        Bindlib.box (Desugared.Ast.ELit (LBool false), Marked.get_mark op')
-      | Ast.Forall ->
-        Bindlib.box (Desugared.Ast.ELit (LBool true), Marked.get_mark op')
+      | Ast.Exists -> Bindlib.box (ELit (LBool false), Marked.get_mark op')
+      | Ast.Forall -> Bindlib.box (ELit (LBool true), Marked.get_mark op')
       | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
-        Bindlib.box
-          ( Desugared.Ast.ELit (LInt (Runtime.integer_of_int 0)),
-            Marked.get_mark op' )
+        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), Marked.get_mark op')
       | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
         Bindlib.box
-          ( Desugared.Ast.ELit (LRat (Runtime.decimal_of_string "0")),
-            Marked.get_mark op' )
+          (ELit (LRat (Runtime.decimal_of_string "0")), Marked.get_mark op')
       | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
         Bindlib.box
-          ( Desugared.Ast.ELit
+          ( ELit
               (LMoney
                  (Runtime.money_of_cents_integer (Runtime.integer_of_int 0))),
             Marked.get_mark op' )
       | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
         Bindlib.box
-          ( Desugared.Ast.ELit (LDuration (Runtime.duration_of_numbers 0 0 0)),
+          ( ELit (LDuration (Runtime.duration_of_numbers 0 0 0)),
             Marked.get_mark op' )
       | Ast.Aggregate (Ast.AggregateSum t) ->
         Errors.raise_spanned_error pos
@@ -669,40 +625,34 @@ let rec translate_expr
           SurfacePrint.format_primitive_typ t
       | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
       | Ast.Aggregate Ast.AggregateCount ->
-        Bindlib.box
-          ( Desugared.Ast.ELit (LInt (Runtime.integer_of_int 0)),
-            Marked.get_mark op' )
+        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), Marked.get_mark op')
     in
-    let acc_var = Desugared.Ast.Var.make "acc" in
-    let acc = Desugared.Ast.make_var (acc_var, Marked.get_mark param') in
+    let acc_var = Var.make "acc" in
+    let acc = Expr.make_var (acc_var, Marked.get_mark param') in
     let f_body =
       let make_body (op : binop) =
         Bindlib.box_apply2
           (fun predicate acc ->
-            ( Desugared.Ast.EApp
-                ( (Desugared.Ast.EOp (Binop op), Marked.get_mark op'),
-                  [acc; predicate] ),
-              pos ))
+            EApp ((EOp (Binop op), Marked.get_mark op'), [acc; predicate]), pos)
           (translate_expr scope inside_definition_of ctxt predicate)
           acc
       in
-      let make_extr_body (cmp_op : binop) (t : Scopelang.Ast.typ Marked.pos) =
-        let tmp_var = Desugared.Ast.Var.make "tmp" in
-        let tmp = Desugared.Ast.make_var (tmp_var, Marked.get_mark param') in
-        Desugared.Ast.make_let_in tmp_var t
+      let make_extr_body (cmp_op : binop) (t : typ Marked.pos) =
+        let tmp_var = Var.make "tmp" in
+        let tmp = Expr.make_var (tmp_var, Marked.get_mark param') in
+        Expr.make_let_in_raw tmp_var t
           (translate_expr scope inside_definition_of ctxt predicate)
           (Bindlib.box_apply2
              (fun acc tmp ->
-               ( Desugared.Ast.EIfThenElse
-                   ( ( Desugared.Ast.EApp
-                         ( ( Desugared.Ast.EOp (Binop cmp_op),
-                             Marked.get_mark op' ),
-                           [acc; tmp] ),
+               ( EIfThenElse
+                   ( ( EApp
+                         ((EOp (Binop cmp_op), Marked.get_mark op'), [acc; tmp]),
                        pos ),
                      acc,
                      tmp ),
                  pos ))
              acc tmp)
+          pos
       in
       match Marked.unmark op' with
       | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
@@ -719,11 +669,11 @@ let rec translate_expr
       | Ast.Aggregate (Ast.AggregateExtremum (max_or_min, t, _)) ->
         let op_kind, typ =
           match t with
-          | Ast.Integer -> KInt, (Scopelang.Ast.TLit TInt, pos)
-          | Ast.Decimal -> KRat, (Scopelang.Ast.TLit TRat, pos)
-          | Ast.Money -> KMoney, (Scopelang.Ast.TLit TMoney, pos)
-          | Ast.Duration -> KDuration, (Scopelang.Ast.TLit TDuration, pos)
-          | Ast.Date -> KDate, (Scopelang.Ast.TLit TDate, pos)
+          | Ast.Integer -> KInt, (TLit TInt, pos)
+          | Ast.Decimal -> KRat, (TLit TRat, pos)
+          | Ast.Money -> KMoney, (TLit TMoney, pos)
+          | Ast.Duration -> KDuration, (TLit TDuration, pos)
+          | Ast.Date -> KDate, (TLit TDate, pos)
           | _ ->
             Errors.raise_spanned_error pos
               "ssible to compute the %s of two values of type %a"
@@ -735,14 +685,13 @@ let rec translate_expr
       | Ast.Aggregate Ast.AggregateCount ->
         Bindlib.box_apply2
           (fun predicate acc ->
-            ( Desugared.Ast.EIfThenElse
+            ( EIfThenElse
                 ( predicate,
-                  ( Desugared.Ast.EApp
-                      ( ( Desugared.Ast.EOp (Binop (Add KInt)),
-                          Marked.get_mark op' ),
+                  ( EApp
+                      ( (EOp (Binop (Add KInt)), Marked.get_mark op'),
                         [
                           acc;
-                          ( Desugared.Ast.ELit (LInt (Runtime.integer_of_int 1)),
+                          ( ELit (LInt (Runtime.integer_of_int 1)),
                             Marked.get_mark predicate );
                         ] ),
                     pos ),
@@ -755,11 +704,11 @@ let rec translate_expr
       let make_f (t : typ_lit) =
         Bindlib.box_apply
           (fun binder ->
-            ( Desugared.Ast.EAbs
+            ( EAbs
                 ( binder,
                   [
-                    Scopelang.Ast.TLit t, Marked.get_mark op';
-                    Scopelang.Ast.TAny, pos
+                    TLit t, Marked.get_mark op';
+                    TAny, pos
                     (* we put any here because the type of the elements of the
                        arrays is not always the type of the accumulator; for
                        instance in AggregateCount. *);
@@ -791,70 +740,55 @@ let rec translate_expr
     in
     Bindlib.box_apply3
       (fun f collection init ->
-        ( Desugared.Ast.EApp
-            ((Desugared.Ast.EOp (Ternop Fold), pos), [f; init; collection]),
-          pos ))
+        EApp ((EOp (Ternop Fold), pos), [f; init; collection]), pos)
       f collection init
   | MemCollection (member, collection) ->
-    let param_var = Desugared.Ast.Var.make "collection_member" in
-    let param = Desugared.Ast.make_var (param_var, pos) in
+    let param_var = Var.make "collection_member" in
+    let param = Expr.make_var (param_var, pos) in
     let collection = rec_helper collection in
-    let init = Bindlib.box (Desugared.Ast.ELit (LBool false), pos) in
-    let acc_var = Desugared.Ast.Var.make "acc" in
-    let acc = Desugared.Ast.make_var (acc_var, pos) in
+    let init = Bindlib.box (ELit (LBool false), pos) in
+    let acc_var = Var.make "acc" in
+    let acc = Expr.make_var (acc_var, pos) in
     let f_body =
       Bindlib.box_apply3
         (fun member acc param ->
-          ( Desugared.Ast.EApp
-              ( (Desugared.Ast.EOp (Binop Or), pos),
-                [
-                  ( Desugared.Ast.EApp
-                      ((Desugared.Ast.EOp (Binop Eq), pos), [member; param]),
-                    pos );
-                  acc;
-                ] ),
+          ( EApp
+              ( (EOp (Binop Or), pos),
+                [EApp ((EOp (Binop Eq), pos), [member; param]), pos; acc] ),
             pos ))
         (translate_expr scope inside_definition_of ctxt member)
         acc param
     in
     let f =
       Bindlib.box_apply
-        (fun binder ->
-          ( Desugared.Ast.EAbs
-              (binder, [Scopelang.Ast.TLit TBool, pos; Scopelang.Ast.TAny, pos]),
-            pos ))
+        (fun binder -> EAbs (binder, [TLit TBool, pos; TAny, pos]), pos)
         (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
     in
     Bindlib.box_apply3
       (fun f collection init ->
-        ( Desugared.Ast.EApp
-            ((Desugared.Ast.EOp (Ternop Fold), pos), [f; init; collection]),
-          pos ))
+        EApp ((EOp (Ternop Fold), pos), [f; init; collection]), pos)
       f collection init
-  | Builtin IntToDec -> Bindlib.box (Desugared.Ast.EOp (Unop IntToRat), pos)
-  | Builtin MoneyToDec -> Bindlib.box (Desugared.Ast.EOp (Unop MoneyToRat), pos)
-  | Builtin DecToMoney -> Bindlib.box (Desugared.Ast.EOp (Unop RatToMoney), pos)
-  | Builtin Cardinal -> Bindlib.box (Desugared.Ast.EOp (Unop Length), pos)
-  | Builtin GetDay -> Bindlib.box (Desugared.Ast.EOp (Unop GetDay), pos)
-  | Builtin GetMonth -> Bindlib.box (Desugared.Ast.EOp (Unop GetMonth), pos)
-  | Builtin GetYear -> Bindlib.box (Desugared.Ast.EOp (Unop GetYear), pos)
-  | Builtin FirstDayOfMonth ->
-    Bindlib.box (Desugared.Ast.EOp (Unop FirstDayOfMonth), pos)
-  | Builtin LastDayOfMonth ->
-    Bindlib.box (Desugared.Ast.EOp (Unop LastDayOfMonth), pos)
-  | Builtin RoundMoney -> Bindlib.box (Desugared.Ast.EOp (Unop RoundMoney), pos)
-  | Builtin RoundDecimal ->
-    Bindlib.box (Desugared.Ast.EOp (Unop RoundDecimal), pos)
+  | Builtin IntToDec -> Bindlib.box (EOp (Unop IntToRat), pos)
+  | Builtin MoneyToDec -> Bindlib.box (EOp (Unop MoneyToRat), pos)
+  | Builtin DecToMoney -> Bindlib.box (EOp (Unop RatToMoney), pos)
+  | Builtin Cardinal -> Bindlib.box (EOp (Unop Length), pos)
+  | Builtin GetDay -> Bindlib.box (EOp (Unop GetDay), pos)
+  | Builtin GetMonth -> Bindlib.box (EOp (Unop GetMonth), pos)
+  | Builtin GetYear -> Bindlib.box (EOp (Unop GetYear), pos)
+  | Builtin FirstDayOfMonth -> Bindlib.box (EOp (Unop FirstDayOfMonth), pos)
+  | Builtin LastDayOfMonth -> Bindlib.box (EOp (Unop LastDayOfMonth), pos)
+  | Builtin RoundMoney -> Bindlib.box (EOp (Unop RoundMoney), pos)
+  | Builtin RoundDecimal -> Bindlib.box (EOp (Unop RoundDecimal), pos)
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr Marked.pos Bindlib.box Scopelang.Ast.EnumConstructorMap.t
-    * EnumName.t =
+    Desugared.Ast.expr Marked.pos Bindlib.box EnumConstructorMap.t * EnumName.t
+    =
   let create_var = function
-    | None -> ctxt, Desugared.Ast.Var.make "_"
+    | None -> ctxt, Var.make "_"
     | Some param ->
       let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
       ctxt, param_var
@@ -870,10 +804,10 @@ and disambiguate_match_and_build_expression
     Bindlib.box_apply2
       (fun e_binder case_body ->
         Marked.same_mark_as
-          (Desugared.Ast.EAbs
+          (EAbs
              ( e_binder,
                [
-                 Scopelang.Ast.EnumConstructorMap.find c_uid
+                 EnumConstructorMap.find c_uid
                    (EnumMap.find e_uid ctxt.Name_resolution.enums);
                ] ))
           case_body)
@@ -899,7 +833,7 @@ and disambiguate_match_and_build_expression
                case were matching constructors of enumeration %a"
               EnumName.format_t e_uid EnumName.format_t e_uid'
       in
-      (match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+      (match EnumConstructorMap.find_opt c_uid cases_d with
       | None -> ()
       | Some e_case ->
         Errors.raise_multispanned_error
@@ -915,9 +849,7 @@ and disambiguate_match_and_build_expression
       in
       let e_binder = Bindlib.bind_mvar [| param_var |] case_body in
       let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
-      ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
-        Some e_uid,
-        curr_index + 1 )
+      EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1
     | Ast.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
@@ -940,14 +872,12 @@ and disambiguate_match_and_build_expression
         if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
         let missing_constructors =
           EnumMap.find e_uid ctxt.Name_resolution.enums
-          |> Scopelang.Ast.EnumConstructorMap.filter_map (fun c_uid _ ->
-                 match
-                   Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d
-                 with
+          |> EnumConstructorMap.filter_map (fun c_uid _ ->
+                 match EnumConstructorMap.find_opt c_uid cases_d with
                  | Some _ -> None
                  | None -> Some c_uid)
         in
-        if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
+        if EnumConstructorMap.is_empty missing_constructors then
           Errors.format_spanned_warning case_pos
             "Unreachable match case, all constructors of the enumeration %a \
              are already specified"
@@ -971,21 +901,19 @@ and disambiguate_match_and_build_expression
         let e_binder = Bindlib.bind_mvar [| payload_var |] case_body in
 
         (* For each missing cases, binds the wildcard payload. *)
-        Scopelang.Ast.EnumConstructorMap.fold
+        EnumConstructorMap.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
             let case_expr =
               bind_case_body c_uid e_uid ctxt case_body e_binder
             in
-            ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
+            ( EnumConstructorMap.add c_uid case_expr cases_d,
               e_uid_opt,
               curr_index + 1 ))
           missing_constructors
           (cases_d, Some e_uid, curr_index))
   in
   let expr, e_name, _ =
-    List.fold_left bind_match_cases
-      (Scopelang.Ast.EnumConstructorMap.empty, None, 0)
-      cases
+    List.fold_left bind_match_cases (EnumConstructorMap.empty, None, 0) cases
   in
   expr, Option.get e_name
   [@@ocamlformat "wrap-comments=false"]
@@ -1001,19 +929,17 @@ let merge_conditions
     (default_pos : Pos.t) : Desugared.Ast.expr Marked.pos Bindlib.box =
   match precond, cond with
   | Some precond, Some cond ->
-    let op_term =
-      Desugared.Ast.EOp (Binop And), Marked.get_mark (Bindlib.unbox cond)
-    in
+    let op_term = EOp (Binop And), Marked.get_mark (Bindlib.unbox cond) in
     Bindlib.box_apply2
       (fun precond cond ->
-        Desugared.Ast.EApp (op_term, [precond; cond]), Marked.get_mark cond)
+        EApp (op_term, [precond; cond]), Marked.get_mark cond)
       precond cond
   | Some precond, None ->
     Bindlib.box_apply
       (fun precond -> Marked.unmark precond, default_pos)
       precond
   | None, Some cond -> cond
-  | None, None -> Bindlib.box (Desugared.Ast.ELit (LBool true), default_pos)
+  | None, None -> Bindlib.box (ELit (LBool true), default_pos)
 
 (** Translates a surface definition into condition into a desugared {!type:
     Desugared.Ast.rule} *)
@@ -1022,7 +948,7 @@ let process_default
     (scope : ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t Marked.pos)
     (rule_id : Desugared.Ast.RuleName.t)
-    (param_uid : Desugared.Ast.Var.t Marked.pos option)
+    (param_uid : Desugared.Ast.expr Var.t Marked.pos option)
     (precond : Desugared.Ast.expr Marked.pos Bindlib.box option)
     (exception_situation : Desugared.Ast.exception_situation)
     (label_situation : Desugared.Ast.label_situation)
@@ -1043,9 +969,8 @@ let process_default
          Name_resolution.get_def_typ ctxt (Marked.unmark def_key)
        in
        match Marked.unmark def_key_typ, param_uid with
-       | Scopelang.Ast.TArrow (t_in, _), Some param_uid ->
-         Some (Marked.unmark param_uid, t_in)
-       | Scopelang.Ast.TArrow _, None ->
+       | TArrow (t_in, _), Some param_uid -> Some (Marked.unmark param_uid, t_in)
+       | TArrow _, None ->
          Errors.raise_spanned_error
            (Marked.get_mark (Bindlib.unbox cons))
            "This definition has a function type but the parameter is missing"
@@ -1111,14 +1036,14 @@ let process_def
              check_unlabeled_exception *)
           assert false (* should not happen *)
         | Some (Name_resolution.Unique (name, pos)) ->
-          Desugared.Ast.ExceptionToRule (name, pos))
+          ExceptionToRule (name, pos))
       | ExceptionToLabel label_str -> (
         try
           let label_id =
             Desugared.Ast.IdentMap.find (Marked.unmark label_str)
               scope_def_ctxt.label_idmap
           in
-          Desugared.Ast.ExceptionToLabel (label_id, Marked.get_mark label_str)
+          ExceptionToLabel (label_id, Marked.get_mark label_str)
         with Not_found ->
           Errors.raise_spanned_error
             (Marked.get_mark label_str)
@@ -1185,10 +1110,8 @@ let process_assert
     | Some precond ->
       Bindlib.box_apply2
         (fun precond ass ->
-          ( Desugared.Ast.EIfThenElse
-              ( precond,
-                ass,
-                Marked.same_mark_as (Desugared.Ast.ELit (LBool true)) precond ),
+          ( EIfThenElse
+              (precond, ass, Marked.same_mark_as (ELit (LBool true)) precond),
             Marked.get_mark precond ))
         precond ass
     | None -> ass
@@ -1303,12 +1226,13 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
     Desugared.Ast.program =
   let empty_prgm =
     {
-      Desugared.Ast.program_structs =
-        StructMap.map Scopelang.Ast.StructFieldMap.bindings
-          ctxt.Name_resolution.structs;
-      Desugared.Ast.program_enums =
-        EnumMap.map Scopelang.Ast.EnumConstructorMap.bindings
-          ctxt.Name_resolution.enums;
+      Desugared.Ast.program_ctx =
+        {
+          ctx_structs =
+            StructMap.map StructFieldMap.bindings ctxt.Name_resolution.structs;
+          ctx_enums =
+            EnumMap.map EnumConstructorMap.bindings ctxt.Name_resolution.enums;
+        };
       Desugared.Ast.program_scopes =
         Scopelang.Ast.ScopeMap.mapi
           (fun s_uid s_context ->
@@ -1316,17 +1240,12 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
               Desugared.Ast.scope_vars =
                 Desugared.Ast.IdentMap.fold
                   (fun _ v acc ->
-                    let v_sig =
-                      Desugared.Ast.ScopeVarMap.find v ctxt.var_typs
-                    in
+                    let v_sig = ScopeVarMap.find v ctxt.var_typs in
                     match v_sig.var_sig_states_list with
-                    | [] ->
-                      Desugared.Ast.ScopeVarMap.add v Desugared.Ast.WholeVar acc
+                    | [] -> ScopeVarMap.add v Desugared.Ast.WholeVar acc
                     | states ->
-                      Desugared.Ast.ScopeVarMap.add v
-                        (Desugared.Ast.States states) acc)
-                  s_context.Name_resolution.var_idmap
-                  Desugared.Ast.ScopeVarMap.empty;
+                      ScopeVarMap.add v (Desugared.Ast.States states) acc)
+                  s_context.Name_resolution.var_idmap ScopeVarMap.empty;
               Desugared.Ast.scope_sub_scopes =
                 s_context.Name_resolution.sub_scopes;
               Desugared.Ast.scope_defs =
@@ -1336,8 +1255,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                    Desugared.Ast.IdentMap.fold
                      (fun _ v acc ->
                        let v_sig =
-                         Desugared.Ast.ScopeVarMap.find v
-                           ctxt.Name_resolution.var_typs
+                         ScopeVarMap.find v ctxt.Name_resolution.var_typs
                        in
                        match v_sig.var_sig_states_list with
                        | [] ->
@@ -1383,8 +1301,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                                            else
                                              ( Scopelang.Ast.NoInput,
                                                Marked.get_mark
-                                                 (Desugared.Ast.StateName
-                                                  .get_info state) )
+                                                 (StateName.get_info state) )
                                          in
                                          let io_output =
                                            if i = List.length states - 1 then
@@ -1392,8 +1309,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                                            else
                                              ( false,
                                                Marked.get_mark
-                                                 (Desugared.Ast.StateName
-                                                  .get_info state) )
+                                                 (StateName.get_info state) )
                                          in
                                          { io_input; io_output });
                                     }
@@ -1409,8 +1325,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                        Desugared.Ast.IdentMap.fold
                          (fun _ v acc ->
                            let v_sig =
-                             Desugared.Ast.ScopeVarMap.find v
-                               ctxt.Name_resolution.var_typs
+                             ScopeVarMap.find v ctxt.Name_resolution.var_typs
                            in
                            let def_key =
                              Desugared.Ast.ScopeDef.SubScopeVar

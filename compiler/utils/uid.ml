@@ -19,6 +19,8 @@ module type Info = sig
 
   val to_string : info -> string
   val format_info : Format.formatter -> info -> unit
+  val equal : info -> info -> bool
+  val compare : info -> info -> int
 end
 
 module type Id = sig
@@ -58,4 +60,6 @@ module MarkedString = struct
 
   let to_string (s, _) = s
   let format_info fmt i = Format.pp_print_string fmt (to_string i)
+  let equal i1 i2 = String.equal (Marked.unmark i1) (Marked.unmark i2)
+  let compare i1 i2 = String.compare (Marked.unmark i1) (Marked.unmark i2)
 end
