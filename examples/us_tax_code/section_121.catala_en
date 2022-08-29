@@ -205,7 +205,8 @@ scope Section121SinglePerson:
     else $0
 
 scope Section121TwoPersons:
-  definition section121a_requirements_met equals section121Person1.requirements_met
+  definition section121a_requirements_met equals
+    section121Person1.requirements_met
 
   definition income_excluded_from_gross_income_uncapped equals
     section121Person1.income_excluded_from_gross_income_uncapped
@@ -379,7 +380,8 @@ scope Section121TwoPasses under condition
 
   definition first_pass.date_of_sale_or_exchange equals
     match return_type with pattern
-    -- SingleReturnSurvivingSpouse of single_data: single_data.date_of_spouse_death
+    -- SingleReturnSurvivingSpouse of single_data:
+      single_data.date_of_spouse_death
     -- SingleReturn of return: date_of_sale_or_exchange # does not happen
     -- JointReturn of return: date_of_sale_or_exchange # does not happen
 

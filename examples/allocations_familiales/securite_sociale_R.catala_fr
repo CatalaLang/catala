@@ -13,9 +13,9 @@ ans sous réserve que leur rémunération n'excède pas le plafond fixé au deux
 alinéa du présent article.
 
 ```catala
-# Attention: ici la condition de ressources au dessous du plafond est une répétition
-# par rapport au texte de L512-3. On ne remet donc pas le code ici correspondant
-# à cette limitation.
+# Attention: ici la condition de ressources au dessous du plafond est une
+# répétition par rapport au texte de L512-3. On ne remet donc pas le code ici
+# correspondant à cette limitation.
 
 champ d'application PrestationsFamiliales :
   définition âge_l512_3_2 égal à 20 an
@@ -173,7 +173,8 @@ alinéa de l'article R. 521-3.
 ```catala
 # Le renvoi ci-dessus ne fait qu'annoncer qu'on va appliquer un système
 # de décote pour garde alternée au système de majorations.
-# Ce renvoi signifie que notre liste enfants_à_charge_droit_ouvert_prestation_familiale
+# Ce renvoi signifie que notre liste
+# enfants_à_charge_droit_ouvert_prestation_familiale
 # qui était utilisée pour la prestation de base est la même que la liste
 # d'enfant utilisée pour le calcul des majorations
 ```

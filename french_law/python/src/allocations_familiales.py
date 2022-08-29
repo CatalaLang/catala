@@ -2165,7 +2165,11 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
         def temp_complement_degressif(param_8:Money):
             try:
                 try:
-                    try:
+                    def temp_complement_degressif_1(_:Any):
+                        raise EmptyError
+                    def temp_complement_degressif_2(_:Any):
+                        return False
+                    def temp_complement_degressif_3(_:Any):
                         if ((ressources_menage > plafond__i_i_d521_3) and
                             (ressources_menage <= (plafond__i_i_d521_3 +
                             (param_8 *
@@ -2177,7 +2181,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                 decimal_of_string("12.")))
                         else:
                             raise EmptyError
-                    except EmptyError:
+                    def temp_complement_degressif_4(_:Any):
                         if ((ressources_menage > plafond__i_d521_3) and
                             (ressources_menage <= (plafond__i_d521_3 +
                             (param_8 *
@@ -2189,6 +2193,15 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                 decimal_of_string("12.")))
                         else:
                             raise EmptyError
+                    return handle_default(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
+                                          start_line=134, start_column=11,
+                                          end_line=134, end_column=31,
+                                          law_headings=["Allocations familiales",
+                                          "Champs d'applications",
+                                          "Prologue"]), [temp_complement_degressif_4,
+                                          temp_complement_degressif_3],
+                                          temp_complement_degressif_2,
+                                          temp_complement_degressif_1)
                 except EmptyError:
                     return money_of_cents_string("0")
             except EmptyError:
@@ -2749,41 +2762,52 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     montant_initial_majoration = temp_montant_initial_majoration
     try:
         try:
-            try:
+            def temp_montant_verse_complement_pour_forfaitaire(_:Any):
+                raise EmptyError
+            def temp_montant_verse_complement_pour_forfaitaire_1(_:Any):
+                return False
+            def temp_montant_verse_complement_pour_forfaitaire_2(_:Any):
                 if ((ressources_menage > plafond__i_i_d521_3) and
                     (ressources_menage <= (plafond__i_i_d521_3 +
                     (montant_verse_forfaitaire *
                     decimal_of_string("12."))))):
-                    temp_montant_verse_complement_pour_forfaitaire = (((plafond__i_i_d521_3 +
+                    return (((plafond__i_i_d521_3 +
                         (montant_verse_forfaitaire *
                         decimal_of_string("12."))) - ressources_menage) *
                         (decimal_of_string("1.") / decimal_of_string("12.")))
                 else:
-                    temp_montant_verse_complement_pour_forfaitaire = dead_value
                     raise EmptyError
-            except EmptyError:
+            def temp_montant_verse_complement_pour_forfaitaire_3(_:Any):
                 if ((ressources_menage > plafond__i_d521_3) and
                     (ressources_menage <= (plafond__i_d521_3 +
                     (montant_verse_forfaitaire *
                     decimal_of_string("12."))))):
-                    temp_montant_verse_complement_pour_forfaitaire = (((plafond__i_d521_3 +
+                    return (((plafond__i_d521_3 +
                         (montant_verse_forfaitaire *
                         decimal_of_string("12."))) - ressources_menage) *
                         (decimal_of_string("1.") / decimal_of_string("12.")))
                 else:
-                    temp_montant_verse_complement_pour_forfaitaire = dead_value
                     raise EmptyError
+            temp_montant_verse_complement_pour_forfaitaire_4 = handle_default(
+                SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
+                start_line=136, start_column=11, end_line=136, end_column=52,
+                law_headings=["Allocations familiales",
+                "Champs d'applications",
+                "Prologue"]), [temp_montant_verse_complement_pour_forfaitaire_3,
+                temp_montant_verse_complement_pour_forfaitaire_2],
+                temp_montant_verse_complement_pour_forfaitaire_1,
+                temp_montant_verse_complement_pour_forfaitaire)
         except EmptyError:
-            temp_montant_verse_complement_pour_forfaitaire = money_of_cents_string("0")
+            temp_montant_verse_complement_pour_forfaitaire_4 = money_of_cents_string("0")
     except EmptyError:
-        temp_montant_verse_complement_pour_forfaitaire = dead_value
+        temp_montant_verse_complement_pour_forfaitaire_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
                                              start_line=136, start_column=11,
                                              end_line=136, end_column=52,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
-    montant_verse_complement_pour_forfaitaire = temp_montant_verse_complement_pour_forfaitaire
+    montant_verse_complement_pour_forfaitaire = temp_montant_verse_complement_pour_forfaitaire_4
     try:
         temp_montant_avec_garde_alternee_base = (montant_initial_base *
             rapport_enfants_total_moyen)

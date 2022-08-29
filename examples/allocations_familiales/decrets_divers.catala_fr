@@ -246,7 +246,8 @@ A compter de 2021 57,28 €                  5,88 %                    32 %     
 champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
 
   # Premier enfant
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -254,7 +255,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 14,50 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -262,7 +264,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 13,93 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -270,7 +273,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 13,35 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -278,7 +282,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 12,78 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -286,7 +291,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 12,20 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -294,7 +300,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 11,63 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -302,7 +309,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 11,05 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -310,7 +318,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 9,76 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -318,7 +327,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 8,47 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -326,7 +336,8 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     alors bmaf.montant *€ 7,17%
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_premier_enfant sous condition
+  exception mayotte définition montant_initial_base_premier_enfant
+  sous condition
     avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
@@ -334,70 +345,80 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     sinon 0 €
 
   # Deuxième enfant
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 23,2 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 23,79 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 24,37 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 24,96 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 25,55 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 26,13 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 26,72 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 28,04 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors bmaf.montant *€ 29,36 %
     sinon 0 €
 
-  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant
+  sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
@@ -405,70 +426,80 @@ champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
     sinon 0 €
 
   # Troisième enfant
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 4,63 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 5,39 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 6,15 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 6,90 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 7,66 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 8,42 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 9,18 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 10,89 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors bmaf.montant *€ 12,59 %
     sinon 0 €
 
-  exception définition montant_initial_base_troisième_enfant_mayotte sous condition
+  exception définition montant_initial_base_troisième_enfant_mayotte
+  sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2

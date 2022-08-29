@@ -184,32 +184,6 @@ codes={\catcode`\$=3\catcode`\^=7}
 
 (** {1 Weaving} *)
 
-(** [check_exceeding_lines max_len start_line filename content] prints a warning
-    message for each lines of [content] exceeding [max_len] characters. *)
-let check_exceeding_lines
-    ?(max_len = 80)
-    (start_line : int)
-    (filename : string)
-    (content : string) =
-  content
-  |> String.split_on_char '\n'
-  |> List.iteri (fun i s ->
-         if
-           Uutf.String.fold_utf_8 (fun (acc : int) _ _ -> acc + 1) 0 s > max_len
-         then (
-           Cli.warning_print "The line %s in %s is exceeding %s characters:"
-             (Cli.with_style
-                ANSITerminal.[Bold; yellow]
-                "%d"
-                (start_line + i + 1))
-             (Cli.with_style ANSITerminal.[Bold; magenta] "%s" filename)
-             (Cli.with_style ANSITerminal.[Bold; red] "%d" max_len);
-           Cli.warning_print "%s%s" (String.sub s 0 max_len)
-             (Cli.with_style
-                ANSITerminal.[red]
-                "%s"
-                String.(sub s max_len (length s - max_len)))))
-
 let rec law_structure_to_latex
     (language : C.backend_lang)
     (print_only_law : bool)
