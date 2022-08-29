@@ -36,7 +36,7 @@ Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type expr = (scopelang, Pos.t) gexpr
+type expr = (scopelang, untyped mark) gexpr
 
 module ExprMap = Map.Make (struct
   type t = expr
@@ -46,7 +46,7 @@ end)
 
 let rec locations_used (e : expr) : LocationSet.t =
   match Marked.unmark e with
-  | ELocation l -> LocationSet.singleton (l, Marked.get_mark e)
+  | ELocation l -> LocationSet.singleton (l, Expr.pos e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
   | EAbs (binder, _) ->
     let _, body = Bindlib.unmbind binder in

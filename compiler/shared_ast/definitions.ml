@@ -147,9 +147,6 @@ type desugared = [ `Desugared ]
 type scopelang = [ `Scopelang ]
 type dcalc = [ `Dcalc ]
 type lcalc = [ `Lcalc ]
-
-(* type scalc = [ `Scalc ] *)
-
 type 'a any = [< desugared | scopelang | dcalc | lcalc ] as 'a
 
 (** Literals are the same throughout compilation except for the [LEmptyError]
@@ -178,7 +175,8 @@ type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 (** General expressions: groups all expression cases of the different ASTs, and
     uses a GADT to eliminate irrelevant cases for each one. The ['t] annotations
     are also totally unconstrained at this point. The dcalc exprs, for example,
-    are then defined with [type expr = dcalc gexpr] plus the annotations.
+    are then defined with [type naked_expr = dcalc naked_gexpr] plus the
+    annotations.
 
     A few tips on using this GADT:
 
@@ -193,16 +191,13 @@ and ('a, 't) naked_gexpr =
   | EApp : ('a, 't) gexpr * ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
   | EOp : operator -> ('a any, 't) naked_gexpr
   | EArray : ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
-  (* All but statement calculus *)
-  | EVar :
-      ('a, 't) naked_gexpr Bindlib.var
-      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
+  | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a any, 't) naked_gexpr
   | EAbs :
       (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder * typ list
-      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
+      -> ('a any, 't) naked_gexpr
   | EIfThenElse :
       ('a, 't) gexpr * ('a, 't) gexpr * ('a, 't) gexpr
-      -> (([< desugared | scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
+      -> ('a any, 't) naked_gexpr
   (* Early stages *)
   | ELocation :
       'a glocation
@@ -256,16 +251,6 @@ type ('e, 'b) binder = (('a, 't) naked_gexpr, 'b) Bindlib.binder
 type ('e, 'b) mbinder = (('a, 't) naked_gexpr, 'b) Bindlib.mbinder
   constraint 'e = ('a, 't) gexpr
 
-(* (\* Statement calculus *\)
- * | ESVar: LocalName.t -> (scalc as 'a, 't) naked_gexpr
- * | ESStruct: ('a, 't) gexpr list * StructName.t -> (scalc as 'a, 't) naked_gexpr
- * | ESStructFieldAccess: ('a, 't) gexpr * StructFieldName.t * StructName.t -> (scalc as 'a, 't) naked_gexpr
- * | ESInj: ('a, 't) gexpr * EnumConstructor.t * EnumName.t -> (scalc as 'a, 't) naked_gexpr
- * | ESFunc: TopLevelName.t -> (scalc as 'a, 't) naked_gexpr *)
-
-type 'e anyexpr = 'e constraint 'e = (_ any, _) gexpr
-(** Shorter alias for functions taking any kind of expression *)
-
 (** {2 Markings} *)
 
 type untyped = { pos : Pos.t } [@@ocaml.unboxed]
@@ -279,7 +264,7 @@ type typed = { pos : Pos.t; ty : typ }
 type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
 
 (** Useful for errors and printing, for example *)
-type any_marked_expr = AnyExpr : (_ any, _ mark) gexpr -> any_marked_expr
+type any_expr = AnyExpr : (_ any, _ mark) gexpr -> any_expr
 
 (** {2 Higher-level program structure} *)
 
@@ -310,7 +295,7 @@ type 'e scope_let = {
   scope_let_next : ('e, 'e scope_body_expr) binder;
   scope_let_pos : Pos.t;
 }
-  constraint 'e = ('a, 'm mark) gexpr
+  constraint 'e = (_ any, _ mark) gexpr
 (** This type is parametrized by the expression type so it can be reused in
     later intermediate representations. *)
 
@@ -320,14 +305,14 @@ type 'e scope_let = {
 and 'e scope_body_expr =
   | Result of 'e
   | ScopeLet of 'e scope_let
-  constraint 'e = (_, _ mark) gexpr
+  constraint 'e = (_ any, _ mark) gexpr
 
 type 'e scope_body = {
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
   scope_body_expr : ('e, 'e scope_body_expr) binder;
 }
-  constraint 'e = (_, _ mark) gexpr
+  constraint 'e = (_ any, _ mark) gexpr
 (** Instead of being a single expression, we give a little more ad-hoc structure
     to the scope body by decomposing it in an ordered list of let-bindings, and
     a result expression that uses the let-binded variables. The first binder is
@@ -338,14 +323,14 @@ type 'e scope_def = {
   scope_body : 'e scope_body;
   scope_next : ('e, 'e scopes) binder;
 }
-  constraint 'e = (_, _ mark) gexpr
+  constraint 'e = (_ any, _ mark) gexpr
 
 (** Finally, we do the same transformation for the whole program for the kinded
     lets. This permit us to use bindlib variables for scopes names. *)
 and 'e scopes =
   | Nil
   | ScopeDef of 'e scope_def
-  constraint 'e = (_, _ mark) gexpr
+  constraint 'e = (_ any, _ mark) gexpr
 
 type struct_ctx = (StructFieldName.t * typ) list StructMap.t
 type enum_ctx = (EnumConstructor.t * typ) list EnumMap.t

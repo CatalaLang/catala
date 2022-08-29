@@ -43,10 +43,11 @@ module A = Ast
 open Shared_ast
 
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
-(** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
+(** Hoists definition. It represent bindings between [A.Var.t] and
+    [D.naked_expr]. *)
 
 type 'm info = {
-  expr : 'm A.expr Bindlib.box;
+  naked_expr : 'm A.expr Bindlib.box;
   var : 'm A.expr Var.t;
   is_pure : bool;
 }
@@ -103,7 +104,7 @@ let add_var
     (is_pure : bool)
     (ctx : 'm ctx) : 'm ctx =
   let new_var = Var.make (Bindlib.name_of var) in
-  let expr = Expr.make_var (new_var, mark) in
+  let naked_expr = Expr.make_var (new_var, mark) in
 
   (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Print.var var Print.var
      new_var; *)
@@ -111,7 +112,7 @@ let add_var
     ctx with
     vars =
       Var.Map.update var
-        (fun _ -> Some { expr; var = new_var; is_pure })
+        (fun _ -> Some { naked_expr; var = new_var; is_pure })
         ctx.vars;
   }
 
@@ -172,7 +173,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
          created a variable %a to replace it" Print.var v Print.var v'; *)
       Expr.make_var (v', pos), Var.Map.singleton v' e
-    else (find ~info:"should never happend" v ctx).expr, Var.Map.empty
+    else (find ~info:"should never happend" v ctx).naked_expr, Var.Map.empty
   | EApp ((EVar v, p), [(ELit LUnit, _)]) ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
@@ -306,7 +307,7 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)
-        | EVar v -> (find ~info:"should never happend" v ctx).expr
+        | EVar v -> (find ~info:"should never happend" v ctx).naked_expr
         | EDefault (excep, just, cons) ->
           let excep' = List.map (translate_expr ctx) excep in
           let just' = translate_expr ctx just in
@@ -373,7 +374,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
       } ->
     (* special case : the subscope variable is thunked (context i/o). We remove
        this thunking. *)
-    let _, expr = Bindlib.unmbind binder in
+    let _, naked_expr = Bindlib.unmbind binder in
 
     let var_is_pure = true in
     let var, next = Bindlib.unbind next in
@@ -392,13 +393,13 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (translate_expr ctx ~append_esome:false expr)
+      (translate_expr ctx ~append_esome:false naked_expr)
       (Bindlib.bind_var new_var new_next)
   | ScopeLet
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_typ = typ;
-        scope_let_expr = (ErrorOnEmpty _, emark) as expr;
+        scope_let_expr = (ErrorOnEmpty _, emark) as naked_expr;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
@@ -419,25 +420,25 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (translate_expr ctx ~append_esome:false expr)
+      (translate_expr ctx ~append_esome:false naked_expr)
       (Bindlib.bind_var new_var (translate_scope_let ctx' next))
   | ScopeLet
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_pos = pos;
-        scope_let_expr = expr;
+        scope_let_expr = naked_expr;
         _;
       } ->
     Errors.raise_spanned_error pos
       "Internal Error: found an SubScopeVarDefinition that does not satisfy \
        the invariants when translating Dcalc to Lcalc without exceptions: \
        @[<hov 2>%a@]"
-      (Expr.format ctx.decl_ctx) expr
+      (Expr.format ctx.decl_ctx) naked_expr
   | ScopeLet
       {
         scope_let_kind = kind;
         scope_let_typ = typ;
-        scope_let_expr = expr;
+        scope_let_expr = naked_expr;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
@@ -458,7 +459,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
     let var, next = Bindlib.unbind next in
     (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
     let vmark =
-      Expr.map_mark (fun _ -> pos) (fun _ -> typ) (Marked.get_mark expr)
+      Expr.map_mark (fun _ -> pos) (fun _ -> typ) (Marked.get_mark naked_expr)
     in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
@@ -472,7 +473,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (translate_expr ctx ~append_esome:false expr)
+      (translate_expr ctx ~append_esome:false naked_expr)
       (Bindlib.bind_var new_var (translate_scope_let ctx' next))
 
 let translate_scope_body

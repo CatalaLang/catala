@@ -165,7 +165,8 @@ champ d'application AllocationsFamiliales :
     (ressources_ménage >€ plafond_I_d521_3) et
     (ressources_ménage <=€ plafond_I_d521_3 +€ allocation *€ 12,0 )
   conséquence égal à
-    (plafond_I_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage) *€ (1,0 /. 12,0)
+    (plafond_I_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage) *€
+      (1,0 /. 12,0)
 
   exception
   définition complément_dégressif de allocation
@@ -173,7 +174,8 @@ champ d'application AllocationsFamiliales :
     (ressources_ménage >€ plafond_II_d521_3) et
     (ressources_ménage <=€ plafond_II_d521_3 +€ allocation *€ 12,0)
   conséquence égal à
-    (plafond_II_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage) *€ (1,0 /. 12,0)
+    (plafond_II_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage) *€
+      (1,0 /. 12,0)
 
   # Dans les autres cas, le dépassement est nul
   définition complément_dégressif de allocations égal à 0 €
@@ -210,8 +212,8 @@ de calcul des allocations familiales par enfant ;
 
 ```catala
 # TODO Liane: la syntaxe de la phrase est très ambiguë, on a l'impression que
-# c'est la BMAF qui est "par enfant" et pas le montant de l'allocation forfaitaire
-# Erreur de rédaction ? Problème juridique ?
+# c'est la BMAF qui est "par enfant" et pas le montant de l'allocation
+# forfaitaire. Erreur de rédaction ? Problème juridique ?
 
 champ d'application AllocationsFamiliales :
   définition montant_versé_forfaitaire_par_enfant sous condition
@@ -320,8 +322,8 @@ l'année civile de référence, par arrêté des ministres chargés de la sécur
 sociale, du budget et de l'agriculture.
 
 ```catala
-# Nota : ces montants sont en réalités remis à jour chaque année par des décrets,
-# voir decrets_divers.catala_fr
+# Nota : ces montants sont en réalités remis à jour chaque année par des
+# décrets, voir decrets_divers.catala_fr
 ```
 
 #### Livre 7 : Régimes divers - Dispositions diverses

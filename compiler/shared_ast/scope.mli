@@ -85,7 +85,7 @@ val format :
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->
-  ScopeName.t * 'e anyexpr scope_body ->
+  ScopeName.t * 'e scope_body ->
   unit
 
 val to_expr :
@@ -112,6 +112,6 @@ val build_typ_from_sig :
 
 (** {2 Analysis and tests} *)
 
-val free_vars_body_expr : 'e anyexpr scope_body_expr -> 'e Var.Set.t
-val free_vars_body : 'e anyexpr scope_body -> 'e Var.Set.t
-val free_vars : 'e anyexpr scopes -> 'e Var.Set.t
+val free_vars_body_expr : 'e scope_body_expr -> 'e Var.Set.t
+val free_vars_body : 'e scope_body -> 'e Var.Set.t
+val free_vars : 'e scopes -> 'e Var.Set.t

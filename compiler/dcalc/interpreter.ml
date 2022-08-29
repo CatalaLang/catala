@@ -33,11 +33,11 @@ let rec evaluate_operator
     (ctx : decl_ctx)
     (op : operator)
     (pos : Pos.t)
-    (args : 'm Ast.expr list) : (dcalc, 'm mark) naked_gexpr =
+    (args : 'm Ast.expr list) : 'm Ast.naked_expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
      [op] to raise multispanned errors. *)
-  let apply_div_or_raise_err (div : unit -> (dcalc, 'm mark) naked_gexpr) :
-      (dcalc, 'm mark) naked_gexpr =
+  let apply_div_or_raise_err (div : unit -> 'm Ast.naked_expr) :
+      'm Ast.naked_expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error
@@ -55,8 +55,8 @@ let rec evaluate_operator
   (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched,
      use [args] to raise multispanned errors. *)
   let apply_cmp_or_raise_err
-      (cmp : unit -> (dcalc, 'm mark) naked_gexpr)
-      (args : 'm Ast.expr list) : (dcalc, 'm mark) naked_gexpr =
+      (cmp : unit -> 'm Ast.naked_expr)
+      (args : 'm Ast.expr list) : 'm Ast.naked_expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
       Errors.raise_multispanned_error (get_binop_args_pos args)

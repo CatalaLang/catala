@@ -187,6 +187,7 @@ let rec rule_tree_to_expr
     (def_pos : Pos.t)
     (is_func : Ast.expr Var.t option)
     (tree : rule_tree) : Scopelang.Ast.expr Bindlib.box =
+  let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
@@ -254,11 +255,10 @@ let rec rule_tree_to_expr
                  (* Here we insert the logging command that records when a
                     decision is taken for the value of a variable. *)
                  (tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 base_cons def_pos)
+                 base_cons emark)
              base_just_list base_cons_list)
-          (ELit (LBool false), def_pos)
-          (ELit LEmptyError, def_pos)
-          def_pos)
+          (ELit (LBool false), emark)
+          (ELit LEmptyError, emark) emark)
       (Bindlib.box_list (translate_and_unbox_list base_just_list))
       (Bindlib.box_list (translate_and_unbox_list base_cons_list))
   in
@@ -271,9 +271,8 @@ let rec rule_tree_to_expr
   let default =
     Bindlib.box_apply2
       (fun exceptions default_containing_base_cases ->
-        Expr.make_default exceptions
-          (ELit (LBool true), def_pos)
-          default_containing_base_cases def_pos)
+        Expr.make_default exceptions (ELit (LBool true), emark)
+          default_containing_base_cases emark)
       exceptions default_containing_base_cases
   in
   match is_func, (List.hd base_rules).Ast.rule_parameter with
@@ -284,12 +283,12 @@ let rec rule_tree_to_expr
          that the result returned by the function is not empty *)
       let default =
         Bindlib.box_apply
-          (fun (default : Scopelang.Ast.expr) -> ErrorOnEmpty default, def_pos)
+          (fun (default : Scopelang.Ast.expr) -> ErrorOnEmpty default, emark)
           default
       in
       Expr.make_abs
         [| Var.Map.find new_param ctx.var_mapping |]
-        default [typ] def_pos
+        default [typ] emark
     else default
   | _ -> (* should not happen *) assert false
 
@@ -331,12 +330,12 @@ let translate_def
         List.map
           (fun (_, r) ->
             ( Some "This definition is a function:",
-              Marked.get_mark (Bindlib.unbox r.Ast.rule_cons) ))
+              Expr.pos (Bindlib.unbox r.Ast.rule_cons) ))
           (Ast.RuleMap.bindings (Ast.RuleMap.filter is_rule_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
-                Marked.get_mark (Bindlib.unbox r.Ast.rule_cons) ))
+                Expr.pos (Bindlib.unbox r.Ast.rule_cons) ))
             (Ast.RuleMap.bindings
                (Ast.RuleMap.filter (fun n r -> not (is_rule_func n r)) def))
       in
@@ -386,7 +385,7 @@ let translate_def
        defined as an OnlyInput to a subscope, since the [false] default value
        will not be provided by the calee scope, it has to be placed in the
        caller. *)
-  then ELit LEmptyError, Ast.ScopeDef.get_position def_info
+  then ELit LEmptyError, Untyped { pos = Ast.ScopeDef.get_position def_info }
   else
     Bindlib.unbox
       (rule_tree_to_expr ~toplevel:true ctx

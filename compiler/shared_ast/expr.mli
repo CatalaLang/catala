@@ -58,7 +58,7 @@ val earray : ('a any, 't) gexpr box list -> 't -> ('a, 't) gexpr box
 val elit : 'a any glit -> 't -> ('a, 't) gexpr box
 
 val eabs :
-  (('a any, 't) gexpr, ('a, 't) gexpr) mbinder box ->
+  (('a any, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder box ->
   typ list ->
   't ->
   ('a, 't) gexpr box
@@ -183,15 +183,6 @@ val make_let_in :
   ('a, 'm mark) gexpr box ->
   Utils.Pos.t ->
   ('a, 'm mark) gexpr box
-
-val make_let_in_raw :
-  ('a, 't) gexpr Var.t ->
-  typ ->
-  ('a, 't) gexpr box ->
-  ('a, 't) gexpr box ->
-  't ->
-  ('a, 't) gexpr box
-(** Version with any mark; to be removed once we use the [mark] type everywhere. *)
 
 val make_multiple_let_in :
   ('a, 'm mark) gexpr Var.vars ->

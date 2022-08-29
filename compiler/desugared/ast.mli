@@ -49,7 +49,7 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (** {2 Expressions} *)
 
-type expr = (desugared, Pos.t) gexpr
+type expr = (desugared, untyped mark) gexpr
 (** See {!type:Shared_ast.naked_gexpr} for the complete definition *)
 
 type location = desugared glocation

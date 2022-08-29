@@ -107,7 +107,7 @@ let rec format_typ
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
   | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
 
-exception Type_error of A.any_marked_expr * unionfind_typ * unionfind_typ
+exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
 type mark = { pos : Pos.t; uf : unionfind_typ }
 
@@ -466,8 +466,8 @@ and typecheck_expr_top_down
     (env : 'm Ast.expr env)
     (tau : unionfind_typ)
     (e : 'm Ast.expr) : (A.dcalc, mark) A.gexpr Bindlib.box =
-  (* Cli.debug_format "Propagating type %a for expr %a" (format_typ ctx) tau
-     (Expr.format ctx) e; *)
+  (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx)
+     tau (Expr.format ctx) e; *)
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.naked_gexpr) tau' =

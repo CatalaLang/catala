@@ -20,5 +20,8 @@
 open Shared_ast
 
 type lit = dcalc glit
-type 'm expr = (dcalc, 'm mark) gexpr
+
+type 'm naked_expr = (dcalc, 'm mark) naked_gexpr
+and 'm expr = (dcalc, 'm mark) gexpr
+
 type 'm program = 'm expr Shared_ast.program

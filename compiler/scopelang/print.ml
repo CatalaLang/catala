@@ -74,7 +74,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
              (Print.typ ctx) typ Print.punctuation "="
              (fun fmt e ->
                match Marked.unmark loc with
-               | SubScopeVar _ -> Print.expr ctx fmt e
+               | SubScopeVar _ -> Print.naked_expr ctx fmt e
                | ScopelangScopeVar v -> (
                  match
                    Marked.unmark
@@ -83,12 +83,15 @@ let scope ?(debug = false) ctx fmt (name, decl) =
                  with
                  | Reentrant ->
                    Format.fprintf fmt "%a@ %a" Print.operator
-                     "reentrant or by default" (Print.expr ~debug ctx) e
-                 | _ -> Format.fprintf fmt "%a" (Print.expr ~debug ctx) e))
+                     "reentrant or by default"
+                     (Print.naked_expr ~debug ctx)
+                     e
+                 | _ -> Format.fprintf fmt "%a" (Print.naked_expr ~debug ctx) e))
              e
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
-             (Print.expr ~debug ctx) e
+             (Print.naked_expr ~debug ctx)
+             e
          | Call (scope_name, subscope_name) ->
            Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
              ScopeName.format_t scope_name Print.punctuation "["

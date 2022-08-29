@@ -600,9 +600,9 @@ scope BasisForFineDetermination :
   # But then, how to account for the provision of the law that reverts the
   # mechanism canceling taxes for individuals earning less than $10,000 dollars?
 
-  # This is where the "context" concept comes into play. Indeed, we had annotated
-  # the "income_tax" variable of "NewIncomeTaxComputationFixed" with the
-  # "context" attribute. "context" is a variant of "input" that exposes the
+  # This is where the "context" concept comes into play. Indeed, we had
+  # annotated the "income_tax" variable of "NewIncomeTaxComputationFixed" with
+  # the "context" attribute. "context" is a variant of "input" that exposes the
   # variable as an input of the scope. However, it is more permissive than
   # "input" because it lets you re-define the "context" variable inside its
   # own scope. Then, you're faced with a choice for the value of "income_tax":

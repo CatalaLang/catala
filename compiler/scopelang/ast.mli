@@ -41,7 +41,7 @@ module LocationSet : Set.S with type elt = location Marked.pos
 
 (** {1 Abstract syntax tree} *)
 
-type expr = (scopelang, Pos.t) gexpr
+type expr = (scopelang, untyped mark) gexpr
 
 module ExprMap : Map.S with type key = expr
 

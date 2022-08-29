@@ -17,7 +17,7 @@ irrelevant cases, so that e.g. [(dcalc, _) naked_gexpr] doesn't have the [ERaise
 [ECatch] cases, while [(lcalc, _) naked_gexpr] doesn't have [EDefault].
 
 For example, Lcalc expressions are then defined as
-[type 'm expr = (Shared_ast.lcalc, 'm mark) Shared_ast.gexpr].
+[type 'm naked_expr = (Shared_ast.lcalc, 'm mark) Shared_ast.naked_gexpr].
 
 This makes it possible to write a single function that works on the different
 ASTs, by having it take a [('a, _) naked_gexpr] as input, while retaining a much

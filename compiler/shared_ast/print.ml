@@ -211,19 +211,19 @@ let var fmt v =
 let needs_parens (type a) (e : (a, _) gexpr) : bool =
   match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
-let rec expr :
+let rec naked_expr :
           'a.
           ?debug:bool -> decl_ctx -> Format.formatter -> ('a, 't) gexpr -> unit
     =
   fun (type a) ?(debug : bool = false) (ctx : decl_ctx) (fmt : Format.formatter)
       (e : (a, 't) gexpr) ->
-   let expr e = expr ~debug ctx e in
+   let naked_expr e = naked_expr ~debug ctx e in
    let with_parens fmt e =
      if needs_parens e then (
        punctuation fmt "(";
-       expr fmt e;
+       naked_expr fmt e;
        punctuation fmt ")")
-     else expr fmt e
+     else naked_expr fmt e
    in
    match Marked.unmark e with
    | EVar v -> Format.fprintf fmt "%a" var v
@@ -231,7 +231,7 @@ let rec expr :
      Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "("
        (Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-          (fun fmt e -> Format.fprintf fmt "%a" expr e))
+          (fun fmt e -> Format.fprintf fmt "%a" naked_expr e))
        es punctuation ")"
    | ETuple (es, Some s) ->
      Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a%a%a@]@]" StructName.format_t s
@@ -241,35 +241,35 @@ let rec expr :
           (fun fmt (e, struct_field) ->
             Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
               StructFieldName.format_t struct_field punctuation "\"" punctuation
-              "=" expr e))
+              "=" naked_expr e))
        (List.combine es (List.map fst (StructMap.find s ctx.ctx_structs)))
        punctuation "}"
    | EArray es ->
      Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "["
        (Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-          (fun fmt e -> Format.fprintf fmt "%a" expr e))
+          (fun fmt e -> Format.fprintf fmt "%a" naked_expr e))
        es punctuation "]"
    | ETupleAccess (e1, n, s, _ts) -> (
      match s with
-     | None -> Format.fprintf fmt "%a%a%d" expr e1 punctuation "." n
+     | None -> Format.fprintf fmt "%a%a%d" naked_expr e1 punctuation "." n
      | Some s ->
-       Format.fprintf fmt "%a%a%a%a%a" expr e1 operator "." punctuation "\""
-         StructFieldName.format_t
+       Format.fprintf fmt "%a%a%a%a%a" naked_expr e1 operator "." punctuation
+         "\"" StructFieldName.format_t
          (fst (List.nth (StructMap.find s ctx.ctx_structs) n))
          punctuation "\"")
    | EInj (e, n, en, _ts) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@]" enum_constructor
        (fst (List.nth (EnumMap.find en ctx.ctx_enums) n))
-       expr e
+       naked_expr e
    | EMatch (e, es, e_name) ->
      Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" keyword "match"
-       expr e keyword "with"
+       naked_expr e keyword "with"
        (Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
           (fun fmt (e, c) ->
             Format.fprintf fmt "@[<hov 2>%a %a%a@ %a@]" punctuation "|"
-              enum_constructor c punctuation ":" expr e))
+              enum_constructor c punctuation ":" naked_expr e))
        (List.combine es (List.map fst (EnumMap.find e_name ctx.ctx_enums)))
    | ELit l -> lit fmt l
    | EApp ((EAbs (binder, taus), _), args) ->
@@ -282,8 +282,8 @@ let rec expr :
           (fun fmt (x, tau, arg) ->
             Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@ %a@]@\n"
               keyword "let" var x punctuation ":" (typ ctx) tau punctuation "="
-              expr arg keyword "in"))
-       xs_tau_arg expr body
+              naked_expr arg keyword "in"))
+       xs_tau_arg naked_expr body
    | EAbs (binder, taus) ->
      let xs, body = Bindlib.unmbind binder in
      let xs_tau = List.mapi (fun i tau -> xs.(i), tau) taus in
@@ -293,44 +293,45 @@ let rec expr :
           (fun fmt (x, tau) ->
             Format.fprintf fmt "%a%a%a %a%a" punctuation "(" var x punctuation
               ":" (typ ctx) tau punctuation ")"))
-       xs_tau punctuation "→" expr body
+       xs_tau punctuation "→" naked_expr body
    | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" binop op with_parens arg1
        with_parens arg2
    | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" with_parens arg1 binop op
        with_parens arg2
-   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug -> expr fmt arg1
+   | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
+     naked_expr fmt arg1
    | EApp ((EOp (Unop op), _), [arg1]) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@]" unop op with_parens arg1
    | EApp (f, args) ->
-     Format.fprintf fmt "@[<hov 2>%a@ %a@]" expr f
+     Format.fprintf fmt "@[<hov 2>%a@ %a@]" naked_expr f
        (Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
           with_parens)
        args
    | EIfThenElse (e1, e2, e3) ->
-     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" keyword "if" expr e1
-       keyword "then" expr e2 keyword "else" expr e3
+     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" keyword "if"
+       naked_expr e1 keyword "then" naked_expr e2 keyword "else" naked_expr e3
    | EOp (Ternop op) -> Format.fprintf fmt "%a" ternop op
    | EOp (Binop op) -> Format.fprintf fmt "%a" binop op
    | EOp (Unop op) -> Format.fprintf fmt "%a" unop op
    | EDefault (exceptions, just, cons) ->
      if List.length exceptions = 0 then
-       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" expr just
-         punctuation "⊢" expr cons punctuation "⟩"
+       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" naked_expr
+         just punctuation "⊢" naked_expr cons punctuation "⟩"
      else
        Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a@ %a@ %a%a@]" punctuation "⟨"
          (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ",")
-            expr)
-         exceptions punctuation "|" expr just punctuation "⊢" expr cons
-         punctuation "⟩"
+            naked_expr)
+         exceptions punctuation "|" naked_expr just punctuation "⊢" naked_expr
+         cons punctuation "⟩"
    | ErrorOnEmpty e' ->
      Format.fprintf fmt "%a@ %a" operator "error_empty" with_parens e'
    | EAssert e' ->
      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation "("
-       expr e' punctuation ")"
+       naked_expr e' punctuation ")"
    | ECatch (e1, exn, e2) ->
      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a ->@ %a@]" keyword "try"
        with_parens e1 keyword "with" except exn with_parens e2
@@ -345,20 +346,20 @@ let rec expr :
           (fun fmt (field_name, field_expr) ->
             Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
               StructFieldName.format_t field_name punctuation "\"" punctuation
-              "=" expr field_expr))
+              "=" naked_expr field_expr))
        (StructFieldMap.bindings fields)
        punctuation "}"
    | EStructAccess (e1, field, _) ->
-     Format.fprintf fmt "%a%a%a%a%a" expr e1 punctuation "." punctuation "\""
-       StructFieldName.format_t field punctuation "\""
+     Format.fprintf fmt "%a%a%a%a%a" naked_expr e1 punctuation "." punctuation
+       "\"" StructFieldName.format_t field punctuation "\""
    | EEnumInj (e1, cons, _) ->
-     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons expr e1
+     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons naked_expr e1
    | EMatchS (e1, _, cases) ->
      Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" keyword "match"
-       expr e1 keyword "with"
+       naked_expr e1 keyword "with"
        (Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
           (fun fmt (cons_name, case_expr) ->
             Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
-              enum_constructor cons_name punctuation "→" expr case_expr))
+              enum_constructor cons_name punctuation "→" naked_expr case_expr))
        (EnumConstructorMap.bindings cases)
