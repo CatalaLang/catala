@@ -15,3 +15,10 @@ CLERK=_build/default/build_system/clerk.exe --exe "_build/default/compiler/catal
     # Here we cd to the root of the Catala repository such that the paths \
 	# displayed in error messages start with `tests/` uniformly.
 	@cd ..; $(CLERK) tests/$@
+
+pass_all_tests:
+	@cd ..;OCAMLRUNPARAM= $(CLERK) tests
+
+reset_all_tests: CLERK_OPTS+=--reset
+reset_all_tests:
+	@cd ..;OCAMLRUNPARAM= $(CLERK) tests

@@ -303,10 +303,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 .FORCE:
 
 test_suite: .FORCE
-	OCAMLRUNPARAM= $(CLERK) test tests
+	$(MAKE) -C tests pass_all_tests
 
 test_examples: .FORCE
-	OCAMLRUNPARAM= $(CLERK) test examples
+	$(MAKE) -C examples pass_all_tests
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples
