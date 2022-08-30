@@ -13,3 +13,7 @@ scope A:
   definition b under condition not c consequence equals 1337
   definition b under condition not c consequence equals 0
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

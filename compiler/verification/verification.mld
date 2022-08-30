@@ -1,0 +1,41 @@
+{0 Verification}
+
+{1 Generating verification conditions }
+
+From the {{: dcalc.html} Dcalc} intermediate representation, the module
+{!module: Verification.Conditions} provides functions to generate
+verification conditions for each scope definition present in the program.
+These verification conditions, if proven true, can assert the well-behaved
+execution of the scope definition: absence of empty or conflict errors.
+
+Related modules:
+
+{!modules: Verification.Conditions}
+
+{1 Generic solver}
+
+As Catala ambitions to mix and match different proof backends to solve the
+verification conditions, the compiler features a functorial interface
+common to all backends to rationalize the inputs and outputs. More precisely,
+it is sufficient for a proof backend to implement {!module-type: Verification.Io.Backend}
+to enjoy the normalized input/output (I/O) of {!module-type: Verification.Io.BackendIO}
+through the functor {!module: Verification.Io.MakeBackendIO}.
+
+Finally, the {!module: Verification.Solver} calls the I/O functions of the different
+backends to perform the solving of the various verification conditions.
+
+Related modules
+
+{!modules: Verification.Io Verification.Solver}
+
+{1 Z3 proof backend}
+
+One of the way to prove the {!type: Verification.Conditions.verification_condition}s
+true is to encode them into a Z3 query. The Catala compiler features a
+complete encoding of the {{: dcalc.html} Dcalc} intermediate representation
+into Z3, which can be used to launch Z3 queries and collect results to
+inform potential Dcalc program optimizations.
+
+Related modules:
+
+{!modules: Verification.Z3backend}

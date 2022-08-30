@@ -1,6 +1,6 @@
-## Épilogue
+# Épilogue
 
-### Règles diverses
+## Règles diverses
 
 Les textes législatifs et règlementaires contiennent toutes les informations
 kécessaires au calcul. Cependant, certaines règles de calcul sont implicites
@@ -10,16 +10,16 @@ la fonction du bloc de code ci-dessous.
 ```catala-metadata
 champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé  égal à
-    contenu maximum entier initial Enfant {
+    contenu minimum date initial Enfant {
       -- identifiant: -1
       -- obligation_scolaire: Pendant
       -- rémuneration_mensuelle: 0€
-      -- date_de_naissance: |1900-01-01|
-      -- âge: 0
+      -- date_de_naissance: |2999-12-31|
       -- prise_en_charge: EffectiveEtPermanente
       -- a_déjà_ouvert_droit_aux_allocations_familiales: faux
+      -- bénéficie_titre_personnel_aide_personnelle_logement: faux
     }
-    pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.âge
+    pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.date_de_naissance
 
 
 champ d'application AllocationsFamiliales:
@@ -51,7 +51,7 @@ champ d'application AllocationsFamiliales:
     sinon 0€
 ```
 
-### Interface du programme
+## Interface du programme
 
 Le calcul des allocations familiales nécessite un certain nombre d'informations
 sur les enfants à charge. Certaines de ces informations sont dépendantes les
@@ -67,39 +67,43 @@ déclaration structure EnfantEntrée:
   donnée d_date_de_naissance contenu date
   donnée d_prise_en_charge contenu PriseEnCharge
   donnée d_a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
+  donnée d_bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
-  contexte date_courante contenu date
-  contexte enfants contenu collection EnfantEntrée
-  contexte enfants_à_charge contenu collection Enfant
-  contexte allocations_familiales champ d'application AllocationsFamiliales
-  contexte ressources_ménage contenu argent
-  contexte résidence contenu Collectivité
-  contexte montant_versé contenu argent
-  contexte personne_charge_effective_permanente_est_parent condition
-  contexte personne_charge_effective_permanente_remplit_titre_I condition
-  contexte avait_enfant_à_charge_avant_1er_janvier_2012 condition
+  entrée i_date_courante contenu date
+  entrée i_enfants contenu collection EnfantEntrée
+  interne enfants_à_charge contenu collection Enfant
+  allocations_familiales champ d'application AllocationsFamiliales
+  entrée i_ressources_ménage contenu argent
+  entrée i_résidence contenu Collectivité
+  sortie i_montant_versé contenu argent
+  entrée i_personne_charge_effective_permanente_est_parent condition
+  entrée i_personne_charge_effective_permanente_remplit_titre_I condition
+  entrée i_avait_enfant_à_charge_avant_1er_janvier_2012 condition
 
 champ d'application InterfaceAllocationsFamiliales:
-  définition allocations_familiales.date_courante égal à date_courante
+  définition allocations_familiales.date_courante égal à i_date_courante
   définition allocations_familiales.enfants_à_charge égal à enfants_à_charge
-  définition allocations_familiales.ressources_ménage égal à ressources_ménage
-  définition allocations_familiales.résidence égal à résidence
-  définition montant_versé égal à allocations_familiales.montant_versé
-  règle allocations_familiales.personne_charge_effective_permanente_est_parent
-    sous condition personne_charge_effective_permanente_est_parent conséquence
-    rempli
-  règle allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
-    sous condition personne_charge_effective_permanente_remplit_titre_I conséquence
-    rempli
-  règle allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
-    sous condition avait_enfant_à_charge_avant_1er_janvier_2012 conséquence
-    rempli
+  définition allocations_familiales.ressources_ménage égal à i_ressources_ménage
+  définition allocations_familiales.résidence égal à i_résidence
+  définition i_montant_versé égal à allocations_familiales.montant_versé
+  règle
+    allocations_familiales.personne_charge_effective_permanente_est_parent
+  sous condition i_personne_charge_effective_permanente_est_parent
+  conséquence rempli
+  règle
+    allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
+  sous condition i_personne_charge_effective_permanente_remplit_titre_I
+  conséquence rempli
+  règle
+    allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
+  sous condition i_avait_enfant_à_charge_avant_1er_janvier_2012
+  conséquence rempli
 ```
 
-#### Code de l'éducation
+### Code de l'éducation
 
-#### Article L131-1|LEGIARTI000038901859
+### Article L131-1|LEGIARTI000038901859
 
 L'instruction est obligatoire pour chaque enfant dès l'âge de trois ans et
 jusqu'à l'âge de seize ans.
@@ -109,21 +113,21 @@ particulières imposant une scolarité plus longue.
 
 ```catala
 champ d'application InterfaceAllocationsFamiliales:
-  définition enfants_à_charge égal à application pour enfant dans enfants de
+  définition enfants_à_charge égal à application pour enfant dans i_enfants de
     Enfant {
       -- identifiant : enfant.d_identifiant
       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
       -- date_de_naissance : enfant.d_date_de_naissance
       -- prise_en_charge : enfant.d_prise_en_charge
-      -- âge: accès_année de
-        (|0000-01-01| +@ (date_courante -@ enfant.d_date_de_naissance))
       -- obligation_scolaire :
-        (si enfant.d_date_de_naissance +@ 3 an >=@ date_courante alors
+        (si enfant.d_date_de_naissance +@ 3 an >=@ i_date_courante alors
           Avant
-        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ date_courante alors
+        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ i_date_courante alors
           Pendant
         sinon Après))
       -- a_déjà_ouvert_droit_aux_allocations_familiales:
         enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
+      -- bénéficie_titre_personnel_aide_personnelle_logement:
+        enfant.d_bénéficie_titre_personnel_aide_personnelle_logement
     }
 ```

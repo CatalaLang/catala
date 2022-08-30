@@ -5,6 +5,8 @@ to locate your own Catala programs in this directory, since programs in this
 directory will receive first-class support during the alpha and beta stage
 of the Catala programming language development.
 
+<strong>[Browse examples online »](https://catala-lang.org/en/examples)</strong>
+
 ## List of examples
 
 - `allocations_familiales/`: computation of the French family benefits, based
@@ -23,7 +25,7 @@ of the Catala programming language development.
 Building and running examples is done via Makefiles. Each example directory
 contains its own Makefile, which includes `Makefile.common.mk`. This common
 Makefiles defines a list of targets that call the Catala compiler with the
-right options. Each of these targers can be called from the root of the
+right options. Each of these targets can be called from the root of the
 repository with:
 
         make -C examples/<directory of example> <name of target>
@@ -42,6 +44,20 @@ file `examples/foo/foo.catala_en`) list.
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.
 
+ Important
+
+ : Before trying to generates LaTex or PDF files:
+   1. don't forget to run `make pygments`,
+   2. and you need to have the font
+      [Marianne](https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography)
+      installed in your machine.
+
+> Note: the OCaml, Javascript and Python artifacts that are generated here and
+> used in ../french_law are generated using `dune` rules instead. See the
+> examples in `aides_logement/dune` and `allocations_familiales/dune`. This
+> allows the compilation of `french_law` to be streamlined from the compilation
+> of the Catala compiler itself, and without polluting the source tree.
+
 ## Testing examples
 
 Unit testing is important, and we encourage Catala developers to write lots
@@ -52,10 +68,10 @@ In order to enjoy the benefits of this system, you have to create a `tests/`
 directory in your examples directory, for instance `examples/foo/tests`. Then,
 create a test file `foo_tests.catala_en` inside that directory.
 
-Inside `foo_tests.catala_en`, declare one ore more test scopes. It is assumed
-that all these scopes should execute correctly. Include the program scope you
-want to test and use assertions to provide the expected values of your test.
-See existing tests in examples directory for more information.
+Inside `foo_tests.catala_en`, declare one ore more test scopes. Then, you can
+provide the expected output for the interpretation of these scopes or the
+compilation of the whole program using the standard expected by `clerk test`:
+enter `make help_clerk` from the root of the Catala repository to know more.
 
 Once your tests are written, then will automatically be added to the regression
 suite executed using
@@ -64,7 +80,7 @@ suite executed using
 
 You can isolate a part of the regression suite by invoking:
 
-    TEST_FILES=foo/tests/foo_tests.catala_en make -C examples tests
+    make -C examples foo/tests/foo_tests.catala_en
 
 ## Adding an example
 
@@ -77,18 +93,19 @@ get the compiler up and working up to `make build`. You can also set up the
 syntax highlighting for your editor.
 
 Then, create the directory `examples/foo`. In there, create a master source
-file `foo.catala` that will be the root of your Catala program.
-You can then start programming in `foo.catala`, or split up your example
-into multiple files. In the later case, `foo.catala` must only contain
+file `foo.catala_en` (or `foo.catala_fr`, etc. depending on your language)
+that will be the root of your Catala program. You can then start programming
+in `foo.catala_en`, or split up your example into multiple files. In the later case,
+`foo.catala_en` must only contain
 something like this:
 
 ```markdown
 # Master file
 
-> Include: bar.catala
+> Include: bar.catala_en
 ```
 
-where `examples/bar.catala` is another source file containing code for your
+where `examples/bar.catala_en` is another source file containing code for your
 example. Make sure you start by including some content in the source files,
 like
 
@@ -101,7 +118,7 @@ with the following contents:
 
 ```Makefile
 CATALA_LANG=en # or fr/pl if your source code is in French/Polish
-SRC=foo.catala
+SRC=foo.catala_en
 
 include ../Makefile.common.mk
 ```

@@ -1,0 +1,17 @@
+(rule
+ (target runtime.py)
+ (mode promote)
+ (action
+  (copy ../../../runtimes/python/catala/src/catala/%{target} %{target})))
+
+(rule
+ (target allocations_familiales.py)
+ (mode promote)
+ (action
+  (copy ../../../examples/allocations_familiales/%{target} %{target})))
+
+(rule
+ (target aides_logement.py)
+ (mode promote)
+ (action
+  (copy ../../../examples/aides_logement/%{target} %{target})))

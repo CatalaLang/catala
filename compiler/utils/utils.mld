@@ -2,37 +2,43 @@
 
 {1 Unique identifiers}
 
+In {{: desugared.html} the desugared representation} or in the
+{{: scopelang.html} the scope language}, a number of things are named using
+global identifiers. These identifiers use OCaml's type system to statically
+distinguish e.g. a scope identifier from a struct identifier.
+
+The {!module: Utils.Uid} module provides a generative functor whose output is
+a fresh sort of global identifiers.
+
 Related modules:
 
 {!modules: Utils.Uid}
 
-In {{: desugared.html} the desugared representation} or in the 
-{{: scopelang.html} the scope language}, a number of things are named using 
-global identifiers. These identifiers use OCaml's type system to statically 
-distinguish e.g. a scope identifier from a struct identifier. 
-
-The {!module: Utils.Uid} module provides a generative functor whose output is 
-a fresh sort of global identifiers.
-
 {1 Source code positions}
+
+This module is used throughout the compiler to annotate the abstract syntax
+trees with information about the position of the element in the original source
+code. These annotations are critical to produce readable error messages.
 
 Related modules:
 
 {!modules: Utils.Pos}
 
-This module is used throughout the compiler to annotate the abstract syntax 
-trees with information about the position of the element in the original source 
-code. These annotations are critical to produce readable error messages.
-
 {1 Error messages}
+
+Error handling is critical in a compiler. The Catala compiler uses an architecture
+of error messages inspired by the Rust compiler, where error messages all
+correspond to the same exception. This exception carries messages and positions
+that are displayed in the end in a nicely-formatted error message.
+
+Hence, all error thrown by the compiler should use {!module: Utils.Errors}
 
 Related modules:
 
 {!modules: Utils.Errors}
 
-Error handling is critical in a compiler. The Catala compiler uses an architecture
-of error messages inspired by the Rust compiler, where error messages all 
-correspond to the same exception. This exception carries messages and positions 
-that are displayed in the end in a nicely-formatted error message. 
+{1 Other utilies}
 
-Hence, all error thrown by the compiler should use {!module: Utils.Errors}
+Related modules:
+
+{!modules: Utils.File Utils.String_common}

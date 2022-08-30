@@ -1,0 +1,43 @@
+## Test
+
+
+```catala
+declaration scope A:
+  context x1 content boolean
+  context x2 content boolean
+  context x3 content boolean
+  context x4 content boolean
+  context x5 content boolean
+  context x6 content boolean
+  context x7 content boolean
+  context x8 content boolean
+  context x9 content boolean
+  context x10 content boolean
+
+scope A:
+  definition x1 equals true
+  definition x2 equals false
+  definition x3 equals true
+  definition x4 equals false
+  definition x5 equals true
+  definition x6 equals false
+  definition x7 equals true
+  definition x8 equals false
+  definition x9 equals true
+  definition x10 under condition
+    (x1 or x2 or x3 or x4 or x5)
+      and (not x1 or not x2 or not x3 or not x4 or not x5)
+      and (x1 or not x2)
+      and (x3 or not x4 or x5)
+      and (x5)
+      and (not x1 or x2)
+      and (x6 or not x7 or x8 or not x1)
+      and (x2 or not x4 or x5 or not x6)
+      and (x7 or x8 or x9 or not x2)
+  consequence equals false
+
+```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

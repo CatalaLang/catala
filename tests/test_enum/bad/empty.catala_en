@@ -1,0 +1,12 @@
+## Test
+
+```catala
+declaration enumeration Foo:
+
+declaration scope Bar:
+  internal foo content Foo
+```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

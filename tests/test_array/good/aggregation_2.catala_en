@@ -6,7 +6,7 @@ declaration structure S:
   data income content money
 
 declaration scope A:
-   context x content collection S
+   context output x content collection S
 
 scope A:
    definition x equals [
@@ -16,11 +16,19 @@ scope A:
    ]
 
 declaration scope B:
-   context a scope A
-   context argmax content S
-   context argmin content S
+   a scope A
+   output argmax content S
+   output argmin content S
 
 scope B:
    definition argmax equals content maximum money initial S { -- id: -1 --income: $0 } for m in a.x of (m.income *$ 2.0)
    definition argmin equals content minimum money initial  S { -- id: -1 --income: $20 } for m in a.x of (m.income +$ $5)
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
 ```

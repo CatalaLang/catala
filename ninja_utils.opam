@@ -1,0 +1,32 @@
+opam-version: "2.0"
+version: "0.7.0"
+synopsis:
+  "A collection of utility functions used to generate Ninja build files"
+description:
+  "This library contains the implementations of utility functions used to generate Ninja build files -- see https://ninja-build.org. It's currently used by the Catala build system (see https://github.com/CatalaLang/catala/tree/master/build_system)"
+maintainer: ["contact@catala-lang.org"]
+authors: ["Emile Rolley"]
+license: "Apache-2.0"
+homepage: "https://github.com/CatalaLang/catala"
+bug-reports: "https://github.com/CatalaLang/catala/issues"
+depends: [
+  "dune" {>= "2.8"}
+  "ocaml" {>= "4.11.0"}
+  "re" {>= "1.10.3"}
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+dev-repo: "git+https://github.com/CatalaLang/catala.git"

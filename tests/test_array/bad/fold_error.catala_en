@@ -9,3 +9,7 @@ scope A:
   definition list equals [0; 5; 6; 7; 1; 64; 12]
   definition list_high_count equals number for m in list of (m >=$ $7)
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

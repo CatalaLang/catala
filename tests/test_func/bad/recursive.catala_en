@@ -7,3 +7,7 @@ declaration scope RecursiveFunc:
 scope RecursiveFunc:
   definition f of x equals f of x + 1
 ```
+
+```catala-test {id="RecursiveFunc.Interpret"}
+catala Interpret -s RecursiveFunc
+```

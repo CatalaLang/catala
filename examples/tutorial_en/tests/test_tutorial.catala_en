@@ -4,7 +4,7 @@
 
 ```catala
 declaration scope UnitTest1:
-  context tax_computation scope NewIncomeTaxComputation
+  tax_computation scope NewIncomeTaxComputation
 
 scope UnitTest1:
   definition
@@ -17,7 +17,7 @@ scope UnitTest1:
   assertion tax_computation.income_tax = $72,000
 
 declaration scope UnitTest2:
-  context tax_computation scope NewIncomeTaxComputationFixed
+  tax_computation scope NewIncomeTaxComputationFixed
 
 scope UnitTest2:
   definition tax_computation.individual equals Individual {
@@ -26,4 +26,12 @@ scope UnitTest2:
   }
 
   assertion tax_computation.income_tax = $0.00
+```
+
+```catala-test {id="UnitTest1.Interpret"}
+catala Interpret -s UnitTest1
+```
+
+```catala-test {id="UnitTest2.Interpret"}
+catala Interpret -s UnitTest2
 ```

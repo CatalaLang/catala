@@ -1,0 +1,113 @@
+## Partie législative
+
+### Livre 5 : Prestations familiales et prestations assimilées
+
+#### Titre 1 : Champ d'application - Généralités
+
+##### Chapitre 1er : Liste des prestations
+
+###### Article L511-1|LEGIARTI000038834530
+
+Les prestations familiales comprennent :
+
+1°) la prestation d'accueil du jeune enfant ;
+
+2°) les allocations familiales ;
+
+3°) le complément familial ;
+
+4°) L'allocation de logement régie par les dispositions du livre VIII du code de la construction et de l'habitation ;
+
+5°) l'allocation d'éducation de l'enfant handicapé ;
+
+6°) l'allocation de soutien familial ;
+
+7°) l'allocation de rentrée scolaire ;
+
+8°) (Abrogé) ;
+
+9°) l'allocation journalière de présence parentale.
+
+```catala
+# Voir l'énumération ÉlémentPrestationsFamiliale
+```
+
+##### Chapitre 2 : Champ d'application
+
+###### Article L512-3|LEGIARTI000038834523
+
+Sous réserve des règles particulières à chaque prestation,
+ouvre droit aux prestations familiales :
+
+1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
+
+```catala
+champ d'application ÉligibilitéPrestationsFamiliales :
+  étiquette cas_base règle droit_ouvert de enfant sous condition
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Avant ou
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Pendant
+  conséquence rempli
+```
+
+2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite,
+tout enfant dont la rémunération éventuelle n'excède pas un plafond.
+
+```catala
+champ d'application ÉligibilitéPrestationsFamiliales :
+  étiquette cas_base règle droit_ouvert de enfant sous condition
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Après et
+    (enfant.EnfantPrestationsFamiliales.rémuneration_mensuelle <=€
+      plafond_l512_3_2) et
+    (enfant.EnfantPrestationsFamiliales.date_de_naissance +@ âge_l512_3_2 >@
+      date_courante)
+  conséquence rempli
+
+  # On définit les conditions hors âge d'abord car elles
+  # sont référencées plus tard dans l'article L521-1
+  règle conditions_hors_âge de enfant sous condition
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Avant ou
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Pendant ou
+    enfant.EnfantPrestationsFamiliales.obligation_scolaire sous forme Après et
+    (enfant.EnfantPrestationsFamiliales.rémuneration_mensuelle <=€
+      plafond_l512_3_2)
+  conséquence rempli
+```
+
+Toutefois, pour l'attribution du complément familial et de l'allocation
+de logement mentionnés aux 3° et 4° de l'article L. 511-1 , l'âge limite
+peut être différent de celui mentionné au 2° du présent article.
+
+```catala
+# Sera géré avec une exception dans Catala. Le texte est équivalent
+# à une méta-propriété du code à vérifier : i.e. pas d'exceptions pour
+# cet âge azutre part que pour Complément Familial ou AllocationLogement.
+```
+
+
+### Livre 7 : Régimes divers - Dispositions diverses
+
+#### Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin
+
+##### Chapitre 1er : Généralités
+
+###### Article L751-1|LEGIARTI000031323778
+
+Les dispositions du présent titre s'appliquent en Guadeloupe, en Guyane,
+en Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin à
+l'ensemble des bénéficiaires de la législation générale de sécurité
+sociale, y compris les membres des professions agricoles.
+
+```catala
+# Angle mort: ici nous n'avons pas formalisé la partie sur la législation
+# générale de sécurité sociale et les membres des professions agricoles.
+
+champ d'application ÉligibilitéPrestationsFamiliales :
+  règle régime_outre_mer_l751_1 sous condition
+    (résidence = Guadeloupe) ou
+    (résidence = Guyane) ou
+    (résidence = Martinique) ou
+    (résidence = LaRéunion) ou
+    (résidence = SaintBarthélemy) ou
+    (résidence = SaintMartin)
+  conséquence rempli
+```

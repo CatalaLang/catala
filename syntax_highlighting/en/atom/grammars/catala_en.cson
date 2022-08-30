@@ -101,7 +101,7 @@
         'name' : 'comment.line.catala_en'
       }
       {
-        'match' : '(context)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
+        'match' : '(context|input|output|internal)(\\s*)(|output)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
         'captures' : {
           '1' : {
             'name' : 'keyword.other.catala_en'
@@ -110,16 +110,22 @@
             'name' : 'text.catala_en'
           }
           '3' : {
+            'name' : 'keyword.other.catala_en'
+          }
+          '4' : {
+            'name' : 'text.catala_en'
+          }
+          '5' : {
             'name' : 'entity.name.function.catala_en'
           }
         }
       }
       {
-        'match' : '\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b'
+        'match' : '\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|let|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b'
         'name' : 'keyword.control.catala_en'
       }
       {
-        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b'
+        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|input|output|internal|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|state|label|exception|anything)\\b'
         'name' : 'keyword.other.catala_en'
       }
       {
@@ -131,7 +137,7 @@
         'name' : 'constant.catala_en'
       }
       {
-        'match' : '\\b([0-9]+(,[0.9]*|))\\b'
+        'match' : '\\b([0-9]+(,[0-9]*|))\\b'
         'name' : 'constant.numeric.catala_en'
       }
       {

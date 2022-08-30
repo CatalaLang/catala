@@ -11,8 +11,8 @@ declaration enumeration E:
 
 ```catala
 declaration scope Simple_case:
-  context x content E
-  context y content integer
+  context output x content E
+  context output y content integer
 
 scope Simple_case:
   definition x equals Case1 content 2
@@ -25,8 +25,8 @@ scope Simple_case:
 
 ```catala
 declaration scope Simple_case_2:
-  context x content E
-  context y content integer
+  context output x content E
+  context output y content integer
 
 scope Simple_case_2:
   definition x equals Case3
@@ -34,4 +34,12 @@ scope Simple_case_2:
     -- Case2 : 42
     -- Case1 of i : i
     -- anything : 31
+```
+
+```catala-test {id="Simple_case_2.Interpret"}
+catala Interpret -s Simple_case_2
+```
+
+```catala-test {id="Simple_case.Interpret"}
+catala Interpret -s Simple_case
 ```

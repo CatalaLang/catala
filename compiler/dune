@@ -1,14 +1,18 @@
 (library
  (name driver)
  (public_name catala.driver)
- (libraries utils surface desugared literate dcalc lcalc scalc runtime)
- (modules driver))
-
-(library
- (name runtime)
- (public_name catala.runtime)
- (libraries calendar zarith zarith_stubs_js)
- (modules runtime))
+ (libraries
+  dynlink
+  utils
+  surface
+  desugared
+  literate
+  dcalc
+  lcalc
+  scalc
+  catala.runtime_ocaml
+  verification)
+ (modules plugin driver))
 
 (executable
  (name catala_web_interpreter)
@@ -18,11 +22,26 @@
  (modules catala_web_interpreter)
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries catala.driver js_of_ocaml))
+ (libraries
+  catala.driver
+  js_of_ocaml
+  catala.runtime_ocaml
+  catala.runtime_jsoo))
+
+(rule
+ (target custom_linking.sexp)
+ (mode fallback)
+ (action
+  (with-stdout-to
+   %{target}
+   (echo "()"))))
 
 (executable
  (name catala)
  (modes native js)
+ (flags
+  (:standard
+   (:include custom_linking.sexp)))
  (package catala)
  (modules catala)
  (public_name catala)

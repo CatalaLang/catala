@@ -1,0 +1,23 @@
+# Test
+
+```catala
+declaration scope A:
+  input x condition
+  output y content integer
+
+declaration scope B:
+  a scope A
+
+scope A:
+  definition y equals if x then 0 else 1
+
+scope B:
+  assertion a.y = 1
+```
+```catala-test {id="B.Dcalc"}
+catala Dcalc -s B
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```

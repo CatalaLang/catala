@@ -1,0 +1,17 @@
+```catala
+declaration scope A:
+  output w content integer
+  output x content integer
+  output y content integer
+  output z content integer
+
+scope A:
+  definition w equals 4 - 2 - 2
+  definition x equals 4 - (2 - 2)
+  definition y equals 4 - 2 - -2
+  definition z equals 200 / 2 * 4 - 50 / - (5 - 20 / 2)
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

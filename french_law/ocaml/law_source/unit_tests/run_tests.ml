@@ -4,13 +4,13 @@ let try_test msg test =
   try
     test ();
     Format.printf "%s %s\n"
-      (ANSITerminal.sprintf [ ANSITerminal.green ] "PASS")
-      (ANSITerminal.sprintf [ ANSITerminal.magenta ] msg)
-  with Runtime.AssertionFailed ->
+      (ANSITerminal.sprintf [ANSITerminal.green] "PASS")
+      (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
+  with Runtime_ocaml.Runtime.AssertionFailed _ ->
     failure := true;
     Format.printf "%s %s\n"
-      (ANSITerminal.sprintf [ ANSITerminal.red ] "FAIL")
-      (ANSITerminal.sprintf [ ANSITerminal.magenta ] msg)
+      (ANSITerminal.sprintf [ANSITerminal.red] "FAIL")
+      (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
 
 let _ =
   try_test "Allocations familiales #1" Tests_allocations_familiales.test1;
@@ -26,4 +26,5 @@ let _ =
   try_test "Allocations familiales #11" Tests_allocations_familiales.test11;
   try_test "Allocations familiales #12" Tests_allocations_familiales.test12;
   try_test "Allocations familiales #13" Tests_allocations_familiales.test13;
+  try_test "Allocations familiales #14" Tests_allocations_familiales.test14;
   exit (if !failure then -1 else 0)

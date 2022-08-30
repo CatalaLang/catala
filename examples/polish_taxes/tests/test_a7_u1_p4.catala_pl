@@ -1,13 +1,16 @@
 > Include: ../podatek_od_czynnosci_cywilnoprawnych/rozdzial_3.catala_pl
 
-## [Test - Art. 7 ustęp 1 punkt 4]
+## Test - Art. 7 ustęp 1 punkt 4
 
 ```catala
 deklaracja zakres Test_A7_U1_P4:
-  kontekst sprzedaz zakres PozyczkaLubDepozytNieprawidlowy
+  sprzedaz zakres PozyczkaLubDepozytNieprawidlowy
 
 zakres Test_A7_U1_P4:
   definicja sprzedaz.kwota wynosi 200 PLN
 
   asercja sprzedaz.podatek = 1 PLN
+```
+```catala-test {id="Test_A7_U1_P4.Interpret"}
+catala Interpret -s Test_A7_U1_P4
 ```

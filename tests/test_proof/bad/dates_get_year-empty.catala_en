@@ -1,0 +1,18 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content date
+  context y content boolean
+
+scope A:
+  definition x equals |2022-01-16|
+  definition y under condition get_year of x < 2010 consequence equals true
+  definition y under condition get_year of x >= 2010 and get_year of x < 2015 consequence equals false
+  definition y under condition get_year of x >= 2015 and get_year of x < 2020 consequence equals true
+  definition y under condition get_year of x > 2020 consequence equals false
+```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples 
+```

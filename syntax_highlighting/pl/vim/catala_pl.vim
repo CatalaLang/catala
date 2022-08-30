@@ -23,7 +23,7 @@ syn match Include "^\s*>\s*Include:.*$"
 
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
-syn match Keyword contained "\<\(zakres\|zalezy\s\+od\|deklaracja\|kolekcja\|typu\|opcjonalny\|struktura\|enumeracja\|kontekst\|zasada\|pod\s\+warunkuem\|czas\|konsekwencja\|spelnione\|wynosi\|asercja\|definicja\|etykieta\|wyjątek\|cokolwiek\)\>"
+syn match Keyword contained "\<\(zakres\|zalezy\s\+od\|deklaracja\|kolekcja\|typu\|opcjonalny\|struktura\|enumeracja\|kontekst\|wejście\|wyjście\|wewnętrzny\|zasada\|pod\s\+warunkuem\|czas\|konsekwencja\|spelnione\|wynosi\|asercja\|definicja\|stan\|etykieta\|wyjątek\|cokolwiek\)\>"
 syn match Statement contained "\<\(pasuje\|ze\s\+wzorem\|staloprzecinkowa\|przez\|malejacy\|rosnacy\|rozna\|wraz z\|mamy\|w\|takich ze\|istnieje\|dla\|wszystkie\|z\|jezeli\|wtedy\|inaczej\|poczatkowy\)\>"
 syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"
@@ -35,7 +35,7 @@ syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained calkowita zerojedynkowy czas trwania pieniądze warunek tekst dziesiętny suma
 
 syn region ctxt contained
-      \ matchgroup=Keyword start="\<kontekst"
+      \ matchgroup=Keyword start="\<\(kontekst\|wejście\|wyjście\|wewnętrzny\)\(\|\s\+wyjście\)"
       \ matchgroup=sc_id_def end="\s\+\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region cc_id_dot_sc_id contained contains=punctuation

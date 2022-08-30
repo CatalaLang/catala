@@ -2,12 +2,16 @@
 
 ```catala
 declaration scope A:
-  context x content date
-  context y content date
-  context z content duration
+  context output x content date
+  context output y content date
+  context output z content duration
 
 scope A:
   definition x equals |2019-01-01|
   definition y equals |2002-09-30|
   definition z equals x -@ y
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```

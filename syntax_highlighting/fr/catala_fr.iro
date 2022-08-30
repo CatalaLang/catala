@@ -193,17 +193,17 @@ code : context {
   }
 
   : pattern {
-    regex \=  (contexte)(\s+)($${__SC_ID})
-    styles [] = .keyword_rule, .whitespace, .sc_id_def;
+    regex \=  (contexte|entrée|sortie|interne)(\s*)(|sortie)(\s+)($${__SC_ID})
+    styles [] = .keyword_rule, .whitespace, .keyword_rule, .whitespace, .sc_id_def;
   }
 
   : pattern {
-    regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon|initial)\b
+    regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|soit|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon|initial)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b
+    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|état|étiquette|exception)\b
     styles [] = .keyword_rule ;
   }
 
@@ -219,7 +219,7 @@ code : context {
 
 
   : pattern {
-    regex \= \b([0-9]+(,[0.9]*|))\b
+    regex \= \b([0-9]+(,[0-9]*|))\b
     styles [] = .literal_numeric ;
   }
 

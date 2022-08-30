@@ -13,7 +13,7 @@ deklaracja zakres UmowaSprzedazy:
   kontekst kwota typu pieniądze
   kontekst inne_prawa_majatkowe warunek
   kontekst stawka_podatku typu dziesiętny
-  kontekst podatek typu pieniądze
+  wyjście podatek typu pieniądze
 
 zakres UmowaSprzedazy:
   definicja podatek wynosi
@@ -44,7 +44,7 @@ deklaracja zakres UmowaZamianyLubDarowizny:
   kontekst kwota typu pieniądze
   kontekst inne_prawa_majatkowe warunek
   kontekst stawka_podatku typu dziesiętny
-  kontekst podatek typu pieniądze
+  wyjście podatek typu pieniądze
 
 zakres UmowaZamianyLubDarowizny:
   definicja podatek wynosi
@@ -71,7 +71,7 @@ zakres UmowaZamianyLubDarowizny:
 deklaracja zakres OdplatneUzytkowanie:
   kontekst kwota typu pieniądze
   kontekst stawka_podatku typu dziesiętny
-  kontekst podatek typu pieniądze
+  wyjście podatek typu pieniądze
 
 zakres OdplatneUzytkowanie:
   definicja podatek wynosi
@@ -87,11 +87,12 @@ zakres OdplatneUzytkowanie:
 deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
   kontekst kwota typu pieniądze
   kontekst stawka_podatku typu dziesiętny
-  kontekst podatek typu pieniądze
+  wyjście podatek typu pieniądze
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja podatek wynosi
-    kwota *$ stawka_podatku # TODO: extract somehow? this exists in every declaration
+    kwota *$ stawka_podatku # TODO: extract somehow?
+                            # this exists in every declaration
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja stawka_podatku wynosi 0.5%
@@ -133,7 +134,7 @@ zakres Hipoteka:
 deklaracja zakres UmowaSpolki:
   kontekst kwota typu pieniądze
   kontekst stawka_podatku typu dziesiętny
-  kontekst podatek typu pieniądze
+  wyjście podatek typu pieniądze
 
 zakres UmowaSpolki:
   definicja podatek wynosi

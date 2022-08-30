@@ -29,6 +29,7 @@
 #define MS_INCREASING "increasing"
 #define MS_OF "of"
 #define MS_COLLECTION "collection"
+#define MS_CONTAINS "contains"
 #define MS_ENUM "enumeration"
 #define MS_INTEGER "integer"
 #define MS_MONEY "money"
@@ -40,6 +41,7 @@
 #define MS_SUM "sum"
 #define MS_FILLED "fulfilled"
 #define MS_DEFINITION "definition"
+#define MS_STATE "state"
 #define MS_LABEL "label"
 #define MS_EXCEPTION "exception"
 #define MS_DEFINED_AS "equals"
@@ -65,6 +67,7 @@
 #define MS_FIXED "fixed"
 #define MS_BY "by"
 #define MS_RULE "rule"
+#define MS_LET "let"
 #define MS_EXISTS "exists"
 #define MS_IN "in"
 #define MS_SUCH "such"
@@ -84,6 +87,9 @@
 #define MS_DAY "day"
 #define MS_TRUE "true"
 #define MS_FALSE "false"
+#define MS_INPUT "input"
+#define MS_OUTPUT "output"
+#define MS_INTERNAL "internal"
 
 (* Specific delimiters *)
 
@@ -95,10 +101,16 @@
 
 (* Builtins *)
 
+#define MS_RoundMoney "round_money"
+#define MS_RoundDecimal "round_decimal"
 #define MS_IntToDec "integer_to_decimal"
+#define MS_MoneyToDec "money_to_decimal"
+#define MS_DecToMoney "decimal_to_money"
 #define MS_GetDay "get_day"
 #define MS_GetMonth "get_month"
 #define MS_GetYear "get_year"
+#define MS_FirstDayOfMonth "first_day_of_month"
+#define MS_LastDayOfMonth "last_day_of_month"
 
 (* Directives *)
 

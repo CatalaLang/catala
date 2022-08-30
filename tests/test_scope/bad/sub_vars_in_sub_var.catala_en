@@ -2,13 +2,17 @@
 
 ```catala
 declaration scope A:
-  context x content boolean
-  context y content integer
+  context output x content boolean
+  context output y content integer
 
 declaration scope B:
-  context a scope A
+  a scope A
 
 scope B:
   definition a.x equals true
   definition a.y equals if a.x then 0 else 1
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```

@@ -10,14 +10,14 @@ any questions about the project.
 If you want to contribute to the project on a longer-term basis, or if you have
 specific competences as a socio-fiscal lawyer or a programming language specialist,
 please [contact the authors](mailto:contact@catala-lang.org).
-The Catala team meets over visioconference once every two weeks.
+The Catala team meets over visioconference once every week.
 
 Please note that the copyright of this code is owned by Inria;
 by contributing, you disclaim all copyright interests in favor of Inria.
 Both the code for the compiler and the examples in this repository are
 distributed under the Apache2 license.
 
-### Writing Catala code
+## Writing Catala code
 
 Before writing Catala code, please read the
 [tutorial](https://catala-lang.org/en/examples/tutorial). You can run the
@@ -47,6 +47,8 @@ using for instance
 
 ```
 make -C examples/foo foo.tex
+make -C examples/foo foo.py
+make -C examples/foo foo.ml
 ```
 
 to see if you've made any syntax errors. Once the text formatting is done, you
@@ -87,8 +89,11 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
-Please note that the `ocamlformat` version this project uses is `0.18.0`.
-Using another version may cause spurious diffs to appear in your pull requests.
+### Installing and using nix
+
+We provide an nix environement to develop the Catala compiler. It is available
+after [installing nix](https://nixos.org/download.html). You can then just
+use `nix develop` to enter the environment.
 
 ### Example: adding a builtin function
 
@@ -114,7 +119,7 @@ need more, here is how one can be added:
     - in `dcalc/interpreter.ml`, function `evaluate_operator`
 - Update the syntax guide in `doc/syntax/syntax.tex` with your new builtin
 
-## Internationalization
+### Internationalization of the Catala syntax
 
 The Catala language should be adapted to any legislative text that follows a
 general-to-specifics statutes order. Therefore, there exists multiple versions
@@ -124,12 +129,14 @@ Currently, Catala supports English, French and Polish legislative text via the
 `--language=en`, `--language=fr` or `--language=pl` options.
 
 To add support for a new language:
+
 - the basic syntax localisation is defined in
   `compiler/surface/lexer_xx.cppo.ml` where `xx` is the language code (`en`,
   `fr`...)
 - copy the files from another language, e.g.
   [english](compiler/surface/lexer_en.cppo.ml), then replace the strings with your
   translations. Be careful with the following:
+
   - The file must be encoded in latin-1
   - For a given token `FOO`, define `MS_FOO` to be the string version of the
     keyword. Due to the encoding, use `\xNN` [escape
@@ -138,13 +145,12 @@ To add support for a new language:
   - If the string contains spaces or non-latin1 characters, you need to define
     `MR_FOO` as well with a regular expression in [sedlex
     format](https://github.com/ocaml-community/sedlex#lexer-specifications).
-    Replace spaces with `", space_plus, "`, and unicode characters with `",
-    0xNNNN, "` where `NNNN` is the hexadecimal unicode codepoint.
+    Replace spaces with `", space_plus, "`, and unicode characters with `", 0xNNNN, "` where `NNNN` is the hexadecimal unicode codepoint.
 
   **Hint:** You may get syntax errors with unhelpful locations because of
-  `sedlex`. In that case the command `ocamlc
-  _build/default/compiler/surface/lexer_xx.ml` may point you to the source of the
+  `sedlex`. In that case the command `ocamlc _build/default/compiler/surface/lexer_xx.ml` may point you to the source of the
   error.
+
 - add your translation to the compilation rules:
   - in `compiler/surface/dune`, copying another `parser_xx.cppo.ml` rule
   - in the `extensions` list in `compiler/driver.ml`
@@ -157,3 +163,24 @@ To add support for a new language:
 
 Feel free to open a pull request for discussion even if you couldn't go through
 all these steps, the `lexer_xx.cppo.ml` file is the important part.
+
+### Example: writing custom backends as plugins
+
+Catala has support for dynamically-loaded plugins to use as alternative
+backends. See `compiler/plugins` for examples, and [the
+documentation](https://catala-lang.org/ocaml_docs/catala/plugins.html) for more
+detail.
+
+### Automatic formatting
+
+Please ensure to submit commits formatted using the included `ocamlformat`
+configuration. The `make build` target should ensure that.
+
+In case the formatting rules or ocamlformat version changed remotely, you can
+use [this script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
+reformat your branch patch by patch before rebasing.
+
+### Hand-updating packages in the nix part
+
+Requirements of catala that are not inside [nixpkgs](https://github.com/nixos/nixpkgs) are available inside the `.nix` directory of the repo. The main part is inside the `.nix/packages.nix`, where all the packages are either added (because absent from nixpkgs) using `ocamlPackage.callPackage`; or modified from nixpkgs, for instance cmdliner is currently pinned at version 1.1.0.
+

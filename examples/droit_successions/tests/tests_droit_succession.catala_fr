@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application Enfants:
-  contexte base contenu Enfant dépend de entier
+  sortie base contenu Enfant dépend de entier
 
 champ d'application Enfants:
   définition base de identifiant égal à
@@ -18,7 +18,7 @@ champ d'application Enfants:
 
 ```catala
 déclaration champ d'application Test1:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
+  réserve_héréditaire champ d'application RéserveHéréditaire
 
 champ d'application Test1:
   définition réserve_héréditaire.patrimoine_total égal à 300 000€
@@ -29,8 +29,8 @@ champ d'application Test1:
 
 ```catala
 déclaration champ d'application Test2:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
-  contexte enfants champ d'application Enfants
+  réserve_héréditaire champ d'application RéserveHéréditaire
+  enfants champ d'application Enfants
 
 champ d'application Test2:
   définition réserve_héréditaire.patrimoine_total égal à 300 000 €
@@ -41,8 +41,8 @@ champ d'application Test2:
 
 ```catala
 déclaration champ d'application Test3:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
-  contexte enfants champ d'application Enfants
+  réserve_héréditaire champ d'application RéserveHéréditaire
+  enfants champ d'application Enfants
 
 champ d'application Test3:
   définition réserve_héréditaire.patrimoine_total égal à 300 000 €
@@ -54,8 +54,8 @@ champ d'application Test3:
 
 ```catala
 déclaration champ d'application Test4:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
-  contexte enfants champ d'application Enfants
+  réserve_héréditaire champ d'application RéserveHéréditaire
+  enfants champ d'application Enfants
 
 champ d'application Test4:
   définition réserve_héréditaire.patrimoine_total égal à 300 000 €
@@ -65,4 +65,20 @@ champ d'application Test4:
     [BienUsufruitRenteViagère { -- valeur: 250 000 € -- prise_en_compte_pour_réserve_héréditaire : faux }]
   assertion réserve_héréditaire.patrimoine_assiette_réserve_héréditaire = 50 000 €
   assertion réserve_héréditaire.montant_réserve_héréditaire = 16666,67 €
+```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
 ```

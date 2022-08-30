@@ -10,7 +10,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "node allocations_familiales.js"
+    "test": "node examples.js"
   },
   "repository": {
     "type": "git",

@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope S:
-  context a content A
-  context b content B
+  context output a content A
+  context output b content B
 
 declaration structure A:
    data x content integer
@@ -16,4 +16,8 @@ declaration structure B:
 scope S:
    definition b equals B { -- y: true -- z: 0.0}
    definition a equals A { -- x: 0 -- y : b }
+```
+
+```catala-test {id="S.Interpret"}
+catala Interpret -s S
 ```

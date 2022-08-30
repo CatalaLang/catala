@@ -3,7 +3,7 @@
 from datetime import date
 from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code
 from src.api import allocations_familiales, Enfant
-from src.catala import LogEvent, LogEventCode, reset_log, retrieve_log
+from catala.runtime import LogEvent, LogEventCode, reset_log, retrieve_log
 import timeit
 import argparse
 from typing import List, Any
@@ -17,11 +17,13 @@ def call_allocations_familiales() -> float:
             Enfant(id=0, remuneration_mensuelle=0,
                    date_de_naissance=date(2003, 2, 2),
                    prise_en_charge=PriseEnCharge_Code.EffectiveEtPermanente,
-                   a_deja_ouvert_droit_aux_allocations_familiales=True),
+                   a_deja_ouvert_droit_aux_allocations_familiales=True,
+                   beneficie_titre_personnel_aide_personnelle_logement=False),
             Enfant(id=1, remuneration_mensuelle=300,
                    date_de_naissance=date(2013, 9, 30),
                    prise_en_charge=PriseEnCharge_Code.GardeAlterneePartageAllocations,
-                   a_deja_ouvert_droit_aux_allocations_familiales=True)
+                   a_deja_ouvert_droit_aux_allocations_familiales=True,
+                   beneficie_titre_personnel_aide_personnelle_logement=False)
         ],
         ressources_menage=30000,
         residence=Collectivite_Code.Metropole,
@@ -33,12 +35,12 @@ def call_allocations_familiales() -> float:
 
 def benchmark_iteration():
     money_given = call_allocations_familiales()
-    assert (money_given == 99.37)
+    assert (money_given == 99.46)
 
 
 def run_with_log() -> List[LogEvent]:
     money_given = call_allocations_familiales()
-    assert (money_given == 99.37)
+    assert (money_given == 99.46)
     log = retrieve_log()
     reset_log()
     return log
@@ -60,7 +62,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     action = args.action[0]
     if action == "bench":
-        iterations = 10000
+        iterations = 1000
         print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
             iterations))
         print(timeit.timeit(benchmark_iteration, number=iterations))

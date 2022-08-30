@@ -20,3 +20,7 @@ scope A:
     -- Case3 : false
     -- Case4 : true
 ```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```

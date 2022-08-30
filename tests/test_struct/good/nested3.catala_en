@@ -10,12 +10,12 @@ declaration structure T:
   data b content S
 
 declaration scope A:
-  context t content T
+  context output t content T
 
 declaration scope B:
-  context t content T
-  context a scope A
-  context out content integer
+  context output t content T
+  a scope A
+  context output out content integer
 
 scope A:
   definition t equals T {
@@ -32,4 +32,12 @@ scope A:
 scope B:
   definition t equals a.t
   definition out equals if t.a.y then t.a.x else (if t.b.y then t.b.x else 42)
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
 ```

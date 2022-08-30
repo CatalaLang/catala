@@ -2,12 +2,16 @@
 
 ```catala
 declaration scope A:
-  context x content decimal
-  context y content decimal
-  context z content decimal
+  context output x content decimal
+  context output y content decimal
+  context output z content decimal
 
 scope A:
   definition x equals 84.648665
   definition y equals 4.368297
   definition z equals x /. y
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```

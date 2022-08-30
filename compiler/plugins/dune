@@ -1,0 +1,21 @@
+(executable
+ (name python)
+ (modes plugin)
+ (modules python)
+ (libraries catala.driver))
+
+(executable
+ (name api_web)
+ (modes plugin)
+ (modules api_web)
+ (libraries catala.driver))
+
+(executable
+ (name json_schema)
+ (modes plugin)
+ (modules json_schema)
+ (libraries catala.driver))
+
+(documentation
+ (package catala)
+ (mld_files plugins))

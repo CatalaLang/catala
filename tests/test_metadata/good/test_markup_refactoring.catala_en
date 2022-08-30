@@ -6,14 +6,14 @@ declaration enumeration E:
   -- B
 
 declaration scope S:
-  context a content E
+  context output a content E
 ```
 
 Some law text...
 
 ```catala-metadata
 declaration scope S2:
-  context b content E
+  context output b content E
 ```
 
 ## PROGRAM
@@ -26,4 +26,12 @@ scope S:
 ```catala
 scope S2:
   definition b equals B
+```
+
+```catala-test {id="S2.Interpret"}
+catala Interpret -s S2
+```
+
+```catala-test {id="S.Interpret"}
+catala Interpret -s S
 ```

@@ -4,8 +4,12 @@
 
 LATEXMK?=latexmk
 
-CATALA=../../_build/default/compiler/catala.exe \
+CURR_DIR=examples/$(shell basename $(shell pwd))/
+
+CATALA=cd ../../; _build/default/compiler/catala.exe \
 	$(CATALA_OPTS) --language=$(CATALA_LANG)
+
+PLUGIN_DIR=_build/default/compiler/plugins
 
 help : ../Makefile.common.mk
 	@sed -n 's/^#> //p' $<
@@ -24,37 +28,54 @@ help : ../Makefile.common.mk
 
 #> <target_file>.ml			: Compiles the file to OCaml
 %.ml: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
+	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
 		OCaml \
-		$<
+		$(CURR_DIR)$<
+
+#> <target_file>_api_web.ml	 : Compiles the file to OCaml + generates the API web
+%_api_web.ml: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $(CURR_DIR)$<
+	$(CATALA) \
+		api_web \
+		--plugin-dir=$(PLUGIN_DIR) \
+		$(CURR_DIR)$<
+
+#> SCOPE=<ScopeName> <target_file>_api_web.ml	 : Generates the JSON schema
+%_schema.json: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $(CURR_DIR)$<
+	$(CATALA) \
+		json_schema \
+		--plugin-dir=$(PLUGIN_DIR) \
+		-s $(SCOPE) \
+		$(CURR_DIR)$<
 
 #> <target_file>.py			: Compiles the file to Python
 %.py: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
+	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
 		Python \
-		$<
+		$(CURR_DIR)$<
 
 #> <target_file>.tex			: Weaves the file to LaTeX
 %.tex: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
+	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
 		--wrap \
 		LaTeX \
-		$<
+		$(CURR_DIR)$<
 
-#> <target_file>.pdf			: Weaves the file to PDF (via LaTeX)
+#> <target_file>.pdf			: Weaves the file to PDF (via XeLaTeX)
 %.pdf: %.tex
-	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)
+	cd $(@D) && $(LATEXMK) -g -xelatex -halt-on-error -shell-escape $(%F)
 
 #> <target_file>.html			: Weaves the file to HTML
 %.html: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
+	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
 	--wrap \
 	HTML \
-	$<
+	$(CURR_DIR)$<
 
 %.spellok: %.catala_$(CATALA_LANG) ../whitelist.$(CATALA_LANG)
 	aspell list --lang=$(CATALA_LANG) --mode=markdown --camel-case --add-wordlists=../whitelist.$(CATALA_LANG) <$< | tee "$<".errors
@@ -75,6 +96,8 @@ clean:
 		_minted-$(SRC:.catala_$(CATALA_LANG)=) \
 		$(SRC:.catala_$(CATALA_LANG)=.html) \
 		$(SRC:.catala_$(CATALA_LANG)=.ml) \
+		$(SRC:.catala_$(CATALA_LANG)=_api_web.ml) \
+		$(SRC:.catala_$(CATALA_LANG)=_schema.json)
 
 include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 

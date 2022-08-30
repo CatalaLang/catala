@@ -45,7 +45,7 @@ ouvre droit aux prestations familiales :
 
 ```catala
 champ d'application PrestationsFamiliales :
-  règle droit_ouvert de enfant sous condition
+  étiquette cas_base règle droit_ouvert de enfant sous condition
     enfant.obligation_scolaire sous forme Avant ou
     enfant.obligation_scolaire sous forme Pendant
   conséquence rempli
@@ -56,10 +56,10 @@ tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 
 ```catala
 champ d'application PrestationsFamiliales :
-  règle droit_ouvert de enfant sous condition
+  étiquette cas_base règle droit_ouvert de enfant sous condition
     enfant.obligation_scolaire sous forme Après et
     (enfant.rémuneration_mensuelle <=€ plafond_l512_3_2) et
-    (enfant.âge < âge_l512_3_2)
+    (enfant.date_de_naissance +@ âge_l512_3_2 >@ date_courante)
   conséquence rempli
 
   # On définit les conditions hors âge d'abord car elles
@@ -84,7 +84,7 @@ peut être différent de celui mentionné au 2° du présent article.
 ```catala
 # Sera géré avec une exception dans Catala. Le texte est équivalent
 # à une méta-propriété du code à vérifier : i.e. pas d'exceptions pour
-# cet âge azutre part que pour Complément Familial ou AllocationLogement.
+# cet âge autre part que pour Complément Familial ou AllocationLogement.
 ```
 
 #### Titre 2 : Prestations générales d'entretien
@@ -120,7 +120,8 @@ champ d'application AllocationsFamiliales :
     # Puisqu'un enfant ne garde un âge donné que pour une période d'un an,
     # cette condition assure que l'allocation ne peut être distribuée que pour
     # un an.
-    (enfant.âge = prestations_familiales.âge_l512_3_2) et
+    ((enfant.date_de_naissance +@ prestations_familiales.âge_l512_3_2) -@
+      date_courante <^ 365 jour) et
     (enfant.a_déjà_ouvert_droit_aux_allocations_familiales) et
     (prestations_familiales.conditions_hors_âge de enfant)
   conséquence rempli
@@ -297,7 +298,8 @@ champ d'application AllocationsFamiliales :
   règle droit_ouvert_majoration de enfant
   sous condition
     (non (est_enfant_le_plus_âgé de enfant)) et
-    (enfant.âge >= âge_minimum_alinéa_1_l521_3 de enfant)
+    (enfant.date_de_naissance +@ âge_minimum_alinéa_1_l521_3 de enfant <=@
+      date_courante)
   conséquence rempli
 ```
 
@@ -312,7 +314,8 @@ champ d'application AllocationsFamiliales :
   sous condition
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >=
       nombre_enfants_alinéa_2_l521_3) et
-    (enfant.âge >= âge_minimum_alinéa_1_l521_3 de enfant)
+    (enfant.date_de_naissance +@ âge_minimum_alinéa_1_l521_3 de enfant <=@
+      date_courante)
   conséquence rempli
 ```
 
@@ -394,9 +397,9 @@ Les allocations familiales sont dues, pour tout enfant, à la personne qui a
 effectivement la charge de celui-ci.
 
 ```catala
-# TODO Liane: Angle mort, ici c'est marqué "effectivement la charge" mais dans l'article de
-# L521-2 il faut charge effective ET permanente. Pourquoi cette différence ?
-# Quelles conséquences pratiques ?
+# TODO Liane: Angle mort, ici c'est marqué "effectivement la charge" mais dans
+# l'article de L521-2 il faut charge effective ET permanente. Pourquoi
+# cette différence ? Quelles conséquences pratiques ?
 # Apparemment en 1987 il y avait encore des exceptions pour certains agents
 # publics d'outre-mer
 

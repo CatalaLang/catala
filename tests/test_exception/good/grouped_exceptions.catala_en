@@ -1,0 +1,51 @@
+```catala-metadata
+# Motivating example from https://github.com/CatalaLang/catala/issues/170
+declaration structure Person:
+  data age content integer
+  data disabled content boolean
+
+declaration scope Benefit:
+  context output person content Person
+  context output benefit content money
+
+scope Benefit:
+  definition person equals Person {
+      -- age: 26
+      -- disabled: true
+  }
+```
+
+## Article 1
+
+If the person is less than 25 years old, then the benefit is $1000.
+
+```catala
+scope Benefit:
+  label benefits_base_case
+  definition benefit under condition person.age <= 25 consequence equals $1000
+```
+
+## Article 2
+
+If the person is more than 25 years old, then the benefit is $500.
+
+```catala
+scope Benefit:
+  label benefits_base_case
+  definition benefit under condition person.age > 25 consequence equals $500
+```
+
+## Article 3
+
+If the person is disabled, the benefit is equal to $2000.
+
+```catala
+scope Benefit:
+  exception benefits_base_case
+  definition benefit under condition person.disabled consequence equals $2000
+```
+
+
+```catala-test {id="Benefit.Interpret"}
+catala Interpret -s Benefit
+```

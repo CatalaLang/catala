@@ -126,9 +126,6 @@ unit_literal:
 | MONTH { (Month, Pos.from_lpos $sloc) }
 | DAY { (Day, Pos.from_lpos $sloc) }
 
-date_int:
-| d = INT_LITERAL { (Runtime.integer_to_int d, Pos.from_lpos $sloc) }
-
 literal:
 | l = num_literal u = option(unit_literal) {
   (LNumber (l, u), Pos.from_lpos $sloc)
@@ -140,7 +137,8 @@ literal:
     money_amount_cents = cents;
   }, Pos.from_lpos $sloc)
 }
-| VERTICAL y = date_int MINUS m = date_int MINUS d = date_int VERTICAL {
+| VERTICAL d = DATE_LITERAL VERTICAL {
+  let (y,m,d) = d in
   (LDate {
     literal_date_year = y;
     literal_date_month = m;
@@ -176,18 +174,18 @@ compare_op:
 
 aggregate_func:
 | CONTENT MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (true, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateArgExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | CONTENT MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (false, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateArgExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (true, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (false, Pos.unmark t, init)), Pos.from_lpos $sloc)
+  (Aggregate (AggregateExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
-| SUM t = typ_base { (Aggregate (AggregateSum (Pos.unmark t)), Pos.from_lpos $sloc) }
+| SUM t = typ_base { (Aggregate (AggregateSum (Marked.unmark t)), Pos.from_lpos $sloc) }
 | CARDINAL { (Aggregate AggregateCount, Pos.from_lpos $sloc) }
 | FILTER { (Filter, Pos.from_lpos $sloc ) }
 | MAP { (Map, Pos.from_lpos $sloc) }
@@ -207,9 +205,20 @@ base_expression:
 | e = primitive_expression WITH c = constructor_binding {
   (TestMatchCase (e, (c, Pos.from_lpos $sloc)), Pos.from_lpos $sloc)
 }
-| e1 = primitive_expression IN e2 = base_expression {
-  (MemCollection (e1, e2), Pos.from_lpos $sloc)
+| e1 = primitive_expression CONTAINS e2 = base_expression {
+  (MemCollection (e2, e1), Pos.from_lpos $sloc)
 }
+
+unop:
+| NOT { (Not, Pos.from_lpos $sloc) }
+| MINUS { (Minus KInt, Pos.from_lpos $sloc) }
+| MINUSDEC { (Minus KDec, Pos.from_lpos $sloc) }
+| MINUSMONEY { (Minus KMoney, Pos.from_lpos $sloc) }
+| MINUSDURATION { (Minus KDuration, Pos.from_lpos $sloc) }
+
+unop_expression:
+| e = base_expression { e }
+| op = unop e = unop_expression { (Unop (op, e), Pos.from_lpos $sloc) }
 
 mult_op:
 | MULT { (Mult KInt, Pos.from_lpos $sloc) }
@@ -219,10 +228,11 @@ mult_op:
 | MULTMONEY { (Mult KMoney, Pos.from_lpos $sloc) }
 | DIVMONEY { (Div KMoney, Pos.from_lpos $sloc) }
 | DIVDURATION { (Div KDuration, Pos.from_lpos $sloc) }
+| MULDURATION { (Mult KDuration, Pos.from_lpos $sloc) }
 
 mult_expression:
-| e =  base_expression { e }
-| e1 = base_expression binop = mult_op e2  = mult_expression {
+| e =  unop_expression { e }
+| e1 = mult_expression binop = mult_op e2  = unop_expression {
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
 
@@ -239,18 +249,11 @@ sum_op:
 | MINUS { (Sub KInt, Pos.from_lpos $sloc) }
 | PLUSPLUS { (Concat, Pos.from_lpos $sloc) }
 
-sum_unop:
-| MINUS { (Minus KInt, Pos.from_lpos $sloc) }
-| MINUSDEC { (Minus KDec, Pos.from_lpos $sloc) }
-| MINUSMONEY { (Minus KMoney, Pos.from_lpos $sloc) }
-| MINUSDURATION { (Minus KDuration, Pos.from_lpos $sloc) }
-
 sum_expression:
 | e = mult_expression { e }
-| e1 = mult_expression binop = sum_op e2 = sum_expression {
+| e1 = sum_expression binop = sum_op e2 = mult_expression {
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
-| unop = sum_unop e = sum_expression { (Unop (unop, e), Pos.from_lpos $sloc) }
 
 logical_and_op:
 | AND { (And, Pos.from_lpos $sloc) }
@@ -258,9 +261,6 @@ logical_and_op:
 logical_or_op:
 | OR { (Or, Pos.from_lpos $sloc) }
 | XOR { (Xor, Pos.from_lpos $sloc) }
-
-logical_unop:
-| NOT { (Not, Pos.from_lpos $sloc) }
 
 compare_expression:
 | e = sum_expression { e }
@@ -270,7 +270,6 @@ compare_expression:
 
 logical_atom:
 | e = compare_expression { e }
-| unop = logical_unop e = logical_atom { (Unop (unop, e), Pos.from_lpos $sloc) }
 
 logical_or_expression:
 | e = logical_atom { e }
@@ -350,8 +349,11 @@ let (pos, i,e1) = i_in_e1 in
 | MATCH e = primitive_expression WITH arms = match_arms {
   (MatchWith (e, arms), Pos.from_lpos $sloc)
 }
-| IF e1 = expression THEN e2 = expression ELSE e3 = base_expression {
+| IF e1 = expression THEN e2 = expression ELSE e3 = expression {
   (IfThenElse (e1, e2, e3), Pos.from_lpos $sloc)
+}
+| LET id = ident DEFINED_AS e1 = expression IN e2 = expression {
+  (LetIn (id, e1, e2), Pos.from_lpos $sloc)
 }
 | e = logical_expression { e }
 
@@ -375,9 +377,10 @@ rule:
   except = option(exception_to)
   RULE
   name_and_param = rule_expr cond = option(condition_consequence)
+  state = option(state)
   consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
-    let cons : bool Pos.marked = consequence in
+    let cons : bool Marked.pos = consequence in
     let rule_exception = match except with | None -> NotAnException | Some x -> x in
     ({
       rule_label = label;
@@ -385,7 +388,11 @@ rule:
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
+      rule_id = Desugared.Ast.RuleName.fresh
+        (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
+          Pos.from_lpos $sloc);
       rule_consequence = cons;
+      rule_state = state;
   }, $sloc)
 }
 
@@ -394,6 +401,9 @@ definition_parameters:
 
 label:
 | LABEL i = ident { i }
+
+state:
+| STATE s = ident { s }
 
 exception_to:
 | EXCEPTION i = option(ident) {
@@ -405,6 +415,7 @@ definition:
   except = option(exception_to)
   DEFINITION
   name = qident param = option(definition_parameters)
+  state = option(state)
   cond = option(condition_consequence) DEFINED_AS e = expression {
     let def_exception = match except with | None -> NotAnException | Some x -> x in
     ({
@@ -413,7 +424,12 @@ definition:
       definition_name = name;
       definition_parameter = param;
       definition_condition = cond;
+      definition_id =
+        Desugared.Ast.RuleName.fresh
+          (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
+            Pos.from_lpos $sloc);
       definition_expr = e;
+      definition_state = state;
     }, $sloc)
 }
 
@@ -452,8 +468,8 @@ ident:
  match Localisation.lex_builtin i with
  | Some _ ->
     Errors.raise_spanned_error
-      (Printf.sprintf "Reserved builtin name")
       (Pos.from_lpos $sloc)
+      "Reserved builtin name"
  | None ->
     (i, Pos.from_lpos $sloc)
 }
@@ -488,35 +504,80 @@ struct_scope:
   }, Pos.from_lpos $sloc)
 }
 
+scope_decl_item_attribute_input:
+| CONTEXT { Context, Pos.from_lpos $sloc }
+| INPUT { Input, Pos.from_lpos $sloc }
+
+scope_decl_item_attribute_output:
+| OUTPUT { true, Pos.from_lpos $sloc }
+| { false, Pos.from_lpos $sloc }
+
+scope_decl_item_attribute:
+| input = scope_decl_item_attribute_input
+  output = scope_decl_item_attribute_output {
+    {
+      scope_decl_context_io_input = input;
+      scope_decl_context_io_output = output
+    }
+  }
+| INTERNAL {
+    {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (false, Pos.from_lpos $sloc)
+    }
+  }
+| OUTPUT {
+    {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (true, Pos.from_lpos $sloc)
+    }
+  }
+
+
 scope_decl_item:
-| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
+| attr = scope_decl_item_attribute
+  i = ident
+  CONTENT t = typ func_typ = option(struct_scope_func)
+  states = list(state)
+{ (ContextData ({
   scope_decl_context_item_name = i;
+  scope_decl_context_item_attribute = attr;
   scope_decl_context_item_typ =
-    let (typ, typ_pos) = t in
+    (let (typ, typ_pos) = t in
     match func_typ with
     | None -> (Base (Data typ), typ_pos)
     | Some (arg_typ, arg_pos) -> (Func  {
       arg_typ = (Data arg_typ, arg_pos);
       return_typ = (Data typ, typ_pos);
-    }, Pos.from_lpos $sloc);
+    }, Pos.from_lpos $sloc));
+  scope_decl_context_item_states = states;
   }), Pos.from_lpos $sloc)
 }
-| CONTEXT i = ident SCOPE c = constructor {
+| i = ident SCOPE c = constructor {
   (ContextScope({
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
+    scope_decl_context_scope_attribute = {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (false, Pos.from_lpos $sloc);
+    };
   }), Pos.from_lpos $sloc)
 }
-| CONTEXT i = ident _condition = CONDITION func_typ = option(struct_scope_func) {
+| attr = scope_decl_item_attribute
+  i = ident _condition = CONDITION func_typ = option(struct_scope_func)
+  states = list(state)
+{
   (ContextData ({
     scope_decl_context_item_name = i;
+    scope_decl_context_item_attribute = attr;
     scope_decl_context_item_typ =
-      match func_typ with
+      (match func_typ with
       | None -> (Base (Condition), Pos.from_lpos $loc(_condition))
       | Some (arg_typ, arg_pos) -> (Func  {
         arg_typ = (Data arg_typ, arg_pos);
         return_typ = (Condition, Pos.from_lpos $loc(_condition));
-      }, Pos.from_lpos $sloc);
+      }, Pos.from_lpos $sloc));
+    scope_decl_context_item_states = states;
     }), Pos.from_lpos $sloc
   )
 }
@@ -558,7 +619,7 @@ code_item:
     scope_decl_context = context;
   }, Pos.from_lpos $sloc)
 }
-| DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {
+| DECLARATION ENUM c = constructor COLON cases = list(enum_decl_line) {
   (EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
@@ -570,8 +631,8 @@ code:
 
 metadata_block:
 |  BEGIN_METADATA option(law_text) code_and_pos = code text = END_CODE {
-  let (code, pos) = code_and_pos in
-   (code, (text, pos))
+  let (code, _) = code_and_pos in
+   (code, (text, Pos.from_lpos $sloc))
 }
 
 
@@ -591,8 +652,8 @@ law_text:
 source_file_item:
 | text = law_text { LawText text }
 | BEGIN_CODE code_and_pos = code text = END_CODE  {
-  let (code, pos) = code_and_pos in
-  CodeBlock (code, (text, pos), false)
+  let (code, _) = code_and_pos in
+  CodeBlock (code, (text, Pos.from_lpos $sloc), false)
 }
 | heading = law_heading {
   LawHeading (heading, [])

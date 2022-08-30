@@ -8,22 +8,21 @@ rules in the language, every local variable has a unique id.
 
 The module describing the abstract syntax tree is:
 
-{!modules: Dcalc.Ast}
-
+{!modules: Scalc.Ast Scalc.Print}
 
 {1 Compilation from lambda calculus }
-
-Related modules:
-
-{!modules: Scalc.Compile_from_lambda}
 
 {!module: Scalc.Compile_from_lambda} Performs the classical translation
 from an expression-based language to a statement-based language. Union types
 are eliminated in favor of tagged unions.
 
+Related modules:
+
+{!modules: Scalc.Compile_from_lambda}
+
 {1 Backends}
 
 Related modules:
 
-{!modules: Lcalc.To_python}
+{!modules: Scalc.To_python}
 

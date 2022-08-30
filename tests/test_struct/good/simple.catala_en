@@ -6,8 +6,8 @@ declaration structure S:
   data y content integer
 
 declaration scope A:
-  context s content S
-  context z content integer
+  context output s content S
+  context output z content integer
 
 scope A:
   definition s equals S {
@@ -15,4 +15,8 @@ scope A:
     -- y : 2
   }
   definition z equals s.x + s.y
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```

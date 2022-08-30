@@ -2,13 +2,15 @@
 
 ```catala
 declaration scope A:
-  context x content date
-  context y content date
-  context z content boolean
-  context z2 content boolean
-  context z3 content duration
-  context d content decimal
-  context d2 content decimal
+  output x content date
+  output y content date
+  output z content boolean
+  output z2 content boolean
+  output z3 content duration
+  output d content decimal
+  output d2 content decimal
+  output m content duration
+  output m2 content duration
 
 scope A:
   definition x equals |2019-01-01|
@@ -20,4 +22,12 @@ scope A:
 
   definition d equals z3 /^ z3
   definition d2 equals z3 /^ 2 day
+
+  definition m equals z3 *^ 2
+
+  definition m2 equals (2 month) *^ 3
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```

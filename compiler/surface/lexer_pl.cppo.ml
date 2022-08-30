@@ -29,12 +29,13 @@
 #define MS_INCREASING "rosnacy"
 #define MS_OF "z"
 #define MS_COLLECTION "kolekcja"
+#define MS_CONTAINS "zawiera"
 #define MS_ENUM "enumeracja"
 #define MS_INTEGER "calkowita"
-#define MS_MONEY "pieni\x01\x05dze"
+#define MS_MONEY "pieniądze"
 #define MR_MONEY "pieni", 0x0105, "dze"
 #define MS_TEXT "tekst"
-#define MS_DECIMAL "dziesi\x01\x19tny"
+#define MS_DECIMAL "dziesiętny"
 #define MR_DECIMAL "dziesi", 0x0119, "tny"
 #define MS_DATE "czas"
 #define MS_DURATION "czas trwania"
@@ -43,8 +44,9 @@
 #define MS_SUM "suma"
 #define MS_FILLED "spelnione"
 #define MS_DEFINITION "definicja"
+#define MS_STATE "stan"
 #define MS_LABEL "etykieta"
-#define MS_EXCEPTION "wyj\x01\x05tek"
+#define MS_EXCEPTION "wyjątek"
 #define MR_EXCEPTION "wyj", 0x0105, "tek"
 #define MS_DEFINED_AS "wynosi"
 #define MS_MATCH "pasuje"
@@ -69,7 +71,9 @@
 #define MS_FIXED "staloprzecinkowa"
 #define MS_BY "przez"
 #define MS_RULE "zasada"
+#define MS_LET "niech"
 #define MS_EXISTS "istnieje"
+(* "in" or "w" ? *)
 #define MS_IN "in"
 #define MS_SUCH "takie ze"
 #define MR_SUCH "takie", space_plus, "ze"
@@ -89,6 +93,12 @@
 #define MS_DAY "dzien"
 #define MS_TRUE "prawda"
 #define MS_FALSE "falsz"
+#define MS_INPUT "wejście"
+#define MR_INPUT "wej", 0x15B, "cie"
+#define MS_OUTPUT "wyjście"
+#define MR_OUTPUT "wyj", 0x15B, "cie"
+#define MS_INTERNAL "wewnętrzny"
+#define MR_INTERNAL "wewn", 0x0119, "trzny"
 
 (* Specific delimiters *)
 
@@ -100,10 +110,26 @@
 
 (* Builtins *)
 
-#define MS_IntToDec "integer_to_decimal"
-#define MS_GetDay "get_day"
-#define MS_GetMonth "get_month"
-#define MS_GetYear "get_year"
+#define MS_RoundDecimal "zaokrąglony_dziesiętny"
+#define MR_RoundDecimal "zaokr",0x0105,"glony_dziesi", 0x0119, "tny"
+#define MS_RoundMoney "zaokrąglony_pieniądze"
+#define MR_RoundMoney "zaokr",0x0105,"glony_pieni", 0x0105, "dze"
+#define MS_IntToDec "calkowita_wers_dziesiętny"
+#define MR_IntToDec "calkowita_wers_dziesi", 0x0119, "tny"
+#define MS_MoneyToDec "pieniądze_wers_dziesiętny"
+#define MR_MoneyToDec "pieni", 0x0105, "dze_wers_dziesi", 0x0119, "tny"
+#define MS_DecToMoney "dziesiętny_wers_pieniądze"
+#define MR_DecToMoney "dziesi", 0x0119, "tny_wers_pieni", 0x0105, "dze"
+#define MS_GetDay "dostęp_dzień"
+#define MR_GetDay "dost", 0x0119, "p_dzie", 0x144
+#define MS_GetMonth "dostęp_miesiąc"
+#define MR_GetMonth "dost", 0x0119, "p_miesi", 0x0105, "c"
+#define MS_GetYear "dostęp_rok"
+#define MR_GetYear "dost", 0x0119, "p_rok"
+#define MS_FirstDayOfMonth "pierwszy_dzień_miesiąca"
+#define MR_FirstDayOfMonth "pierwszy_dzie", 0x144, "_miesi", 0x0105, "ca"
+#define MS_LastDayOfMonth "ostatni_dzień_miesiąca"
+#define MR_LastDayOfMonth "ostatni_dzie", 0x144, "_miesi", 0x0105, "ca"
 
 (* Directives *)
 

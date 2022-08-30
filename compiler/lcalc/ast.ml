@@ -1,91 +1,85 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   Denis Merigoux <denis.merigoux@inria.fr>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 open Utils
-module D = Dcalc.Ast
+include Shared_ast
 
-type lit =
-  | LBool of bool
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
-  | LUnit
-  | LDate of Runtime.date
-  | LDuration of Runtime.duration
+type lit = lcalc glit
 
-type except = ConflictError | EmptyError | NoValueProvided | Crash
+type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
+and 'm expr = (lcalc, 'm mark) gexpr
 
-type expr =
-  | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list * D.StructName.t option
-      (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of expr Pos.marked * int * D.StructName.t option * D.typ Pos.marked list
-      (** The [MarkedString.info] is the former struct field name *)
-  | EInj of expr Pos.marked * int * D.EnumName.t * D.typ Pos.marked list
-      (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Pos.marked * expr Pos.marked list * D.EnumName.t
-      (** The [MarkedString.info] is the former enum case name *)
-  | EArray of expr Pos.marked list
-  | ELit of lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * D.typ Pos.marked list
-  | EApp of expr Pos.marked * expr Pos.marked list
-  | EAssert of expr Pos.marked
-  | EOp of D.operator
-  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
-  | ERaise of except
-  | ECatch of expr Pos.marked * except * expr Pos.marked
+type 'm program = 'm expr Shared_ast.program
 
-module Var = struct
-  type t = expr Bindlib.var
+let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
+let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
+let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
-  let make (s : string Pos.marked) : t =
-    Bindlib.new_var
-      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
-      (Pos.unmark s)
+let option_enum_config : (EnumConstructor.t * typ) list =
+  [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
 
-  let compare x y = Bindlib.compare_vars x y
-end
+(* FIXME: proper typing in all the constructors below *)
 
-module VarMap = Map.Make (Var)
+let make_none m =
+  let mark = Marked.mark m in
+  let tunit = TLit TUnit, Expr.mark_pos m in
+  Bindlib.box
+  @@ mark
+  @@ EInj
+       ( Marked.mark
+           (Expr.map_mark (fun pos -> pos) (fun _ -> tunit) m)
+           (ELit LUnit),
+         0,
+         option_enum,
+         [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos] )
 
-type vars = expr Bindlib.mvar
+let make_some e =
+  let m = Marked.get_mark @@ Bindlib.unbox e in
+  let mark = Marked.mark m in
+  Bindlib.box_apply
+    (fun e ->
+      mark
+      @@ EInj
+           ( e,
+             1,
+             option_enum,
+             [TLit TUnit, Expr.mark_pos m; TAny, Expr.mark_pos m] ))
+    e
 
-let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
+(** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
+    [match arg with |None -> e_none | Some -> e_some] and requires e_some and
+    e_none to be in the form [EAbs ...].*)
+let make_matchopt_with_abs_arms arg e_none e_some =
+  let m = Marked.get_mark @@ Bindlib.unbox arg in
+  let mark = Marked.mark m in
+  Bindlib.box_apply3
+    (fun arg e_none e_some ->
+      mark @@ EMatch (arg, [e_none; e_some], option_enum))
+    arg e_none e_some
 
-let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
-    (taus : D.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
+(** [make_matchopt pos v tau arg e_none e_some] builds an expression
+    [match arg with | None () -> e_none | Some v -> e_some]. It binds v to
+    e_some, permitting it to be used inside the expression. There is no
+    requirements on the form of both e_some and e_none. *)
+let make_matchopt m v tau arg e_none e_some =
+  let x = Var.make "_" in
 
-let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
-    : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
+  make_matchopt_with_abs_arms arg
+    (Expr.make_abs [| x |] e_none [TLit TUnit, Expr.mark_pos m] m)
+    (Expr.make_abs [| v |] e_some [tau] m)
 
-let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
-       (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
-       (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
-
-let handle_default = Var.make ("handle_default", Pos.no_pos)
-
-type binder = (expr, expr Pos.marked) Bindlib.binder
-
-type program = { decl_ctx : D.decl_ctx; scopes : (Var.t * expr Pos.marked) list }
+let handle_default = Var.make "handle_default"
+let handle_default_opt = Var.make "handle_default_opt"

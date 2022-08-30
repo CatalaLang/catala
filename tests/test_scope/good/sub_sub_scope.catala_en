@@ -2,18 +2,18 @@
 
 ```catala
 declaration scope A:
-  context x content integer
-  context u content boolean
+  context output x content integer
+  context output u content boolean
 
 declaration scope B:
-  context a1 scope A
-  context a2 scope A
-  context y content integer
+  a1 scope A
+  a2 scope A
+  context output y content integer
 
 declaration scope C:
-  context a scope A
-  context b scope B
-  context z content integer
+  a scope A
+  b scope B
+  context output z content integer
 
 scope A:
  definition x equals 0
@@ -28,4 +28,16 @@ scope C:
   definition a.x equals 2
   definition b.y equals 3
   definition z equals 2
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="B.Interpret"}
+catala Interpret -s B
+```
+
+```catala-test {id="C.Interpret"}
+catala Interpret -s C
 ```

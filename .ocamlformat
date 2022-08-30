@@ -1,6 +1,13 @@
 profile = default
-margin = 100
+margin = 80
 exp-grouping = preserve
+break-fun-decl = fit-or-vertical
 wrap-comments
 parse-docstrings
-version=0.19.0
+version=0.21.0
+cases-exp-indent=2
+indicate-multiline-delimiters=no
+parens-tuple=multi-line-only
+space-around-lists=false
+break-infix-before-func
+break-infix= fit-or-vertical

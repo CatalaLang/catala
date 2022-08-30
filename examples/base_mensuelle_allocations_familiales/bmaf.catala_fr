@@ -1,0 +1,85 @@
+# Montant de la base mensuelle des allocations familiales
+
+```catala-metadata
+déclaration champ d'application BaseMensuelleAllocationsFamiliales:
+  entrée date_courante contenu date
+  sortie montant contenu argent
+```
+
+## Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole
+
+Conformément à l’article L. 551-1 du code de la sécurité sociale, le montant
+des prestations familiales est déterminé d'après des bases mensuelles
+de calcul revalorisées au 1er avril de chaque année, par application
+du coefficient mentionnée à l’article L. 161-25 du code de la
+sécurité sociale. Au titre de l’année 2019, l’article 68 de la loi du 22
+décembre 2018 de financement de la sécurité sociale a prévu, par dérogation
+aux dispositions de l’article L. 161-25, une revalorisation de 0,3 % du montant
+des prestations relevant de cet article.
+
+Le montant précité de la base mensuelle de calcul des allocations
+familiales (BMAF), en pourcentage duquel sont fixés les montants des prestations
+familiales, est ainsi porté de 411,92 € à 413,16 € au 1er avril 2019.
+
+```catala
+champ d'application BaseMensuelleAllocationsFamiliales :
+  définition montant
+  sous condition
+    date_courante >=@ |2019-04-01| et
+    date_courante <@ |2020-04-01|
+  conséquence égal à 413,16 €
+```
+
+## Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte
+
+Au titre de l’année 2020, l’article 81 de la loi du 24 décembre 2019 de
+financement de la sécurité sociale a prévu, par dérogation aux dispositions
+de l’article L. 161-25, une revalorisation de 0,3 % du montant des prestations
+relevant de cet article.
+
+Le montant précité de la base mensuelle de calcul des allocations familiales
+(BMAF), en pourcentage duquel sont fxés les montants des prestations familiales,
+est ainsi porté de 413,16 € à 414,4 € au 1er avril 2020.
+
+```catala
+champ d'application BaseMensuelleAllocationsFamiliales :
+  définition montant
+  sous condition
+    date_courante >=@ |2020-04-01| et
+    date_courante <@ |2021-04-01|
+  conséquence égal à 414,4 €
+```
+
+## Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte
+
+Au 1er avril 2021, le coefficient de revalorisation de la BMAF est ainsi fixé à
+1,001 soit un taux de revalorisation de la BMAF de 0,1 %. Le montant de cette
+base mensuelle, en pourcentage duquel sont fixées les prestations familiales,
+est donc porté de 414,4 € au 1er avril 2020 à 414,81 € au 1er avril 2021.
+
+```catala
+champ d'application BaseMensuelleAllocationsFamiliales :
+  définition montant
+  sous condition
+    date_courante >=@ |2021-04-01| et
+    date_courante <@ |2022-04-01|
+  conséquence égal à 414,81 €
+```
+
+## Instruction interministérielle n°DSS/2B/2022/82 du 28 mars 2022 relative à la revalorisation au 1er avril 2022 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte
+
+Au 1er avril 2022, le coefficient de revalorisation de la base mensuelle de
+calcul des allocations familiales (BMAF) est ainsi fixé à 1,018 soit un taux
+de revalorisation de la BMAF de 1,8 %. Le montant de cette base mensuelle,
+en pourcentage duquel sont fixées les prestations familiales, est donc porté
+de 414,81 € au 1er avril 2021 à 422,28 € au 1er avril 2022.
+
+
+```catala
+champ d'application BaseMensuelleAllocationsFamiliales :
+  définition montant
+  sous condition
+    date_courante >=@ |2022-04-01| et
+    date_courante <@ |2023-04-01|
+  conséquence égal à 422,28 €
+```

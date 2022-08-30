@@ -1,14 +1,58 @@
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="100"/>
-</center>
+<div align="center">
+  <img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="120"/>
+  <h3 align="center">
+	<big>Catala</big>
+  </h3>
+  <p align="center">
+   <a href="https://catala-lang.org/ocaml_docs/"><strong>Explore the docs »</strong></a>
+   <br/>
+   <a href="https://catala-lang.org/en/examples/tutorial">View Tutorial</a>
+   •
+   <a href="https://github.com/CatalaLang/catala/issues">Report Bug</a>
+   •
+   <a href="https://github.com/CatalaLang/catala/blob/master/CONTRIBUTING.md">Contribute</a>
+   •
+   <a href="https://zulip.catala-lang.org/">Join Zulip Chat</a>
+  </p>
 
-# Catala [![Catala chat][chat-image]][chat-link] ![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
+![CI][ci-link] [![Opam][opam-link]](https://opam.ocaml.org/packages/catala/) [![Licence][licence-link]](https://www.apache.org/licenses/LICENSE-2.0) ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] [![Issues][issues-link]](https://github.com/CatalaLang/catala/issues) [![Contributors][contributors-link]](https://github.com/CatalaLang/catala/graphs/contributors) [![Activity][activity-link]](https://github.com/CatalaLang/catala/pulse)
 
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official
 [Catala tutorial](https://catala-lang.org/en/examples/tutorial).
 You can join the Catala community on [Zulip][chat-link]!
+
+</div>
+
+<br>
+
+<details>
+  <summary>Table of Contents</summary>
+
+<!-- vim-markdown-toc GitLab -->
+
+* [Concepts](#concepts)
+* [Getting started](#getting-started)
+* [Building and installation](#building-and-installation)
+* [Usage](#usage)
+  * [Catala](#catala)
+  * [Clerk](#clerk)
+* [Documentation](#documentation)
+  * [Syntax cheat sheet](#syntax-cheat-sheet)
+  * [Formal semantics](#formal-semantics)
+  * [Compiler documentation](#compiler-documentation)
+* [Examples](#examples)
+* [API](#api)
+* [Contributing](#contributing)
+* [Test suite](#test-suite)
+* [License](#license)
+* [Limitations and disclaimer](#limitations-and-disclaimer)
+* [Pierre Catala](#pierre-catala)
+
+<!-- vim-markdown-toc -->
+
+</details>
 
 ## Concepts
 
@@ -23,9 +67,9 @@ cases, etc. that contain information about the socio-fiscal mechanism that
 you want to implement. Then, you can proceed to annotate the text article by
 article, in your favorite text editor :
 
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="450"/>
-</center>
+<div align="center">
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="350"/>
+</div>
 
 Once your code is complete and tested, you can use the Catala
 compiler to produce a lawyer-readable PDF version of your
@@ -34,9 +78,9 @@ in collaboration with law professionals to ensure that the code
 can be reviewed and certified correct by the domain experts, which
 are in this case lawyers and not programmers.
 
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="400"/>
-</center>
+<div align="center">
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="350"/>
+</div>
 
 The Catala language is special because its logical structure mimics
 the logical structure of the law. Indeed, the core concept of
@@ -46,6 +90,12 @@ by Professor Sarah Lawsky in her article
 The Catala language is the only programming language to our knowledge that
 embeds default logic as a first-class feature, which is why it is the only
 language perfectly adapted to literate legislative programming.
+
+## Getting started
+
+To get started, the best place is the [tutorial](https://catala-lang.org/en/examples/tutorial)
+of the language. A [French version](https://catala-lang.org/fr/examples/tutoriel)
+is also available but might be out of sync with the latest language features.
 
 ## Building and installation
 
@@ -65,13 +115,56 @@ want to compile it from the sources of this repository or use nix. For that, see
 
 ## Usage
 
-Use `catala --help` to get more information about the command line
-options available.
+### Catala
+
+Use `catala --help` if you have installed it to get more information about the command line
+options available. The man page is also [available online](https://catala-lang.org/en/doc/catala).
+To get the development version of the help, run `make help_catala`
+after `make build`. The `catala` binary corresponds to the Catala compiler.
 
 The top-level `Makefile` contains a lot of useful targets to run. To display
 them, use
 
         make help
+
+### Plugin backends
+
+While the compiler has some builtin backends for Catala (Python, Ocaml, etc.),
+it is also possible to add a custom backend to the Catala compiler without
+having to modify its source code. This plugin solution relies on dynamic
+linking: see [the dedicated README](compiler/plugins/README.md).
+
+### Clerk
+
+Use `clerk --help` if you have installed it to get more information about the command line
+options available. To get the development version of the help, run `make help_clerk`
+after `make build`. The `clerk` binary corresponds to the Catala build system,
+responsible for testing among other things.
+
+To get more information about Clerk, see [the dedicated readme](https://github.com/CatalaLang/catala/tree/master/build_system/README.md)
+
+## Documentation
+
+### Syntax cheat sheet
+
+A complete and handy reference of the Catala syntax can be found in the
+[cheat sheet](doc/syntax/syntax.pdf) (for French and English versions
+of the syntax).
+
+### Formal semantics
+
+To audit the formal proof of the partial certification of the Catala compiler,
+see [the dedicated readme](doc/formalization/README.md).
+
+### Compiler documentation
+
+The compiler documentation is auto-generated from its source code using
+`dune` and `odoc`. Use
+
+    make doc
+
+to generate the documentation, then open the `doc/odoc.html` file in any browser.
+The documentation is also accessible [online](https://catala-lang.org/ocaml_docs/).
 
 ## Examples
 
@@ -92,23 +185,6 @@ To know how you can contribute to the project, see
 
 To know how to run or improve the Catala reference test suite,
 see [the dedicated readme](tests/README.md).
-
-## Documentation
-
-### Formal semantics
-
-To audit the formal proof of the partial certification of the Catala compiler,
-see [the dedicated readme](doc/formalization/README.md).
-
-### Compiler documentation
-
-The compiler documentation is auto-generated from its source code using
-`dune` and `odoc`. Use
-
-    make doc
-
-to generate the documentation, then open the `doc/odoc.html` file in any browser.
-The documentation is also accessible [online](https://catala-lang.org/ocaml_docs/).
 
 ## License
 
@@ -135,7 +211,7 @@ acting as the public service of legislative documentation.
 
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg?style=social&logo=zulip&color=5c75a2
 [chat-link]: https://zulip.catala-lang.org/
-[ci-link]: https://github.com/catalalang/catala/actions/workflows/build.yml/badge.svg
+[ci-link]: https://github.com/catalalang/catala/actions/workflows/run-builds.yml/badge.svg
 [licence-link]: https://img.shields.io/github/license/catalalang/catala
 [tag-link]: https://img.shields.io/github/v/tag/catalalang/catala
 [loc-link]: https://img.shields.io/tokei/lines/github/catalalang/catala

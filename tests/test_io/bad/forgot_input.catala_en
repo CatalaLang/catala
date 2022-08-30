@@ -1,0 +1,19 @@
+# Test
+
+```catala
+declaration scope A:
+  output a content integer
+  input x content integer
+
+declaration scope B:
+  a scope A
+
+scope A:
+  definition a equals x + 1
+
+scope B:
+  assertion a.a = 1
+```
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

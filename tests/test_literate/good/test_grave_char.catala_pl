@@ -15,7 +15,7 @@ let () = print_endline "Hello world!"
 
 ```catala
 deklaracja zakres A:
-  kontekst literate_parsing_is_ok typu zerojedynkowy
+  kontekst wyjście literate_parsing_is_ok typu zerojedynkowy
 
 zakres A:
   definicja literate_parsing_is_ok wynosi prawda
@@ -25,4 +25,16 @@ Even after `Catala` code block:
 
 ```c
 int main(void) { return 0; }
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```

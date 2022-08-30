@@ -1,6 +1,8 @@
-#! /usr/bin/env bash
+#! /usr/bin/env sh
+
+set -eu
 
 cd "$(dirname "$0")"
-virtualenv -p python3 env
-source env/bin/activate
+python3 -m venv env
+. env/bin/activate
 make dependencies

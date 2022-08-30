@@ -1,0 +1,17 @@
+## Test
+
+```catala
+declaration scope A:
+  output foo content integer
+    state bar
+    state baz
+
+scope A:
+  definition foo state bar equals 1
+
+  definition foo state basz equals foo + 1
+```
+
+```catala-test {id="Typecheck"}
+catala Typecheck 
+```

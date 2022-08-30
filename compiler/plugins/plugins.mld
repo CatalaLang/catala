@@ -1,0 +1,65 @@
+{0 Example backend plugins }
+
+This directory contains backend plugins that demonstrate how those can be
+written and used with Catala. They probably don't provide much value otherwise.
+
+Use [make plugins] from the root of the source tree to build them.
+
+A plugin is created by writing an OCaml module that calls
+[Driver.Plugin.register_lcalc] or [Driver.Plugin.register_scalc] and that links
+against [catala.driver]. Here is an example dune stanza to compile it:
+{v
+(executable
+ (name my-plugin)
+ (modes plugin)
+ (modules my_plugin_main_module)
+ (libraries catala.driver))
+v}
+
+See the following module for the registration interface:
+
+{!modules: Driver.Plugin}
+
+{1 Using plugins}
+
+Plugins are dynamically loaded. The Catala compiler will be looking for them at
+startup within [<prefix>/lib/catala/plugins] (assuming that the compiler is
+installed into [<prefix>/bin]), or any other directory specified through the
+`--plugin-dir` command-line flag or by setting the [CATALA_PLUGINS] environment
+variable.
+
+The plugin of your choice can then be called just like the built-in backends, using:
+{v
+$ catala MyPlugin <file> [options]
+v}
+
+{1 Examples}
+
+{2 python example}
+
+This trivial example registers a plugin that uses the [scalc] format as input.
+It simply calls the code of the built-in Python backend, and should be no
+different to using the normal Catala Python output mode.
+
+{2 [js_of_ocaml] wrapper generator example}
+
+This plugin generates a [js_of_ocaml] wrapper from the [lcalc] representation
+of a Catala program.
+
+It start by generating the OCaml module before generating the [_api_web.ml]
+one, which contains all the class types and conversion functions between the
+OCaml types and their corresponding JS objects. At the end the module exposes
+all methods in a JS lib [<module_name>Lib].
+
+See
+{{:https://github.com/CatalaLang/catala/tree/master/french_law/ocaml/law_source}
+law_source} for examples of generated code.
+
+{2 JSON schema generator example}
+
+This plugin generates a {{:https://json-schema.org} JSON schema} corresponding
+to a scope of a Catala program.
+
+See
+{{:https://github.com/CatalaLang/catala/tree/master/french_law/json_schemas}
+json_schemas} for examples of generated schemas.

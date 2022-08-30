@@ -1,4 +1,4 @@
-from .catala import *
+from catala.runtime import *
 from .allocations_familiales import Collectivite, Collectivite_Code, InterfaceAllocationsFamilialesIn, PriseEnCharge, interface_allocations_familiales, PriseEnCharge_Code, EnfantEntree, InterfaceAllocationsFamilialesIn
 
 
@@ -9,13 +9,15 @@ class Enfant:
         remuneration_mensuelle: int,
         date_de_naissance: datetime.date,
         prise_en_charge: PriseEnCharge_Code,
-        a_deja_ouvert_droit_aux_allocations_familiales: bool
+        a_deja_ouvert_droit_aux_allocations_familiales: bool,
+        beneficie_titre_personnel_aide_personnelle_logement: bool
     ) -> None:
         self.id = id
         self.remuneration_mensuelle = remuneration_mensuelle
         self.date_de_naissance = date_de_naissance
         self.prise_en_charge = prise_en_charge
         self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
+        self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
 
     def to_allocations_familiales(self) -> EnfantEntree:
         return EnfantEntree(
@@ -23,6 +25,7 @@ class Enfant:
             d_remuneration_mensuelle=money_of_units_int(
                 self.remuneration_mensuelle),
             d_a_deja_ouvert_droit_aux_allocations_familiales=self.a_deja_ouvert_droit_aux_allocations_familiales,
+            d_beneficie_titre_personnel_aide_personnelle_logement=self.beneficie_titre_personnel_aide_personnelle_logement,
             d_date_de_naissance=date_of_datetime(self.date_de_naissance),
             d_prise_en_charge=PriseEnCharge(self.prise_en_charge, Unit())
         )
@@ -38,15 +41,13 @@ def allocations_familiales(
         avait_enfant_a_charge_avant_1er_janvier_2012: bool
 ):
     out = interface_allocations_familiales(InterfaceAllocationsFamilialesIn(
-        date_courante_in=lambda _: date_of_datetime(date_courante),
-        enfants_in=lambda _: [enfant.to_allocations_familiales()
-                              for enfant in enfants],
-        ressources_menage_in=lambda _: money_of_units_int(ressources_menage),
-        residence_in=lambda _: Collectivite(residence, Unit()),
-        personne_charge_effective_permanente_est_parent_in=lambda _: personne_charge_effective_permanente_est_parent,
-        personne_charge_effective_permanente_remplit_titre_I_in=lambda _: personne_charge_effective_permanente_remplit_titre_I,
-        enfants_a_charge_in=no_input(),
-        montant_verse_in=no_input(),
-        avait_enfant_a_charge_avant_1er_janvier_2012_in=lambda _: avait_enfant_a_charge_avant_1er_janvier_2012
+        i_date_courante_in=date_of_datetime(date_courante),
+        i_enfants_in=[enfant.to_allocations_familiales()
+                      for enfant in enfants],
+        i_ressources_menage_in=money_of_units_int(ressources_menage),
+        i_residence_in=Collectivite(residence, Unit()),
+        i_personne_charge_effective_permanente_est_parent_in=personne_charge_effective_permanente_est_parent,
+        i_personne_charge_effective_permanente_remplit_titre_I_in=personne_charge_effective_permanente_remplit_titre_I,
+        i_avait_enfant_a_charge_avant_1er_janvier_2012_in=avait_enfant_a_charge_avant_1er_janvier_2012
     ))
-    return money_to_float(out.montant_verse_out)
+    return money_to_float(out.i_montant_verse_out)

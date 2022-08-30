@@ -13,12 +13,12 @@
 \newcommand{\li}[1]{\texttt{#1}}
 \begin{document}
 \begin{center}
-  2021-03-15
+  2022-02-28
   \hfill
   {\Huge\bfseries\sffamily
     Catala Syntax Cheat Sheet}
   \hfill
-  v.0.2.0
+  v.0.5.0
 \end{center}
 \hrule
 
@@ -109,8 +109,8 @@
   \section*{Metadata declaration}
   \begin{tabular}{p{0.22\columnwidth}p{0.3\columnwidth}p{0.425\columnwidth}}
     \toprule
-    Feature                 & English syntax & French syntax \\\midrule
-    Structure declaration   &
+    Feature                       & English syntax & French syntax \\\midrule
+    Structure declaration         &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
@@ -120,7 +120,7 @@ declaration structure Foo:
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
@@ -131,7 +131,7 @@ déclaration structure Foo:
 \end{minted}
     \vspace*{-1.75em}
     \\
-    Enumeration declaration &
+    Enumeration declaration       &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
@@ -141,7 +141,7 @@ declaration enumeration Foo:
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
@@ -150,29 +150,75 @@ déclaration énumeration Foo:
   -- Baz
 ```
 \end{minted}
-    \vspace*{-1.75em}                                        \\
-    Scope declaration       &
+    \vspace*{-1.75em}                                              \\
+    Scope declaration             &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
 declaration scope Foo:
-  context bar content integer
-  context baz condition
-  context fizz scope Buzz
+  internal bar content integer
+  internal baz condition
+  fizz scope Buzz
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
 déclaration champ d'application Foo:
-  contexte bar contenu entier
-  contexte baz condition
+  interne bar contenu entier
+  interne baz condition
   contexte fizz champ d'application Buzz
 ```
 \end{minted}
-    \vspace*{-1.75em}                                        \\
+    \vspace*{-1.75em}                                              \\
+    Input-output qualifiers       &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+internal bar content ...
+output baz content ...
+input fizz content ...
+input output buzz content ...
+context biz content ...
+context output boz content ...
+```
+\end{minted}
+    \vspace*{-1.75em}
+                                  &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+interne bar contenu ...
+sortie baz contenu ...
+entrée fizz contenu ...
+entrée sortie buzz contenu ...
+contexte biz contenu ...
+contexte sortie boz contenu ...
+```
+\end{minted}
+    \vspace*{-1.75em}                                              \\
+    State transitions declaration &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+internal foo content ...
+  state bar
+  state buzz
+```
+\end{minted}
+    \vspace*{-1.75em}
+                                  &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+interne foo contenu ...
+  état bar
+  état buzz
+```
+\end{minted}
+    \vspace*{-1.75em}                                              \\
     \bottomrule
   \end{tabular}
 
@@ -452,7 +498,7 @@ vrai    faux
 
   \section*{Scope use and related items}
   \begin{center}
-    \begin{tabular}{p{0.22\columnwidth}p{0.35\columnwidth}p{0.35\columnwidth}}
+    \begin{tabular}{p{0.22\columnwidth}p{0.36\columnwidth}p{0.35\columnwidth}}
       \toprule
       Feature                                 & English syntax & French syntax \\\midrule
       Scope use                               &
@@ -629,6 +675,23 @@ exception definition bar ...
       \begin{minted}{catala_fr}
 ```catala
 exception définition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      State definition                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+definition foo state bar equals ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+définition foo état bar égal à ...
 ```
 \end{minted}
       \vspace*{-1.75em}
@@ -1026,6 +1089,23 @@ integer_to_decimal of ...
       \begin{minted}{catala_fr}
 ```catala
 entier_vers_décimal de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money rounding                  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+round_money of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+arrondi_argent de ...
 ```
 \end{minted}
       \vspace*{-1.75em}
@@ -1478,6 +1558,23 @@ accès_année de ...
 \end{minted}
       \vspace*{-1.75em}
       \\
+      Duration multiplication         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(duration) *^ (integer)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(durée) *^ (entier)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
       Duration comparison             &
       \vspace*{-1.75em}
       \begin{minted}{catala_en}
@@ -1491,6 +1588,23 @@ accès_année de ...
       \begin{minted}{catala_fr}
 ```catala
 <^   <=^   >^   >=^
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Collection merging              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(collection) ++ (collection)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(collection) ++ (collection)
 ```
 \end{minted}
       \vspace*{-1.75em}

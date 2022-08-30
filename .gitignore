@@ -1,5 +1,6 @@
 _build/
 _opam/
+dune-workspace*
 result
 *.install
 *.spellok
@@ -8,4 +9,7 @@ compiler/**/.merlin
 legifrance_oauth*
 *.html
 .vscode/
-.DS_Store
+.ninja_*
+node_modules/
+build.ninja
+

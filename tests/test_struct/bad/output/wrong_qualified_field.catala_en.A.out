@@ -1,7 +1,0 @@
-[ERROR] Struct Foo does not contain field g
-
-  --> test_struct/bad/wrong_qualified_field.catala_en
-   | 
-17 |   definition y equals x.Foo.g
-   |                       ^^^^^^^
-   + Article

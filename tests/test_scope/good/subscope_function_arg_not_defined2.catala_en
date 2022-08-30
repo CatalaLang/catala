@@ -1,0 +1,24 @@
+## Article
+
+```catala
+declaration scope Callee:
+  context function condition depends on integer
+  context input_v content integer
+  context output output_v condition
+
+declaration scope Caller:
+  callee scope Callee
+
+
+scope Callee:
+  rule function of x under condition x = 0 consequence fulfilled
+  definition output_v equals function of input_v
+
+scope Caller:
+  definition callee.input_v equals 0
+  assertion callee.output_v
+```
+
+```catala-test {id="Caller.Interpret"}
+catala Interpret -s Caller
+```

@@ -15,7 +15,7 @@ let () = print_endline "Hello world!"
 
 ```catala
 declaration scope A:
-  context literate_parsing_is_ok content boolean
+  context output literate_parsing_is_ok content boolean
 
 scope A:
   definition literate_parsing_is_ok equals true
@@ -25,4 +25,16 @@ Even after `Catala` code block:
 
 ```c
 int main(void) { return 0; }
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
+```
+
+```catala-test {id="A.Interpret"}
+catala Interpret -s A
 ```
