@@ -7,24 +7,97 @@
 ## Test1
 
 ```catala
-
 declaration scope Test1:
   context my_gaming scope GamingAuthorized
 
 scope Test1:
   definition
-      my_gaming.clubBingo
+    my_gaming.clubBingo
   equals
     ClubBingo {
       -- registeredClub: true
-      -- totalValuePrizePerGame: $50
-      -- bonusPrizeMaxValue: $0
-      -- bonusPrizeOffered : false
-      -- prizeContent: false
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $5
+      -- bonusPrizeOffered: true
+      -- prizeContent: true
+    }
+  assertion my_gaming.authorized = false
+```
+## Test2
 
-  }
+```catala
+declaration scope Test2:
+  context my_gaming scope GamingAuthorized
+
+scope Test2:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: true
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $5
+      -- bonusPrizeOffered: true
+      -- prizeContent: false
+    }
   assertion my_gaming.authorized = true
 ```
+
+## Test3
+
 ```catala
-#TODO
+declaration scope Test3:
+  context my_gaming scope GamingAuthorized
+
+scope Test3:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: false
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $5
+      -- bonusPrizeOffered: true
+      -- prizeContent: false
+    }
+  assertion my_gaming.authorized = false
+```
+## Test4
+
+```catala
+declaration scope Test4:
+  context my_gaming scope GamingAuthorized
+
+scope Test4:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: false
+      -- totalValuePrizePerGame: $80
+      -- bonusPrizeMaxValue: $10
+      -- bonusPrizeOffered: true
+      -- prizeContent: true
+    }
+  assertion my_gaming.authorized = false
+```
+
+## Test5
+
+```catala
+declaration scope Test5:
+  context my_gaming scope GamingAuthorized
+
+scope Test5:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: true
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $100
+      -- bonusPrizeOffered: true
+      -- prizeContent: false
+    }
+  assertion my_gaming.authorized = false
 ```

@@ -28,6 +28,8 @@ declaration scope GamingAuthorized:
 ```catala
 scope GamingAuthorized:
 definition benefitingOrg equals (charityHousie.typeOrg with pattern OrganisationType.Charitable)
+#definition benefitingOrg equals Charitable
+#benefitingOrg = (charityHousie.typeOrg = Charitable)
 ```
 (b) not less than 12.5% of the gross proceeds of the gaming activity are paid to the benefiting org
 ```catala

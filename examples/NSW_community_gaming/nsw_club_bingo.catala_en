@@ -21,7 +21,7 @@ declaration scope GamingAuthorized:
     (a)  it is conducted by or on the authority of a registered club on the registered club premises for the purpose of attracting patronage to the club’s facilities,
 ```catala
 scope GamingAuthorized:
-  definition conductor equals clubBingo.registeredClub  
+  definition conductor equals clubBingo.registeredClub
 ```
     (b)  except as provided by paragraph (c), the total value of all of the available prizes for 1 game of the gaming activity does not exceed $70,
 
