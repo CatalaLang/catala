@@ -10,11 +10,13 @@ of the Catala programming language development.
 ## List of examples
 
 - `allocations_familiales/`: computation of the French family benefits, based
-  on the _Code de la sécurité sociale_. This case study is the biggest and
+  on the _Code de la sécurité sociale_.
+- `aides_logement`: computation of the French housing benefits, based on the
+  _Code de la construction et de l'habitation_. This case study is the biggest and
   most ambitious for Catala so far.
 - `code_general_impots/`: computation of the French income tax, based on the
   _Code général des impôts_. Currently, there are only stubs of program.
-- `tutorial/`: Catala language tutorial for developers of tech-savvy lawyers.
+- `tutorial_<en/fr>/`: Catala language tutorial for developers of tech-savvy lawyers.
   The tutorial is written like a piece of legislation that gets annotated by
   Catala snippets.
 - `us_tax_code/`: contains the Catala formalization of several sections of the
@@ -74,9 +76,12 @@ compilation of the whole program using the standard expected by `clerk test`:
 enter `make help_clerk` from the root of the Catala repository to know more.
 
 Once your tests are written, then will automatically be added to the regression
-suite executed using
+suite executed using:
 
-    make -C examples tests
+    # From the root of the Catala repository
+    make test_examples
+    # From the examples/ folder
+    make pass_all_tests
 
 You can isolate a part of the regression suite by invoking:
 
