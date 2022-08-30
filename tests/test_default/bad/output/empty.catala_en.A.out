@@ -1,7 +1,7 @@
 [ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
-[ERROR] 
-[ERROR]  --> test_default/bad/empty.catala_en
-[ERROR]   | 
-[ERROR] 6 |   context y content boolean
-[ERROR]   |           ^
-[ERROR]   + Article
+
+ --> test_default/bad/empty.catala_en
+  | 
+6 |   context y content boolean
+  |           ^
+  + Article

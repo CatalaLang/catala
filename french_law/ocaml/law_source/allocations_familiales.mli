@@ -71,6 +71,7 @@ type interface_allocations_familiales_out = {
   montant_verse_out : money;
   personne_charge_effective_permanente_est_parent_out : bool;
   personne_charge_effective_permanente_remplit_titre_I_out : bool;
+  avait_enfant_a_charge_avant_1er_janvier_2012_out : bool;
 }
 
 type interface_allocations_familiales_in = {
@@ -82,6 +83,7 @@ type interface_allocations_familiales_in = {
   montant_verse_in : unit -> money;
   personne_charge_effective_permanente_est_parent_in : unit -> bool;
   personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
+  avait_enfant_a_charge_avant_1er_janvier_2012_in : unit -> bool;
 }
 
 val interface_allocations_familiales :

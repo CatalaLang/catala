@@ -1,5 +1,6 @@
 _build/
 _opam/
+result
 *.install
 *.spellok
 *.catala*.errors

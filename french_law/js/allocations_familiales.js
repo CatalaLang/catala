@@ -26,6 +26,7 @@ function run_computation(log) {
     residence: "Métropole",
     personneQuiAssumeLaChargeEffectivePermanenteEstParent: true,
     personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale: true,
+    avaitEnfantAChargeAvant1erJanvier2012: false,
   });
   if (log) {
     console.log(

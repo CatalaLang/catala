@@ -1,7 +1,7 @@
 [ERROR] The subscope a is used when defining one of its inputs, but recursion is forbidden in Catala
-[ERROR] 
-[ERROR]   --> test_scope/bad/sub_vars_in_sub_var.catala_en
-[ERROR]    | 
-[ERROR] 13 |   definition a.y equals if a.x then 0 else 1
-[ERROR]    |                            ^^^
-[ERROR]    + Article
+
+  --> test_scope/bad/sub_vars_in_sub_var.catala_en
+   | 
+13 |   definition a.y equals if a.x then 0 else 1
+   |                            ^^^
+   + Article

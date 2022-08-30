@@ -1,0 +1,9 @@
+## Article
+
+```catala
+declaration scope TestBool:
+  context foo content boolean
+
+scope TestBool:
+  definition foo equals true and not false and false = false
+```

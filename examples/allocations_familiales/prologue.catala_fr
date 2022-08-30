@@ -1,4 +1,4 @@
-## Prologue
+# Prologue
 
 Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations familiales, il est nécessaire de définir les structures de données
@@ -115,6 +115,13 @@ déclaration champ d'application AllocationsFamiliales:
   contexte nombre_total_enfants contenu décimal
   contexte montant_avec_garde_alternée_base contenu argent
   contexte montant_versé_base contenu argent
+
+  # Variables liées à Mayotte
+  contexte avait_enfant_à_charge_avant_1er_janvier_2012 condition
+  contexte montant_initial_base_premier_enfant_mayotte contenu argent
+  contexte montant_initial_base_deuxième_enfant_mayotte contenu argent
+  contexte montant_initial_base_troisième_enfant_mayotte contenu argent
+  contexte montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
 
   # Variables liées à l'allocation forfaitaire
   contexte droit_ouvert_forfaitaire condition dépend de Enfant

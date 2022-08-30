@@ -1,12 +1,12 @@
-### Partie réglementaire - Décrets en Conseil d'Etat
+## Partie réglementaire - Décrets en Conseil d'Etat
 
-#### Livre 5 : Prestations familiales et prestations assimilées
+### Livre 5 : Prestations familiales et prestations assimilées
 
-##### Titre 1 : Champ d'application - Généralités
+#### Titre 1 : Champ d'application - Généralités
 
-###### Chapitre 2 : Champ d'application.
+##### Chapitre 2 : Champ d'application.
 
-####### Article R512-2|LEGIARTI000006750602
+###### Article R512-2|LEGIARTI000006750602
 
 Les enfants ouvrent droit aux prestations familiales jusqu'à l'âge de vingt
 ans sous réserve que leur rémunération n'excède pas le plafond fixé au deuxième
@@ -42,11 +42,11 @@ législation sur les assurances sociales.
 # TODO: Liane, faire de la recherche juridique sur le sujet.
 ```
 
-##### Titre 2 : Prestations générales d'entretien
+#### Titre 2 : Prestations générales d'entretien
 
-###### Chapitre 1er : Allocations familiales
+##### Chapitre 1er : Allocations familiales
 
-####### Article R521-1|LEGIARTI000018735853
+###### Article R521-1|LEGIARTI000018735853
 L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les
 enfants ouvrent droit à la majoration des allocations familiales est fixé à
 14 ans.
@@ -85,7 +85,7 @@ champ d'application AllocationsFamiliales :
     version_avril_2008.âge_minimum_alinéa_1_l521_3
 ```
 
-####### Article R521-2|LEGIARTI000006750608
+###### Article R521-2|LEGIARTI000006750608
 
 Dans les situations visées au deuxième alinéa de l'article L. 521-2 ,
 l'allocataire est celui des deux parents qu'ils désignent d'un commun accord.
@@ -112,7 +112,7 @@ ou des enfants.
 # ce programme.
 ```
 
-####### Article R521-3|LEGIARTI000006750610
+###### Article R521-3|LEGIARTI000006750610
 
 Sous réserve de l'article R. 521-4, dans les situations visées aux 1° et 2° de
 l'article R. 521-2 , la prestation due à chacun des parents est égale au
@@ -164,7 +164,7 @@ champ d'application AllocationsFamiliales :
       enfants_à_charge_droit_ouvert_prestation_familiale)
 ```
 
-####### Article R521-4|LEGIARTI000006750613
+###### Article R521-4|LEGIARTI000006750613
 
 Pour l'ouverture du droit à la majoration prévue à l'article L. 521-3 , le
 nombre d'enfants à charge est évalué dans les conditions prévues au premier
@@ -196,13 +196,13 @@ champ d'application AllocationsFamiliales :
   )
 ```
 
-#### Livre 7 : Régimes divers - Dispositions diverses
+### Livre 7 : Régimes divers - Dispositions diverses
 
-##### Titre 5 : Départements d'outre-mer
+#### Titre 5 : Départements d'outre-mer
 
-###### Chapitre 5 : Prestations familiales et prestations assimilées
+##### Chapitre 5 : Prestations familiales et prestations assimilées
 
-####### Article R755-0-2|LEGIARTI000006752633
+###### Article R755-0-2|LEGIARTI000006752633
 
 Le plafond de rémunération des enfants à charge mentionnés à l'article
 L. 512-3 est égal, pour un mois, à 55 % du salaire minimum de croissance en

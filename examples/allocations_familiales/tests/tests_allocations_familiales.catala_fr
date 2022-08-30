@@ -1,8 +1,6 @@
 > Inclusion: ../allocations_familiales.catala_fr
 
-## Tests
-
-### Tests
+# Tests
 
 ```catala
 déclaration champ d'application Données:
@@ -216,4 +214,89 @@ champ d'application Test10:
   définition f.résidence égal à Métropole
   règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 99,37€
+
+déclaration champ d'application Test11:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test11:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2003-02-22|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2013-09-30|
+    -- d_rémuneration_mensuelle: 300€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };
+  EnfantEntrée {
+    -- d_identifiant: 2
+    -- d_date_de_naissance: |2007-04-16|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 30000 €
+  définition f.date_courante égal à |2021-12-31|
+  définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 435,55€
+
+déclaration champ d'application Test12:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test12:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2003-02-22|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2013-09-30|
+    -- d_rémuneration_mensuelle: 300€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };
+  EnfantEntrée {
+    -- d_identifiant: 2
+    -- d_date_de_naissance: |2007-04-16|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };
+  EnfantEntrée {
+    -- d_identifiant: 3
+    -- d_date_de_naissance: |2012-02-02|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 20000 €
+  définition f.date_courante égal à |2019-08-26|
+  définition f.résidence égal à Mayotte
+  règle f.avait_enfant_à_charge_avant_1er_janvier_2012 rempli
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 315,84€
+
+déclaration champ d'application Test13:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test13:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2008-02-22|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 65000 €
+  définition f.date_courante égal à |2019-08-26|
+  définition f.résidence égal à Mayotte
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 34,99€
 ```

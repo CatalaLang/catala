@@ -1,29 +1,29 @@
 [ERROR] Cyclic dependency detected between scopes!
-[ERROR] 
-[ERROR] Cycle variable B, declared:
-[ERROR]  --> test_scope/bad/cyclic_scopes.catala_en
-[ERROR]   | 
-[ERROR] 8 | declaration scope B:
-[ERROR]   |                   ^
-[ERROR]   + Article
-[ERROR] 
-[ERROR] Used here in the definition of another cycle variable A:
-[ERROR]  --> test_scope/bad/cyclic_scopes.catala_en
-[ERROR]   | 
-[ERROR] 5 |   context b scope B
-[ERROR]   |           ^
-[ERROR]   + Article
-[ERROR] 
-[ERROR] Cycle variable A, declared:
-[ERROR]  --> test_scope/bad/cyclic_scopes.catala_en
-[ERROR]   | 
-[ERROR] 4 | declaration scope A:
-[ERROR]   |                   ^
-[ERROR]   + Article
-[ERROR] 
-[ERROR] Used here in the definition of another cycle variable B:
-[ERROR]  --> test_scope/bad/cyclic_scopes.catala_en
-[ERROR]   | 
-[ERROR] 9 |   context a scope A
-[ERROR]   |           ^
-[ERROR]   + Article
+
+Cycle variable B, declared:
+ --> test_scope/bad/cyclic_scopes.catala_en
+  | 
+8 | declaration scope B:
+  |                   ^
+  + Article
+
+Used here in the definition of another cycle variable A:
+ --> test_scope/bad/cyclic_scopes.catala_en
+  | 
+5 |   context b scope B
+  |           ^
+  + Article
+
+Cycle variable A, declared:
+ --> test_scope/bad/cyclic_scopes.catala_en
+  | 
+4 | declaration scope A:
+  |                   ^
+  + Article
+
+Used here in the definition of another cycle variable B:
+ --> test_scope/bad/cyclic_scopes.catala_en
+  | 
+9 |   context a scope A
+  |           ^
+  + Article

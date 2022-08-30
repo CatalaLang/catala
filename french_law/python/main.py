@@ -27,6 +27,7 @@ def call_allocations_familiales() -> float:
         residence=Collectivite_Code.Metropole,
         personne_charge_effective_permanente_est_parent=True,
         personne_charge_effective_permanente_remplit_titre_I=True,
+        avait_enfant_a_charge_avant_1er_janvier_2012=False,
     )
 
 

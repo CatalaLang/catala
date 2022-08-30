@@ -252,8 +252,10 @@ sum_expression:
 }
 | unop = sum_unop e = sum_expression { (Unop (unop, e), Pos.from_lpos $sloc) }
 
-logical_op:
+logical_and_op:
 | AND { (And, Pos.from_lpos $sloc) }
+
+logical_or_op:
 | OR { (Or, Pos.from_lpos $sloc) }
 | XOR { (Xor, Pos.from_lpos $sloc) }
 
@@ -266,10 +268,19 @@ compare_expression:
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
 
-logical_expression:
+logical_atom:
 | e = compare_expression { e }
-| unop = logical_unop e = compare_expression { (Unop (unop, e), Pos.from_lpos $sloc) }
-| e1 = compare_expression binop = logical_op e2 = logical_expression {
+| unop = logical_unop e = logical_atom { (Unop (unop, e), Pos.from_lpos $sloc) }
+
+logical_or_expression:
+| e = logical_atom { e }
+| e1 = logical_atom binop = logical_or_op e2 = logical_or_expression {
+  (Binop (binop, e1, e2), Pos.from_lpos $sloc)
+}
+
+logical_expression:
+| e = logical_or_expression { e }
+| e1 = logical_or_expression binop = logical_and_op e2 = logical_expression {
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
 

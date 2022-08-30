@@ -17,7 +17,24 @@ Finally, start a `bash` shell inside a new container created from the newly buil
 
     docker run -it -v $PWD:$PWD -w $PWD --name catala catala bash
 
-### Without Docker
+### With nix
+
+The repository provides nix files to build or develop the catala compiler.
+
+Once [nix is installed](https://nixos.org/manual/nix/stable/#ch-installing-binary),
+it is possible to enter a development shell:
+
+    nix-shell
+
+or to build the Catala compiler, documentation and runtime library:
+
+    nix-build release.nix
+
+Dependencies not yet in nixpkgs (`bindlib` and `unionFind` at the moment of writing)
+are hardcoded inside the `.nix` directory. The `default.nix` should be compatible with
+nixpkgs, if it finds a maintainer.
+
+### With opam
 
 The Catala compiler is written using OCaml. First, you have to install `opam`,
 OCaml's distribution and package manager. Follow the [instructions on the `opam`
@@ -44,12 +61,12 @@ This should ensure everything is set up for developing on the Catala compiler!
 Other features for generation of files and literate programming also require
 the following executables to be present
 
-    man2html virtualenv python3 rsync colordiff
+    man2html virtualenv python3 rsync colordiff pygmentize
 
 please install them if they're not here. On a Debian distribution, this can be
 done with
 
-    sudo apt install python3-dev python3-setuptools man2html rsync colordiff
+    sudo apt install python3-dev python3-setuptools python3-pygments man2html rsync colordiff
     sudo python3 -m pip install --upgrade pip
     sudo python3 -m pip install virtualenv
 

@@ -10,7 +10,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3 colordiff node
+EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -48,9 +48,10 @@ build:
 	@$(MAKE) --no-print-directory format
 	dune build $(COMPILER_DIR)/catala.exe
 
-#> js_build				: Builds the Web-compatible JS version of the Catala compiler
+#> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
-	dune build $(COMPILER_DIR)/catala_web.bc.js --profile release
+	dune build $(COMPILER_DIR)/catala.bc.js --profile release
+	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js --profile release
 
 #> doc					: Generates the HTML OCaml documentation
 doc:

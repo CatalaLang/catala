@@ -18,7 +18,7 @@ open Runtime
 
 let compute_allocations_familiales ~(current_date : Runtime.date)
     ~(children : AF.enfant_entree array) ~(income : int) ~(residence : AF.collectivite)
-    ~(is_parent : bool) ~(fills_title_I : bool) : float =
+    ~(is_parent : bool) ~(fills_title_I : bool) ~(had_rights_open_before_2012 : bool) : float =
   let result =
     AF.interface_allocations_familiales
       {
@@ -30,6 +30,7 @@ let compute_allocations_familiales ~(current_date : Runtime.date)
         AF.montant_verse_in = no_input;
         AF.personne_charge_effective_permanente_est_parent_in = (fun _ -> is_parent);
         AF.personne_charge_effective_permanente_remplit_titre_I_in = (fun _ -> fills_title_I);
+        AF.avait_enfant_a_charge_avant_1er_janvier_2012_in = (fun _ -> had_rights_open_before_2012);
       }
   in
   money_to_float result.AF.montant_verse_out

@@ -1,17 +1,17 @@
 [ERROR] division by zero at runtime
-[ERROR] 
-[ERROR] The division operator:
-[ERROR]   --> test_arithmetic/bad/division_by_zero.catala_en
-[ERROR]    | 
-[ERROR] 40 |   definition i equals 10 day /^ 0 day
-[ERROR]    |                              ^^
-[ERROR]    + `Division_by_zero` exception management
-[ERROR]    +-+ with duration
-[ERROR] 
-[ERROR] The null denominator:
-[ERROR]   --> test_arithmetic/bad/division_by_zero.catala_en
-[ERROR]    | 
-[ERROR] 40 |   definition i equals 10 day /^ 0 day
-[ERROR]    |                                 ^^^^^
-[ERROR]    + `Division_by_zero` exception management
-[ERROR]    +-+ with duration
+
+The division operator:
+  --> test_arithmetic/bad/division_by_zero.catala_en
+   | 
+40 |   definition i equals 10 day /^ 0 day
+   |                              ^^
+   + `Division_by_zero` exception management
+   +-+ with duration
+
+The null denominator:
+  --> test_arithmetic/bad/division_by_zero.catala_en
+   | 
+40 |   definition i equals 10 day /^ 0 day
+   |                                 ^^^^^
+   + `Division_by_zero` exception management
+   +-+ with duration

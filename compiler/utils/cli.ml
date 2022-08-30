@@ -95,7 +95,7 @@ let catala_t f =
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
 
-let version = "0.4.0"
+let version = "0.5.0"
 
 let info =
   let doc =
@@ -182,27 +182,27 @@ let add_prefix_to_each_line (s : string) (prefix : int -> string) =
 
 let debug_print (s : string) =
   if !debug_flag then begin
-    Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> debug_marker ()));
+    Printf.printf "%s\n" (debug_marker () ^ s);
     flush stdout;
     flush stdout
   end
 
 let error_print (s : string) =
-  Printf.eprintf "%s\n" (add_prefix_to_each_line s (fun _ -> error_marker ()));
+  Printf.eprintf "%s\n" (error_marker () ^ s);
   flush stderr;
   flush stderr
 
 let warning_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> warning_marker ()));
+  Printf.printf "%s\n" (warning_marker () ^ s);
   flush stdout;
   flush stdout
 
 let result_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> result_marker ()));
+  Printf.printf "%s\n" (result_marker () ^ s);
   flush stdout;
   flush stdout
 
 let log_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> log_marker ()));
+  Printf.printf "%s\n" (log_marker () ^ s);
   flush stdout;
   flush stdout

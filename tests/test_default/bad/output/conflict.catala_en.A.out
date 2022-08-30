@@ -1,15 +1,15 @@
 [ERROR] There is a conflict between multiple exceptions for assigning the same variable.
-[ERROR] 
-[ERROR] This justification is true:
-[ERROR]  --> test_default/bad/conflict.catala_en
-[ERROR]   | 
-[ERROR] 9 |   definition x under condition true consequence equals 0
-[ERROR]   |                                ^^^^
-[ERROR]   + Article
-[ERROR] 
-[ERROR] This justification is true:
-[ERROR]  --> test_default/bad/conflict.catala_en
-[ERROR]   | 
-[ERROR] 8 |   definition x under condition true consequence equals 1
-[ERROR]   |                                ^^^^
-[ERROR]   + Article
+
+This justification is true:
+ --> test_default/bad/conflict.catala_en
+  | 
+9 |   definition x under condition true consequence equals 0
+  |                                ^^^^
+  + Article
+
+This justification is true:
+ --> test_default/bad/conflict.catala_en
+  | 
+8 |   definition x under condition true consequence equals 1
+  |                                ^^^^
+  + Article

@@ -12,12 +12,11 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+open Utils
 (** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
 
     - Removes syntactic sugars
     - Separate code from legislation *)
-
-open Utils
 
 (** {1 Translating expressions} *)
 
@@ -206,10 +205,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               "Impossible to specify decimal amounts of days, months or years" pos
         | LDate date ->
             if Pos.unmark date.literal_date_month > 12 then
-              Errors.raise_spanned_error "Month number bigger than 12"
+              Errors.raise_spanned_error
+                "There is an error in this date: the month number is bigger than 12"
                 (Pos.get_position date.literal_date_month);
             if Pos.unmark date.literal_date_day > 31 then
-              Errors.raise_spanned_error "Month number bigger than 31"
+              Errors.raise_spanned_error
+                "There is an error in this date: the day number is bigger than 31"
                 (Pos.get_position date.literal_date_day);
             Scopelang.Ast.ELit
               (Dcalc.Ast.LDate
@@ -218,7 +219,11 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                       (Pos.unmark date.literal_date_year)
                       (Pos.unmark date.literal_date_month)
                       (Pos.unmark date.literal_date_day)
-                  with Runtime.ImpossibleDate -> Errors.raise_spanned_error "Invalid date" pos))
+                  with Runtime.ImpossibleDate ->
+                    Errors.raise_spanned_error
+                      "There is an error in this date, it does not correspond to a correct \
+                       calendar day"
+                      pos))
       in
       Bindlib.box (untyped_term, pos)
   | Ident x -> (
@@ -804,9 +809,8 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                  as single match case)"
                 case_pos
             else raise_wildcard_not_last_case_err ()
-        | Some e_uid -> (
+        | Some e_uid ->
             if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
-
             let missing_constructors =
               Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums
               |> Scopelang.Ast.EnumConstructorMap.filter_map (fun c_uid _ ->
@@ -814,7 +818,6 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                      | Some _ -> None
                      | None -> Some c_uid)
             in
-
             if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
               Errors.print_spanned_warning
                 (Format.asprintf
@@ -822,23 +825,17 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                     specified"
                    Scopelang.Ast.EnumName.format_t e_uid)
                 case_pos;
-
             (* The current used strategy is to replace the wildcard branch:
-
                    match foo with
                    | Case1 x -> x
                    | _ -> 1
-
                with:
-
                    let wildcard_payload = 1 in
                    match foo with
                    | Case1 x -> x
                    | Case2 -> wildcard_payload
                     ...
                    | CaseN -> wildcard_payload *)
-
-
             (* Creates the wildcard payload *)
             let ctxt, (payload_var, var_pos) = create_var None in
             let case_body = translate_expr scope ctxt match_case_expr in
@@ -851,12 +848,13 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                 ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
                   e_uid_opt,
                   curr_index + 1 ))
-              missing_constructors (cases_d, Some e_uid, curr_index)))[@ocamlformat "disable"]
+              missing_constructors (cases_d, Some e_uid, curr_index))
   in
   let expr, e_name, _ =
     List.fold_left bind_match_cases (Scopelang.Ast.EnumConstructorMap.empty, None, 0) cases
   in
   (expr, Option.get e_name)
+  [@@ocamlformat "wrap-comments=false"]
 
 (** {1 Translating scope definitions} *)
 

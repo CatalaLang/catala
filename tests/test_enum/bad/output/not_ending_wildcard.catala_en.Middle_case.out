@@ -1,17 +1,17 @@
 [ERROR] Wildcard must be the last match case
-[ERROR] 
-[ERROR] Not ending wildcard:
-[ERROR]   --> test_enum/bad/not_ending_wildcard.catala_en
-[ERROR]    | 
-[ERROR] 19 |     -- anything : 31
-[ERROR]    |        ^^^^^^^^^^^^^
-[ERROR]    + Wildcard must be the last case
-[ERROR]    +-+ Wildcard can't be the first case
-[ERROR] 
-[ERROR] Next reachable case:
-[ERROR]   --> test_enum/bad/not_ending_wildcard.catala_en
-[ERROR]    | 
-[ERROR] 20 |     -- Case2 : 42
-[ERROR]    |        ^^^^^^^^^^
-[ERROR]    + Wildcard must be the last case
-[ERROR]    +-+ Wildcard can't be the first case
+
+Not ending wildcard:
+  --> test_enum/bad/not_ending_wildcard.catala_en
+   | 
+19 |     -- anything : 31
+   |        ^^^^^^^^^^^^^
+   + Wildcard must be the last case
+   +-+ Wildcard can't be the first case
+
+Next reachable case:
+  --> test_enum/bad/not_ending_wildcard.catala_en
+   | 
+20 |     -- Case2 : 42
+   |        ^^^^^^^^^^
+   + Wildcard must be the last case
+   +-+ Wildcard can't be the first case

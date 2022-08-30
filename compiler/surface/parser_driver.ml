@@ -245,7 +245,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.backend
           let input = open_in source_file in
           (Sedlexing.Utf8.from_channel input, Some input)
         with Sys_error msg -> Errors.raise_error msg)
-    | Contents contents -> (Sedlexing.Utf8.from_gen (Gen.of_string contents), None)
+    | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
   in
   let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in
   Sedlexing.set_filename lexbuf source_file_name;

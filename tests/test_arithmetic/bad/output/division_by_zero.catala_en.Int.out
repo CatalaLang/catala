@@ -1,17 +1,17 @@
 [ERROR] division by zero at runtime
-[ERROR] 
-[ERROR] The division operator:
-[ERROR]   --> test_arithmetic/bad/division_by_zero.catala_en
-[ERROR]    | 
-[ERROR] 10 |   definition i equals 1 / 0
-[ERROR]    |                         ^
-[ERROR]    + `Division_by_zero` exception management
-[ERROR]    +-+ with integers
-[ERROR] 
-[ERROR] The null denominator:
-[ERROR]   --> test_arithmetic/bad/division_by_zero.catala_en
-[ERROR]    | 
-[ERROR] 10 |   definition i equals 1 / 0
-[ERROR]    |                           ^
-[ERROR]    + `Division_by_zero` exception management
-[ERROR]    +-+ with integers
+
+The division operator:
+  --> test_arithmetic/bad/division_by_zero.catala_en
+   | 
+10 |   definition i equals 1 / 0
+   |                         ^
+   + `Division_by_zero` exception management
+   +-+ with integers
+
+The null denominator:
+  --> test_arithmetic/bad/division_by_zero.catala_en
+   | 
+10 |   definition i equals 1 / 0
+   |                           ^
+   + `Division_by_zero` exception management
+   +-+ with integers

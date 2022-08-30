@@ -2,7 +2,7 @@
 
 (name catala)
 
-(version 0.4.0)
+(version 0.5.0)
 
 (generate_opam_files true)
 
@@ -29,11 +29,11 @@
   "Catala is a domain-specific language for deriving faithful-by-construction\nalgorithms from legislative texts. See https://catala-lang.org for more information\n")
  (depends
   (ocaml
-   (>= 4.08.0))
+   (>= 4.11.0))
   (ANSITerminal
    (>= 0.8.2))
   (sedlex
-   (>= 2.1))
+   (>= 2.4))
   (menhir
    (>= 20200211))
   (menhirLib
@@ -73,8 +73,8 @@
   "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org")
  (depends
   (ocaml
-   (>= 4.08.0))
+   (>= 4.11.0))
   (catala
-   (>= 0.4.0))))
+   (>= 0.5.0))))
 
 (using menhir 2.1)

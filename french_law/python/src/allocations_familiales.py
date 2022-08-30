@@ -414,7 +414,7 @@ class EnfantLePlusAgeIn:
 
 
 class AllocationsFamilialesOut:
-    def __init__(self, personne_charge_effective_permanente_est_parent_out: bool, personne_charge_effective_permanente_remplit_titre_I_out: bool, ressources_menage_out: Money, residence_out: Collectivite, date_courante_out: Date, enfants_a_charge_out: List[Enfant], enfants_a_charge_droit_ouvert_prestation_familiale_out: List[Enfant], prise_en_compte_out: Callable[[Enfant], PriseEnCompte], versement_out: Callable[[Enfant], VersementAllocations], montant_verse_out: Money, droit_ouvert_base_out: bool, montant_initial_base_out: Money, montant_initial_base_premier_enfant_out: Money, montant_initial_base_deuxieme_enfant_out: Money, montant_initial_base_troisieme_enfant_et_plus_out: Money, rapport_enfants_total_moyen_out: Decimal, nombre_moyen_enfants_out: Decimal, nombre_total_enfants_out: Decimal, montant_avec_garde_alternee_base_out: Money, montant_verse_base_out: Money, droit_ouvert_forfaitaire_out: Callable[[Enfant], bool], montant_verse_forfaitaire_par_enfant_out: Money, montant_verse_forfaitaire_out: Money, droit_ouvert_majoration_out: Callable[[Enfant], bool], montant_initial_metropole_majoration_out: Callable[[Enfant], Money], montant_initial_majoration_out: Callable[[Enfant], Money], montant_avec_garde_alternee_majoration_out: Callable[[Enfant], Money], montant_verse_majoration_out: Money, droit_ouvert_complement_out: bool, montant_base_complement_pour_base_et_majoration_out: Money, complement_degressif_out: Callable[[Money], Money], montant_verse_complement_pour_base_et_majoration_out: Money, montant_verse_complement_pour_forfaitaire_out: Money, nombre_enfants_l521_1_out: Integer, age_minimum_alinea_1_l521_3_out: Callable[[Enfant], Integer], nombre_enfants_alinea_2_l521_3_out: Integer, est_enfant_le_plus_age_out: Callable[[Enfant], bool], plafond_I_d521_3_out: Money, plafond_II_d521_3_out: Money) -> None:
+    def __init__(self, personne_charge_effective_permanente_est_parent_out: bool, personne_charge_effective_permanente_remplit_titre_I_out: bool, ressources_menage_out: Money, residence_out: Collectivite, date_courante_out: Date, enfants_a_charge_out: List[Enfant], enfants_a_charge_droit_ouvert_prestation_familiale_out: List[Enfant], prise_en_compte_out: Callable[[Enfant], PriseEnCompte], versement_out: Callable[[Enfant], VersementAllocations], montant_verse_out: Money, droit_ouvert_base_out: bool, montant_initial_base_out: Money, montant_initial_base_premier_enfant_out: Money, montant_initial_base_deuxieme_enfant_out: Money, montant_initial_base_troisieme_enfant_et_plus_out: Money, rapport_enfants_total_moyen_out: Decimal, nombre_moyen_enfants_out: Decimal, nombre_total_enfants_out: Decimal, montant_avec_garde_alternee_base_out: Money, montant_verse_base_out: Money, avait_enfant_a_charge_avant_1er_janvier_2012_out: bool, montant_initial_base_premier_enfant_mayotte_out: Money, montant_initial_base_deuxieme_enfant_mayotte_out: Money, montant_initial_base_troisieme_enfant_mayotte_out: Money, montant_initial_base_quatrieme_enfant_et_plus_mayotte_out: Money, droit_ouvert_forfaitaire_out: Callable[[Enfant], bool], montant_verse_forfaitaire_par_enfant_out: Money, montant_verse_forfaitaire_out: Money, droit_ouvert_majoration_out: Callable[[Enfant], bool], montant_initial_metropole_majoration_out: Callable[[Enfant], Money], montant_initial_majoration_out: Callable[[Enfant], Money], montant_avec_garde_alternee_majoration_out: Callable[[Enfant], Money], montant_verse_majoration_out: Money, droit_ouvert_complement_out: bool, montant_base_complement_pour_base_et_majoration_out: Money, complement_degressif_out: Callable[[Money], Money], montant_verse_complement_pour_base_et_majoration_out: Money, montant_verse_complement_pour_forfaitaire_out: Money, nombre_enfants_l521_1_out: Integer, age_minimum_alinea_1_l521_3_out: Callable[[Enfant], Integer], nombre_enfants_alinea_2_l521_3_out: Integer, est_enfant_le_plus_age_out: Callable[[Enfant], bool], plafond_I_d521_3_out: Money, plafond_II_d521_3_out: Money) -> None:
         self.personne_charge_effective_permanente_est_parent_out = personne_charge_effective_permanente_est_parent_out
         self.personne_charge_effective_permanente_remplit_titre_I_out = personne_charge_effective_permanente_remplit_titre_I_out
         self.ressources_menage_out = ressources_menage_out
@@ -435,6 +435,11 @@ class AllocationsFamilialesOut:
         self.nombre_total_enfants_out = nombre_total_enfants_out
         self.montant_avec_garde_alternee_base_out = montant_avec_garde_alternee_base_out
         self.montant_verse_base_out = montant_verse_base_out
+        self.avait_enfant_a_charge_avant_1er_janvier_2012_out = avait_enfant_a_charge_avant_1er_janvier_2012_out
+        self.montant_initial_base_premier_enfant_mayotte_out = montant_initial_base_premier_enfant_mayotte_out
+        self.montant_initial_base_deuxieme_enfant_mayotte_out = montant_initial_base_deuxieme_enfant_mayotte_out
+        self.montant_initial_base_troisieme_enfant_mayotte_out = montant_initial_base_troisieme_enfant_mayotte_out
+        self.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out = montant_initial_base_quatrieme_enfant_et_plus_mayotte_out
         self.droit_ouvert_forfaitaire_out = droit_ouvert_forfaitaire_out
         self.montant_verse_forfaitaire_par_enfant_out = montant_verse_forfaitaire_par_enfant_out
         self.montant_verse_forfaitaire_out = montant_verse_forfaitaire_out
@@ -477,6 +482,11 @@ class AllocationsFamilialesOut:
                     self.nombre_total_enfants_out == other.nombre_total_enfants_out and
                     self.montant_avec_garde_alternee_base_out == other.montant_avec_garde_alternee_base_out and
                     self.montant_verse_base_out == other.montant_verse_base_out and
+                    self.avait_enfant_a_charge_avant_1er_janvier_2012_out == other.avait_enfant_a_charge_avant_1er_janvier_2012_out and
+                    self.montant_initial_base_premier_enfant_mayotte_out == other.montant_initial_base_premier_enfant_mayotte_out and
+                    self.montant_initial_base_deuxieme_enfant_mayotte_out == other.montant_initial_base_deuxieme_enfant_mayotte_out and
+                    self.montant_initial_base_troisieme_enfant_mayotte_out == other.montant_initial_base_troisieme_enfant_mayotte_out and
+                    self.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out == other.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out and
                     self.droit_ouvert_forfaitaire_out == other.droit_ouvert_forfaitaire_out and
                     self.montant_verse_forfaitaire_par_enfant_out == other.montant_verse_forfaitaire_par_enfant_out and
                     self.montant_verse_forfaitaire_out == other.montant_verse_forfaitaire_out and
@@ -503,38 +513,43 @@ class AllocationsFamilialesOut:
         return not (self == other)
 
     def __str__(self) -> str:
-        return "AllocationsFamilialesOut(personne_charge_effective_permanente_est_parent_out={},personne_charge_effective_permanente_remplit_titre_I_out={},ressources_menage_out={},residence_out={},date_courante_out={},enfants_a_charge_out={},enfants_a_charge_droit_ouvert_prestation_familiale_out={},prise_en_compte_out={},versement_out={},montant_verse_out={},droit_ouvert_base_out={},montant_initial_base_out={},montant_initial_base_premier_enfant_out={},montant_initial_base_deuxieme_enfant_out={},montant_initial_base_troisieme_enfant_et_plus_out={},rapport_enfants_total_moyen_out={},nombre_moyen_enfants_out={},nombre_total_enfants_out={},montant_avec_garde_alternee_base_out={},montant_verse_base_out={},droit_ouvert_forfaitaire_out={},montant_verse_forfaitaire_par_enfant_out={},montant_verse_forfaitaire_out={},droit_ouvert_majoration_out={},montant_initial_metropole_majoration_out={},montant_initial_majoration_out={},montant_avec_garde_alternee_majoration_out={},montant_verse_majoration_out={},droit_ouvert_complement_out={},montant_base_complement_pour_base_et_majoration_out={},complement_degressif_out={},montant_verse_complement_pour_base_et_majoration_out={},montant_verse_complement_pour_forfaitaire_out={},nombre_enfants_l521_1_out={},age_minimum_alinea_1_l521_3_out={},nombre_enfants_alinea_2_l521_3_out={},est_enfant_le_plus_age_out={},plafond_I_d521_3_out={},plafond_II_d521_3_out={})".format(self.personne_charge_effective_permanente_est_parent_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.personne_charge_effective_permanente_remplit_titre_I_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.ressources_menage_out, self.residence_out, self.date_courante_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.enfants_a_charge_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.enfants_a_charge_droit_ouvert_prestation_familiale_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.prise_en_compte_out, self.versement_out, self.montant_verse_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.droit_ouvert_base_out, self.montant_initial_base_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_premier_enfant_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_deuxieme_enfant_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_troisieme_enfant_et_plus_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.rapport_enfants_total_moyen_out, self.nombre_moyen_enfants_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.nombre_total_enfants_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_avec_garde_alternee_base_out, self.montant_verse_base_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.droit_ouvert_forfaitaire_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_forfaitaire_par_enfant_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_forfaitaire_out, self.droit_ouvert_majoration_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_metropole_majoration_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_majoration_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_avec_garde_alternee_majoration_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_majoration_out, self.droit_ouvert_complement_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_base_complement_pour_base_et_majoration_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.complement_degressif_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_complement_pour_base_et_majoration_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_complement_pour_forfaitaire_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.nombre_enfants_l521_1_out, self.age_minimum_alinea_1_l521_3_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.nombre_enfants_alinea_2_l521_3_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.est_enfant_le_plus_age_out, self.plafond_I_d521_3_out,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.plafond_II_d521_3_out)
+        return "AllocationsFamilialesOut(personne_charge_effective_permanente_est_parent_out={},personne_charge_effective_permanente_remplit_titre_I_out={},ressources_menage_out={},residence_out={},date_courante_out={},enfants_a_charge_out={},enfants_a_charge_droit_ouvert_prestation_familiale_out={},prise_en_compte_out={},versement_out={},montant_verse_out={},droit_ouvert_base_out={},montant_initial_base_out={},montant_initial_base_premier_enfant_out={},montant_initial_base_deuxieme_enfant_out={},montant_initial_base_troisieme_enfant_et_plus_out={},rapport_enfants_total_moyen_out={},nombre_moyen_enfants_out={},nombre_total_enfants_out={},montant_avec_garde_alternee_base_out={},montant_verse_base_out={},avait_enfant_a_charge_avant_1er_janvier_2012_out={},montant_initial_base_premier_enfant_mayotte_out={},montant_initial_base_deuxieme_enfant_mayotte_out={},montant_initial_base_troisieme_enfant_mayotte_out={},montant_initial_base_quatrieme_enfant_et_plus_mayotte_out={},droit_ouvert_forfaitaire_out={},montant_verse_forfaitaire_par_enfant_out={},montant_verse_forfaitaire_out={},droit_ouvert_majoration_out={},montant_initial_metropole_majoration_out={},montant_initial_majoration_out={},montant_avec_garde_alternee_majoration_out={},montant_verse_majoration_out={},droit_ouvert_complement_out={},montant_base_complement_pour_base_et_majoration_out={},complement_degressif_out={},montant_verse_complement_pour_base_et_majoration_out={},montant_verse_complement_pour_forfaitaire_out={},nombre_enfants_l521_1_out={},age_minimum_alinea_1_l521_3_out={},nombre_enfants_alinea_2_l521_3_out={},est_enfant_le_plus_age_out={},plafond_I_d521_3_out={},plafond_II_d521_3_out={})".format(self.personne_charge_effective_permanente_est_parent_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.personne_charge_effective_permanente_remplit_titre_I_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.ressources_menage_out, self.residence_out, self.date_courante_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.enfants_a_charge_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.enfants_a_charge_droit_ouvert_prestation_familiale_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.prise_en_compte_out, self.versement_out, self.montant_verse_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.droit_ouvert_base_out, self.montant_initial_base_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_premier_enfant_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_deuxieme_enfant_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_troisieme_enfant_et_plus_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.rapport_enfants_total_moyen_out, self.nombre_moyen_enfants_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.nombre_total_enfants_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_avec_garde_alternee_base_out, self.montant_verse_base_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.avait_enfant_a_charge_avant_1er_janvier_2012_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_premier_enfant_mayotte_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_deuxieme_enfant_mayotte_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_troisieme_enfant_mayotte_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.droit_ouvert_forfaitaire_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_verse_forfaitaire_par_enfant_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_verse_forfaitaire_out, self.droit_ouvert_majoration_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_metropole_majoration_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_initial_majoration_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_avec_garde_alternee_majoration_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_verse_majoration_out, self.droit_ouvert_complement_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_base_complement_pour_base_et_majoration_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.complement_degressif_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_verse_complement_pour_base_et_majoration_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.montant_verse_complement_pour_forfaitaire_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.nombre_enfants_l521_1_out, self.age_minimum_alinea_1_l521_3_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.nombre_enfants_alinea_2_l521_3_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.est_enfant_le_plus_age_out, self.plafond_I_d521_3_out,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      self.plafond_II_d521_3_out)
 
 
 class AllocationsFamilialesIn:
-    def __init__(self, personne_charge_effective_permanente_est_parent_in: Callable[[Unit], bool], personne_charge_effective_permanente_remplit_titre_I_in: Callable[[Unit], bool], ressources_menage_in: Callable[[Unit], Money], residence_in: Callable[[Unit], Collectivite], date_courante_in: Callable[[Unit], Date], enfants_a_charge_in: Callable[[Unit], (List[Enfant])], enfants_a_charge_droit_ouvert_prestation_familiale_in: Callable[[Unit], (List[Enfant])], prise_en_compte_in: Callable[[Unit], (Callable[[Enfant], PriseEnCompte])], versement_in: Callable[[Unit], (Callable[[Enfant], VersementAllocations])], montant_verse_in: Callable[[Unit], Money], droit_ouvert_base_in: Callable[[Unit], bool], montant_initial_base_in: Callable[[Unit], Money], montant_initial_base_premier_enfant_in: Callable[[Unit], Money], montant_initial_base_deuxieme_enfant_in: Callable[[Unit], Money], montant_initial_base_troisieme_enfant_et_plus_in: Callable[[Unit], Money], rapport_enfants_total_moyen_in: Callable[[Unit], Decimal], nombre_moyen_enfants_in: Callable[[Unit], Decimal], nombre_total_enfants_in: Callable[[Unit], Decimal], montant_avec_garde_alternee_base_in: Callable[[Unit], Money], montant_verse_base_in: Callable[[Unit], Money], droit_ouvert_forfaitaire_in: Callable[[Unit], (Callable[[Enfant], bool])], montant_verse_forfaitaire_par_enfant_in: Callable[[Unit], Money], montant_verse_forfaitaire_in: Callable[[Unit], Money], droit_ouvert_majoration_in: Callable[[Unit], (Callable[[Enfant], bool])], montant_initial_metropole_majoration_in: Callable[[Unit], (Callable[[Enfant], Money])], montant_initial_majoration_in: Callable[[Unit], (Callable[[Enfant], Money])], montant_avec_garde_alternee_majoration_in: Callable[[Unit], (Callable[[Enfant], Money])], montant_verse_majoration_in: Callable[[Unit], Money], droit_ouvert_complement_in: Callable[[Unit], bool], montant_base_complement_pour_base_et_majoration_in: Callable[[Unit], Money], complement_degressif_in: Callable[[Unit], (Callable[[Money], Money])], montant_verse_complement_pour_base_et_majoration_in: Callable[[Unit], Money], montant_verse_complement_pour_forfaitaire_in: Callable[[Unit], Money], nombre_enfants_l521_1_in: Callable[[Unit], Integer], age_minimum_alinea_1_l521_3_in: Callable[[Unit], (Callable[[Enfant], Integer])], nombre_enfants_alinea_2_l521_3_in: Callable[[Unit], Integer], est_enfant_le_plus_age_in: Callable[[Unit], (Callable[[Enfant], bool])], plafond_I_d521_3_in: Callable[[Unit], Money], plafond_II_d521_3_in: Callable[[Unit], Money]) -> None:
+    def __init__(self, personne_charge_effective_permanente_est_parent_in: Callable[[Unit], bool], personne_charge_effective_permanente_remplit_titre_I_in: Callable[[Unit], bool], ressources_menage_in: Callable[[Unit], Money], residence_in: Callable[[Unit], Collectivite], date_courante_in: Callable[[Unit], Date], enfants_a_charge_in: Callable[[Unit], (List[Enfant])], enfants_a_charge_droit_ouvert_prestation_familiale_in: Callable[[Unit], (List[Enfant])], prise_en_compte_in: Callable[[Unit], (Callable[[Enfant], PriseEnCompte])], versement_in: Callable[[Unit], (Callable[[Enfant], VersementAllocations])], montant_verse_in: Callable[[Unit], Money], droit_ouvert_base_in: Callable[[Unit], bool], montant_initial_base_in: Callable[[Unit], Money], montant_initial_base_premier_enfant_in: Callable[[Unit], Money], montant_initial_base_deuxieme_enfant_in: Callable[[Unit], Money], montant_initial_base_troisieme_enfant_et_plus_in: Callable[[Unit], Money], rapport_enfants_total_moyen_in: Callable[[Unit], Decimal], nombre_moyen_enfants_in: Callable[[Unit], Decimal], nombre_total_enfants_in: Callable[[Unit], Decimal], montant_avec_garde_alternee_base_in: Callable[[Unit], Money], montant_verse_base_in: Callable[[Unit], Money], avait_enfant_a_charge_avant_1er_janvier_2012_in: Callable[[Unit], bool], montant_initial_base_premier_enfant_mayotte_in: Callable[[Unit], Money], montant_initial_base_deuxieme_enfant_mayotte_in: Callable[[Unit], Money], montant_initial_base_troisieme_enfant_mayotte_in: Callable[[Unit], Money], montant_initial_base_quatrieme_enfant_et_plus_mayotte_in: Callable[[Unit], Money], droit_ouvert_forfaitaire_in: Callable[[Unit], (Callable[[Enfant], bool])], montant_verse_forfaitaire_par_enfant_in: Callable[[Unit], Money], montant_verse_forfaitaire_in: Callable[[Unit], Money], droit_ouvert_majoration_in: Callable[[Unit], (Callable[[Enfant], bool])], montant_initial_metropole_majoration_in: Callable[[Unit], (Callable[[Enfant], Money])], montant_initial_majoration_in: Callable[[Unit], (Callable[[Enfant], Money])], montant_avec_garde_alternee_majoration_in: Callable[[Unit], (Callable[[Enfant], Money])], montant_verse_majoration_in: Callable[[Unit], Money], droit_ouvert_complement_in: Callable[[Unit], bool], montant_base_complement_pour_base_et_majoration_in: Callable[[Unit], Money], complement_degressif_in: Callable[[Unit], (Callable[[Money], Money])], montant_verse_complement_pour_base_et_majoration_in: Callable[[Unit], Money], montant_verse_complement_pour_forfaitaire_in: Callable[[Unit], Money], nombre_enfants_l521_1_in: Callable[[Unit], Integer], age_minimum_alinea_1_l521_3_in: Callable[[Unit], (Callable[[Enfant], Integer])], nombre_enfants_alinea_2_l521_3_in: Callable[[Unit], Integer], est_enfant_le_plus_age_in: Callable[[Unit], (Callable[[Enfant], bool])], plafond_I_d521_3_in: Callable[[Unit], Money], plafond_II_d521_3_in: Callable[[Unit], Money]) -> None:
         self.personne_charge_effective_permanente_est_parent_in = personne_charge_effective_permanente_est_parent_in
         self.personne_charge_effective_permanente_remplit_titre_I_in = personne_charge_effective_permanente_remplit_titre_I_in
         self.ressources_menage_in = ressources_menage_in
@@ -555,6 +570,11 @@ class AllocationsFamilialesIn:
         self.nombre_total_enfants_in = nombre_total_enfants_in
         self.montant_avec_garde_alternee_base_in = montant_avec_garde_alternee_base_in
         self.montant_verse_base_in = montant_verse_base_in
+        self.avait_enfant_a_charge_avant_1er_janvier_2012_in = avait_enfant_a_charge_avant_1er_janvier_2012_in
+        self.montant_initial_base_premier_enfant_mayotte_in = montant_initial_base_premier_enfant_mayotte_in
+        self.montant_initial_base_deuxieme_enfant_mayotte_in = montant_initial_base_deuxieme_enfant_mayotte_in
+        self.montant_initial_base_troisieme_enfant_mayotte_in = montant_initial_base_troisieme_enfant_mayotte_in
+        self.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in = montant_initial_base_quatrieme_enfant_et_plus_mayotte_in
         self.droit_ouvert_forfaitaire_in = droit_ouvert_forfaitaire_in
         self.montant_verse_forfaitaire_par_enfant_in = montant_verse_forfaitaire_par_enfant_in
         self.montant_verse_forfaitaire_in = montant_verse_forfaitaire_in
@@ -597,6 +617,11 @@ class AllocationsFamilialesIn:
                     self.nombre_total_enfants_in == other.nombre_total_enfants_in and
                     self.montant_avec_garde_alternee_base_in == other.montant_avec_garde_alternee_base_in and
                     self.montant_verse_base_in == other.montant_verse_base_in and
+                    self.avait_enfant_a_charge_avant_1er_janvier_2012_in == other.avait_enfant_a_charge_avant_1er_janvier_2012_in and
+                    self.montant_initial_base_premier_enfant_mayotte_in == other.montant_initial_base_premier_enfant_mayotte_in and
+                    self.montant_initial_base_deuxieme_enfant_mayotte_in == other.montant_initial_base_deuxieme_enfant_mayotte_in and
+                    self.montant_initial_base_troisieme_enfant_mayotte_in == other.montant_initial_base_troisieme_enfant_mayotte_in and
+                    self.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in == other.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in and
                     self.droit_ouvert_forfaitaire_in == other.droit_ouvert_forfaitaire_in and
                     self.montant_verse_forfaitaire_par_enfant_in == other.montant_verse_forfaitaire_par_enfant_in and
                     self.montant_verse_forfaitaire_in == other.montant_verse_forfaitaire_in and
@@ -623,36 +648,42 @@ class AllocationsFamilialesIn:
         return not (self == other)
 
     def __str__(self) -> str:
-        return "AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in={},personne_charge_effective_permanente_remplit_titre_I_in={},ressources_menage_in={},residence_in={},date_courante_in={},enfants_a_charge_in={},enfants_a_charge_droit_ouvert_prestation_familiale_in={},prise_en_compte_in={},versement_in={},montant_verse_in={},droit_ouvert_base_in={},montant_initial_base_in={},montant_initial_base_premier_enfant_in={},montant_initial_base_deuxieme_enfant_in={},montant_initial_base_troisieme_enfant_et_plus_in={},rapport_enfants_total_moyen_in={},nombre_moyen_enfants_in={},nombre_total_enfants_in={},montant_avec_garde_alternee_base_in={},montant_verse_base_in={},droit_ouvert_forfaitaire_in={},montant_verse_forfaitaire_par_enfant_in={},montant_verse_forfaitaire_in={},droit_ouvert_majoration_in={},montant_initial_metropole_majoration_in={},montant_initial_majoration_in={},montant_avec_garde_alternee_majoration_in={},montant_verse_majoration_in={},droit_ouvert_complement_in={},montant_base_complement_pour_base_et_majoration_in={},complement_degressif_in={},montant_verse_complement_pour_base_et_majoration_in={},montant_verse_complement_pour_forfaitaire_in={},nombre_enfants_l521_1_in={},age_minimum_alinea_1_l521_3_in={},nombre_enfants_alinea_2_l521_3_in={},est_enfant_le_plus_age_in={},plafond_I_d521_3_in={},plafond_II_d521_3_in={})".format(self.personne_charge_effective_permanente_est_parent_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.personne_charge_effective_permanente_remplit_titre_I_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.ressources_menage_in, self.residence_in, self.date_courante_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.enfants_a_charge_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.enfants_a_charge_droit_ouvert_prestation_familiale_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.prise_en_compte_in, self.versement_in, self.montant_verse_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.droit_ouvert_base_in, self.montant_initial_base_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_initial_base_premier_enfant_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_initial_base_deuxieme_enfant_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_initial_base_troisieme_enfant_et_plus_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.rapport_enfants_total_moyen_in, self.nombre_moyen_enfants_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.nombre_total_enfants_in, self.montant_avec_garde_alternee_base_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_verse_base_in, self.droit_ouvert_forfaitaire_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_verse_forfaitaire_par_enfant_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_verse_forfaitaire_in, self.droit_ouvert_majoration_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_initial_metropole_majoration_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_initial_majoration_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_avec_garde_alternee_majoration_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_verse_majoration_in, self.droit_ouvert_complement_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_base_complement_pour_base_et_majoration_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.complement_degressif_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_verse_complement_pour_base_et_majoration_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.montant_verse_complement_pour_forfaitaire_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.nombre_enfants_l521_1_in, self.age_minimum_alinea_1_l521_3_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.nombre_enfants_alinea_2_l521_3_in, self.est_enfant_le_plus_age_in,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 self.plafond_I_d521_3_in, self.plafond_II_d521_3_in)
+        return "AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in={},personne_charge_effective_permanente_remplit_titre_I_in={},ressources_menage_in={},residence_in={},date_courante_in={},enfants_a_charge_in={},enfants_a_charge_droit_ouvert_prestation_familiale_in={},prise_en_compte_in={},versement_in={},montant_verse_in={},droit_ouvert_base_in={},montant_initial_base_in={},montant_initial_base_premier_enfant_in={},montant_initial_base_deuxieme_enfant_in={},montant_initial_base_troisieme_enfant_et_plus_in={},rapport_enfants_total_moyen_in={},nombre_moyen_enfants_in={},nombre_total_enfants_in={},montant_avec_garde_alternee_base_in={},montant_verse_base_in={},avait_enfant_a_charge_avant_1er_janvier_2012_in={},montant_initial_base_premier_enfant_mayotte_in={},montant_initial_base_deuxieme_enfant_mayotte_in={},montant_initial_base_troisieme_enfant_mayotte_in={},montant_initial_base_quatrieme_enfant_et_plus_mayotte_in={},droit_ouvert_forfaitaire_in={},montant_verse_forfaitaire_par_enfant_in={},montant_verse_forfaitaire_in={},droit_ouvert_majoration_in={},montant_initial_metropole_majoration_in={},montant_initial_majoration_in={},montant_avec_garde_alternee_majoration_in={},montant_verse_majoration_in={},droit_ouvert_complement_in={},montant_base_complement_pour_base_et_majoration_in={},complement_degressif_in={},montant_verse_complement_pour_base_et_majoration_in={},montant_verse_complement_pour_forfaitaire_in={},nombre_enfants_l521_1_in={},age_minimum_alinea_1_l521_3_in={},nombre_enfants_alinea_2_l521_3_in={},est_enfant_le_plus_age_in={},plafond_I_d521_3_in={},plafond_II_d521_3_in={})".format(self.personne_charge_effective_permanente_est_parent_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.personne_charge_effective_permanente_remplit_titre_I_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.ressources_menage_in, self.residence_in, self.date_courante_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.enfants_a_charge_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.enfants_a_charge_droit_ouvert_prestation_familiale_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.prise_en_compte_in, self.versement_in, self.montant_verse_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.droit_ouvert_base_in, self.montant_initial_base_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_premier_enfant_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_deuxieme_enfant_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_troisieme_enfant_et_plus_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.rapport_enfants_total_moyen_in, self.nombre_moyen_enfants_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.nombre_total_enfants_in, self.montant_avec_garde_alternee_base_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_base_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.avait_enfant_a_charge_avant_1er_janvier_2012_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_premier_enfant_mayotte_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_deuxieme_enfant_mayotte_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_troisieme_enfant_mayotte_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.droit_ouvert_forfaitaire_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_forfaitaire_par_enfant_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_forfaitaire_in, self.droit_ouvert_majoration_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_metropole_majoration_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_initial_majoration_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_avec_garde_alternee_majoration_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_majoration_in, self.droit_ouvert_complement_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_base_complement_pour_base_et_majoration_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.complement_degressif_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_complement_pour_base_et_majoration_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.montant_verse_complement_pour_forfaitaire_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.nombre_enfants_l521_1_in, self.age_minimum_alinea_1_l521_3_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.nombre_enfants_alinea_2_l521_3_in, self.est_enfant_le_plus_age_in,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         self.plafond_I_d521_3_in, self.plafond_II_d521_3_in)
 
 
 class InterfaceAllocationsFamilialesOut:
-    def __init__(self, date_courante_out: Date, enfants_out: List[EnfantEntree], enfants_a_charge_out: List[Enfant], ressources_menage_out: Money, residence_out: Collectivite, montant_verse_out: Money, personne_charge_effective_permanente_est_parent_out: bool, personne_charge_effective_permanente_remplit_titre_I_out: bool) -> None:
+    def __init__(self, date_courante_out: Date, enfants_out: List[EnfantEntree], enfants_a_charge_out: List[Enfant], ressources_menage_out: Money, residence_out: Collectivite, montant_verse_out: Money, personne_charge_effective_permanente_est_parent_out: bool, personne_charge_effective_permanente_remplit_titre_I_out: bool, avait_enfant_a_charge_avant_1er_janvier_2012_out: bool) -> None:
         self.date_courante_out = date_courante_out
         self.enfants_out = enfants_out
         self.enfants_a_charge_out = enfants_a_charge_out
@@ -661,6 +692,7 @@ class InterfaceAllocationsFamilialesOut:
         self.montant_verse_out = montant_verse_out
         self.personne_charge_effective_permanente_est_parent_out = personne_charge_effective_permanente_est_parent_out
         self.personne_charge_effective_permanente_remplit_titre_I_out = personne_charge_effective_permanente_remplit_titre_I_out
+        self.avait_enfant_a_charge_avant_1er_janvier_2012_out = avait_enfant_a_charge_avant_1er_janvier_2012_out
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, InterfaceAllocationsFamilialesOut):
@@ -671,7 +703,8 @@ class InterfaceAllocationsFamilialesOut:
                     self.residence_out == other.residence_out and
                     self.montant_verse_out == other.montant_verse_out and
                     self.personne_charge_effective_permanente_est_parent_out == other.personne_charge_effective_permanente_est_parent_out and
-                    self.personne_charge_effective_permanente_remplit_titre_I_out == other.personne_charge_effective_permanente_remplit_titre_I_out)
+                    self.personne_charge_effective_permanente_remplit_titre_I_out == other.personne_charge_effective_permanente_remplit_titre_I_out and
+                    self.avait_enfant_a_charge_avant_1er_janvier_2012_out == other.avait_enfant_a_charge_avant_1er_janvier_2012_out)
         else:
             return False
 
@@ -679,15 +712,16 @@ class InterfaceAllocationsFamilialesOut:
         return not (self == other)
 
     def __str__(self) -> str:
-        return "InterfaceAllocationsFamilialesOut(date_courante_out={},enfants_out={},enfants_a_charge_out={},ressources_menage_out={},residence_out={},montant_verse_out={},personne_charge_effective_permanente_est_parent_out={},personne_charge_effective_permanente_remplit_titre_I_out={})".format(self.date_courante_out,
-                                                                                                                                                                                                                                                                                                         self.enfants_out, self.enfants_a_charge_out,
-                                                                                                                                                                                                                                                                                                         self.ressources_menage_out, self.residence_out, self.montant_verse_out,
-                                                                                                                                                                                                                                                                                                         self.personne_charge_effective_permanente_est_parent_out,
-                                                                                                                                                                                                                                                                                                         self.personne_charge_effective_permanente_remplit_titre_I_out)
+        return "InterfaceAllocationsFamilialesOut(date_courante_out={},enfants_out={},enfants_a_charge_out={},ressources_menage_out={},residence_out={},montant_verse_out={},personne_charge_effective_permanente_est_parent_out={},personne_charge_effective_permanente_remplit_titre_I_out={},avait_enfant_a_charge_avant_1er_janvier_2012_out={})".format(self.date_courante_out,
+                                                                                                                                                                                                                                                                                                                                                             self.enfants_out, self.enfants_a_charge_out,
+                                                                                                                                                                                                                                                                                                                                                             self.ressources_menage_out, self.residence_out, self.montant_verse_out,
+                                                                                                                                                                                                                                                                                                                                                             self.personne_charge_effective_permanente_est_parent_out,
+                                                                                                                                                                                                                                                                                                                                                             self.personne_charge_effective_permanente_remplit_titre_I_out,
+                                                                                                                                                                                                                                                                                                                                                             self.avait_enfant_a_charge_avant_1er_janvier_2012_out)
 
 
 class InterfaceAllocationsFamilialesIn:
-    def __init__(self, date_courante_in: Callable[[Unit], Date], enfants_in: Callable[[Unit], (List[EnfantEntree])], enfants_a_charge_in: Callable[[Unit], (List[Enfant])], ressources_menage_in: Callable[[Unit], Money], residence_in: Callable[[Unit], Collectivite], montant_verse_in: Callable[[Unit], Money], personne_charge_effective_permanente_est_parent_in: Callable[[Unit], bool], personne_charge_effective_permanente_remplit_titre_I_in: Callable[[Unit], bool]) -> None:
+    def __init__(self, date_courante_in: Callable[[Unit], Date], enfants_in: Callable[[Unit], (List[EnfantEntree])], enfants_a_charge_in: Callable[[Unit], (List[Enfant])], ressources_menage_in: Callable[[Unit], Money], residence_in: Callable[[Unit], Collectivite], montant_verse_in: Callable[[Unit], Money], personne_charge_effective_permanente_est_parent_in: Callable[[Unit], bool], personne_charge_effective_permanente_remplit_titre_I_in: Callable[[Unit], bool], avait_enfant_a_charge_avant_1er_janvier_2012_in: Callable[[Unit], bool]) -> None:
         self.date_courante_in = date_courante_in
         self.enfants_in = enfants_in
         self.enfants_a_charge_in = enfants_a_charge_in
@@ -696,6 +730,7 @@ class InterfaceAllocationsFamilialesIn:
         self.montant_verse_in = montant_verse_in
         self.personne_charge_effective_permanente_est_parent_in = personne_charge_effective_permanente_est_parent_in
         self.personne_charge_effective_permanente_remplit_titre_I_in = personne_charge_effective_permanente_remplit_titre_I_in
+        self.avait_enfant_a_charge_avant_1er_janvier_2012_in = avait_enfant_a_charge_avant_1er_janvier_2012_in
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, InterfaceAllocationsFamilialesIn):
@@ -706,7 +741,8 @@ class InterfaceAllocationsFamilialesIn:
                     self.residence_in == other.residence_in and
                     self.montant_verse_in == other.montant_verse_in and
                     self.personne_charge_effective_permanente_est_parent_in == other.personne_charge_effective_permanente_est_parent_in and
-                    self.personne_charge_effective_permanente_remplit_titre_I_in == other.personne_charge_effective_permanente_remplit_titre_I_in)
+                    self.personne_charge_effective_permanente_remplit_titre_I_in == other.personne_charge_effective_permanente_remplit_titre_I_in and
+                    self.avait_enfant_a_charge_avant_1er_janvier_2012_in == other.avait_enfant_a_charge_avant_1er_janvier_2012_in)
         else:
             return False
 
@@ -714,11 +750,12 @@ class InterfaceAllocationsFamilialesIn:
         return not (self == other)
 
     def __str__(self) -> str:
-        return "InterfaceAllocationsFamilialesIn(date_courante_in={},enfants_in={},enfants_a_charge_in={},ressources_menage_in={},residence_in={},montant_verse_in={},personne_charge_effective_permanente_est_parent_in={},personne_charge_effective_permanente_remplit_titre_I_in={})".format(self.date_courante_in,
-                                                                                                                                                                                                                                                                                                self.enfants_in, self.enfants_a_charge_in, self.ressources_menage_in,
-                                                                                                                                                                                                                                                                                                self.residence_in, self.montant_verse_in,
-                                                                                                                                                                                                                                                                                                self.personne_charge_effective_permanente_est_parent_in,
-                                                                                                                                                                                                                                                                                                self.personne_charge_effective_permanente_remplit_titre_I_in)
+        return "InterfaceAllocationsFamilialesIn(date_courante_in={},enfants_in={},enfants_a_charge_in={},ressources_menage_in={},residence_in={},montant_verse_in={},personne_charge_effective_permanente_est_parent_in={},personne_charge_effective_permanente_remplit_titre_I_in={},avait_enfant_a_charge_avant_1er_janvier_2012_in={})".format(self.date_courante_in,
+                                                                                                                                                                                                                                                                                                                                                   self.enfants_in, self.enfants_a_charge_in, self.ressources_menage_in,
+                                                                                                                                                                                                                                                                                                                                                   self.residence_in, self.montant_verse_in,
+                                                                                                                                                                                                                                                                                                                                                   self.personne_charge_effective_permanente_est_parent_in,
+                                                                                                                                                                                                                                                                                                                                                   self.personne_charge_effective_permanente_remplit_titre_I_in,
+                                                                                                                                                                                                                                                                                                                                                   self.avait_enfant_a_charge_avant_1er_janvier_2012_in)
 
 
 def smic(smic_in_1: SmicIn):
@@ -729,7 +766,7 @@ def smic(smic_in_1: SmicIn):
         local_var_6 = date_courante_2(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=42, start_column=12, end_line=42, end_column=25,
+                                             start_line=41, start_column=12, end_line=41, end_column=25,
                                              law_headings=["Prologue"]))
     date_courante_5 = log_variable_definition(["Smic", "date_courante"],
                                               local_var_6)
@@ -737,7 +774,7 @@ def smic(smic_in_1: SmicIn):
         local_var_8 = residence_3(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=43, start_column=12, end_line=43, end_column=21,
+                                             start_line=42, start_column=12, end_line=42, end_column=21,
                                              law_headings=["Prologue"]))
     residence_7 = log_variable_definition(["Smic", "résidence"],
                                           local_var_8)
@@ -747,123 +784,129 @@ def smic(smic_in_1: SmicIn):
         except EmptyError:
             def local_var_21(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=217, start_column=5,
-                                                     end_line=226, end_column=6, law_headings=["Article 1",
+                                                     start_line=219, start_column=5,
+                                                     end_line=228, end_column=6, law_headings=["Article 1",
                                                                                                "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance",
-                                                                                               "Montant du salaire minimum de croissance"]), ((date_courante_5 >=
-                                                                                                                                               date_of_numbers(2019, 1, 1)) and ((date_courante_5 <=
-                                                                                                                                                                                  date_of_numbers(2019, 12, 31)) and ((residence_7 ==
-                                                                                                                                                                                                                       Collectivite(Collectivite_Code.Metropole, Unit())) or
-                                                                                                                                                                                                                      ((residence_7 ==
-                                                                                                                                                                                                                        Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
-                                                                                                                                                                                                                       ((residence_7 == Collectivite(Collectivite_Code.Guyane,
-                                                                                                                                                                                                                                                     Unit())) or ((residence_7 ==
-                                                                                                                                                                                                                                                                   Collectivite(Collectivite_Code.Martinique, Unit())) or
-                                                                                                                                                                                                                                                                  ((residence_7 ==
-                                                                                                                                                                                                                                                                    Collectivite(Collectivite_Code.LaReunion, Unit())) or
-                                                                                                                                                                                                                                                                   ((residence_7 ==
-                                                                                                                                                                                                                                                                     Collectivite(Collectivite_Code.SaintBarthelemy,
-                                                                                                                                                                                                                                                                                  Unit())) or ((residence_7 ==
-                                                                                                                                                                                                                                                                                                Collectivite(Collectivite_Code.SaintMartin, Unit())) or
-                                                                                                                                                                                                                                                                                               (residence_7 ==
-                                                                                                                                                                                                                                                                                                Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
-                                                                                                                                                                                                                                                                                                             Unit())))))))))))):
+                                                                                               "Montant du salaire minimum de croissance",
+                                                                                               "Décrets divers"]), ((date_courante_5 >=
+                                                                                                                     date_of_numbers(2019, 1, 1)) and ((date_courante_5 <=
+                                                                                                                                                        date_of_numbers(2019, 12, 31)) and ((residence_7 ==
+                                                                                                                                                                                             Collectivite(Collectivite_Code.Metropole, Unit())) or
+                                                                                                                                                                                            ((residence_7 ==
+                                                                                                                                                                                              Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
+                                                                                                                                                                                             ((residence_7 == Collectivite(Collectivite_Code.Guyane,
+                                                                                                                                                                                                                           Unit())) or ((residence_7 ==
+                                                                                                                                                                                                                                         Collectivite(Collectivite_Code.Martinique, Unit())) or
+                                                                                                                                                                                                                                        ((residence_7 ==
+                                                                                                                                                                                                                                          Collectivite(Collectivite_Code.LaReunion, Unit())) or
+                                                                                                                                                                                                                                         ((residence_7 ==
+                                                                                                                                                                                                                                           Collectivite(Collectivite_Code.SaintBarthelemy,
+                                                                                                                                                                                                                                                        Unit())) or ((residence_7 ==
+                                                                                                                                                                                                                                                                      Collectivite(Collectivite_Code.SaintMartin, Unit())) or
+                                                                                                                                                                                                                                                                     (residence_7 ==
+                                                                                                                                                                                                                                                                      Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
+                                                                                                                                                                                                                                                                                   Unit())))))))))))):
                     return money_of_cents_string("1003")
                 else:
                     raise EmptyError
 
             def local_var_19(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=235, start_column=5,
-                                                     end_line=237, end_column=6, law_headings=["Article 1",
+                                                     start_line=237, start_column=5,
+                                                     end_line=239, end_column=6, law_headings=["Article 1",
                                                                                                "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance",
-                                                                                               "Montant du salaire minimum de croissance"]), ((date_courante_5 >=
-                                                                                                                                               date_of_numbers(2019, 1, 1)) and ((date_courante_5 <=
-                                                                                                                                                                                  date_of_numbers(2019, 12, 31)) and (residence_7 ==
-                                                                                                                                                                                                                      Collectivite(Collectivite_Code.Mayotte,
-                                                                                                                                                                                                                                   Unit()))))):
+                                                                                               "Montant du salaire minimum de croissance",
+                                                                                               "Décrets divers"]), ((date_courante_5 >=
+                                                                                                                     date_of_numbers(2019, 1, 1)) and ((date_courante_5 <=
+                                                                                                                                                        date_of_numbers(2019, 12, 31)) and (residence_7 ==
+                                                                                                                                                                                            Collectivite(Collectivite_Code.Mayotte,
+                                                                                                                                                                                                         Unit()))))):
                     return money_of_cents_string("757")
                 else:
                     raise EmptyError
 
             def local_var_17(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=256, start_column=5,
-                                                     end_line=265, end_column=6, law_headings=["Article 1",
+                                                     start_line=258, start_column=5,
+                                                     end_line=267, end_column=6, law_headings=["Article 1",
                                                                                                "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance",
-                                                                                               "Montant du salaire minimum de croissance"]), ((date_courante_5 >=
-                                                                                                                                               date_of_numbers(2020, 1, 1)) and ((date_courante_5 <=
-                                                                                                                                                                                  date_of_numbers(2020, 12, 31)) and ((residence_7 ==
-                                                                                                                                                                                                                       Collectivite(Collectivite_Code.Metropole, Unit())) or
-                                                                                                                                                                                                                      ((residence_7 ==
-                                                                                                                                                                                                                        Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
-                                                                                                                                                                                                                       ((residence_7 == Collectivite(Collectivite_Code.Guyane,
-                                                                                                                                                                                                                                                     Unit())) or ((residence_7 ==
-                                                                                                                                                                                                                                                                   Collectivite(Collectivite_Code.Martinique, Unit())) or
-                                                                                                                                                                                                                                                                  ((residence_7 ==
-                                                                                                                                                                                                                                                                    Collectivite(Collectivite_Code.LaReunion, Unit())) or
-                                                                                                                                                                                                                                                                   ((residence_7 ==
-                                                                                                                                                                                                                                                                     Collectivite(Collectivite_Code.SaintBarthelemy,
-                                                                                                                                                                                                                                                                                  Unit())) or ((residence_7 ==
-                                                                                                                                                                                                                                                                                                Collectivite(Collectivite_Code.SaintMartin, Unit())) or
-                                                                                                                                                                                                                                                                                               (residence_7 ==
-                                                                                                                                                                                                                                                                                                Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
-                                                                                                                                                                                                                                                                                                             Unit())))))))))))):
+                                                                                               "Montant du salaire minimum de croissance",
+                                                                                               "Décrets divers"]), ((date_courante_5 >=
+                                                                                                                     date_of_numbers(2020, 1, 1)) and ((date_courante_5 <=
+                                                                                                                                                        date_of_numbers(2020, 12, 31)) and ((residence_7 ==
+                                                                                                                                                                                             Collectivite(Collectivite_Code.Metropole, Unit())) or
+                                                                                                                                                                                            ((residence_7 ==
+                                                                                                                                                                                              Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
+                                                                                                                                                                                             ((residence_7 == Collectivite(Collectivite_Code.Guyane,
+                                                                                                                                                                                                                           Unit())) or ((residence_7 ==
+                                                                                                                                                                                                                                         Collectivite(Collectivite_Code.Martinique, Unit())) or
+                                                                                                                                                                                                                                        ((residence_7 ==
+                                                                                                                                                                                                                                          Collectivite(Collectivite_Code.LaReunion, Unit())) or
+                                                                                                                                                                                                                                         ((residence_7 ==
+                                                                                                                                                                                                                                           Collectivite(Collectivite_Code.SaintBarthelemy,
+                                                                                                                                                                                                                                                        Unit())) or ((residence_7 ==
+                                                                                                                                                                                                                                                                      Collectivite(Collectivite_Code.SaintMartin, Unit())) or
+                                                                                                                                                                                                                                                                     (residence_7 ==
+                                                                                                                                                                                                                                                                      Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
+                                                                                                                                                                                                                                                                                   Unit())))))))))))):
                     return money_of_cents_string("1015")
                 else:
                     raise EmptyError
 
             def local_var_15(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=274, start_column=5,
-                                                     end_line=276, end_column=6, law_headings=["Article 1",
+                                                     start_line=276, start_column=5,
+                                                     end_line=278, end_column=6, law_headings=["Article 1",
                                                                                                "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance",
-                                                                                               "Montant du salaire minimum de croissance"]), ((date_courante_5 >=
-                                                                                                                                               date_of_numbers(2020, 1, 1)) and ((date_courante_5 <=
-                                                                                                                                                                                  date_of_numbers(2020, 12, 31)) and (residence_7 ==
-                                                                                                                                                                                                                      Collectivite(Collectivite_Code.Mayotte,
-                                                                                                                                                                                                                                   Unit()))))):
+                                                                                               "Montant du salaire minimum de croissance",
+                                                                                               "Décrets divers"]), ((date_courante_5 >=
+                                                                                                                     date_of_numbers(2020, 1, 1)) and ((date_courante_5 <=
+                                                                                                                                                        date_of_numbers(2020, 12, 31)) and (residence_7 ==
+                                                                                                                                                                                            Collectivite(Collectivite_Code.Mayotte,
+                                                                                                                                                                                                         Unit()))))):
                     return money_of_cents_string("766")
                 else:
                     raise EmptyError
 
             def local_var_13(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=295, start_column=5,
-                                                     end_line=304, end_column=6, law_headings=["Article 1",
+                                                     start_line=297, start_column=5,
+                                                     end_line=306, end_column=6, law_headings=["Article 1",
                                                                                                "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance",
-                                                                                               "Montant du salaire minimum de croissance"]), ((date_courante_5 >=
-                                                                                                                                               date_of_numbers(2021, 1, 1)) and ((date_courante_5 <=
-                                                                                                                                                                                  date_of_numbers(2021, 12, 31)) and ((residence_7 ==
-                                                                                                                                                                                                                       Collectivite(Collectivite_Code.Metropole, Unit())) or
-                                                                                                                                                                                                                      ((residence_7 ==
-                                                                                                                                                                                                                        Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
-                                                                                                                                                                                                                       ((residence_7 == Collectivite(Collectivite_Code.Guyane,
-                                                                                                                                                                                                                                                     Unit())) or ((residence_7 ==
-                                                                                                                                                                                                                                                                   Collectivite(Collectivite_Code.Martinique, Unit())) or
-                                                                                                                                                                                                                                                                  ((residence_7 ==
-                                                                                                                                                                                                                                                                    Collectivite(Collectivite_Code.LaReunion, Unit())) or
-                                                                                                                                                                                                                                                                   ((residence_7 ==
-                                                                                                                                                                                                                                                                     Collectivite(Collectivite_Code.SaintBarthelemy,
-                                                                                                                                                                                                                                                                                  Unit())) or ((residence_7 ==
-                                                                                                                                                                                                                                                                                                Collectivite(Collectivite_Code.SaintMartin, Unit())) or
-                                                                                                                                                                                                                                                                                               (residence_7 ==
-                                                                                                                                                                                                                                                                                                Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
-                                                                                                                                                                                                                                                                                                             Unit())))))))))))):
+                                                                                               "Montant du salaire minimum de croissance",
+                                                                                               "Décrets divers"]), ((date_courante_5 >=
+                                                                                                                     date_of_numbers(2021, 1, 1)) and ((date_courante_5 <=
+                                                                                                                                                        date_of_numbers(2021, 12, 31)) and ((residence_7 ==
+                                                                                                                                                                                             Collectivite(Collectivite_Code.Metropole, Unit())) or
+                                                                                                                                                                                            ((residence_7 ==
+                                                                                                                                                                                              Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
+                                                                                                                                                                                             ((residence_7 == Collectivite(Collectivite_Code.Guyane,
+                                                                                                                                                                                                                           Unit())) or ((residence_7 ==
+                                                                                                                                                                                                                                         Collectivite(Collectivite_Code.Martinique, Unit())) or
+                                                                                                                                                                                                                                        ((residence_7 ==
+                                                                                                                                                                                                                                          Collectivite(Collectivite_Code.LaReunion, Unit())) or
+                                                                                                                                                                                                                                         ((residence_7 ==
+                                                                                                                                                                                                                                           Collectivite(Collectivite_Code.SaintBarthelemy,
+                                                                                                                                                                                                                                                        Unit())) or ((residence_7 ==
+                                                                                                                                                                                                                                                                      Collectivite(Collectivite_Code.SaintMartin, Unit())) or
+                                                                                                                                                                                                                                                                     (residence_7 ==
+                                                                                                                                                                                                                                                                      Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
+                                                                                                                                                                                                                                                                                   Unit())))))))))))):
                     return money_of_cents_string("1025")
                 else:
                     raise EmptyError
 
             def local_var_11(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=313, start_column=5,
-                                                     end_line=315, end_column=6, law_headings=["Article 1",
+                                                     start_line=315, start_column=5,
+                                                     end_line=317, end_column=6, law_headings=["Article 1",
                                                                                                "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance",
-                                                                                               "Montant du salaire minimum de croissance"]), ((date_courante_5 >=
-                                                                                                                                               date_of_numbers(2021, 1, 1)) and ((date_courante_5 <=
-                                                                                                                                                                                  date_of_numbers(2021, 12, 31)) and (residence_7 ==
-                                                                                                                                                                                                                      Collectivite(Collectivite_Code.Mayotte,
-                                                                                                                                                                                                                                   Unit()))))):
+                                                                                               "Montant du salaire minimum de croissance",
+                                                                                               "Décrets divers"]), ((date_courante_5 >=
+                                                                                                                     date_of_numbers(2021, 1, 1)) and ((date_courante_5 <=
+                                                                                                                                                        date_of_numbers(2021, 12, 31)) and (residence_7 ==
+                                                                                                                                                                                            Collectivite(Collectivite_Code.Mayotte,
+                                                                                                                                                                                                         Unit()))))):
                     return money_of_cents_string("774")
                 else:
                     raise EmptyError
@@ -880,7 +923,7 @@ def smic(smic_in_1: SmicIn):
                                           local_var_23, local_var_25)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=44, start_column=12, end_line=44, end_column=24,
+                                             start_line=43, start_column=12, end_line=43, end_column=24,
                                              law_headings=["Prologue"]))
     brut_horaire_9 = log_variable_definition(["Smic", "brut_horaire"],
                                              local_var_10)
@@ -897,7 +940,7 @@ def allocation_familiales_avril2008(allocation_familiales_avril2008_in_27: Alloc
             local_var_30 = integer_of_string("16")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=82, start_column=12, end_line=82, end_column=39,
+                                             start_line=81, start_column=12, end_line=81, end_column=39,
                                              law_headings=["Prologue"]))
     age_minimum_alinea_1_l521_3_29 = log_variable_definition(["AllocationFamilialesAvril2008",
                                                               "âge_minimum_alinéa_1_l521_3"], local_var_30)
@@ -911,7 +954,7 @@ def enfant_le_plus_age(enfant_le_plus_age_in_31: EnfantLePlusAgeIn):
         local_var_35 = enfants_32(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=85, start_column=12, end_line=85, end_column=19,
+                                             start_line=84, start_column=12, end_line=84, end_column=19,
                                              law_headings=["Prologue"]))
     enfants_34 = log_variable_definition(["EnfantLePlusÂgé", "enfants"],
                                          local_var_35)
@@ -942,7 +985,7 @@ def enfant_le_plus_age(enfant_le_plus_age_in_31: EnfantLePlusAgeIn):
                                           enfants_34)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=86, start_column=12, end_line=86, end_column=23,
+                                             start_line=85, start_column=12, end_line=85, end_column=23,
                                              law_headings=["Prologue"]))
     le_plus_age_36 = log_variable_definition(["EnfantLePlusÂgé",
                                               "le_plus_âgé"], local_var_37)
@@ -967,7 +1010,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
             local_var_55 = integer_of_string("20")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=69, start_column=12, end_line=69, end_column=24,
+                                             start_line=68, start_column=12, end_line=68, end_column=24,
                                              law_headings=["Prologue"]))
     age_l512_3_2_54 = log_variable_definition(["PrestationsFamiliales",
                                                "âge_l512_3_2"], local_var_55)
@@ -975,7 +1018,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
         local_var_57 = date_courante_50(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=71, start_column=12, end_line=71, end_column=25,
+                                             start_line=70, start_column=12, end_line=70, end_column=25,
                                              law_headings=["Prologue"]))
     date_courante_56 = log_variable_definition(["PrestationsFamiliales",
                                                 "date_courante"], local_var_57)
@@ -983,7 +1026,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
         local_var_59 = prestation_courante_51(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=72, start_column=12, end_line=72, end_column=31,
+                                             start_line=71, start_column=12, end_line=71, end_column=31,
                                              law_headings=["Prologue"]))
     prestation_courante_58 = log_variable_definition(["PrestationsFamiliales",
                                                       "prestation_courante"], local_var_59)
@@ -991,7 +1034,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
         local_var_61 = residence_52(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=73, start_column=12, end_line=73, end_column=21,
+                                             start_line=72, start_column=12, end_line=72, end_column=21,
                                              law_headings=["Prologue"]))
     residence_60 = log_variable_definition(["PrestationsFamiliales",
                                             "résidence"], local_var_61)
@@ -1001,36 +1044,39 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
         except EmptyError:
             def local_var_68(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=22, start_column=5,
-                                                     end_line=23, end_column=34,
+                                                     start_line=24, start_column=5,
+                                                     end_line=25, end_column=34,
                                                      law_headings=["Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole",
-                                                                   "Montant de la base mensuelle des allocations familiales"]), ((date_courante_56 >=
-                                                                                                                                  date_of_numbers(2019, 4, 1)) and (date_courante_56 <
-                                                                                                                                                                    date_of_numbers(2020, 4, 1)))):
+                                                                   "Montant de la base mensuelle des allocations familiales",
+                                                                   "Décrets divers"]), ((date_courante_56 >=
+                                                                                         date_of_numbers(2019, 4, 1)) and (date_courante_56 <
+                                                                                                                           date_of_numbers(2020, 4, 1)))):
                     return money_of_cents_string("41316")
                 else:
                     raise EmptyError
 
             def local_var_66(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=42, start_column=5,
-                                                     end_line=43, end_column=34,
+                                                     start_line=44, start_column=5,
+                                                     end_line=45, end_column=34,
                                                      law_headings=["Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte",
-                                                                   "Montant de la base mensuelle des allocations familiales"]), ((date_courante_56 >=
-                                                                                                                                  date_of_numbers(2020, 4, 1)) and (date_courante_56 <
-                                                                                                                                                                    date_of_numbers(2021, 4, 1)))):
+                                                                   "Montant de la base mensuelle des allocations familiales",
+                                                                   "Décrets divers"]), ((date_courante_56 >=
+                                                                                         date_of_numbers(2020, 4, 1)) and (date_courante_56 <
+                                                                                                                           date_of_numbers(2021, 4, 1)))):
                     return money_of_cents_string("41404")
                 else:
                     raise EmptyError
 
             def local_var_64(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=58, start_column=5,
-                                                     end_line=59, end_column=34,
+                                                     start_line=60, start_column=5,
+                                                     end_line=61, end_column=34,
                                                      law_headings=["Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte",
-                                                                   "Montant de la base mensuelle des allocations familiales"]), ((date_courante_56 >=
-                                                                                                                                  date_of_numbers(2021, 4, 1)) and (date_courante_56 <
-                                                                                                                                                                    date_of_numbers(2022, 4, 1)))):
+                                                                   "Montant de la base mensuelle des allocations familiales",
+                                                                   "Décrets divers"]), ((date_courante_56 >=
+                                                                                         date_of_numbers(2021, 4, 1)) and (date_courante_56 <
+                                                                                                                           date_of_numbers(2022, 4, 1)))):
                     return money_of_cents_string("41481")
                 else:
                     raise EmptyError
@@ -1046,7 +1092,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
                                            local_var_68], local_var_70, local_var_72)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=75, start_column=12, end_line=75, end_column=26,
+                                             start_line=74, start_column=12, end_line=74, end_column=26,
                                              law_headings=["Prologue"]))
     base_mensuelle_62 = log_variable_definition(["PrestationsFamiliales",
                                                  "base_mensuelle"], local_var_63)
@@ -1103,7 +1149,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
                 local_var_87 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=70, start_column=12, end_line=70, end_column=35,
+                                             start_line=69, start_column=12, end_line=69, end_column=35,
                                              law_headings=["Prologue"]))
     regime_outre_mer_l751_1_86 = log_variable_definition(["PrestationsFamiliales",
                                                           "régime_outre_mer_l751_1"], local_var_87)
@@ -1131,7 +1177,7 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
                                  decimal_of_string("0.55")) * decimal_of_string("169."))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=68, start_column=12, end_line=68, end_column=28,
+                                             start_line=67, start_column=12, end_line=67, end_column=28,
                                              law_headings=["Prologue"]))
     plafond_l512_3_2_88 = log_variable_definition(["PrestationsFamiliales",
                                                    "plafond_l512_3_2"], local_var_89)
@@ -1142,35 +1188,35 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
             def local_var_91(param_92: Enfant):
                 try:
                     try:
-                        match_arg_658 = param_92.obligation_scolaire
-                        if match_arg_658.code == SituationObligationScolaire_Code.Avant:
-                            _ = match_arg_658.value
+                        match_arg_775 = param_92.obligation_scolaire
+                        if match_arg_775.code == SituationObligationScolaire_Code.Avant:
+                            _ = match_arg_775.value
                             local_var_97 = False
-                        elif match_arg_658.code == SituationObligationScolaire_Code.Pendant:
-                            _ = match_arg_658.value
+                        elif match_arg_775.code == SituationObligationScolaire_Code.Pendant:
+                            _ = match_arg_775.value
                             local_var_97 = True
-                        elif match_arg_658.code == SituationObligationScolaire_Code.Apres:
-                            _ = match_arg_658.value
+                        elif match_arg_775.code == SituationObligationScolaire_Code.Apres:
+                            _ = match_arg_775.value
                             local_var_97 = False
-                        match_arg_659 = param_92.obligation_scolaire
-                        if match_arg_659.code == SituationObligationScolaire_Code.Avant:
-                            _ = match_arg_659.value
+                        match_arg_776 = param_92.obligation_scolaire
+                        if match_arg_776.code == SituationObligationScolaire_Code.Avant:
+                            _ = match_arg_776.value
                             local_var_101 = False
-                        elif match_arg_659.code == SituationObligationScolaire_Code.Pendant:
-                            _ = match_arg_659.value
+                        elif match_arg_776.code == SituationObligationScolaire_Code.Pendant:
+                            _ = match_arg_776.value
                             local_var_101 = False
-                        elif match_arg_659.code == SituationObligationScolaire_Code.Apres:
-                            _ = match_arg_659.value
+                        elif match_arg_776.code == SituationObligationScolaire_Code.Apres:
+                            _ = match_arg_776.value
                             local_var_101 = True
-                        match_arg_660 = param_92.obligation_scolaire
-                        if match_arg_660.code == SituationObligationScolaire_Code.Avant:
-                            _ = match_arg_660.value
+                        match_arg_777 = param_92.obligation_scolaire
+                        if match_arg_777.code == SituationObligationScolaire_Code.Avant:
+                            _ = match_arg_777.value
                             local_var_93 = True
-                        elif match_arg_660.code == SituationObligationScolaire_Code.Pendant:
-                            _ = match_arg_660.value
+                        elif match_arg_777.code == SituationObligationScolaire_Code.Pendant:
+                            _ = match_arg_777.value
                             local_var_93 = False
-                        elif match_arg_660.code == SituationObligationScolaire_Code.Apres:
-                            _ = match_arg_660.value
+                        elif match_arg_777.code == SituationObligationScolaire_Code.Apres:
+                            _ = match_arg_777.value
                             local_var_93 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=68, start_column=5,
@@ -1191,11 +1237,11 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
                         return False
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=67, start_column=12, end_line=67,
+                                                         start_line=66, start_column=12, end_line=66,
                                                          end_column=31, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=67, start_column=12, end_line=67, end_column=31,
+                                             start_line=66, start_column=12, end_line=66, end_column=31,
                                              law_headings=["Prologue"]))
     conditions_hors_age_90 = log_variable_definition(["PrestationsFamiliales",
                                                       "conditions_hors_âge"], local_var_91)
@@ -1206,25 +1252,25 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
             def local_var_106(param_107: Enfant):
                 try:
                     def local_var_114(_: Any):
-                        match_arg_661 = param_107.obligation_scolaire
-                        if match_arg_661.code == SituationObligationScolaire_Code.Avant:
-                            _ = match_arg_661.value
+                        match_arg_778 = param_107.obligation_scolaire
+                        if match_arg_778.code == SituationObligationScolaire_Code.Avant:
+                            _ = match_arg_778.value
                             local_var_120 = False
-                        elif match_arg_661.code == SituationObligationScolaire_Code.Pendant:
-                            _ = match_arg_661.value
+                        elif match_arg_778.code == SituationObligationScolaire_Code.Pendant:
+                            _ = match_arg_778.value
                             local_var_120 = True
-                        elif match_arg_661.code == SituationObligationScolaire_Code.Apres:
-                            _ = match_arg_661.value
+                        elif match_arg_778.code == SituationObligationScolaire_Code.Apres:
+                            _ = match_arg_778.value
                             local_var_120 = False
-                        match_arg_662 = param_107.obligation_scolaire
-                        if match_arg_662.code == SituationObligationScolaire_Code.Avant:
-                            _ = match_arg_662.value
+                        match_arg_779 = param_107.obligation_scolaire
+                        if match_arg_779.code == SituationObligationScolaire_Code.Avant:
+                            _ = match_arg_779.value
                             local_var_116 = True
-                        elif match_arg_662.code == SituationObligationScolaire_Code.Pendant:
-                            _ = match_arg_662.value
+                        elif match_arg_779.code == SituationObligationScolaire_Code.Pendant:
+                            _ = match_arg_779.value
                             local_var_116 = False
-                        elif match_arg_662.code == SituationObligationScolaire_Code.Apres:
-                            _ = match_arg_662.value
+                        elif match_arg_779.code == SituationObligationScolaire_Code.Apres:
+                            _ = match_arg_779.value
                             local_var_116 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=49, start_column=5,
@@ -1241,15 +1287,15 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
                             raise EmptyError
 
                     def local_var_108(_: Any):
-                        match_arg_663 = param_107.obligation_scolaire
-                        if match_arg_663.code == SituationObligationScolaire_Code.Avant:
-                            _ = match_arg_663.value
+                        match_arg_780 = param_107.obligation_scolaire
+                        if match_arg_780.code == SituationObligationScolaire_Code.Avant:
+                            _ = match_arg_780.value
                             local_var_110 = False
-                        elif match_arg_663.code == SituationObligationScolaire_Code.Pendant:
-                            _ = match_arg_663.value
+                        elif match_arg_780.code == SituationObligationScolaire_Code.Pendant:
+                            _ = match_arg_780.value
                             local_var_110 = False
-                        elif match_arg_663.code == SituationObligationScolaire_Code.Apres:
-                            _ = match_arg_663.value
+                        elif match_arg_780.code == SituationObligationScolaire_Code.Apres:
+                            _ = match_arg_780.value
                             local_var_110 = True
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=60, start_column=5,
@@ -1278,11 +1324,11 @@ def prestations_familiales(prestations_familiales_in_44: PrestationsFamilialesIn
                                           local_var_124, local_var_126)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=66, start_column=12, end_line=66,
+                                                         start_line=65, start_column=12, end_line=65,
                                                          end_column=24, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=66, start_column=12, end_line=66, end_column=24,
+                                             start_line=65, start_column=12, end_line=65, end_column=24,
                                              law_headings=["Prologue"]))
     droit_ouvert_105 = log_variable_definition(["PrestationsFamiliales",
                                                 "droit_ouvert"], local_var_106)
@@ -1317,105 +1363,110 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
     nombre_total_enfants_146 = allocations_familiales_in_128.nombre_total_enfants_in
     montant_avec_garde_alternee_base_147 = allocations_familiales_in_128.montant_avec_garde_alternee_base_in
     montant_verse_base_148 = allocations_familiales_in_128.montant_verse_base_in
-    droit_ouvert_forfaitaire_149 = allocations_familiales_in_128.droit_ouvert_forfaitaire_in
-    montant_verse_forfaitaire_par_enfant_150 = allocations_familiales_in_128.montant_verse_forfaitaire_par_enfant_in
-    montant_verse_forfaitaire_151 = allocations_familiales_in_128.montant_verse_forfaitaire_in
-    droit_ouvert_majoration_152 = allocations_familiales_in_128.droit_ouvert_majoration_in
-    montant_initial_metropole_majoration_153 = allocations_familiales_in_128.montant_initial_metropole_majoration_in
-    montant_initial_majoration_154 = allocations_familiales_in_128.montant_initial_majoration_in
-    montant_avec_garde_alternee_majoration_155 = allocations_familiales_in_128.montant_avec_garde_alternee_majoration_in
-    montant_verse_majoration_156 = allocations_familiales_in_128.montant_verse_majoration_in
-    droit_ouvert_complement_157 = allocations_familiales_in_128.droit_ouvert_complement_in
-    montant_base_complement_pour_base_et_majoration_158 = allocations_familiales_in_128.montant_base_complement_pour_base_et_majoration_in
-    complement_degressif_159 = allocations_familiales_in_128.complement_degressif_in
-    montant_verse_complement_pour_base_et_majoration_160 = allocations_familiales_in_128.montant_verse_complement_pour_base_et_majoration_in
-    montant_verse_complement_pour_forfaitaire_161 = allocations_familiales_in_128.montant_verse_complement_pour_forfaitaire_in
-    nombre_enfants_l521_1_162 = allocations_familiales_in_128.nombre_enfants_l521_1_in
-    age_minimum_alinea_1_l521_3_163 = allocations_familiales_in_128.age_minimum_alinea_1_l521_3_in
-    nombre_enfants_alinea_2_l521_3_164 = allocations_familiales_in_128.nombre_enfants_alinea_2_l521_3_in
-    est_enfant_le_plus_age_165 = allocations_familiales_in_128.est_enfant_le_plus_age_in
-    plafond__i_d521_3_166 = allocations_familiales_in_128.plafond_I_d521_3_in
-    plafond__i_i_d521_3_167 = allocations_familiales_in_128.plafond_II_d521_3_in
+    avait_enfant_a_charge_avant_1er_janvier_2012_149 = allocations_familiales_in_128.avait_enfant_a_charge_avant_1er_janvier_2012_in
+    montant_initial_base_premier_enfant_mayotte_150 = allocations_familiales_in_128.montant_initial_base_premier_enfant_mayotte_in
+    montant_initial_base_deuxieme_enfant_mayotte_151 = allocations_familiales_in_128.montant_initial_base_deuxieme_enfant_mayotte_in
+    montant_initial_base_troisieme_enfant_mayotte_152 = allocations_familiales_in_128.montant_initial_base_troisieme_enfant_mayotte_in
+    montant_initial_base_quatrieme_enfant_et_plus_mayotte_153 = allocations_familiales_in_128.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in
+    droit_ouvert_forfaitaire_154 = allocations_familiales_in_128.droit_ouvert_forfaitaire_in
+    montant_verse_forfaitaire_par_enfant_155 = allocations_familiales_in_128.montant_verse_forfaitaire_par_enfant_in
+    montant_verse_forfaitaire_156 = allocations_familiales_in_128.montant_verse_forfaitaire_in
+    droit_ouvert_majoration_157 = allocations_familiales_in_128.droit_ouvert_majoration_in
+    montant_initial_metropole_majoration_158 = allocations_familiales_in_128.montant_initial_metropole_majoration_in
+    montant_initial_majoration_159 = allocations_familiales_in_128.montant_initial_majoration_in
+    montant_avec_garde_alternee_majoration_160 = allocations_familiales_in_128.montant_avec_garde_alternee_majoration_in
+    montant_verse_majoration_161 = allocations_familiales_in_128.montant_verse_majoration_in
+    droit_ouvert_complement_162 = allocations_familiales_in_128.droit_ouvert_complement_in
+    montant_base_complement_pour_base_et_majoration_163 = allocations_familiales_in_128.montant_base_complement_pour_base_et_majoration_in
+    complement_degressif_164 = allocations_familiales_in_128.complement_degressif_in
+    montant_verse_complement_pour_base_et_majoration_165 = allocations_familiales_in_128.montant_verse_complement_pour_base_et_majoration_in
+    montant_verse_complement_pour_forfaitaire_166 = allocations_familiales_in_128.montant_verse_complement_pour_forfaitaire_in
+    nombre_enfants_l521_1_167 = allocations_familiales_in_128.nombre_enfants_l521_1_in
+    age_minimum_alinea_1_l521_3_168 = allocations_familiales_in_128.age_minimum_alinea_1_l521_3_in
+    nombre_enfants_alinea_2_l521_3_169 = allocations_familiales_in_128.nombre_enfants_alinea_2_l521_3_in
+    est_enfant_le_plus_age_170 = allocations_familiales_in_128.est_enfant_le_plus_age_in
+    plafond__i_d521_3_171 = allocations_familiales_in_128.plafond_I_d521_3_in
+    plafond__i_i_d521_3_172 = allocations_familiales_in_128.plafond_II_d521_3_in
     try:
         try:
-            local_var_169 = personne_charge_effective_permanente_est_parent_129(
+            local_var_174 = personne_charge_effective_permanente_est_parent_129(
                 Unit())
         except EmptyError:
-            local_var_169 = False
+            local_var_174 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=91, start_column=12, end_line=91, end_column=59,
+                                             start_line=90, start_column=12, end_line=90, end_column=59,
                                              law_headings=["Prologue"]))
-    personne_charge_effective_permanente_est_parent_168 = log_variable_definition(["AllocationsFamiliales",
-                                                                                   "personne_charge_effective_permanente_est_parent"], local_var_169)
+    personne_charge_effective_permanente_est_parent_173 = log_variable_definition(["AllocationsFamiliales",
+                                                                                   "personne_charge_effective_permanente_est_parent"], local_var_174)
     try:
         try:
-            local_var_171 = personne_charge_effective_permanente_remplit_titre__i_130(
+            local_var_176 = personne_charge_effective_permanente_remplit_titre__i_130(
                 Unit())
         except EmptyError:
-            local_var_171 = False
+            local_var_176 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=92, start_column=12, end_line=92, end_column=64,
+                                             start_line=91, start_column=12, end_line=91, end_column=64,
                                              law_headings=["Prologue"]))
-    personne_charge_effective_permanente_remplit_titre__i_170 = log_variable_definition(["AllocationsFamiliales",
+    personne_charge_effective_permanente_remplit_titre__i_175 = log_variable_definition(["AllocationsFamiliales",
                                                                                          "personne_charge_effective_permanente_remplit_titre_I"],
-                                                                                        local_var_171)
+                                                                                        local_var_176)
     try:
-        local_var_173 = ressources_menage_131(Unit())
+        local_var_178 = ressources_menage_131(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=93, start_column=12, end_line=93, end_column=29,
+                                             start_line=92, start_column=12, end_line=92, end_column=29,
                                              law_headings=["Prologue"]))
-    ressources_menage_172 = log_variable_definition(["AllocationsFamiliales",
-                                                     "ressources_ménage"], local_var_173)
+    ressources_menage_177 = log_variable_definition(["AllocationsFamiliales",
+                                                     "ressources_ménage"], local_var_178)
     try:
-        local_var_175 = residence_132(Unit())
+        local_var_180 = residence_132(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=94, start_column=12, end_line=94, end_column=21,
+                                             start_line=93, start_column=12, end_line=93, end_column=21,
                                              law_headings=["Prologue"]))
-    residence_174 = log_variable_definition(["AllocationsFamiliales",
-                                             "résidence"], local_var_175)
+    residence_179 = log_variable_definition(["AllocationsFamiliales",
+                                             "résidence"], local_var_180)
     try:
-        local_var_177 = date_courante_133(Unit())
+        local_var_182 = date_courante_133(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=97, start_column=12, end_line=97, end_column=25,
+                                             start_line=96, start_column=12, end_line=96, end_column=25,
                                              law_headings=["Prologue"]))
-    date_courante_176 = log_variable_definition(["AllocationsFamiliales",
-                                                 "date_courante"], local_var_177)
+    date_courante_181 = log_variable_definition(["AllocationsFamiliales",
+                                                 "date_courante"], local_var_182)
     try:
-        local_var_179 = enfants_a_charge_134(Unit())
+        local_var_184 = enfants_a_charge_134(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=100, start_column=12, end_line=100, end_column=28,
+                                             start_line=99, start_column=12, end_line=99, end_column=28,
                                              law_headings=["Prologue"]))
-    enfants_a_charge_178 = log_variable_definition(["AllocationsFamiliales",
-                                                    "enfants_à_charge"], local_var_179)
+    enfants_a_charge_183 = log_variable_definition(["AllocationsFamiliales",
+                                                    "enfants_à_charge"], local_var_184)
     try:
         try:
-            local_var_181 = prise_en_compte_136(Unit())
+            local_var_186 = prise_en_compte_136(Unit())
         except EmptyError:
-            def local_var_181(param_182: Enfant):
+            def local_var_186(param_187: Enfant):
                 try:
-                    def local_var_215(_: Any):
-                        match_arg_664 = param_182.prise_en_charge
-                        if match_arg_664.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_664.value
-                            local_var_217 = False
-                        elif match_arg_664.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_664.value
-                            local_var_217 = False
-                        elif match_arg_664.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_664.value
-                            local_var_217 = True
-                        elif match_arg_664.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_664.value
-                            local_var_217 = False
-                        elif match_arg_664.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_664.value
-                            local_var_217 = False
+                    def local_var_220(_: Any):
+                        match_arg_781 = param_187.prise_en_charge
+                        if match_arg_781.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_781.value
+                            local_var_222 = False
+                        elif match_arg_781.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_781.value
+                            local_var_222 = False
+                        elif match_arg_781.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_781.value
+                            local_var_222 = True
+                        elif match_arg_781.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_781.value
+                            local_var_222 = False
+                        elif match_arg_781.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_781.value
+                            local_var_222 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=184, start_column=5,
                                                              end_line=184, end_column=60,
@@ -1424,29 +1475,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_217):
+                                                                           "Code de la sécurité sociale"]), local_var_222):
                             return PriseEnCompte(PriseEnCompte_Code.Complete,
                                                  Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_207(_: Any):
-                        match_arg_665 = param_182.prise_en_charge
-                        if match_arg_665.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_665.value
-                            local_var_209 = False
-                        elif match_arg_665.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_665.value
-                            local_var_209 = True
-                        elif match_arg_665.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_665.value
-                            local_var_209 = False
-                        elif match_arg_665.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_665.value
-                            local_var_209 = False
-                        elif match_arg_665.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_665.value
-                            local_var_209 = False
+                    def local_var_212(_: Any):
+                        match_arg_782 = param_187.prise_en_charge
+                        if match_arg_782.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_782.value
+                            local_var_214 = False
+                        elif match_arg_782.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_782.value
+                            local_var_214 = True
+                        elif match_arg_782.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_782.value
+                            local_var_214 = False
+                        elif match_arg_782.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_782.value
+                            local_var_214 = False
+                        elif match_arg_782.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_782.value
+                            local_var_214 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=204, start_column=5,
                                                              end_line=204, end_column=69,
@@ -1455,29 +1506,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_209):
+                                                                           "Code de la sécurité sociale"]), local_var_214):
                             return PriseEnCompte(PriseEnCompte_Code.Complete,
                                                  Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_199(_: Any):
-                        match_arg_666 = param_182.prise_en_charge
-                        if match_arg_666.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_666.value
-                            local_var_201 = True
-                        elif match_arg_666.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_666.value
-                            local_var_201 = False
-                        elif match_arg_666.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_666.value
-                            local_var_201 = False
-                        elif match_arg_666.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_666.value
-                            local_var_201 = False
-                        elif match_arg_666.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_666.value
-                            local_var_201 = False
+                    def local_var_204(_: Any):
+                        match_arg_783 = param_187.prise_en_charge
+                        if match_arg_783.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_783.value
+                            local_var_206 = True
+                        elif match_arg_783.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_783.value
+                            local_var_206 = False
+                        elif match_arg_783.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_783.value
+                            local_var_206 = False
+                        elif match_arg_783.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_783.value
+                            local_var_206 = False
+                        elif match_arg_783.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_783.value
+                            local_var_206 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=214, start_column=5,
                                                              end_line=214, end_column=70,
@@ -1486,29 +1537,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_201):
+                                                                           "Code de la sécurité sociale"]), local_var_206):
                             return PriseEnCompte(PriseEnCompte_Code.Partagee,
                                                  Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_191(_: Any):
-                        match_arg_667 = param_182.prise_en_charge
-                        if match_arg_667.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_667.value
-                            local_var_193 = False
-                        elif match_arg_667.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_667.value
-                            local_var_193 = False
-                        elif match_arg_667.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_667.value
-                            local_var_193 = False
-                        elif match_arg_667.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_667.value
-                            local_var_193 = False
-                        elif match_arg_667.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_667.value
-                            local_var_193 = True
+                    def local_var_196(_: Any):
+                        match_arg_784 = param_187.prise_en_charge
+                        if match_arg_784.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_784.value
+                            local_var_198 = False
+                        elif match_arg_784.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_784.value
+                            local_var_198 = False
+                        elif match_arg_784.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_784.value
+                            local_var_198 = False
+                        elif match_arg_784.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_784.value
+                            local_var_198 = False
+                        elif match_arg_784.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_784.value
+                            local_var_198 = True
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=253, start_column=5,
                                                              end_line=254, end_column=56,
@@ -1517,29 +1568,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_193):
+                                                                           "Code de la sécurité sociale"]), local_var_198):
                             return PriseEnCompte(PriseEnCompte_Code.Zero,
                                                  Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_183(_: Any):
-                        match_arg_668 = param_182.prise_en_charge
-                        if match_arg_668.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_668.value
-                            local_var_185 = False
-                        elif match_arg_668.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_668.value
-                            local_var_185 = False
-                        elif match_arg_668.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_668.value
-                            local_var_185 = False
-                        elif match_arg_668.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_668.value
-                            local_var_185 = True
-                        elif match_arg_668.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_668.value
-                            local_var_185 = False
+                    def local_var_188(_: Any):
+                        match_arg_785 = param_187.prise_en_charge
+                        if match_arg_785.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_785.value
+                            local_var_190 = False
+                        elif match_arg_785.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_785.value
+                            local_var_190 = False
+                        elif match_arg_785.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_785.value
+                            local_var_190 = False
+                        elif match_arg_785.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_785.value
+                            local_var_190 = True
+                        elif match_arg_785.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_785.value
+                            local_var_190 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=263, start_column=5,
                                                              end_line=264, end_column=48,
@@ -1548,56 +1599,56 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_185):
+                                                                           "Code de la sécurité sociale"]), local_var_190):
                             return PriseEnCompte(PriseEnCompte_Code.Complete,
                                                  Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_223(_: Any):
+                    def local_var_228(_: Any):
                         return log_decision_taken(SourcePosition(filename="",
                                                                  start_line=0, start_column=1,
                                                                  end_line=0, end_column=1,
                                                                  law_headings=[]), False)
 
-                    def local_var_225(_: Any):
+                    def local_var_230(_: Any):
                         raise EmptyError
-                    return handle_default([local_var_183, local_var_191,
-                                           local_var_199, local_var_207, local_var_215],
-                                          local_var_223, local_var_225)
+                    return handle_default([local_var_188, local_var_196,
+                                           local_var_204, local_var_212, local_var_220],
+                                          local_var_228, local_var_230)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=103, start_column=12, end_line=103,
+                                                         start_line=102, start_column=12, end_line=102,
                                                          end_column=27, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=103, start_column=12, end_line=103, end_column=27,
+                                             start_line=102, start_column=12, end_line=102, end_column=27,
                                              law_headings=["Prologue"]))
-    prise_en_compte_180 = log_variable_definition(["AllocationsFamiliales",
-                                                   "prise_en_compte"], local_var_181)
+    prise_en_compte_185 = log_variable_definition(["AllocationsFamiliales",
+                                                   "prise_en_compte"], local_var_186)
     try:
         try:
-            local_var_228 = versement_137(Unit())
+            local_var_233 = versement_137(Unit())
         except EmptyError:
-            def local_var_228(param_229: Enfant):
+            def local_var_233(param_234: Enfant):
                 try:
-                    def local_var_262(_: Any):
-                        match_arg_669 = param_229.prise_en_charge
-                        if match_arg_669.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_669.value
-                            local_var_264 = False
-                        elif match_arg_669.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_669.value
-                            local_var_264 = False
-                        elif match_arg_669.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_669.value
-                            local_var_264 = True
-                        elif match_arg_669.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_669.value
-                            local_var_264 = False
-                        elif match_arg_669.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_669.value
-                            local_var_264 = False
+                    def local_var_267(_: Any):
+                        match_arg_786 = param_234.prise_en_charge
+                        if match_arg_786.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_786.value
+                            local_var_269 = False
+                        elif match_arg_786.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_786.value
+                            local_var_269 = False
+                        elif match_arg_786.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_786.value
+                            local_var_269 = True
+                        elif match_arg_786.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_786.value
+                            local_var_269 = False
+                        elif match_arg_786.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_786.value
+                            local_var_269 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=188, start_column=5,
                                                              end_line=188, end_column=60,
@@ -1606,29 +1657,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_264):
+                                                                           "Code de la sécurité sociale"]), local_var_269):
                             return VersementAllocations(VersementAllocations_Code.Normal,
                                                         Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_254(_: Any):
-                        match_arg_670 = param_229.prise_en_charge
-                        if match_arg_670.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_670.value
-                            local_var_256 = False
-                        elif match_arg_670.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_670.value
-                            local_var_256 = True
-                        elif match_arg_670.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_670.value
-                            local_var_256 = False
-                        elif match_arg_670.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_670.value
-                            local_var_256 = False
-                        elif match_arg_670.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_670.value
-                            local_var_256 = False
+                    def local_var_259(_: Any):
+                        match_arg_787 = param_234.prise_en_charge
+                        if match_arg_787.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_787.value
+                            local_var_261 = False
+                        elif match_arg_787.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_787.value
+                            local_var_261 = True
+                        elif match_arg_787.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_787.value
+                            local_var_261 = False
+                        elif match_arg_787.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_787.value
+                            local_var_261 = False
+                        elif match_arg_787.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_787.value
+                            local_var_261 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=208, start_column=5,
                                                              end_line=208, end_column=69,
@@ -1637,29 +1688,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_256):
+                                                                           "Code de la sécurité sociale"]), local_var_261):
                             return VersementAllocations(VersementAllocations_Code.Normal,
                                                         Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_246(_: Any):
-                        match_arg_671 = param_229.prise_en_charge
-                        if match_arg_671.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_671.value
-                            local_var_248 = True
-                        elif match_arg_671.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_671.value
-                            local_var_248 = False
-                        elif match_arg_671.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_671.value
-                            local_var_248 = False
-                        elif match_arg_671.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_671.value
-                            local_var_248 = False
-                        elif match_arg_671.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_671.value
-                            local_var_248 = False
+                    def local_var_251(_: Any):
+                        match_arg_788 = param_234.prise_en_charge
+                        if match_arg_788.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_788.value
+                            local_var_253 = True
+                        elif match_arg_788.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_788.value
+                            local_var_253 = False
+                        elif match_arg_788.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_788.value
+                            local_var_253 = False
+                        elif match_arg_788.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_788.value
+                            local_var_253 = False
+                        elif match_arg_788.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_788.value
+                            local_var_253 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=218, start_column=5,
                                                              end_line=218, end_column=70,
@@ -1668,29 +1719,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_248):
+                                                                           "Code de la sécurité sociale"]), local_var_253):
                             return VersementAllocations(VersementAllocations_Code.Normal,
                                                         Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_238(_: Any):
-                        match_arg_672 = param_229.prise_en_charge
-                        if match_arg_672.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_672.value
-                            local_var_240 = False
-                        elif match_arg_672.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_672.value
-                            local_var_240 = False
-                        elif match_arg_672.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_672.value
-                            local_var_240 = False
-                        elif match_arg_672.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_672.value
-                            local_var_240 = False
-                        elif match_arg_672.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_672.value
-                            local_var_240 = True
+                    def local_var_243(_: Any):
+                        match_arg_789 = param_234.prise_en_charge
+                        if match_arg_789.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_789.value
+                            local_var_245 = False
+                        elif match_arg_789.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_789.value
+                            local_var_245 = False
+                        elif match_arg_789.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_789.value
+                            local_var_245 = False
+                        elif match_arg_789.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_789.value
+                            local_var_245 = False
+                        elif match_arg_789.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_789.value
+                            local_var_245 = True
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=258, start_column=5,
                                                              end_line=259, end_column=56,
@@ -1699,29 +1750,29 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_240):
+                                                                           "Code de la sécurité sociale"]), local_var_245):
                             return VersementAllocations(VersementAllocations_Code.AllocationVerseeAuxServicesSociaux,
                                                         Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_230(_: Any):
-                        match_arg_673 = param_229.prise_en_charge
-                        if match_arg_673.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                            _ = match_arg_673.value
-                            local_var_232 = False
-                        elif match_arg_673.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                            _ = match_arg_673.value
-                            local_var_232 = False
-                        elif match_arg_673.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                            _ = match_arg_673.value
-                            local_var_232 = False
-                        elif match_arg_673.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                            _ = match_arg_673.value
-                            local_var_232 = True
-                        elif match_arg_673.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                            _ = match_arg_673.value
-                            local_var_232 = False
+                    def local_var_235(_: Any):
+                        match_arg_790 = param_234.prise_en_charge
+                        if match_arg_790.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                            _ = match_arg_790.value
+                            local_var_237 = False
+                        elif match_arg_790.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                            _ = match_arg_790.value
+                            local_var_237 = False
+                        elif match_arg_790.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                            _ = match_arg_790.value
+                            local_var_237 = False
+                        elif match_arg_790.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                            _ = match_arg_790.value
+                            local_var_237 = True
+                        elif match_arg_790.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                            _ = match_arg_790.value
+                            local_var_237 = False
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                              start_line=269, start_column=5,
                                                              end_line=270, end_column=48,
@@ -1730,141 +1781,153 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie législative",
-                                                                           "Code de la sécurité sociale"]), local_var_232):
+                                                                           "Code de la sécurité sociale"]), local_var_237):
                             return VersementAllocations(VersementAllocations_Code.Normal,
                                                         Unit())
                         else:
                             raise EmptyError
 
-                    def local_var_270(_: Any):
+                    def local_var_275(_: Any):
                         return log_decision_taken(SourcePosition(filename="",
                                                                  start_line=0, start_column=1,
                                                                  end_line=0, end_column=1,
                                                                  law_headings=[]), False)
 
-                    def local_var_272(_: Any):
+                    def local_var_277(_: Any):
                         raise EmptyError
-                    return handle_default([local_var_230, local_var_238,
-                                           local_var_246, local_var_254, local_var_262],
-                                          local_var_270, local_var_272)
+                    return handle_default([local_var_235, local_var_243,
+                                           local_var_251, local_var_259, local_var_267],
+                                          local_var_275, local_var_277)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=104, start_column=12, end_line=104,
+                                                         start_line=103, start_column=12, end_line=103,
                                                          end_column=21, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=104, start_column=12, end_line=104, end_column=21,
+                                             start_line=103, start_column=12, end_line=103, end_column=21,
                                              law_headings=["Prologue"]))
-    versement_227 = log_variable_definition(["AllocationsFamiliales",
-                                             "versement"], local_var_228)
+    versement_232 = log_variable_definition(["AllocationsFamiliales",
+                                             "versement"], local_var_233)
     try:
         try:
-            local_var_275 = nombre_enfants_l521_1_162(Unit())
+            local_var_280 = avait_enfant_a_charge_avant_1er_janvier_2012_149(
+                Unit())
         except EmptyError:
-            local_var_275 = integer_of_string("3")
+            local_var_280 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=145, start_column=12, end_line=145, end_column=33,
+                                             start_line=120, start_column=12, end_line=120, end_column=56,
                                              law_headings=["Prologue"]))
-    nombre_enfants_l521_1_274 = log_variable_definition(["AllocationsFamiliales",
-                                                         "nombre_enfants_l521_1"], local_var_275)
+    avait_enfant_a_charge_avant_1er_janvier_2012_279 = log_variable_definition(["AllocationsFamiliales",
+                                                                                "avait_enfant_à_charge_avant_1er_janvier_2012"], local_var_280)
     try:
         try:
-            local_var_277 = nombre_enfants_alinea_2_l521_3_164(Unit())
+            local_var_282 = nombre_enfants_l521_1_167(Unit())
         except EmptyError:
-            local_var_277 = integer_of_string("3")
+            local_var_282 = integer_of_string("3")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=147, start_column=12, end_line=147, end_column=42,
+                                             start_line=151, start_column=12, end_line=151, end_column=33,
                                              law_headings=["Prologue"]))
-    nombre_enfants_alinea_2_l521_3_276 = log_variable_definition(["AllocationsFamiliales",
-                                                                  "nombre_enfants_alinéa_2_l521_3"], local_var_277)
+    nombre_enfants_l521_1_281 = log_variable_definition(["AllocationsFamiliales",
+                                                         "nombre_enfants_l521_1"], local_var_282)
+    try:
+        try:
+            local_var_284 = nombre_enfants_alinea_2_l521_3_169(Unit())
+        except EmptyError:
+            local_var_284 = integer_of_string("3")
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=153, start_column=12, end_line=153, end_column=42,
+                                             law_headings=["Prologue"]))
+    nombre_enfants_alinea_2_l521_3_283 = log_variable_definition(["AllocationsFamiliales",
+                                                                  "nombre_enfants_alinéa_2_l521_3"], local_var_284)
 
-    def local_var_279(_: Unit):
+    def local_var_286(_: Unit):
         raise EmptyError
-    result_278 = log_end_call(["AllocationsFamiliales", "version_avril_2008",
+    result_285 = log_end_call(["AllocationsFamiliales", "version_avril_2008",
                                "AllocationFamilialesAvril2008"],
                               log_begin_call(["AllocationsFamiliales", "version_avril_2008",
                                               "AllocationFamilialesAvril2008"], allocation_familiales_avril2008,
-                                             AllocationFamilialesAvril2008In(age_minimum_alinea_1_l521_3_in=local_var_279)))
-    version_avril_2008_dot_age_minimum_alinea_1_l521_3_281 = result_278.age_minimum_alinea_1_l521_3_out
+                                             AllocationFamilialesAvril2008In(age_minimum_alinea_1_l521_3_in=local_var_286)))
+    version_avril_2008_dot_age_minimum_alinea_1_l521_3_288 = result_285.age_minimum_alinea_1_l521_3_out
 
-    def local_var_283(_: Unit):
+    def local_var_290(_: Unit):
         return log_variable_definition(["AllocationsFamiliales",
-                                        "prestations_familiales.date_courante"], date_courante_176)
-    prestations_familiales_dot_date_courante_282 = local_var_283
+                                        "prestations_familiales.date_courante"], date_courante_181)
+    prestations_familiales_dot_date_courante_289 = local_var_290
 
-    def local_var_286(_: Unit):
+    def local_var_293(_: Unit):
         return log_variable_definition(["AllocationsFamiliales",
                                         "prestations_familiales.prestation_courante"],
                                        ElementPrestationsFamiliales(ElementPrestationsFamiliales_Code.AllocationsFamiliales,
                                                                     Unit()))
-    prestations_familiales_dot_prestation_courante_285 = local_var_286
-
-    def local_var_289(_: Unit):
-        return log_variable_definition(["AllocationsFamiliales",
-                                        "prestations_familiales.résidence"], residence_174)
-    prestations_familiales_dot_residence_288 = local_var_289
-
-    def local_var_292(_: Unit):
-        raise EmptyError
-
-    def local_var_294(_: Unit):
-        raise EmptyError
+    prestations_familiales_dot_prestation_courante_292 = local_var_293
 
     def local_var_296(_: Unit):
+        return log_variable_definition(["AllocationsFamiliales",
+                                        "prestations_familiales.résidence"], residence_179)
+    prestations_familiales_dot_residence_295 = local_var_296
+
+    def local_var_299(_: Unit):
         raise EmptyError
 
-    def local_var_298(_: Unit):
+    def local_var_301(_: Unit):
         raise EmptyError
 
-    def local_var_300(_: Unit):
+    def local_var_303(_: Unit):
         raise EmptyError
 
-    def local_var_302(_: Unit):
+    def local_var_305(_: Unit):
         raise EmptyError
-    result_291 = log_end_call(["AllocationsFamiliales",
+
+    def local_var_307(_: Unit):
+        raise EmptyError
+
+    def local_var_309(_: Unit):
+        raise EmptyError
+    result_298 = log_end_call(["AllocationsFamiliales",
                                "prestations_familiales", "PrestationsFamiliales"],
                               log_begin_call(["AllocationsFamiliales", "prestations_familiales",
                                               "PrestationsFamiliales"], prestations_familiales,
-                                             PrestationsFamilialesIn(droit_ouvert_in=local_var_292,
-                                                                     conditions_hors_age_in=local_var_294,
-                                                                     plafond_l512_3_2_in=local_var_296, age_l512_3_2_in=local_var_298,
-                                                                     regime_outre_mer_l751_1_in=local_var_300,
-                                                                     date_courante_in=prestations_familiales_dot_date_courante_282,
-                                                                     prestation_courante_in=prestations_familiales_dot_prestation_courante_285,
-                                                                     residence_in=prestations_familiales_dot_residence_288,
-                                                                     base_mensuelle_in=local_var_302)))
-    prestations_familiales_dot_droit_ouvert_304 = result_291.droit_ouvert_out
-    prestations_familiales_dot_conditions_hors_age_305 = result_291.conditions_hors_age_out
-    prestations_familiales_dot_plafond_l512_3_2_306 = result_291.plafond_l512_3_2_out
-    prestations_familiales_dot_age_l512_3_2_307 = result_291.age_l512_3_2_out
-    prestations_familiales_dot_regime_outre_mer_l751_1_308 = result_291.regime_outre_mer_l751_1_out
-    prestations_familiales_dot_date_courante_309 = result_291.date_courante_out
-    prestations_familiales_dot_prestation_courante_310 = result_291.prestation_courante_out
-    prestations_familiales_dot_residence_311 = result_291.residence_out
-    prestations_familiales_dot_base_mensuelle_312 = result_291.base_mensuelle_out
+                                             PrestationsFamilialesIn(droit_ouvert_in=local_var_299,
+                                                                     conditions_hors_age_in=local_var_301,
+                                                                     plafond_l512_3_2_in=local_var_303, age_l512_3_2_in=local_var_305,
+                                                                     regime_outre_mer_l751_1_in=local_var_307,
+                                                                     date_courante_in=prestations_familiales_dot_date_courante_289,
+                                                                     prestation_courante_in=prestations_familiales_dot_prestation_courante_292,
+                                                                     residence_in=prestations_familiales_dot_residence_295,
+                                                                     base_mensuelle_in=local_var_309)))
+    prestations_familiales_dot_droit_ouvert_311 = result_298.droit_ouvert_out
+    prestations_familiales_dot_conditions_hors_age_312 = result_298.conditions_hors_age_out
+    prestations_familiales_dot_plafond_l512_3_2_313 = result_298.plafond_l512_3_2_out
+    prestations_familiales_dot_age_l512_3_2_314 = result_298.age_l512_3_2_out
+    prestations_familiales_dot_regime_outre_mer_l751_1_315 = result_298.regime_outre_mer_l751_1_out
+    prestations_familiales_dot_date_courante_316 = result_298.date_courante_out
+    prestations_familiales_dot_prestation_courante_317 = result_298.prestation_courante_out
+    prestations_familiales_dot_residence_318 = result_298.residence_out
+    prestations_familiales_dot_base_mensuelle_319 = result_298.base_mensuelle_out
 
-    def local_var_314(_: Unit):
+    def local_var_321(_: Unit):
         return log_variable_definition(["AllocationsFamiliales",
-                                        "enfant_le_plus_âgé.enfants"], enfants_a_charge_178)
-    enfant_le_plus_age_dot_enfants_313 = local_var_314
+                                        "enfant_le_plus_âgé.enfants"], enfants_a_charge_183)
+    enfant_le_plus_age_dot_enfants_320 = local_var_321
 
-    def local_var_317(_: Unit):
+    def local_var_324(_: Unit):
         raise EmptyError
-    result_316 = log_end_call(["AllocationsFamiliales",
+    result_323 = log_end_call(["AllocationsFamiliales",
                                "enfant_le_plus_âgé", "EnfantLePlusÂgé"],
                               log_begin_call(["AllocationsFamiliales", "enfant_le_plus_âgé",
                                               "EnfantLePlusÂgé"], enfant_le_plus_age,
-                                             EnfantLePlusAgeIn(enfants_in=enfant_le_plus_age_dot_enfants_313,
-                                                               le_plus_age_in=local_var_317)))
-    enfant_le_plus_age_dot_enfants_319 = result_316.enfants_out
-    enfant_le_plus_age_dot_le_plus_age_320 = result_316.le_plus_age_out
+                                             EnfantLePlusAgeIn(enfants_in=enfant_le_plus_age_dot_enfants_320,
+                                                               le_plus_age_in=local_var_324)))
+    enfant_le_plus_age_dot_enfants_326 = result_323.enfants_out
+    enfant_le_plus_age_dot_le_plus_age_327 = result_323.le_plus_age_out
     try:
         try:
-            local_var_322 = age_minimum_alinea_1_l521_3_163(Unit())
+            local_var_329 = age_minimum_alinea_1_l521_3_168(Unit())
         except EmptyError:
-            def local_var_322(param_323: Enfant):
+            def local_var_329(param_330: Enfant):
                 try:
                     try:
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
@@ -1875,125 +1938,129 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                            "Partie réglementaire - Décrets en Conseil d'Etat",
-                                                                           "Code de la sécurité sociale"]), ((param_323.date_de_naissance +
+                                                                           "Code de la sécurité sociale"]), ((param_330.date_de_naissance +
                                                                                                               duration_of_numbers(11, 0, 0)) <=
                                                                                                              date_of_numbers(2008, 4, 30))):
-                            return version_avril_2008_dot_age_minimum_alinea_1_l521_3_281
+                            return version_avril_2008_dot_age_minimum_alinea_1_l521_3_288
                         else:
                             raise EmptyError
                     except EmptyError:
                         return integer_of_string("14")
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=146, start_column=12, end_line=146,
+                                                         start_line=152, start_column=12, end_line=152,
                                                          end_column=39, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=146, start_column=12, end_line=146, end_column=39,
+                                             start_line=152, start_column=12, end_line=152, end_column=39,
                                              law_headings=["Prologue"]))
-    age_minimum_alinea_1_l521_3_321 = log_variable_definition(["AllocationsFamiliales",
-                                                               "âge_minimum_alinéa_1_l521_3"], local_var_322)
+    age_minimum_alinea_1_l521_3_328 = log_variable_definition(["AllocationsFamiliales",
+                                                               "âge_minimum_alinéa_1_l521_3"], local_var_329)
     try:
         try:
-            local_var_325 = enfants_a_charge_droit_ouvert_prestation_familiale_135(
+            local_var_332 = enfants_a_charge_droit_ouvert_prestation_familiale_135(
                 Unit())
         except EmptyError:
-            def local_var_326(enfant_327: Any):
+            def local_var_333(enfant_334: Any):
                 return log_end_call(["PrestationsFamiliales",
                                      "droit_ouvert"],
                                     log_variable_definition(["PrestationsFamiliales",
                                                              "droit_ouvert", "output"],
                                                             log_begin_call(["PrestationsFamiliales", "droit_ouvert"],
-                                                                           prestations_familiales_dot_droit_ouvert_304,
+                                                                           prestations_familiales_dot_droit_ouvert_311,
                                                                            log_variable_definition(["PrestationsFamiliales",
-                                                                                                    "droit_ouvert", "input"], enfant_327))))
-            local_var_325 = list_filter(local_var_326, enfants_a_charge_178)
+                                                                                                    "droit_ouvert", "input"], enfant_334))))
+            local_var_332 = list_filter(local_var_333, enfants_a_charge_183)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=101, start_column=12, end_line=101, end_column=62,
+                                             start_line=100, start_column=12, end_line=100, end_column=62,
                                              law_headings=["Prologue"]))
-    enfants_a_charge_droit_ouvert_prestation_familiale_324 = log_variable_definition(["AllocationsFamiliales",
+    enfants_a_charge_droit_ouvert_prestation_familiale_331 = log_variable_definition(["AllocationsFamiliales",
                                                                                       "enfants_à_charge_droit_ouvert_prestation_familiale"],
-                                                                                     local_var_325)
+                                                                                     local_var_332)
     try:
         try:
-            local_var_329 = est_enfant_le_plus_age_165(Unit())
+            local_var_336 = est_enfant_le_plus_age_170(Unit())
         except EmptyError:
-            def local_var_329(param_330: Enfant):
+            def local_var_336(param_337: Enfant):
                 try:
-                    return (enfant_le_plus_age_dot_le_plus_age_320 ==
-                            param_330)
+                    return (enfant_le_plus_age_dot_le_plus_age_327 ==
+                            param_337)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=148, start_column=12, end_line=148,
+                                                         start_line=154, start_column=12, end_line=154,
                                                          end_column=34, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=148, start_column=12, end_line=148, end_column=34,
+                                             start_line=154, start_column=12, end_line=154, end_column=34,
                                              law_headings=["Prologue"]))
-    est_enfant_le_plus_age_328 = log_variable_definition(["AllocationsFamiliales",
-                                                          "est_enfant_le_plus_âgé"], local_var_329)
+    est_enfant_le_plus_age_335 = log_variable_definition(["AllocationsFamiliales",
+                                                          "est_enfant_le_plus_âgé"], local_var_336)
     try:
         try:
-            local_var_332 = plafond__i_i_d521_3_167(Unit())
+            local_var_339 = plafond__i_i_d521_3_172(Unit())
         except EmptyError:
-            def local_var_339(_: Any):
+            def local_var_346(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=92, start_column=5,
-                                                     end_line=92, end_column=69,
+                                                     start_line=94, start_column=5,
+                                                     end_line=94, end_column=69,
                                                      law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
-                                                                   "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                             date_of_numbers(2018, 1, 1)) and (date_courante_176 <=
-                                                                                                                                               date_of_numbers(2018, 12, 31)))):
+                                                                   "Montant des plafonds de ressources",
+                                                                   "Décrets divers"]), ((date_courante_181 >=
+                                                                                         date_of_numbers(2018, 1, 1)) and (date_courante_181 <=
+                                                                                                                           date_of_numbers(2018, 12, 31)))):
                     return (money_of_cents_string("7877000") +
                             (money_of_cents_string("562800") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_337(_: Any):
+            def local_var_344(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=125, start_column=5,
-                                                     end_line=125, end_column=69,
+                                                     start_line=127, start_column=5,
+                                                     end_line=127, end_column=69,
                                                      law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
-                                                                   "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                             date_of_numbers(2019, 1, 1)) and (date_courante_176 <=
-                                                                                                                                               date_of_numbers(2019, 12, 31)))):
+                                                                   "Montant des plafonds de ressources",
+                                                                   "Décrets divers"]), ((date_courante_181 >=
+                                                                                         date_of_numbers(2019, 1, 1)) and (date_courante_181 <=
+                                                                                                                           date_of_numbers(2019, 12, 31)))):
                     return (money_of_cents_string("7955800") +
                             (money_of_cents_string("568400") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_335(_: Any):
+            def local_var_342(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=158, start_column=5,
-                                                     end_line=158, end_column=69,
+                                                     start_line=160, start_column=5,
+                                                     end_line=160, end_column=69,
                                                      law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
-                                                                   "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                             date_of_numbers(2020, 1, 1)) and (date_courante_176 <=
-                                                                                                                                               date_of_numbers(2020, 12, 31)))):
+                                                                   "Montant des plafonds de ressources",
+                                                                   "Décrets divers"]), ((date_courante_181 >=
+                                                                                         date_of_numbers(2020, 1, 1)) and (date_courante_181 <=
+                                                                                                                           date_of_numbers(2020, 12, 31)))):
                     return (money_of_cents_string("8083100") +
                             (money_of_cents_string("577500") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_333(_: Any):
+            def local_var_340(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=194, start_column=5,
-                                                     end_line=194, end_column=69, law_headings=["Article 1",
+                                                     start_line=196, start_column=5,
+                                                     end_line=196, end_column=69, law_headings=["Article 1",
                                                                                                 "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations",
-                                                                                                "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                                                          date_of_numbers(2021, 1, 1)) and (date_courante_176 <=
-                                                                                                                                                                            date_of_numbers(2021, 12, 31)))):
+                                                                                                "Montant des plafonds de ressources",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2021, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2021, 12, 31)))):
                     return (money_of_cents_string("8155800") +
                             (money_of_cents_string("582700") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_341(_: Any):
+            def local_var_348(_: Any):
                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                          start_line=308, start_column=14,
                                                          end_line=308, end_column=31,
@@ -2001,81 +2068,86 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                        "Chapitre 1er : Allocations familiales",
                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                       "Partie réglementaire - Décrets simples"]), True)
+                                                                       "Partie réglementaire - Décrets simples",
+                                                                       "Code de la sécurité sociale"]), True)
 
-            def local_var_343(_: Any):
+            def local_var_350(_: Any):
                 return (money_of_cents_string("7830000") +
                         (money_of_cents_string("559500") *
-                         decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
-            local_var_332 = handle_default([local_var_333, local_var_335,
-                                            local_var_337, local_var_339], local_var_341, local_var_343)
+                         decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
+            local_var_339 = handle_default([local_var_340, local_var_342,
+                                            local_var_344, local_var_346], local_var_348, local_var_350)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=150, start_column=12, end_line=150, end_column=29,
+                                             start_line=156, start_column=12, end_line=156, end_column=29,
                                              law_headings=["Prologue"]))
-    plafond__i_i_d521_3_331 = log_variable_definition(["AllocationsFamiliales",
-                                                       "plafond_II_d521_3"], local_var_332)
+    plafond__i_i_d521_3_338 = log_variable_definition(["AllocationsFamiliales",
+                                                       "plafond_II_d521_3"], local_var_339)
     try:
         try:
-            local_var_346 = plafond__i_d521_3_166(Unit())
+            local_var_353 = plafond__i_d521_3_171(Unit())
         except EmptyError:
-            def local_var_353(_: Any):
+            def local_var_360(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=85, start_column=5,
-                                                     end_line=85, end_column=69,
+                                                     start_line=87, start_column=5,
+                                                     end_line=87, end_column=69,
                                                      law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
-                                                                   "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                             date_of_numbers(2018, 1, 1)) and (date_courante_176 <=
-                                                                                                                                               date_of_numbers(2018, 12, 31)))):
+                                                                   "Montant des plafonds de ressources",
+                                                                   "Décrets divers"]), ((date_courante_181 >=
+                                                                                         date_of_numbers(2018, 1, 1)) and (date_courante_181 <=
+                                                                                                                           date_of_numbers(2018, 12, 31)))):
                     return (money_of_cents_string("5628600") +
                             (money_of_cents_string("562800") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_351(_: Any):
+            def local_var_358(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=118, start_column=5,
-                                                     end_line=118, end_column=69,
+                                                     start_line=120, start_column=5,
+                                                     end_line=120, end_column=69,
                                                      law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
-                                                                   "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                             date_of_numbers(2019, 1, 1)) and (date_courante_176 <=
-                                                                                                                                               date_of_numbers(2019, 12, 31)))):
+                                                                   "Montant des plafonds de ressources",
+                                                                   "Décrets divers"]), ((date_courante_181 >=
+                                                                                         date_of_numbers(2019, 1, 1)) and (date_courante_181 <=
+                                                                                                                           date_of_numbers(2019, 12, 31)))):
                     return (money_of_cents_string("5684900") +
                             (money_of_cents_string("568400") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_349(_: Any):
+            def local_var_356(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=151, start_column=5,
-                                                     end_line=151, end_column=69,
+                                                     start_line=153, start_column=5,
+                                                     end_line=153, end_column=69,
                                                      law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
-                                                                   "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                             date_of_numbers(2020, 1, 1)) and (date_courante_176 <=
-                                                                                                                                               date_of_numbers(2020, 12, 31)))):
+                                                                   "Montant des plafonds de ressources",
+                                                                   "Décrets divers"]), ((date_courante_181 >=
+                                                                                         date_of_numbers(2020, 1, 1)) and (date_courante_181 <=
+                                                                                                                           date_of_numbers(2020, 12, 31)))):
                     return (money_of_cents_string("5775900") +
                             (money_of_cents_string("577500") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_347(_: Any):
+            def local_var_354(_: Any):
                 if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
-                                                     start_line=178, start_column=5,
-                                                     end_line=178, end_column=69, law_headings=["Article 1",
+                                                     start_line=180, start_column=5,
+                                                     end_line=180, end_column=69, law_headings=["Article 1",
                                                                                                 "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations",
-                                                                                                "Montant des plafonds de ressources"]), ((date_courante_176 >=
-                                                                                                                                          date_of_numbers(2021, 1, 1)) and (date_courante_176 <=
-                                                                                                                                                                            date_of_numbers(2021, 12, 31)))):
+                                                                                                "Montant des plafonds de ressources",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2021, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2021, 12, 31)))):
                     return (money_of_cents_string("5827900") +
                             (money_of_cents_string("582700") *
-                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                             decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
                 else:
                     raise EmptyError
 
-            def local_var_355(_: Any):
+            def local_var_362(_: Any):
                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                          start_line=298, start_column=14,
                                                          end_line=298, end_column=30,
@@ -2083,23 +2155,24 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                        "Chapitre 1er : Allocations familiales",
                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                       "Partie réglementaire - Décrets simples"]), True)
+                                                                       "Partie réglementaire - Décrets simples",
+                                                                       "Code de la sécurité sociale"]), True)
 
-            def local_var_357(_: Any):
+            def local_var_364(_: Any):
                 return (money_of_cents_string("5595000") +
                         (money_of_cents_string("559500") *
-                         decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
-            local_var_346 = handle_default([local_var_347, local_var_349,
-                                            local_var_351, local_var_353], local_var_355, local_var_357)
+                         decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331))))
+            local_var_353 = handle_default([local_var_354, local_var_356,
+                                            local_var_358, local_var_360], local_var_362, local_var_364)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=149, start_column=12, end_line=149, end_column=28,
+                                             start_line=155, start_column=12, end_line=155, end_column=28,
                                              law_headings=["Prologue"]))
-    plafond__i_d521_3_345 = log_variable_definition(["AllocationsFamiliales",
-                                                     "plafond_I_d521_3"], local_var_346)
+    plafond__i_d521_3_352 = log_variable_definition(["AllocationsFamiliales",
+                                                     "plafond_I_d521_3"], local_var_353)
     try:
         try:
-            local_var_360 = droit_ouvert_complement_157(Unit())
+            local_var_367 = droit_ouvert_complement_162(Unit())
         except EmptyError:
             try:
                 try:
@@ -2111,27 +2184,27 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                        "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                        "Livre 7 : Régimes divers - Dispositions diverses",
                                                                        "Partie législative",
-                                                                       "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and
-                                                                                                         (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) ==
+                                                                       "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                         (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) ==
                                                                                                           integer_of_string("1")))):
-                        local_var_360 = False
+                        local_var_367 = False
                     else:
                         raise EmptyError
                 except EmptyError:
-                    local_var_360 = True
+                    local_var_367 = True
             except EmptyError:
-                local_var_360 = False
+                local_var_367 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=133, start_column=12, end_line=133, end_column=35,
+                                             start_line=139, start_column=12, end_line=139, end_column=35,
                                              law_headings=["Prologue"]))
-    droit_ouvert_complement_359 = log_variable_definition(["AllocationsFamiliales",
-                                                           "droit_ouvert_complément"], local_var_360)
+    droit_ouvert_complement_366 = log_variable_definition(["AllocationsFamiliales",
+                                                           "droit_ouvert_complément"], local_var_367)
     try:
         try:
-            local_var_362 = droit_ouvert_forfaitaire_149(Unit())
+            local_var_369 = droit_ouvert_forfaitaire_154(Unit())
         except EmptyError:
-            def local_var_362(param_363: Enfant):
+            def local_var_369(param_370: Enfant):
                 try:
                     try:
                         try:
@@ -2143,8 +2216,8 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                                "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                                "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                "Partie législative",
-                                                                               "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and
-                                                                                                                 (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) ==
+                                                                               "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                                 (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) ==
                                                                                                                   integer_of_string("1")))):
                                 return False
                             else:
@@ -2158,21 +2231,21 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie législative",
-                                                                               "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_178) >=
-                                                                                                                  nombre_enfants_alinea_2_l521_3_276) and
-                                                                                                                 ((param_363.age ==
-                                                                                                                   prestations_familiales_dot_age_l512_3_2_307) and
-                                                                                                                  (param_363.a_deja_ouvert_droit_aux_allocations_familiales and
+                                                                               "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_183) >=
+                                                                                                                  nombre_enfants_alinea_2_l521_3_283) and
+                                                                                                                 ((param_370.age ==
+                                                                                                                   prestations_familiales_dot_age_l512_3_2_314) and
+                                                                                                                  (param_370.a_deja_ouvert_droit_aux_allocations_familiales and
                                                                                                                    log_end_call(["PrestationsFamiliales",
                                                                                                                                  "conditions_hors_âge"],
                                                                                                                                 log_variable_definition(["PrestationsFamiliales",
                                                                                                                                                          "conditions_hors_âge", "output"],
                                                                                                                                                         log_begin_call(["PrestationsFamiliales",
                                                                                                                                                                         "conditions_hors_âge"],
-                                                                                                                                                                       prestations_familiales_dot_conditions_hors_age_305,
+                                                                                                                                                                       prestations_familiales_dot_conditions_hors_age_312,
                                                                                                                                                                        log_variable_definition(["PrestationsFamiliales",
                                                                                                                                                                                                 "conditions_hors_âge", "input"],
-                                                                                                                                                                                               param_363)))))))):
+                                                                                                                                                                                               param_370)))))))):
                                 return True
                             else:
                                 raise EmptyError
@@ -2180,113 +2253,768 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                         return False
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=121, start_column=12, end_line=121,
+                                                         start_line=127, start_column=12, end_line=127,
                                                          end_column=36, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=121, start_column=12, end_line=121, end_column=36,
+                                             start_line=127, start_column=12, end_line=127, end_column=36,
                                              law_headings=["Prologue"]))
-    droit_ouvert_forfaitaire_361 = log_variable_definition(["AllocationsFamiliales",
-                                                            "droit_ouvert_forfaitaire"], local_var_362)
+    droit_ouvert_forfaitaire_368 = log_variable_definition(["AllocationsFamiliales",
+                                                            "droit_ouvert_forfaitaire"], local_var_369)
     try:
         try:
-            local_var_365 = nombre_total_enfants_146(Unit())
+            local_var_372 = montant_initial_base_quatrieme_enfant_et_plus_mayotte_153(
+                Unit())
         except EmptyError:
-            local_var_365 = decimal_of_integer(list_length(
-                enfants_a_charge_droit_ouvert_prestation_familiale_324))
+            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                    integer_of_string("3")):
+                local_var_372 = ((prestations_familiales_dot_base_mensuelle_319 *
+                                  decimal_of_string("0.0463")) *
+                                 decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) -
+                                                     integer_of_string("3"))))
+            else:
+                local_var_372 = money_of_cents_string("0")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=116, start_column=12, end_line=116, end_column=32,
+                                             start_line=124, start_column=12, end_line=124, end_column=65,
                                              law_headings=["Prologue"]))
-    nombre_total_enfants_364 = log_variable_definition(["AllocationsFamiliales",
-                                                        "nombre_total_enfants"], local_var_365)
+    montant_initial_base_quatrieme_enfant_et_plus_mayotte_371 = log_variable_definition(["AllocationsFamiliales",
+                                                                                         "montant_initial_base_quatrième_enfant_et_plus_mayotte"],
+                                                                                        local_var_372)
     try:
         try:
-            local_var_367 = nombre_moyen_enfants_145(Unit())
+            local_var_374 = montant_initial_base_troisieme_enfant_mayotte_152(
+                Unit())
         except EmptyError:
-            def local_var_368(acc_369: Decimal, enfant_370: Any):
-                match_arg_674 = log_end_call(["AllocationsFamiliales",
-                                              "prise_en_compte"],
-                                             log_variable_definition(["AllocationsFamiliales",
-                                                                      "prise_en_compte", "output"],
-                                                                     log_begin_call(["AllocationsFamiliales", "prise_en_compte"],
-                                                                                    prise_en_compte_180,
-                                                                                    log_variable_definition(["AllocationsFamiliales",
-                                                                                                             "prise_en_compte", "input"],
-                                                                                                            enfant_370))))
-                if match_arg_674.code == PriseEnCompte_Code.Complete:
-                    _ = match_arg_674.value
-                    local_var_371 = decimal_of_string("1.")
-                elif match_arg_674.code == PriseEnCompte_Code.Partagee:
-                    _ = match_arg_674.value
-                    local_var_371 = decimal_of_string("0.5")
-                elif match_arg_674.code == PriseEnCompte_Code.Zero:
-                    _ = match_arg_674.value
-                    local_var_371 = decimal_of_string("0.")
-                return (acc_369 + local_var_371)
-            local_var_367 = list_fold_left(local_var_368,
-                                           decimal_of_string("0."),
-                                           enfants_a_charge_droit_ouvert_prestation_familiale_324)
-    except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=115, start_column=12, end_line=115, end_column=32,
-                                             law_headings=["Prologue"]))
-    nombre_moyen_enfants_366 = log_variable_definition(["AllocationsFamiliales",
-                                                        "nombre_moyen_enfants"], local_var_367)
-    try:
-        try:
-            local_var_376 = montant_initial_base_premier_enfant_141(Unit())
-        except EmptyError:
-            def local_var_379(_: Any):
-                if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
-                                                     start_line=356, start_column=6,
-                                                     end_line=356, end_column=71,
-                                                     law_headings=["Article D755-5",
-                                                                   "Chapitre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Titre 5 : Départements d'outre-mer",
-                                                                   "Livre 7 : Régimes divers - Dispositions diverses",
-                                                                   "Partie réglementaire - Décrets simples"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) !=
-                                                                                                                integer_of_string("1"))):
-                    return money_of_cents_string("0")
+            def local_var_393(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=584, start_column=5,
+                                                     end_line=584, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2011, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2011, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0463"))
+                    else:
+                        return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_377(_: Any):
-                if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
-                                                     start_line=360, start_column=6,
-                                                     end_line=360, end_column=70,
-                                                     law_headings=["Article D755-5",
-                                                                   "Chapitre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Titre 5 : Départements d'outre-mer",
-                                                                   "Livre 7 : Régimes divers - Dispositions diverses",
-                                                                   "Partie réglementaire - Décrets simples"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) ==
-                                                                                                                integer_of_string("1"))):
-                    return (prestations_familiales_dot_base_mensuelle_312 *
-                            decimal_of_string("0.0588"))
+            def local_var_391(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=591, start_column=5,
+                                                     end_line=591, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2012, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2012, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0539"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_389(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=598, start_column=5,
+                                                     end_line=598, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2013, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2013, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.075"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_387(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=605, start_column=5,
+                                                     end_line=605, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2014, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2014, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.069"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_385(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=612, start_column=5,
+                                                     end_line=612, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2015, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2015, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0766"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_383(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=619, start_column=5,
+                                                     end_line=619, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2016, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2016, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0842"))
+                    else:
+                        return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
             def local_var_381(_: Any):
-                return log_decision_taken(SourcePosition(filename="",
-                                                         start_line=0, start_column=1, end_line=0, end_column=1,
-                                                         law_headings=[]), False)
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=626, start_column=5,
+                                                     end_line=626, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2017, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2017, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0918"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
 
-            def local_var_383(_: Any):
-                raise EmptyError
-            local_var_376 = handle_default([local_var_377, local_var_379],
-                                           local_var_381, local_var_383)
+            def local_var_379(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=633, start_column=5,
+                                                     end_line=633, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2018, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2018, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.1089"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_377(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=640, start_column=5,
+                                                     end_line=640, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2019, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2019, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.1259"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_375(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=647, start_column=5,
+                                                     end_line=647, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2020, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2020, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("2")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.143"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_395(_: Any):
+                return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                         start_line=376, start_column=14,
+                                                         end_line=376, end_column=59, law_headings=["Article 7",
+                                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                    "Dispositions spéciales relatives à Mayotte",
+                                                                                                    "Décrets divers"]), True)
+
+            def local_var_397(_: Any):
+                if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                        integer_of_string("2")):
+                    return (prestations_familiales_dot_base_mensuelle_319 *
+                            decimal_of_string("0.16"))
+                else:
+                    return money_of_cents_string("0")
+            local_var_374 = handle_default([local_var_375, local_var_377,
+                                            local_var_379, local_var_381, local_var_383, local_var_385,
+                                            local_var_387, local_var_389, local_var_391, local_var_393],
+                                           local_var_395, local_var_397)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=111, start_column=12, end_line=111, end_column=47,
+                                             start_line=123, start_column=12, end_line=123, end_column=57,
                                              law_headings=["Prologue"]))
-    montant_initial_base_premier_enfant_375 = log_variable_definition(["AllocationsFamiliales",
-                                                                       "montant_initial_base_premier_enfant"], local_var_376)
+    montant_initial_base_troisieme_enfant_mayotte_373 = log_variable_definition(["AllocationsFamiliales",
+                                                                                 "montant_initial_base_troisième_enfant_mayotte"], local_var_374)
     try:
         try:
-            local_var_386 = droit_ouvert_base_139(Unit())
+            local_var_400 = montant_initial_base_deuxieme_enfant_mayotte_151(
+                Unit())
+        except EmptyError:
+            def local_var_419(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=513, start_column=5,
+                                                     end_line=513, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2011, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2011, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.232"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_417(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=520, start_column=5,
+                                                     end_line=520, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2012, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2012, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.2379"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_415(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=527, start_column=5,
+                                                     end_line=527, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2013, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2013, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.2437"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_413(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=534, start_column=5,
+                                                     end_line=534, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2014, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2014, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.2496"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_411(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=541, start_column=5,
+                                                     end_line=541, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2015, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2015, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.2555"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_409(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=548, start_column=5,
+                                                     end_line=548, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2016, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2016, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.273"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_407(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=555, start_column=5,
+                                                     end_line=555, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2017, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2017, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.2672"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_405(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=562, start_column=5,
+                                                     end_line=562, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2018, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2018, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.284"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_403(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=569, start_column=5,
+                                                     end_line=569, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2019, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2019, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.2936"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_401(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=576, start_column=5,
+                                                     end_line=576, end_column=69, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2020, 1, 1)) and (date_courante_181 <=
+                                                                                                                                                        date_of_numbers(2020, 12, 31)))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("1")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.3068"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_421(_: Any):
+                return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                         start_line=367, start_column=14,
+                                                         end_line=367, end_column=58, law_headings=["Article 7",
+                                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                    "Dispositions spéciales relatives à Mayotte",
+                                                                                                    "Décrets divers"]), True)
+
+            def local_var_423(_: Any):
+                if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                        integer_of_string("1")):
+                    return (prestations_familiales_dot_base_mensuelle_319 *
+                            decimal_of_string("0.32"))
+                else:
+                    return money_of_cents_string("0")
+            local_var_400 = handle_default([local_var_401, local_var_403,
+                                            local_var_405, local_var_407, local_var_409, local_var_411,
+                                            local_var_413, local_var_415, local_var_417, local_var_419],
+                                           local_var_421, local_var_423)
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=122, start_column=12, end_line=122, end_column=56,
+                                             law_headings=["Prologue"]))
+    montant_initial_base_deuxieme_enfant_mayotte_399 = log_variable_definition(["AllocationsFamiliales",
+                                                                                "montant_initial_base_deuxième_enfant_mayotte"], local_var_400)
+    try:
+        try:
+            local_var_426 = montant_initial_base_premier_enfant_mayotte_150(
+                Unit())
+        except EmptyError:
+            def local_var_447(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=425, start_column=5,
+                                                     end_line=426, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2011, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2011, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.145"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_445(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=433, start_column=5,
+                                                     end_line=434, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2012, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2012, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.1393"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_443(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=441, start_column=5,
+                                                     end_line=442, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2013, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2013, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.1335"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_441(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=449, start_column=5,
+                                                     end_line=450, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2014, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2014, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.1278"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_439(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=457, start_column=5,
+                                                     end_line=458, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2015, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2015, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.122"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_437(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=465, start_column=5,
+                                                     end_line=466, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2016, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2016, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.1163"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_435(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=473, start_column=5,
+                                                     end_line=474, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2017, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2017, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.115"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_433(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=481, start_column=5,
+                                                     end_line=482, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2018, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2018, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0976"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_431(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=489, start_column=5,
+                                                     end_line=490, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2019, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2019, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0847"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_429(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=497, start_column=5,
+                                                     end_line=498, end_column=53, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), ((date_courante_181 >=
+                                                                                                                      date_of_numbers(2020, 1, 1)) and ((date_courante_181 <=
+                                                                                                                                                         date_of_numbers(2020, 12, 31)) and
+                                                                                                                                                        not avait_enfant_a_charge_avant_1er_janvier_2012_279))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return (prestations_familiales_dot_base_mensuelle_319 *
+                                decimal_of_string("0.0717"))
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_427(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=505, start_column=5,
+                                                     end_line=505, end_column=49, law_headings=["Annexe",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_279):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                            integer_of_string("0")):
+                        return money_of_cents_string("5728")
+                    else:
+                        return money_of_cents_string("0")
+                else:
+                    raise EmptyError
+
+            def local_var_449(_: Any):
+                return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                         start_line=358, start_column=14,
+                                                         end_line=358, end_column=57, law_headings=["Article 7",
+                                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                    "Dispositions spéciales relatives à Mayotte",
+                                                                                                    "Décrets divers"]), True)
+
+            def local_var_451(_: Any):
+                if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
+                        integer_of_string("0")):
+                    return (prestations_familiales_dot_base_mensuelle_319 *
+                            decimal_of_string("0.0588"))
+                else:
+                    return money_of_cents_string("0")
+            local_var_426 = handle_default([local_var_427, local_var_429,
+                                            local_var_431, local_var_433, local_var_435, local_var_437,
+                                            local_var_439, local_var_441, local_var_443, local_var_445,
+                                            local_var_447], local_var_449, local_var_451)
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=121, start_column=12, end_line=121, end_column=55,
+                                             law_headings=["Prologue"]))
+    montant_initial_base_premier_enfant_mayotte_425 = log_variable_definition(["AllocationsFamiliales",
+                                                                               "montant_initial_base_premier_enfant_mayotte"], local_var_426)
+    try:
+        try:
+            local_var_454 = nombre_total_enfants_146(Unit())
+        except EmptyError:
+            local_var_454 = decimal_of_integer(list_length(
+                enfants_a_charge_droit_ouvert_prestation_familiale_331))
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=115, start_column=12, end_line=115, end_column=32,
+                                             law_headings=["Prologue"]))
+    nombre_total_enfants_453 = log_variable_definition(["AllocationsFamiliales",
+                                                        "nombre_total_enfants"], local_var_454)
+    try:
+        try:
+            local_var_456 = nombre_moyen_enfants_145(Unit())
+        except EmptyError:
+            def local_var_457(acc_458: Decimal, enfant_459: Any):
+                match_arg_791 = log_end_call(["AllocationsFamiliales",
+                                              "prise_en_compte"],
+                                             log_variable_definition(["AllocationsFamiliales",
+                                                                      "prise_en_compte", "output"],
+                                                                     log_begin_call(["AllocationsFamiliales", "prise_en_compte"],
+                                                                                    prise_en_compte_185,
+                                                                                    log_variable_definition(["AllocationsFamiliales",
+                                                                                                             "prise_en_compte", "input"],
+                                                                                                            enfant_459))))
+                if match_arg_791.code == PriseEnCompte_Code.Complete:
+                    _ = match_arg_791.value
+                    local_var_460 = decimal_of_string("1.")
+                elif match_arg_791.code == PriseEnCompte_Code.Partagee:
+                    _ = match_arg_791.value
+                    local_var_460 = decimal_of_string("0.5")
+                elif match_arg_791.code == PriseEnCompte_Code.Zero:
+                    _ = match_arg_791.value
+                    local_var_460 = decimal_of_string("0.")
+                return (acc_458 + local_var_460)
+            local_var_456 = list_fold_left(local_var_457,
+                                           decimal_of_string("0."),
+                                           enfants_a_charge_droit_ouvert_prestation_familiale_331)
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=114, start_column=12, end_line=114, end_column=32,
+                                             law_headings=["Prologue"]))
+    nombre_moyen_enfants_455 = log_variable_definition(["AllocationsFamiliales",
+                                                        "nombre_moyen_enfants"], local_var_456)
+    try:
+        try:
+            local_var_465 = montant_initial_base_premier_enfant_141(Unit())
         except EmptyError:
             try:
-                try:
+                if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
+                                                     start_line=359, start_column=5,
+                                                     end_line=360, end_column=71,
+                                                     law_headings=["Article D755-5",
+                                                                   "Chapitre 5 : Prestations familiales et prestations assimilées",
+                                                                   "Titre 5 : Départements d'outre-mer",
+                                                                   "Livre 7 : Régimes divers - Dispositions diverses",
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) ==
+                                                                                                      integer_of_string("1")))):
+                    local_var_465 = (prestations_familiales_dot_base_mensuelle_319 *
+                                     decimal_of_string("0.0588"))
+                else:
+                    raise EmptyError
+            except EmptyError:
+                local_var_465 = money_of_cents_string("0")
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
+                                             start_line=110, start_column=12, end_line=110, end_column=47,
+                                             law_headings=["Prologue"]))
+    montant_initial_base_premier_enfant_464 = log_variable_definition(["AllocationsFamiliales",
+                                                                       "montant_initial_base_premier_enfant"], local_var_465)
+    try:
+        try:
+            local_var_467 = droit_ouvert_base_139(Unit())
+        except EmptyError:
+            try:
+                def local_var_470(_: Any):
                     if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                          start_line=406, start_column=5,
                                                          end_line=407, end_column=72,
@@ -2295,39 +3023,57 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                        "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                        "Livre 7 : Régimes divers - Dispositions diverses",
                                                                        "Partie législative",
-                                                                       "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and
-                                                                                                         (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >=
+                                                                       "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                         (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >=
                                                                                                           integer_of_string("1")))):
-                        local_var_386 = True
+                        return True
                     else:
                         raise EmptyError
-                except EmptyError:
-                    if log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
-                                                         start_line=101, start_column=5,
-                                                         end_line=101, end_column=70,
-                                                         law_headings=["Article L521-1",
-                                                                       "Chapitre 1er : Allocations familiales",
-                                                                       "Titre 2 : Prestations générales d'entretien",
-                                                                       "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                       "Partie législative",
-                                                                       "Code de la sécurité sociale"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >=
-                                                                                                         integer_of_string("2"))):
-                        local_var_386 = True
+
+                def local_var_468(_: Any):
+                    if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                         start_line=344, start_column=5,
+                                                         end_line=345, end_column=72,
+                                                         law_headings=["Article 7",
+                                                                       "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                       "Dispositions spéciales relatives à Mayotte",
+                                                                       "Décrets divers"]), ((residence_179 ==
+                                                                                             Collectivite(Collectivite_Code.Mayotte, Unit())) and
+                                                                                            (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >=
+                                                                                             integer_of_string("1")))):
+                        return True
                     else:
                         raise EmptyError
+
+                def local_var_472(_: Any):
+                    return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
+                                                             start_line=101, start_column=5,
+                                                             end_line=101, end_column=70,
+                                                             law_headings=["Article L521-1",
+                                                                           "Chapitre 1er : Allocations familiales",
+                                                                           "Titre 2 : Prestations générales d'entretien",
+                                                                           "Livre 5 : Prestations familiales et prestations assimilées",
+                                                                           "Partie législative",
+                                                                           "Code de la sécurité sociale"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >=
+                                                                                                             integer_of_string("2")))
+
+                def local_var_474(_: Any):
+                    return True
+                local_var_467 = handle_default([local_var_468,
+                                                local_var_470], local_var_472, local_var_474)
             except EmptyError:
-                local_var_386 = False
+                local_var_467 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=109, start_column=12, end_line=109, end_column=29,
+                                             start_line=108, start_column=12, end_line=108, end_column=29,
                                              law_headings=["Prologue"]))
-    droit_ouvert_base_385 = log_variable_definition(["AllocationsFamiliales",
-                                                     "droit_ouvert_base"], local_var_386)
+    droit_ouvert_base_466 = log_variable_definition(["AllocationsFamiliales",
+                                                     "droit_ouvert_base"], local_var_467)
     try:
         try:
-            local_var_388 = droit_ouvert_majoration_152(Unit())
+            local_var_477 = droit_ouvert_majoration_157(Unit())
         except EmptyError:
-            def local_var_388(param_389: Enfant):
+            def local_var_477(param_478: Enfant):
                 try:
                     try:
                         try:
@@ -2339,19 +3085,19 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie législative",
-                                                                               "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >=
-                                                                                                                  nombre_enfants_alinea_2_l521_3_276) and
-                                                                                                                 (param_389.age >=
+                                                                               "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >=
+                                                                                                                  nombre_enfants_alinea_2_l521_3_283) and
+                                                                                                                 (param_478.age >=
                                                                                                                   log_end_call(["AllocationsFamiliales",
                                                                                                                                 "âge_minimum_alinéa_1_l521_3"],
                                                                                                                                log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                         "âge_minimum_alinéa_1_l521_3", "output"],
                                                                                                                                                        log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                        "âge_minimum_alinéa_1_l521_3"],
-                                                                                                                                                                      age_minimum_alinea_1_l521_3_321,
+                                                                                                                                                                      age_minimum_alinea_1_l521_3_328,
                                                                                                                                                                       log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                "âge_minimum_alinéa_1_l521_3", "input"],
-                                                                                                                                                                                              param_389))))))):
+                                                                                                                                                                                              param_478))))))):
                                 return True
                             else:
                                 raise EmptyError
@@ -2370,20 +3116,20 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                                                                                                            "est_enfant_le_plus_âgé", "output"],
                                                                                                                                                           log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                           "est_enfant_le_plus_âgé"],
-                                                                                                                                                                         est_enfant_le_plus_age_328,
+                                                                                                                                                                         est_enfant_le_plus_age_335,
                                                                                                                                                                          log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                   "est_enfant_le_plus_âgé", "input"],
-                                                                                                                                                                                                 param_389)))) and (param_389.age >=
+                                                                                                                                                                                                 param_478)))) and (param_478.age >=
                                                                                                                                                                                                                     log_end_call(["AllocationsFamiliales",
                                                                                                                                                                                                                                   "âge_minimum_alinéa_1_l521_3"],
                                                                                                                                                                                                                                  log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                                                                           "âge_minimum_alinéa_1_l521_3", "output"],
                                                                                                                                                                                                                                                          log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                                                                                                                          "âge_minimum_alinéa_1_l521_3"],
-                                                                                                                                                                                                                                                                        age_minimum_alinea_1_l521_3_321,
+                                                                                                                                                                                                                                                                        age_minimum_alinea_1_l521_3_328,
                                                                                                                                                                                                                                                                         log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                                                                                                                  "âge_minimum_alinéa_1_l521_3", "input"],
-                                                                                                                                                                                                                                                                                                param_389))))))):
+                                                                                                                                                                                                                                                                                                param_478))))))):
                                 return True
                             else:
                                 raise EmptyError
@@ -2391,21 +3137,21 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                         return False
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=126, start_column=12, end_line=126,
+                                                         start_line=132, start_column=12, end_line=132,
                                                          end_column=35, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=126, start_column=12, end_line=126, end_column=35,
+                                             start_line=132, start_column=12, end_line=132, end_column=35,
                                              law_headings=["Prologue"]))
-    droit_ouvert_majoration_387 = log_variable_definition(["AllocationsFamiliales",
-                                                           "droit_ouvert_majoration"], local_var_388)
+    droit_ouvert_majoration_476 = log_variable_definition(["AllocationsFamiliales",
+                                                           "droit_ouvert_majoration"], local_var_477)
     try:
         try:
-            local_var_391 = complement_degressif_159(Unit())
+            local_var_480 = complement_degressif_164(Unit())
         except EmptyError:
-            def local_var_391(param_392: Money):
+            def local_var_480(param_481: Money):
                 try:
-                    def local_var_395(_: Any):
+                    def local_var_484(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=162, start_column=5,
                                                              end_line=163, end_column=68,
@@ -2413,20 +3159,21 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 1er : Allocations familiales",
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                           "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                         plafond__i_d521_3_345) and
-                                                                                                                        (ressources_menage_172 <=
-                                                                                                                         (plafond__i_d521_3_345 + (param_392 *
-                                                                                                                                                   decimal_of_string("12.")))))):
-                            return ((plafond__i_d521_3_345 + ((param_392 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                              plafond__i_d521_3_352) and
+                                                                                                             (ressources_menage_177 <=
+                                                                                                              (plafond__i_d521_3_352 + (param_481 *
+                                                                                                                                        decimal_of_string("12.")))))):
+                            return ((plafond__i_d521_3_352 + ((param_481 *
                                                                decimal_of_string("12.")) -
-                                                              ressources_menage_172)) *
+                                                              ressources_menage_177)) *
                                     (decimal_of_string("1.") /
                                      decimal_of_string("12.")))
                         else:
                             raise EmptyError
 
-                    def local_var_393(_: Any):
+                    def local_var_482(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=170, start_column=5,
                                                              end_line=171, end_column=68,
@@ -2434,20 +3181,21 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 1er : Allocations familiales",
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                           "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                         plafond__i_i_d521_3_331) and
-                                                                                                                        (ressources_menage_172 <=
-                                                                                                                         (plafond__i_i_d521_3_331 + (param_392 *
-                                                                                                                                                     decimal_of_string("12.")))))):
-                            return ((plafond__i_i_d521_3_331 + ((param_392 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                              plafond__i_i_d521_3_338) and
+                                                                                                             (ressources_menage_177 <=
+                                                                                                              (plafond__i_i_d521_3_338 + (param_481 *
+                                                                                                                                          decimal_of_string("12.")))))):
+                            return ((plafond__i_i_d521_3_338 + ((param_481 *
                                                                  decimal_of_string("12.")) -
-                                                                ressources_menage_172)) *
+                                                                ressources_menage_177)) *
                                     (decimal_of_string("1.") /
                                      decimal_of_string("12.")))
                         else:
                             raise EmptyError
 
-                    def local_var_397(_: Any):
+                    def local_var_486(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=176, start_column=14,
                                                                  end_line=176, end_column=34,
@@ -2455,27 +3203,28 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                                "Chapitre 1er : Allocations familiales",
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                               "Partie réglementaire - Décrets simples"]), True)
+                                                                               "Partie réglementaire - Décrets simples",
+                                                                               "Code de la sécurité sociale"]), True)
 
-                    def local_var_399(_: Any):
+                    def local_var_488(_: Any):
                         return money_of_cents_string("0")
-                    return handle_default([local_var_393, local_var_395],
-                                          local_var_397, local_var_399)
+                    return handle_default([local_var_482, local_var_484],
+                                          local_var_486, local_var_488)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=135, start_column=12, end_line=135,
+                                                         start_line=141, start_column=12, end_line=141,
                                                          end_column=32, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=135, start_column=12, end_line=135, end_column=32,
+                                             start_line=141, start_column=12, end_line=141, end_column=32,
                                              law_headings=["Prologue"]))
-    complement_degressif_390 = log_variable_definition(["AllocationsFamiliales",
-                                                        "complément_dégressif"], local_var_391)
+    complement_degressif_479 = log_variable_definition(["AllocationsFamiliales",
+                                                        "complément_dégressif"], local_var_480)
     try:
         try:
-            local_var_402 = montant_verse_forfaitaire_par_enfant_150(Unit())
+            local_var_491 = montant_verse_forfaitaire_par_enfant_155(Unit())
         except EmptyError:
-            def local_var_407(_: Any):
+            def local_var_496(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=215, start_column=5,
                                                      end_line=215, end_column=43,
@@ -2483,14 +3232,15 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), (ressources_menage_172 <=
-                                                                                                                plafond__i_d521_3_345)):
-                    return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (ressources_menage_177 <=
+                                                                                                     plafond__i_d521_3_352)):
+                    return (prestations_familiales_dot_base_mensuelle_319 *
                             decimal_of_string("0.20234"))
                 else:
                     raise EmptyError
 
-            def local_var_405(_: Any):
+            def local_var_494(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=229, start_column=5,
                                                      end_line=230, end_column=46,
@@ -2498,15 +3248,16 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                 plafond__i_d521_3_345) and (ressources_menage_172 <=
-                                                                                                                                             plafond__i_i_d521_3_331))):
-                    return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                      plafond__i_d521_3_352) and (ressources_menage_177 <=
+                                                                                                                                  plafond__i_i_d521_3_338))):
+                    return (prestations_familiales_dot_base_mensuelle_319 *
                             decimal_of_string("0.1117"))
                 else:
                     raise EmptyError
 
-            def local_var_403(_: Any):
+            def local_var_492(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=243, start_column=5,
                                                      end_line=243, end_column=43,
@@ -2514,34 +3265,35 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), (ressources_menage_172 >
-                                                                                                                plafond__i_i_d521_3_331)):
-                    return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (ressources_menage_177 >
+                                                                                                     plafond__i_i_d521_3_338)):
+                    return (prestations_familiales_dot_base_mensuelle_319 *
                             decimal_of_string("0.0559"))
                 else:
                     raise EmptyError
 
-            def local_var_409(_: Any):
+            def local_var_498(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_411(_: Any):
+            def local_var_500(_: Any):
                 raise EmptyError
-            local_var_402 = handle_default([local_var_403, local_var_405,
-                                            local_var_407], local_var_409, local_var_411)
+            local_var_491 = handle_default([local_var_492, local_var_494,
+                                            local_var_496], local_var_498, local_var_500)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=122, start_column=12, end_line=122, end_column=48,
+                                             start_line=128, start_column=12, end_line=128, end_column=48,
                                              law_headings=["Prologue"]))
-    montant_verse_forfaitaire_par_enfant_401 = log_variable_definition(["AllocationsFamiliales",
-                                                                        "montant_versé_forfaitaire_par_enfant"], local_var_402)
+    montant_verse_forfaitaire_par_enfant_490 = log_variable_definition(["AllocationsFamiliales",
+                                                                        "montant_versé_forfaitaire_par_enfant"], local_var_491)
     try:
         try:
-            local_var_414 = montant_initial_base_troisieme_enfant_et_plus_143(
+            local_var_503 = montant_initial_base_troisieme_enfant_et_plus_143(
                 Unit())
         except EmptyError:
-            def local_var_419(_: Any):
+            def local_var_508(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=35, start_column=3,
                                                      end_line=35, end_column=41,
@@ -2549,20 +3301,21 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), (ressources_menage_172 <=
-                                                                                                                plafond__i_d521_3_345)):
-                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (ressources_menage_177 <=
+                                                                                                     plafond__i_d521_3_352)):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
                             integer_of_string("2")):
-                        return ((prestations_familiales_dot_base_mensuelle_312 *
+                        return ((prestations_familiales_dot_base_mensuelle_319 *
                                  decimal_of_string("0.41")) *
-                                decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) -
+                                decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) -
                                                     integer_of_string("2"))))
                     else:
                         return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_417(_: Any):
+            def local_var_506(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=74, start_column=3,
                                                      end_line=75, end_column=44,
@@ -2570,21 +3323,22 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                 plafond__i_d521_3_345) and (ressources_menage_172 <=
-                                                                                                                                             plafond__i_i_d521_3_331))):
-                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                      plafond__i_d521_3_352) and (ressources_menage_177 <=
+                                                                                                                                  plafond__i_i_d521_3_338))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
                             integer_of_string("2")):
-                        return ((prestations_familiales_dot_base_mensuelle_312 *
+                        return ((prestations_familiales_dot_base_mensuelle_319 *
                                  decimal_of_string("0.205")) *
-                                decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) -
+                                decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) -
                                                     integer_of_string("2"))))
                     else:
                         return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_415(_: Any):
+            def local_var_504(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=113, start_column=3,
                                                      end_line=113, end_column=41,
@@ -2592,39 +3346,40 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), (ressources_menage_172 >
-                                                                                                                plafond__i_i_d521_3_331)):
-                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (ressources_menage_177 >
+                                                                                                     plafond__i_i_d521_3_338)):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
                             integer_of_string("2")):
-                        return ((prestations_familiales_dot_base_mensuelle_312 *
+                        return ((prestations_familiales_dot_base_mensuelle_319 *
                                  decimal_of_string("0.1025")) *
-                                decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) -
+                                decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) -
                                                     integer_of_string("2"))))
                     else:
                         return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_421(_: Any):
+            def local_var_510(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_423(_: Any):
+            def local_var_512(_: Any):
                 raise EmptyError
-            local_var_414 = handle_default([local_var_415, local_var_417,
-                                            local_var_419], local_var_421, local_var_423)
+            local_var_503 = handle_default([local_var_504, local_var_506,
+                                            local_var_508], local_var_510, local_var_512)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=113, start_column=12, end_line=113, end_column=57,
+                                             start_line=112, start_column=12, end_line=112, end_column=57,
                                              law_headings=["Prologue"]))
-    montant_initial_base_troisieme_enfant_et_plus_413 = log_variable_definition(["AllocationsFamiliales",
-                                                                                 "montant_initial_base_troisième_enfant_et_plus"], local_var_414)
+    montant_initial_base_troisieme_enfant_et_plus_502 = log_variable_definition(["AllocationsFamiliales",
+                                                                                 "montant_initial_base_troisième_enfant_et_plus"], local_var_503)
     try:
         try:
-            local_var_426 = montant_initial_base_deuxieme_enfant_142(Unit())
+            local_var_515 = montant_initial_base_deuxieme_enfant_142(Unit())
         except EmptyError:
-            def local_var_431(_: Any):
+            def local_var_520(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=35, start_column=3,
                                                      end_line=35, end_column=41,
@@ -2632,18 +3387,19 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), (ressources_menage_172 <=
-                                                                                                                plafond__i_d521_3_345)):
-                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (ressources_menage_177 <=
+                                                                                                     plafond__i_d521_3_352)):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
                             integer_of_string("1")):
-                        return (prestations_familiales_dot_base_mensuelle_312 *
+                        return (prestations_familiales_dot_base_mensuelle_319 *
                                 decimal_of_string("0.32"))
                     else:
                         return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_429(_: Any):
+            def local_var_518(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=74, start_column=3,
                                                      end_line=75, end_column=44,
@@ -2651,19 +3407,20 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                 plafond__i_d521_3_345) and (ressources_menage_172 <=
-                                                                                                                                             plafond__i_i_d521_3_331))):
-                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                      plafond__i_d521_3_352) and (ressources_menage_177 <=
+                                                                                                                                  plafond__i_i_d521_3_338))):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
                             integer_of_string("1")):
-                        return (prestations_familiales_dot_base_mensuelle_312 *
+                        return (prestations_familiales_dot_base_mensuelle_319 *
                                 decimal_of_string("0.16"))
                     else:
                         return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_427(_: Any):
+            def local_var_516(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=113, start_column=3,
                                                      end_line=113, end_column=41,
@@ -2671,55 +3428,56 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), (ressources_menage_172 >
-                                                                                                                plafond__i_i_d521_3_331)):
-                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (ressources_menage_177 >
+                                                                                                     plafond__i_i_d521_3_338)):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) >
                             integer_of_string("1")):
-                        return (prestations_familiales_dot_base_mensuelle_312 *
+                        return (prestations_familiales_dot_base_mensuelle_319 *
                                 decimal_of_string("0.08"))
                     else:
                         return money_of_cents_string("0")
                 else:
                     raise EmptyError
 
-            def local_var_433(_: Any):
+            def local_var_522(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_435(_: Any):
+            def local_var_524(_: Any):
                 raise EmptyError
-            local_var_426 = handle_default([local_var_427, local_var_429,
-                                            local_var_431], local_var_433, local_var_435)
+            local_var_515 = handle_default([local_var_516, local_var_518,
+                                            local_var_520], local_var_522, local_var_524)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=112, start_column=12, end_line=112, end_column=48,
+                                             start_line=111, start_column=12, end_line=111, end_column=48,
                                              law_headings=["Prologue"]))
-    montant_initial_base_deuxieme_enfant_425 = log_variable_definition(["AllocationsFamiliales",
-                                                                        "montant_initial_base_deuxième_enfant"], local_var_426)
+    montant_initial_base_deuxieme_enfant_514 = log_variable_definition(["AllocationsFamiliales",
+                                                                        "montant_initial_base_deuxième_enfant"], local_var_515)
     try:
         try:
-            local_var_438 = rapport_enfants_total_moyen_144(Unit())
+            local_var_527 = rapport_enfants_total_moyen_144(Unit())
         except EmptyError:
-            if (nombre_total_enfants_364 ==
+            if (nombre_total_enfants_453 ==
                     decimal_of_string("0.")):
-                local_var_438 = decimal_of_string("0.")
+                local_var_527 = decimal_of_string("0.")
             else:
-                local_var_438 = (nombre_moyen_enfants_366 /
-                                 nombre_total_enfants_364)
+                local_var_527 = (nombre_moyen_enfants_455 /
+                                 nombre_total_enfants_453)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=114, start_column=12, end_line=114, end_column=39,
+                                             start_line=113, start_column=12, end_line=113, end_column=39,
                                              law_headings=["Prologue"]))
-    rapport_enfants_total_moyen_437 = log_variable_definition(["AllocationsFamiliales",
-                                                               "rapport_enfants_total_moyen"], local_var_438)
+    rapport_enfants_total_moyen_526 = log_variable_definition(["AllocationsFamiliales",
+                                                               "rapport_enfants_total_moyen"], local_var_527)
     try:
         try:
-            local_var_440 = montant_initial_metropole_majoration_153(Unit())
+            local_var_529 = montant_initial_metropole_majoration_158(Unit())
         except EmptyError:
-            def local_var_440(param_441: Enfant):
+            def local_var_529(param_530: Enfant):
                 try:
-                    def local_var_448(_: Any):
+                    def local_var_537(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=55, start_column=3,
                                                              end_line=55, end_column=41,
@@ -2727,24 +3485,25 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 1er : Allocations familiales",
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                           "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 <=
-                                                                                                                         plafond__i_d521_3_345) and
-                                                                                                                        log_end_call(["AllocationsFamiliales",
-                                                                                                                                      "droit_ouvert_majoration"],
-                                                                                                                                     log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                              "droit_ouvert_majoration", "output"],
-                                                                                                                                                             log_begin_call(["AllocationsFamiliales",
-                                                                                                                                                                             "droit_ouvert_majoration"],
-                                                                                                                                                                            droit_ouvert_majoration_387,
-                                                                                                                                                                            log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                                                                     "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                    param_441)))))):
-                            return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), ((ressources_menage_177 <=
+                                                                                                              plafond__i_d521_3_352) and
+                                                                                                             log_end_call(["AllocationsFamiliales",
+                                                                                                                           "droit_ouvert_majoration"],
+                                                                                                                          log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                   "droit_ouvert_majoration", "output"],
+                                                                                                                                                  log_begin_call(["AllocationsFamiliales",
+                                                                                                                                                                  "droit_ouvert_majoration"],
+                                                                                                                                                                 droit_ouvert_majoration_476,
+                                                                                                                                                                 log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                                                          "droit_ouvert_majoration", "input"],
+                                                                                                                                                                                         param_530)))))):
+                            return (prestations_familiales_dot_base_mensuelle_319 *
                                     decimal_of_string("0.16"))
                         else:
                             raise EmptyError
 
-                    def local_var_446(_: Any):
+                    def local_var_535(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=95, start_column=3,
                                                              end_line=96, end_column=44,
@@ -2752,26 +3511,27 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 1er : Allocations familiales",
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                           "Partie réglementaire - Décrets simples"]), (((ressources_menage_172 >
-                                                                                                                          plafond__i_d521_3_345) and
-                                                                                                                         (ressources_menage_172 <=
-                                                                                                                          plafond__i_i_d521_3_331)) and
-                                                                                                                        log_end_call(["AllocationsFamiliales",
-                                                                                                                                      "droit_ouvert_majoration"],
-                                                                                                                                     log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                              "droit_ouvert_majoration", "output"],
-                                                                                                                                                             log_begin_call(["AllocationsFamiliales",
-                                                                                                                                                                             "droit_ouvert_majoration"],
-                                                                                                                                                                            droit_ouvert_majoration_387,
-                                                                                                                                                                            log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                                                                     "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                    param_441)))))):
-                            return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), (((ressources_menage_177 >
+                                                                                                               plafond__i_d521_3_352) and
+                                                                                                              (ressources_menage_177 <=
+                                                                                                               plafond__i_i_d521_3_338)) and
+                                                                                                             log_end_call(["AllocationsFamiliales",
+                                                                                                                           "droit_ouvert_majoration"],
+                                                                                                                          log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                   "droit_ouvert_majoration", "output"],
+                                                                                                                                                  log_begin_call(["AllocationsFamiliales",
+                                                                                                                                                                  "droit_ouvert_majoration"],
+                                                                                                                                                                 droit_ouvert_majoration_476,
+                                                                                                                                                                 log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                                                          "droit_ouvert_majoration", "input"],
+                                                                                                                                                                                         param_530)))))):
+                            return (prestations_familiales_dot_base_mensuelle_319 *
                                     decimal_of_string("0.08"))
                         else:
                             raise EmptyError
 
-                    def local_var_444(_: Any):
+                    def local_var_533(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=132, start_column=3,
                                                              end_line=132, end_column=41,
@@ -2779,95 +3539,96 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 1er : Allocations familiales",
                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                           "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                         plafond__i_i_d521_3_331) and
-                                                                                                                        log_end_call(["AllocationsFamiliales",
-                                                                                                                                      "droit_ouvert_majoration"],
-                                                                                                                                     log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                              "droit_ouvert_majoration", "output"],
-                                                                                                                                                             log_begin_call(["AllocationsFamiliales",
-                                                                                                                                                                             "droit_ouvert_majoration"],
-                                                                                                                                                                            droit_ouvert_majoration_387,
-                                                                                                                                                                            log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                                                                     "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                    param_441)))))):
-                            return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                              plafond__i_i_d521_3_338) and
+                                                                                                             log_end_call(["AllocationsFamiliales",
+                                                                                                                           "droit_ouvert_majoration"],
+                                                                                                                          log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                   "droit_ouvert_majoration", "output"],
+                                                                                                                                                  log_begin_call(["AllocationsFamiliales",
+                                                                                                                                                                  "droit_ouvert_majoration"],
+                                                                                                                                                                 droit_ouvert_majoration_476,
+                                                                                                                                                                 log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                                                          "droit_ouvert_majoration", "input"],
+                                                                                                                                                                                         param_530)))))):
+                            return (prestations_familiales_dot_base_mensuelle_319 *
                                     decimal_of_string("0.04"))
                         else:
                             raise EmptyError
 
-                    def local_var_442(_: Any):
+                    def local_var_531(_: Any):
                         if log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=29, start_column=5,
-                                                             end_line=29, end_column=44,
-                                                             law_headings=["Règles diverses",
-                                                                           "Épilogue"]), not log_end_call(["AllocationsFamiliales",
-                                                                                                           "droit_ouvert_majoration"],
-                                                                                                          log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                   "droit_ouvert_majoration", "output"],
-                                                                                                                                  log_begin_call(["AllocationsFamiliales",
-                                                                                                                                                  "droit_ouvert_majoration"],
-                                                                                                                                                 droit_ouvert_majoration_387,
-                                                                                                                                                 log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                                          "droit_ouvert_majoration", "input"],
-                                                                                                                                                                         param_441))))):
+                                                             start_line=27, start_column=5,
+                                                             end_line=27, end_column=44,
+                                                             law_headings=["Règles diverses", "Épilogue",
+                                                                           "Décrets divers"]), not log_end_call(["AllocationsFamiliales",
+                                                                                                                 "droit_ouvert_majoration"],
+                                                                                                                log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                         "droit_ouvert_majoration", "output"],
+                                                                                                                                        log_begin_call(["AllocationsFamiliales",
+                                                                                                                                                        "droit_ouvert_majoration"],
+                                                                                                                                                       droit_ouvert_majoration_476,
+                                                                                                                                                       log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                                                "droit_ouvert_majoration", "input"],
+                                                                                                                                                                               param_530))))):
                             return money_of_cents_string("0")
                         else:
                             raise EmptyError
 
-                    def local_var_450(_: Any):
+                    def local_var_539(_: Any):
                         return log_decision_taken(SourcePosition(filename="",
                                                                  start_line=0, start_column=1,
                                                                  end_line=0, end_column=1,
                                                                  law_headings=[]), False)
 
-                    def local_var_452(_: Any):
+                    def local_var_541(_: Any):
                         raise EmptyError
-                    return handle_default([local_var_442, local_var_444,
-                                           local_var_446, local_var_448], local_var_450,
-                                          local_var_452)
+                    return handle_default([local_var_531, local_var_533,
+                                           local_var_535, local_var_537], local_var_539,
+                                          local_var_541)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=127, start_column=12, end_line=127,
+                                                         start_line=133, start_column=12, end_line=133,
                                                          end_column=48, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=127, start_column=12, end_line=127, end_column=48,
+                                             start_line=133, start_column=12, end_line=133, end_column=48,
                                              law_headings=["Prologue"]))
-    montant_initial_metropole_majoration_439 = log_variable_definition(["AllocationsFamiliales",
-                                                                        "montant_initial_métropole_majoration"], local_var_440)
+    montant_initial_metropole_majoration_528 = log_variable_definition(["AllocationsFamiliales",
+                                                                        "montant_initial_métropole_majoration"], local_var_529)
     try:
         try:
-            local_var_455 = montant_verse_forfaitaire_151(Unit())
+            local_var_544 = montant_verse_forfaitaire_156(Unit())
         except EmptyError:
-            def local_var_456(acc_457: Integer, enfant_458: Any):
+            def local_var_545(acc_546: Integer, enfant_547: Any):
                 if log_end_call(["AllocationsFamiliales",
                                  "droit_ouvert_forfaitaire"],
                                 log_variable_definition(["AllocationsFamiliales",
                                                          "droit_ouvert_forfaitaire", "output"],
                                                         log_begin_call(["AllocationsFamiliales",
                                                                         "droit_ouvert_forfaitaire"],
-                                                                       droit_ouvert_forfaitaire_361,
+                                                                       droit_ouvert_forfaitaire_368,
                                                                        log_variable_definition(["AllocationsFamiliales",
                                                                                                 "droit_ouvert_forfaitaire", "input"],
-                                                                                               enfant_458)))):
-                    return (acc_457 + integer_of_string("1"))
+                                                                                               enfant_547)))):
+                    return (acc_546 + integer_of_string("1"))
                 else:
-                    return acc_457
-            local_var_455 = (montant_verse_forfaitaire_par_enfant_401 *
-                             decimal_of_integer(list_fold_left(local_var_456,
-                                                               integer_of_string("0"), enfants_a_charge_178)))
+                    return acc_546
+            local_var_544 = (montant_verse_forfaitaire_par_enfant_490 *
+                             decimal_of_integer(list_fold_left(local_var_545,
+                                                               integer_of_string("0"), enfants_a_charge_183)))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=123, start_column=12, end_line=123, end_column=37,
+                                             start_line=129, start_column=12, end_line=129, end_column=37,
                                              law_headings=["Prologue"]))
-    montant_verse_forfaitaire_454 = log_variable_definition(["AllocationsFamiliales",
-                                                             "montant_versé_forfaitaire"], local_var_455)
+    montant_verse_forfaitaire_543 = log_variable_definition(["AllocationsFamiliales",
+                                                             "montant_versé_forfaitaire"], local_var_544)
     try:
         try:
-            local_var_460 = montant_initial_base_140(Unit())
+            local_var_549 = montant_initial_base_140(Unit())
         except EmptyError:
-            try:
+            def local_var_552(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=350, start_column=5,
                                                      end_line=351, end_column=69,
@@ -2875,28 +3636,59 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 5 : Prestations familiales et prestations assimilées",
                                                                    "Titre 5 : Départements d'outre-mer",
                                                                    "Livre 7 : Régimes divers - Dispositions diverses",
-                                                                   "Partie réglementaire - Décrets simples"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and
-                                                                                                                (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) ==
-                                                                                                                 integer_of_string("1")))):
-                    local_var_460 = montant_initial_base_premier_enfant_375
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) ==
+                                                                                                      integer_of_string("1")))):
+                    return montant_initial_base_premier_enfant_464
                 else:
                     raise EmptyError
-            except EmptyError:
-                local_var_460 = (montant_initial_base_deuxieme_enfant_425 +
-                                 montant_initial_base_troisieme_enfant_et_plus_413)
+
+            def local_var_550(_: Any):
+                if log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
+                                                     start_line=335, start_column=5,
+                                                     end_line=335, end_column=24, law_headings=["Article 7",
+                                                                                                "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
+                                                                                                "Dispositions spéciales relatives à Mayotte",
+                                                                                                "Décrets divers"]), (residence_179 ==
+                                                                                                                     Collectivite(Collectivite_Code.Mayotte,
+                                                                                                                                  Unit()))):
+                    return (montant_initial_base_premier_enfant_mayotte_425 +
+                            (montant_initial_base_deuxieme_enfant_mayotte_399 +
+                             (montant_initial_base_troisieme_enfant_mayotte_373 +
+                              montant_initial_base_quatrieme_enfant_et_plus_mayotte_371)))
+                else:
+                    raise EmptyError
+
+            def local_var_554(_: Any):
+                return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
+                                                         start_line=18, start_column=14,
+                                                         end_line=18, end_column=34,
+                                                         law_headings=["Article D521-1",
+                                                                       "Chapitre 1er : Allocations familiales",
+                                                                       "Titre 2 : Prestations générales d'entretien",
+                                                                       "Livre 5 : Prestations familiales et prestations assimilées",
+                                                                       "Partie réglementaire - Décrets simples",
+                                                                       "Code de la sécurité sociale"]), True)
+
+            def local_var_556(_: Any):
+                return (montant_initial_base_deuxieme_enfant_514 +
+                        montant_initial_base_troisieme_enfant_et_plus_502)
+            local_var_549 = handle_default([local_var_550, local_var_552],
+                                           local_var_554, local_var_556)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=110, start_column=12, end_line=110, end_column=32,
+                                             start_line=109, start_column=12, end_line=109, end_column=32,
                                              law_headings=["Prologue"]))
-    montant_initial_base_459 = log_variable_definition(["AllocationsFamiliales",
-                                                        "montant_initial_base"], local_var_460)
+    montant_initial_base_548 = log_variable_definition(["AllocationsFamiliales",
+                                                        "montant_initial_base"], local_var_549)
     try:
         try:
-            local_var_462 = montant_initial_majoration_154(Unit())
+            local_var_559 = montant_initial_majoration_159(Unit())
         except EmptyError:
-            def local_var_462(param_463: Enfant):
+            def local_var_559(param_560: Enfant):
                 try:
-                    def local_var_466(_: Any):
+                    def local_var_563(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=373, start_column=5,
                                                              end_line=376, end_column=42,
@@ -2904,27 +3696,28 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 5 : Prestations familiales et prestations assimilées",
                                                                            "Titre 5 : Départements d'outre-mer",
                                                                            "Livre 7 : Régimes divers - Dispositions diverses",
-                                                                           "Partie réglementaire - Décrets simples"]), (log_end_call(["AllocationsFamiliales",
-                                                                                                                                      "droit_ouvert_majoration"],
-                                                                                                                                     log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                              "droit_ouvert_majoration", "output"],
-                                                                                                                                                             log_begin_call(["AllocationsFamiliales",
-                                                                                                                                                                             "droit_ouvert_majoration"],
-                                                                                                                                                                            droit_ouvert_majoration_387,
-                                                                                                                                                                            log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                                                                     "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                    param_463)))) and
-                                                                                                                        (prestations_familiales_dot_regime_outre_mer_l751_1_308 and
-                                                                                                                         ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) ==
-                                                                                                                           integer_of_string("1")) and ((param_463.age >=
-                                                                                                                                                         integer_of_string("11")) and (param_463.age <
-                                                                                                                                                                                       integer_of_string("16"))))))):
-                            return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), (log_end_call(["AllocationsFamiliales",
+                                                                                                                           "droit_ouvert_majoration"],
+                                                                                                                          log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                   "droit_ouvert_majoration", "output"],
+                                                                                                                                                  log_begin_call(["AllocationsFamiliales",
+                                                                                                                                                                  "droit_ouvert_majoration"],
+                                                                                                                                                                 droit_ouvert_majoration_476,
+                                                                                                                                                                 log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                                                          "droit_ouvert_majoration", "input"],
+                                                                                                                                                                                         param_560)))) and
+                                                                                                             (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                              ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) ==
+                                                                                                                integer_of_string("1")) and ((param_560.age >=
+                                                                                                                                              integer_of_string("11")) and (param_560.age <
+                                                                                                                                             integer_of_string("16"))))))):
+                            return (prestations_familiales_dot_base_mensuelle_319 *
                                     decimal_of_string("0.0369"))
                         else:
                             raise EmptyError
 
-                    def local_var_464(_: Any):
+                    def local_var_561(_: Any):
                         if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                              start_line=382, start_column=5,
                                                              end_line=385, end_column=23,
@@ -2932,26 +3725,27 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                            "Chapitre 5 : Prestations familiales et prestations assimilées",
                                                                            "Titre 5 : Départements d'outre-mer",
                                                                            "Livre 7 : Régimes divers - Dispositions diverses",
-                                                                           "Partie réglementaire - Décrets simples"]), (log_end_call(["AllocationsFamiliales",
-                                                                                                                                      "droit_ouvert_majoration"],
-                                                                                                                                     log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                              "droit_ouvert_majoration", "output"],
-                                                                                                                                                             log_begin_call(["AllocationsFamiliales",
-                                                                                                                                                                             "droit_ouvert_majoration"],
-                                                                                                                                                                            droit_ouvert_majoration_387,
-                                                                                                                                                                            log_variable_definition(["AllocationsFamiliales",
-                                                                                                                                                                                                     "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                    param_463)))) and
-                                                                                                                        (prestations_familiales_dot_regime_outre_mer_l751_1_308 and
-                                                                                                                         ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) ==
-                                                                                                                           integer_of_string("1")) and (param_463.age >=
-                                                                                                                                                        integer_of_string("16")))))):
-                            return (prestations_familiales_dot_base_mensuelle_312 *
+                                                                           "Partie réglementaire - Décrets simples",
+                                                                           "Code de la sécurité sociale"]), (log_end_call(["AllocationsFamiliales",
+                                                                                                                           "droit_ouvert_majoration"],
+                                                                                                                          log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                   "droit_ouvert_majoration", "output"],
+                                                                                                                                                  log_begin_call(["AllocationsFamiliales",
+                                                                                                                                                                  "droit_ouvert_majoration"],
+                                                                                                                                                                 droit_ouvert_majoration_476,
+                                                                                                                                                                 log_variable_definition(["AllocationsFamiliales",
+                                                                                                                                                                                          "droit_ouvert_majoration", "input"],
+                                                                                                                                                                                         param_560)))) and
+                                                                                                             (prestations_familiales_dot_regime_outre_mer_l751_1_315 and
+                                                                                                              ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_331) ==
+                                                                                                                integer_of_string("1")) and (param_560.age >=
+                                                                                                                                             integer_of_string("16")))))):
+                            return (prestations_familiales_dot_base_mensuelle_319 *
                                     decimal_of_string("0.0567"))
                         else:
                             raise EmptyError
 
-                    def local_var_468(_: Any):
+                    def local_var_565(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=22, start_column=14,
                                                                  end_line=22, end_column=40,
@@ -2959,9 +3753,10 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                                "Chapitre 1er : Allocations familiales",
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                               "Partie réglementaire - Décrets simples"]), True)
+                                                                               "Partie réglementaire - Décrets simples",
+                                                                               "Code de la sécurité sociale"]), True)
 
-                    def local_var_470(_: Any):
+                    def local_var_567(_: Any):
                         return log_end_call(["AllocationsFamiliales",
                                              "montant_initial_métropole_majoration"],
                                             log_variable_definition(["AllocationsFamiliales",
@@ -2969,28 +3764,28 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                      "output"],
                                                                     log_begin_call(["AllocationsFamiliales",
                                                                                     "montant_initial_métropole_majoration"],
-                                                                                   montant_initial_metropole_majoration_439,
+                                                                                   montant_initial_metropole_majoration_528,
                                                                                    log_variable_definition(["AllocationsFamiliales",
                                                                                                             "montant_initial_métropole_majoration",
-                                                                                                            "input"], param_463))))
-                    return handle_default([local_var_464, local_var_466],
-                                          local_var_468, local_var_470)
+                                                                                                            "input"], param_560))))
+                    return handle_default([local_var_561, local_var_563],
+                                          local_var_565, local_var_567)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=128, start_column=12, end_line=128,
+                                                         start_line=134, start_column=12, end_line=134,
                                                          end_column=38, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=128, start_column=12, end_line=128, end_column=38,
+                                             start_line=134, start_column=12, end_line=134, end_column=38,
                                              law_headings=["Prologue"]))
-    montant_initial_majoration_461 = log_variable_definition(["AllocationsFamiliales",
-                                                              "montant_initial_majoration"], local_var_462)
+    montant_initial_majoration_558 = log_variable_definition(["AllocationsFamiliales",
+                                                              "montant_initial_majoration"], local_var_559)
     try:
         try:
-            local_var_473 = montant_verse_complement_pour_forfaitaire_161(
+            local_var_570 = montant_verse_complement_pour_forfaitaire_166(
                 Unit())
         except EmptyError:
-            def local_var_476(_: Any):
+            def local_var_573(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=262, start_column=5,
                                                      end_line=264, end_column=42,
@@ -2998,18 +3793,19 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                 plafond__i_d521_3_345) and (ressources_menage_172 <=
-                                                                                                                                             (plafond__i_d521_3_345 + (montant_verse_forfaitaire_454 *
-                                                                                                                                                                       decimal_of_string("12.")))))):
-                    return ((plafond__i_d521_3_345 +
-                             ((montant_verse_forfaitaire_454 *
-                               decimal_of_string("12.")) - ressources_menage_172)) *
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                      plafond__i_d521_3_352) and (ressources_menage_177 <=
+                                                                                                                                  (plafond__i_d521_3_352 + (montant_verse_forfaitaire_543 *
+                                                                                                                                                            decimal_of_string("12.")))))):
+                    return ((plafond__i_d521_3_352 +
+                             ((montant_verse_forfaitaire_543 *
+                               decimal_of_string("12.")) - ressources_menage_177)) *
                             (decimal_of_string("1.") / decimal_of_string("12.")))
                 else:
                     raise EmptyError
 
-            def local_var_474(_: Any):
+            def local_var_571(_: Any):
                 if log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                      start_line=272, start_column=5,
                                                      end_line=274, end_column=41,
@@ -3017,19 +3813,20 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                    "Chapitre 1er : Allocations familiales",
                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                   "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 >
-                                                                                                                 plafond__i_i_d521_3_331) and (ressources_menage_172 <=
-                                                                                                                                               (plafond__i_i_d521_3_331 +
-                                                                                                                                                (montant_verse_forfaitaire_454 *
-                                                                                                                                                 decimal_of_string("12.")))))):
-                    return ((plafond__i_i_d521_3_331 +
-                             ((montant_verse_forfaitaire_454 *
-                               decimal_of_string("12.")) - ressources_menage_172)) *
+                                                                   "Partie réglementaire - Décrets simples",
+                                                                   "Code de la sécurité sociale"]), ((ressources_menage_177 >
+                                                                                                      plafond__i_i_d521_3_338) and (ressources_menage_177 <=
+                                                                                                                                    (plafond__i_i_d521_3_338 +
+                                                                                                                                     (montant_verse_forfaitaire_543 *
+                                                                                                                                      decimal_of_string("12.")))))):
+                    return ((plafond__i_i_d521_3_338 +
+                             ((montant_verse_forfaitaire_543 *
+                               decimal_of_string("12.")) - ressources_menage_177)) *
                             (decimal_of_string("1.") / decimal_of_string("12.")))
                 else:
                     raise EmptyError
 
-            def local_var_478(_: Any):
+            def local_var_575(_: Any):
                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                          start_line=280, start_column=14,
                                                          end_line=280, end_column=55,
@@ -3037,560 +3834,627 @@ def allocations_familiales(allocations_familiales_in_128: AllocationsFamilialesI
                                                                        "Chapitre 1er : Allocations familiales",
                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
-                                                                       "Partie réglementaire - Décrets simples"]), True)
+                                                                       "Partie réglementaire - Décrets simples",
+                                                                       "Code de la sécurité sociale"]), True)
 
-            def local_var_480(_: Any):
+            def local_var_577(_: Any):
                 return money_of_cents_string("0")
-            local_var_473 = handle_default([local_var_474, local_var_476],
-                                           local_var_478, local_var_480)
+            local_var_570 = handle_default([local_var_571, local_var_573],
+                                           local_var_575, local_var_577)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=137, start_column=12, end_line=137, end_column=53,
+                                             start_line=143, start_column=12, end_line=143, end_column=53,
                                              law_headings=["Prologue"]))
-    montant_verse_complement_pour_forfaitaire_472 = log_variable_definition(["AllocationsFamiliales",
-                                                                             "montant_versé_complément_pour_forfaitaire"], local_var_473)
+    montant_verse_complement_pour_forfaitaire_569 = log_variable_definition(["AllocationsFamiliales",
+                                                                             "montant_versé_complément_pour_forfaitaire"], local_var_570)
     try:
         try:
-            local_var_483 = montant_avec_garde_alternee_base_147(Unit())
+            local_var_580 = montant_avec_garde_alternee_base_147(Unit())
         except EmptyError:
-            local_var_483 = (montant_initial_base_459 *
-                             rapport_enfants_total_moyen_437)
+            local_var_580 = (montant_initial_base_548 *
+                             rapport_enfants_total_moyen_526)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=117, start_column=12, end_line=117, end_column=44,
+                                             start_line=116, start_column=12, end_line=116, end_column=44,
                                              law_headings=["Prologue"]))
-    montant_avec_garde_alternee_base_482 = log_variable_definition(["AllocationsFamiliales",
-                                                                    "montant_avec_garde_alternée_base"], local_var_483)
+    montant_avec_garde_alternee_base_579 = log_variable_definition(["AllocationsFamiliales",
+                                                                    "montant_avec_garde_alternée_base"], local_var_580)
     try:
         try:
-            local_var_485 = montant_avec_garde_alternee_majoration_155(Unit())
+            local_var_582 = montant_avec_garde_alternee_majoration_160(Unit())
         except EmptyError:
-            def local_var_485(param_486: Enfant):
+            def local_var_582(param_583: Enfant):
                 try:
-                    match_arg_675 = log_end_call(["AllocationsFamiliales",
+                    match_arg_792 = log_end_call(["AllocationsFamiliales",
                                                   "prise_en_compte"],
                                                  log_variable_definition(["AllocationsFamiliales",
                                                                           "prise_en_compte", "output"],
                                                                          log_begin_call(["AllocationsFamiliales",
-                                                                                         "prise_en_compte"], prise_en_compte_180,
+                                                                                         "prise_en_compte"], prise_en_compte_185,
                                                                                         log_variable_definition(["AllocationsFamiliales",
                                                                                                                  "prise_en_compte", "input"],
-                                                                                                                param_486))))
-                    if match_arg_675.code == PriseEnCompte_Code.Complete:
-                        _ = match_arg_675.value
-                        local_var_487 = decimal_of_string("1.")
-                    elif match_arg_675.code == PriseEnCompte_Code.Partagee:
-                        _ = match_arg_675.value
-                        local_var_487 = decimal_of_string("0.5")
-                    elif match_arg_675.code == PriseEnCompte_Code.Zero:
-                        _ = match_arg_675.value
-                        local_var_487 = decimal_of_string("0.")
+                                                                                                                param_583))))
+                    if match_arg_792.code == PriseEnCompte_Code.Complete:
+                        _ = match_arg_792.value
+                        local_var_584 = decimal_of_string("1.")
+                    elif match_arg_792.code == PriseEnCompte_Code.Partagee:
+                        _ = match_arg_792.value
+                        local_var_584 = decimal_of_string("0.5")
+                    elif match_arg_792.code == PriseEnCompte_Code.Zero:
+                        _ = match_arg_792.value
+                        local_var_584 = decimal_of_string("0.")
                     return (log_end_call(["AllocationsFamiliales",
                                           "montant_initial_majoration"],
                                          log_variable_definition(["AllocationsFamiliales",
                                                                   "montant_initial_majoration", "output"],
                                                                  log_begin_call(["AllocationsFamiliales",
                                                                                  "montant_initial_majoration"],
-                                                                                montant_initial_majoration_461,
+                                                                                montant_initial_majoration_558,
                                                                                 log_variable_definition(["AllocationsFamiliales",
                                                                                                          "montant_initial_majoration", "input"],
-                                                                                                        param_486)))) * local_var_487)
+                                                                                                        param_583)))) * local_var_584)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                                         start_line=129, start_column=12, end_line=129,
+                                                         start_line=135, start_column=12, end_line=135,
                                                          end_column=50, law_headings=["Prologue"]))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=129, start_column=12, end_line=129, end_column=50,
+                                             start_line=135, start_column=12, end_line=135, end_column=50,
                                              law_headings=["Prologue"]))
-    montant_avec_garde_alternee_majoration_484 = log_variable_definition(["AllocationsFamiliales",
-                                                                          "montant_avec_garde_alternée_majoration"], local_var_485)
+    montant_avec_garde_alternee_majoration_581 = log_variable_definition(["AllocationsFamiliales",
+                                                                          "montant_avec_garde_alternée_majoration"], local_var_582)
     try:
         try:
-            local_var_492 = montant_verse_base_148(Unit())
+            local_var_589 = montant_verse_base_148(Unit())
         except EmptyError:
-            if droit_ouvert_base_385:
-                local_var_492 = montant_avec_garde_alternee_base_482
+            if droit_ouvert_base_466:
+                local_var_589 = montant_avec_garde_alternee_base_579
             else:
-                local_var_492 = money_of_cents_string("0")
+                local_var_589 = money_of_cents_string("0")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=118, start_column=12, end_line=118, end_column=30,
+                                             start_line=117, start_column=12, end_line=117, end_column=30,
                                              law_headings=["Prologue"]))
-    montant_verse_base_491 = log_variable_definition(["AllocationsFamiliales",
-                                                      "montant_versé_base"], local_var_492)
+    montant_verse_base_588 = log_variable_definition(["AllocationsFamiliales",
+                                                      "montant_versé_base"], local_var_589)
     try:
         try:
-            local_var_494 = montant_verse_majoration_156(Unit())
+            local_var_591 = montant_verse_majoration_161(Unit())
         except EmptyError:
-            if droit_ouvert_base_385:
-                def local_var_495(acc_496: Money, enfant_497: Any):
-                    return (acc_496 + log_end_call(["AllocationsFamiliales",
+            if droit_ouvert_base_466:
+                def local_var_592(acc_593: Money, enfant_594: Any):
+                    return (acc_593 + log_end_call(["AllocationsFamiliales",
                                                     "montant_avec_garde_alternée_majoration"],
                                                    log_variable_definition(["AllocationsFamiliales",
                                                                             "montant_avec_garde_alternée_majoration", "output"],
                                                                            log_begin_call(["AllocationsFamiliales",
                                                                                            "montant_avec_garde_alternée_majoration"],
-                                                                                          montant_avec_garde_alternee_majoration_484,
+                                                                                          montant_avec_garde_alternee_majoration_581,
                                                                                           log_variable_definition(["AllocationsFamiliales",
                                                                                                                    "montant_avec_garde_alternée_majoration", "input"],
-                                                                                                                  enfant_497)))))
-                local_var_494 = list_fold_left(local_var_495,
-                                               money_of_cents_string("0"), enfants_a_charge_178)
+                                                                                                                  enfant_594)))))
+                local_var_591 = list_fold_left(local_var_592,
+                                               money_of_cents_string("0"), enfants_a_charge_183)
             else:
-                local_var_494 = money_of_cents_string("0")
+                local_var_591 = money_of_cents_string("0")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=130, start_column=12, end_line=130, end_column=36,
+                                             start_line=136, start_column=12, end_line=136, end_column=36,
                                              law_headings=["Prologue"]))
-    montant_verse_majoration_493 = log_variable_definition(["AllocationsFamiliales",
-                                                            "montant_versé_majoration"], local_var_494)
+    montant_verse_majoration_590 = log_variable_definition(["AllocationsFamiliales",
+                                                            "montant_versé_majoration"], local_var_591)
     try:
         try:
-            local_var_499 = montant_base_complement_pour_base_et_majoration_158(
+            local_var_596 = montant_base_complement_pour_base_et_majoration_163(
                 Unit())
         except EmptyError:
-            local_var_499 = (montant_verse_base_491 +
-                             montant_verse_majoration_493)
+            local_var_596 = (montant_verse_base_588 +
+                             montant_verse_majoration_590)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=134, start_column=12, end_line=134, end_column=59,
+                                             start_line=140, start_column=12, end_line=140, end_column=59,
                                              law_headings=["Prologue"]))
-    montant_base_complement_pour_base_et_majoration_498 = log_variable_definition(["AllocationsFamiliales",
-                                                                                   "montant_base_complément_pour_base_et_majoration"], local_var_499)
+    montant_base_complement_pour_base_et_majoration_595 = log_variable_definition(["AllocationsFamiliales",
+                                                                                   "montant_base_complément_pour_base_et_majoration"], local_var_596)
     try:
         try:
-            local_var_501 = montant_verse_complement_pour_base_et_majoration_160(
+            local_var_598 = montant_verse_complement_pour_base_et_majoration_165(
                 Unit())
         except EmptyError:
-            if droit_ouvert_complement_359:
-                local_var_501 = log_end_call(["AllocationsFamiliales",
+            if droit_ouvert_complement_366:
+                local_var_598 = log_end_call(["AllocationsFamiliales",
                                               "complément_dégressif"],
                                              log_variable_definition(["AllocationsFamiliales",
                                                                       "complément_dégressif", "output"],
                                                                      log_begin_call(["AllocationsFamiliales",
-                                                                                     "complément_dégressif"], complement_degressif_390,
+                                                                                     "complément_dégressif"], complement_degressif_479,
                                                                                     log_variable_definition(["AllocationsFamiliales",
                                                                                                              "complément_dégressif", "input"],
-                                                                                                            montant_base_complement_pour_base_et_majoration_498))))
+                                                                                                            montant_base_complement_pour_base_et_majoration_595))))
             else:
-                local_var_501 = money_of_cents_string("0")
+                local_var_598 = money_of_cents_string("0")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=136, start_column=12, end_line=136, end_column=60,
+                                             start_line=142, start_column=12, end_line=142, end_column=60,
                                              law_headings=["Prologue"]))
-    montant_verse_complement_pour_base_et_majoration_500 = log_variable_definition(["AllocationsFamiliales",
-                                                                                    "montant_versé_complément_pour_base_et_majoration"], local_var_501)
+    montant_verse_complement_pour_base_et_majoration_597 = log_variable_definition(["AllocationsFamiliales",
+                                                                                    "montant_versé_complément_pour_base_et_majoration"], local_var_598)
     try:
         try:
-            local_var_503 = montant_verse_138(Unit())
+            local_var_600 = montant_verse_138(Unit())
         except EmptyError:
-            if droit_ouvert_base_385:
-                local_var_503 = (montant_verse_base_491 +
-                                 (montant_verse_majoration_493 +
-                                  (montant_verse_forfaitaire_454 +
-                                   (montant_verse_complement_pour_base_et_majoration_500 +
-                                    montant_verse_complement_pour_forfaitaire_472))))
+            if droit_ouvert_base_466:
+                local_var_600 = (montant_verse_base_588 +
+                                 (montant_verse_majoration_590 +
+                                  (montant_verse_forfaitaire_543 +
+                                   (montant_verse_complement_pour_base_et_majoration_597 +
+                                    montant_verse_complement_pour_forfaitaire_569))))
             else:
-                local_var_503 = money_of_cents_string("0")
+                local_var_600 = money_of_cents_string("0")
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
-                                             start_line=106, start_column=12, end_line=106, end_column=25,
+                                             start_line=105, start_column=12, end_line=105, end_column=25,
                                              law_headings=["Prologue"]))
-    montant_verse_502 = log_variable_definition(["AllocationsFamiliales",
-                                                 "montant_versé"], local_var_503)
-    assert (personne_charge_effective_permanente_est_parent_168 or
-            (not personne_charge_effective_permanente_est_parent_168 and
-             personne_charge_effective_permanente_remplit_titre__i_170))
-    return AllocationsFamilialesOut(personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_168,
-                                    personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_170,
-                                    ressources_menage_out=ressources_menage_172,
-                                    residence_out=residence_174, date_courante_out=date_courante_176,
-                                    enfants_a_charge_out=enfants_a_charge_178,
-                                    enfants_a_charge_droit_ouvert_prestation_familiale_out=enfants_a_charge_droit_ouvert_prestation_familiale_324,
-                                    prise_en_compte_out=prise_en_compte_180,
-                                    versement_out=versement_227, montant_verse_out=montant_verse_502,
-                                    droit_ouvert_base_out=droit_ouvert_base_385,
-                                    montant_initial_base_out=montant_initial_base_459,
-                                    montant_initial_base_premier_enfant_out=montant_initial_base_premier_enfant_375,
-                                    montant_initial_base_deuxieme_enfant_out=montant_initial_base_deuxieme_enfant_425,
-                                    montant_initial_base_troisieme_enfant_et_plus_out=montant_initial_base_troisieme_enfant_et_plus_413,
-                                    rapport_enfants_total_moyen_out=rapport_enfants_total_moyen_437,
-                                    nombre_moyen_enfants_out=nombre_moyen_enfants_366,
-                                    nombre_total_enfants_out=nombre_total_enfants_364,
-                                    montant_avec_garde_alternee_base_out=montant_avec_garde_alternee_base_482,
-                                    montant_verse_base_out=montant_verse_base_491,
-                                    droit_ouvert_forfaitaire_out=droit_ouvert_forfaitaire_361,
-                                    montant_verse_forfaitaire_par_enfant_out=montant_verse_forfaitaire_par_enfant_401,
-                                    montant_verse_forfaitaire_out=montant_verse_forfaitaire_454,
-                                    droit_ouvert_majoration_out=droit_ouvert_majoration_387,
-                                    montant_initial_metropole_majoration_out=montant_initial_metropole_majoration_439,
-                                    montant_initial_majoration_out=montant_initial_majoration_461,
-                                    montant_avec_garde_alternee_majoration_out=montant_avec_garde_alternee_majoration_484,
-                                    montant_verse_majoration_out=montant_verse_majoration_493,
-                                    droit_ouvert_complement_out=droit_ouvert_complement_359,
-                                    montant_base_complement_pour_base_et_majoration_out=montant_base_complement_pour_base_et_majoration_498,
-                                    complement_degressif_out=complement_degressif_390,
-                                    montant_verse_complement_pour_base_et_majoration_out=montant_verse_complement_pour_base_et_majoration_500,
-                                    montant_verse_complement_pour_forfaitaire_out=montant_verse_complement_pour_forfaitaire_472,
-                                    nombre_enfants_l521_1_out=nombre_enfants_l521_1_274,
-                                    age_minimum_alinea_1_l521_3_out=age_minimum_alinea_1_l521_3_321,
-                                    nombre_enfants_alinea_2_l521_3_out=nombre_enfants_alinea_2_l521_3_276,
-                                    est_enfant_le_plus_age_out=est_enfant_le_plus_age_328,
-                                    plafond_I_d521_3_out=plafond__i_d521_3_345,
-                                    plafond_II_d521_3_out=plafond__i_i_d521_3_331)
+    montant_verse_599 = log_variable_definition(["AllocationsFamiliales",
+                                                 "montant_versé"], local_var_600)
+    assert (personne_charge_effective_permanente_est_parent_173 or
+            (not personne_charge_effective_permanente_est_parent_173 and
+             personne_charge_effective_permanente_remplit_titre__i_175))
+    return AllocationsFamilialesOut(personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_173,
+                                    personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_175,
+                                    ressources_menage_out=ressources_menage_177,
+                                    residence_out=residence_179, date_courante_out=date_courante_181,
+                                    enfants_a_charge_out=enfants_a_charge_183,
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_out=enfants_a_charge_droit_ouvert_prestation_familiale_331,
+                                    prise_en_compte_out=prise_en_compte_185,
+                                    versement_out=versement_232, montant_verse_out=montant_verse_599,
+                                    droit_ouvert_base_out=droit_ouvert_base_466,
+                                    montant_initial_base_out=montant_initial_base_548,
+                                    montant_initial_base_premier_enfant_out=montant_initial_base_premier_enfant_464,
+                                    montant_initial_base_deuxieme_enfant_out=montant_initial_base_deuxieme_enfant_514,
+                                    montant_initial_base_troisieme_enfant_et_plus_out=montant_initial_base_troisieme_enfant_et_plus_502,
+                                    rapport_enfants_total_moyen_out=rapport_enfants_total_moyen_526,
+                                    nombre_moyen_enfants_out=nombre_moyen_enfants_455,
+                                    nombre_total_enfants_out=nombre_total_enfants_453,
+                                    montant_avec_garde_alternee_base_out=montant_avec_garde_alternee_base_579,
+                                    montant_verse_base_out=montant_verse_base_588,
+                                    avait_enfant_a_charge_avant_1er_janvier_2012_out=avait_enfant_a_charge_avant_1er_janvier_2012_279,
+                                    montant_initial_base_premier_enfant_mayotte_out=montant_initial_base_premier_enfant_mayotte_425,
+                                    montant_initial_base_deuxieme_enfant_mayotte_out=montant_initial_base_deuxieme_enfant_mayotte_399,
+                                    montant_initial_base_troisieme_enfant_mayotte_out=montant_initial_base_troisieme_enfant_mayotte_373,
+                                    montant_initial_base_quatrieme_enfant_et_plus_mayotte_out=montant_initial_base_quatrieme_enfant_et_plus_mayotte_371,
+                                    droit_ouvert_forfaitaire_out=droit_ouvert_forfaitaire_368,
+                                    montant_verse_forfaitaire_par_enfant_out=montant_verse_forfaitaire_par_enfant_490,
+                                    montant_verse_forfaitaire_out=montant_verse_forfaitaire_543,
+                                    droit_ouvert_majoration_out=droit_ouvert_majoration_476,
+                                    montant_initial_metropole_majoration_out=montant_initial_metropole_majoration_528,
+                                    montant_initial_majoration_out=montant_initial_majoration_558,
+                                    montant_avec_garde_alternee_majoration_out=montant_avec_garde_alternee_majoration_581,
+                                    montant_verse_majoration_out=montant_verse_majoration_590,
+                                    droit_ouvert_complement_out=droit_ouvert_complement_366,
+                                    montant_base_complement_pour_base_et_majoration_out=montant_base_complement_pour_base_et_majoration_595,
+                                    complement_degressif_out=complement_degressif_479,
+                                    montant_verse_complement_pour_base_et_majoration_out=montant_verse_complement_pour_base_et_majoration_597,
+                                    montant_verse_complement_pour_forfaitaire_out=montant_verse_complement_pour_forfaitaire_569,
+                                    nombre_enfants_l521_1_out=nombre_enfants_l521_1_281,
+                                    age_minimum_alinea_1_l521_3_out=age_minimum_alinea_1_l521_3_328,
+                                    nombre_enfants_alinea_2_l521_3_out=nombre_enfants_alinea_2_l521_3_283,
+                                    est_enfant_le_plus_age_out=est_enfant_le_plus_age_335,
+                                    plafond_I_d521_3_out=plafond__i_d521_3_352,
+                                    plafond_II_d521_3_out=plafond__i_i_d521_3_338)
 
 
-def interface_allocations_familiales(interface_allocations_familiales_in_504: InterfaceAllocationsFamilialesIn):
-    date_courante_505 = interface_allocations_familiales_in_504.date_courante_in
-    enfants_506 = interface_allocations_familiales_in_504.enfants_in
-    enfants_a_charge_507 = interface_allocations_familiales_in_504.enfants_a_charge_in
-    ressources_menage_508 = interface_allocations_familiales_in_504.ressources_menage_in
-    residence_509 = interface_allocations_familiales_in_504.residence_in
-    montant_verse_510 = interface_allocations_familiales_in_504.montant_verse_in
-    personne_charge_effective_permanente_est_parent_511 = interface_allocations_familiales_in_504.personne_charge_effective_permanente_est_parent_in
-    personne_charge_effective_permanente_remplit_titre__i_512 = interface_allocations_familiales_in_504.personne_charge_effective_permanente_remplit_titre_I_in
+def interface_allocations_familiales(interface_allocations_familiales_in_601: InterfaceAllocationsFamilialesIn):
+    date_courante_602 = interface_allocations_familiales_in_601.date_courante_in
+    enfants_603 = interface_allocations_familiales_in_601.enfants_in
+    enfants_a_charge_604 = interface_allocations_familiales_in_601.enfants_a_charge_in
+    ressources_menage_605 = interface_allocations_familiales_in_601.ressources_menage_in
+    residence_606 = interface_allocations_familiales_in_601.residence_in
+    montant_verse_607 = interface_allocations_familiales_in_601.montant_verse_in
+    personne_charge_effective_permanente_est_parent_608 = interface_allocations_familiales_in_601.personne_charge_effective_permanente_est_parent_in
+    personne_charge_effective_permanente_remplit_titre__i_609 = interface_allocations_familiales_in_601.personne_charge_effective_permanente_remplit_titre_I_in
+    avait_enfant_a_charge_avant_1er_janvier_2012_610 = interface_allocations_familiales_in_601.avait_enfant_a_charge_avant_1er_janvier_2012_in
     try:
-        local_var_514 = date_courante_505(Unit())
+        local_var_612 = date_courante_602(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=78, start_column=12, end_line=78, end_column=25,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    date_courante_513 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                 "date_courante"], local_var_514)
+                                             start_line=72, start_column=12, end_line=72, end_column=25,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    date_courante_611 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                 "date_courante"], local_var_612)
     try:
-        local_var_516 = enfants_506(Unit())
+        local_var_614 = enfants_603(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=79, start_column=12, end_line=79, end_column=19,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    enfants_515 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                           "enfants"], local_var_516)
+                                             start_line=73, start_column=12, end_line=73, end_column=19,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    enfants_613 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                           "enfants"], local_var_614)
     try:
-        local_var_518 = ressources_menage_508(Unit())
+        local_var_616 = ressources_menage_605(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=82, start_column=12, end_line=82, end_column=29,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    ressources_menage_517 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                     "ressources_ménage"], local_var_518)
+                                             start_line=76, start_column=12, end_line=76, end_column=29,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    ressources_menage_615 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                     "ressources_ménage"], local_var_616)
     try:
-        local_var_520 = residence_509(Unit())
+        local_var_618 = residence_606(Unit())
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=83, start_column=12, end_line=83, end_column=21,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    residence_519 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                             "résidence"], local_var_520)
-    try:
-        try:
-            local_var_522 = personne_charge_effective_permanente_est_parent_511(
-                Unit())
-        except EmptyError:
-            local_var_522 = False
-    except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=85, start_column=12, end_line=85, end_column=59,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    personne_charge_effective_permanente_est_parent_521 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                                                   "personne_charge_effective_permanente_est_parent"], local_var_522)
+                                             start_line=77, start_column=12, end_line=77, end_column=21,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    residence_617 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                             "résidence"], local_var_618)
     try:
         try:
-            local_var_524 = personne_charge_effective_permanente_remplit_titre__i_512(
+            local_var_620 = personne_charge_effective_permanente_est_parent_608(
                 Unit())
         except EmptyError:
-            local_var_524 = False
+            local_var_620 = False
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=86, start_column=12, end_line=86, end_column=64,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    personne_charge_effective_permanente_remplit_titre__i_523 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                             start_line=79, start_column=12, end_line=79, end_column=59,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    personne_charge_effective_permanente_est_parent_619 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                                                   "personne_charge_effective_permanente_est_parent"], local_var_620)
+    try:
+        try:
+            local_var_622 = personne_charge_effective_permanente_remplit_titre__i_609(
+                Unit())
+        except EmptyError:
+            local_var_622 = False
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
+                                             start_line=80, start_column=12, end_line=80, end_column=64,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    personne_charge_effective_permanente_remplit_titre__i_621 = log_variable_definition(["InterfaceAllocationsFamiliales",
                                                                                          "personne_charge_effective_permanente_remplit_titre_I"],
-                                                                                        local_var_524)
+                                                                                        local_var_622)
     try:
         try:
-            local_var_526 = enfants_a_charge_507(Unit())
+            local_var_624 = avait_enfant_a_charge_avant_1er_janvier_2012_610(
+                Unit())
         except EmptyError:
-            def local_var_527(enfant_528: Any):
-                if ((enfant_528.d_date_de_naissance +
+            local_var_624 = False
+    except EmptyError:
+        raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
+                                             start_line=81, start_column=12, end_line=81, end_column=56,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    avait_enfant_a_charge_avant_1er_janvier_2012_623 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                                                "avait_enfant_à_charge_avant_1er_janvier_2012"], local_var_624)
+    try:
+        try:
+            local_var_626 = enfants_a_charge_604(Unit())
+        except EmptyError:
+            def local_var_627(enfant_628: Any):
+                if ((enfant_628.d_date_de_naissance +
                     duration_of_numbers(3, 0, 0)) >=
-                        date_courante_513):
-                    local_var_529 = SituationObligationScolaire(SituationObligationScolaire_Code.Avant,
+                        date_courante_611):
+                    local_var_629 = SituationObligationScolaire(SituationObligationScolaire_Code.Avant,
                                                                 Unit())
                 else:
-                    if ((enfant_528.d_date_de_naissance +
+                    if ((enfant_628.d_date_de_naissance +
                         duration_of_numbers(16, 0, 0)) >=
-                            date_courante_513):
-                        local_var_529 = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
+                            date_courante_611):
+                        local_var_629 = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
                                                                     Unit())
                     else:
-                        local_var_529 = SituationObligationScolaire(SituationObligationScolaire_Code.Apres,
+                        local_var_629 = SituationObligationScolaire(SituationObligationScolaire_Code.Apres,
                                                                     Unit())
-                return Enfant(identifiant=enfant_528.d_identifiant,
-                              obligation_scolaire=local_var_529,
-                              remuneration_mensuelle=enfant_528.d_remuneration_mensuelle,
-                              date_de_naissance=enfant_528.d_date_de_naissance,
+                return Enfant(identifiant=enfant_628.d_identifiant,
+                              obligation_scolaire=local_var_629,
+                              remuneration_mensuelle=enfant_628.d_remuneration_mensuelle,
+                              date_de_naissance=enfant_628.d_date_de_naissance,
                               age=year_of_date((date_of_numbers(0, 1, 1) +
-                                                (date_courante_513 - enfant_528.d_date_de_naissance))),
-                              prise_en_charge=enfant_528.d_prise_en_charge,
-                              a_deja_ouvert_droit_aux_allocations_familiales=enfant_528.d_a_deja_ouvert_droit_aux_allocations_familiales)
-            local_var_526 = list_map(local_var_527, enfants_515)
+                                                (date_courante_611 - enfant_628.d_date_de_naissance))),
+                              prise_en_charge=enfant_628.d_prise_en_charge,
+                              a_deja_ouvert_droit_aux_allocations_familiales=enfant_628.d_a_deja_ouvert_droit_aux_allocations_familiales)
+            local_var_626 = list_map(local_var_627, enfants_613)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=80, start_column=12, end_line=80, end_column=28,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    enfants_a_charge_525 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                    "enfants_à_charge"], local_var_526)
+                                             start_line=74, start_column=12, end_line=74, end_column=28,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    enfants_a_charge_625 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                    "enfants_à_charge"], local_var_626)
 
-    def local_var_531(_: Unit):
+    def local_var_631(_: Unit):
         try:
             if log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                 start_line=95, start_column=20, end_line=95, end_column=67,
-                                                 law_headings=["Interface du programme",
-                                                               "Épilogue"]), personne_charge_effective_permanente_est_parent_521):
-                local_var_533 = True
+                                                 start_line=90, start_column=20, end_line=90, end_column=67,
+                                                 law_headings=["Interface du programme", "Épilogue",
+                                                               "Décrets divers"]), personne_charge_effective_permanente_est_parent_619):
+                local_var_633 = True
             else:
                 raise EmptyError
         except EmptyError:
-            local_var_533 = False
+            local_var_633 = False
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.personne_charge_effective_permanente_est_parent"],
-                                       local_var_533)
-    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_530 = local_var_531
+                                       local_var_633)
+    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_630 = local_var_631
 
-    def local_var_535(_: Unit):
+    def local_var_635(_: Unit):
         try:
             if log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                 start_line=98, start_column=20, end_line=98, end_column=72,
-                                                 law_headings=["Interface du programme",
-                                                               "Épilogue"]), personne_charge_effective_permanente_remplit_titre__i_523):
-                local_var_537 = True
+                                                 start_line=93, start_column=20, end_line=93, end_column=72,
+                                                 law_headings=["Interface du programme", "Épilogue",
+                                                               "Décrets divers"]), personne_charge_effective_permanente_remplit_titre__i_621):
+                local_var_637 = True
             else:
                 raise EmptyError
         except EmptyError:
-            local_var_537 = False
+            local_var_637 = False
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.personne_charge_effective_permanente_remplit_titre_I"],
-                                       local_var_537)
-    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_534 = local_var_535
+                                       local_var_637)
+    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_634 = local_var_635
 
-    def local_var_539(_: Unit):
+    def local_var_639(_: Unit):
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.ressources_ménage"],
-                                       ressources_menage_517)
-    allocations_familiales_dot_ressources_menage_538 = local_var_539
+                                       ressources_menage_615)
+    allocations_familiales_dot_ressources_menage_638 = local_var_639
 
-    def local_var_542(_: Unit):
+    def local_var_642(_: Unit):
         return log_variable_definition(["InterfaceAllocationsFamiliales",
-                                        "allocations_familiales.résidence"], residence_519)
-    allocations_familiales_dot_residence_541 = local_var_542
+                                        "allocations_familiales.résidence"], residence_617)
+    allocations_familiales_dot_residence_641 = local_var_642
 
-    def local_var_545(_: Unit):
+    def local_var_645(_: Unit):
         return log_variable_definition(["InterfaceAllocationsFamiliales",
-                                        "allocations_familiales.date_courante"], date_courante_513)
-    allocations_familiales_dot_date_courante_544 = local_var_545
+                                        "allocations_familiales.date_courante"], date_courante_611)
+    allocations_familiales_dot_date_courante_644 = local_var_645
 
-    def local_var_548(_: Unit):
+    def local_var_648(_: Unit):
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.enfants_à_charge"],
-                                       enfants_a_charge_525)
-    allocations_familiales_dot_enfants_a_charge_547 = local_var_548
+                                       enfants_a_charge_625)
+    allocations_familiales_dot_enfants_a_charge_647 = local_var_648
 
-    def local_var_551(_: Unit):
+    def local_var_651(_: Unit):
+        try:
+            if log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
+                                                 start_line=96, start_column=20, end_line=96, end_column=64,
+                                                 law_headings=["Interface du programme", "Épilogue",
+                                                               "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_623):
+                local_var_653 = True
+            else:
+                raise EmptyError
+        except EmptyError:
+            local_var_653 = False
+        return log_variable_definition(["InterfaceAllocationsFamiliales",
+                                        "allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012"],
+                                       local_var_653)
+    allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_650 = local_var_651
+
+    def local_var_655(_: Unit):
         raise EmptyError
 
-    def local_var_553(_: Unit):
+    def local_var_657(_: Unit):
         raise EmptyError
 
-    def local_var_555(_: Unit):
+    def local_var_659(_: Unit):
         raise EmptyError
 
-    def local_var_557(_: Unit):
+    def local_var_661(_: Unit):
         raise EmptyError
 
-    def local_var_559(_: Unit):
+    def local_var_663(_: Unit):
         raise EmptyError
 
-    def local_var_561(_: Unit):
+    def local_var_665(_: Unit):
         raise EmptyError
 
-    def local_var_563(_: Unit):
+    def local_var_667(_: Unit):
         raise EmptyError
 
-    def local_var_565(_: Unit):
+    def local_var_669(_: Unit):
         raise EmptyError
 
-    def local_var_567(_: Unit):
+    def local_var_671(_: Unit):
         raise EmptyError
 
-    def local_var_569(_: Unit):
+    def local_var_673(_: Unit):
         raise EmptyError
 
-    def local_var_571(_: Unit):
+    def local_var_675(_: Unit):
         raise EmptyError
 
-    def local_var_573(_: Unit):
+    def local_var_677(_: Unit):
         raise EmptyError
 
-    def local_var_575(_: Unit):
+    def local_var_679(_: Unit):
         raise EmptyError
 
-    def local_var_577(_: Unit):
+    def local_var_681(_: Unit):
         raise EmptyError
 
-    def local_var_579(_: Unit):
+    def local_var_683(_: Unit):
         raise EmptyError
 
-    def local_var_581(_: Unit):
+    def local_var_685(_: Unit):
         raise EmptyError
 
-    def local_var_583(_: Unit):
+    def local_var_687(_: Unit):
         raise EmptyError
 
-    def local_var_585(_: Unit):
+    def local_var_689(_: Unit):
         raise EmptyError
 
-    def local_var_587(_: Unit):
+    def local_var_691(_: Unit):
         raise EmptyError
 
-    def local_var_589(_: Unit):
+    def local_var_693(_: Unit):
         raise EmptyError
 
-    def local_var_591(_: Unit):
+    def local_var_695(_: Unit):
         raise EmptyError
 
-    def local_var_593(_: Unit):
+    def local_var_697(_: Unit):
         raise EmptyError
 
-    def local_var_595(_: Unit):
+    def local_var_699(_: Unit):
         raise EmptyError
 
-    def local_var_597(_: Unit):
+    def local_var_701(_: Unit):
         raise EmptyError
 
-    def local_var_599(_: Unit):
+    def local_var_703(_: Unit):
         raise EmptyError
 
-    def local_var_601(_: Unit):
+    def local_var_705(_: Unit):
         raise EmptyError
 
-    def local_var_603(_: Unit):
+    def local_var_707(_: Unit):
         raise EmptyError
 
-    def local_var_605(_: Unit):
+    def local_var_709(_: Unit):
         raise EmptyError
 
-    def local_var_607(_: Unit):
+    def local_var_711(_: Unit):
         raise EmptyError
 
-    def local_var_609(_: Unit):
+    def local_var_713(_: Unit):
         raise EmptyError
 
-    def local_var_611(_: Unit):
+    def local_var_715(_: Unit):
         raise EmptyError
 
-    def local_var_613(_: Unit):
+    def local_var_717(_: Unit):
         raise EmptyError
 
-    def local_var_615(_: Unit):
+    def local_var_719(_: Unit):
         raise EmptyError
-    result_550 = log_end_call(["InterfaceAllocationsFamiliales",
+
+    def local_var_721(_: Unit):
+        raise EmptyError
+
+    def local_var_723(_: Unit):
+        raise EmptyError
+
+    def local_var_725(_: Unit):
+        raise EmptyError
+
+    def local_var_727(_: Unit):
+        raise EmptyError
+    result_654 = log_end_call(["InterfaceAllocationsFamiliales",
                                "allocations_familiales", "AllocationsFamiliales"],
                               log_begin_call(["InterfaceAllocationsFamiliales",
                                               "allocations_familiales", "AllocationsFamiliales"],
                                              allocations_familiales,
-                                             AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in=allocations_familiales_dot_personne_charge_effective_permanente_est_parent_530,
-                                                                     personne_charge_effective_permanente_remplit_titre_I_in=allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_534,
-                                                                     ressources_menage_in=allocations_familiales_dot_ressources_menage_538,
-                                                                     residence_in=allocations_familiales_dot_residence_541,
-                                                                     date_courante_in=allocations_familiales_dot_date_courante_544,
-                                                                     enfants_a_charge_in=allocations_familiales_dot_enfants_a_charge_547,
-                                                                     enfants_a_charge_droit_ouvert_prestation_familiale_in=local_var_551,
-                                                                     prise_en_compte_in=local_var_553, versement_in=local_var_555,
-                                                                     montant_verse_in=local_var_557,
-                                                                     droit_ouvert_base_in=local_var_559,
-                                                                     montant_initial_base_in=local_var_561,
-                                                                     montant_initial_base_premier_enfant_in=local_var_563,
-                                                                     montant_initial_base_deuxieme_enfant_in=local_var_565,
-                                                                     montant_initial_base_troisieme_enfant_et_plus_in=local_var_567,
-                                                                     rapport_enfants_total_moyen_in=local_var_569,
-                                                                     nombre_moyen_enfants_in=local_var_571,
-                                                                     nombre_total_enfants_in=local_var_573,
-                                                                     montant_avec_garde_alternee_base_in=local_var_575,
-                                                                     montant_verse_base_in=local_var_577,
-                                                                     droit_ouvert_forfaitaire_in=local_var_579,
-                                                                     montant_verse_forfaitaire_par_enfant_in=local_var_581,
-                                                                     montant_verse_forfaitaire_in=local_var_583,
-                                                                     droit_ouvert_majoration_in=local_var_585,
-                                                                     montant_initial_metropole_majoration_in=local_var_587,
-                                                                     montant_initial_majoration_in=local_var_589,
-                                                                     montant_avec_garde_alternee_majoration_in=local_var_591,
-                                                                     montant_verse_majoration_in=local_var_593,
-                                                                     droit_ouvert_complement_in=local_var_595,
-                                                                     montant_base_complement_pour_base_et_majoration_in=local_var_597,
-                                                                     complement_degressif_in=local_var_599,
-                                                                     montant_verse_complement_pour_base_et_majoration_in=local_var_601,
-                                                                     montant_verse_complement_pour_forfaitaire_in=local_var_603,
-                                                                     nombre_enfants_l521_1_in=local_var_605,
-                                                                     age_minimum_alinea_1_l521_3_in=local_var_607,
-                                                                     nombre_enfants_alinea_2_l521_3_in=local_var_609,
-                                                                     est_enfant_le_plus_age_in=local_var_611,
-                                                                     plafond_I_d521_3_in=local_var_613,
-                                                                     plafond_II_d521_3_in=local_var_615)))
-    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_617 = result_550.personne_charge_effective_permanente_est_parent_out
-    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_618 = result_550.personne_charge_effective_permanente_remplit_titre_I_out
-    allocations_familiales_dot_ressources_menage_619 = result_550.ressources_menage_out
-    allocations_familiales_dot_residence_620 = result_550.residence_out
-    allocations_familiales_dot_date_courante_621 = result_550.date_courante_out
-    allocations_familiales_dot_enfants_a_charge_622 = result_550.enfants_a_charge_out
-    allocations_familiales_dot_enfants_a_charge_droit_ouvert_prestation_familiale_623 = result_550.enfants_a_charge_droit_ouvert_prestation_familiale_out
-    allocations_familiales_dot_prise_en_compte_624 = result_550.prise_en_compte_out
-    allocations_familiales_dot_versement_625 = result_550.versement_out
-    allocations_familiales_dot_montant_verse_626 = result_550.montant_verse_out
-    allocations_familiales_dot_droit_ouvert_base_627 = result_550.droit_ouvert_base_out
-    allocations_familiales_dot_montant_initial_base_628 = result_550.montant_initial_base_out
-    allocations_familiales_dot_montant_initial_base_premier_enfant_629 = result_550.montant_initial_base_premier_enfant_out
-    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_630 = result_550.montant_initial_base_deuxieme_enfant_out
-    allocations_familiales_dot_montant_initial_base_troisieme_enfant_et_plus_631 = result_550.montant_initial_base_troisieme_enfant_et_plus_out
-    allocations_familiales_dot_rapport_enfants_total_moyen_632 = result_550.rapport_enfants_total_moyen_out
-    allocations_familiales_dot_nombre_moyen_enfants_633 = result_550.nombre_moyen_enfants_out
-    allocations_familiales_dot_nombre_total_enfants_634 = result_550.nombre_total_enfants_out
-    allocations_familiales_dot_montant_avec_garde_alternee_base_635 = result_550.montant_avec_garde_alternee_base_out
-    allocations_familiales_dot_montant_verse_base_636 = result_550.montant_verse_base_out
-    allocations_familiales_dot_droit_ouvert_forfaitaire_637 = result_550.droit_ouvert_forfaitaire_out
-    allocations_familiales_dot_montant_verse_forfaitaire_par_enfant_638 = result_550.montant_verse_forfaitaire_par_enfant_out
-    allocations_familiales_dot_montant_verse_forfaitaire_639 = result_550.montant_verse_forfaitaire_out
-    allocations_familiales_dot_droit_ouvert_majoration_640 = result_550.droit_ouvert_majoration_out
-    allocations_familiales_dot_montant_initial_metropole_majoration_641 = result_550.montant_initial_metropole_majoration_out
-    allocations_familiales_dot_montant_initial_majoration_642 = result_550.montant_initial_majoration_out
-    allocations_familiales_dot_montant_avec_garde_alternee_majoration_643 = result_550.montant_avec_garde_alternee_majoration_out
-    allocations_familiales_dot_montant_verse_majoration_644 = result_550.montant_verse_majoration_out
-    allocations_familiales_dot_droit_ouvert_complement_645 = result_550.droit_ouvert_complement_out
-    allocations_familiales_dot_montant_base_complement_pour_base_et_majoration_646 = result_550.montant_base_complement_pour_base_et_majoration_out
-    allocations_familiales_dot_complement_degressif_647 = result_550.complement_degressif_out
-    allocations_familiales_dot_montant_verse_complement_pour_base_et_majoration_648 = result_550.montant_verse_complement_pour_base_et_majoration_out
-    allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_649 = result_550.montant_verse_complement_pour_forfaitaire_out
-    allocations_familiales_dot_nombre_enfants_l521_1_650 = result_550.nombre_enfants_l521_1_out
-    allocations_familiales_dot_age_minimum_alinea_1_l521_3_651 = result_550.age_minimum_alinea_1_l521_3_out
-    allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_652 = result_550.nombre_enfants_alinea_2_l521_3_out
-    allocations_familiales_dot_est_enfant_le_plus_age_653 = result_550.est_enfant_le_plus_age_out
-    allocations_familiales_dot_plafond__i_d521_3_654 = result_550.plafond_I_d521_3_out
-    allocations_familiales_dot_plafond__i_i_d521_3_655 = result_550.plafond_II_d521_3_out
+                                             AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in=allocations_familiales_dot_personne_charge_effective_permanente_est_parent_630,
+                                                                     personne_charge_effective_permanente_remplit_titre_I_in=allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_634,
+                                                                     ressources_menage_in=allocations_familiales_dot_ressources_menage_638,
+                                                                     residence_in=allocations_familiales_dot_residence_641,
+                                                                     date_courante_in=allocations_familiales_dot_date_courante_644,
+                                                                     enfants_a_charge_in=allocations_familiales_dot_enfants_a_charge_647,
+                                                                     enfants_a_charge_droit_ouvert_prestation_familiale_in=local_var_655,
+                                                                     prise_en_compte_in=local_var_657, versement_in=local_var_659,
+                                                                     montant_verse_in=local_var_661,
+                                                                     droit_ouvert_base_in=local_var_663,
+                                                                     montant_initial_base_in=local_var_665,
+                                                                     montant_initial_base_premier_enfant_in=local_var_667,
+                                                                     montant_initial_base_deuxieme_enfant_in=local_var_669,
+                                                                     montant_initial_base_troisieme_enfant_et_plus_in=local_var_671,
+                                                                     rapport_enfants_total_moyen_in=local_var_673,
+                                                                     nombre_moyen_enfants_in=local_var_675,
+                                                                     nombre_total_enfants_in=local_var_677,
+                                                                     montant_avec_garde_alternee_base_in=local_var_679,
+                                                                     montant_verse_base_in=local_var_681,
+                                                                     avait_enfant_a_charge_avant_1er_janvier_2012_in=allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_650,
+                                                                     montant_initial_base_premier_enfant_mayotte_in=local_var_683,
+                                                                     montant_initial_base_deuxieme_enfant_mayotte_in=local_var_685,
+                                                                     montant_initial_base_troisieme_enfant_mayotte_in=local_var_687,
+                                                                     montant_initial_base_quatrieme_enfant_et_plus_mayotte_in=local_var_689,
+                                                                     droit_ouvert_forfaitaire_in=local_var_691,
+                                                                     montant_verse_forfaitaire_par_enfant_in=local_var_693,
+                                                                     montant_verse_forfaitaire_in=local_var_695,
+                                                                     droit_ouvert_majoration_in=local_var_697,
+                                                                     montant_initial_metropole_majoration_in=local_var_699,
+                                                                     montant_initial_majoration_in=local_var_701,
+                                                                     montant_avec_garde_alternee_majoration_in=local_var_703,
+                                                                     montant_verse_majoration_in=local_var_705,
+                                                                     droit_ouvert_complement_in=local_var_707,
+                                                                     montant_base_complement_pour_base_et_majoration_in=local_var_709,
+                                                                     complement_degressif_in=local_var_711,
+                                                                     montant_verse_complement_pour_base_et_majoration_in=local_var_713,
+                                                                     montant_verse_complement_pour_forfaitaire_in=local_var_715,
+                                                                     nombre_enfants_l521_1_in=local_var_717,
+                                                                     age_minimum_alinea_1_l521_3_in=local_var_719,
+                                                                     nombre_enfants_alinea_2_l521_3_in=local_var_721,
+                                                                     est_enfant_le_plus_age_in=local_var_723,
+                                                                     plafond_I_d521_3_in=local_var_725,
+                                                                     plafond_II_d521_3_in=local_var_727)))
+    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_729 = result_654.personne_charge_effective_permanente_est_parent_out
+    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_730 = result_654.personne_charge_effective_permanente_remplit_titre_I_out
+    allocations_familiales_dot_ressources_menage_731 = result_654.ressources_menage_out
+    allocations_familiales_dot_residence_732 = result_654.residence_out
+    allocations_familiales_dot_date_courante_733 = result_654.date_courante_out
+    allocations_familiales_dot_enfants_a_charge_734 = result_654.enfants_a_charge_out
+    allocations_familiales_dot_enfants_a_charge_droit_ouvert_prestation_familiale_735 = result_654.enfants_a_charge_droit_ouvert_prestation_familiale_out
+    allocations_familiales_dot_prise_en_compte_736 = result_654.prise_en_compte_out
+    allocations_familiales_dot_versement_737 = result_654.versement_out
+    allocations_familiales_dot_montant_verse_738 = result_654.montant_verse_out
+    allocations_familiales_dot_droit_ouvert_base_739 = result_654.droit_ouvert_base_out
+    allocations_familiales_dot_montant_initial_base_740 = result_654.montant_initial_base_out
+    allocations_familiales_dot_montant_initial_base_premier_enfant_741 = result_654.montant_initial_base_premier_enfant_out
+    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_742 = result_654.montant_initial_base_deuxieme_enfant_out
+    allocations_familiales_dot_montant_initial_base_troisieme_enfant_et_plus_743 = result_654.montant_initial_base_troisieme_enfant_et_plus_out
+    allocations_familiales_dot_rapport_enfants_total_moyen_744 = result_654.rapport_enfants_total_moyen_out
+    allocations_familiales_dot_nombre_moyen_enfants_745 = result_654.nombre_moyen_enfants_out
+    allocations_familiales_dot_nombre_total_enfants_746 = result_654.nombre_total_enfants_out
+    allocations_familiales_dot_montant_avec_garde_alternee_base_747 = result_654.montant_avec_garde_alternee_base_out
+    allocations_familiales_dot_montant_verse_base_748 = result_654.montant_verse_base_out
+    allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_749 = result_654.avait_enfant_a_charge_avant_1er_janvier_2012_out
+    allocations_familiales_dot_montant_initial_base_premier_enfant_mayotte_750 = result_654.montant_initial_base_premier_enfant_mayotte_out
+    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_mayotte_751 = result_654.montant_initial_base_deuxieme_enfant_mayotte_out
+    allocations_familiales_dot_montant_initial_base_troisieme_enfant_mayotte_752 = result_654.montant_initial_base_troisieme_enfant_mayotte_out
+    allocations_familiales_dot_montant_initial_base_quatrieme_enfant_et_plus_mayotte_753 = result_654.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out
+    allocations_familiales_dot_droit_ouvert_forfaitaire_754 = result_654.droit_ouvert_forfaitaire_out
+    allocations_familiales_dot_montant_verse_forfaitaire_par_enfant_755 = result_654.montant_verse_forfaitaire_par_enfant_out
+    allocations_familiales_dot_montant_verse_forfaitaire_756 = result_654.montant_verse_forfaitaire_out
+    allocations_familiales_dot_droit_ouvert_majoration_757 = result_654.droit_ouvert_majoration_out
+    allocations_familiales_dot_montant_initial_metropole_majoration_758 = result_654.montant_initial_metropole_majoration_out
+    allocations_familiales_dot_montant_initial_majoration_759 = result_654.montant_initial_majoration_out
+    allocations_familiales_dot_montant_avec_garde_alternee_majoration_760 = result_654.montant_avec_garde_alternee_majoration_out
+    allocations_familiales_dot_montant_verse_majoration_761 = result_654.montant_verse_majoration_out
+    allocations_familiales_dot_droit_ouvert_complement_762 = result_654.droit_ouvert_complement_out
+    allocations_familiales_dot_montant_base_complement_pour_base_et_majoration_763 = result_654.montant_base_complement_pour_base_et_majoration_out
+    allocations_familiales_dot_complement_degressif_764 = result_654.complement_degressif_out
+    allocations_familiales_dot_montant_verse_complement_pour_base_et_majoration_765 = result_654.montant_verse_complement_pour_base_et_majoration_out
+    allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_766 = result_654.montant_verse_complement_pour_forfaitaire_out
+    allocations_familiales_dot_nombre_enfants_l521_1_767 = result_654.nombre_enfants_l521_1_out
+    allocations_familiales_dot_age_minimum_alinea_1_l521_3_768 = result_654.age_minimum_alinea_1_l521_3_out
+    allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_769 = result_654.nombre_enfants_alinea_2_l521_3_out
+    allocations_familiales_dot_est_enfant_le_plus_age_770 = result_654.est_enfant_le_plus_age_out
+    allocations_familiales_dot_plafond__i_d521_3_771 = result_654.plafond_I_d521_3_out
+    allocations_familiales_dot_plafond__i_i_d521_3_772 = result_654.plafond_II_d521_3_out
     try:
         try:
-            local_var_657 = montant_verse_510(Unit())
+            local_var_774 = montant_verse_607(Unit())
         except EmptyError:
-            local_var_657 = allocations_familiales_dot_montant_verse_626
+            local_var_774 = allocations_familiales_dot_montant_verse_738
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=84, start_column=12, end_line=84, end_column=25,
-                                             law_headings=["Interface du programme", "Épilogue"]))
-    montant_verse_656 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                 "montant_versé"], local_var_657)
-    return InterfaceAllocationsFamilialesOut(date_courante_out=date_courante_513,
-                                             enfants_out=enfants_515,
-                                             enfants_a_charge_out=enfants_a_charge_525,
-                                             ressources_menage_out=ressources_menage_517,
-                                             residence_out=residence_519, montant_verse_out=montant_verse_656,
-                                             personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_521,
-                                             personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_523)
+                                             start_line=78, start_column=12, end_line=78, end_column=25,
+                                             law_headings=["Interface du programme", "Épilogue",
+                                                           "Décrets divers"]))
+    montant_verse_773 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                 "montant_versé"], local_var_774)
+    return InterfaceAllocationsFamilialesOut(date_courante_out=date_courante_611,
+                                             enfants_out=enfants_613,
+                                             enfants_a_charge_out=enfants_a_charge_625,
+                                             ressources_menage_out=ressources_menage_615,
+                                             residence_out=residence_617, montant_verse_out=montant_verse_773,
+                                             personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_619,
+                                             personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_621,
+                                             avait_enfant_a_charge_avant_1er_janvier_2012_out=avait_enfant_a_charge_avant_1er_janvier_2012_623)

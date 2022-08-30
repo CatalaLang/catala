@@ -258,6 +258,8 @@ let _ =
                        | "Mayotte" -> AF.Mayotte ()
                        | _ -> failwith "unknown collectivite!");
                    AF.montant_verse_in = no_input;
+                   AF.avait_enfant_a_charge_avant_1er_janvier_2012_in =
+                     (fun _ -> Js.to_bool input##.avaitEnfantAChargeAvant1erJanvier2012);
                  }
              in
              money_to_float result.AF.montant_verse_out)

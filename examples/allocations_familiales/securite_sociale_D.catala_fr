@@ -352,11 +352,11 @@ champ d'application AllocationsFamiliales :
   conséquence égal à
     montant_initial_base_premier_enfant
 
-  définition montant_initial_base_premier_enfant sous condition
-    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale != 1)
-  conséquence égal à 0€
+  # Valeur par défaut
+  définition montant_initial_base_premier_enfant égal à 0€
 
-  définition montant_initial_base_premier_enfant sous condition
+  exception définition montant_initial_base_premier_enfant sous condition
+    prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
   conséquence égal à
     prestations_familiales.base_mensuelle *€ 5,88 %
