@@ -21,6 +21,12 @@ scope Test1:
     }
   assertion my_gaming.authorized = true
 ```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+
 ## Test2
 ```catala
 declaration scope Test2:
@@ -38,6 +44,11 @@ scope Test2:
     }
   assertion my_gaming.authorized = false
 ```
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
 ## Test3
 ```catala
 declaration scope Test3:
@@ -55,6 +66,11 @@ scope Test3:
     }
   assertion my_gaming.authorized = false
 ```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
 ## Test4
 ```catala
 declaration scope Test4:
@@ -71,4 +87,8 @@ scope Test4:
       -- totalValueOfThePrizes: $400
     }
   assertion my_gaming.authorized = true
+```
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
 ```

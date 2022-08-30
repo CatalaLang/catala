@@ -23,6 +23,12 @@ scope Test1:
     }
   assertion my_gaming.authorized = false
 ```
+
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
 ## Test2
 
 ```catala
@@ -41,6 +47,11 @@ scope Test2:
       -- prizeContent: false
     }
   assertion my_gaming.authorized = true
+```
+
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
 ```
 
 ## Test3
@@ -62,6 +73,11 @@ scope Test3:
     }
   assertion my_gaming.authorized = false
 ```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
 ## Test4
 
 ```catala
@@ -82,6 +98,11 @@ scope Test4:
   assertion my_gaming.authorized = false
 ```
 
+
+```catala-test {id="Test5.Interpret"}
+catala Interpret -s Test5
+```
+
 ## Test5
 
 ```catala
@@ -100,4 +121,9 @@ scope Test5:
       -- prizeContent: false
     }
   assertion my_gaming.authorized = false
+```
+
+
+```catala-test {id="Test6.Interpret"}
+catala Interpret -s Test6
 ```

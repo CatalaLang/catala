@@ -25,6 +25,11 @@ scope Test1:
   }
   assertion my_gaming.authorized = true
 ```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
 ## Test2
 
 ```catala
@@ -45,6 +50,10 @@ scope Test2:
       -- proceedsToBenefitingOrganisation: $0
   }
   assertion my_gaming.authorized = false
+```
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
 ```
 ## Test3
 
@@ -67,6 +76,10 @@ scope Test3:
   }
   assertion my_gaming.authorized = true
 ```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
 ## Test4
 
 ```catala
@@ -87,4 +100,8 @@ scope Test4:
       -- proceedsToBenefitingOrganisation: $80
   }
   assertion my_gaming.authorized = false
+```
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
 ```
