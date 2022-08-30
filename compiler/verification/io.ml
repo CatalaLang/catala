@@ -16,6 +16,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Dcalc.Ast
 
 module type Backend = sig
@@ -23,8 +24,7 @@ module type Backend = sig
 
   type backend_context
 
-  val make_context :
-    decl_ctx -> (typed expr, typ Marked.pos) Var.Map.t -> backend_context
+  val make_context : decl_ctx -> (typed expr, typ) Var.Map.t -> backend_context
 
   type vc_encoding
 
@@ -38,9 +38,7 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context ->
-    Astgen.typed Dcalc.Ast.marked_expr ->
-    backend_context * vc_encoding
+    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -48,15 +46,12 @@ module type BackendIO = sig
 
   type backend_context
 
-  val make_context :
-    decl_ctx -> (Astgen.typed expr, typ Marked.pos) Var.Map.t -> backend_context
+  val make_context : decl_ctx -> (typed expr, typ) Var.Map.t -> backend_context
 
   type vc_encoding
 
   val translate_expr :
-    backend_context ->
-    Astgen.typed Dcalc.Ast.marked_expr ->
-    backend_context * vc_encoding
+    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
 
   type model
 
@@ -73,9 +68,7 @@ module type BackendIO = sig
     string
 
   val encode_and_check_vc :
-    Dcalc.Ast.decl_ctx ->
-    Conditions.verification_condition * vc_encoding_result ->
-    unit
+    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
 end
 
 module MakeBackendIO (B : Backend) = struct
@@ -161,15 +154,14 @@ module MakeBackendIO (B : Backend) = struct
     let vc, z3_vc = vc in
 
     Cli.debug_print "For this variable:\n%s\n"
-      (Pos.retrieve_loc_text (pos vc.Conditions.vc_guard));
+      (Pos.retrieve_loc_text (Expr.pos vc.Conditions.vc_guard));
     Cli.debug_format "This verification condition was generated for %a:@\n%a"
       (Cli.format_with_style [ANSITerminal.yellow])
       (match vc.vc_kind with
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
       | NoOverlappingExceptions -> "no two exceptions to ever overlap")
-      (Dcalc.Print.format_expr decl_ctx)
-      vc.vc_guard;
+      (Expr.format decl_ctx) vc.vc_guard;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (

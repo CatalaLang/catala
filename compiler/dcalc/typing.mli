@@ -17,18 +17,15 @@
 (** Typing for the default calculus. Because of the error terms, we perform type
     inference using the classical W algorithm with union-find unification. *)
 
-val infer_types :
-  Ast.decl_ctx ->
-  Ast.untyped Ast.marked_expr ->
-  Ast.typed Ast.marked_expr Bindlib.box
+open Shared_ast
+
+val infer_types : decl_ctx -> untyped Ast.expr -> typed Ast.expr Bindlib.box
 (** Infers types everywhere on the given expression, and adds (or replaces) type
     annotations on each node *)
 
-val infer_type : Ast.decl_ctx -> 'm Ast.marked_expr -> Ast.typ Utils.Marked.pos
+val infer_type : decl_ctx -> 'm Ast.expr -> typ
 (** Gets the outer type of the given expression, using either the existing
     annotations or inference *)
 
-val check_type :
-  Ast.decl_ctx -> 'm Ast.marked_expr -> Ast.typ Utils.Marked.pos -> unit
-
-val infer_types_program : Ast.untyped Ast.program -> Ast.typed Ast.program
+val check_type : decl_ctx -> 'm Ast.expr -> typ -> unit
+val infer_types_program : untyped Ast.program -> typed Ast.program

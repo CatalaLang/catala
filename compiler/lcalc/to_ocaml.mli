@@ -15,44 +15,29 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Ast
 
 (** Formats a lambda calculus program into a valid OCaml program *)
 
 val avoid_keywords : string -> string
-
-val find_struct :
-  Dcalc.Ast.StructName.t ->
-  Dcalc.Ast.decl_ctx ->
-  (Dcalc.Ast.StructFieldName.t * Dcalc.Ast.typ Marked.pos) list
-
-val find_enum :
-  Dcalc.Ast.EnumName.t ->
-  Dcalc.Ast.decl_ctx ->
-  (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Marked.pos) list
-
-val typ_needs_parens : Dcalc.Ast.typ Marked.pos -> bool
-val needs_parens : 'm marked_expr -> bool
-val format_enum_name : Format.formatter -> Dcalc.Ast.EnumName.t -> unit
-
-val format_enum_cons_name :
-  Format.formatter -> Dcalc.Ast.EnumConstructor.t -> unit
-
-val format_struct_name : Format.formatter -> Dcalc.Ast.StructName.t -> unit
+val find_struct : StructName.t -> decl_ctx -> (StructFieldName.t * typ) list
+val find_enum : EnumName.t -> decl_ctx -> (EnumConstructor.t * typ) list
+val typ_needs_parens : typ -> bool
+val needs_parens : 'm expr -> bool
+val format_enum_name : Format.formatter -> EnumName.t -> unit
+val format_enum_cons_name : Format.formatter -> EnumConstructor.t -> unit
+val format_struct_name : Format.formatter -> StructName.t -> unit
 
 val format_struct_field_name :
-  Format.formatter ->
-  Dcalc.Ast.StructName.t option * Dcalc.Ast.StructFieldName.t ->
-  unit
+  Format.formatter -> StructName.t option * StructFieldName.t -> unit
 
 val format_to_module_name :
-  Format.formatter ->
-  [< `Ename of Dcalc.Ast.EnumName.t | `Sname of Dcalc.Ast.StructName.t ] ->
-  unit
+  Format.formatter -> [< `Ename of EnumName.t | `Sname of StructName.t ] -> unit
 
 val format_lit : Format.formatter -> lit Marked.pos -> unit
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
-val format_var : Format.formatter -> 'm var -> unit
+val format_var : Format.formatter -> 'm Var.t -> unit
 
 val format_program :
   Format.formatter ->

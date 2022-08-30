@@ -40,12 +40,15 @@ module A = Ast
     hoisted and later handled by the [translate_expr] function. Every other
     cases is found in the translate_and_hoist function. *)
 
-type 'm hoists = ('m A.expr, 'm D.marked_expr) Var.Map.t
-(** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
+open Shared_ast
+
+type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
+(** Hoists definition. It represent bindings between [A.Var.t] and
+    [D.naked_expr]. *)
 
 type 'm info = {
-  expr : 'm A.marked_expr Bindlib.box;
-  var : 'm A.expr Bindlib.var;
+  naked_expr : 'm A.expr Bindlib.box;
+  var : 'm A.expr Var.t;
   is_pure : bool;
 }
 (** Information about each encontered Dcalc variable is stored inside a context
@@ -55,18 +58,19 @@ type 'm info = {
     matched (false) or if it never can be EmptyError (true). *)
 
 let pp_info (fmt : Format.formatter) (info : 'm info) =
-  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.format_var info.var
-    info.is_pure
+  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.var info.var info.is_pure
 
 type 'm ctx = {
-  decl_ctx : D.decl_ctx;
+  decl_ctx : decl_ctx;
   vars : ('m D.expr, 'm info) Var.Map.t;
       (** information context about variables in the current scope *)
 }
 
 let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
-  let pp_binding (fmt : Format.formatter) ((v, info) : 'm D.var * 'm info) =
-    Format.fprintf fmt "%a: %a" Dcalc.Print.format_var v pp_info info
+  let pp_binding
+      (fmt : Format.formatter)
+      ((v, info) : 'm D.expr Var.t * 'm info) =
+    Format.fprintf fmt "%a: %a" Print.var v pp_info info
   in
 
   let pp_bindings =
@@ -79,32 +83,36 @@ let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
 
 (** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a
     slightly better way. *)
-let find ?(info : string = "none") (n : 'm D.var) (ctx : 'm ctx) : 'm info =
+let find ?(info : string = "none") (n : 'm D.expr Var.t) (ctx : 'm ctx) :
+    'm info =
   (* let _ = Format.asprintf "Searching for variable %a inside context %a"
-     Dcalc.Print.format_var n pp_ctx ctx |> Cli.debug_print in *)
+     Print.var n pp_ctx ctx |> Cli.debug_print in *)
   try Var.Map.find n ctx.vars
   with Not_found ->
     Errors.raise_spanned_error Pos.no_pos
       "Internal Error: Variable %a was not found in the current environment. \
        Additional informations : %s."
-      Dcalc.Print.format_var n info
+      Print.var n info
 
 (** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable
     var, creating a unique corresponding variable in Lcalc, with the
     corresponding expression, and the boolean is_pure. It is usefull for
     debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
-let add_var (mark : 'm D.mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx)
-    : 'm ctx =
+let add_var
+    (mark : 'm mark)
+    (var : 'm D.expr Var.t)
+    (is_pure : bool)
+    (ctx : 'm ctx) : 'm ctx =
   let new_var = Var.make (Bindlib.name_of var) in
-  let expr = A.make_var (new_var, mark) in
+  let naked_expr = Expr.make_var (new_var, mark) in
 
-  (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Dcalc.Print.format_var
-     var Print.format_var new_var; *)
+  (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Print.var var Print.var
+     new_var; *)
   {
     ctx with
     vars =
       Var.Map.update var
-        (fun _ -> Some { expr; var = new_var; is_pure })
+        (fun _ -> Some { naked_expr; var = new_var; is_pure })
         ctx.vars;
   }
 
@@ -113,36 +121,22 @@ let add_var (mark : 'm D.mark) (var : 'm D.var) (is_pure : bool) (ctx : 'm ctx)
     Since positions where there is thunked expressions is exactly where we will
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
     into ['a option] recursivly. There is no polymorphism inside catala. *)
-let rec translate_typ (tau : D.typ Marked.pos) : D.typ Marked.pos =
+let rec translate_typ (tau : typ) : typ =
   (Fun.flip Marked.same_mark_as)
     tau
     begin
       match Marked.unmark tau with
-      | D.TLit l -> D.TLit l
-      | D.TTuple (ts, s) -> D.TTuple (List.map translate_typ ts, s)
-      | D.TEnum (ts, en) -> D.TEnum (List.map translate_typ ts, en)
-      | D.TAny -> D.TAny
-      | D.TArray ts -> D.TArray (translate_typ ts)
+      | TLit l -> TLit l
+      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TStruct s -> TStruct s
+      | TEnum en -> TEnum en
+      | TOption t -> TOption t
+      | TAny -> TAny
+      | TArray ts -> TArray (translate_typ ts)
       (* catala is not polymorphic *)
-      | D.TArrow ((D.TLit D.TUnit, pos_unit), t2) ->
-        D.TEnum ([D.TLit D.TUnit, pos_unit; translate_typ t2], A.option_enum)
-        (* D.TAny *)
-      | D.TArrow (t1, t2) -> D.TArrow (translate_typ t1, translate_typ t2)
+      | TArrow ((TLit TUnit, _), t2) -> TOption (translate_typ t2)
+      | TArrow (t1, t2) -> TArrow (translate_typ t1, translate_typ t2)
     end
-
-let translate_lit (l : D.lit) (pos : Pos.t) : A.lit =
-  match l with
-  | D.LBool l -> A.LBool l
-  | D.LInt i -> A.LInt i
-  | D.LRat r -> A.LRat r
-  | D.LMoney m -> A.LMoney m
-  | D.LUnit -> A.LUnit
-  | D.LDate d -> A.LDate d
-  | D.LDuration d -> A.LDuration d
-  | D.LEmptyError ->
-    Errors.raise_spanned_error pos
-      "Internal Error: An empty error was found in a place that shouldn't be \
-       possible."
 
 (** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
     Raises an internal error if there is two identicals keys in differnts parts. *)
@@ -162,14 +156,14 @@ let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
     the equivalence between the execution of e and the execution of e' are
     equivalent in an environement where each variable v, where (v, e_v) is in
     hoists, has the non-empty value in e_v. *)
-let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
-    'm A.marked_expr Bindlib.box * 'm hoists =
+let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
+    'm A.expr Bindlib.box * 'm hoists =
   let pos = Marked.get_mark e in
   match Marked.unmark e with
   (* empty-producing/using terms. We hoist those. (D.EVar in some cases,
      EApp(D.EVar _, [ELit LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure
      about assert. *)
-  | D.EVar v ->
+  | EVar v ->
     (* todo: for now, every unpure (such that [is_pure] is [false] in the
        current context) is thunked, hence matched in the next case. This
        assumption can change in the future, and this case is here for this
@@ -177,26 +171,24 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Dcalc.Print.format_var v
-         Print.format_var v'; *)
-      A.make_var (v', pos), Var.Map.singleton v' e
-    else (find ~info:"should never happend" v ctx).expr, Var.Map.empty
-  | D.EApp ((D.EVar v, p), [(D.ELit D.LUnit, _)]) ->
+         created a variable %a to replace it" Print.var v Print.var v'; *)
+      Expr.make_var (v', pos), Var.Map.singleton v' e
+    else (find ~info:"should never happend" v ctx).naked_expr, Var.Map.empty
+  | EApp ((EVar v, p), [(ELit LUnit, _)]) ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Dcalc.Print.format_var v
-         Print.format_var v'; *)
-      A.make_var (v', pos), Var.Map.singleton v' (D.EVar v, p)
+         created a variable %a to replace it" Print.var v Print.var v'; *)
+      Expr.make_var (v', pos), Var.Map.singleton v' (EVar v, p)
     else
-      Errors.raise_spanned_error (D.pos e)
+      Errors.raise_spanned_error (Expr.pos e)
         "Internal error: an pure variable was found in an unpure environment."
-  | D.EDefault (_exceptions, _just, _cons) ->
+  | EDefault (_exceptions, _just, _cons) ->
     let v' = Var.make "default_term" in
-    A.make_var (v', pos), Var.Map.singleton v' e
-  | D.ELit D.LEmptyError ->
+    Expr.make_var (v', pos), Var.Map.singleton v' e
+  | ELit LEmptyError ->
     let v' = Var.make "empty_litteral" in
-    A.make_var (v', pos), Var.Map.singleton v' e
+    Expr.make_var (v', pos), Var.Map.singleton v' e
   (* This one is a very special case. It transform an unpure expression
      environement to a pure expression. *)
   | ErrorOnEmpty arg ->
@@ -207,30 +199,33 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     let arg' = translate_expr ctx arg in
 
     ( A.make_matchopt_with_abs_arms arg'
-        (A.make_abs [| silent_var |]
-           (Bindlib.box (A.ERaise A.NoValueProvided, pos))
-           [D.TAny, D.pos e]
+        (Expr.make_abs [| silent_var |]
+           (Bindlib.box (ERaise NoValueProvided, pos))
+           [TAny, Expr.pos e]
            pos)
-        (A.make_abs [| x |] (A.make_var (x, pos)) [D.TAny, D.pos e] pos),
+        (Expr.make_abs [| x |] (Expr.make_var (x, pos)) [TAny, Expr.pos e] pos),
       Var.Map.empty )
   (* pure terms *)
-  | D.ELit l -> A.elit (translate_lit l (D.pos e)) pos, Var.Map.empty
-  | D.EIfThenElse (e1, e2, e3) ->
+  | ELit
+      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l) ->
+    Expr.elit l pos, Var.Map.empty
+  | EIfThenElse (e1, e2, e3) ->
     let e1', h1 = translate_and_hoist ctx e1 in
     let e2', h2 = translate_and_hoist ctx e2 in
     let e3', h3 = translate_and_hoist ctx e3 in
 
-    let e' = A.eifthenelse e1' e2' e3' pos in
+    let e' = Expr.eifthenelse e1' e2' e3' pos in
 
     (*(* equivalent code : *) let e' = let+ e1' = e1' and+ e2' = e2' and+ e3' =
       e3' in (A.EIfThenElse (e1', e2', e3'), pos) in *)
-    e', disjoint_union_maps (D.pos e) [h1; h2; h3]
-  | D.EAssert e1 ->
+    e', disjoint_union_maps (Expr.pos e) [h1; h2; h3]
+  | EAssert e1 ->
     (* same behavior as in the ICFP paper: if e1 is empty, then no error is
        raised. *)
     let e1', h1 = translate_and_hoist ctx e1 in
-    A.eassert e1' pos, h1
-  | D.EAbs (binder, ts) ->
+    Expr.eassert e1' pos, h1
+  | EAbs (binder, ts) ->
     let vars, body = Bindlib.unmbind binder in
     let ctx, lc_vars =
       ArrayLabels.fold_right vars ~init:(ctx, []) ~f:(fun var (ctx, lc_vars) ->
@@ -252,7 +247,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
     let new_binder = Bindlib.bind_mvar lc_vars new_body in
 
     ( Bindlib.box_apply
-        (fun new_binder -> A.EAbs (new_binder, List.map translate_typ ts), pos)
+        (fun new_binder -> EAbs (new_binder, List.map translate_typ ts), pos)
         new_binder,
       hoists )
   | EApp (e1, args) ->
@@ -261,23 +256,23 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
       args |> List.map (translate_and_hoist ctx) |> List.split
     in
 
-    let hoists = disjoint_union_maps (D.pos e) (h1 :: h_args) in
-    let e' = A.eapp e1' args' pos in
+    let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_args) in
+    let e' = Expr.eapp e1' args' pos in
     e', hoists
   | ETuple (args, s) ->
     let args', h_args =
       args |> List.map (translate_and_hoist ctx) |> List.split
     in
 
-    let hoists = disjoint_union_maps (D.pos e) h_args in
-    A.etuple args' s pos, hoists
+    let hoists = disjoint_union_maps (Expr.pos e) h_args in
+    Expr.etuple args' s pos, hoists
   | ETupleAccess (e1, i, s, ts) ->
     let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = A.etupleaccess e1' i s ts pos in
+    let e1' = Expr.etupleaccess e1' i s ts pos in
     e1', hoists
   | EInj (e1, i, en, ts) ->
     let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = A.einj e1' i en ts pos in
+    let e1' = Expr.einj e1' i en ts pos in
     e1', hoists
   | EMatch (e1, cases, en) ->
     let e1', h1 = translate_and_hoist ctx e1 in
@@ -285,17 +280,17 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.marked_expr) :
       cases |> List.map (translate_and_hoist ctx) |> List.split
     in
 
-    let hoists = disjoint_union_maps (D.pos e) (h1 :: h_cases) in
-    let e' = A.ematch e1' cases' en pos in
+    let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_cases) in
+    let e' = Expr.ematch e1' cases' en pos in
     e', hoists
   | EArray es ->
     let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
 
-    A.earray es' pos, disjoint_union_maps (D.pos e) hoists
-  | EOp op -> Bindlib.box (A.EOp op, pos), Var.Map.empty
+    Expr.earray es' pos, disjoint_union_maps (Expr.pos e) hoists
+  | EOp op -> Bindlib.box (EOp op, pos), Var.Map.empty
 
-and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
-    : 'm A.marked_expr Bindlib.box =
+and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
+    'm A.expr Bindlib.box =
   let e', hoists = translate_and_hoist ctx e in
   let hoists = Var.Map.bindings hoists in
 
@@ -303,34 +298,33 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
 
   (* build the hoists *)
   (* Cli.debug_print @@ Format.asprintf "hoist for the expression: [%a]"
-     (Format.pp_print_list Print.format_var) (List.map fst hoists); *)
+     (Format.pp_print_list Print.var) (List.map fst hoists); *)
   ListLabels.fold_left hoists
     ~init:(if append_esome then A.make_some e' else e')
     ~f:(fun acc (v, (hoist, mark_hoist)) ->
-      (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.format_var
-         v; *)
-      let c' : 'm A.marked_expr Bindlib.box =
+      (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.var v; *)
+      let c' : 'm A.expr Bindlib.box =
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)
-        | D.EVar v -> (find ~info:"should never happend" v ctx).expr
-        | D.EDefault (excep, just, cons) ->
+        | EVar v -> (find ~info:"should never happend" v ctx).naked_expr
+        | EDefault (excep, just, cons) ->
           let excep' = List.map (translate_expr ctx) excep in
           let just' = translate_expr ctx just in
           let cons' = translate_expr ctx cons in
           (* calls handle_option. *)
-          A.make_app
-            (A.make_var (Var.translate A.handle_default_opt, mark_hoist))
+          Expr.make_app
+            (Expr.make_var (Var.translate A.handle_default_opt, mark_hoist))
             [
               Bindlib.box_apply
-                (fun excep' -> A.EArray excep', mark_hoist)
+                (fun excep' -> EArray excep', mark_hoist)
                 (Bindlib.box_list excep');
               just';
               cons';
             ]
             mark_hoist
-        | D.ELit D.LEmptyError -> A.make_none mark_hoist
-        | D.EAssert arg ->
+        | ELit LEmptyError -> A.make_none mark_hoist
+        | EAssert arg ->
           let arg' = translate_expr ctx arg in
 
           (* [ match arg with | None -> raise NoValueProvided | Some v -> assert
@@ -339,62 +333,59 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.marked_expr)
           let x = Var.make "assertion_argument" in
 
           A.make_matchopt_with_abs_arms arg'
-            (A.make_abs [| silent_var |]
-               (Bindlib.box (A.ERaise A.NoValueProvided, mark_hoist))
-               [D.TAny, D.mark_pos mark_hoist]
+            (Expr.make_abs [| silent_var |]
+               (Bindlib.box (ERaise NoValueProvided, mark_hoist))
+               [TAny, Expr.mark_pos mark_hoist]
                mark_hoist)
-            (A.make_abs [| x |]
+            (Expr.make_abs [| x |]
                (Bindlib.box_apply
-                  (fun arg -> A.EAssert arg, mark_hoist)
-                  (A.make_var (x, mark_hoist)))
-               [D.TAny, D.mark_pos mark_hoist]
+                  (fun arg -> EAssert arg, mark_hoist)
+                  (Expr.make_var (x, mark_hoist)))
+               [TAny, Expr.mark_pos mark_hoist]
                mark_hoist)
         | _ ->
-          Errors.raise_spanned_error (D.mark_pos mark_hoist)
+          Errors.raise_spanned_error (Expr.mark_pos mark_hoist)
             "Internal Error: An term was found in a position where it should \
              not be"
       in
 
       (* [ match {{ c' }} with | None -> None | Some {{ v }} -> {{ acc }} end
          ] *)
-      (* Cli.debug_print @@ Format.asprintf "build matchopt using %a"
-         Print.format_var v; *)
+      (* Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.var
+         v; *)
       A.make_matchopt mark_hoist v
-        (D.TAny, D.mark_pos mark_hoist)
+        (TAny, Expr.mark_pos mark_hoist)
         c' (A.make_none mark_hoist) acc)
 
-let rec translate_scope_let
-    (ctx : 'm ctx)
-    (lets : ('m D.expr, 'm) D.scope_body_expr) :
-    ('m A.expr, 'm) D.scope_body_expr Bindlib.box =
+let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
+    'm A.expr scope_body_expr Bindlib.box =
   match lets with
   | Result e ->
     Bindlib.box_apply
-      (fun e -> D.Result e)
+      (fun e -> Result e)
       (translate_expr ~append_esome:false ctx e)
   | ScopeLet
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_typ = typ;
-        scope_let_expr = D.EAbs (binder, _), emark;
+        scope_let_expr = EAbs (binder, _), emark;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
     (* special case : the subscope variable is thunked (context i/o). We remove
        this thunking. *)
-    let _, expr = Bindlib.unmbind binder in
+    let _, naked_expr = Bindlib.unmbind binder in
 
     let var_is_pure = true in
     let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
-       var; *)
-    let vmark = D.map_mark (fun _ -> pos) (fun _ -> typ) emark in
+    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
+    let vmark = Expr.map_mark (fun _ -> pos) (fun _ -> typ) emark in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
     let new_next = translate_scope_let ctx' next in
     Bindlib.box_apply2
       (fun new_expr new_next ->
-        D.ScopeLet
+        ScopeLet
           {
             scope_let_kind = SubScopeVarDefinition;
             scope_let_typ = translate_typ typ;
@@ -402,27 +393,26 @@ let rec translate_scope_let
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (translate_expr ctx ~append_esome:false expr)
+      (translate_expr ctx ~append_esome:false naked_expr)
       (Bindlib.bind_var new_var new_next)
   | ScopeLet
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_typ = typ;
-        scope_let_expr = (D.ErrorOnEmpty _, emark) as expr;
+        scope_let_expr = (ErrorOnEmpty _, emark) as naked_expr;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
     (* special case: regular input to the subscope *)
     let var_is_pure = true in
     let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
-       var; *)
-    let vmark = D.map_mark (fun _ -> pos) (fun _ -> typ) emark in
+    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
+    let vmark = Expr.map_mark (fun _ -> pos) (fun _ -> typ) emark in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
     Bindlib.box_apply2
       (fun new_expr new_next ->
-        D.ScopeLet
+        ScopeLet
           {
             scope_let_kind = SubScopeVarDefinition;
             scope_let_typ = translate_typ typ;
@@ -430,26 +420,25 @@ let rec translate_scope_let
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (translate_expr ctx ~append_esome:false expr)
+      (translate_expr ctx ~append_esome:false naked_expr)
       (Bindlib.bind_var new_var (translate_scope_let ctx' next))
   | ScopeLet
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_pos = pos;
-        scope_let_expr = expr;
+        scope_let_expr = naked_expr;
         _;
       } ->
     Errors.raise_spanned_error pos
       "Internal Error: found an SubScopeVarDefinition that does not satisfy \
        the invariants when translating Dcalc to Lcalc without exceptions: \
        @[<hov 2>%a@]"
-      (Dcalc.Print.format_expr ctx.decl_ctx)
-      expr
+      (Expr.format ctx.decl_ctx) naked_expr
   | ScopeLet
       {
         scope_let_kind = kind;
         scope_let_typ = typ;
-        scope_let_expr = expr;
+        scope_let_expr = naked_expr;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
@@ -461,23 +450,22 @@ let rec translate_scope_let
            thunked, then the variable is context. If it's not thunked, it's a
            regular input. *)
         match Marked.unmark typ with
-        | D.TArrow ((D.TLit D.TUnit, _), _) -> false
+        | TArrow ((TLit TUnit, _), _) -> false
         | _ -> true)
       | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
       | DestructuringSubScopeResults | Assertion ->
         true
     in
     let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var
-       var; *)
+    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
     let vmark =
-      D.map_mark (fun _ -> pos) (fun _ -> typ) (Marked.get_mark expr)
+      Expr.map_mark (fun _ -> pos) (fun _ -> typ) (Marked.get_mark naked_expr)
     in
     let ctx' = add_var vmark var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
     Bindlib.box_apply2
       (fun new_expr new_next ->
-        D.ScopeLet
+        ScopeLet
           {
             scope_let_kind = kind;
             scope_let_typ = translate_typ typ;
@@ -485,14 +473,13 @@ let rec translate_scope_let
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (translate_expr ctx ~append_esome:false expr)
+      (translate_expr ctx ~append_esome:false naked_expr)
       (Bindlib.bind_var new_var (translate_scope_let ctx' next))
 
 let translate_scope_body
     (scope_pos : Pos.t)
     (ctx : 'm ctx)
-    (body : ('m D.expr, 'm) D.scope_body) :
-    ('m A.expr, 'm) D.scope_body Bindlib.box =
+    (body : 'm D.expr scope_body) : 'm A.expr scope_body Bindlib.box =
   match body with
   | {
    scope_body_expr = result;
@@ -505,23 +492,23 @@ let translate_scope_body
         match lets with
         | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
       in
-      D.map_mark (fun _ -> scope_pos) (fun ty -> ty) m
+      Expr.map_mark (fun _ -> scope_pos) (fun ty -> ty) m
     in
     let ctx' = add_var vmark v true ctx in
     let v' = (find ~info:"variable that was just created" v ctx').var in
     Bindlib.box_apply
       (fun new_expr ->
         {
-          D.scope_body_expr = new_expr;
+          scope_body_expr = new_expr;
           scope_body_input_struct = input_struct;
           scope_body_output_struct = output_struct;
         })
       (Bindlib.bind_var v' (translate_scope_let ctx' lets))
 
-let rec translate_scopes (ctx : 'm ctx) (scopes : ('m D.expr, 'm) D.scopes) :
-    ('m A.expr, 'm) D.scopes Bindlib.box =
+let rec translate_scopes (ctx : 'm ctx) (scopes : 'm D.expr scopes) :
+    'm A.expr scopes Bindlib.box =
   match scopes with
-  | Nil -> Bindlib.box D.Nil
+  | Nil -> Bindlib.box Nil
   | ScopeDef { scope_name; scope_body; scope_next } ->
     let scope_var, next = Bindlib.unbind scope_next in
     let vmark =
@@ -534,21 +521,21 @@ let rec translate_scopes (ctx : 'm ctx) (scopes : ('m D.expr, 'm) D.scopes) :
       (find ~info:"variable that was just created" scope_var new_ctx).var
     in
 
-    let scope_pos = Marked.get_mark (D.ScopeName.get_info scope_name) in
+    let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
 
     let new_body = translate_scope_body scope_pos ctx scope_body in
     let tail = translate_scopes new_ctx next in
 
     Bindlib.box_apply2
       (fun body tail ->
-        D.ScopeDef { scope_name; scope_body = body; scope_next = tail })
+        ScopeDef { scope_name; scope_body = body; scope_next = tail })
       new_body
       (Bindlib.bind_var new_scope_name tail)
 
 let translate_program (prgm : 'm D.program) : 'm A.program =
   let inputs_structs =
-    D.fold_left_scope_defs prgm.scopes ~init:[] ~f:(fun acc scope_def _ ->
-        scope_def.D.scope_body.scope_body_input_struct :: acc)
+    Scope.fold_left prgm.scopes ~init:[] ~f:(fun acc scope_def _ ->
+        scope_def.scope_body.scope_body_input_struct :: acc)
   in
 
   (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
@@ -556,24 +543,23 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
   let decl_ctx =
     {
       prgm.decl_ctx with
-      D.ctx_enums =
+      ctx_enums =
         prgm.decl_ctx.ctx_enums
-        |> D.EnumMap.add A.option_enum A.option_enum_config;
+        |> EnumMap.add A.option_enum A.option_enum_config;
     }
   in
   let decl_ctx =
     {
       decl_ctx with
-      D.ctx_structs =
+      ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> D.StructMap.mapi (fun n l ->
+        |> StructMap.mapi (fun n l ->
                if List.mem n inputs_structs then
                  ListLabels.map l ~f:(fun (n, tau) ->
                      (* Cli.debug_print @@ Format.asprintf "Input type: %a"
-                        (Dcalc.Print.format_typ decl_ctx) tau; Cli.debug_print
-                        @@ Format.asprintf "Output type: %a"
-                        (Dcalc.Print.format_typ decl_ctx) (translate_typ
-                        tau); *)
+                        (Print.typ decl_ctx) tau; Cli.debug_print @@
+                        Format.asprintf "Output type: %a" (Print.typ decl_ctx)
+                        (translate_typ tau); *)
                      n, translate_typ tau)
                else l);
     }

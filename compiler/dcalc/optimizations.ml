@@ -15,15 +15,16 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 open Utils
+open Shared_ast
 open Ast
 
 type partial_evaluation_ctx = {
-  var_values : (typed expr, typed marked_expr) Var.Map.t;
+  var_values : (typed expr, typed expr) Var.Map.t;
   decl_ctx : decl_ctx;
 }
 
-let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
-    'm marked_expr Bindlib.box =
+let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
+    'm expr Bindlib.box =
   let pos = Marked.get_mark e in
   let rec_helper = partial_evaluation ctx in
   match Marked.unmark e with
@@ -82,7 +83,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
       (fun arg arms ->
         match arg, arms with
         | (EInj (e1, i, e_name', _ts), _), _
-          when Ast.EnumName.compare e_name e_name' = 0 ->
+          when EnumName.compare e_name e_name' = 0 ->
           (* iota reduction *)
           EApp (List.nth arms i, [e1]), pos
         | _ -> EMatch (arg, arms, e_name), pos)
@@ -127,7 +128,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
         with
         | exceptions, just, cons
           when List.fold_left
-                 (fun nb except -> if is_value except then nb + 1 else nb)
+                 (fun nb except -> if Expr.is_value except then nb + 1 else nb)
                  0 exceptions
                > 1 ->
           (* at this point we know a conflict error will be triggered so we just
@@ -135,7 +136,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
              beautiful right error message *)
           Interpreter.evaluate_expr ctx.decl_ctx
             (EDefault (exceptions, just, cons), pos)
-        | [except], _, _ when is_value except ->
+        | [except], _, _ when Expr.is_value except ->
           (* if there is only one exception and it is a non-empty value it is
              always chosen *)
           except
@@ -177,20 +178,20 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm marked_expr) :
             ( ELit (LBool false)
             | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ) ) ->
           e1
-        | _ when equal_exprs e2 e3 -> e2
+        | _ when Expr.equal e2 e3 -> e2
         | _ -> EIfThenElse (e1, e2, e3), pos)
       (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | ErrorOnEmpty e1 ->
     Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) (rec_helper e1)
 
-let optimize_expr (decl_ctx : decl_ctx) (e : 'm marked_expr) =
+let optimize_expr (decl_ctx : decl_ctx) (e : 'm expr) =
   partial_evaluation { var_values = Var.Map.empty; decl_ctx } e
 
 let rec scope_lets_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
-    (scope_body_expr : ('m expr, 'm) scope_body_expr) :
-    ('m expr, 'm) scope_body_expr Bindlib.box =
+    (scope_body_expr : 'm expr scope_body_expr) :
+    'm expr scope_body_expr Bindlib.box =
   match scope_body_expr with
   | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
   | ScopeLet scope_let ->
@@ -209,9 +210,9 @@ let rec scope_lets_map
       new_scope_let_expr new_next
 
 let rec scopes_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
-    (scopes : ('m expr, 'm) scopes) : ('m expr, 'm) scopes Bindlib.box =
+    (scopes : 'm expr scopes) : 'm expr scopes Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box Nil
   | ScopeDef scope_def ->
@@ -240,7 +241,7 @@ let rec scopes_map
       new_scope_body_expr new_scope_next
 
 let program_map
-    (t : 'a -> 'm marked_expr -> 'm marked_expr Bindlib.box)
+    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
     (ctx : 'a)
     (p : 'm program) : 'm program Bindlib.box =
   Bindlib.box_apply
@@ -252,4 +253,4 @@ let optimize_program (p : 'm program) : untyped program =
     (program_map partial_evaluation
        { var_values = Var.Map.empty; decl_ctx = p.decl_ctx }
        p)
-  |> untype_program
+  |> Program.untype

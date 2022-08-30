@@ -392,8 +392,8 @@ au 3° de l'article D. 823-17 du même code sont fixés comme suit :
 TL est exprimé en pourcentage et arrondi à la troisième décimale.
 Le tableau suivant traduit cette formule :
 
-Si $\textrm{RL}<45\%$ Si $45\% < \textrm{RL} < 75\%$               Si $\textrm{RL} >75 \%$
-------------------- ------------------------------------------ -----------------------------------------------------------
+Si $\textrm{RL}<45\%$ Si $45\% < \textrm{RL} < 75\%$                 Si $\textrm{RL} >75 \%$
+--------------------- ---------------------------------------------  ---------------------------------------------------------------
 $\textrm{TL}=0 \%$    $\textrm{TL}=0,45 \%\times (\textrm{RL}-45\%)$ $\textrm{TL}=0,45\%\times30 \%+0,68 \%\times(\textrm{RL}-75\%)$
 
 ```catala
@@ -2518,8 +2518,8 @@ dispositions sont applicables pour les prestations dues à compter
 du 1er octobre 2021.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété sous condition
-  date_courante >=@ |2021-10-01|:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >=@ |2021-10-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
     54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)

@@ -170,12 +170,12 @@ let driver source_file (options : Cli.options) : int =
         @@ fun fmt ->
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
-            (Scopelang.Print.format_scope ~debug:options.debug)
+            (Scopelang.Print.scope prgm.program_ctx ~debug:options.debug)
             ( scope_uid,
               Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
         else
           Format.fprintf fmt "%a\n"
-            (Scopelang.Print.format_program ~debug:options.debug)
+            (Scopelang.Print.program ~debug:options.debug)
             prgm
       | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
         | `Proof | `Plugin _ ) as backend -> (
@@ -197,13 +197,13 @@ let driver source_file (options : Cli.options) : int =
           @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+              (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
-                  (Dcalc.Ast.fold_left_scope_defs ~init:None
+                  (Shared_ast.Scope.fold_left ~init:None
                      ~f:(fun acc scope_def _ ->
                        if
-                         Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                         Shared_ast.ScopeName.compare scope_def.scope_name
                            scope_uid
                          = 0
                        then Some scope_def.scope_body
@@ -211,20 +211,17 @@ let driver source_file (options : Cli.options) : int =
                      prgm.scopes) )
           else
             let prgrm_dcalc_expr =
-              Bindlib.unbox
-                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
-                   ~make_abs:Dcalc.Ast.make_abs
-                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
+              Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_expr prgm.decl_ctx)
+              (Shared_ast.Expr.format prgm.decl_ctx)
               prgrm_dcalc_expr
         | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
           | `Proof | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking...";
           let prgm = Dcalc.Typing.infer_types_program prgm in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
-             (Dcalc.Print.format_typ prgm.decl_ctx) typ); *)
+             (Print.typ prgm.decl_ctx) typ); *)
           match backend with
           | `Typecheck ->
             (* That's it! *)
@@ -241,10 +238,7 @@ let driver source_file (options : Cli.options) : int =
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
-              Bindlib.unbox
-                (Dcalc.Ast.build_whole_program_expr ~box_expr:Dcalc.Ast.box_expr
-                   ~make_abs:Dcalc.Ast.make_abs
-                   ~make_let_in:Dcalc.Ast.make_let_in prgm scope_uid)
+              Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
@@ -270,7 +264,7 @@ let driver source_file (options : Cli.options) : int =
             List.iter
               (fun ((var, _), result) ->
                 Cli.result_format "@[<hov 2>%s@ =@ %a@]" var
-                  (Dcalc.Print.format_expr ~debug:options.debug prgm.decl_ctx)
+                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   result)
               results
           | (`OCaml | `Python | `Lcalc | `Scalc | `Plugin _) as backend -> (
@@ -285,7 +279,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
-              else Lcalc.Ast.untype_program prgm
+              else Shared_ast.Program.untype prgm
             in
             let prgm =
               if options.closure_conversion then (
@@ -302,13 +296,13 @@ let driver source_file (options : Cli.options) : int =
               @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
-                  (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
+                  (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
                   ( scope_uid,
                     Option.get
-                      (Dcalc.Ast.fold_left_scope_defs ~init:None
+                      (Shared_ast.Scope.fold_left ~init:None
                          ~f:(fun acc scope_def _ ->
                            if
-                             Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                             Shared_ast.ScopeName.compare scope_def.scope_name
                                scope_uid
                              = 0
                            then Some scope_def.scope_body
@@ -316,13 +310,10 @@ let driver source_file (options : Cli.options) : int =
                          prgm.scopes) )
               else
                 let prgrm_lcalc_expr =
-                  Bindlib.unbox
-                    (Dcalc.Ast.build_whole_program_expr
-                       ~box_expr:Lcalc.Ast.box_expr ~make_abs:Lcalc.Ast.make_abs
-                       ~make_let_in:Lcalc.Ast.make_let_in prgm scope_uid)
+                  Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
-                  (Lcalc.Print.format_expr prgm.decl_ctx)
+                  (Shared_ast.Expr.format prgm.decl_ctx)
                   prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with

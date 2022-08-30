@@ -1118,8 +1118,8 @@ peuvent être remises en cause par les parents qu'au bout d'un an, sauf
 modification, avant cette échéance, des modalités de résidence de l'enfant.
 
 ```catala
-# Pas pertinent pour le calcul du montant: il s'agit de s'assurer que les parents
-# ne changent pas les modalités de résidence tous les quatre matins.
+# Pas pertinent pour le calcul du montant: il s'agit de s'assurer que les
+# parents ne changent pas les modalités de résidence tous les quatre matins.
 ```
 
 ####### Article R823-4 | LEGIARTI000038878933
@@ -1947,8 +1947,8 @@ d'ouverture du droit sont réunies ;
 d'être réunies.
 
 ```catala
-# Cet article met en place des délais qu'il n'est pas nécessaire de codifier pour
-# le moment.
+# Cet article met en place des délais qu'il n'est pas nécessaire de codifier
+# pour le moment.
 ```
 
 ######## Article D823-15 | LEGIARTI000038878909
@@ -2002,7 +2002,8 @@ dans le cas où le logement occupé est une chambre, de la composition familiale
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition loyer_éligible égal à
-    si loyer_principal >€ plafond_loyer_d823_16_2 alors plafond_loyer_d823_16_2
+    si loyer_principal >€ plafond_loyer_d823_16_2
+    alors plafond_loyer_d823_16_2
     sinon loyer_principal
 ```
 
@@ -2046,7 +2047,9 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
         # a bien cette expression.
     sinon aide_finale)
 
-  exception définition traitement_aide_finale de aide_finale état diminué sous condition
+  exception définition traitement_aide_finale de aide_finale
+  état diminué
+  sous condition
     bénéficiaire_aide_adulte_ou_enfant_handicapés
   conséquence égal à aide_finale
 
@@ -2057,7 +2060,9 @@ Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif:
-  définition traitement_aide_finale de aide_finale état minoration_forfaitaire égal à
+  définition traitement_aide_finale de aide_finale
+  état minoration_forfaitaire
+  égal à
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
       aide_finale -€ montant_forfaitaire_d823_16 >=€ 0€
@@ -3422,10 +3427,10 @@ II du présent livre et arrondies à la centaine d'euros supérieure ;
 # est en effet une reprise peut-être maladroite et perfectible de l’ancien
 # article (avant recodification, abrogé depuis) R. 351-19 qui est plus clair
 # sur cette notion d’intervalle :
-#   « Le coefficient K, au plus égal à 0,95, est déterminé pour chaque intervalle
-#     de ressources de 100 euros en appliquant la formule suivante :
+#   « Le coefficient K, au plus égal à 0,95, est déterminé pour chaque
+#   intervalle de ressources de 100 euros en appliquant la formule suivante :
 #     K = 0,95-R/ CM x N
-#     dans laquelle :
+#   dans laquelle :
 #     R représente la limite supérieure de l'intervalle dans lequel se situent
 #     les ressources appréciées conformément à l'article R. 351-5 ; […] »
 # La manière dont nous interprétons cette réponse est la suivante : toutes
@@ -4383,9 +4388,9 @@ au calcul de l'allocation de logement versée en secteur locatif, sous réserve 
 des articles D. 842-2 et D. 842-4.
 
 ```catala
-# Rien à formaliser ici, voir le prologue sur la déclaration du champ d'application
-# de calcul des allocations logement qui appelle directement le champ d'application
-# de calcul de l'APL en secteur locatif.
+# Rien à formaliser ici, voir le prologue sur la déclaration du
+# champ d'application de calcul des allocations logement qui appelle
+# directement le champ d'application de calcul de l'APL en secteur locatif.
 ```
 
 ####### Article D842-2 | LEGIARTI000038878685

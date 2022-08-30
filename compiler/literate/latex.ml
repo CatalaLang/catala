@@ -26,6 +26,15 @@ module C = Cli
 
 (** {1 Helpers} *)
 
+let lines_of_code = ref 0
+
+let update_lines_of_code c =
+  lines_of_code :=
+    !lines_of_code
+    + Pos.get_end_line (Marked.get_mark c)
+    - Pos.get_start_line (Marked.get_mark c)
+    - 1
+
 (** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) : string =
   (* Then we send to pandoc, to ensure the markdown features used in the
@@ -175,34 +184,6 @@ codes={\catcode`\$=3\catcode`\^=7}
 
 (** {1 Weaving} *)
 
-(** [check_exceeding_lines max_len start_line filename content] prints a warning
-    message for each lines of [content] exceeding [max_len] characters. *)
-let check_exceeding_lines
-    ?(max_len = 80)
-    (start_line : int)
-    (filename : string)
-    (content : string) =
-  content
-  |> String.split_on_char '\n'
-  |> List.iteri (fun i s ->
-         if
-           String.length (Ubase.from_utf8 s)
-           (* we remove diacritics to avoid false positives due to UFT8 encoding
-              not taken into account by String *) > max_len
-         then (
-           Cli.warning_print "The line %s in %s is exceeding %s characters:"
-             (Cli.with_style
-                ANSITerminal.[Bold; yellow]
-                "%d"
-                (start_line + i + 1))
-             (Cli.with_style ANSITerminal.[Bold; magenta] "%s" filename)
-             (Cli.with_style ANSITerminal.[Bold; red] "%d" max_len);
-           Cli.warning_print "%s%s" (String.sub s 0 max_len)
-             (Cli.with_style
-                ANSITerminal.[red]
-                "%s"
-                String.(sub s max_len (length s - max_len)))))
-
 let rec law_structure_to_latex
     (language : C.backend_lang)
     (print_only_law : bool)
@@ -241,6 +222,11 @@ let rec law_structure_to_latex
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
+    let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
+    let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
+    let block_content = Marked.unmark c in
+    check_exceeding_lines start_line filename block_content;
+    update_lines_of_code c;
     Format.fprintf fmt
       "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
        ```catala\n\
@@ -261,6 +247,7 @@ let rec law_structure_to_latex
     let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
+    update_lines_of_code c;
     Format.fprintf fmt
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
@@ -286,4 +273,6 @@ let ast_to_latex
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_latex language print_only_law)
-    fmt program.program_items
+    fmt program.program_items;
+  Cli.debug_print "Lines of Catala inside literate source code: %d"
+    !lines_of_code

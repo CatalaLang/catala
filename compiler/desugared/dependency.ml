@@ -18,6 +18,7 @@
     OCamlgraph} *)
 
 open Utils
+open Shared_ast
 
 (** {1 Scope variables dependency graph} *)
 
@@ -32,34 +33,30 @@ open Utils
 
     Indeed, during interpretation, subscopes are executed atomically. *)
 module Vertex = struct
-  type t =
-    | Var of Ast.ScopeVar.t * Ast.StateName.t option
-    | SubScope of Scopelang.Ast.SubScopeName.t
+  type t = Var of ScopeVar.t * StateName.t option | SubScope of SubScopeName.t
 
   let hash x =
     match x with
-    | Var (x, None) -> Ast.ScopeVar.hash x
-    | Var (x, Some sx) ->
-      Int.logxor (Ast.ScopeVar.hash x) (Ast.StateName.hash sx)
-    | SubScope x -> Scopelang.Ast.SubScopeName.hash x
+    | Var (x, None) -> ScopeVar.hash x
+    | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
+    | SubScope x -> SubScopeName.hash x
 
   let compare = compare
 
   let equal x y =
     match x, y with
-    | Var (x, None), Var (y, None) -> Ast.ScopeVar.compare x y = 0
+    | Var (x, None), Var (y, None) -> ScopeVar.compare x y = 0
     | Var (x, Some sx), Var (y, Some sy) ->
-      Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
-    | SubScope x, SubScope y -> Scopelang.Ast.SubScopeName.compare x y = 0
+      ScopeVar.compare x y = 0 && StateName.compare sx sy = 0
+    | SubScope x, SubScope y -> SubScopeName.compare x y = 0
     | _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
-    | Var (v, None) -> Ast.ScopeVar.format_t fmt v
+    | Var (v, None) -> ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
-      Format.fprintf fmt "%a.%a" Ast.ScopeVar.format_t v Ast.StateName.format_t
-        sv
-    | SubScope v -> Scopelang.Ast.SubScopeName.format_t fmt v
+      Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+    | SubScope v -> SubScopeName.format_t fmt v
 end
 
 (** On the edges, the label is the position of the expression responsible for
@@ -103,15 +100,14 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              let var_str, var_info =
                match v with
                | Vertex.Var (v, None) ->
-                 ( Format.asprintf "%a" Ast.ScopeVar.format_t v,
-                   Ast.ScopeVar.get_info v )
+                 Format.asprintf "%a" ScopeVar.format_t v, ScopeVar.get_info v
                | Vertex.Var (v, Some sv) ->
-                 ( Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
-                     Ast.StateName.format_t sv,
-                   Ast.StateName.get_info sv )
+                 ( Format.asprintf "%a.%a" ScopeVar.format_t v
+                     StateName.format_t sv,
+                   StateName.get_info sv )
                | Vertex.SubScope v ->
-                 ( Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v,
-                   Scopelang.Ast.SubScopeName.get_info v )
+                 ( Format.asprintf "%a" SubScopeName.format_t v,
+                   SubScopeName.get_info v )
              in
              let succs = ScopeDependencies.succ_e g v in
              let _, edge_pos, succ =
@@ -120,12 +116,12 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
              let succ_str =
                match succ with
                | Vertex.Var (v, None) ->
-                 Format.asprintf "%a" Ast.ScopeVar.format_t v
+                 Format.asprintf "%a" ScopeVar.format_t v
                | Vertex.Var (v, Some sv) ->
-                 Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
-                   Ast.StateName.format_t sv
+                 Format.asprintf "%a.%a" ScopeVar.format_t v StateName.format_t
+                   sv
                | Vertex.SubScope v ->
-                 Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
+                 Format.asprintf "%a" SubScopeName.format_t v
              in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
@@ -140,15 +136,15 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
     in
     Errors.raise_multispanned_error spans
       "Cyclic dependency detected between variables of scope %a!"
-      Scopelang.Ast.ScopeName.format_t scope.scope_uid
+      ScopeName.format_t scope.scope_uid
 
 (** Builds the dependency graph of a particular scope *)
 let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   let g = ScopeDependencies.empty in
   (* Add all the vertices to the graph *)
   let g =
-    Ast.ScopeVarMap.fold
-      (fun (v : Ast.ScopeVar.t) var_or_state g ->
+    ScopeVarMap.fold
+      (fun (v : ScopeVar.t) var_or_state g ->
         match var_or_state with
         | Ast.WholeVar -> ScopeDependencies.add_vertex g (Vertex.Var (v, None))
         | Ast.States states ->
@@ -160,7 +156,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   let g =
     Scopelang.Ast.SubScopeMap.fold
-      (fun (v : Scopelang.Ast.SubScopeName.t) _ g ->
+      (fun (v : SubScopeName.t) _ g ->
         ScopeDependencies.add_vertex g (Vertex.SubScope v))
       scope.scope_sub_scopes g
   in
@@ -208,7 +204,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Errors.raise_spanned_error fv_def_pos
                   "The subscope %a is used when defining one of its inputs, \
                    but recursion is forbidden in Catala"
-                  Scopelang.Ast.SubScopeName.format_t defined
+                  SubScopeName.format_t defined
               else
                 let edge =
                   ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos

@@ -14,13 +14,11 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Dcalc.Ast
-
 (** [solve_vc] is the main entry point of this module. It takes a list of
     expressions [vcs] corresponding to verification conditions that must be
     discharged by Z3, and attempts to solve them **)
 let solve_vc
-    (decl_ctx : decl_ctx)
+    (decl_ctx : Shared_ast.decl_ctx)
     (vcs : Conditions.verification_condition list) : unit =
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)

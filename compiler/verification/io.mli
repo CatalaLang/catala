@@ -17,7 +17,7 @@
 
 (** Common code for handling the IO of all proof backends supported *)
 
-open Utils
+open Shared_ast
 
 module type Backend = sig
   val init_backend : unit -> unit
@@ -25,9 +25,7 @@ module type Backend = sig
   type backend_context
 
   val make_context :
-    Dcalc.Ast.decl_ctx ->
-    (Astgen.typed Dcalc.Ast.expr, Dcalc.Ast.typ Utils.Marked.pos) Var.Map.t ->
-    backend_context
+    decl_ctx -> (typed Dcalc.Ast.expr, typ) Var.Map.t -> backend_context
 
   type vc_encoding
 
@@ -41,9 +39,7 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context ->
-    Astgen.typed Dcalc.Ast.marked_expr ->
-    backend_context * vc_encoding
+    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -52,16 +48,12 @@ module type BackendIO = sig
   type backend_context
 
   val make_context :
-    Dcalc.Ast.decl_ctx ->
-    (Astgen.typed Dcalc.Ast.expr, Dcalc.Ast.typ Utils.Marked.pos) Var.Map.t ->
-    backend_context
+    decl_ctx -> (typed Dcalc.Ast.expr, typ) Var.Map.t -> backend_context
 
   type vc_encoding
 
   val translate_expr :
-    backend_context ->
-    Astgen.typed Dcalc.Ast.marked_expr ->
-    backend_context * vc_encoding
+    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
 
   type model
 
@@ -78,9 +70,7 @@ module type BackendIO = sig
     string
 
   val encode_and_check_vc :
-    Dcalc.Ast.decl_ctx ->
-    Conditions.verification_condition * vc_encoding_result ->
-    unit
+    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
 end
 
 module MakeBackendIO : functor (B : Backend) ->

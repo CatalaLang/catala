@@ -14,25 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
-
-val format_var : Format.formatter -> Ast.Var.t -> unit
-val format_location : Format.formatter -> Ast.location -> unit
-val format_typ : Format.formatter -> Ast.typ Marked.pos -> unit
-
-val format_expr :
+val scope :
   ?debug:bool (** [true] for debug printing *) ->
+  Shared_ast.decl_ctx ->
   Format.formatter ->
-  Ast.expr Marked.pos ->
+  Shared_ast.ScopeName.t * Ast.scope_decl ->
   unit
 
-val format_scope :
-  ?debug:bool (** [true] for debug printing *) ->
-  Format.formatter ->
-  Ast.ScopeName.t * Ast.scope_decl ->
-  unit
-
-val format_program :
+val program :
   ?debug:bool (** [true] for debug printing *) ->
   Format.formatter ->
   Ast.program ->

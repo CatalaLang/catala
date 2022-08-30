@@ -15,6 +15,7 @@
    the License. *)
 
 open Utils
+open Shared_ast
 open Dcalc
 open Ast
 open Z3
@@ -27,13 +28,13 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : (typed expr, typ Marked.pos) Var.Map.t;
+  ctx_var : (typed expr, typ) Var.Map.t;
   (* A map from Catala variables to their types, needed to create Z3 expressions
      of the right sort *)
   ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
   (* A map from Catala function names (represented as variables) to Z3 function
      declarations, used to only define once functions in Z3 queries *)
-  ctx_z3vars : typed var StringMap.t;
+  ctx_z3vars : typed expr Var.t StringMap.t;
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
@@ -65,13 +66,15 @@ type context = {
 
 (** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3
     function declaration [fd] to the context **)
-let add_funcdecl (v : typed var) (fd : FuncDecl.func_decl) (ctx : context) :
-    context =
+let add_funcdecl
+    (v : typed expr Var.t)
+    (fd : FuncDecl.func_decl)
+    (ctx : context) : context =
   { ctx with ctx_funcdecl = Var.Map.add v fd ctx.ctx_funcdecl }
 
 (** [add_z3var] adds the mapping between [name] and the Catala variable [v] to
     the context **)
-let add_z3var (name : string) (v : typed var) (ctx : context) : context =
+let add_z3var (name : string) (v : typed expr Var.t) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
 
 (** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the
@@ -82,7 +85,8 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
 
 (** [add_z3var] adds the mapping between temporary variable [v] and the Z3
     expression [e] representing an accessor application to the context **)
-let add_z3matchsubst (v : typed var) (e : Expr.expr) (ctx : context) : context =
+let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
+    context =
   { ctx with ctx_z3matchsubsts = Var.Map.add v e ctx.ctx_z3matchsubsts }
 
 (** [add_z3struct] adds the mapping between the Catala struct [s] and the
@@ -100,7 +104,7 @@ let base_day = Runtime.date_of_numbers 1900 1 1
 
 (** [unique_name] returns the full, unique name corresponding to variable [v],
     as given by Bindlib **)
-let unique_name (v : 'm var) : string =
+let unique_name (v : 'e Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 (** [date_to_int] translates [date] to an integer corresponding to the number of
@@ -125,8 +129,7 @@ let nb_days_to_date (nb : int) : string =
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
-let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
-    : string =
+let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   let print_lit (ty : typ_lit) =
     match ty with
     (* TODO: Print boolean according to current language *)
@@ -158,7 +161,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
 
   match Marked.unmark ty with
   | TLit ty -> print_lit ty
-  | TTuple (_, Some name) ->
+  | TStruct name ->
     let s = StructMap.find name ctx.ctx_decl.ctx_structs in
     let get_fieldname (fn : StructFieldName.t) : string =
       Marked.unmark (StructFieldName.get_info fn)
@@ -176,9 +179,9 @@ let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
     Format.asprintf "%s { %s }"
       (Marked.unmark (StructName.get_info name))
       fields_str
-  | TTuple (_, None) ->
+  | TTuple _ ->
     failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
-  | TEnum (_tys, name) ->
+  | TEnum name ->
     (* The value associated to the enum is a single argument *)
     let e' = List.hd (Expr.get_args e) in
     let fd = Expr.get_func_decl e in
@@ -193,6 +196,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Marked.pos) (e : Expr.expr)
     in
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
+  | TOption _ -> failwith "[Z3 model]: Pretty-printing of options not supported"
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ ->
     (* For now, only the length of arrays is modeled *)
@@ -258,13 +262,13 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TDuration -> Arithmetic.Integer.mk_sort ctx.ctx_z3
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
-let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
+let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
-  | TTuple (_, Some name) -> find_or_create_struct ctx name
-  | TTuple (_, None) ->
-    failwith "[Z3 encoding] TTuple type of unnamed struct not supported"
-  | TEnum (_, e) -> find_or_create_enum ctx e
+  | TStruct name -> find_or_create_struct ctx name
+  | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
+  | TEnum e -> find_or_create_enum ctx e
+  | TOption _ -> failwith "[Z3 encoding] TOption type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
   | TArray _ ->
     (* For now, we are only encoding the (symbolic) length of an array.
@@ -279,9 +283,7 @@ let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
 and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
-  let create_constructor
-      (ctx : context)
-      (c : EnumConstructor.t * typ Marked.pos) :
+  let create_constructor (ctx : context) (c : EnumConstructor.t * typ) :
       context * Datatype.Constructor.constructor =
     let name, ty = c in
     let name = Marked.unmark (EnumConstructor.get_info name) in
@@ -385,7 +387,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
     corresponding to the variable [v]. If no such function declaration exists
     yet, we construct it and add it to the context, thus requiring to return a
     new context *)
-let find_or_create_funcdecl (ctx : context) (v : typed var) :
+let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
     context * FuncDecl.func_decl =
   match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
@@ -415,10 +417,8 @@ let is_leap_year (n : int) = failwith "Unimplemented!"
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
-let rec translate_op
-    (ctx : context)
-    (op : operator)
-    (args : 'm marked_expr list) : context * Expr.expr =
+let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
+    context * Expr.expr =
   match op with
   | Ternop _top ->
     let _e1, _e2, _e3 =
@@ -428,10 +428,12 @@ let rec translate_op
         failwith
           (Format.asprintf
              "[Z3 encoding] Ill-formed ternary operator application: %a"
-             (Print.format_expr ctx.ctx_decl)
+             (Shared_ast.Expr.format ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
-                   List.map (fun arg -> Bindlib.unbox (untype_expr arg)) args ),
+                   List.map
+                     (fun arg -> Bindlib.unbox (Shared_ast.Expr.untype arg))
+                     args ),
                Untyped { pos = Pos.no_pos } ))
     in
 
@@ -519,11 +521,12 @@ let rec translate_op
           failwith
             (Format.asprintf
                "[Z3 encoding] Ill-formed binary operator application: %a"
-               (Print.format_expr ctx.ctx_decl)
+               (Shared_ast.Expr.format ctx.ctx_decl)
                ( EApp
                    ( (EOp op, Untyped { pos = Pos.no_pos }),
                      List.map
-                       (fun arg -> arg |> untype_expr |> Bindlib.unbox)
+                       (fun arg ->
+                         arg |> Shared_ast.Expr.untype |> Bindlib.unbox)
                        args ),
                  Untyped { pos = Pos.no_pos } ))
       in
@@ -571,11 +574,11 @@ let rec translate_op
         failwith
           (Format.asprintf
              "[Z3 encoding] Ill-formed unary operator application: %a"
-             (Print.format_expr ctx.ctx_decl)
+             (Shared_ast.Expr.format ctx.ctx_decl)
              ( EApp
                  ( (EOp op, Untyped { pos = Pos.no_pos }),
                    List.map
-                     (fun arg -> arg |> untype_expr |> Bindlib.unbox)
+                     (fun arg -> arg |> Shared_ast.Expr.untype |> Bindlib.unbox)
                      args ),
                Untyped { pos = Pos.no_pos } ))
     in
@@ -623,11 +626,11 @@ let rec translate_op
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : 'm marked_expr) : context * Expr.expr =
+and translate_expr (ctx : context) (vc : 'm expr) : context * Expr.expr =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)
-      (e : 'm marked_expr * FuncDecl.func_decl list) : context * Expr.expr =
+      (e : 'm expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Marked.unmark e with
     | EAbs (e, _) ->
@@ -797,7 +800,7 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
-  let translate_expr (ctx : backend_context) (e : 'm marked_expr) =
+  let translate_expr (ctx : backend_context) (e : 'm expr) =
     translate_expr ctx e
 
   let init_backend () =
@@ -805,8 +808,7 @@ module Backend = struct
 
   let make_context
       (decl_ctx : decl_ctx)
-      (free_vars_typ : (typed expr, typ Marked.pos) Var.Map.t) : backend_context
-      =
+      (free_vars_typ : (typed expr, typ) Var.Map.t) : backend_context =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])
       @ ["proof", "false"]

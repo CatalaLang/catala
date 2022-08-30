@@ -18,25 +18,26 @@
     program. Vertices are functions, x -> y if x is used in the definition of y. *)
 
 open Utils
+open Shared_ast
 
 (** {1 Scope dependencies} *)
 
 (** On the edges, the label is the expression responsible for the use of the
     function *)
 module SDependencies :
-  Graph.Sig.P with type V.t = Ast.ScopeName.t and type E.label = Pos.t
+  Graph.Sig.P with type V.t = ScopeName.t and type E.label = Pos.t
 
 val build_program_dep_graph : Ast.program -> SDependencies.t
 val check_for_cycle_in_scope : SDependencies.t -> unit
-val get_scope_ordering : SDependencies.t -> Ast.ScopeName.t list
+val get_scope_ordering : SDependencies.t -> ScopeName.t list
 
 (** {1 Type dependencies} *)
 
 module TVertex : sig
-  type t = Struct of Ast.StructName.t | Enum of Ast.EnumName.t
+  type t = Struct of StructName.t | Enum of EnumName.t
 
   val format_t : Format.formatter -> t -> unit
-  val get_info : t -> Ast.StructName.info
+  val get_info : t -> StructName.info
 
   include Graph.Sig.COMPARABLE with type t := t
 end
@@ -48,6 +49,6 @@ module TVertexSet : Set.S with type elt = TVertex.t
 module TDependencies :
   Graph.Sig.P with type V.t = TVertex.t and type E.label = Pos.t
 
-val get_structs_or_enums_in_type : Ast.typ Marked.pos -> TVertexSet.t
-val build_type_graph : Ast.struct_ctx -> Ast.enum_ctx -> TDependencies.t
-val check_type_cycles : Ast.struct_ctx -> Ast.enum_ctx -> TVertex.t list
+val get_structs_or_enums_in_type : typ -> TVertexSet.t
+val build_type_graph : struct_ctx -> enum_ctx -> TDependencies.t
+val check_type_cycles : struct_ctx -> enum_ctx -> TVertex.t list
