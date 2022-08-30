@@ -17,13 +17,13 @@ declaration structure SocialHousie:
   data investmentReturn content boolean
 
 declaration scope GamingAuthorized:
-  context socialHousie content SocialHousie
-  context authorized condition
-  context purpose content boolean
-  context licence content boolean
-  context prizePrice content boolean
-  context maxJackpotValue content boolean
-  context returnInvestment content boolean
+  input socialHousie content SocialHousie
+  output authorized condition
+  internal purpose content boolean
+  internal licence content boolean
+  internal prizePrice content boolean
+  internal maxJackpotValue content boolean
+  internal returnInvestment content boolean
 ```
 
 ### 5 Housie or bingo

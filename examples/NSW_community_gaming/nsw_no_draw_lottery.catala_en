@@ -16,12 +16,12 @@ declaration structure NoDrawLottery:
   data maxTickets content integer
 
 declaration scope GamingAuthorized:
-  context noDrawLottery content NoDrawLottery
-  context authorized condition
-  context benefitingOrg content boolean
-  context minimumProceeds content boolean
-  context maxValueOfPrizes content boolean
-  context maxTicketsProduced content boolean
+  input noDrawLottery content NoDrawLottery
+  output authorized condition
+  internal benefitingOrg content boolean
+  internal minimumProceeds content boolean
+  internal maxValueOfPrizes content boolean
+  internal maxTicketsProduced content boolean
 ```
 
 A no-draw lottery is a permitted gaming activity for the purposes of section 10 of the

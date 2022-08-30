@@ -19,13 +19,13 @@ declaration structure ArtUnion:
   data holdsAuthority content boolean
 
 declaration scope GamingAuthorized:
-  context artUnion content ArtUnion
-  context authorized condition
-  context minimumProceeds content boolean
-  context benefitingOrg content boolean
-  context valueOfPrizes content boolean
-  context separatePrizeMaxValue content boolean
-  context authority content boolean
+  input artUnion content ArtUnion
+  internal minimumProceeds content boolean
+  internal benefitingOrg content boolean
+  internal valueOfPrizes content boolean
+  internal separatePrizeMaxValue content boolean
+  internal authority content boolean
+  output authorized condition
 ```
 
 Art union gaming activities

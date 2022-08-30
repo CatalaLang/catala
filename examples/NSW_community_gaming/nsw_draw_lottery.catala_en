@@ -15,11 +15,11 @@ declaration structure DrawLottery:
   data proceedsToBenefitingOrg content money
 
 declaration scope GamingAuthorized:
-  context drawLottery content DrawLottery
-  context authorized condition
-  context benefitingOrg content boolean
-  context minimumProceeds content boolean
-  context maxValueOfPrizes content boolean
+  input drawLottery content DrawLottery
+  output authorized condition
+  internal benefitingOrg content boolean
+  internal minimumProceeds content boolean
+  internal maxValueOfPrizes content boolean
 
 ```
 

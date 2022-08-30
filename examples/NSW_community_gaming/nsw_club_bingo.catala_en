@@ -9,12 +9,12 @@ declaration structure ClubBingo:
   data prizeContent content boolean
 
 declaration scope GamingAuthorized:
-  context clubBingo content ClubBingo
-  context authorized condition
-  context conductor content boolean
-  context prizeValueIsSmall content boolean
-  context bonusPrize content boolean
-  context contentPrize content boolean
+  input clubBingo content ClubBingo
+  output authorized condition
+  internal conductor content boolean
+  internal prizeValueIsSmall content boolean
+  internal bonusPrize content boolean
+  internal contentPrize content boolean
 ```
 (4) Club bingo Club bingo is a permitted gaming activity for the purposes of section 10 of the Act if the following requirements are complied with—
 

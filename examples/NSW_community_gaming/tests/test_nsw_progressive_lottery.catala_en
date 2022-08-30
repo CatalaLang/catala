@@ -7,7 +7,7 @@
 ## Test1
 ```catala
 declaration scope Test1:
-  context my_gaming scope GamingAuthorized
+  my_gaming scope GamingAuthorized
 
 scope Test1:
   definition
@@ -29,7 +29,7 @@ catala Interpret -s Test1
 ## Test2
 ```catala
 declaration scope Test2:
-  context my_gaming scope GamingAuthorized
+  my_gaming scope GamingAuthorized
 
   scope Test2:
     definition
@@ -51,7 +51,7 @@ catala Interpret -s Test2
 ## Test3
 ```catala
 declaration scope Test3:
-  context my_gaming scope GamingAuthorized
+  my_gaming scope GamingAuthorized
 
   scope Test3:
     definition
@@ -72,7 +72,7 @@ catala Interpret -s Test3
 ## Test4
 ```catala
 declaration scope Test4:
-  context my_gaming scope GamingAuthorized
+  my_gaming scope GamingAuthorized
 
   scope Test4:
     definition

@@ -9,12 +9,12 @@ declaration structure ProgressiveLottery:
   data holdsAuthority content boolean
 
 declaration scope GamingAuthorized:
-  context progressiveLottery content ProgressiveLottery
-  context authorized condition
-  context maxCashPrize content boolean
+  input progressiveLottery content ProgressiveLottery
+  output authorized condition
+  internal maxCashPrize content boolean
   #context maxValueOfPrizes content boolean
   #context authority content boolean
-  context amountOfPrizesGreaterThan30000 content boolean
+  internal amountOfPrizesGreaterThan30000 content boolean
 
 ```
   A progressive lottery is a permitted gaming activity for the purposes of section 10 of

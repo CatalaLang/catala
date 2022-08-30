@@ -1,17 +1,1 @@
-[ERROR] Syntax error at token "scope"
-Message: unexpected token
-Autosuggestion: did you mean "content", or maybe "condition"?
-
-Error token:
-  --> examples/NSW_community_gaming/tests/test_nsw_draw_lottery.catala_en
-   | 
-10 |   context my_gaming scope GamingAuthorized
-   |                     ^^^^^
-   + 
-
-Last good token:
-  --> examples/NSW_community_gaming/tests/test_nsw_draw_lottery.catala_en
-   | 
-10 |   context my_gaming scope GamingAuthorized
-   |           ^^^^^^^^^
-   + 
+[RESULT] Computation successful!
