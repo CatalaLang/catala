@@ -255,7 +255,7 @@ let op_type (op : A.operator Marked.pos) : typ Marked.pos UnionFind.elem =
   | A.Unop A.IntToRat -> arr it rt
   | A.Unop A.MoneyToRat -> arr mt rt
   | A.Unop A.RatToMoney -> arr rt mt
-  | Binop (Mult KDate) | Binop (Div KDate) | Unop (Minus KDate) ->
+  | Binop (Mult KDate) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
     Errors.raise_spanned_error pos "This operator is not available!"
 
 (** {1 Double-directed typing} *)
