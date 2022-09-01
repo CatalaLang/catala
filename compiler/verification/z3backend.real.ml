@@ -412,7 +412,7 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
         "[Z3 Encoding] Ill-formed VC, a function application does not have a \
          function type")
 
-let is_leap_year (n : int) = failwith "Unimplemented!"
+let is_leap_year = Runtime.is_leap_year
 (* Replace with [Dates_calc.Dates.is_leap_year] when existing *)
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
@@ -455,9 +455,9 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
       ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
     | Lte KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
       ->
-      let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
       let nb_days = if is_leap_year n then 365 else 364 in
+      let n = Runtime.integer_to_int n in
       (* We want that the year corresponding to e1 is smaller or equal to n. We
          encode this as the day corresponding to e1 is smaller or equal than the
          last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
@@ -469,9 +469,9 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
       ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
     | Gt KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
       ->
-      let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
       let nb_days = if is_leap_year n then 365 else 364 in
+      let n = Runtime.integer_to_int n in
       (* We want that the year corresponding to e1 is greater to n. We encode
          this as the day corresponding to e1 is greater than the last day of the
          year [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st +

@@ -23,7 +23,7 @@ depends: [
   "bindlib" {>= "5.0.1"}
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
-  "dates_calc" {>= "0.0.3"}
+  "dates_calc" {>= "0.0.4"}
   "dune" {>= "2.8"}
   "js_of_ocaml-ppx" {>= "4.0.0"}
   "menhir" {>= "20200211"}
