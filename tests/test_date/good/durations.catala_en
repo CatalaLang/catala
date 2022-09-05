@@ -7,8 +7,6 @@ declaration scope A:
   output z content boolean
   output z2 content boolean
   output z3 content duration
-  output d content decimal
-  output d2 content decimal
   output m content duration
   output m2 content duration
 
