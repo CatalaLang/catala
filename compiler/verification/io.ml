@@ -168,7 +168,7 @@ module MakeBackendIO (B : Backend) = struct
       Cli.debug_print "The translation to Z3 is the following:\n%s"
         (B.print_encoding encoding);
       match B.solve_vc_encoding backend_ctx encoding with
-      | ProvenTrue -> Cli.result_print "%s" (print_positive_result vc)
+      | ProvenTrue -> () (* Cli.result_print "%s" (print_positive_result vc) *)
       | ProvenFalse model ->
         Cli.error_print "%s" (print_negative_result vc backend_ctx model)
       | Unknown -> failwith "The solver failed at proving or disproving the VC")

@@ -4889,8 +4889,8 @@ de l'article R. 842-5 ;
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition seuil_minimal_ressources_ménage sous condition
     ((date_signature_prêt >=@ |1992-09-30| et
-      date_signature_prêt >=@ |1994-09-30|) ou
-    (date_signature_prêt >=@ |1994-09-30| et
+      date_signature_prêt <=@ |1994-09-30|) ou
+    (date_signature_prêt >@ |1994-09-30| et
       (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
       ou type_travaux_logement sous forme ObjectifDécenceLogement ou
       type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63)
@@ -4906,7 +4906,7 @@ l'article R. 842-5 ;
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition seuil_minimal_ressources_ménage sous condition
-    date_signature_prêt >=@ |1994-09-30| et
+    date_signature_prêt >@ |1994-09-30| et
     type_travaux_logement sous forme PrévuDansListeR321_15
   conséquence égal à
     montant_forfaitaire_d842_12
