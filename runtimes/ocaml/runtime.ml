@@ -126,7 +126,7 @@ let month_number_of_date (d : date) : integer =
   let _, m, _ = Dates_calc.Dates.date_to_ymd d in
   Z.of_int m
 
-let is_leap_year (y: integer) =
+let is_leap_year (y : integer) =
   let y = Z.to_int y in
   Dates_calc.Dates.is_leap_year y
 
