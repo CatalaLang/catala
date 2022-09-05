@@ -11,11 +11,6 @@
   (:standard \ bench api))
  (preprocess
   (pps js_of_ocaml-ppx))
- (js_of_ocaml
-  (flags :standard --disable=shortvar --opt 3))
- ; We need to disable shortvar because
- ; otherwise Webpack wrongly minifies
- ; the library and it gives bugs.
  (libraries
   catala.runtime_ocaml
   catala.runtime_jsoo

@@ -1,0 +1,111 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+> Include: ../nsw_social_housie.catala_en
+
+## Test1
+
+```catala
+declaration scope Test1:
+  context my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurposeOnly: true
+      -- totalValuePrizePerSession: $200000
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $0
+      -- totalValueExpenses: $0
+      -- totalInvestmentPerParticipant: $0
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized = false
+```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+
+## Test2
+```catala
+
+declaration scope Test2:
+  my_gaming scope GamingAuthorized
+
+scope Test2:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurposeOnly: true
+      -- totalValuePrizePerSession: $20
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $140
+      -- totalValueExpenses: $140
+      -- totalInvestmentPerParticipant: $0
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized
+```
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
+
+## Test3
+
+```catala
+declaration scope Test3:
+  my_gaming scope GamingAuthorized
+
+scope Test3:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurposeOnly: true
+      -- totalValuePrizePerSession: $2
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $345
+      -- totalValueExpenses: $0
+      -- totalInvestmentPerParticipant: $0
+      -- investmentReturn: true
+  }
+  assertion not my_gaming.authorized
+```
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
+
+## Test4
+
+```catala
+
+declaration scope Test4:
+  my_gaming scope GamingAuthorized
+
+scope Test4:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurposeOnly: true
+      -- totalValuePrizePerSession: $40
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $160
+      -- totalValueExpenses: $240
+      -- totalInvestmentPerParticipant: $60
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized
+```
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
+```
