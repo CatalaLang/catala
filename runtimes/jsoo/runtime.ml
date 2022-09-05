@@ -180,6 +180,6 @@ let execute_or_throw_error f =
       "No rule applies in the given context to give a value to the variable" pos
   | R_ocaml.ConflictError pos ->
     throw_error
-      "A conflict happend between two rules giving a value to the variable" pos
+      "A conflict happened between two rules giving a value to the variable" pos
   | R_ocaml.AssertionFailed pos ->
     throw_error "A failure happened in the assertion" pos

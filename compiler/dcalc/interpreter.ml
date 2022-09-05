@@ -384,14 +384,14 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
       if e_name <> e_name' then
         Errors.raise_multispanned_error
           [None, Expr.pos e; None, Expr.pos e1]
-          "Error during match: two different enums found (should not happend \
-           if the term was well-typed)";
+          "Error during match: two different enums found (should not happen if \
+           the term was well-typed)";
       let es_n =
         match List.nth_opt es n with
         | Some es_n -> es_n
         | None ->
           Errors.raise_spanned_error (Expr.pos e)
-            "sum type index error (should not happend if the term was \
+            "sum type index error (should not happen if the term was \
              well-typed)"
       in
       let new_e = Marked.same_mark_as (EApp (es_n, [e1])) e in
@@ -400,7 +400,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
     | _ ->
       Errors.raise_spanned_error (Expr.pos e1)
         "Expected a term having a sum type as an argument to a match (should \
-         not happend if the term was well-typed")
+         not happen if the term was well-typed")
   | EDefault (exceptions, just, cons) -> (
     let exceptions = List.map (evaluate_expr ctx) exceptions in
     let empty_count = List.length (List.filter is_empty_error exceptions) in

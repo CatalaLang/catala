@@ -4331,7 +4331,7 @@ b) 273,65 euros lorsqu'il s'agit d'un couple.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2021-10-01|:
+  sous condition date_courante >=@ |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         AutresPersonnes

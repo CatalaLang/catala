@@ -596,7 +596,8 @@ Majoration par personne à charge                         12,29
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >=@ |2021-10-01| et
     date_courante <@ |2022-07-01|:
-  exception oct_2021_juin_2022 définition montant_forfaitaire_charges sous condition
+  exception oct_2021_juin_2022
+  définition montant_forfaitaire_charges sous condition
     copropriété
   conséquence égal à
     (selon situation_familiale_calcul_apl sous forme

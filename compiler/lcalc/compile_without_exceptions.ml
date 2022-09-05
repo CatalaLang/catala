@@ -173,7 +173,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
          created a variable %a to replace it" Print.var v Print.var v'; *)
       Expr.make_var (v', pos), Var.Map.singleton v' e
-    else (find ~info:"should never happend" v ctx).naked_expr, Var.Map.empty
+    else (find ~info:"should never happen" v ctx).naked_expr, Var.Map.empty
   | EApp ((EVar v, p), [(ELit LUnit, _)]) ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
@@ -307,7 +307,7 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
         match hoist with
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)
-        | EVar v -> (find ~info:"should never happend" v ctx).naked_expr
+        | EVar v -> (find ~info:"should never happen" v ctx).naked_expr
         | EDefault (excep, just, cons) ->
           let excep' = List.map (translate_expr ctx) excep in
           let just' = translate_expr ctx just in
