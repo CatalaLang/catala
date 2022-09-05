@@ -28,4 +28,5 @@ ocamlPackages.overrideScope' (self: super: {
   clerk = self.callPackage ./clerk.nix { };
   ppx_yojson_conv = self.callPackage ./ppx_yojson_conv.nix { };
   ubase = self.callPackage ./ubase.nix { };
+  dates_calc = self.callPackage ./dates_calc.nix { };
 })
