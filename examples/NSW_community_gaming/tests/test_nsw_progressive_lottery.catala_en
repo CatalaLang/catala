@@ -1,0 +1,91 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+> Include: ../nsw_progressive_lottery.catala_en
+
+## Test1
+```catala
+declaration scope Test1:
+  my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+      -- maxAmountPayable: $6000
+      -- totalValueOfThePrizes: $31000
+      -- holdsAuthority: true
+    }
+  assertion my_gaming.authorized = true
+```
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+
+## Test2
+```catala
+declaration scope Test2:
+  my_gaming scope GamingAuthorized
+
+  scope Test2:
+    definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+        -- maxAmountPayable: $6000
+        -- totalValueOfThePrizes: $5000
+        -- holdsAuthority: false
+      }
+  assertion my_gaming.authorized = true
+```
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
+
+## Test3
+```catala
+declaration scope Test3:
+  my_gaming scope GamingAuthorized
+
+  scope Test3:
+    definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+        -- maxAmountPayable: $9000
+        -- totalValueOfThePrizes: $10000
+        -- holdsAuthority: false
+      }
+  assertion my_gaming.authorized = false
+```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
+## Test4
+```catala
+declaration scope Test4:
+  my_gaming scope GamingAuthorized
+
+  scope Test4:
+    definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+        -- maxAmountPayable: $0
+        -- totalValueOfThePrizes: $31000
+        -- holdsAuthority: false
+      }
+  assertion my_gaming.authorized = false
+```
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
+```
+

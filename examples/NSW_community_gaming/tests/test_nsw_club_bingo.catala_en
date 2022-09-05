@@ -1,0 +1,129 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+> Include: ../nsw_club_bingo.catala_en
+
+## Test1
+
+```catala
+declaration scope Test1:
+  my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: true
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $5
+      -- bonusPrizeOffered: true
+      -- prizeContent: true
+    }
+  assertion my_gaming.authorized = false
+```
+
+
+```catala-test {id="Test1.Interpret"}
+catala Interpret -s Test1
+```
+
+## Test2
+
+```catala
+declaration scope Test2:
+  my_gaming scope GamingAuthorized
+
+scope Test2:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: true
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $5
+      -- bonusPrizeOffered: true
+      -- prizeContent: false
+    }
+  assertion my_gaming.authorized = true
+```
+
+
+```catala-test {id="Test2.Interpret"}
+catala Interpret -s Test2
+```
+
+## Test3
+
+```catala
+declaration scope Test3:
+  my_gaming scope GamingAuthorized
+
+scope Test3:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: false
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $5
+      -- bonusPrizeOffered: true
+      -- prizeContent: false
+    }
+  assertion my_gaming.authorized = false
+```
+
+```catala-test {id="Test3.Interpret"}
+catala Interpret -s Test3
+```
+
+## Test4
+
+```catala
+declaration scope Test4:
+  my_gaming scope GamingAuthorized
+
+scope Test4:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: false
+      -- totalValuePrizePerGame: $80
+      -- bonusPrizeMaxValue: $10
+      -- bonusPrizeOffered: true
+      -- prizeContent: true
+    }
+  assertion my_gaming.authorized = false
+```
+
+
+```catala-test {id="Test4.Interpret"}
+catala Interpret -s Test4
+```
+
+## Test5
+
+```catala
+declaration scope Test5:
+  my_gaming scope GamingAuthorized
+
+scope Test5:
+  definition
+    my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: true
+      -- totalValuePrizePerGame: $60
+      -- bonusPrizeMaxValue: $100
+      -- bonusPrizeOffered: true
+      -- prizeContent: false
+    }
+  assertion my_gaming.authorized = false
+```
+
+
+```catala-test {id="Test5.Interpret"}
+catala Interpret -s Test5
+```

@@ -1,0 +1,40 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+```catala-metadata
+declaration structure ProgressiveLottery:
+  data maxAmountPayable content money
+  data totalValueOfThePrizes content money
+  data holdsAuthority content boolean
+
+declaration scope GamingAuthorized:
+  input progressiveLottery content ProgressiveLottery
+  output authorized condition
+  internal maxCashPrize content boolean
+  #context maxValueOfPrizes content boolean
+  #context authority content boolean
+  internal amountOfPrizesGreaterThan30000 content boolean
+
+```
+  A progressive lottery is a permitted gaming activity for the purposes of section 10 of
+  the Act if the following requirements are complied with—
+  (a) the maximum amount of money payable as a prize does not exceed $7,000,
+```catala
+scope GamingAuthorized:
+  definition maxCashPrize equals (progressiveLottery.maxAmountPayable <=$ $7000)
+```
+  (b) if the total value of all the prizes exceeds $30,000, the person conducting the
+  activity holds an authority to do so that is in force and the activity is conducted
+  in accordance with the authority.
+```catala
+scope GamingAuthorized:
+  definition amountOfPrizesGreaterThan30000 equals
+    (progressiveLottery.totalValueOfThePrizes <$ $30000
+      or progressiveLottery.holdsAuthority)
+
+scope GamingAuthorized:
+  rule authorized
+    under condition maxCashPrize and amountOfPrizesGreaterThan30000
+    consequence fulfilled
+```
