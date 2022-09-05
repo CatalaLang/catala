@@ -7,6 +7,7 @@
 , calendar
 , cmdliner_1_1_0
 , cppo
+, dates_calc
 , fetchFromGitHub
 , js_of_ocaml
 , js_of_ocaml-ppx
@@ -43,6 +44,7 @@ buildDunePackage rec {
     bindlib
     cmdliner_1_1_0
     cppo
+    dates_calc
     js_of_ocaml
     js_of_ocaml-ppx
     menhir
