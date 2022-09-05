@@ -13,10 +13,19 @@ ocamlPackages.overrideScope' (self: super: {
   }).overrideAttrs (_: {
     doCheck = false;
   });
+  # Use a more recent version of `re` than the one packaged in nixpkgs
+  re = super.re.overrideAttrs (o: rec {
+    version = "1.10.4";
+    src = fetchurl {
+      url = "https://github.com/ocaml/ocaml-${o.pname}/releases/download/${version}/${o.pname}-${version}.tbz";
+      sha256 = "sha256-g+s+QwCqmx3HggdJAQ9DYuqDUkdCEwUk14wgzpnKdHw=";
+    };
+  });
   catala = self.callPackage ./catala.nix { };
   bindlib = self.callPackage ./bindlib.nix { };
   unionfind = self.callPackage ./unionfind.nix { };
   ninja_utils = self.callPackage ./ninja_utils.nix { };
   clerk = self.callPackage ./clerk.nix { };
   ppx_yojson_conv = self.callPackage ./ppx_yojson_conv.nix { };
+  ubase = self.callPackage ./ubase.nix { };
 })
