@@ -7,8 +7,6 @@ declaration scope A:
   output z content boolean
   output z2 content boolean
   output z3 content duration
-  output d content decimal
-  output d2 content decimal
   output m content duration
   output m2 content duration
 
@@ -19,9 +17,6 @@ scope A:
   definition z equals y +@ (x -@ y) = x
   definition z3 equals x -@ y
   definition z2 equals z3 = 5937 day
-
-  definition d equals z3 /^ z3
-  definition d2 equals z3 /^ 2 day
 
   definition m equals z3 *^ 2
 

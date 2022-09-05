@@ -228,7 +228,6 @@ let op_type (op : A.operator Marked.pos) : unionfind_typ =
   | A.Binop (A.Add KDuration | A.Sub KDuration) -> arr dut (arr dut dut)
   | A.Binop (A.Sub KDate) -> arr dat (arr dat dut)
   | A.Binop (A.Add KDate) -> arr dat (arr dut dat)
-  | A.Binop (A.Div KDuration) -> arr dut (arr dut rt)
   | A.Binop (A.Mult KDuration) -> arr dut (arr it dut)
   | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
   | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)
@@ -265,7 +264,7 @@ let op_type (op : A.operator Marked.pos) : unionfind_typ =
   | A.Unop A.IntToRat -> arr it rt
   | A.Unop A.MoneyToRat -> arr mt rt
   | A.Unop A.RatToMoney -> arr rt mt
-  | Binop (Mult KDate) | Binop (Div KDate) | Unop (Minus KDate) ->
+  | Binop (Mult KDate) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
     Errors.raise_spanned_error pos "This operator is not available!"
 
 (** {1 Double-directed typing} *)

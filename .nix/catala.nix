@@ -41,7 +41,6 @@ buildDunePackage rec {
     ansiterminal
     benchmark
     bindlib
-    calendar
     cmdliner_1_1_0
     cppo
     js_of_ocaml

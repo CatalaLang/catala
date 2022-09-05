@@ -244,6 +244,7 @@ val integer_exponentiation : integer -> int -> integer
 
 val day_of_month_of_date : date -> integer
 val month_number_of_date : date -> integer
+val is_leap_year : integer -> bool
 val year_of_date : date -> integer
 val date_to_string : date -> string
 
@@ -346,11 +347,6 @@ val ( <@ ) : date -> date -> bool
 
 val ( +^ ) : duration -> duration -> duration
 val ( -^ ) : duration -> duration -> duration
-
-val ( /^ ) : duration -> duration -> decimal
-(** @raise Division_by_zero
-    @raise IndivisableDurations *)
-
 val ( *^ ) : duration -> integer -> duration
 val ( ~-^ ) : duration -> duration
 val ( =^ ) : duration -> duration -> bool

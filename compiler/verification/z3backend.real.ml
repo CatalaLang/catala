@@ -20,6 +20,7 @@ open Dcalc
 open Ast
 open Z3
 module StringMap : Map.S with type key = String.t = Map.Make (String)
+module Runtime = Runtime_ocaml.Runtime
 
 type context = {
   ctx_z3 : Z3.context;
@@ -99,7 +100,7 @@ let add_z3constraint (e : Expr.expr) (ctx : context) : context =
 
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900
     **)
-let base_day = CalendarLib.Date.make 1900 1 1
+let base_day = Runtime.date_of_numbers 1900 1 1
 
 (** [unique_name] returns the full, unique name corresponding to variable [v],
     as given by Bindlib **)
@@ -111,11 +112,10 @@ let unique_name (v : 'e Var.t) : string =
 let date_to_int (d : Runtime.date) : int =
   (* Alternatively, could expose this from Runtime as a (noop) coercion, but
      would allow to break abstraction more easily elsewhere *)
-  let date : CalendarLib.Date.t =
-    CalendarLib.Printer.Date.from_string (Runtime.date_to_string d)
-  in
-  let period = CalendarLib.Date.sub date base_day in
-  CalendarLib.Date.Period.nb_days period
+  let period = Runtime.( -@ ) d base_day in
+  let y, m, d = Runtime.duration_to_years_months_days period in
+  assert (y = 0 && m = 0);
+  d
 
 (** [date_of_year] translates a [year], represented as an integer into an OCaml
     date corresponding to Jan 1st of the same year *)
@@ -124,8 +124,8 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
 (** Returns the date (as a string) corresponding to nb days after the base day,
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
-  CalendarLib.Printer.Date.to_string
-    (CalendarLib.Date.add base_day (CalendarLib.Date.Period.day nb))
+  Runtime.date_to_string
+    (Runtime.( +@ ) base_day (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
@@ -412,6 +412,9 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
         "[Z3 Encoding] Ill-formed VC, a function application does not have a \
          function type")
 
+let is_leap_year = Runtime.is_leap_year
+(* Replace with [Dates_calc.Dates.is_leap_year] when existing *)
+
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
 let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
@@ -452,9 +455,9 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
       ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
     | Lte KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
       ->
-      let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if CalendarLib.Date.is_leap_year n then 365 else 364 in
+      let nb_days = if is_leap_year n then 365 else 364 in
+      let n = Runtime.integer_to_int n in
       (* We want that the year corresponding to e1 is smaller or equal to n. We
          encode this as the day corresponding to e1 is smaller or equal than the
          last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
@@ -466,9 +469,9 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
       ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
     | Gt KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
       ->
-      let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if CalendarLib.Date.is_leap_year n then 365 else 364 in
+      let nb_days = if is_leap_year n then 365 else 364 in
+      let n = Runtime.integer_to_int n in
       (* We want that the year corresponding to e1 is greater to n. We encode
          this as the day corresponding to e1 is greater than the last day of the
          year [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st +

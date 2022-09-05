@@ -30,22 +30,9 @@ scope Money:
   definition i equals $10.0 /$ $0.0
 ```
 
-### with duration
-
-```catala
-declaration scope Duration:
-  context i content decimal
-
-scope Duration:
-  definition i equals 10 day /^ 0 day
-```
 
 ```catala-test {id="Dec.Interpret"}
 catala Interpret -s Dec
-```
-
-```catala-test {id="Duration.Interpret"}
-catala Interpret -s Duration
 ```
 
 ```catala-test {id="Int.Interpret"}

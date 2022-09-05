@@ -17,6 +17,7 @@ ENV OPAMVAR_catalaz3mode=1
 
 # Get a switch with all the dependencies installed
 RUN opam --cli=2.1 switch create catala ocaml-system && \
+    opam --cli=2.1 update && \
     opam --cli=2.1 pin . --no-action && \
     opam --cli=2.1 install . --with-test --with-doc --depext-only && \
     opam --cli=2.1 install . --with-test --with-doc --deps-only && \

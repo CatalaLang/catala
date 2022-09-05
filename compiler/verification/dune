@@ -6,7 +6,7 @@
   utils
   dcalc
   catala.runtime_ocaml
-  calendar
+  dates_calc
   (select
    z3backend.ml
    from

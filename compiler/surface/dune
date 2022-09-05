@@ -10,7 +10,7 @@
   scopelang
   zarith
   zarith_stubs_js
-  calendar)
+  dates_calc)
  (preprocess
   (pps sedlex.ppx visitors.ppx)))
 
