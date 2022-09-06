@@ -25,7 +25,8 @@ let check_article_expiration
     (access_token : Api.access_token) : new_article_version option =
   match law_heading.Surface.Ast.law_heading_id with
   | None -> None
-  | Some article_id ->
+  | Some heading_id ->
+    let article_id = Api.parse_id heading_id in
     let article = Api.retrieve_article access_token article_id in
     let api_article_expiration_date = Api.get_article_expiration_date article in
     let msg =
@@ -66,8 +67,8 @@ let check_article_expiration
 type law_article_text = {
   article_title : string * Utils.Pos.t;
   text : string;
-  new_version : string option;
-  current_version : string option;
+  new_version : Api.article_id option;
+  current_version : Api.article_id option;
 }
 (** Representation of the text of an article of law *)
 
@@ -80,7 +81,7 @@ module Diff = Diff.Make (String)
 let compare_article_to_version
     (access_token : Api.access_token)
     (text : string)
-    (version : string) : Diff.t option =
+    (version : Api.article_id) : Diff.t option =
   let new_article = Api.retrieve_article access_token version in
   let new_article_text = Api.get_article_text new_article in
   let text_to_list text =
@@ -219,9 +220,9 @@ let rec traverse_source_code
         text = children_text;
         new_version =
           (match new_version with
-          | Some (Available version) -> Some version
+          | Some (Available version) -> Some (Api.parse_id version)
           | _ -> None);
-        current_version = law_heading.law_heading_id;
+        current_version = Option.map Api.parse_id law_heading.law_heading_id;
       }
     in
     if diff then compare_to_versions law_article_text access_token;

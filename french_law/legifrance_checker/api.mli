@@ -31,10 +31,16 @@ val get_token : string -> string -> access_token
     API *)
 
 type article
+type article_id
 
-val retrieve_article : access_token -> string -> article
+val parse_id : string -> article_id
+(** [parse_id id] parses the string representing the LégiFrance object to be
+    fetched from the API, checks its validity (for instance
+    ["LEGIARTI000006307920"]) and returns an [object_id]*)
+
+val retrieve_article : access_token -> article_id -> article
 (** [retrieve_article token article_id] returns the article from the LegiFrance
-    API. [article_id] should be of the form ["LEGIARTI000006307920"] *)
+    API.*)
 
 type law_excerpt
 

@@ -98,31 +98,72 @@ let make_request
 type article = Yojson.Basic.t
 
 let run_request (request : (string * string t) t) : Yojson.Basic.t =
-  let resp, body = Lwt_main.run request in
-  let body = Lwt_main.run body in
-  if resp = "200 OK" then (
-    try body |> Yojson.Basic.from_string
-    with Yojson.Basic.Util.Type_error (msg, obj) ->
+  let try_once () =
+    let resp, body = Lwt_main.run request in
+    let body = Lwt_main.run body in
+    resp, body
+  in
+  let handle_once resp body =
+    if resp = "200 OK" then (
+      try body |> Yojson.Basic.from_string
+      with Yojson.Basic.Util.Type_error (msg, obj) ->
+        Utils.Cli.error_print
+          "Error while parsing JSON answer from API: %s\n\
+           Specific JSON:\n\
+           %s\n\
+           Full answer:\n\
+           %s"
+          msg
+          (Yojson.Basic.to_string obj)
+          body;
+        exit (-1))
+    else raise (Failure "")
+  in
+  let resp, body = try_once () in
+  try handle_once resp body
+  with Failure _ -> (
+    Utils.Cli.debug_format "Retrying request...";
+    let resp, body = try_once () in
+    try handle_once resp body
+    with Failure _ ->
       Utils.Cli.error_print
-        "Error while parsing JSON answer from API: %s\n\
-         Specific JSON:\n\
-         %s\n\
-         Full answer:\n\
-         %s"
-        msg
-        (Yojson.Basic.to_string obj)
+        "The API request went wrong ; status is %s and the body is\n%s" resp
         body;
       exit (-1))
-  else begin
-    Utils.Cli.error_print
-      "The API request went wrong ; status is %s and the body is\n%s" resp body;
-    exit (-1)
-  end
 
-let retrieve_article (access_token : string) (article_id : string) :
-    Yojson.Basic.t =
+type article_type = LEGIARTI | CETATEXT | JORFTEXT
+type article_id = { id : string; typ : article_type }
+
+let parse_id (id : string) : article_id =
+  let legi_rex =
+    Re.(compile @@ whole_string @@ seq [str "LEGIARTI"; repn digit 12 None])
+  in
+  let ceta_tex =
+    Re.(compile @@ whole_string @@ seq [str "CETATEXT"; repn digit 12 None])
+  in
+  let jorf_rex =
+    Re.(compile @@ whole_string @@ seq [str "JORFTEXT"; repn digit 12 None])
+  in
+  let typ =
+    if Re.execp legi_rex id then LEGIARTI
+    else if Re.execp ceta_tex id then CETATEXT
+    else if Re.execp jorf_rex id then JORFTEXT
+    else
+      Utils.Errors.raise_error
+        "LégiFrance ID \"%s\" does not correspond to an ID format recognized \
+         by the LégiFrance API"
+        id
+  in
+  { id; typ }
+
+let retrieve_article (access_token : string) (obj : article_id) : Yojson.Basic.t
+    =
   run_request
-    (make_request access_token "consult/getArticle" ["id", article_id])
+    (make_request access_token
+       (match obj.typ with
+       | CETATEXT -> "consult/juri"
+       | _ -> "consult/getArticle")
+       ["id", obj.id])
 
 let raise_article_parsing_error
     (json : Yojson.Basic.t)
