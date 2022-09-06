@@ -1,6 +1,3 @@
-[RESULT] [A.x] This variable never returns an empty error
-[RESULT] [A.x] No two exceptions to ever overlap for this variable
-[RESULT] [A.y] This variable never returns an empty error
 [ERROR] [A.y] At least two exceptions overlap for this variable:
  --> tests/test_proof/bad/no_vars-conflict.catala_en
   | 

@@ -1,6 +1,1 @@
-[RESULT] [A.x] This variable never returns an empty error
-[RESULT] [A.x] No two exceptions to ever overlap for this variable
-[RESULT] [A.y] This variable never returns an empty error
-[RESULT] [A.y] No two exceptions to ever overlap for this variable
-[RESULT] [A.z] This variable never returns an empty error
-[RESULT] [A.z] No two exceptions to ever overlap for this variable
+[RESULT] No errors found during the proof mode run.

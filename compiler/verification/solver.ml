@@ -38,4 +38,12 @@ let solve_vc
           with Failure msg -> Fail msg ))
       vcs
   in
-  List.iter (Z3backend.Io.encode_and_check_vc decl_ctx) z3_vcs
+  let all_proven =
+    List.fold_left
+      (fun all_proven vc ->
+        if Z3backend.Io.encode_and_check_vc decl_ctx vc then all_proven
+        else false)
+      true z3_vcs
+  in
+  if all_proven then
+    Utils.Cli.result_format "No errors found during the proof mode run."

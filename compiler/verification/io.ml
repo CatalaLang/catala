@@ -59,8 +59,6 @@ module type BackendIO = sig
     | Success of vc_encoding * backend_context
     | Fail of string
 
-  val print_positive_result : Conditions.verification_condition -> string
-
   val print_negative_result :
     Conditions.verification_condition ->
     backend_context ->
@@ -68,7 +66,7 @@ module type BackendIO = sig
     string
 
   val encode_and_check_vc :
-    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
+    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> bool
 end
 
 module MakeBackendIO (B : Backend) = struct
@@ -87,19 +85,6 @@ module MakeBackendIO (B : Backend) = struct
   type vc_encoding_result =
     | Success of B.vc_encoding * B.backend_context
     | Fail of string
-
-  let print_positive_result (vc : Conditions.verification_condition) : string =
-    match vc.Conditions.vc_kind with
-    | Conditions.NoEmptyError ->
-      Format.asprintf "%s This variable never returns an empty error"
-        (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Marked.unmark vc.vc_variable)))
-    | Conditions.NoOverlappingExceptions ->
-      Format.asprintf "%s No two exceptions to ever overlap for this variable"
-        (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Marked.unmark vc.vc_variable)))
 
   let print_negative_result
       (vc : Conditions.verification_condition)
@@ -146,11 +131,9 @@ module MakeBackendIO (B : Backend) = struct
     | None -> ""
     | Some counterexample -> "\n" ^ counterexample
 
-  (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the
-      expression [vc] **)
   let encode_and_check_vc
       (decl_ctx : decl_ctx)
-      (vc : Conditions.verification_condition * vc_encoding_result) : unit =
+      (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
     Cli.debug_print "For this variable:\n%s\n"
@@ -168,14 +151,16 @@ module MakeBackendIO (B : Backend) = struct
       Cli.debug_print "The translation to Z3 is the following:\n%s"
         (B.print_encoding encoding);
       match B.solve_vc_encoding backend_ctx encoding with
-      | ProvenTrue -> () (* Cli.result_print "%s" (print_positive_result vc) *)
+      | ProvenTrue -> true
       | ProvenFalse model ->
-        Cli.error_print "%s" (print_negative_result vc backend_ctx model)
+        Cli.error_print "%s" (print_negative_result vc backend_ctx model);
+        false
       | Unknown -> failwith "The solver failed at proving or disproving the VC")
     | Fail msg ->
       Cli.error_print "%s The translation to Z3 failed:\n%s"
         (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Marked.unmark vc.vc_variable)))
-        msg
+        msg;
+      false
 end

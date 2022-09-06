@@ -1,5 +1,3 @@
-[RESULT] [A.x1] This variable never returns an empty error
-[RESULT] [A.x1] No two exceptions to ever overlap for this variable
 [ERROR] [A.x10] This variable might return an empty error:
   --> tests/test_proof/bad/sat_solving.catala_en
    | 
@@ -7,20 +5,3 @@
    |           ^^^
    + Test
 Counterexample generation is disabled so none was generated.
-[RESULT] [A.x10] No two exceptions to ever overlap for this variable
-[RESULT] [A.x2] This variable never returns an empty error
-[RESULT] [A.x2] No two exceptions to ever overlap for this variable
-[RESULT] [A.x3] This variable never returns an empty error
-[RESULT] [A.x3] No two exceptions to ever overlap for this variable
-[RESULT] [A.x4] This variable never returns an empty error
-[RESULT] [A.x4] No two exceptions to ever overlap for this variable
-[RESULT] [A.x5] This variable never returns an empty error
-[RESULT] [A.x5] No two exceptions to ever overlap for this variable
-[RESULT] [A.x6] This variable never returns an empty error
-[RESULT] [A.x6] No two exceptions to ever overlap for this variable
-[RESULT] [A.x7] This variable never returns an empty error
-[RESULT] [A.x7] No two exceptions to ever overlap for this variable
-[RESULT] [A.x8] This variable never returns an empty error
-[RESULT] [A.x8] No two exceptions to ever overlap for this variable
-[RESULT] [A.x9] This variable never returns an empty error
-[RESULT] [A.x9] No two exceptions to ever overlap for this variable
