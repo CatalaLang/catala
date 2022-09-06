@@ -27,24 +27,43 @@ let file =
           "Name of the Catala master file you want to get LegiFrance \
            information on")
 
+let expiration =
+  Arg.(
+    value
+    & flag
+    & info
+        ["e"; "--expiration_check"]
+        ~doc:
+          "Checks the expiration dates of articles with a LégiFrance ID tag to \
+           see if they have expired as of now.")
+
+let diff =
+  Arg.(
+    value
+    & flag
+    & info ["D"; "--diff_check"]
+        ~doc:
+          "Checks the text of the articles with a LégiFrance ID tag to see if \
+           there are differences with the official record.")
+
 let client_id =
   Arg.(
     required
     & pos 1 (some string) None
-    & info [] ~docv:"CLIENT_ID" ~doc:"LegiFrance Oauth cliend id")
+    & info [] ~docv:"CLIENT_ID" ~doc:"LegiFrance Oauth client id")
 
 let client_secret =
   Arg.(
     required
     & pos 2 (some string) None
-    & info [] ~docv:"CLIENT_SECRET" ~doc:"LegiFrance Oauth cliend secret")
+    & info [] ~docv:"CLIENT_SECRET" ~doc:"LegiFrance Oauth client secret")
 
 let debug =
   Arg.(value & flag & info ["d"; "debug"] ~doc:"Prints debug information")
 
 (** Arguments : [file debug cliend_id client_secret] *)
 let catala_legifrance_t f =
-  Term.(const f $ file $ debug $ client_id $ client_secret)
+  Term.(const f $ file $ debug $ diff $ expiration $ client_id $ client_secret)
 
 let info =
   let doc = "LegiFrance interaction tool for Catala" in

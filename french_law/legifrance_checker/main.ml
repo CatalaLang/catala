@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Main logic for interacting with LegiFrance when traversing Catala source
+(** Main logic for interacting with LégiFrance when traversing Catala source
     files *)
 
 type new_article_version = NotAvailable | Available of string
@@ -29,7 +29,7 @@ let check_article_expiration
     let article = Api.retrieve_article access_token article_id in
     let api_article_expiration_date = Api.get_article_expiration_date article in
     let msg =
-      Printf.sprintf "%s %s expires on %s according to LegiFrance%s"
+      Printf.sprintf "%s %s expires on %s according to LégiFrance%s"
         (Utils.Marked.unmark law_heading.Surface.Ast.law_heading_name)
         (Utils.Pos.to_string
            (Utils.Marked.get_mark law_heading.Surface.Ast.law_heading_name))
@@ -75,7 +75,7 @@ module Diff = Diff.Make (String)
 (** Diff algorithm for a list of words *)
 
 (** [compare_article_to_version token text version] retrieves the text of the
-    article whose LegiFrance ID is [version] and produces a diff with the
+    article whose LégiFrance ID is [version] and produces a diff with the
     expected [text]*)
 let compare_article_to_version
     (access_token : Api.access_token)
@@ -97,7 +97,7 @@ let compare_article_to_version
   if not all_equal then Some diff else None
 
 (** Compares [article_text_acc.current_version] and
-    [article_text_acc.new_version] by accessing LegiFrance and display
+    [article_text_acc.new_version] by accessing LégiFrance and display
     differences if any *)
 let compare_to_versions
     (law_article_text : law_article_text)
@@ -129,7 +129,7 @@ let compare_to_versions
         print_diff
           (Printf.sprintf
              "There is a diff between the source code version of %s %s and the \
-              text stored on LegiFrance:"
+              text stored on LégiFrance:"
              (fst law_article_text.article_title)
              (Utils.Pos.to_string (snd law_article_text.article_title)))
           diff)
@@ -152,7 +152,7 @@ let compare_to_versions
   | None -> ()
 
 (** Fill an [@@Include ...@@] tag inside the Catala source file with the
-    legislative contents retrieved from LegiFrance *)
+    legislative contents retrieved from LégiFrance *)
 let include_legislative_text
     (id : string * Utils.Pos.t)
     (access_token : Api.access_token) : string =
@@ -178,7 +178,7 @@ let include_legislative_text
   let ic = open_in file in
   let new_file = file ^ ".new" in
   Utils.Cli.warning_print
-    "LegiFrance inclusion detected, writing new contents to %s" new_file;
+    "LégiFrance inclusion detected, writing new contents to %s" new_file;
   let oc = open_out new_file in
   (* Pos.t lines start at 1 *)
   let counter = ref 1 in
@@ -195,6 +195,8 @@ let include_legislative_text
   text_to_return
 
 let rec traverse_source_code
+    ~(diff : bool)
+    ~(expiration : bool)
     (access_token : Api.access_token)
     (item : Surface.Ast.law_structure) : string =
   match item with
@@ -202,10 +204,15 @@ let rec traverse_source_code
     let children_text =
       List.fold_left
         (fun acc child ->
-          acc ^ "\n\n" ^ traverse_source_code access_token child)
+          acc
+          ^ "\n\n"
+          ^ traverse_source_code ~diff ~expiration access_token child)
         "" children
     in
-    let new_version = check_article_expiration law_heading access_token in
+    let new_version =
+      if expiration then check_article_expiration law_heading access_token
+      else None
+    in
     let law_article_text =
       {
         article_title = law_heading.law_heading_name;
@@ -217,7 +224,7 @@ let rec traverse_source_code
         current_version = law_heading.law_heading_id;
       }
     in
-    compare_to_versions law_article_text access_token;
+    if diff then compare_to_versions law_article_text access_token;
     children_text
   | Surface.Ast.LawText art_text -> art_text
   | Surface.Ast.LawInclude (Surface.Ast.LegislativeText id) ->
@@ -226,23 +233,26 @@ let rec traverse_source_code
 
 (** Parses the Catala master source file and checks each article:
 
-    - if the article has a LegiFrance ID, checks the text of the article in the
-      source code vs the text from LegiFrance;
+    - if the article has a LégiFrance ID, checks the text of the article in the
+      source code vs the text from LégiFrance;
     - if the article has an expiration date, display the difference between the
-      current version of the article and the next one on LegiFrance;
+      current version of the article and the next one on LégiFrance;
     - fill each [@@Include ...@@] tag with the contents retrieved from
-      LegiFrance *)
+      LégiFrance *)
 let driver
     (file : string)
     (debug : bool)
+    (diff : bool)
+    (expiration : bool)
     (client_id : string)
     (client_secret : string) =
   if debug then Utils.Cli.debug_flag := true;
   let access_token = Api.get_token client_id client_secret in
-  (* LegiFrance is only supported for French texts *)
+  (* LégiFrance is only supported for French texts *)
   let program = Surface.Parser_driver.parse_top_level_file (FileName file) Fr in
   List.iter
-    (fun item -> ignore (traverse_source_code access_token item))
+    (fun item ->
+      ignore (traverse_source_code ~diff ~expiration access_token item))
     program.program_items;
   exit 0
 
