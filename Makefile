@@ -43,13 +43,16 @@ dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js
 
 COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
+LEGIFRANCE_CHECKER_DIR=french_law/legifrance_checker
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
 	dune build \
 		$(COMPILER_DIR)/catala.exe \
 		$(COMPILER_DIR)/plugins/ \
-		$(BUILD_SYSTEM_DIR)/clerk.exe
+		$(BUILD_SYSTEM_DIR)/clerk.exe \
+		$(LEGIFRANCE_CHECKER_DIR)/main.exe
+
 
 #> build					: Builds the Catala compiler
 build: parser-messages format build_dev

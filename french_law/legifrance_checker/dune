@@ -1,6 +1,17 @@
-(library
- (public_name legifrance_catala)
- (libraries catala cmdliner cohttp lwt cohttp-lwt-unix yojson re ANSITerminal))
+(executable
+ (public_name legifrance_checker)
+ (package french_law)
+ (name main)
+ (libraries
+  catala.surface
+  catala.utils
+  cmdliner
+  cohttp
+  lwt
+  cohttp-lwt-unix
+  yojson
+  re
+  ANSITerminal))
 
 (documentation
- (package legifrance_catala))
+ (package french_law))

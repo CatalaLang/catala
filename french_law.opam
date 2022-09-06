@@ -11,6 +11,9 @@ bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "dune" {>= "2.8"}
   "ocaml" {>= "4.11.0"}
+  "lwt" {>= "5.6.1"}
+  "cohttp-lwt-unix" {>= "5.0.0"}
+  "cohttp" {>= "5.0.0"}
   "catala" {= version}
   "odoc" {with-doc}
 ]

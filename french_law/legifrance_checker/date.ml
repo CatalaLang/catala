@@ -1,15 +1,17 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
+   Denis Merigoux <denis.merigoux@inria.fr>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 (** Helper functions to interact with {!Unix.tm} dates *)
@@ -17,9 +19,12 @@
 (** Parses a date formatted as [DD/MM/YYYY] into an {!Unix.tm}*)
 let parse_expiration_date (expiration_date : string) : Unix.tm =
   try
-    let extract_article_title = Re.Pcre.regexp "([0-9]{2})\\/([0-9]{2})\\/([0-9]{4})" in
+    let extract_article_title =
+      Re.Pcre.regexp "([0-9]{2})\\/([0-9]{2})\\/([0-9]{4})"
+    in
     let get_substring =
-      Re.Pcre.get_substring (Re.Pcre.exec ~rex:extract_article_title expiration_date)
+      Re.Pcre.get_substring
+        (Re.Pcre.exec ~rex:extract_article_title expiration_date)
     in
     snd
       (Unix.mktime
@@ -35,14 +40,16 @@ let parse_expiration_date (expiration_date : string) : Unix.tm =
            Unix.tm_isdst = false;
          })
   with _ ->
-    Catala.Cli.error_print
-      (Printf.sprintf "Error while parsing expiration date argument (%s)" expiration_date);
+    Utils.Cli.error_print "Error while parsing expiration date argument (%s)"
+      expiration_date;
     exit 0
 
 (** Prints an [Unix.tm] under the ISO formatting [YYYY-MM-DD] *)
 let print_tm (d : Unix.tm) : string =
   if d.Unix.tm_year + 1900 = 2999 then "undefined date"
-  else Printf.sprintf "%d-%02d-%02d" (1900 + d.Unix.tm_year) (1 + d.Unix.tm_mon) d.Unix.tm_mday
+  else
+    Printf.sprintf "%d-%02d-%02d" (1900 + d.Unix.tm_year) (1 + d.Unix.tm_mon)
+      d.Unix.tm_mday
 
 (** Returns true if [d] is set in the year [2999] *)
 let is_infinity (d : Unix.tm) : bool = d.Unix.tm_year + 1900 = 2999
