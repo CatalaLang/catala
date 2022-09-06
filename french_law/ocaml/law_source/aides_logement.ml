@@ -21303,9 +21303,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                      "Code de la construction et de l'habitation"]}
                     (((date_signature_pret_ >=@
                          (date_of_numbers (1992) (9) (30))) &&
-                        (date_signature_pret_ >=@
+                        (date_signature_pret_ <=@
                            (date_of_numbers (1994) (9) (30)))) ||
-                       ((date_signature_pret_ >=@
+                       ((date_signature_pret_ >@
                            (date_of_numbers (1994) (9) (30))) &&
                           ((match type_travaux_logement_
                             with
@@ -21358,7 +21358,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
                                      "Code de la construction et de l'habitation"]}
-                    ((date_signature_pret_ >=@
+                    ((date_signature_pret_ >@
                         (date_of_numbers (1994) (9) (30))) &&
                        (match type_travaux_logement_
                         with
