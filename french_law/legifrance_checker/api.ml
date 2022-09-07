@@ -127,7 +127,7 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     try handle_once resp body
     with Failure _ ->
       if n > 0 then (
-        Unix.sleepf 0.5;
+        Unix.sleep 2;
         Utils.Cli.debug_format "Retrying request...";
         try_n_times (n - 1))
       else (

@@ -81,7 +81,16 @@ let compare_article_to_version
   let new_article = Api.retrieve_article access_token version in
   let new_article_text = Api.get_article_text new_article in
   let text_to_list text =
-    List.filter (fun word -> word <> "") (String.split_on_char ' ' text)
+    List.map String.trim
+      (List.flatten
+         (List.map
+            (fun line ->
+              List.filter
+                (fun word -> word <> "")
+                (String.split_on_char ' ' line))
+            (List.filter
+               (fun word -> word <> "")
+               (String.split_on_char '\n' text))))
   in
   let old_list = text_to_list text in
   let new_list = text_to_list new_article_text in
@@ -126,7 +135,7 @@ let compare_to_versions
         print_diff
           (Printf.sprintf
              "There is a diff between the source code version of %s %s and the \
-              text stored on LégiFrance:"
+              text stored on LégiFrance:\n"
              (fst law_article_text.article_title)
              (Utils.Pos.to_string (snd law_article_text.article_title)))
           diff)
@@ -142,7 +151,7 @@ let compare_to_versions
       print_diff
         (Printf.sprintf
            "Here is the diff between the current version of %s %s and what it \
-            will become in the future:"
+            will become in the future:\n"
            (fst law_article_text.article_title)
            (Utils.Pos.to_string (snd law_article_text.article_title)))
         diff)
