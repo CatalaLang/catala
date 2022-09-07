@@ -774,7 +774,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     ) *€ taux_francs_vers_euros
 ```
 
-### Article 18 | LEGIARTI000042378436
+### Article 18 | LEGIARTI000046126970
 
 Pour l'application du 3° de l'article D. 832-10, les mensualités plafonds pour les logements occupés
 par leur propriétaire, et financés par les prêts mentionnés au 2° de l'article R. 832-5, sont fixées *
@@ -2773,7 +2773,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     si condition_2_du_832_25 alors 21 420,91 € sinon 13 393,40 €
 ```
 
-### Article 31 | LEGIARTI000039160787
+### Article 31 | LEGIARTI000046126968
 
 I. - Les pourcentages et les tranches de ressources intervenant dans le calcul de l'équivalence de loyer et
 de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du même code, sont fixés comme suit :
@@ -2896,7 +2896,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 ## Chapitre IV : Calcul des allocations de logement en secteur accession
 
-### Article 33 | LEGIARTI000041489184
+### Article 33 | LEGIARTI000046126965
 
 Pour l'application de l'article D. 842-6 du même code, la mensualité plafonds à prendre en considération est fixée
 selon le tableau suivant (en francs jusqu'au 31 décembre 2001 et en euros à compter du 1er janvier 2002), quelle que

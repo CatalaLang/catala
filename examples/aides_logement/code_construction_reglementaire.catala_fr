@@ -246,7 +246,7 @@ du mois de mai 2021.
 # correctement évaluer leur montant.
 ```
 
-######## Article R822-4 | LEGIARTI000041419156
+######## Article R822-4 | LEGIARTI000045920163
 
 I.-Les ressources prises en compte s'entendent du total des revenus nets
 catégoriels retenus pour l'établissement de l'impôt sur le revenu, des revenus
@@ -280,9 +280,14 @@ cours d'une année antérieure à celle de la période de référence définie a
 de l'article R. 822-3 et qui font l'objet d'un report, en vertu des dispositions
 du I de l'article 156 du code général des impôts.
 
-IV.-Ne sont pas pris en compte les arrérages des rentes viagères constituées
-en faveur d'une personne handicapée, mentionnés à l'article 199 septies du
-même code.
+IV.-Ne sont pas pris en compte :
+
+1° Les arrérages des rentes viagères constituées en faveur d'une personne
+handicapée, mentionnés à l'article 199 septies du code général des impôts ;
+
+2° Les indemnités versées aux personnes tirées au sort mentionnées à l'article
+4-3 et au 2° de l'article 12 de l'ordonnance n° 58-1360 du 29 décembre 1958
+portant loi organique relative au Conseil économique, social et environnemental.
 
 NOTA:
 
@@ -3101,7 +3106,7 @@ l'agriculture.
 # pas pour l'instant.
 ```
 
-####### Article D832-2 | LEGIARTI000038878764
+####### Article D832-2 | LEGIARTI000041477269
 
 Lorsque le bénéficiaire est locataire d'un logement compris dans un patrimoine
 conventionné comportant moins de dix logements, l'aide personnalisée est versée
@@ -3120,9 +3125,9 @@ entre ses mains, elle est versée directement :
 établissement habilité, lorsqu'aucune des mensualités de remboursement de ces prêts
 n'est supérieure ou égale, pour la première année, au montant de l'aide personnalisée ;
 
-3° Aux personnes sous-locataires mentionnées au premier alinéa de l'article L. 822-4.
-Dans ce cas, le locataire titulaire du bail principal et sous-louant une partie de son
-logement est assimilé au bailleur.
+3° Aux personnes sous-locataires mentionnées au premier alinéa de l'article
+L. 822-4. Dans ce cas, le locataire titulaire du bail principal et sous-louant
+une partie de son logement est assimilé au bailleur.
 
 ```catala
 # Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
@@ -4432,7 +4437,7 @@ du contrat de travail, l'évaluation du loyer est faite, en tant que de besoin, 
 # sur la manière de remplir la variable "loyer_principal" dans le formulaire.
 ```
 
-####### Article D842-3 | LEGIARTI000038878683
+####### Article D842-3 | LEGIARTI000041477287
 
 En cas de colocation telle que définie à l'article R. 821-4, le loyer principal retenu est le
 résultat du quotient du loyer effectivement payé par le nombre de cotitulaires du bail ou de
@@ -4794,25 +4799,27 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     sinon plafond_signature
 ```
 
-####### Article D842-10 | LEGIARTI000038878667
+####### Article D842-10 | LEGIARTI000041477292
 
-Lorsque plusieurs personnes ou ménages constituant des foyers distincts occupent le même
-logement et qu'ils sont copropriétaires du logement et cotitulaires du prêt, pour le
-calcul de l'allocation de logement :
+Lorsque plusieurs personnes ou ménages constituant des foyers distincts occupent le
+même logement et qu'ils sont copropriétaires du logement et cotitulaires du prêt,
+pour le calcul de l'allocation de logement :
 
-1° La mensualité " L " représente le quotient de la somme prise en compte au titre des
-charges mentionnées à l'article D. 842-7 par le nombre de copropriétaires, cotitulaires
-du prêt ouvrant droit à l'allocation de logement, le résultat étant pris en compte dans
-la limite de la mensualité plafond mentionnée au 3° de l'article D. 842-6 qui correspond
-à la situation familiale de chacun des intéressés ;
+1° La mensualité " L " représente le quotient de la somme prise en compte au titre
+des charges mentionnées à l'article D. 842-7 par le nombre de copropriétaires,
+cotitulaires du prêt ouvrant droit à l'allocation de logement, le résultat étant
+pris en compte dans la limite de la mensualité plafond mentionnée au 3° de
+l'article D. 842-6 qui correspond à la situation familiale de chacun des
+intéressés ;
 
-2° Il est fait application à chaque personne ou ménage concerné du coefficient " N " prévu
-au d du 2° de l'article D. 832-25 et de l'élément " C " prévu au 4° de l'article D. 842-6
-correspondant à sa situation familiale.
+2° Il est fait application à chaque personne ou ménage concerné du coefficient
+" N " prévu au d du 2° de l'article D. 832-25 et de l'élément " C " prévu au 4°
+ de l'article D. 842-6 correspondant à sa situation familiale.
 
-Les arrêtés fixant les plafonds de mensualité mentionnés au 3° de l'article D. 842-6 et
-les montants forfaitaires au titre des charges mentionnées au 4° du même article peuvent
-fixer des montants spécifiques pour les ménages copropriétaires.
+Les arrêtés fixant les plafonds de mensualité mentionnés au 3° de l'article
+D. 842-6 et les montants forfaitaires au titre des charges mentionnées au 4°
+du même article peuvent fixer des montants spécifiques pour les ménages
+copropriétaires.
 
 ```catala
 # Ceci donne des informations sur comment calculer à la main la variable
