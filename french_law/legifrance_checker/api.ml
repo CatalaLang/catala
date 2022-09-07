@@ -106,9 +106,9 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     resp, body
   in
   let handle_once resp body =
-    if resp = "200 OK" then (
-      try body |> Yojson.Basic.from_string
-      with Yojson.Basic.Util.Type_error (msg, obj) ->
+    if resp = "200 OK" then
+      try body |> Yojson.Basic.from_string with
+      | Yojson.Basic.Util.Type_error (msg, obj) ->
         Utils.Cli.error_print
           "Error while parsing JSON answer from API: %s\n\
            Specific JSON:\n\
@@ -118,7 +118,8 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
           msg
           (Yojson.Basic.to_string obj)
           body;
-        exit (-1))
+        exit (-1)
+      | _ -> raise (Failure "")
     else raise (Failure "")
   in
   let rec try_n_times (n : int) =
@@ -160,6 +161,7 @@ let parse_id (id : string) : article_id =
   { id; typ }
 
 let retrieve_article (access_token : string) (obj : article_id) : article =
+  Utils.Cli.debug_format "Accessing article %s" obj.id;
   {
     content =
       run_request
@@ -238,7 +240,7 @@ let get_article_expiration_date (article : article) : Unix.tm =
   try
     let article_id = get_article_id article in
     match article.typ with
-    | CETATEXT -> Date.parse_expiration_date "01/01/2999"
+    | CETATEXT -> Date.parse_expiration_date DDMMYYYY "01/01/2999"
     | LEGIARTI | JORFARTI ->
       article.content
       |> Yojson.Basic.Util.member "article"

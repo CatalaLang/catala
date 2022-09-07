@@ -45,7 +45,7 @@ let custom_date =
           "Use in combination with -e. Instead of checking whether articles \
            are expired now,\n\
           \                      check their expiration with respect to a \
-           custom date in the format DD/MM/YYYY.")
+           custom date in the format YYYY-MM-DD.")
 
 let diff =
   Arg.(

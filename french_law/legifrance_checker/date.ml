@@ -16,11 +16,17 @@
 
 (** Helper functions to interact with {!Unix.tm} dates *)
 
-(** Parses a date formatted as [DD/MM/YYYY] into an {!Unix.tm}*)
-let parse_expiration_date (expiration_date : string) : Unix.tm =
+type date_format = DDMMYYYY | ISO
+
+(** Parses a date formatted as [DD/MM/YYYY] or [YYYY-MM-DD] into an {!Unix.tm}*)
+let parse_expiration_date (date_format : date_format) (expiration_date : string)
+    : Unix.tm =
   try
     let extract_article_title =
-      Re.Pcre.regexp "([0-9]{2})\\/([0-9]{2})\\/([0-9]{4})"
+      Re.Pcre.regexp
+        (match date_format with
+        | DDMMYYYY -> "([0-9]{2})\\/([0-9]{2})\\/([0-9]{4})"
+        | ISO -> "([0-9]{4})\\-([0-9]{2})\\-([0-9]{2})")
     in
     let get_substring =
       Re.Pcre.get_substring
@@ -29,9 +35,16 @@ let parse_expiration_date (expiration_date : string) : Unix.tm =
     snd
       (Unix.mktime
          {
-           Unix.tm_mday = int_of_string (get_substring 1);
+           Unix.tm_mday =
+             int_of_string
+               (get_substring
+                  (match date_format with DDMMYYYY -> 1 | ISO -> 3));
            Unix.tm_mon = int_of_string (get_substring 2);
-           Unix.tm_year = int_of_string (get_substring 3) - 1900;
+           Unix.tm_year =
+             int_of_string
+               (get_substring
+                  (match date_format with DDMMYYYY -> 3 | ISO -> 1))
+             - 1900;
            Unix.tm_sec = 0;
            Unix.tm_min = 0;
            Unix.tm_hour = 0;

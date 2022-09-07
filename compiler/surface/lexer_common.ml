@@ -31,21 +31,16 @@ let calc_precedence (matched_regex : string) : int =
 (* Gets the [LAW_HEADING] token from the current {!val: lexbuf} *)
 let get_law_heading (lexbuf : lexbuf) : token =
   let extract_article_title =
-    R.regexp
-      "([#]+)\\s*([^\\|]+)(\\|([^\\|]+)|)(\\|\\s*([0-9]{4}\\-[0-9]{2}\\-[0-9]{2})|)"
+    R.regexp "([#]+)\\s*([^\\|]+)(\\|\\s*([^\\s]+)|)(\\s*(\\[archive\\])|)"
   in
-  let get_substring =
-    R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
-  in
-  let title = String.trim (get_substring 2) in
+  let rex = R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf) in
+  let title = String.trim (R.get_substring rex 2) in
   let article_id =
-    try Some (String.trim (get_substring 4)) with Not_found -> None
+    try Some (String.trim (R.get_substring rex 4)) with Not_found -> None
   in
-  let article_expiration_date =
-    try Some (String.trim (get_substring 6)) with Not_found -> None
-  in
-  let precedence = calc_precedence (String.trim (get_substring 1)) in
-  LAW_HEADING (title, article_id, article_expiration_date, precedence)
+  let is_archive = Option.is_some (Re.Group.get_opt rex 6) in
+  let precedence = calc_precedence (String.trim (R.get_substring rex 1)) in
+  LAW_HEADING (title, article_id, is_archive, precedence)
 
 type lexing_context = Law | Code | Directive | Directive_args
 

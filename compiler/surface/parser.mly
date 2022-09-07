@@ -637,10 +637,10 @@ metadata_block:
 
 law_heading:
 | title = LAW_HEADING {
-  let (title, id, exp_date, precedence) = title in {
+  let (title, id, is_archive, precedence) = title in {
     law_heading_name = (title, Pos.from_lpos $sloc);
     law_heading_id = id;
-    law_heading_expiration_date = exp_date;
+    law_heading_is_archive = is_archive;
     law_heading_precedence = precedence;
   }
 }

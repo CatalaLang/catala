@@ -28,47 +28,15 @@ let check_article_expiration
     let article_id = Api.parse_id heading_id in
     let article = Api.retrieve_article access_token article_id in
     let legifrance_expiration_date = Api.get_article_expiration_date article in
-    let source_expiration_date =
-      Option.map Date.parse_expiration_date
-        law_heading.Surface.Ast.law_heading_expiration_date
-    in
-    (* At this point we have three dates. [C] the current date, [L] the
-       expiration date from LégiFrance, and [S] (optionnal) the expiration date
-       according to the source code.
-
-       First, if [S < L], we raise an error: the source code is wrong. Indeed
-       the [S] expiration date is only meant as an override that extends
-       LégiFrance expiration date, not shorten it.
-
-       Now, we take [D = max(S,L)] and if [C > D] then we throw an error saying
-       it is expired. *)
-    (match source_expiration_date with
-    | None -> ()
-    | Some source_expiration_date ->
-      if Date.date_compare source_expiration_date legifrance_expiration_date < 0
-      then
-        Utils.Cli.warning_print "%s %s expires on %s according to LégiFrance%s"
-          (Utils.Marked.unmark law_heading.Surface.Ast.law_heading_name)
-          (Utils.Pos.to_string
-             (Utils.Marked.get_mark law_heading.Surface.Ast.law_heading_name))
-          (Date.print_tm legifrance_expiration_date)
-          (match law_heading.Surface.Ast.law_heading_expiration_date with
-          | None -> assert false
-          | Some source_exp_date ->
-            ", but"
-            ^ source_exp_date
-            ^ " according to source code, which is more restrictive."));
-    let max_date =
-      match source_expiration_date with
-      | None -> legifrance_expiration_date
-      | Some source_expiration_date ->
-        if
-          Date.date_compare source_expiration_date legifrance_expiration_date
-          < 0
-        then legifrance_expiration_date
-        else source_expiration_date
-    in
-    if Date.date_compare current_date max_date > 0 then (
+    let is_archive = law_heading.Surface.Ast.law_heading_is_archive in
+    (* At this point we have two dates. [C] the current date, [L] the expiration
+       date from LégiFrance. Plus we have flag [A] that tells us if [A] is an
+       archive, which should not be checked for expiration. Now, if [C > L] then
+       we throw an error saying it is expired, except if [A] is true *)
+    if
+      (not is_archive)
+      && Date.date_compare current_date legifrance_expiration_date > 0
+    then (
       let new_version_available =
         not (Date.is_infinity legifrance_expiration_date)
       in
@@ -80,19 +48,15 @@ let check_article_expiration
       in
       Utils.Cli.warning_print
         "%s %s has expired! Its expiration date is %s according to \
-         LégiFrance%s.%s"
+         LégiFrance.%s"
         (Utils.Marked.unmark law_heading.Surface.Ast.law_heading_name)
         (Utils.Pos.to_string
            (Utils.Marked.get_mark law_heading.Surface.Ast.law_heading_name))
         (Date.print_tm legifrance_expiration_date)
-        (match law_heading.Surface.Ast.law_heading_expiration_date with
-        | None -> ""
-        | Some source_exp_date ->
-          "and " ^ source_exp_date ^ " according to source code")
         (match new_version with
         | None -> ""
         | Some new_version ->
-          Format.asprintf " New version of the article: %s." new_version);
+          Format.asprintf " New version of the article: \"%s\"." new_version);
       new_version)
     else None
 
@@ -292,7 +256,7 @@ let driver
     in
     let current_date =
       match custom_date with
-      | Some custom_date -> Date.parse_expiration_date custom_date
+      | Some custom_date -> Date.parse_expiration_date ISO custom_date
       | None -> Unix.localtime (Unix.time ())
     in
     List.iter
