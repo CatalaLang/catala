@@ -17,52 +17,84 @@
 (** Main logic for interacting with LégiFrance when traversing Catala source
     files *)
 
-type new_article_version = NotAvailable | Available of string
-
 (** Returns the ID of the future version of the article if any *)
 let check_article_expiration
+    (current_date : Unix.tm)
     (law_heading : Surface.Ast.law_heading)
-    (access_token : Api.access_token) : new_article_version option =
+    (access_token : Api.access_token) : string option =
   match law_heading.Surface.Ast.law_heading_id with
   | None -> None
   | Some heading_id ->
     let article_id = Api.parse_id heading_id in
     let article = Api.retrieve_article access_token article_id in
-    let api_article_expiration_date = Api.get_article_expiration_date article in
-    let msg =
-      Printf.sprintf "%s %s expires on %s according to LégiFrance%s"
+    let legifrance_expiration_date = Api.get_article_expiration_date article in
+    let source_expiration_date =
+      Option.map Date.parse_expiration_date
+        law_heading.Surface.Ast.law_heading_expiration_date
+    in
+    (* At this point we have three dates. [C] the current date, [L] the
+       expiration date from LégiFrance, and [S] (optionnal) the expiration date
+       according to the source code.
+
+       First, if [S < L], we raise an error: the source code is wrong. Indeed
+       the [S] expiration date is only meant as an override that extends
+       LégiFrance expiration date, not shorten it.
+
+       Now, we take [D = max(S,L)] and if [C > D] then we throw an error saying
+       it is expired. *)
+    (match source_expiration_date with
+    | None -> ()
+    | Some source_expiration_date ->
+      if Date.date_compare source_expiration_date legifrance_expiration_date < 0
+      then
+        Utils.Cli.warning_print "%s %s expires on %s according to LégiFrance%s"
+          (Utils.Marked.unmark law_heading.Surface.Ast.law_heading_name)
+          (Utils.Pos.to_string
+             (Utils.Marked.get_mark law_heading.Surface.Ast.law_heading_name))
+          (Date.print_tm legifrance_expiration_date)
+          (match law_heading.Surface.Ast.law_heading_expiration_date with
+          | None -> assert false
+          | Some source_exp_date ->
+            ", but"
+            ^ source_exp_date
+            ^ " according to source code, which is more restrictive."));
+    let max_date =
+      match source_expiration_date with
+      | None -> legifrance_expiration_date
+      | Some source_expiration_date ->
+        if
+          Date.date_compare source_expiration_date legifrance_expiration_date
+          < 0
+        then legifrance_expiration_date
+        else source_expiration_date
+    in
+    if Date.date_compare current_date max_date > 0 then (
+      let new_version_available =
+        not (Date.is_infinity legifrance_expiration_date)
+      in
+      let new_version =
+        if new_version_available then
+          let new_version = Api.get_article_new_version article in
+          Some new_version
+        else None
+      in
+      Utils.Cli.warning_print
+        "%s %s has expired! Its expiration date is %s according to \
+         LégiFrance%s.%s"
         (Utils.Marked.unmark law_heading.Surface.Ast.law_heading_name)
         (Utils.Pos.to_string
            (Utils.Marked.get_mark law_heading.Surface.Ast.law_heading_name))
-        (Date.print_tm api_article_expiration_date)
+        (Date.print_tm legifrance_expiration_date)
         (match law_heading.Surface.Ast.law_heading_expiration_date with
         | None -> ""
         | Some source_exp_date ->
-          ", " ^ source_exp_date ^ " according to source code")
-    in
-    let new_version_available =
-      not (Date.is_infinity api_article_expiration_date)
-    in
-    let source_code_expiration =
-      match law_heading.Surface.Ast.law_heading_expiration_date with
-      | None -> false
-      | Some source_exp_date ->
-        let source_exp_date = Date.parse_expiration_date source_exp_date in
-        not (Date.is_infinity source_exp_date)
-    in
-    if new_version_available || source_code_expiration then begin
-      Utils.Cli.warning_print "%s" msg;
-      if new_version_available then begin
-        let new_version = Api.get_article_new_version article in
-        Utils.Cli.debug_print "New version of the article: %s" new_version;
-        Some (Available new_version)
-      end
-      else Some NotAvailable
-    end
-    else begin
-      Utils.Cli.debug_print "%s" msg;
-      None
-    end
+          "and " ^ source_exp_date ^ " according to source code")
+        (match new_version with
+        | None -> ""
+        | Some new_version ->
+          Format.asprintf " New version of the article: %s." new_version);
+      new_version)
+    else None
 
 type law_article_text = {
   article_title : string * Utils.Pos.t;
@@ -196,6 +228,7 @@ let include_legislative_text
   text_to_return
 
 let rec traverse_source_code
+    ~(current_date : Unix.tm)
     ~(diff : bool)
     ~(expiration : bool)
     (access_token : Api.access_token)
@@ -207,11 +240,13 @@ let rec traverse_source_code
         (fun acc child ->
           acc
           ^ "\n\n"
-          ^ traverse_source_code ~diff ~expiration access_token child)
+          ^ traverse_source_code ~current_date ~diff ~expiration access_token
+              child)
         "" children
     in
     let new_version =
-      if expiration then check_article_expiration law_heading access_token
+      if expiration then
+        check_article_expiration current_date law_heading access_token
       else None
     in
     let law_article_text =
@@ -220,7 +255,7 @@ let rec traverse_source_code
         text = children_text;
         new_version =
           (match new_version with
-          | Some (Available version) -> Some (Api.parse_id version)
+          | Some version -> Some (Api.parse_id version)
           | _ -> None);
         current_version = Option.map Api.parse_id law_heading.law_heading_id;
       }
@@ -245,17 +280,33 @@ let driver
     (debug : bool)
     (diff : bool)
     (expiration : bool)
+    (custom_date : string option)
     (client_id : string)
     (client_secret : string) =
-  if debug then Utils.Cli.debug_flag := true;
-  let access_token = Api.get_token client_id client_secret in
-  (* LégiFrance is only supported for French texts *)
-  let program = Surface.Parser_driver.parse_top_level_file (FileName file) Fr in
-  List.iter
-    (fun item ->
-      ignore (traverse_source_code ~diff ~expiration access_token item))
-    program.program_items;
-  exit 0
+  try
+    if debug then Utils.Cli.debug_flag := true;
+    let access_token = Api.get_token client_id client_secret in
+    (* LégiFrance is only supported for French texts *)
+    let program =
+      Surface.Parser_driver.parse_top_level_file (FileName file) Fr
+    in
+    let current_date =
+      match custom_date with
+      | Some custom_date -> Date.parse_expiration_date custom_date
+      | None -> Unix.localtime (Unix.time ())
+    in
+    List.iter
+      (fun item ->
+        ignore
+          (traverse_source_code ~current_date ~diff ~expiration access_token
+             item))
+      program.program_items;
+    0
+  with Utils.Errors.StructuredError (msg, pos) ->
+    let bt = Printexc.get_raw_backtrace () in
+    Utils.Cli.error_print "%s" (Utils.Errors.print_structured_error msg pos);
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    -1
 
 (** Hook for the executable *)
 let _ =

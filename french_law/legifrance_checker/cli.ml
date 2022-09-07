@@ -31,17 +31,27 @@ let expiration =
   Arg.(
     value
     & flag
-    & info
-        ["e"; "--expiration_check"]
+    & info ["e"; "expiration_check"]
         ~doc:
           "Checks the expiration dates of articles with a LégiFrance ID tag to \
            see if they have expired as of now.")
+
+let custom_date =
+  Arg.(
+    value
+    & opt (some string) None
+    & info ["c"; "custom_date"]
+        ~doc:
+          "Use in combination with -e. Instead of checking whether articles \
+           are expired now,\n\
+          \                      check their expiration with respect to a \
+           custom date in the format DD/MM/YYYY.")
 
 let diff =
   Arg.(
     value
     & flag
-    & info ["D"; "--diff_check"]
+    & info ["D"; "diff_check"]
         ~doc:
           "Checks the text of the articles with a LégiFrance ID tag to see if \
            there are differences with the official record.")
@@ -63,7 +73,15 @@ let debug =
 
 (** Arguments : [file debug cliend_id client_secret] *)
 let catala_legifrance_t f =
-  Term.(const f $ file $ debug $ diff $ expiration $ client_id $ client_secret)
+  Term.(
+    const f
+    $ file
+    $ debug
+    $ diff
+    $ expiration
+    $ custom_date
+    $ client_id
+    $ client_secret)
 
 let info =
   let doc = "LegiFrance interaction tool for Catala" in

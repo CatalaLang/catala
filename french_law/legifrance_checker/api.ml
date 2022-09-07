@@ -95,7 +95,9 @@ let make_request
     body |> Cohttp_lwt.Body.to_string )
   |> return
 
-type article = Yojson.Basic.t
+type article_type = LEGIARTI | CETATEXT | JORFARTI
+type article_id = { id : string; typ : article_type }
+type article = { content : Yojson.Basic.t; typ : article_type }
 
 let run_request (request : (string * string t) t) : Yojson.Basic.t =
   let try_once () =
@@ -119,20 +121,21 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
         exit (-1))
     else raise (Failure "")
   in
-  let resp, body = try_once () in
-  try handle_once resp body
-  with Failure _ -> (
-    Utils.Cli.debug_format "Retrying request...";
+  let rec try_n_times (n : int) =
     let resp, body = try_once () in
     try handle_once resp body
     with Failure _ ->
-      Utils.Cli.error_print
-        "The API request went wrong ; status is %s and the body is\n%s" resp
-        body;
-      exit (-1))
-
-type article_type = LEGIARTI | CETATEXT | JORFTEXT
-type article_id = { id : string; typ : article_type }
+      if n > 0 then (
+        Unix.sleepf 0.5;
+        Utils.Cli.debug_format "Retrying request...";
+        try_n_times (n - 1))
+      else (
+        Utils.Cli.error_print
+          "The API request went wrong ; status is %s and the body is\n%s" resp
+          body;
+        exit (-1))
+  in
+  try_n_times 5
 
 let parse_id (id : string) : article_id =
   let legi_rex =
@@ -142,12 +145,12 @@ let parse_id (id : string) : article_id =
     Re.(compile @@ whole_string @@ seq [str "CETATEXT"; repn digit 12 None])
   in
   let jorf_rex =
-    Re.(compile @@ whole_string @@ seq [str "JORFTEXT"; repn digit 12 None])
+    Re.(compile @@ whole_string @@ seq [str "JORFARTI"; repn digit 12 None])
   in
   let typ =
     if Re.execp legi_rex id then LEGIARTI
     else if Re.execp ceta_tex id then CETATEXT
-    else if Re.execp jorf_rex id then JORFTEXT
+    else if Re.execp jorf_rex id then JORFARTI
     else
       Utils.Errors.raise_error
         "LégiFrance ID \"%s\" does not correspond to an ID format recognized \
@@ -156,14 +159,19 @@ let parse_id (id : string) : article_id =
   in
   { id; typ }
 
-let retrieve_article (access_token : string) (obj : article_id) : Yojson.Basic.t
-    =
-  run_request
-    (make_request access_token
-       (match obj.typ with
-       | CETATEXT -> "consult/juri"
-       | _ -> "consult/getArticle")
-       ["id", obj.id])
+let retrieve_article (access_token : string) (obj : article_id) : article =
+  {
+    content =
+      run_request
+        (make_request access_token
+           (match obj.typ with
+           | CETATEXT -> "consult/juri"
+           | LEGIARTI | JORFARTI -> "consult/getArticle")
+           (match obj.typ with
+           | CETATEXT -> ["textId", obj.id]
+           | LEGIARTI | JORFARTI -> ["id", obj.id]));
+    typ = obj.typ;
+  }
 
 let raise_article_parsing_error
     (json : Yojson.Basic.t)
@@ -187,77 +195,92 @@ let retrieve_law_excerpt (access_token : string) (text_id : string) :
   run_request
     (make_request access_token "consult/jorfPart" ["textCid", text_id])
 
-let get_article_id (json : article) : string =
+let get_article_id (article : article) : string =
   try
-    json
-    |> Yojson.Basic.Util.member "article"
+    article.content
+    |> Yojson.Basic.Util.member
+         (match article.typ with
+         | CETATEXT -> "text"
+         | LEGIARTI | JORFARTI -> "article")
     |> Yojson.Basic.Util.member "id"
     |> Yojson.Basic.Util.to_string
   with Yojson.Basic.Util.Type_error (msg, obj) ->
-    raise_article_parsing_error json msg obj
+    raise_article_parsing_error article.content msg obj
 
-let get_article_text (json : article) : string =
+let get_article_text (article : article) : string =
   try
     let text =
-      json
-      |> Yojson.Basic.Util.member "article"
+      article.content
+      |> Yojson.Basic.Util.member
+           (match article.typ with
+           | CETATEXT -> "text"
+           | LEGIARTI | JORFARTI -> "article")
       |> Yojson.Basic.Util.member "texte"
       |> Yojson.Basic.Util.to_string
     in
     (* there might be a nota *)
     let nota =
       try
-        json
-        |> Yojson.Basic.Util.member "article"
+        article.content
+        |> Yojson.Basic.Util.member
+             (match article.typ with
+             | CETATEXT -> "text"
+             | LEGIARTI | JORFARTI -> "article")
         |> Yojson.Basic.Util.member "nota"
         |> Yojson.Basic.Util.to_string
       with Yojson.Basic.Util.Type_error _ -> ""
     in
     text ^ " " ^ if nota <> "" then "NOTA : " ^ nota else ""
   with Yojson.Basic.Util.Type_error (msg, obj) ->
-    raise_article_parsing_error json msg obj
+    raise_article_parsing_error article.content msg obj
 
-let get_article_expiration_date (json : article) : Unix.tm =
+let get_article_expiration_date (article : article) : Unix.tm =
   try
-    let article_id = get_article_id json in
-    json
-    |> Yojson.Basic.Util.member "article"
-    |> Yojson.Basic.Util.member "articleVersions"
-    |> Yojson.Basic.Util.to_list
-    |> List.find (fun version ->
-           Yojson.Basic.to_string (Yojson.Basic.Util.member "id" version)
-           = "\"" ^ article_id ^ "\"")
-    |> Yojson.Basic.Util.member "dateFin"
-    |> Yojson.Basic.Util.to_int
-    |> api_timestamp_to_localtime
+    let article_id = get_article_id article in
+    match article.typ with
+    | CETATEXT -> Date.parse_expiration_date "01/01/2999"
+    | LEGIARTI | JORFARTI ->
+      article.content
+      |> Yojson.Basic.Util.member "article"
+      |> Yojson.Basic.Util.member "articleVersions"
+      |> Yojson.Basic.Util.to_list
+      |> List.find (fun version ->
+             Yojson.Basic.to_string (Yojson.Basic.Util.member "id" version)
+             = "\"" ^ article_id ^ "\"")
+      |> Yojson.Basic.Util.member "dateFin"
+      |> Yojson.Basic.Util.to_int
+      |> api_timestamp_to_localtime
   with Yojson.Basic.Util.Type_error (msg, obj) ->
-    raise_article_parsing_error json msg obj
+    raise_article_parsing_error article.content msg obj
 
-let get_article_new_version (json : article) : string =
-  let expiration_date = get_article_expiration_date json in
-  let get_version_date_debut (version : Yojson.Basic.t) : Unix.tm =
-    version
-    |> Yojson.Basic.Util.member "dateDebut"
-    |> Yojson.Basic.Util.to_int
-    |> api_timestamp_to_localtime
-  in
-  try
-    json
-    |> Yojson.Basic.Util.member "article"
-    |> Yojson.Basic.Util.member "articleVersions"
-    |> Yojson.Basic.Util.to_list
-    |> List.filter (fun version ->
-           Date.date_compare expiration_date (get_version_date_debut version)
-           <= 0)
-    |> List.sort (fun version1 version2 ->
-           Date.date_compare
-             (get_version_date_debut version1)
-             (get_version_date_debut version2))
-    |> List.hd
-    |> Yojson.Basic.Util.member "id"
-    |> Yojson.Basic.Util.to_string
-  with Yojson.Basic.Util.Type_error (msg, obj) ->
-    raise_article_parsing_error json msg obj
+let get_article_new_version (article : article) : string =
+  match article.typ with
+  | CETATEXT -> get_article_id article
+  | LEGIARTI | JORFARTI -> (
+    let expiration_date = get_article_expiration_date article in
+    let get_version_date_debut (version : Yojson.Basic.t) : Unix.tm =
+      version
+      |> Yojson.Basic.Util.member "dateDebut"
+      |> Yojson.Basic.Util.to_int
+      |> api_timestamp_to_localtime
+    in
+    try
+      article.content
+      |> Yojson.Basic.Util.member "article"
+      |> Yojson.Basic.Util.member "articleVersions"
+      |> Yojson.Basic.Util.to_list
+      |> List.filter (fun version ->
+             Date.date_compare expiration_date (get_version_date_debut version)
+             <= 0)
+      |> List.sort (fun version1 version2 ->
+             Date.date_compare
+               (get_version_date_debut version1)
+               (get_version_date_debut version2))
+      |> List.hd
+      |> Yojson.Basic.Util.member "id"
+      |> Yojson.Basic.Util.to_string
+    with Yojson.Basic.Util.Type_error (msg, obj) ->
+      raise_article_parsing_error article.content msg obj)
 
 let get_law_excerpt_title (json : law_excerpt) : string =
   json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string

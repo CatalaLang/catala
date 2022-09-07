@@ -40,9 +40,8 @@ let parse_expiration_date (expiration_date : string) : Unix.tm =
            Unix.tm_isdst = false;
          })
   with _ ->
-    Utils.Cli.error_print "Error while parsing expiration date argument (%s)"
-      expiration_date;
-    exit 0
+    Utils.Errors.raise_error "Error while parsing expiration date argument (%s)"
+      expiration_date
 
 (** Prints an [Unix.tm] under the ISO formatting [YYYY-MM-DD] *)
 let print_tm (d : Unix.tm) : string =
