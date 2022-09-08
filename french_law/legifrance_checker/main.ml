@@ -90,7 +90,8 @@ let compare_article_to_version
                 (String.split_on_char ' ' line))
             (List.filter
                (fun word -> word <> "")
-               (String.split_on_char '\n' text))))
+               (String.split_on_char '\n'
+                  (Re.replace_string (Re.compile (Re.char '\t')) ~by:" " text)))))
   in
   let old_list = text_to_list text in
   let new_list = text_to_list new_article_text in

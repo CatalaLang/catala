@@ -36,10 +36,10 @@ pour la location et à 5 100 euros pour la résidence en logement-foyer.
 # ressources_forfaitaires_r822_20
 ```
 
-NOTA:
+NOTA :
 
 Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er juillet 2022.
+ces dispositions sont applicables pour les prestations dues à compter du 1 er juillet 2022.
 
 ## Chapitre III : Calcul des aides personnelles au logement en secteur locatif
 
@@ -59,7 +59,7 @@ III  252,00         305,48                        342,52                      49
 ---------------------------------------------------------------------------------------------------
 
 
-NOTA:
+NOTA :
 
 Conformément à l’article 3 de l’arrêté du 16 août 2022 (TREL2220744A),
 ces dispositions sont applicables pour les prestations dues à compter du 1er juillet 2022.
@@ -150,10 +150,10 @@ dans le cas des personnes âgées ou handicapées adultes hébergées
 On obtient les loyers plafonds suivants (en euros) :
 
 MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL
-(arrondis au centime d'euro le plus proche)
+(arrondis au centime d'euros le plus proche)
 
 ----------------------------------------
-Bénéficiaires	          Zones	Montants
+Bénéficiaires	            Zones	Montants
 ------------------------- ----- --------
 Cas général	              I	    277,65
 
@@ -331,16 +331,16 @@ VALEURS DE TF
 
 Bénéficiaires                                        TF
 ---------------------------------------------------- ------
-Isolé	                                               2,83%
-Couple sans personne à charge	                       3,15%
+Isolé	                                               2,83 %
+Couple sans personne à charge	                       3,15 %
 Personne seule ou couple ayant:
-une personne à charge                                2,70%
-2 personnes à charge                                 2,38%
-3 personnes à charge                                 2,01%
-4 personnes à charge                                 1,85%
-5 personnes à charge                                 1,79%
-6 personnes à charge                                 1,73%
-Majoration par personne à charge supplémentaire     -0,06%
+une personne à charge                                2,70 %
+2 personnes à charge                                 2,38 %
+3 personnes à charge                                 2,01 %
+4 personnes à charge                                 1,85 %
+5 personnes à charge                                 1,79 %
+6 personnes à charge                                 1,73 %
+Majoration par personne à charge supplémentaire     -0,06 %
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -453,13 +453,13 @@ Composition du foyer	                     MONTANT  (en euros)
 Personne seule sans personne à charge	     4 870
 Couple sans personne à charge	             6 977
 Personne seule ou couple ayant :
-    - une personne à charge	               8 322
-    - deux personnes à charge	             8 509
-    - trois personnes à charge	           8 834
-    - quatre personnes à charge	           9 163
-    - cinq personnes à charge	             9 488
-    - six personnes à charge               9 816
-    - par personne à charge supplémentaire 323
+    -une personne à charge	               8 322
+    -deux personnes à charge	             8 509
+    -trois personnes à charge	             8 834
+    -quatre personnes à charge	           9 163
+    -cinq personnes à charge	             9 488
+    -six personnes à charge                9 816
+    -par personne à charge supplémentaire  323
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -489,7 +489,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 
 NOTA :
 Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er juillet 2022.
+ces dispositions sont applicables pour les prestations dues à compter du 1 er juillet 2022.
 
 ### Article 16 | LEGIARTI000046206205
 
@@ -647,10 +647,10 @@ b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habit
 
 DÉSIGNATION	                                             ZONE I	ZONE II ZONE III
 -------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     1 678	1 469   1 397
+Bénéficiaire isolé	                                     1 678	1 496   1 397
 Couple sans personne à charge	                           2 025  1 801   1 676
 Bénéficiaire isolé ou couple ayant une personne à charge 2 372	2 106   1 955
-Par personne supplémentaire à charge	                   374	  305     279
+Par personne supplémentaire à charge	                   347	  305     279
 
 
 ```catala
@@ -669,11 +669,11 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1678 €
          -- Couple: 2025€)
       sinon (2372 € +€
-        374€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        347€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 1469 €
+         -- PersonneSeule: 1496 €
          -- Couple: 1801€)
       sinon (2106 € +€
         305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
@@ -777,7 +777,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 ### Article 18 | LEGIARTI000046126970
 
 Pour l'application du 3° de l'article D. 832-10, les mensualités plafonds pour les logements occupés
-par leur propriétaire, et financés par les prêts mentionnés au 2° de l'article R. 832-5, sont fixées *
+par leur propriétaire, et financés par les prêts mentionnés au 2° de l'article R. 832-5, sont fixées
 comme suit compte tenu de la date de signature du contrat de prêt figurant sur le certificat daté
 prévu au 1° du I de l'article D. 832-12 :
 
@@ -832,9 +832,9 @@ acquis et, le cas échéant, améliorés (en francs) :
 DÉSIGNATION	                                             ZONE I ZONE II	ZONE III
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     1 678  1 496   1 397
-Couple sans personne à charge	                           2 025  2 239   2 082
-Bénéficiaire isolé ou couple ayant une personne à charge 2 372  2 618   2 428
-Par personne supplémentaire à charge	                   347	  379     346
+Couple sans personne à charge	                           2 025  1 801   1 676
+Bénéficiaire isolé ou couple ayant une personne à charge 2 372  2 106   1 955
+Par personne supplémentaire à charge	                   347	  305     279
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
@@ -860,16 +860,16 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1496 €
-         -- Couple: 2239€)
-      sinon (2618 € +€
-        379€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+         -- Couple: 1801)
+      sinon (2106 € +€
+        305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1397 €
-         -- Couple: 2082€)
-      sinon (2428 € +€
-        346€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+         -- Couple: 1676)
+      sinon (1955 € +€
+        279€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     ) *€ taux_francs_vers_euros
 ```
 
@@ -1001,7 +1001,7 @@ DÉSIGNATION	                                             ZONE I ZONE II ZONE II
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     2 001  1 786   1 667
 Couple sans personne à charge	                           1 414  2 150   1 999
-Bénéficiaire isolé ou couple ayant une personne à charge 2 827  2 514   2 331
+Bénéficiaire isolé ou couple ayant une personne à charge 1 827  2 514   2 331
 Par personne supplémentaire à charge	                   413	  364     332
 
 ```catala
@@ -1019,7 +1019,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 2001 €
          -- Couple: 1414€)
-      sinon (2827 € +€
+      sinon (1827 € +€
         413€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
@@ -1402,7 +1402,7 @@ DÉSIGNATION	                                             ZONE I ZONE II ZONE II
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     254,49 226,86  211,86
 Couple sans personne à charge	                           307,11 273,23  254,17
-Bénéficiaire isolé ou couple ayant une personne à charge 359,73 319,6   269,48
+Bénéficiaire isolé ou couple ayant une personne à charge 359,73 319,6   296,48
 Par personne supplémentaire à charge	                   52,62  46,37   42,31
 
 ```catala
@@ -1434,7 +1434,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 211,86€
          -- Couple: 254,17€)
-      sinon (269,48€ +€
+      sinon (296,48€ +€
         42,31€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
@@ -1491,7 +1491,7 @@ DÉSIGNATION	                                             ZONE I ZONE II ZONE II
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     259,07 230,94  215,67
 Couple sans personne à charge	                           312,64 278,14  258,74
-Bénéficiaire isolé ou couple ayant une personne à charge 366,21 325,34  308,81
+Bénéficiaire isolé ou couple ayant une personne à charge 366,21 325,34  301,81
 Par personne supplémentaire à charge	                   53,57  47,2    43,07
 
 ```catala
@@ -1523,7 +1523,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 215,67€
          -- Couple: 258,74€)
-      sinon (308,81€ +€
+      sinon (301,81€ +€
         43,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
@@ -1534,7 +1534,7 @@ a) Logements neufs construits ou acquis par l'accédant à la propriété (en eu
 
 DÉSIGNATION	                                             ZONE I ZONE II ZONE III
 -------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     330,26 295,26  275,64
+Bénéficiaire isolé	                                     330,86 295,26  275,64
 Couple sans personne à charge	                           399,14 355,38  330,52
 Bénéficiaire isolé ou couple ayant une personne à charge 467,42 415,5   385,41
 Par personne supplémentaire à charge	                   68,28  60,12   54,88
@@ -1552,7 +1552,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     -- Zone1: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 330,26€
+         -- PersonneSeule: 330,86€
          -- Couple: 399,14€)
       sinon (467,42€ +€
         68,28€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
@@ -2334,7 +2334,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+Désignation	                                             ZONE I ZONE II ZONE III
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     371,4  331,45  309,43
 Couple sans personne à charge	                           448,07 398,93  371,03
@@ -2378,7 +2378,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+Désignation	                                             ZONE I ZONE II ZONE III
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     298,97 266,5   248,89
 Couple sans personne à charge	                           360,79 320,97  298,58
@@ -2423,7 +2423,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+Désignation	                                             ZONE I ZONE II ZONE III
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     372,52 332,44  310,36
 Couple sans personne à charge	                           449,41 400,13  372,15
@@ -2466,7 +2466,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+Désignation	                                             ZONE I ZONE II ZONE III
 -------------------------------------------------------- ------ ------- --------
 Bénéficiaire isolé	                                     299,86 267,30  249,64
 Couple sans personne à charge	                           361,87 321,93  299,48
@@ -2506,10 +2506,28 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     )
 ```
 
+NOTA :
+
+Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er
+juillet 2022.
+
+```catala
+# Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
+# contient précisément des corrections pointées par les auteurs de ce code source
+# (valeurs aberrantes dans les tableaux). Selon cette NOTA, il faudrait donc
+# garder également l'ancienne version erronnée de ce tableau et basculer entre
+# la version erronnée et la version corrigée selon que l'on soit avant ou après
+# le premier juillet 2022. Ici, nous décidons de ne pas faire cela et de ne
+# garder que la version corrigée pour simplicité et parceque DGALN/DHUP/FE4
+# nous a confirmé que la CAF a toujours utilisé une version "corrigée" de
+# cet article.
+```
+
 ### Article 19 | LEGIARTI000046206220
 
 Pour l'application du 4° de l'article D. 832-10 du code de la construction et
-de l'habitation, le montant forfaitaire des charges est fixé comme suit
+de l'habitation , le montant forfaitaire des charges est fixé comme suit
 (en euros) :
 
 Désignation                                         Toutes zones
@@ -2775,8 +2793,9 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 ### Article 31 | LEGIARTI000046126968
 
-I. - Les pourcentages et les tranches de ressources intervenant dans le calcul de l'équivalence de loyer et
-de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du même code, sont fixés comme suit :
+I.-Les pourcentages et les tranches de ressources intervenant dans le calcul de l'équivalence de loyer et
+de charges locatives minimale “ E0 ”, mentionnés aux premier et deuxième alinéa de
+l'article D. 832-26 du même code, sont fixés comme suit :
 
 a) Au premier alinéa :
 
@@ -2790,7 +2809,7 @@ a) Au premier alinéa :
 
 5° 32,00 % pour la tranche de ressources comprise entre 5 357,44 euros et 6 331,29 euros ;
 
-6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros.
+6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros ;
 
 ```catala
 champ d'application CalculÉquivalenceLoyerMinimale:
@@ -2873,13 +2892,30 @@ champ d'application CalculÉquivalenceLoyerMinimale:
   ]
 ```
 
-II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont
+II.-Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont
 fixés respectivement à 45,57 et 76,32.
 
 ```catala
 champ d'application CalculÉquivalenceLoyerMinimale:
   définition montant_forfaitaire_d832_26 égal à
     si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
+```
+
+NOTA : Conformément à l’article 3 de l’arrêté du 29 juillet 2022
+(NOR : TREL2220748A), ces dispositions sont applicables pour les prestations
+dues à compter du 1 er juillet 2022.
+
+
+```catala
+# Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
+# contient précisément des corrections pointées par les auteurs de ce code source
+# (il manquait le "b)"). Selon cette NOTA, il faudrait donc
+# garder également l'ancienne version erronnée de ce tableau et basculer entre
+# la version erronnée et la version corrigée selon que l'on soit avant ou après
+# le premier juillet 2022. Ici, nous décidons de ne pas faire cela et de ne
+# garder que la version corrigée pour simplicité et parceque DGALN/DHUP/FE4
+# nous a confirmé que la CAF a toujours utilisé une version "corrigée" de
+# cet article.
 ```
 
 ### Article 32 | LEGIARTI000039160687
@@ -2904,11 +2940,11 @@ soit la date de construction ou d'achèvement du logement, conformément au cert
 D. 842-7 du même code :
 
 ---------------------------------------------------------------------------------------------------------------------
-Date du certificat daté   Zones     isolé     couples    C+1      C+2      C+3      C+4      C+5       par pers supp
+Date du certificat daté   zones     isolé     couples    C+1      C+2      C+3      C+4      C+5       Par pers supp
 ------------------------ ------- --------- ----------- -------- -------- -------- -------- -------- -----------------
 Certificats datés          I        1587      1913      2055     2113     2171      2229     2280         198
 à partir du
-01/07/1992
+01/07/92
 
                            II       1393      1706      1847     1912     1977      2042     2187         191
 
@@ -2916,15 +2952,15 @@ Certificats datés          I        1587      1913      2055     2113     2171 
 
 Certificats datés          I        1604      1934      2078     2137     2196      2255     2305         200
 à partir du
-01/07/1994
+01/07/94
 
                            II       1408      1725      1867     1933     1999      2065     2211         193
 
-                           III      1320      1601      1745     1818     1891      1942     2109         184
+                           III      1320      1601      1745     1818     1891      1964     2109         184
 
 Certificats datés          I        1633      1969      2116     2176     2236      2296     2346         204
 à partir du
-01/07/1997
+01/07/97
 
                            II       1433      1756      1901     1968     2035      2102     2251         196
 
@@ -2932,7 +2968,7 @@ Certificats datés          I        1633      1969      2116     2176     2236 
 
 Certificats datés          I        1672      2016      2167     2228     2290      2351     2402         209
 à partir du
-01/07/1998
+01/07/98
 
                            II       1467      1798      1947     2015     2084      2152     2305         201
 
@@ -2940,7 +2976,7 @@ Certificats datés          I        1672      2016      2167     2228     2290 
 
 Certificats datés          I        1674      2018      2169     2230     2292      2353     2404         209
 à partir du
-01/07/1999
+01/07/99
 
                            II       1468      1800      1949     2017     2086      2154     2307         201
 
@@ -2948,7 +2984,7 @@ Certificats datés          I        1674      2018      2169     2230     2292 
 
 Certificats datés          I        1691      2038      2191     2252     2315      2377     2428         211
 à partir du
-01/07/2000
+01/07/00
 
                            II       1483      1818      1968     2037     2107      2176     2330         203
 
@@ -2956,7 +2992,7 @@ Certificats datés          I        1691      2038      2191     2252     2315 
 
 Certificats datés          I        1711      2062      2217     2279     2343      2406     2457         214
 à partir du
-01/07/2001
+01/07/01
 
                            II       1501      1840      1992     2061     2132      2202     2358         205
 
@@ -2964,7 +3000,7 @@ Certificats datés          I        1711      2062      2217     2279     2343 
 
 Certificats datés          I       260,84    314,35    337,98   347,43   357,19    366,79   374,57       32,62
 à partir du
-01/01/2002
+01/01/02
 
                            II      228,83    280,51    303,68   314,20   325,02    335,69   359,47       31,25
 
@@ -2972,7 +3008,7 @@ Certificats datés          I       260,84    314,35    337,98   347,43   357,19
 
 Certificats datés          I       263,97    318,12    342,04   351,60   361,48    371,19   379,06       33,01
 à partir du
-01/07/2002
+01/07/02
 
                            II      231,58    283,88	   307,32   317,97   328,92    339,72   363,78       31,63
 
@@ -2980,7 +3016,7 @@ Certificats datés          I       263,97    318,12    342,04   351,60   361,48
 
 Certificats datés          I       267,14    321,94    346,14   355,82   365,82    375,64   383,61       33,41
 à partir du
-01/07/2003
+01/07/03
 
                            II      234,36    287,29	   311,01   321,79   332,87    343,80   368,15       32,01
 
@@ -2988,7 +3024,7 @@ Certificats datés          I       267,14    321,94    346,14   355,82   365,82
 
 Certificats datés          I       271,95    327,73    352,37   362,22   372,40    382,40   390,51       34,01
 à partir du
-01/09/2005
+01/09/05
 
                            II      238,58    292,46	   316,61   327,58   338,86    349,99   374,78       32,59
 
@@ -2996,7 +3032,7 @@ Certificats datés          I       271,95    327,73    352,37   362,22   372,40
 
 Certificats datés          I       279,56    336,91    362,24   372,36   382,83    393,11   401,44       34,96
 à partir du
-01/01/2007
+01/01/07
 
                            II      245,26    300,65	   325,48   336,75   348,65    359,79   385,27       33,50
 
@@ -3004,7 +3040,7 @@ Certificats datés          I       279,56    336,91    362,24   372,36   382,83
 
 Certificats datés          I       287,28    346,21    372,24   382,64   393,40    403,96   412,52       35,92
 à partir du
-01/01/2008
+01/01/08
 
                            II      252,03    308,95	   334,46   346,04   357,96    369,72   395,90       34,42
 
@@ -3012,7 +3048,7 @@ Certificats datés          I       287,28    346,21    372,24   382,64   393,40
 
 Certificats datés          I       295,75    356,42    383,22   393,93   405,01    415,88   424,69       36,98
 à partir du
-01/01/2009
+01/01/09
 
                            II      259,46    318,06	   344,33   356,25   368,52    380,63   407,58       35,44
 
@@ -3020,7 +3056,7 @@ Certificats datés          I       295,75    356,42    383,22   393,93   405,01
 
 Certificats datés          I       296,70    357,56    384,45   395,19   406,31    417,21   426,05       37,10
 à partir du
-01/01/2010
+01/01/10
 
                            II      260,29    319,08	   346,43   357,39   369,70    381,85   408,88       35,55
 
@@ -3028,7 +3064,7 @@ Certificats datés          I       296,70    357,56    384,45   395,19   406,31
 
 Certificats datés          I       299,96    361,49    388,68   399,54   410,78    421,80   430,74       37,51
 à partir du
-01/01/2011
+01/01/11
 
                            II      263,15    322,59	   349,23   361,32   373,77    386,05   413,38       35,94
 
@@ -3036,7 +3072,7 @@ Certificats datés          I       299,96    361,49    388,68   399,54   410,78
 
 Certificats datés          I       302,96    365,10    392,57   403,54   414,89    426,02   435,05       37,89
 à partir du
-01/01/2012
+01/01/12
 
                            II      265,78    325,82	   352,72   364,93   377,51    389,91   417,51       36,30
 
@@ -3044,7 +3080,7 @@ Certificats datés          I       302,96    365,10    392,57   403,54   414,89
 
 Certificats datés          I       309,47    372,95    401,01   412,22   423,81    435,18   444,4        38,7
 à partir du
-01/01/2013
+01/01/13
 
                            II      271,49    332,83	   360,3    372,78   385,63    398,29   426,49       37,08
 
@@ -3052,7 +3088,7 @@ Certificats datés          I       309,47    372,95    401,01   412,22   423,81
 
 Certificats datés          I       311,23    375,08    403,30   414,57   426,23    437,66   446,93       38,92
 à partir du
-01/10/2014
+01/10/14
 
                            II      273,04    334,73	   362,35   374,90   387,83    400,56   428,92       37,29
 
@@ -3060,7 +3096,7 @@ Certificats datés          I       311,23    375,08    403,30   414,57   426,23
 
 Certificats datés          I       311,48    375,38    403,62   414,9    426,57    438,01   447,29       38,95
 à partir du
-01/10/2015
+01/10/15
 
                            II      273,26    335  	   362,64   375,2    388,14    400,88   429,26       37,32
 
@@ -3068,7 +3104,7 @@ Certificats datés          I       311,48    375,38    403,62   414,9    426,57
 
 Certificats datés          I       313,82    378,2     406,65   418,01   429,77    441,3    450,64       39,24
 à partir du
-01/10/2017
+01/10/17
 
                            II      275,31    337,51	   365,36   378,01   391,05    403,89   432,48       37,6
 
@@ -3076,16 +3112,12 @@ Certificats datés          I       313,82    378,2     406,65   418,01   429,77
 
 Certificats datés          I       314,76    379,33    407,87   419,27   431,06    442,62   452,00       39,36
 à partir du
-01/10/2019
+01/10/19
 
                            II      276,14    338,53	   366,46   379,15   392,22    405,10   433,78       37,71
 
                            III     259,04    314,19	   342,55   356,70   371,07    385,21   413,92       35,88
 -------------------------------------------------------------------------------------------------------------------
-
-NOTA :
-Conformément à l'article 2 de l'arrêté du 3 janvier 2020 ( NOR : LOGL1934006A ), ces dispositions sont applicables
-pour les prestations dues à compter du 1er janvier 2020.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
@@ -3177,7 +3209,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 1 alors 1745 € sinon
         (si nombre_personnes_à_charge = 2 alors 1818 € sinon
         (si nombre_personnes_à_charge = 3 alors 1891 € sinon
-        (si nombre_personnes_à_charge = 4 alors 1942 € sinon
+        (si nombre_personnes_à_charge = 4 alors 1964 € sinon
         (si nombre_personnes_à_charge = 5 alors 2109 € sinon
         (2109€ +€ 184€ *€
           (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
@@ -4094,6 +4126,24 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
     calcul_plafond_mensualité_d842_6 de date_calcul
 ```
 
+NOTA :
+
+Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er
+juillet 2022.
+
+```catala
+# Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
+# contient précisément des corrections pointées par les auteurs de ce code source
+# (valeurs aberrantes dans le tableau). Selon cette NOTA, il faudrait donc
+# garder également l'ancienne version erronnée de ce tableau et basculer entre
+# la version erronnée et la version corrigée selon que l'on soit avant ou après
+# le premier juillet 2022. Ici, nous décidons de ne pas faire cela et de ne
+# garder que la version corrigée pour simplicité et parceque DGALN/DHUP/FE4
+# nous a confirmé que la CAF a toujours utilisé une version "corrigée" de
+# cet article.
+```
+
 ### Article 34 | LEGIARTI000046206196
 
 Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-6 du même code sont fixés comme
@@ -4274,7 +4324,7 @@ D. 842-16 du même code est égal à :
 
 a) 87,08 euros lorsqu'il s'agit d'une personne seule ;
 
-b) 135,59 euros lorsqu'il s'agit d'un couple ;
+b) 135,59 euros euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer

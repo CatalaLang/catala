@@ -18,7 +18,9 @@ III  243,48         295,15                        330,94                      47
 ---------------------------------------------------------------------------------------------------
 
 
-Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
+NOTA :
+
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
 
@@ -203,7 +205,7 @@ Bénéficiaires                                        TF
 ---------------------------------------------------- ------
 Isolé	                                               2,83%
 Couple sans personne à charge	                       3,15%
-Personne seule ou couple ayant:
+Personne seule ou couple ayant :
 une personne à charge                                2,70%
 2 personnes à charge                                 2,38%
 3 personnes à charge                                 2,01%
@@ -407,7 +409,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 ### Article 19 | LEGIARTI000044137412 [archive]
 
 Pour l'application du 4° de l'article D. 832-10 du code de la construction et
-de l'habitation, le montant forfaitaire des charges est fixé comme suit
+de l'habitation , le montant forfaitaire des charges est fixé comme suit
 (en euros) :
 
 Désignation                                         Toutes zones
@@ -733,7 +735,7 @@ Les plafonds de loyers visés au 2° de l'article D. 823-16 du même code sont f
 Zone Personne seule Couple sans personne à charge Personne seule ou couple    Par personne à
                                                   ayant une personne à charge charge supplémentaire
 ---- -------------- ----------------------------- --------------------------- ---------------------
-I	   296,82         357,99                        404,60	                    58,70
+I	     296,82         357,99                        404,60	                    58,70
 
 II     258,69         316,64                        356,30                      51,86
 
@@ -741,7 +743,7 @@ III    242,46         293,92                        329,56                      
 ---------------------------------------------------------------------------------------------------
 
 
-Nota:
+NOTA :
 
 Conformément à l’article 3, I de l’arrêté du 25 septembre 2020,
 ces dispositions sont applicables pour les prestations dues à compter du 1er
@@ -804,7 +806,7 @@ dans le cas des personnes âgées ou handicapées adultes hébergées
 On obtient les loyers plafonds suivants (en euros) :
 
 MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL
-(arrondis au centime d'euro le plus proche)
+(arrondis au centime d'euros le plus proche)
 
 ----------------------------------------
 Bénéficiaires	          Zones	Montants
@@ -1282,10 +1284,10 @@ pour la location et à 4 900 euros pour la résidence en logement-foyer.
 # ressources_forfaitaires_r822_20
 ```
 
-NOTA:
+NOTA :
 
 Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
 
 ### Article 15 | LEGIARTI000045011468 [archive]
 
@@ -1297,13 +1299,13 @@ Composition du foyer	                     MONTANT  (en euros)
 Personne seule sans personne à charge	     4 683
 Couple sans personne à charge	             6 709
 Personne seule ou couple ayant :
-    - une personne à charge	               8 002
-    - deux personnes à charge	             8 182
-    - trois personnes à charge	           8 495
-    - quatre personnes à charge	           8 811
-    - cinq personnes à charge	             9 124
-    - six personnes à charge               9 439
-    - par personne à charge supplémentaire 311
+    -une personne à charge	               8 002
+    -deux personnes à charge	             8 182
+    -trois personnes à charge	             8 495
+    -quatre personnes à charge	           8 811
+    -cinq personnes à charge	             9 124
+    -six personnes à charge                9 439
+    -par personne à charge supplémentaire  311
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -1334,7 +1336,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 
 NOTA :
 Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
 
 
 ## Articles valables du 1er janvier 2020 au 1er janvier 2022
@@ -1346,18 +1348,18 @@ ces dispositions sont applicables pour les prestations dues à compter du 1er ja
 Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
 le tableau suivant (en euros) :
 
-Composition du foyer	                     MONTANT  (en euros)
+COMPOSITION DU FOYER	                     MONTANT  (en euros)
 -----------------------------------------  -------------------
-Personne seule sans personne à charge	     4 588
-Couple sans personne à charge	             6 572
+Personne seule sans personne à charge	     4588
+Couple sans personne à charge	             6572
 Personne seule ou couple ayant :
-    - une personne à charge	                 7 839
-    - deux personnes à charge	             8 015
-    - trois personnes à charge	             8 322
-    - quatre personnes à charge	             8 631
-    - cinq personnes à charge	             8 938
-    - six personnes à charge                 9 246
-    - par personne à charge supplémentaire   305
+    -une personne à charge	               7839
+    -deux personnes à charge	             8015
+    -trois personnes à charge	             8322
+    -quatre personnes à charge	           8631
+    -cinq personnes à charge	             8938
+    -six personnes à charge                9246
+    -par personne à charge supplémentaire  305
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif

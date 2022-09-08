@@ -10,7 +10,7 @@
 
 ####### Article R821-1 | LEGIARTI000038879023
 
-En vertu de la règle énoncée à l'article L. 821-2, une aide personnelle au
+En vertu de la règle énoncée à l'article L. 821-2 , une aide personnelle au
 logement ne peut être attribuée, au profit d'une même personne ou d'un même
 ménage, au titre de plusieurs logements.
 
@@ -26,7 +26,7 @@ ménage, au titre de plusieurs logements.
 Lorsque le conjoint ou les enfants à charge du bénéficiaire occupent, à
 titre de résidence principale, un local indépendant du logement occupé
 par le bénéficiaire et situé dans le même bâtiment, ces deux locaux sont
-assimilés au logement défini à l'article R. 822-23.
+assimilés au logement défini à l'article R. 822-23 .
 
 ```catala
 # Cet article définit la manière de remplir les champs du formulaire
@@ -153,7 +153,7 @@ champ d'application RessourcesAidesPersonnelleLogement:
   # avec "6 mois" est computationellement ambiguë.
 ```
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -219,10 +219,10 @@ indépendants des dispositions de l'article R. 822-5, sur une période de
 référence correspondant à l'avant-dernière année précédant la date d'ouverture
 ou de réexamen du droit à l'aide personnelle au logement.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
-n°2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
 n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
 sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
 logement prévue pour les accédants à la propriété par l'article L. 831-1 du
@@ -257,12 +257,12 @@ organisation internationale.
 Sont également pris en compte :
 
 1° Suivant les règles applicables en matière d'imposition aux traitements
-et salaires prévues au deuxième alinéa du 3° de l'article 83 et au 5 (a) de
-l'article 158 du code général des impôts, les indemnités journalières
+et salaires prévues au deuxième alinéa du 3° de l' article 83 et au 5 (a) de
+l'article 158 du code général des impôts , les indemnités journalières
 mentionnées au 2° de l'article L. 431-1 du code de la sécurité sociale ;
 
 2° Les rémunérations liées aux heures supplémentaires ou assimilées mentionnées
-à l'article 81 quater du code général des impôts après application d'une
+à l' article 81 quater du code général des impôts après application d'une
 déduction calculée selon les mêmes règles que celles mentionnées au deuxième
 alinéa du 3° de l'article 83 du même code.
 
@@ -272,7 +272,7 @@ II.-Sont déduits du décompte des ressources :
 général des impôts et majorées dans les conditions prévues au 7 de l'article
 158 du même code ;
 
-2° L'abattement mentionné à l'article 157 bis du code général des impôts pour
+2° L'abattement mentionné à l' article 157 bis du code général des impôts pour
 les personnes nées avant le 1er janvier 1931 et pour les personnes invalides.
 
 III.-Ne sont pas déduits du décompte des ressources les déficits constatés au
@@ -289,7 +289,7 @@ handicapée, mentionnés à l'article 199 septies du code général des impôts 
 4-3 et au 2° de l'article 12 de l'ordonnance n° 58-1360 du 29 décembre 1958
 portant loi organique relative au Conseil économique, social et environnemental.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -332,11 +332,11 @@ chargé du calcul des aides personnelles au logement en appliquant au montant
 du chiffre d'affaires ou du total des recettes déclarés par le demandeur ou
 l'allocataire pendant la période de référence visée au 1° de l'article
 R. 822-3 précédant l'examen ou la révision du droit, un abattement dont le
-taux correspond à celui qui est mentionné aux articles 50-0,64 bis et 102 ter
+taux correspond à celui qui est mentionné aux articles 50-0 , 64 bis et 102 ter
 du code général des impôts pour chaque catégorie d'activité mentionnée à ces
 articles.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -364,22 +364,22 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 
 ######## Article R822-6 | LEGIARTI000038878991
 
-Ne sont prises en compte que pour la fraction dépassant (le plafond
-individuel prévu à l'article L. 815-9 du code de la sécurité sociale multiplié
-par 1,25) les ressources de chacune des personnes vivant habituellement au foyer
+Ne sont prises en compte que pour la fraction dépassant le plafond
+individuel prévu à l' article L. 815-9 du code de la sécurité sociale multiplié
+par 1,25 les ressources de chacune des personnes vivant habituellement au foyer
 qui sont :
 
 1° Soit enfants du bénéficiaire de l'aide ou de son conjoint ;
 
 2° Soit ascendants du bénéficiaire ou de son conjoint ayant atteint un âge au
-moins égal à celui prévu par l'article L. 161-17-2 du code de la sécurité
+moins égal à celui prévu par l' article L. 161-17-2 du code de la sécurité
 sociale augmenté de cinq années, ou d'un âge au moins égal à celui prévu par
 le même article en cas d'inaptitude au travail ou âgés d'au moins soixante-cinq
 ans s'ils percevaient l'allocation de solidarité aux personnes âgées ;
 
 3° Soit ascendants, descendants ou collatéraux au deuxième degré ou au troisième
 degré du bénéficiaire ou de son conjoint et titulaires de la carte
-" mobilité-inclusion " comportant la mention " invalidité " prévue à l'article
+" mobilité-inclusion " comportant la mention " invalidité " prévue à l' article
 L. 241-3 du code de l'action sociale et des familles ou de la carte d'invalidité
 prévue à l'article L. 241-3 du même code, dans sa rédaction antérieure au 1er
 janvier 2017.
@@ -422,7 +422,7 @@ champ d'application RessourcesAidesPersonnelleLogement:
 Le montant de cet abattement est fixé par arrêté des ministres chargés du
 logement, du budget, de la sécurité sociale et de l'agriculture.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -474,7 +474,7 @@ les supporter.
 Le montant de cet abattement est fixé par un arrêté des ministres chargés du
 logement, du budget, de la sécurité sociale et de l'agriculture.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -512,7 +512,7 @@ assumer financièrement des charges familiales.
 ######## Article R822-10 | LEGIARTI000041419390
 
 Lorsque le bénéficiaire est accédant à la propriété et qu'il est une personne
-seule assumant une charge familiale telle que définie à l'article R. 823-4,
+seule assumant une charge familiale telle que définie à l'article R. 823-4 ,
 il est opéré sur ses ressources un abattement de :
 
 1° 901 euros pour le bénéficiaire ayant une ou deux personnes à charge ;
@@ -544,7 +544,7 @@ a) Soit décédé ;
 
 b) Soit absent du domicile, en raison d'une décision de justice prononçant le
 divorce ou d'une convention de divorce par consentement mutuel conclue en
-application de l'article 229-1 du code civil ;
+application de l' article 229-1 du code civil ;
 
 c) Soit absent du domicile, en raison d'une décision de justice autorisant
 la résidence séparée ou homologuant, en cas de demande conjointe en divorce,
@@ -608,7 +608,7 @@ Lorsque le bénéficiaire ou son conjoint reprend une activité professionnelle
 rémunérée, l'abattement prévu au premier alinéa est supprimé à partir du
 premier jour du mois civil au cours duquel intervient la reprise d'activité.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -664,7 +664,7 @@ Lorsque l'intéressé reprend une activité professionnelle rémunérée,
 l'abattement est supprimé à partir du premier jour du mois civil au cours
 duquel intervient la reprise d'activité.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -703,7 +703,7 @@ de paiement et s'il se trouve dans l'une des situations suivantes :
 conditions mentionnées par l'article R. 822-14 ;
 
 2° Son indemnisation a atteint le montant minimum prévu par l'accord mentionné
-à l'article L. 5422-20 du code du travail, après application du taux dégressif
+à l' article L. 5422-20 du code du travail , après application du taux dégressif
 prévu à l'article L. 5422-3 du même code ;
 
 3° Il perçoit l'allocation de solidarité spécifique prévue par les articles
@@ -718,7 +718,7 @@ Lorsque l'intéressé reprend une activité professionnelle rémunérée, il est
 compte de ses ressources à partir du premier jour du mois civil au cours duquel
 intervient la reprise d'activité.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -747,8 +747,8 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 ######## Article R822-16 | LEGIARTI000041419340
 
 Lorsque le bénéficiaire ou son conjoint justifie d'une interruption de travail
-supérieure à six mois, dans les conditions mentionnées à l'article R. 324-1
-du code de la sécurité sociale, il est procédé, à compter du premier jour du
+supérieure à six mois, dans les conditions mentionnées à l' article R. 324-1
+du code de la sécurité sociale , il est procédé, à compter du premier jour du
 mois civil suivant celui au cours duquel est intervenu le changement de
 situation, à un abattement de 30 % sur les revenus d'activité professionnelle
 et les indemnités de chômage perçus par l'intéressé.
@@ -756,7 +756,7 @@ et les indemnités de chômage perçus par l'intéressé.
 Cette mesure s'applique jusqu'au dernier jour du mois civil précédant celui
 au cours duquel la situation considérée prend fin.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -786,14 +786,14 @@ mois de mai 2021.
 ######## Article R822-17 | LEGIARTI000041419333
 
 Lorsque le bénéficiaire ou son conjoint perçoit le revenu de solidarité
-active mentionné à l'article L. 262-2 du code de l'action sociale et des
-familles, il n'est tenu compte ni des revenus d'activité professionnelle, ni
+active mentionné à l' article L. 262-2 du code de l'action sociale et des
+familles , il n'est tenu compte ni des revenus d'activité professionnelle, ni
 des indemnités de chômage dont bénéficie l'intéressé, à compter du premier
 jour du mois civil suivant celui au cours duquel ces conditions sont réunies
 et jusqu'au dernier jour du mois civil au cours duquel ces conditions cessent
 d'être réunies.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -821,7 +821,7 @@ du code du travail, les revenus mensuels perçus par l'intéressé dans le cadre
 de ce contrat sont diminués d'un abattement égal à leur montant sans pouvoir
 excéder le montant mensuel du salaire minimum de croissance.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 3 du décret
 n° 2021-720 du 4 juin 2021.
@@ -861,7 +861,7 @@ champ d'application RessourcesAidesPersonnelleLogement:
 # au cas de base de ressources_forfaitaires_r822_20
 ```
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -887,11 +887,11 @@ du mois de mai 2021.
 Les montants mentionnés à l'article R. 822-20 sont fixés par arrêté des ministres
 chargés du logement, du budget, de la sécurité sociale et de l'agriculture.
 Ils évoluent, le 1er janvier de chaque année, comme l'indice de référence des
-loyers défini à l'article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à
+loyers défini à l' article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à
 améliorer les rapports locatifs et portant modification de la loi n° 86-1290 du
-23 décembre 1986. Ils sont arrondis à la centaine d'euros la plus proche.
+23 décembre 1986 . Ils sont arrondis à la centaine d'euros la plus proche.
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -905,7 +905,7 @@ tard, du 1er janvier 2021.
 
 Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
-ont applicables au calcul des droits à l’aide personnelle au logement à compter
+sont applicables au calcul des droits à l’aide personnelle au logement à compter
 du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
 logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
 de la construction et de l’habitation, à compter du mois de mai 2021.
@@ -970,7 +970,7 @@ bénéficiaire.
 # se réfère pour correctement évaluer leur montant.
 ```
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
@@ -994,9 +994,9 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 ####### Article R822-23 | LEGIARTI000038878949
 
 Est considéré comme résidence principale, pour l'application du premier alinéa
-du II de l'article L. 822-2, le logement effectivement occupé soit par le
+du II de l'article L. 822-2 , le logement effectivement occupé soit par le
 bénéficiaire de l'aide personnelle au logement, soit par son conjoint, soit
-par une des personnes à charge au sens de l'article R. 823-4, au moins huit
+par une des personnes à charge au sens de l'article R. 823-4 , au moins huit
 mois par an, sauf obligation professionnelle, raison de santé ou cas de force
 majeure.
 
@@ -1098,8 +1098,8 @@ R. 822-24 est justifié par une attestation du bailleur.
 
 La personne de nationalité étrangère qui demande à bénéficier des aides
 personnelles au logement justifie, en outre, de la régularité de son séjour
-par la production d'un des titres de séjour ou documents prévus à l'article
-D. 512-1 du code de la sécurité sociale.
+par la production d'un des titres de séjour ou documents prévus à l' article
+D. 512-1 du code de la sécurité sociale .
 
 ```catala
 # Pas pertinent pour le calcul du montant.
@@ -1115,17 +1115,6 @@ fournies avec la demande de révision du montant de l'aide.
 # Pas pertinent pour le calcul du montant.
 ```
 
-####### Article R823-5 | LEGIARTI000038878931
-
-Pour l'application de l'article L. 823-2, en cas de résidence alternée, les
-modalités de prise en compte de l'enfant à charge pour le calcul de l'aide ne
-peuvent être remises en cause par les parents qu'au bout d'un an, sauf
-modification, avant cette échéance, des modalités de résidence de l'enfant.
-
-```catala
-# Pas pertinent pour le calcul du montant: il s'agit de s'assurer que les
-# parents ne changent pas les modalités de résidence tous les quatre matins.
-```
 
 ####### Article R823-4 | LEGIARTI000038878933
 
@@ -1155,16 +1144,16 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 
 2° Les ascendants du bénéficiaire ou de son conjoint dont les ressources
 déterminées dans les conditions prévues aux articles R. 822-3 à R. 822-6
-n'excèdent pas le plafond individuel prévu à l'article L. 815-9 du code de
-la sécurité sociale, en vigueur au 31 décembre de l'année de référence
+n'excèdent pas le plafond individuel prévu à l' article L. 815-9 du code de
+la sécurité sociale , en vigueur au 31 décembre de l'année de référence
 multiplié par 1,25 :
 
 a) Ayant au moins l'âge prévu par le 1° de l'article L. 351-8 du code de la
 sécurité sociale ou, s'ils sont titulaires de l'allocation de solidarité aux
 personnes âgées, soixante-cinq ans ;
 
-b) Ayant au moins l'âge prévu par l'article L. 161-17-2 du code de la sécurité
-sociale et bénéficiaires des articles L. 161-19, L. 351-8 ou L. 643-3 du même
+b) Ayant au moins l'âge prévu par l' article L. 161-17-2 du code de la sécurité
+sociale et bénéficiaires des articles L. 161-19 , L. 351-8 ou L. 643-3 du même
 code ;
 
 ```catala
@@ -1198,10 +1187,10 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 3° Les ascendants, descendants ou collatéraux au deuxième ou au troisième degré
 du bénéficiaire ou de son conjoint dont l'incapacité permanente est au moins
 égale à 80 % ou qui présentent, compte tenu de leur handicap, une restriction
-substantielle et durable dans l'accès à l'emploi au sens de l'article L. 821-2
+substantielle et durable dans l'accès à l'emploi au sens de l' article L. 821-2
 du code de la sécurité sociale reconnue par la commission des droits et de
-l'autonomie des personnes handicapées prévue par l'article L. 146-9 du code
-de l'action sociale et des familles, et dont les ressources déterminées dans
+l'autonomie des personnes handicapées prévue par l' article L. 146-9 du code
+de l'action sociale et des familles , et dont les ressources déterminées dans
 les conditions prévues aux articles R. 822-3 à R. 822-6 n'excèdent pas le plafond
 individuel prévu à l'article L. 815-9 du code de la sécurité sociale en vigueur
 au 31 décembre de l'année de référence multiplié par 1,25.
@@ -1222,7 +1211,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 
 ####### Article R823-5 | LEGIARTI000038878931
 
-Pour l'application de l'article L. 823-2, en cas de résidence alternée, les
+Pour l'application de l'article L. 823-2 , en cas de résidence alternée, les
 modalités de prise en compte de l'enfant à charge pour le calcul de l'aide
 ne peuvent être remises en cause par les parents qu'au bout d'un an, sauf
 modification, avant cette échéance, des modalités de résidence de l'enfant.
@@ -1239,8 +1228,8 @@ modification, avant cette échéance, des modalités de résidence de l'enfant.
 Le montant mensuel de l'aide personnelle au logement est calculé pour une
 période de trois mois à compter de la date à laquelle les conditions
 d'ouverture du droit à cette aide sont réunies, sous réserve des cas prévus
-aux articles R. 822-7 à R. 822-17, R. 823-7, R. 823-10 à R. 823-14 ainsi
-que, le cas échéant, R. 832-9.
+aux articles R. 822-7 à R. 822-17 , R. 823-7 , R. 823-10 à R. 823-14 ainsi
+que, le cas échéant, R. 832-9 .
 
 Il est calculé sur la base du loyer effectivement payé pour le mois de
 juillet de l'année précédente ou, en cas d'accession à la propriété, sur
@@ -1267,7 +1256,7 @@ puisse être à nouveau versée.
 # et non pas une date précise au niveau du calcul de jours ?).
 ```
 
-NOTA:
+NOTA :
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
 n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret n°
@@ -1320,7 +1309,7 @@ sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
 logement prévue pour les accédants à la propriété par l'article L. 831-1 du
 code de la construction et de l'habitation, d'autre part, aux autres aides
 personnelles au logement prévues par le même code, à compter des mois respectifs
-fixéspar arrêté des ministres en charge du logement, de la santé et du budget et,
+fixés par arrêté des ministres en charge du logement, de la santé et du budget et,
 au plus tard, du 1er janvier 2021.
 
 Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article 25
@@ -1349,7 +1338,7 @@ d'un avenant à la convention, un nouveau loyer est notifié au bénéficiaire.
 ####### Article R823-8 | LEGIARTI000038878925
 
 Les aides personnelles au logement sont versées mensuellement à terme échu,
-dans les conditions définies par les conventions mentionnées à l'article L. 812-2.
+dans les conditions définies par les conventions mentionnées à l'article L. 812-2 .
 
 ```catala
 # Pas pertinent pour le moment.
@@ -1368,7 +1357,7 @@ D. 823-16 à D. 823-19, et, en outre, pour les allocations de logement,
 par les règles particulières figurant aux articles D. 842-1 à D. 842-4 ;
 
 2° Pour les ménages résidant dans un logement-foyer défini à l'article
-L. 633-1 et conventionné en application du 5° de l'article L. 831-1, par
+L. 633-1 et conventionné en application du 5° de l'article L. 831-1 , par
 les règles figurant aux articles R. 832-20 à R. 832-23 et D. 832-24 à
 D. 832-28 ;
 
@@ -1388,7 +1377,7 @@ figurant aux articles R. 832-5 à R. 832-9 et D. 832-10 à D. 832-19 ;
 5° Pour les autres ménages occupant un logement dont ils sont
 propriétaires, ou pour lequel ils sont titulaires d'un contrat de
 location-accession, par les règles figurant aux articles R. 842-5
-et D. 842-6 à D. 842-13.
+et D. 842-6 à D. 842-13 .
 
 ```catala
 champ d'application CalculAllocationLogement:
@@ -1880,14 +1869,14 @@ mois au cours duquel la demande est déposée.
 
 ######## Article R823-11 | LEGIARTI000038878917
 
-Par dérogation à l'article R. 823-10, l'aide est due à compter du premier
+Par dérogation à l'article R. 823-10 , l'aide est due à compter du premier
 jour du mois civil au cours duquel les conditions d'ouverture du droit
 sont réunies :
 
 1° Aux personnes qui, hébergées par un organisme logeant à titre temporaire
 des personnes défavorisées ou par une association agréée en application de
-l'article L. 121-9 du code de l'action sociale et des familles et bénéficiant
-de l'aide mentionnée à l'article L. 851-1 du code de la sécurité sociale,
+l' article L. 121-9 du code de l'action sociale et des familles et bénéficiant
+de l'aide mentionnée à l' article L. 851-1 du code de la sécurité sociale ,
 accèdent à un logement ouvrant droit à l'une des aides personnelles au logement ;
 
 2° Aux personnes dont le logement a fait l'objet d'un arrêté d'insalubrité
@@ -1926,7 +1915,7 @@ R. 823-12, sauf en cas de décès du conjoint du bénéficiaire ou d'une personn
 à charge, où le changement prend effet le premier jour du mois civil suivant
 celui au cours duquel survient le décès.
 
-Lorsqu'une séparation, telle que mentionnée à l'article R. 821-3, intervient
+Lorsqu'une séparation, telle que mentionnée à l'article R. 821-3 , intervient
 en cours de période de paiement, le droit à l'aide du bénéficiaire est
 réexaminé en fonction de la nouvelle situation et la révision du droit prend
 effet le premier jour du mois civil suivant celui au cours duquel la séparation
@@ -1943,7 +1932,7 @@ d'interrompre le droit aux aides personnelles au logement.
 
 Par dérogation aux dispositions des articles R. 831-2, R. 832-6 et R. 832-8,
 en cas de déménagement, de conclusion ou de résiliation des conventions mentionnées
-à l'article L. 831-1, le droit aux aides personnelles au logement :
+à l'article L. 831-1 , le droit aux aides personnelles au logement :
 
 1° Est ouvert à compter du premier jour du mois civil au cours duquel les conditions
 d'ouverture du droit sont réunies ;
@@ -2036,7 +2025,7 @@ arrêté en fonction de la zone géographique, au montant du plafond de loyer me
 au 2°. Le plafond de dégressivité ne peut être inférieur à ce plafond de loyer
 multiplié par 2,5. Toutefois, cette diminution ne s'applique pas lorsque le demandeur
 ou son conjoint est bénéficiaire de l'allocation aux adultes handicapés prévue à
-l'article L. 821-1 du code de la sécurité sociale ou de l'allocation d'éducation de
+l' article L. 821-1 du code de la sécurité sociale ou de l'allocation d'éducation de
 l'enfant handicapé prévue à l'article L. 541-1 du même code.
 
 ```catala
@@ -2100,7 +2089,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 ```
 
 Pour les locataires qui bénéficient de la réduction de loyer de solidarité en application
-de l'article L. 442-2-1, ce résultat est réduit d'un montant égal à 98 % de la réduction
+de l'article L. 442-2-1 , ce résultat est réduit d'un montant égal à 98 % de la réduction
 de loyer de solidarité.
 
 ```catala
@@ -2210,13 +2199,13 @@ ou, pour le calcul des droits à l’aide personnalisée au logement prévue pou
 Les arrêtés fixant les plafonds de loyer mentionnés au 2° de l'article D. 823-16 et
 les montants forfaitaires de charges mentionnés au 3° du même article peuvent fixer
 des montants spécifiques pour les ménages colocataires ou dans les cas de sous-location
-partielle du logement autorisés à l'article L. 822-4. Les paramètres de calcul de l'aide
+partielle du logement autorisés à l'article L. 822-4 . Les paramètres de calcul de l'aide
 sont déterminés pour chaque foyer en fonction de sa propre composition familiale.
 
 Pour le calcul de l'aide du locataire sous-louant une partie du logement, le loyer
 principal pris en compte correspond au loyer résiduel après déduction des loyers
 provenant de la sous-location, hormis pour les contrats d'accueils familiaux mentionnés
-à l'article L. 442-1 du code de l'action sociale et des familles pour lesquels le loyer
+à l' article L. 442-1 du code de l'action sociale et des familles pour lesquels le loyer
 principal correspond à l'intégralité du loyer acquitté.
 
 Pour le calcul de l'aide du sous-locataire en sous-location partielle, le loyer
@@ -2321,12 +2310,12 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
 ####### Article R823-23 | LEGIARTI000038878887
 
 Dans le cas où le bailleur ou l'établissement habilité justifie qu'il a,
-conformément aux articles L. 832-2 et L. 842-1, déduit les sommes d'aide
+conformément aux articles L. 832-2 et L. 842-1 , déduit les sommes d'aide
 personnelle au logement du montant du loyer et des dépenses accessoires de
 logement ou de celui des charges de remboursement et que le locataire ou
 l'emprunteur ne conteste pas le caractère indu de ces sommes, celles-ci
 sont recouvrées, suivant le cas, auprès du locataire ou de l'emprunteur,
-dans les conditions fixées à l'article L. 553-2 du code de la sécurité sociale.
+dans les conditions fixées à l' article L. 553-2 du code de la sécurité sociale .
 
 ```catala
 # Pas pertinent pour le moment.
@@ -2334,7 +2323,7 @@ dans les conditions fixées à l'article L. 553-2 du code de la sécurité socia
 
 ####### Article R823-24 | LEGIARTI000038878885
 
-Les dispositions des articles R. 133-9-2, D. 553-1, D. 553-2, D. 553-4 et
+Les dispositions des articles R. 133-9-2 , D. 553-1 , D. 553-2 , D. 553-4 et
 D. 553-5 du code de la sécurité sociale sont applicables au recouvrement des indus.
 
 ```catala
@@ -2344,8 +2333,8 @@ D. 553-5 du code de la sécurité sociale sont applicables au recouvrement des i
 ####### Article D823-25 | LEGIARTI000038878883
 
 Les organismes payeurs sont autorisés à abandonner la mise en recouvrement des
-sommes indûment payées, dans les conditions définies à l'article D. 133-2 du code
-de la sécurité sociale.
+sommes indûment payées, dans les conditions définies à l' article D. 133-2 du code
+de la sécurité sociale .
 
 ```catala
 # Pas pertinent pour le moment.
@@ -2564,7 +2553,7 @@ Lorsque le bénéficiaire de l'aide personnelle au logement ne règle pas la par
 de dépense de logement restant à sa charge, sa situation est soumise à l'organisme
 payeur par le bailleur percevant l'aide personnelle au logement pour son compte,
 dans un délai de deux mois après la constitution de l'impayé défini à l'article
-R. 824-1, sauf si la somme due a été, entre-temps, réglée en totalité.
+R. 824-1 , sauf si la somme due a été, entre-temps, réglée en totalité.
 
 Le bailleur doit justifier qu'il poursuit par tous les moyens possibles le
 recouvrement de sa créance.
@@ -2588,7 +2577,7 @@ dont il a connaissance.
 Si le bailleur ne signale pas l'impayé à l'organisme payeur dans le délai et les
 conditions mentionnés à l'article R. 824-4 ou s'il n'apporte pas les justifications
 prévues au même article, il est fait application des dispositions de l'article L. 114-17
-du code de la sécurité sociale.
+du code de la sécurité sociale .
 
 ```catala
 # L'article L. 114-17 du code de la sécurité sociale énonce les différents
@@ -2616,7 +2605,7 @@ de l'aide personnelle au logement.
 
 A défaut de réception du plan d'apurement dans le délai mentionné au 1° et
 après mise en demeure du bailleur, l'organisme payeur saisit le fonds départemental
-de solidarité pour le logement mentionné à l'article 6 de loi n° 90-449 du 31 mai 1990
+de solidarité pour le logement mentionné à l' article 6 de loi n° 90-449 du 31 mai 1990
 visant à la mise en œuvre du droit au logement, qui dispose d'un délai de trois mois
 pour établir un dispositif d'apurement. L'organisme payeur tient la commission de
 coordination des actions de prévention des expulsions locatives informée de l'évolution
@@ -2624,7 +2613,7 @@ de la situation du bénéficiaire.
 
 En cas de mauvaise exécution du plan ou du dispositif d'apurement ou de non-reprise du
 paiement de la dépense courante de logement, l'organisme payeur suspend le versement de
-l'aide personnelle au logement, sous réserve des dispositions de l'article R. 824-28.
+l'aide personnelle au logement, sous réserve des dispositions de l'article R. 824-28 .
 
 2° L'organisme payeur peut choisir de saisir directement le fonds départemental de
 solidarité pour le logement ou tout autre organisme à vocation analogue, en lui demandant
@@ -2652,14 +2641,14 @@ au logement, sous réserve des dispositions de l'article R. 824-28.
 
 Si le fonds départemental de solidarité pour le logement ou un organisme à vocation analogue
 n'a pas fait connaître le dispositif qu'il a retenu dans les délais prévus au 1° ou au 2° de
-l'article R. 824-7, l'organisme payeur met en demeure le bénéficiaire de reprendre le paiement
+l'article R. 824-7 , l'organisme payeur met en demeure le bénéficiaire de reprendre le paiement
 de la dépense courante de logement et d'apurer l'intégralité de sa dette en remboursant chaque
 mois au bailleur 1/ 36e de sa dette pendant trente-six mois à compter du mois suivant la mise
 en demeure.
 
 En cas de mauvaise exécution du plan d'apurement ou de non-reprise du paiement de la dépense
 courante de logement, l'organisme payeur suspend le versement de l'aide personnelle au logement,
-sous réserve des dispositions de l'article R. 824-28.
+sous réserve des dispositions de l'article R. 824-28 .
 
 ```catala
 # Idem
@@ -2690,7 +2679,7 @@ d'apurement.
 Cette procédure de traitement de l'impayé prend fin lorsque le plan proposé par l'organisme payeur
 n'est pas approuvé par le bailleur et par le bénéficiaire dans le délai imparti ou en cas de
 non-respect de ce plan. Dans ce cas, l'organisme payeur applique la procédure de droit commun
-définie à l'article R. 824-7, les délais fixés aux 1° et 2° de cet article et au deuxième alinéa
+définie à l'article R. 824-7 , les délais fixés aux 1° et 2° de cet article et au deuxième alinéa
 de l'article R. 824-20 étant alors divisés par deux.
 
 ```catala
@@ -2732,7 +2721,7 @@ pendant trente-six mois à compter du mois suivant la mise en demeure.
 Dans chacune des situations définies aux articles R. 824-11 et R. 824-12, en cas de mauvaise
 exécution du plan ou du dispositif d'apurement ou de non-reprise du paiement de la dépense
 courante de logement, l'organisme payeur suspend le versement de l'aide personnelle au logement,
-sous réserve des dispositions de l'article R. 824-28.
+sous réserve des dispositions de l'article R. 824-28 .
 
 ```catala
 # Pas pertinent pour le moment.
@@ -2753,7 +2742,7 @@ s'acquitte de l'indemnité et des charges fixées, et jusqu'au départ effectif 
 ######## Article D824-15 | LEGIARTI000038878841
 
 Pour qu'elle ouvre droit au bénéfice de l'aide, la signature du protocole d'accord, conclu en
-application des articles L. 353-15-2, L. 442-6-5 et du sixième alinéa de l'article L. 442-8-2,
+application des articles L. 353-15-2 , L. 442-6-5 et du sixième alinéa de l'article L. 442-8-2 ,
 est subordonnée à l'approbation préalable du plan d'apurement par l'organisme payeur.
 
 Si un protocole d'accord est signé, l'organisme payeur fixe les modalités du versement du rappel
@@ -2782,7 +2771,7 @@ du paiement par l'occupant des échéances prévues par le protocole.
 
 Si l'occupant ne respecte pas les engagements contenus dans le protocole, le bailleur est tenu
 d'en informer l'organisme payeur qui suspend le versement du rappel, sous réserve des dispositions
-de l'article R. 824-28.
+de l'article R. 824-28 .
 
 Sous réserve de la reprise du paiement de la dépense courante de logement, l'organisme payeur
 maintient l'aide personnelle au logement pendant une durée qui ne peut excéder trois mois,
@@ -2812,7 +2801,7 @@ pendant trente-six mois.
 En cas de non-reprise du paiement de la dépense courante de logement ou de refus de
 s'engager sur ce plan d'apurement ou de mauvaise exécution de ce plan, le versement
 de l'aide personnelle au logement est suspendu, sous réserve des dispositions de
-l'article R. 824-28.
+l'article R. 824-28 .
 
 ```catala
 # Suspension du versement de l'aide. Il est important de définir lorsque
@@ -2834,16 +2823,16 @@ par l'organisme payeur.
 ######## Article R824-20 | LEGIARTI000038878828
 
 Dans le cas où un bénéficiaire qui perçoit directement l'aide personnalisée au logement se
-trouve dans la situation d'impayé définie à l'article R. 824-1, l'organisme payeur demande
+trouve dans la situation d'impayé définie à l'article R. 824-1 , l'organisme payeur demande
 au bailleur de lui indiquer s'il souhaite en obtenir le versement entre ses mains, en lieu
 et place du bénéficiaire.
 
 Le bailleur dispose d'un délai de deux mois pour faire connaître sa position à l'organisme
-payeur. Ce délai est inclus dans les délais prévus aux 1° et 2° de l'article R. 824-7. Le
+payeur. Ce délai est inclus dans les délais prévus aux 1° et 2° de l'article R. 824-7 . Le
 silence du bailleur à l'expiration de ce délai vaut décision de refus.
 
 Les dispositions du présent article sont applicables aux allocations de logement, sauf dans
-le cas prévu au troisième alinéa de l'article L. 842-1.
+le cas prévu au troisième alinéa de l'article L. 842-1 .
 
 ```catala
 # Demande de modification de la personne qui perçoit les aides pour
@@ -2853,7 +2842,7 @@ le cas prévu au troisième alinéa de l'article L. 842-1.
 
 ######## Article R824-21 | LEGIARTI000038878826
 
-Sans préjudice de l'application des articles R. 824-7 à R. 824-13 et R. 824-27 à R. 824-29,
+Sans préjudice de l'application des articles R. 824-7 à R. 824-13 et R. 824-27 à R. 824-29 ,
 à réception de l'accord du bailleur, l'organisme payeur lui verse l'aide et en informe le
 bénéficiaire.
 
@@ -2863,17 +2852,17 @@ bénéficiaire.
 
 ######## Article R824-22 | LEGIARTI000038878824
 
-En cas de refus du bailleur, dans les cas limitativement prévus à l'article D. 832-2, de
+En cas de refus du bailleur, dans les cas limitativement prévus à l'article D. 832-2 , de
 percevoir directement l'aide personnalisée au logement, le versement de l'aide est maintenu
-dans les conditions prévues aux articles R. 824-7 à R. 824-13 et R. 824-27 à R. 824-29.
+dans les conditions prévues aux articles R. 824-7 à R. 824-13 et R. 824-27 à R. 824-29 .
 
 Ces dispositions s'appliquent également aux allocations de logement, en cas de refus du
-bailleur et dans le cas prévu au troisième alinéa de l'article L. 842-1.
+bailleur et dans le cas prévu au troisième alinéa de l'article L. 842-1 .
 
 Toutefois, s'il est fait application de la procédure prévue au 1° de l'article R. 824-7,
 le délai de six mois accordé au bailleur pour mettre en place un plan d'apurement est réduit
 à deux mois. Il est décompté à partir de la date du refus du bailleur mentionné à l'article
-R. 824-20.
+R. 824-20 .
 
 ```catala
 # Pas forcément pertinent pour le moment.
@@ -2883,10 +2872,10 @@ R. 824-20.
 
 ######## Article R824-23 | LEGIARTI000038878820
 
-Lorsqu'une procédure de surendettement a été engagée devant la commission prévue à l'article
-L. 712-1 du code de la consommation, préalablement ou parallèlement à l'engagement des
+Lorsqu'une procédure de surendettement a été engagée devant la commission prévue à l' article
+L. 712-1 du code de la consommation , préalablement ou parallèlement à l'engagement des
 procédures prévues aux sous-sections 1 à 4 et à la sous-section 6 de la présente section,
-le versement de l'aide personnelle au logement est maintenu pendant le délai prévu à l'article
+le versement de l'aide personnelle au logement est maintenu pendant le délai prévu à l' article
 R. 721-4 du code de la consommation pour décider de l'orientation du dossier de surendettement.
 
 ```catala
@@ -2896,7 +2885,7 @@ R. 721-4 du code de la consommation pour décider de l'orientation du dossier de
 
 ######## Article R824-24 | LEGIARTI000038878818
 
-Lorsqu'elle est rétablie dans les conditions prévues à l'article L. 824-3, l'aide est versée
+Lorsqu'elle est rétablie dans les conditions prévues à l'article L. 824-3 , l'aide est versée
 entre les mains du bailleur :
 
 1° Sans préjudice des dispositions de l'article L. 832-1 pour l'aide personnalisée au logement ;
@@ -2912,7 +2901,7 @@ L. 842-1 pour les allocations de logement.
 ######## Article R824-25 | LEGIARTI000038878816
 
 Lorsque l'aide était versée à l'allocataire avant l'engagement de la procédure prévue à
-l'article R. 824-23, il est fait application de l'article R. 824-20.
+l'article R. 824-23 , il est fait application de l'article R. 824-20 .
 
 ```catala
 # Pas pertinent pour le moment.
@@ -2962,19 +2951,19 @@ la moitié au moins de la dépense courante de logement, déduction faite de l'a
 
 Lorsque le juge décide d'un plan d'apurement, notamment dans le cas prévu au V de l'article
 24 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rapports locatifs et portant
-modification de la loi n° 86-1290 du 23 décembre 1986, l'aide personnelle au logement est
+modification de la loi n° 86-1290 du 23 décembre 1986 , l'aide personnelle au logement est
 maintenue ou rétablie, sous réserve du respect de ce plan d'apurement, dans les conditions
-prévues à l'article R. 824-26.
+prévues à l'article R. 824-26 .
 
 
 
 ######## Article R824-30 | LEGIARTI000038878804
 
 Pour l'application du II du même article 24 de la loi du 6 juillet 1989 mentionnée à l'article
-R. 824-29, la première information par l'organisme payeur de la commission de coordination des
+R. 824-29 , la première information par l'organisme payeur de la commission de coordination des
 actions de prévention des expulsions locatives vaut saisine de cette commission.
 
-Pour l'application de l'article 7-2 de la loi n° 90-449 du 31 mai 1990 visant à la mise en œuvre
+Pour l'application de l' article 7-2 de la loi n° 90-449 du 31 mai 1990 visant à la mise en œuvre
 du droit au logement, la première information par l'organisme payeur de la commission de
 coordination des actions de prévention des expulsions locatives vaut alerte de cette commission.
 
@@ -2998,12 +2987,12 @@ Dans ce cas, le gestionnaire est substitué au bailleur et la redevance au loyer
 
 Lorsque le bénéficiaire en situation d'impayé est accédant à la propriété, le versement de
 l'aide personnelle au logement est maintenu, conformément aux dispositions prévues aux
-articles R. 824-4 à R. 824-13 et R. 824-27 à R. 824-29.
+articles R. 824-4 à R. 824-13 et R. 824-27 à R. 824-29 .
 
 Dans ce cas, l'établissement habilité est substitué au bailleur, l'échéance de prêt au
 loyer et, à l'exception de la phase locative des contrats de location-accession mentionnés
-au 6° de l'article L. 831-1, le comité responsable du plan local d'action pour le logement
-et l'hébergement des personnes défavorisées mentionné à l'article 3 de la loi n° 90-449
+au 6° de l'article L. 831-1 , le comité responsable du plan local d'action pour le logement
+et l'hébergement des personnes défavorisées mentionné à l' article 3 de la loi n° 90-449
 du 31 mai 1990 visant à la mise en œuvre du droit au logement est substitué à la commission
 de coordination des actions de prévention des expulsions locatives.
 
@@ -3014,7 +3003,7 @@ de coordination des actions de prévention des expulsions locatives.
 Lorsque le bénéficiaire se trouve dans la situation d'impayé définie aux articles R. 824-2
 et R. 824-3, l'organisme payeur demande au prêteur s'il souhaite le versement de l'aide
 entre ses mains en lieu et place du bénéficiaire conformément aux dispositions prévues aux
-articles R. 824-20 à R. 824-22, l'établissement habilité étant substitué au bailleur.
+articles R. 824-20 à R. 824-22 , l'établissement habilité étant substitué au bailleur.
 
 
 
@@ -3053,7 +3042,7 @@ la location-accession à la propriété immobilière et qui a été construit ou
 dans les conditions définies par le 6° de l'article L. 831-1 ;
 
 4° Soit un local privatif dans un logement-foyer tel que défini à l'article
-L. 633-1, faisant l'objet d'une convention conclue en application du 5° de
+L. 633-1 , faisant l'objet d'une convention conclue en application du 5° de
 l'article L. 831-1.
 
 Pour l'application du présent titre, sont assimilés à des propriétaires les
@@ -3113,7 +3102,7 @@ conventionné comportant moins de dix logements, l'aide personnalisée est vers�
 au bailleur ou au gestionnaire, s'il en fait la demande. Faute d'une telle demande,
 elle est versée au locataire.
 
-Dans les cas de sous-location prévus aux articles L. 353-20 et L. 442-8-1, l'aide
+Dans les cas de sous-location prévus aux articles L. 353-20 et L. 442-8-1 , l'aide
 personnalisée au logement est versée, sur leur demande, aux personnes morales locataires.
 
 En outre, sauf si le bailleur ou l'établissement habilité en demande le versement
@@ -3126,7 +3115,7 @@ entre ses mains, elle est versée directement :
 n'est supérieure ou égale, pour la première année, au montant de l'aide personnalisée ;
 
 3° Aux personnes sous-locataires mentionnées au premier alinéa de l'article
-L. 822-4. Dans ce cas, le locataire titulaire du bail principal et sous-louant
+L. 822-4 . Dans ce cas, le locataire titulaire du bail principal et sous-louant
 une partie de son logement est assimilé au bailleur.
 
 ```catala
@@ -3134,7 +3123,7 @@ une partie de son logement est assimilé au bailleur.
 # pas pour l'instant.
 ```
 
-####### Artcile D832-3 | LEGIARTI000038878762
+####### Article D832-3 | LEGIARTI000038878762
 
 Pour l'application des articles D. 832-1 et D. 832-2, est considéré comme un établissement
 habilité :
@@ -3142,7 +3131,7 @@ habilité :
 1° Le vendeur, en cas de vente à terme, ou de location-accession ;
 
 2° Les sociétés faisant l'objet des dispositions des articles L. 212-1 à L. 212-13 et
-L. 213-1 à L. 213-15, lorsqu'elles ont été bénéficiaires du prêt principal.
+L. 213-1 à L. 213-15 , lorsqu'elles ont été bénéficiaires du prêt principal.
 
 ```catala
 # Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
@@ -3180,7 +3169,8 @@ les charges correspondantes d'un :
 1° Prêt aidé par l'Etat pour la construction, l'acquisition et l'amélioration des logements
 en accession à la propriété défini à l'article D. 331-32 ;
 
-2° Prêt conventionné défini à l'article D. 331-63, dans les conditions précisées par l'article D. 331-64.
+2° Prêt conventionné défini à l'article D. 331-63 , dans les conditions précisées
+par l'article D. 331-64.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
@@ -3229,7 +3219,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
 
 ####### Article R832-8 | LEGIARTI000039048897
 
-Sous réserve des dispositions de l'article R. 823-14, l'aide est versée :
+Sous réserve des dispositions de l'article R. 823-14 , l'aide est versée :
 
 1° Soit, si l'accédant occupe le logement à la date de la première échéance due au titre du contrat
 de location-accession :
@@ -3246,7 +3236,7 @@ par cette échéance, à compter du premier jour du mois civil suivant celui au 
 l'entrée dans les lieux.
 
 Est pris en considération, pour le calcul de l'aide personnalisée, le montant de la redevance définie
-au premier alinéa de l'article D. 331-59-16 et au II de l'article D. 331-76-5-1.
+au premier alinéa de l'article D. 331-59-16 et au II de l'article D. 331-76-5-1 .
 
 ```catala
 # Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
@@ -3266,7 +3256,7 @@ de location-accession ;
 
 3° Lors de chaque révision des charges de remboursement, lorsque le propriétaire est titulaire
 d'un prêt aidé par l'Etat à taux révisable défini à l'article D. 331-54-1 ou d'un prêt
-conventionné à taux révisable défini à l'article D. 331-75.
+conventionné à taux révisable défini à l'article D. 331-75 .
 
 ```catala
 # Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
@@ -3277,7 +3267,7 @@ conventionné à taux révisable défini à l'article D. 331-75.
 
 Pour les propriétaires bénéficiant d'un prêt ouvrant droit à l'aide personnalisée au logement
 ou les titulaires d'un contrat de location-accession conclu dans les conditions prévues
-au 6° de l'article L. 831-1, le montant mensuel de l'aide est calculé selon la formule et
+au 6° de l'article L. 831-1 , le montant mensuel de l'aide est calculé selon la formule et
 les modalités suivantes :
 
 $$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
@@ -3488,7 +3478,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 
 ####### Article D832-12 | LEGIARTI000039048893
 
-I.-La mensualité " L ", définie au 3° de l'article D. 832-10, est déterminée selon
+I.-La mensualité " L ", définie au 3° de l'article D. 832-10 , est déterminée selon
 les modalités suivantes, sur une base mensuelle :
 
 La mensualité est la somme :
@@ -3511,8 +3501,8 @@ résultant du report d'échéances de sommes dues en cas de chômage, contracté
 bénéficiaire en garantie de l'exécution des engagements souscrits ;
 
 II.-Pour les titulaires d'un contrat de location-accession conclu dans les conditions
-prévues au 6° de l'article L. 831-1, la redevance de location-accession, définie au
-premier alinéa de l'article D. 331-59-16 et au II de l'article D. 331-76-5-1, est
+prévues au 6° de l'article L. 831-1 , la redevance de location-accession, définie au
+premier alinéa de l'article D. 331-59-16 et au II de l'article D. 331-76-5-1 , est
 assimilée à la mensualité.
 
 ```catala
@@ -3527,7 +3517,7 @@ assimilée à la mensualité.
 Lorsque le prêt ouvrant droit à l'aide personnalisée est un prêt conventionné
 accordé pour l'amélioration du logement et que le prêt souscrit antérieurement pour
 l'acquisition de ce logement est assimilé à un prêt complémentaire dans les conditions
-prévues au 1° du I de l'article D. 832-12, la mensualité de référence est celle prévue
+prévues au 1° du I de l'article D. 832-12 , la mensualité de référence est celle prévue
 pour les logements acquis et améliorés à l'aide d'un prêt conventionné.
 
 ```catala
@@ -3768,7 +3758,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 ```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre
-II du titre II du présent livre et, le cas échéant, à l'article D. 832-18, et arrondies
+II du titre II du présent livre et, le cas échéant, à l'article D. 832-18 , et arrondies
 à la centaine d'euros supérieure.
 
 ####### Article D832-18 | LEGIARTI000038878730
@@ -3778,7 +3768,7 @@ prévues à la section 2 du chapitre II du titre II du présent livre sont infé
 à un montant déterminé par le produit d'un coefficient, fixé par arrêté, et des
 mensualités déclarées, les ressources sont réputées égales à ce montant, sauf lorsque
 les intéressés se trouvent dans l'une des situations mentionnées aux articles R. 822-11
-et R. 822-13 à R. 822-17.
+et R. 822-13 à R. 822-17 .
 
 ```catala
 # Les ressources mentionnées ici prennent-elles en compte
@@ -3827,7 +3817,7 @@ personnes âgées ;
 2° Les résidences sociales ;
 
 3° Les logements-foyers accueillant, à titre principal, des jeunes travailleurs ou des
-travailleurs migrants et ayant fait l'objet d'une convention, prévue à l'article L. 353-2,
+travailleurs migrants et ayant fait l'objet d'une convention, prévue à l'article L. 353-2 ,
 signée avant le 1er janvier 1995.
 
 ```catala-metadata
@@ -3843,12 +3833,12 @@ déclaration énumération TypeLogementFoyer:
 
 ######## Article R832-21 | LEGIARTI000039048891
 
-Pour l'application du 5° de l'article L. 831-1, peuvent être assimilés à des logements
+Pour l'application du 5° de l'article L. 831-1 , peuvent être assimilés à des logements
 à usage locatif :
 
 1° Les logements-foyers existants dont la construction a été financée :
 
-a) Soit dans les conditions prévues par les articles L. 313-1, L. 411-1, R. 311-1 et
+a) Soit dans les conditions prévues par les articles L. 313-1 , L. 411-1 , R. 311-1 et
 R. 431-49 sous réserve que, lorsque des crédits collectés au titre de la participation
 des employeurs à l'effort de construction ont constitué le seul financement entrant dans
 le champ d'application des articles précités, le montant de ces crédits doit représenter
@@ -3884,10 +3874,10 @@ a) Soit dans les conditions prévues par la section 1 du chapitre Ier du titre I
 b) Soit au moyen de subventions accordées sur le budget du ministère chargé de la santé
 représentant au moins 20 % du coût de la construction ;
 
-4° Les établissements d'hébergement mentionnés au III de l'article R. 321-12, dès lors que
+4° Les établissements d'hébergement mentionnés au III de l'article R. 321-12 , dès lors que
 leurs caractéristiques techniques respectent celles des logements-foyers prévues par l'arrêté
 mentionné à l'article D. 331-8 et que la convention prévue au II de l'article R. 321-20 est
-remplacée par la convention prévue au III de l'article R. 353-159.
+remplacée par la convention prévue au III de l'article R. 353-159 .
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
@@ -3903,7 +3893,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
 
 ######## Article R832-22 | LEGIARTI000038878718
 
-Sont assimilés à des logements locatifs en application du 5° de l'article L. 831-1,
+Sont assimilés à des logements locatifs en application du 5° de l'article L. 831-1 ,
 les logements-foyers qui répondent à l'une des conditions fixées aux articles R. 832-20
 et R. 832-21 et font l'objet d'une convention passée dans les conditions prévues à
 la section 7 du chapitre III du titre V du livre III.
@@ -3916,7 +3906,7 @@ la section 7 du chapitre III du titre V du livre III.
 
 ######## Article R832-23 | LEGIARTI000038878714
 
-Par dérogation à l'article R. 823-10, l'aide est due à l'occupant d'un logement-foyer mentionné
+Par dérogation à l'article R. 823-10 , l'aide est due à l'occupant d'un logement-foyer mentionné
 aux 2° et 3° de l'article R. 832-20 à partir du premier jour du premier mois civil pour lequel
 cet occupant acquitte l'intégralité de la redevance mensuelle prévue par le titre d'occupation,
 sous réserve que les autres conditions d'ouverture du droit soient réunies à cette date.
@@ -3928,7 +3918,7 @@ sous réserve que les autres conditions d'ouverture du droit soient réunies à 
 
 ######## Article D832-24 | LEGIARTI000038878712
 
-Pour les ménages résidant dans un logement-foyer mentionné à l'article R. 832-22, le montant
+Pour les ménages résidant dans un logement-foyer mentionné à l'article R. 832-22 , le montant
 mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
 $$\textrm{Af} = \textrm{K} \times (\textrm{E}-\textrm{E0})$$
@@ -3951,7 +3941,7 @@ où :
 l'article D. 832-25 ;
 
 3° " E " est l'équivalence de loyer et de charges locatives éligible, définie aux articles
-R. 353-156 à R. 353-160, et prise en compte dans la limite d'un plafond fixé par arrêté en fonction
+R. 353-156 à R. 353-160 , et prise en compte dans la limite d'un plafond fixé par arrêté en fonction
 de la zone géographique et de la composition familiale ;
 
 ```catala
@@ -4044,7 +4034,7 @@ les modalités précisées au 1° du présent article.
 
 Toutefois, pour les logements-foyers de jeunes travailleurs conventionnés après le 30 septembre 1990
 et pour les résidences sociales conventionnées après le 31 décembre 1994, en application du 5°
-de l'article L. 831-1, et mentionnés au 1° de l'article R. 832-21, le coefficient " K " est calculé
+de l'article L. 831-1 , et mentionnés au 1° de l'article R. 832-21 , le coefficient " K " est calculé
 selon la formule et les modalités précisées au 2° du présent article.
 
 ```catala
@@ -4224,7 +4214,7 @@ champ d'application CalculNombrePartLogementFoyer:
 
 ######## Article D832-26 | LEGIARTI000038878708
 
-L'équivalence de loyer et de charges minimale " E0 ", définie au 4° de l'article D. 832-24,
+L'équivalence de loyer et de charges minimale " E0 ", définie au 4° de l'article D. 832-24 ,
 est obtenue par application de pourcentages à des tranches de ressources, dont les limites
 inférieures et supérieures sont multipliées par le nombre de parts " N " défini au e du 1°
 de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfaitaire par le
@@ -4327,7 +4317,7 @@ Les pourcentages, les montants forfaitaires et les bornes des tranches sont fix�
 
 ######## Article D832-27 | LEGIARTI000038878706
 
-La dépense nette de logement, mentionnée au neuvième alinéa de l'article D. 832-24, est égale
+La dépense nette de logement, mentionnée au neuvième alinéa de l'article D. 832-24 , est égale
 à la différence entre l'équivalence de loyer et de charges locatives éligibles " E " et le
 montant mensuel de l'aide calculé selon les dispositions des premier à huitième alinéas du
 même article. Lorsque cette dépense nette de logement est inférieure à un montant fixé par
@@ -4365,7 +4355,7 @@ Le zonage géographique est fixé par arrêté des ministres chargés du logemen
 
 ####### Article D841-1 | LEGIARTI000038878698
 
-Pour l'application du 3° de l'article L. 841-1, la durée pendant laquelle l'allocation est
+Pour l'application du 3° de l'article L. 841-1 , la durée pendant laquelle l'allocation est
 due est fixée à cinq ans.
 
 ```catala
@@ -4439,7 +4429,7 @@ du contrat de travail, l'évaluation du loyer est faite, en tant que de besoin, 
 
 ####### Article D842-3 | LEGIARTI000041477287
 
-En cas de colocation telle que définie à l'article R. 821-4, le loyer principal retenu est le
+En cas de colocation telle que définie à l'article R. 821-4 , le loyer principal retenu est le
 résultat du quotient du loyer effectivement payé par le nombre de cotitulaires du bail ou de
 l'engagement de location.
 
@@ -4451,9 +4441,9 @@ l'engagement de location.
 ####### Article D842-4 | LEGIARTI000038878681
 
 Lorsqu'à la suite, soit d'un échange consenti pour libérer un logement dont la superficie
-excède celle prévue à l'article R. 822-25, soit d'une expropriation pour cause d'utilité
+excède celle prévue à l'article R. 822-25 , soit d'une expropriation pour cause d'utilité
 publique ou d'une opération d'aménagement ou de rénovation urbaine ou de résorption d'habitat
-insalubre en application de l'article L. 522-1, soit de la démolition d'un immeuble ayant
+insalubre en application de l'article L. 522-1 , soit de la démolition d'un immeuble ayant
 fait l'objet d'une déclaration d'insalubrité, d'une interdiction d'habiter ou d'un arrêté
 de péril, soit d'une opération de restauration immobilière, les personnes mentionnées au 3°
 de l'article D. 842-16 qui, au titre de leur ancien logement, bénéficiaient de l'allocation
@@ -4463,7 +4453,7 @@ présentant un loyer plus élevé que celui qu'elles payaient précédemment, l'
 calculée de façon à couvrir la différence entre le loyer principal acquitté dans l'ancien
 logement, déduction faite, le cas échéant, de l'allocation qui leur était octroyée et le
 nouveau loyer principal qui leur est réclamé, dans la limite du plafond fixé en application
-du 3° de l'article L. 823-1.
+du 3° de l'article L. 823-1 .
 
 ```catala
 champ d'application CalculAllocationLogementLocatif sous condition
@@ -4558,7 +4548,7 @@ champ d'application ÉligibilitéAllocationLogement:
 3° Aux personnes qui se libèrent d'une dette contractée en vue soit d'agrandir leur logement,
 soit d'aménager à usage de logements des locaux non destinés à l'habitation, lorsque ces
 travaux répondent aux normes techniques imposées pour le bénéfice des prêts conventionnés
-mentionnés à l'article D. 331-63.
+mentionnés à l'article D. 331-63 .
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
@@ -4574,7 +4564,7 @@ champ d'application ÉligibilitéAllocationLogement:
 
 ####### Article D842-6 | LEGIARTI000038878675
 
-Pour les ménages mentionnés à l'article R. 842-5, le montant mensuel de l'allocation est
+Pour les ménages mentionnés à l'article R. 842-5 , le montant mensuel de l'allocation est
 calculé selon la formule et les modalités suivantes :
 
 $$\textrm{Af} = \textrm{K} \times (\textrm{L} + \textrm{C}-\textrm{L0})$$
@@ -4711,7 +4701,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 
 ####### Article D842-7 | LEGIARTI000038878673
 
-Sous réserve des dispositions de l'article D. 842-8, seuls sont pris en considération pour
+Sous réserve des dispositions de l'article D. 842-8 , seuls sont pris en considération pour
 le calcul de la mensualité " L " définie au 3° de l'article D. 842-6 :
 
 1° Les charges d'intérêts et d'amortissements et les charges accessoires au principal de
@@ -4920,7 +4910,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 ```
 
 Ces ressources sont portées à ce montant sauf lorsque les intéressés se trouvent
-dans l'une des situations mentionnées aux articles R. 822-11 et R. 822-13 à R. 822-17.
+dans l'une des situations mentionnées aux articles R. 822-11 et R. 822-13 à R. 822-17 .
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
@@ -5127,7 +5117,7 @@ champ d'application CalculAllocationLogementFoyer:
 
 Un arrêté fixe l'équivalence de loyer " L ", définie au 3° de l'article D. 842-15,
 pour chacune des catégories de personnes résidant dans un logement-foyer ou assimilé,
-mentionné au 3° de l'article D. 823-9.
+mentionné au 3° de l'article D. 823-9 .
 
 Ces catégories comprennent :
 
@@ -5135,9 +5125,9 @@ Ces catégories comprennent :
 
 2° Les étudiants logés dans une chambre ayant fait l'objet d'une réhabilitation ;
 
-3° Les personnes dont l'âge est au moins égal à celui prévu par l'article L. 161-17-2
-du code de la sécurité sociale, augmenté de cinq années, sauf en cas d'inaptitude au
-travail, les personnes titulaires de l'allocation mentionnée à l'article L. 815-1 du
+3° Les personnes dont l'âge est au moins égal à celui prévu par l' article L. 161-17-2
+du code de la sécurité sociale , augmenté de cinq années, sauf en cas d'inaptitude au
+travail, les personnes titulaires de l'allocation mentionnée à l' article L. 815-1 du
 code de la sécurité sociale dont l'âge est au moins égal à soixante-cinq ans, ainsi
 que les personnes handicapées ;
 
@@ -5155,7 +5145,7 @@ déclaration énumération CatégorieÉquivalenceLoyerAllocationLogementFoyer:
 
 ####### Article D842-17 | LEGIARTI000038878651
 
-La dépense nette de logement, définie au dixième alinéa de l'article D. 842-15, est
+La dépense nette de logement, définie au dixième alinéa de l'article D. 842-15 , est
 égale à la différence entre l'équivalence de loyer prise en compte " L ", majorée du
 montant forfaitaire au titre des charges " C ", et le montant mensuel de l'aide
 calculé selon les modalités précisées aux deuxième à neuvième alinéas du même article.
