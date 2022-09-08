@@ -2696,15 +2696,15 @@ def contributions_sociales_aides_personnelle_logement(contributions_sociales_aid
     except EmptyError:
         temp__ = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/autres_sources.catala_fr",
-                                             start_line=104, start_column=13,
-                                             end_line=104, end_column=24,
+                                             start_line=127, start_column=13,
+                                             end_line=127, end_column=24,
                                              law_headings=["Article 14",
                                              "Chapitre II : Des contributions pour le remboursement de la dette sociale.",
                                              "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]))
     if not (temp__):
         raise AssertionFailure(SourcePosition(filename="examples/aides_logement/autres_sources.catala_fr",
-                                              start_line=104,
-                                              start_column=13, end_line=104,
+                                              start_line=127,
+                                              start_column=13, end_line=127,
                                               end_column=24,
                                               law_headings=["Article 14",
                                                            "Chapitre II : Des contributions pour le remboursement de la dette sociale.",
@@ -5443,8 +5443,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp___1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=2056,
-                                             start_column=13, end_line=2056,
+                                             start_line=2050,
+                                             start_column=13, end_line=2050,
                                              end_column=76,
                                              law_headings=["Article D823-16",
                                              "Sous-section 2 : Calcul de l'aide en secteur locatif",
@@ -5456,8 +5456,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Code de la construction et de l'habitation"]))
     if not (temp___1):
         raise AssertionFailure(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                              start_line=2056,
-                                              start_column=13, end_line=2056,
+                                              start_line=2050,
+                                              start_column=13, end_line=2050,
                                               end_column=76,
                                               law_headings=["Article D823-16",
                                                            "Sous-section 2 : Calcul de l'aide en secteur locatif",
@@ -5473,8 +5473,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp___2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_legislatif.catala_fr",
-                                             start_line=814, start_column=13,
-                                             end_line=814, end_column=63,
+                                             start_line=817, start_column=13,
+                                             end_line=817, end_column=63,
                                              law_headings=["Article L832-3",
                                              "Chapitre Ier : Champ d'application",
                                              "Titre III : Aide personnalisée au logement",
@@ -5483,8 +5483,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Code de la construction et de l'habitation"]))
     if not (temp___2):
         raise AssertionFailure(SourcePosition(filename="examples/aides_logement/code_construction_legislatif.catala_fr",
-                                              start_line=814,
-                                              start_column=13, end_line=814,
+                                              start_line=817,
+                                              start_column=13, end_line=817,
                                               end_column=63,
                                               law_headings=["Article L832-3",
                                                            "Chapitre Ier : Champ d'application",
@@ -8389,7 +8389,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_225 = situation_familiale_calcul_apl_4
                                 if match_arg_225.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_225.value
-                                    return money_of_cents_string("33026")
+                                    return money_of_cents_string("33086")
                                 elif match_arg_225.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_225.value
                                     return money_of_cents_string("39914")
@@ -8505,7 +8505,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                     _ = match_arg_233.value
                                     return money_of_cents_string("25874")
                             else:
-                                return (money_of_cents_string("30881") +
+                                return (money_of_cents_string("30181") +
                                     (money_of_cents_string("4307") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
@@ -8663,7 +8663,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                     _ = match_arg_245.value
                                     return money_of_cents_string("25417")
                             else:
-                                return (money_of_cents_string("26948") +
+                                return (money_of_cents_string("29648") +
                                     (money_of_cents_string("4231") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
@@ -9348,7 +9348,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                     _ = match_arg_297.value
                                     temp_calcul_plafond_mensualite_d832_10_3_108 = money_of_cents_string("141400")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_108 = (money_of_cents_string("282700") +
+                                temp_calcul_plafond_mensualite_d832_10_3_108 = (money_of_cents_string("182700") +
                                     (money_of_cents_string("41300") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
@@ -9603,200 +9603,202 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                     else:
                         raise EmptyError
                 def temp_calcul_plafond_mensualite_d832_10_3_121(_:Any):
-                    match_arg_316 = type_pret
-                    if match_arg_316.code == TypePret_Code.D331_32:
-                        _ = match_arg_316.value
-                        temp_calcul_plafond_mensualite_d832_10_3_122 = False
-                    elif match_arg_316.code == TypePret_Code.D331_63_64:
-                        _ = match_arg_316.value
-                        temp_calcul_plafond_mensualite_d832_10_3_122 = True
-                    elif match_arg_316.code == TypePret_Code.D331_59_8:
-                        _ = match_arg_316.value
-                        temp_calcul_plafond_mensualite_d832_10_3_122 = False
-                    elif match_arg_316.code == TypePret_Code.D331_76_1:
-                        _ = match_arg_316.value
-                        temp_calcul_plafond_mensualite_d832_10_3_122 = False
-                    elif match_arg_316.code == TypePret_Code.Autre:
-                        _ = match_arg_316.value
-                        temp_calcul_plafond_mensualite_d832_10_3_122 = False
-                    match_arg_317 = anciennete_logement
-                    if match_arg_317.code == NeufOuAncien_Code.Neuf:
-                        _ = match_arg_317.value
-                        temp_calcul_plafond_mensualite_d832_10_3_123 = False
-                    elif match_arg_317.code == NeufOuAncien_Code.Ancien:
-                        ameliore_par_occupant_2 = match_arg_317.value
-                        match_arg_318 = ameliore_par_occupant_2
-                        if match_arg_318.code == AmelioreParOccupant_Code.Oui:
-                            _ = match_arg_318.value
+                    try:
+                        match_arg_316 = type_pret
+                        if match_arg_316.code == TypePret_Code.D331_32:
+                            _ = match_arg_316.value
+                            temp_calcul_plafond_mensualite_d832_10_3_122 = False
+                        elif match_arg_316.code == TypePret_Code.D331_63_64:
+                            _ = match_arg_316.value
+                            temp_calcul_plafond_mensualite_d832_10_3_122 = True
+                        elif match_arg_316.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_316.value
+                            temp_calcul_plafond_mensualite_d832_10_3_122 = False
+                        elif match_arg_316.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_316.value
+                            temp_calcul_plafond_mensualite_d832_10_3_122 = False
+                        elif match_arg_316.code == TypePret_Code.Autre:
+                            _ = match_arg_316.value
+                            temp_calcul_plafond_mensualite_d832_10_3_122 = False
+                        match_arg_317 = anciennete_logement
+                        if match_arg_317.code == NeufOuAncien_Code.Neuf:
+                            _ = match_arg_317.value
                             temp_calcul_plafond_mensualite_d832_10_3_123 = False
-                        elif match_arg_318.code == AmelioreParOccupant_Code.Non:
-                            _ = match_arg_318.value
-                            temp_calcul_plafond_mensualite_d832_10_3_123 = True
-                    if ((param_13 >= date_of_numbers(1992,6,30)) and
-                        ((param_13 < date_of_numbers(1994,11,27)) and
-                        (temp_calcul_plafond_mensualite_d832_10_3_123 and
-                        temp_calcul_plafond_mensualite_d832_10_3_122))):
-                        match_arg_319 = zone_2
-                        if match_arg_319.code == ZoneDHabitation_Code.Zone1:
-                            _ = match_arg_319.value
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("0")):
-                                match_arg_320 = situation_familiale_calcul_apl_4
-                                if match_arg_320.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                    _ = match_arg_320.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("167800")
-                                elif match_arg_320.code == SituationFamilialeCalculAPL_Code.Couple:
-                                    _ = match_arg_320.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("202500")
-                            else:
-                                temp_calcul_plafond_mensualite_d832_10_3_124 = (money_of_cents_string("237200") +
-                                    (money_of_cents_string("34700") *
-                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                    integer_of_string("1")))))
-                        elif match_arg_319.code == ZoneDHabitation_Code.Zone2:
-                            _ = match_arg_319.value
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("0")):
-                                match_arg_321 = situation_familiale_calcul_apl_4
-                                if match_arg_321.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                    _ = match_arg_321.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("149600")
-                                elif match_arg_321.code == SituationFamilialeCalculAPL_Code.Couple:
-                                    _ = match_arg_321.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("223900")
-                            else:
-                                temp_calcul_plafond_mensualite_d832_10_3_124 = (money_of_cents_string("261800") +
-                                    (money_of_cents_string("37900") *
-                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                    integer_of_string("1")))))
-                        elif match_arg_319.code == ZoneDHabitation_Code.Zone3:
-                            _ = match_arg_319.value
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("0")):
-                                match_arg_322 = situation_familiale_calcul_apl_4
-                                if match_arg_322.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                    _ = match_arg_322.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("139700")
-                                elif match_arg_322.code == SituationFamilialeCalculAPL_Code.Couple:
-                                    _ = match_arg_322.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("208200")
-                            else:
-                                temp_calcul_plafond_mensualite_d832_10_3_124 = (money_of_cents_string("242800") +
-                                    (money_of_cents_string("34600") *
-                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                    integer_of_string("1")))))
-                        return (temp_calcul_plafond_mensualite_d832_10_3_124 *
-                            taux_francs_vers_euros)
-                    else:
-                        raise EmptyError
-                def temp_calcul_plafond_mensualite_d832_10_3_125(_:Any):
-                    match_arg_323 = type_pret
-                    if match_arg_323.code == TypePret_Code.D331_32:
-                        _ = match_arg_323.value
-                        temp_calcul_plafond_mensualite_d832_10_3_126 = False
-                    elif match_arg_323.code == TypePret_Code.D331_63_64:
-                        _ = match_arg_323.value
-                        temp_calcul_plafond_mensualite_d832_10_3_126 = True
-                    elif match_arg_323.code == TypePret_Code.D331_59_8:
-                        _ = match_arg_323.value
-                        temp_calcul_plafond_mensualite_d832_10_3_126 = False
-                    elif match_arg_323.code == TypePret_Code.D331_76_1:
-                        _ = match_arg_323.value
-                        temp_calcul_plafond_mensualite_d832_10_3_126 = False
-                    elif match_arg_323.code == TypePret_Code.Autre:
-                        _ = match_arg_323.value
-                        temp_calcul_plafond_mensualite_d832_10_3_126 = False
-                    match_arg_324 = anciennete_logement
-                    if match_arg_324.code == NeufOuAncien_Code.Neuf:
-                        _ = match_arg_324.value
-                        temp_calcul_plafond_mensualite_d832_10_3_127 = True
-                    elif match_arg_324.code == NeufOuAncien_Code.Ancien:
-                        _ = match_arg_324.value
-                        temp_calcul_plafond_mensualite_d832_10_3_127 = False
-                    if ((param_13 >= date_of_numbers(1992,6,30)) and
-                        ((param_13 < date_of_numbers(1994,11,27)) and
-                        (temp_calcul_plafond_mensualite_d832_10_3_127 and
-                        temp_calcul_plafond_mensualite_d832_10_3_126))):
-                        match_arg_325 = zone_2
-                        if match_arg_325.code == ZoneDHabitation_Code.Zone1:
-                            _ = match_arg_325.value
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("0")):
-                                match_arg_326 = situation_familiale_calcul_apl_4
-                                if match_arg_326.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                    _ = match_arg_326.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_128 = money_of_cents_string("208500")
-                                elif match_arg_326.code == SituationFamilialeCalculAPL_Code.Couple:
-                                    _ = match_arg_326.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_128 = money_of_cents_string("251500")
-                            else:
-                                temp_calcul_plafond_mensualite_d832_10_3_128 = (money_of_cents_string("294500") +
-                                    (money_of_cents_string("43000") *
-                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                    integer_of_string("1")))))
-                        elif match_arg_325.code == ZoneDHabitation_Code.Zone2:
-                            _ = match_arg_325.value
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("0")):
-                                match_arg_327 = situation_familiale_calcul_apl_4
-                                if match_arg_327.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                    _ = match_arg_327.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_128 = money_of_cents_string("186000")
-                                elif match_arg_327.code == SituationFamilialeCalculAPL_Code.Couple:
-                                    _ = match_arg_327.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_128 = money_of_cents_string("223900")
-                            else:
-                                temp_calcul_plafond_mensualite_d832_10_3_128 = (money_of_cents_string("261800") +
-                                    (money_of_cents_string("37900") *
-                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                    integer_of_string("1")))))
-                        elif match_arg_325.code == ZoneDHabitation_Code.Zone3:
-                            _ = match_arg_325.value
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("0")):
-                                match_arg_328 = situation_familiale_calcul_apl_4
-                                if match_arg_328.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                    _ = match_arg_328.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_128 = money_of_cents_string("173600")
-                                elif match_arg_328.code == SituationFamilialeCalculAPL_Code.Couple:
-                                    _ = match_arg_328.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_128 = money_of_cents_string("208200")
-                            else:
-                                temp_calcul_plafond_mensualite_d832_10_3_128 = (money_of_cents_string("242800") +
-                                    (money_of_cents_string("34600") *
-                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                    integer_of_string("1")))))
-                        return (temp_calcul_plafond_mensualite_d832_10_3_128 *
-                            taux_francs_vers_euros)
-                    else:
-                        raise EmptyError
-                def temp_calcul_plafond_mensualite_d832_10_3_129(_:Any):
+                        elif match_arg_317.code == NeufOuAncien_Code.Ancien:
+                            ameliore_par_occupant_2 = match_arg_317.value
+                            match_arg_318 = ameliore_par_occupant_2
+                            if match_arg_318.code == AmelioreParOccupant_Code.Oui:
+                                _ = match_arg_318.value
+                                temp_calcul_plafond_mensualite_d832_10_3_123 = False
+                            elif match_arg_318.code == AmelioreParOccupant_Code.Non:
+                                _ = match_arg_318.value
+                                temp_calcul_plafond_mensualite_d832_10_3_123 = True
+                        if ((param_13 >= date_of_numbers(1992,6,30)) and
+                            ((param_13 < date_of_numbers(1994,11,27)) and
+                            (temp_calcul_plafond_mensualite_d832_10_3_123 and
+                            temp_calcul_plafond_mensualite_d832_10_3_122))):
+                            match_arg_319 = zone_2
+                            if match_arg_319.code == ZoneDHabitation_Code.Zone1:
+                                _ = match_arg_319.value
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("0")):
+                                    match_arg_320 = situation_familiale_calcul_apl_4
+                                    if match_arg_320.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                        _ = match_arg_320.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("167800")
+                                    elif match_arg_320.code == SituationFamilialeCalculAPL_Code.Couple:
+                                        _ = match_arg_320.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("202500")
+                                else:
+                                    temp_calcul_plafond_mensualite_d832_10_3_124 = (money_of_cents_string("237200") +
+                                        (money_of_cents_string("34700") *
+                                        decimal_of_integer((nombre_personnes_a_charge_4 -
+                                        integer_of_string("1")))))
+                            elif match_arg_319.code == ZoneDHabitation_Code.Zone2:
+                                _ = match_arg_319.value
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("0")):
+                                    match_arg_321 = situation_familiale_calcul_apl_4
+                                    if match_arg_321.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                        _ = match_arg_321.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("149600")
+                                    elif match_arg_321.code == SituationFamilialeCalculAPL_Code.Couple:
+                                        _ = match_arg_321.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("180100")
+                                else:
+                                    temp_calcul_plafond_mensualite_d832_10_3_124 = (money_of_cents_string("210600") +
+                                        (money_of_cents_string("30500") *
+                                        decimal_of_integer((nombre_personnes_a_charge_4 -
+                                        integer_of_string("1")))))
+                            elif match_arg_319.code == ZoneDHabitation_Code.Zone3:
+                                _ = match_arg_319.value
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("0")):
+                                    match_arg_322 = situation_familiale_calcul_apl_4
+                                    if match_arg_322.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                        _ = match_arg_322.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("139700")
+                                    elif match_arg_322.code == SituationFamilialeCalculAPL_Code.Couple:
+                                        _ = match_arg_322.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_124 = money_of_cents_string("167600")
+                                else:
+                                    temp_calcul_plafond_mensualite_d832_10_3_124 = (money_of_cents_string("195500") +
+                                        (money_of_cents_string("27900") *
+                                        decimal_of_integer((nombre_personnes_a_charge_4 -
+                                        integer_of_string("1")))))
+                            return (temp_calcul_plafond_mensualite_d832_10_3_124 *
+                                taux_francs_vers_euros)
+                        else:
+                            raise EmptyError
+                    except EmptyError:
+                        match_arg_323 = type_pret
+                        if match_arg_323.code == TypePret_Code.D331_32:
+                            _ = match_arg_323.value
+                            temp_calcul_plafond_mensualite_d832_10_3_125 = True
+                        elif match_arg_323.code == TypePret_Code.D331_63_64:
+                            _ = match_arg_323.value
+                            temp_calcul_plafond_mensualite_d832_10_3_125 = False
+                        elif match_arg_323.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_323.value
+                            temp_calcul_plafond_mensualite_d832_10_3_125 = False
+                        elif match_arg_323.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_323.value
+                            temp_calcul_plafond_mensualite_d832_10_3_125 = False
+                        elif match_arg_323.code == TypePret_Code.Autre:
+                            _ = match_arg_323.value
+                            temp_calcul_plafond_mensualite_d832_10_3_125 = False
+                        match_arg_324 = anciennete_logement
+                        if match_arg_324.code == NeufOuAncien_Code.Neuf:
+                            _ = match_arg_324.value
+                            temp_calcul_plafond_mensualite_d832_10_3_126 = False
+                        elif match_arg_324.code == NeufOuAncien_Code.Ancien:
+                            _ = match_arg_324.value
+                            temp_calcul_plafond_mensualite_d832_10_3_126 = True
+                        if ((param_13 >= date_of_numbers(1992,6,30)) and
+                            ((param_13 < date_of_numbers(1994,11,27)) and
+                            (temp_calcul_plafond_mensualite_d832_10_3_126 and
+                            temp_calcul_plafond_mensualite_d832_10_3_125))):
+                            match_arg_325 = zone_2
+                            if match_arg_325.code == ZoneDHabitation_Code.Zone1:
+                                _ = match_arg_325.value
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("0")):
+                                    match_arg_326 = situation_familiale_calcul_apl_4
+                                    if match_arg_326.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                        _ = match_arg_326.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_127 = money_of_cents_string("167800")
+                                    elif match_arg_326.code == SituationFamilialeCalculAPL_Code.Couple:
+                                        _ = match_arg_326.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_127 = money_of_cents_string("202500")
+                                else:
+                                    temp_calcul_plafond_mensualite_d832_10_3_127 = (money_of_cents_string("237200") +
+                                        (money_of_cents_string("34700") *
+                                        decimal_of_integer((nombre_personnes_a_charge_4 -
+                                        integer_of_string("1")))))
+                            elif match_arg_325.code == ZoneDHabitation_Code.Zone2:
+                                _ = match_arg_325.value
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("0")):
+                                    match_arg_327 = situation_familiale_calcul_apl_4
+                                    if match_arg_327.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                        _ = match_arg_327.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_127 = money_of_cents_string("149600")
+                                    elif match_arg_327.code == SituationFamilialeCalculAPL_Code.Couple:
+                                        _ = match_arg_327.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_127 = money_of_cents_string("180100")
+                                else:
+                                    temp_calcul_plafond_mensualite_d832_10_3_127 = (money_of_cents_string("210600") +
+                                        (money_of_cents_string("30500") *
+                                        decimal_of_integer((nombre_personnes_a_charge_4 -
+                                        integer_of_string("1")))))
+                            elif match_arg_325.code == ZoneDHabitation_Code.Zone3:
+                                _ = match_arg_325.value
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("0")):
+                                    match_arg_328 = situation_familiale_calcul_apl_4
+                                    if match_arg_328.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                        _ = match_arg_328.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_127 = money_of_cents_string("139700")
+                                    elif match_arg_328.code == SituationFamilialeCalculAPL_Code.Couple:
+                                        _ = match_arg_328.value
+                                        temp_calcul_plafond_mensualite_d832_10_3_127 = money_of_cents_string("167600")
+                                else:
+                                    temp_calcul_plafond_mensualite_d832_10_3_127 = (money_of_cents_string("195500") +
+                                        (money_of_cents_string("27900") *
+                                        decimal_of_integer((nombre_personnes_a_charge_4 -
+                                        integer_of_string("1")))))
+                            return (temp_calcul_plafond_mensualite_d832_10_3_127 *
+                                taux_francs_vers_euros)
+                        else:
+                            raise EmptyError
+                def temp_calcul_plafond_mensualite_d832_10_3_128(_:Any):
                     match_arg_329 = type_pret
                     if match_arg_329.code == TypePret_Code.D331_32:
                         _ = match_arg_329.value
-                        temp_calcul_plafond_mensualite_d832_10_3_130 = True
+                        temp_calcul_plafond_mensualite_d832_10_3_129 = False
                     elif match_arg_329.code == TypePret_Code.D331_63_64:
                         _ = match_arg_329.value
-                        temp_calcul_plafond_mensualite_d832_10_3_130 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_129 = True
                     elif match_arg_329.code == TypePret_Code.D331_59_8:
                         _ = match_arg_329.value
-                        temp_calcul_plafond_mensualite_d832_10_3_130 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_129 = False
                     elif match_arg_329.code == TypePret_Code.D331_76_1:
                         _ = match_arg_329.value
-                        temp_calcul_plafond_mensualite_d832_10_3_130 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_129 = False
                     elif match_arg_329.code == TypePret_Code.Autre:
                         _ = match_arg_329.value
-                        temp_calcul_plafond_mensualite_d832_10_3_130 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_129 = False
                     match_arg_330 = anciennete_logement
                     if match_arg_330.code == NeufOuAncien_Code.Neuf:
                         _ = match_arg_330.value
-                        temp_calcul_plafond_mensualite_d832_10_3_131 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_130 = True
                     elif match_arg_330.code == NeufOuAncien_Code.Ancien:
                         _ = match_arg_330.value
-                        temp_calcul_plafond_mensualite_d832_10_3_131 = True
-                    if ((param_13 >= date_of_numbers(1994,11,27)) and
-                        (temp_calcul_plafond_mensualite_d832_10_3_131 and
-                        temp_calcul_plafond_mensualite_d832_10_3_130)):
+                        temp_calcul_plafond_mensualite_d832_10_3_130 = False
+                    if ((param_13 >= date_of_numbers(1992,6,30)) and
+                        ((param_13 < date_of_numbers(1994,11,27)) and
+                        (temp_calcul_plafond_mensualite_d832_10_3_130 and
+                        temp_calcul_plafond_mensualite_d832_10_3_129))):
                         match_arg_331 = zone_2
                         if match_arg_331.code == ZoneDHabitation_Code.Zone1:
                             _ = match_arg_331.value
@@ -9805,13 +9807,13 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_332 = situation_familiale_calcul_apl_4
                                 if match_arg_332.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_332.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_132 = money_of_cents_string("148100")
+                                    temp_calcul_plafond_mensualite_d832_10_3_131 = money_of_cents_string("208500")
                                 elif match_arg_332.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_332.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_132 = money_of_cents_string("178700")
+                                    temp_calcul_plafond_mensualite_d832_10_3_131 = money_of_cents_string("251500")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_132 = (money_of_cents_string("209300") +
-                                    (money_of_cents_string("30600") *
+                                temp_calcul_plafond_mensualite_d832_10_3_131 = (money_of_cents_string("294500") +
+                                    (money_of_cents_string("43000") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
                         elif match_arg_331.code == ZoneDHabitation_Code.Zone2:
@@ -9821,13 +9823,13 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_333 = situation_familiale_calcul_apl_4
                                 if match_arg_333.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_333.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_132 = money_of_cents_string("132000")
+                                    temp_calcul_plafond_mensualite_d832_10_3_131 = money_of_cents_string("186000")
                                 elif match_arg_333.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_333.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_132 = money_of_cents_string("158900")
+                                    temp_calcul_plafond_mensualite_d832_10_3_131 = money_of_cents_string("223900")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_132 = (money_of_cents_string("185800") +
-                                    (money_of_cents_string("26900") *
+                                temp_calcul_plafond_mensualite_d832_10_3_131 = (money_of_cents_string("261800") +
+                                    (money_of_cents_string("37900") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
                         elif match_arg_331.code == ZoneDHabitation_Code.Zone3:
@@ -9837,46 +9839,46 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_334 = situation_familiale_calcul_apl_4
                                 if match_arg_334.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_334.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_132 = money_of_cents_string("123300")
+                                    temp_calcul_plafond_mensualite_d832_10_3_131 = money_of_cents_string("173600")
                                 elif match_arg_334.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_334.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_132 = money_of_cents_string("147900")
+                                    temp_calcul_plafond_mensualite_d832_10_3_131 = money_of_cents_string("208200")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_132 = (money_of_cents_string("172500") +
-                                    (money_of_cents_string("24600") *
+                                temp_calcul_plafond_mensualite_d832_10_3_131 = (money_of_cents_string("242800") +
+                                    (money_of_cents_string("34600") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
-                        return (temp_calcul_plafond_mensualite_d832_10_3_132 *
+                        return (temp_calcul_plafond_mensualite_d832_10_3_131 *
                             taux_francs_vers_euros)
                     else:
                         raise EmptyError
-                def temp_calcul_plafond_mensualite_d832_10_3_133(_:Any):
+                def temp_calcul_plafond_mensualite_d832_10_3_132(_:Any):
                     match_arg_335 = type_pret
                     if match_arg_335.code == TypePret_Code.D331_32:
                         _ = match_arg_335.value
-                        temp_calcul_plafond_mensualite_d832_10_3_134 = True
+                        temp_calcul_plafond_mensualite_d832_10_3_133 = True
                     elif match_arg_335.code == TypePret_Code.D331_63_64:
                         _ = match_arg_335.value
-                        temp_calcul_plafond_mensualite_d832_10_3_134 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_133 = False
                     elif match_arg_335.code == TypePret_Code.D331_59_8:
                         _ = match_arg_335.value
-                        temp_calcul_plafond_mensualite_d832_10_3_134 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_133 = False
                     elif match_arg_335.code == TypePret_Code.D331_76_1:
                         _ = match_arg_335.value
-                        temp_calcul_plafond_mensualite_d832_10_3_134 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_133 = False
                     elif match_arg_335.code == TypePret_Code.Autre:
                         _ = match_arg_335.value
-                        temp_calcul_plafond_mensualite_d832_10_3_134 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_133 = False
                     match_arg_336 = anciennete_logement
                     if match_arg_336.code == NeufOuAncien_Code.Neuf:
                         _ = match_arg_336.value
-                        temp_calcul_plafond_mensualite_d832_10_3_135 = True
+                        temp_calcul_plafond_mensualite_d832_10_3_134 = False
                     elif match_arg_336.code == NeufOuAncien_Code.Ancien:
                         _ = match_arg_336.value
-                        temp_calcul_plafond_mensualite_d832_10_3_135 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_134 = True
                     if ((param_13 >= date_of_numbers(1994,11,27)) and
-                        (temp_calcul_plafond_mensualite_d832_10_3_135 and
-                        temp_calcul_plafond_mensualite_d832_10_3_134)):
+                        (temp_calcul_plafond_mensualite_d832_10_3_134 and
+                        temp_calcul_plafond_mensualite_d832_10_3_133)):
                         match_arg_337 = zone_2
                         if match_arg_337.code == ZoneDHabitation_Code.Zone1:
                             _ = match_arg_337.value
@@ -9885,13 +9887,13 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_338 = situation_familiale_calcul_apl_4
                                 if match_arg_338.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_338.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_136 = money_of_cents_string("184000")
+                                    temp_calcul_plafond_mensualite_d832_10_3_135 = money_of_cents_string("148100")
                                 elif match_arg_338.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_338.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_136 = money_of_cents_string("220000")
+                                    temp_calcul_plafond_mensualite_d832_10_3_135 = money_of_cents_string("178700")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_136 = (money_of_cents_string("260000") +
-                                    (money_of_cents_string("38000") *
+                                temp_calcul_plafond_mensualite_d832_10_3_135 = (money_of_cents_string("209300") +
+                                    (money_of_cents_string("30600") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
                         elif match_arg_337.code == ZoneDHabitation_Code.Zone2:
@@ -9901,13 +9903,13 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_339 = situation_familiale_calcul_apl_4
                                 if match_arg_339.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_339.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_136 = money_of_cents_string("164200")
+                                    temp_calcul_plafond_mensualite_d832_10_3_135 = money_of_cents_string("132000")
                                 elif match_arg_339.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_339.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_136 = money_of_cents_string("197700")
+                                    temp_calcul_plafond_mensualite_d832_10_3_135 = money_of_cents_string("158900")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_136 = (money_of_cents_string("231200") +
-                                    (money_of_cents_string("33500") *
+                                temp_calcul_plafond_mensualite_d832_10_3_135 = (money_of_cents_string("185800") +
+                                    (money_of_cents_string("26900") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
                         elif match_arg_337.code == ZoneDHabitation_Code.Zone3:
@@ -9917,47 +9919,46 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_340 = situation_familiale_calcul_apl_4
                                 if match_arg_340.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_340.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_136 = money_of_cents_string("153200")
+                                    temp_calcul_plafond_mensualite_d832_10_3_135 = money_of_cents_string("123300")
                                 elif match_arg_340.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_340.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_136 = money_of_cents_string("183700")
+                                    temp_calcul_plafond_mensualite_d832_10_3_135 = money_of_cents_string("147900")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_136 = (money_of_cents_string("214200") +
-                                    (money_of_cents_string("30500") *
+                                temp_calcul_plafond_mensualite_d832_10_3_135 = (money_of_cents_string("172500") +
+                                    (money_of_cents_string("24600") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
-                        return (temp_calcul_plafond_mensualite_d832_10_3_136 *
+                        return (temp_calcul_plafond_mensualite_d832_10_3_135 *
                             taux_francs_vers_euros)
                     else:
                         raise EmptyError
-                def temp_calcul_plafond_mensualite_d832_10_3_137(_:Any):
+                def temp_calcul_plafond_mensualite_d832_10_3_136(_:Any):
                     match_arg_341 = type_pret
                     if match_arg_341.code == TypePret_Code.D331_32:
                         _ = match_arg_341.value
-                        temp_calcul_plafond_mensualite_d832_10_3_138 = True
+                        temp_calcul_plafond_mensualite_d832_10_3_137 = True
                     elif match_arg_341.code == TypePret_Code.D331_63_64:
                         _ = match_arg_341.value
-                        temp_calcul_plafond_mensualite_d832_10_3_138 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_137 = False
                     elif match_arg_341.code == TypePret_Code.D331_59_8:
                         _ = match_arg_341.value
-                        temp_calcul_plafond_mensualite_d832_10_3_138 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_137 = False
                     elif match_arg_341.code == TypePret_Code.D331_76_1:
                         _ = match_arg_341.value
-                        temp_calcul_plafond_mensualite_d832_10_3_138 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_137 = False
                     elif match_arg_341.code == TypePret_Code.Autre:
                         _ = match_arg_341.value
-                        temp_calcul_plafond_mensualite_d832_10_3_138 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_137 = False
                     match_arg_342 = anciennete_logement
                     if match_arg_342.code == NeufOuAncien_Code.Neuf:
                         _ = match_arg_342.value
-                        temp_calcul_plafond_mensualite_d832_10_3_139 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_138 = True
                     elif match_arg_342.code == NeufOuAncien_Code.Ancien:
                         _ = match_arg_342.value
-                        temp_calcul_plafond_mensualite_d832_10_3_139 = True
-                    if ((param_13 >= date_of_numbers(1992,6,30)) and
-                        ((param_13 < date_of_numbers(1994,11,27)) and
-                        (temp_calcul_plafond_mensualite_d832_10_3_139 and
-                        temp_calcul_plafond_mensualite_d832_10_3_138))):
+                        temp_calcul_plafond_mensualite_d832_10_3_138 = False
+                    if ((param_13 >= date_of_numbers(1994,11,27)) and
+                        (temp_calcul_plafond_mensualite_d832_10_3_138 and
+                        temp_calcul_plafond_mensualite_d832_10_3_137)):
                         match_arg_343 = zone_2
                         if match_arg_343.code == ZoneDHabitation_Code.Zone1:
                             _ = match_arg_343.value
@@ -9966,13 +9967,13 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_344 = situation_familiale_calcul_apl_4
                                 if match_arg_344.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_344.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_140 = money_of_cents_string("167800")
+                                    temp_calcul_plafond_mensualite_d832_10_3_139 = money_of_cents_string("184000")
                                 elif match_arg_344.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_344.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_140 = money_of_cents_string("202500")
+                                    temp_calcul_plafond_mensualite_d832_10_3_139 = money_of_cents_string("220000")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_140 = (money_of_cents_string("237200") +
-                                    (money_of_cents_string("37400") *
+                                temp_calcul_plafond_mensualite_d832_10_3_139 = (money_of_cents_string("260000") +
+                                    (money_of_cents_string("38000") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
                         elif match_arg_343.code == ZoneDHabitation_Code.Zone2:
@@ -9982,13 +9983,13 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_345 = situation_familiale_calcul_apl_4
                                 if match_arg_345.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_345.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_140 = money_of_cents_string("146900")
+                                    temp_calcul_plafond_mensualite_d832_10_3_139 = money_of_cents_string("164200")
                                 elif match_arg_345.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_345.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_140 = money_of_cents_string("180100")
+                                    temp_calcul_plafond_mensualite_d832_10_3_139 = money_of_cents_string("197700")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_140 = (money_of_cents_string("210600") +
-                                    (money_of_cents_string("30500") *
+                                temp_calcul_plafond_mensualite_d832_10_3_139 = (money_of_cents_string("231200") +
+                                    (money_of_cents_string("33500") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
                         elif match_arg_343.code == ZoneDHabitation_Code.Zone3:
@@ -9998,47 +9999,47 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_346 = situation_familiale_calcul_apl_4
                                 if match_arg_346.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_346.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_140 = money_of_cents_string("139700")
+                                    temp_calcul_plafond_mensualite_d832_10_3_139 = money_of_cents_string("153200")
                                 elif match_arg_346.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_346.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_140 = money_of_cents_string("167600")
+                                    temp_calcul_plafond_mensualite_d832_10_3_139 = money_of_cents_string("183700")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_140 = (money_of_cents_string("195500") +
-                                    (money_of_cents_string("27900") *
+                                temp_calcul_plafond_mensualite_d832_10_3_139 = (money_of_cents_string("214200") +
+                                    (money_of_cents_string("30500") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
-                        return (temp_calcul_plafond_mensualite_d832_10_3_140 *
+                        return (temp_calcul_plafond_mensualite_d832_10_3_139 *
                             taux_francs_vers_euros)
                     else:
                         raise EmptyError
-                def temp_calcul_plafond_mensualite_d832_10_3_141(_:Any):
+                def temp_calcul_plafond_mensualite_d832_10_3_140(_:Any):
                     match_arg_347 = type_pret
                     if match_arg_347.code == TypePret_Code.D331_32:
                         _ = match_arg_347.value
-                        temp_calcul_plafond_mensualite_d832_10_3_142 = True
+                        temp_calcul_plafond_mensualite_d832_10_3_141 = True
                     elif match_arg_347.code == TypePret_Code.D331_63_64:
                         _ = match_arg_347.value
-                        temp_calcul_plafond_mensualite_d832_10_3_142 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_141 = False
                     elif match_arg_347.code == TypePret_Code.D331_59_8:
                         _ = match_arg_347.value
-                        temp_calcul_plafond_mensualite_d832_10_3_142 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_141 = False
                     elif match_arg_347.code == TypePret_Code.D331_76_1:
                         _ = match_arg_347.value
-                        temp_calcul_plafond_mensualite_d832_10_3_142 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_141 = False
                     elif match_arg_347.code == TypePret_Code.Autre:
                         _ = match_arg_347.value
-                        temp_calcul_plafond_mensualite_d832_10_3_142 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_141 = False
                     match_arg_348 = anciennete_logement
                     if match_arg_348.code == NeufOuAncien_Code.Neuf:
                         _ = match_arg_348.value
-                        temp_calcul_plafond_mensualite_d832_10_3_143 = True
+                        temp_calcul_plafond_mensualite_d832_10_3_142 = True
                     elif match_arg_348.code == NeufOuAncien_Code.Ancien:
                         _ = match_arg_348.value
-                        temp_calcul_plafond_mensualite_d832_10_3_143 = False
+                        temp_calcul_plafond_mensualite_d832_10_3_142 = False
                     if ((param_13 >= date_of_numbers(1992,6,30)) and
                         ((param_13 < date_of_numbers(1994,11,27)) and
-                        (temp_calcul_plafond_mensualite_d832_10_3_143 and
-                        temp_calcul_plafond_mensualite_d832_10_3_142))):
+                        (temp_calcul_plafond_mensualite_d832_10_3_142 and
+                        temp_calcul_plafond_mensualite_d832_10_3_141))):
                         match_arg_349 = zone_2
                         if match_arg_349.code == ZoneDHabitation_Code.Zone1:
                             _ = match_arg_349.value
@@ -10047,12 +10048,12 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_350 = situation_familiale_calcul_apl_4
                                 if match_arg_350.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_350.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_144 = money_of_cents_string("208500")
+                                    temp_calcul_plafond_mensualite_d832_10_3_143 = money_of_cents_string("208500")
                                 elif match_arg_350.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_350.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_144 = money_of_cents_string("251500")
+                                    temp_calcul_plafond_mensualite_d832_10_3_143 = money_of_cents_string("251500")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_144 = (money_of_cents_string("294500") +
+                                temp_calcul_plafond_mensualite_d832_10_3_143 = (money_of_cents_string("294500") +
                                     (money_of_cents_string("43000") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
@@ -10063,12 +10064,12 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_351 = situation_familiale_calcul_apl_4
                                 if match_arg_351.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_351.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_144 = money_of_cents_string("186000")
+                                    temp_calcul_plafond_mensualite_d832_10_3_143 = money_of_cents_string("186000")
                                 elif match_arg_351.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_351.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_144 = money_of_cents_string("223900")
+                                    temp_calcul_plafond_mensualite_d832_10_3_143 = money_of_cents_string("223900")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_144 = (money_of_cents_string("261800") +
+                                temp_calcul_plafond_mensualite_d832_10_3_143 = (money_of_cents_string("261800") +
                                     (money_of_cents_string("37900") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
@@ -10079,16 +10080,16 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 match_arg_352 = situation_familiale_calcul_apl_4
                                 if match_arg_352.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                                     _ = match_arg_352.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_144 = money_of_cents_string("173600")
+                                    temp_calcul_plafond_mensualite_d832_10_3_143 = money_of_cents_string("173600")
                                 elif match_arg_352.code == SituationFamilialeCalculAPL_Code.Couple:
                                     _ = match_arg_352.value
-                                    temp_calcul_plafond_mensualite_d832_10_3_144 = money_of_cents_string("208200")
+                                    temp_calcul_plafond_mensualite_d832_10_3_143 = money_of_cents_string("208200")
                             else:
-                                temp_calcul_plafond_mensualite_d832_10_3_144 = (money_of_cents_string("242800") +
+                                temp_calcul_plafond_mensualite_d832_10_3_143 = (money_of_cents_string("242800") +
                                     (money_of_cents_string("35600") *
                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                     integer_of_string("1")))))
-                        return (temp_calcul_plafond_mensualite_d832_10_3_144 *
+                        return (temp_calcul_plafond_mensualite_d832_10_3_143 *
                             taux_francs_vers_euros)
                     else:
                         raise EmptyError
@@ -10098,11 +10099,10 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                       law_headings=["Secteur accession à la propriété",
                                       "Calcul du montant de l'aide personnalisée au logement",
                                       "Déclarations des champs d'application",
-                                      "Prologue : aides au logement"]), [temp_calcul_plafond_mensualite_d832_10_3_141,
-                                      temp_calcul_plafond_mensualite_d832_10_3_137,
-                                      temp_calcul_plafond_mensualite_d832_10_3_133,
-                                      temp_calcul_plafond_mensualite_d832_10_3_129,
-                                      temp_calcul_plafond_mensualite_d832_10_3_125,
+                                      "Prologue : aides au logement"]), [temp_calcul_plafond_mensualite_d832_10_3_140,
+                                      temp_calcul_plafond_mensualite_d832_10_3_136,
+                                      temp_calcul_plafond_mensualite_d832_10_3_132,
+                                      temp_calcul_plafond_mensualite_d832_10_3_128,
                                       temp_calcul_plafond_mensualite_d832_10_3_121,
                                       temp_calcul_plafond_mensualite_d832_10_3_117,
                                       temp_calcul_plafond_mensualite_d832_10_3_113,
@@ -15667,7 +15667,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                         else:
                                             if (nombre_personnes_a_charge_7 ==
                                                 integer_of_string("4")):
-                                                temp_calcul_plafond_mensualite_d842_6_base_29 = money_of_cents_string("194200")
+                                                temp_calcul_plafond_mensualite_d842_6_base_29 = money_of_cents_string("196400")
                                             else:
                                                 if (nombre_personnes_a_charge_7 ==
                                                     integer_of_string("5")):

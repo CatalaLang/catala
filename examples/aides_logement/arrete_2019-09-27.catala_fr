@@ -2514,11 +2514,12 @@ juillet 2022.
 
 ```catala
 # Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
-# contient précisément des corrections pointées par les auteurs de ce code source
-# (valeurs aberrantes dans les tableaux). Selon cette NOTA, il faudrait donc
-# garder également l'ancienne version erronnée de ce tableau et basculer entre
-# la version erronnée et la version corrigée selon que l'on soit avant ou après
-# le premier juillet 2022. Ici, nous décidons de ne pas faire cela et de ne
+# contient précisément des corrections pointées par les auteurs de ce code
+# source (valeurs aberrantes dans les tableaux). Selon cette NOTA, il faudrait
+# donc garder également l'ancienne version erronnée de ce tableau et basculer
+# entre la version erronnée et la version corrigée selon que l'on soit avant
+# ou après le premier juillet 2022.
+# Ici, nous décidons de ne pas faire cela et de ne
 # garder que la version corrigée pour simplicité et parceque DGALN/DHUP/FE4
 # nous a confirmé que la CAF a toujours utilisé une version "corrigée" de
 # cet article.
@@ -2908,8 +2909,8 @@ dues à compter du 1 er juillet 2022.
 
 ```catala
 # Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
-# contient précisément des corrections pointées par les auteurs de ce code source
-# (il manquait le "b)"). Selon cette NOTA, il faudrait donc
+# contient précisément des corrections pointées par les auteurs de ce code
+# source (il manquait le "b)"). Selon cette NOTA, il faudrait donc
 # garder également l'ancienne version erronnée de ce tableau et basculer entre
 # la version erronnée et la version corrigée selon que l'on soit avant ou après
 # le premier juillet 2022. Ici, nous décidons de ne pas faire cela et de ne
@@ -4134,7 +4135,7 @@ juillet 2022.
 
 ```catala
 # Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
-# contient précisément des corrections pointées par les auteurs de ce code source
+# contient précisément des corrections pointées par les auteurs de ce code
 # (valeurs aberrantes dans le tableau). Selon cette NOTA, il faudrait donc
 # garder également l'ancienne version erronnée de ce tableau et basculer entre
 # la version erronnée et la version corrigée selon que l'on soit avant ou après

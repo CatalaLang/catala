@@ -43,7 +43,7 @@ dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js
 
 COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
-LEGIFRANCE_CHECKER_DIR=french_law/legifrance_checker
+CATALA_LEGIFRANCE_DIR=french_law/catala_legifrance
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
@@ -51,7 +51,7 @@ build_dev: parser-messages
 		$(COMPILER_DIR)/catala.exe \
 		$(COMPILER_DIR)/plugins/ \
 		$(BUILD_SYSTEM_DIR)/clerk.exe \
-		$(LEGIFRANCE_CHECKER_DIR)/main.exe
+		$(CATALA_LEGIFRANCE_DIR)/catala_legifrance.exe
 
 
 #> build					: Builds the Catala compiler

@@ -1,8 +1,6 @@
 opam-version: "2.0"
 version: "0.7.0"
-synopsis: "A collection of algorithms and computations defined by French law"
-description:
-  "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org"
+synopsis: "Linter that queries the LégiFrance API to check for correctness and expiration of Catala programs."
 maintainer: ["contact@catala-lang.org"]
 authors: ["Denis Merigoux"]
 license: "Apache-2.0"
@@ -11,6 +9,11 @@ bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "dune" {>= "2.8"}
   "ocaml" {>= "4.11.0"}
+  "lwt" {>= "5.6.1"}
+  "re" {>= "1.9.0"}
+  "cohttp-lwt-unix" {>= "5.0.0"}
+  "cohttp" {>= "5.0.0"}
+  "tls" {>= "0.15.3"}
   "catala" {= version}
   "odoc" {with-doc}
 ]

@@ -1,7 +1,6 @@
 (executable
- (public_name legifrance_checker)
- (package french_law)
- (name main)
+ (public_name catala_legifrance)
+ (package catala_legifrance)
  (libraries
   catala.surface
   catala.utils
@@ -14,4 +13,4 @@
   ANSITerminal))
 
 (documentation
- (package french_law))
+ (package catala_legifrance))
