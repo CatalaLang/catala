@@ -860,14 +860,14 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1496 €
-         -- Couple: 1801)
+         -- Couple: 1801€)
       sinon (2106 € +€
         305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1397 €
-         -- Couple: 1676)
+         -- Couple: 1676 €)
       sinon (1955 € +€
         279€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     ) *€ taux_francs_vers_euros

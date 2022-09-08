@@ -205,14 +205,13 @@ Bénéficiaires                                        TF
 ---------------------------------------------------- ------
 Isolé	                                               2,83%
 Couple sans personne à charge	                       3,15%
-Personne seule ou couple ayant :
-une personne à charge                                2,70%
-2 personnes à charge                                 2,38%
-3 personnes à charge                                 2,01%
-4 personnes à charge                                 1,85%
-5 personnes à charge                                 1,79%
-6 personnes à charge                                 1,73%
-Majoration par personne à charge supplémentaire     -0,06%
+Personne seule ou couple ayant une personne à charge 2,70%
+2 enfants ou 2 personnes                             2,38%
+3 enfants ou 3 personnes                             2,01%
+4 enfants ou 4 personnes                             1,85%
+5 enfants ou 5 personnes                             1,79%
+6 enfants ou 6 personnes                             1,73%
+Majoration par personne à charge                    -0,06%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -887,7 +886,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     53,99€ +€ 12,24€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
-#### Article 13 | LEGIARTI000044137423 [archive]
+#### Article 13 | LEGIARTI000042378442 [archive]
 
 La participation minimale P0 définie au 2° de l'article D. 823-17 du même code est
 égale à la plus élevée des deux valeurs suivantes : 8,5 % de la somme du loyer éligible
@@ -1131,13 +1130,13 @@ dispositions sont applicables pour les prestations dues à compter du
 #### Article 19 | LEGIARTI000042378432 [archive]
 
 Pour l'application du 4° de l'article D. 832-10 du code de la construction et
-de l'habitation, le montant forfaitaire des charges est fixé comme suit
+de l'habitation , le montant forfaitaire des charges est fixé comme suit
 (en euros) :
 
 Désignation                                         Toutes zones
 --------------------------------------------------- ------------
-Bénéficiaire isolé ou couple sans personne à charge 54,22
-Par personne supplémentaire à charge	              12,29
+Bénéficiaire isolé ou couple sans personne à charge 53,99
+Par personne supplémentaire à charge	              12,24
 
 NOTA :
 

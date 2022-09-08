@@ -22,7 +22,7 @@ les prestations sociales suivantes :
 3° L'allocation aux adultes handicapés prévue à l'article L. 821-1 ;
 
 4° L'allocation de solidarité aux personnes âgées prévue à l'article L. 815-1 et
-les allocations mentionnées à l'article 2 de l'ordonnance n° 2004-605 du 24 juin
+les allocations mentionnées à l' article 2 de l'ordonnance n° 2004-605 du 24 juin
 2004 simplifiant le minimum vieillesse ;
 
 5° L'allocation supplémentaire d'invalidité prévue à l'article L. 815-24 ;
@@ -37,13 +37,13 @@ champ d'application ContributionsSocialesAidesPersonnelleLogement:
   règle exonéré_csg rempli
 ```
 
-7° L'allocation personnalisée d'autonomie prévue à l'article L. 232-1 du code de
+7° L'allocation personnalisée d'autonomie prévue à l' article L. 232-1 du code de
 l'action sociale et des familles ;
 
 8° Le revenu de solidarité active prévu à l'article L. 262-1 du même code ;
 
 9° La prestation de compensation servie en vertu des dispositions de l'article
-L. 245-1 du code de l'action sociale et des familles, y compris le dédommagement
+L. 245-1 du code de l'action sociale et des familles , y compris le dédommagement
 mentionné à l'article L. 245-12 du même code ;
 
 10° L'allocation pour demandeur d'asile prévue à l'article L. 553-1 du code de
@@ -53,18 +53,18 @@ l'entrée et du séjour des étrangers et du droit d'asile ;
 23 février 2005 portant reconnaissance de la Nation et contribution nationale en
 faveur des Français rapatriés ;
 
-12° L'allocation viagère prévue à l'article 133 de la loi n° 2015-1785 du 29
+12° L'allocation viagère prévue à l' article 133 de la loi n° 2015-1785 du 29
 décembre 2015 de finances pour 2016 ;
 
 13° Les pensions temporaires d'orphelin versées en application du code des
-pensions civiles et militaires de retraite, à concurrence de l'allocation aux
+pensions civiles et militaires de retraite , à concurrence de l'allocation aux
 adultes handicapés, lorsqu'elles remplacent cette allocation en tout ou partie
 du fait de la loi, ainsi que la fraction de ces pensions temporaires qui
 correspond au montant des prestations familiales auxquelles aurait eu droit
 le parent décédé ;
 
 14° Les allocations, indemnités et prestations mentionnées au 9° de l'article
-81 du code général des impôts.
+81 du code général des impôts .
 
 II.-Ne sont pas non plus assujettis :
 
@@ -136,7 +136,7 @@ juillet 1951 et le 31 décembre 1951 ;
 2° A raison de cinq mois par génération pour les assurés nés entre le 1er
 janvier 1952 et le 31 décembre 1954.
 
-NOTA:
+NOTA :
 
 Loi n° 2010-1330 du 9 novembre 2010, article 118 II : Les dispositions de
 l'article 18 sont applicables aux pensions prenant effet à compter du 1er juillet 2011.
@@ -180,7 +180,7 @@ interné de la Résistance ou de la carte de déporté ou interné politique ;
 4°) les mères de famille salariées justifiant d'une durée minimum d'assurance
 dans le régime général, ou dans ce régime et celui des salariés agricoles qui
 ont élevé au moins un nombre minimum d'enfants, dans les conditions prévues au
-deuxième alinéa de l'article L. 342-4, et qui ont exercé un travail manuel
+deuxième alinéa de l'article L. 342-4 , et qui ont exercé un travail manuel
 ouvrier pendant une durée déterminée ;
 
 4° bis) les travailleurs handicapés admis à demander la liquidation de leur
@@ -199,7 +199,7 @@ Toute partie de mois n'est pas prise en considération.
 Les dispositions du 5°) ci-dessus s'appliquent à tous les anciens combattants
 pour leur durée de service actif passé sous les drapeaux.
 
-NOTA:
+NOTA :
 
 Conformément à l'article 37 IV de la loi n° 2014-40 du 20 janvier 2014,
 l'article L351-8, dans sa rédaction issue de la présente loi, est applicable
@@ -339,10 +339,6 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
     date_courante >=@ |2020-01-04| et
      date_courante <@ |2021-01-01|
   conséquence égal à 10 838,40€
-
-# TODO juridique: trouver les décrets définissant les montants pour
-# 2021 et 2022. Pour l'instant nous n'avons trouvé qu'une circulaire de
-# la CNAV, voir autres_sources.catala_fr.
 ```
 
 b) Lorsque les deux conjoints, concubins ou partenaires liés par un pacte civil
@@ -351,12 +347,12 @@ de solidarité en bénéficient, à 15 522,54 euros par an à compter du 1er avr
 par an à compter du 1er janvier 2020. Dans ce cas, le montant est servi par moitié
 à chacun des deux allocataires concernés.
 
-Les dispositions du b1 sont également applicables pour le calcul de l'allocation
+Les dispositions du b sont également applicables pour le calcul de l'allocation
 de solidarité aux personnes âgées servie au demandeur lorsque son conjoint,
 concubin ou partenaire lié par un pacte civil de solidarité bénéficie de
-l'allocation supplémentaire d'invalidité visée à l'article L. 815-24.
+l'allocation supplémentaire d'invalidité visée à l'article L. 815-24 .
 
-NOTA:
+NOTA :
 
 Décret n° 2018-227 du 30 mars 2018, article 2, ces dispositions s'appliquent aux
 prestations dues à compter du mois d'avril 2018.
@@ -368,3 +364,9 @@ au montant maximum prévu au a de l'article D. 815-1 pour la période correspond
 Le plafond applicable lorsque le ou les allocataires sont mariés, concubins
 ou partenaires liés par un pacte civil de solidarité est égal au montant
 maximum prévu au b de l'article D. 815-1.
+
+NOTA :
+
+Décret n° 2014-1215 du 20 octobre 2014 JORF du 22 octobre 2014, art. 2 :
+Ces dispositions s'appliquent aux prestations dues à compter du mois
+d'octobre 2014 .
