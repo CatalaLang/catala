@@ -626,7 +626,7 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
-and translate_expr (ctx : context) (vc : 'm expr) : context * Expr.expr =
+and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   let translate_match_arm
       (head : Expr.expr)
       (ctx : context)
@@ -817,7 +817,7 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
-  let translate_expr (ctx : backend_context) (e : 'm expr) =
+  let translate_expr (ctx : backend_context) (e : typed expr) =
     translate_expr ctx e
 
   let init_backend () =
