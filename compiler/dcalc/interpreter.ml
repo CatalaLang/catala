@@ -491,8 +491,7 @@ let interpret_program :
         (fun (_, ty) ->
           match Marked.unmark ty with
           | TArrow ((TLit TUnit, _), ty_in) ->
-            Expr.empty_thunked_term
-              (Expr.map_mark (fun pos -> pos) (fun _ -> ty_in) mark_e)
+            Expr.empty_thunked_term (Expr.with_ty mark_e ty_in)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)
               "This scope needs input arguments to be executed. But the Catala \
@@ -512,7 +511,7 @@ let interpret_program :
                   | a :: _ -> Expr.pos a
                   | [] -> Pos.no_pos
                 in
-                Expr.map_mark (fun _ -> pos) (fun _ -> targs) mark_e );
+                Expr.with_ty mark_e ~pos targs );
             ] ),
         Expr.map_mark
           (fun pos -> pos)

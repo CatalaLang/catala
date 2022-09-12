@@ -39,9 +39,7 @@ let make_none m =
   Bindlib.box
   @@ mark
   @@ EInj
-       ( Marked.mark
-           (Expr.map_mark (fun pos -> pos) (fun _ -> tunit) m)
-           (ELit LUnit),
+       ( Marked.mark (Expr.with_ty m tunit) (ELit LUnit),
          0,
          option_enum,
          [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos] )

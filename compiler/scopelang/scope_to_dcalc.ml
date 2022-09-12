@@ -73,14 +73,7 @@ let merge_defaults
     let m = Marked.get_mark (Bindlib.unbox caller) in
     let pos = Expr.mark_pos m in
     Expr.make_app caller
-      [
-        Bindlib.box
-          ( ELit LUnit,
-            Expr.map_mark
-              (fun _ -> pos)
-              (fun _ -> Marked.mark pos (TLit TUnit))
-              m );
-      ]
+      [Bindlib.box (ELit LUnit, Expr.with_ty m (Marked.mark pos (TLit TUnit)))]
       pos
   in
   let body =
