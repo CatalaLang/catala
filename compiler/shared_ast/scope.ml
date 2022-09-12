@@ -130,7 +130,7 @@ let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr
     [TStruct body.scope_body_input_struct, Expr.mark_pos mark_scope]
-    mark_scope
+    (Expr.mark_pos mark_scope)
 
 let format
     ?(debug : bool = false)

@@ -103,9 +103,13 @@ val eraise : except -> 't -> (lcalc, 't) gexpr box
 
 val no_mark : 'm mark -> 'm mark
 val mark_pos : 'm mark -> Pos.t
-val pos : ('e, _ mark) gexpr -> Pos.t
-val ty : (_, typed mark) Marked.t -> typ
-val with_ty : typ -> ('a, _ mark) Marked.t -> ('a, typed mark) Marked.t
+
+val with_ty : 'm mark -> ?pos:Pos.t -> typ -> 'm mark
+(** Adds the given type information only on typed marks *)
+
+val map_ty : (typ -> typ) -> 'm mark -> 'm mark
+(** Identity on untyped marks*)
+
 val map_mark : (Pos.t -> Pos.t) -> (typ -> typ) -> 'm mark -> 'm mark
 
 val map_mark2 :
@@ -118,6 +122,15 @@ val map_mark2 :
 val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> typ) -> 'm mark list -> 'm mark
 
+val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
+(** Returns the corresponding type on a typed expr, or [typ] (defaulting to
+    [TAny]) at the current position on an untyped one *)
+
+(** Manipulation of marked expressions *)
+
+val pos : ('e, 'm mark) gexpr -> Pos.t
+val ty : ('e, typed mark) Marked.t -> typ
+val set_ty : typ -> ('a, 'm mark) Marked.t -> ('a, typed mark) Marked.t
 val untype : ('a, 'm mark) gexpr -> ('a, untyped mark) gexpr box
 
 (** {2 Traversal functions} *)
@@ -161,16 +174,16 @@ val map_marks : f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) gexpr box
 val make_var : ('a, 't) gexpr Var.t * 'b -> (('a, 't) naked_gexpr * 'b) box
 
 val make_abs :
-  ('a, 't) gexpr Var.vars ->
-  ('a, 't) gexpr box ->
+  ('a, 'm mark) gexpr Var.vars ->
+  ('a, 'm mark) gexpr box ->
   typ list ->
-  't ->
-  ('a, 't) gexpr box
+  Pos.t ->
+  ('a, 'm mark) gexpr box
 
 val make_app :
   ('a any, 'm mark) gexpr box ->
   ('a, 'm mark) gexpr box list ->
-  'm mark ->
+  Pos.t ->
   ('a, 'm mark) gexpr box
 
 val empty_thunked_term :
@@ -181,7 +194,7 @@ val make_let_in :
   typ ->
   ('a, 'm mark) gexpr box ->
   ('a, 'm mark) gexpr box ->
-  Utils.Pos.t ->
+  Pos.t ->
   ('a, 'm mark) gexpr box
 
 val make_multiple_let_in :
@@ -238,6 +251,7 @@ val compare : ('a, 't) gexpr -> ('a, 't) gexpr -> int
 (** Standard comparison function, suitable for e.g. [Set.Make]. Ignores position
     information *)
 
+val equal_typ : typ -> typ -> bool
 val compare_typ : typ -> typ -> int
 val is_value : ('a any, 't) gexpr -> bool
 val free_vars : ('a any, 't) gexpr -> ('a, 't) gexpr Var.Set.t

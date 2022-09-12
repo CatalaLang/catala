@@ -67,12 +67,21 @@ let pos_mark (pos : Pos.t) : untyped mark = Untyped { pos }
 let pos_mark_as e = pos_mark (Marked.get_mark e)
 
 let merge_defaults
-    (caller : untyped Dcalc.Ast.expr Bindlib.box)
-    (callee : untyped Dcalc.Ast.expr Bindlib.box) :
-    untyped Dcalc.Ast.expr Bindlib.box =
+    (caller : 'a Dcalc.Ast.expr Bindlib.box)
+    (callee : 'a Dcalc.Ast.expr Bindlib.box) : 'a Dcalc.Ast.expr Bindlib.box =
   let caller =
     let m = Marked.get_mark (Bindlib.unbox caller) in
-    Expr.make_app caller [Bindlib.box (ELit LUnit, m)] m
+    let pos = Expr.mark_pos m in
+    Expr.make_app caller
+      [
+        Bindlib.box
+          ( ELit LUnit,
+            Expr.map_mark
+              (fun _ -> pos)
+              (fun _ -> Marked.mark pos (TLit TUnit))
+              m );
+      ]
+      pos
   in
   let body =
     Bindlib.box_apply2
@@ -429,7 +438,7 @@ let translate_rule
       | Reentrant ->
         Expr.make_abs [| silent_var |] new_e
           [TLit TUnit, var_def_pos]
-          (pos_mark var_def_pos)
+          var_def_pos
     in
     ( (fun next ->
         Bindlib.box_apply2

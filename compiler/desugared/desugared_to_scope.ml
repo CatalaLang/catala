@@ -288,7 +288,7 @@ let rec rule_tree_to_expr
       in
       Expr.make_abs
         [| Var.Map.find new_param ctx.var_mapping |]
-        default [typ] emark
+        default [typ] def_pos
     else default
   | _ -> (* should not happen *) assert false
 

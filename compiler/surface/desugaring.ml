@@ -148,13 +148,13 @@ let rec translate_expr
             Bindlib.unbox
               (Expr.make_abs [| nop_var |]
                  (Bindlib.box (ELit (LBool false), emark))
-                 [tau] emark)
+                 [tau] pos)
           else
             let ctxt, binding_var =
               Name_resolution.add_def_local_var ctxt (Marked.unmark binding)
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
-            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] emark))
+            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
@@ -344,7 +344,7 @@ let rec translate_expr
     let fn =
       Expr.make_abs [| v |]
         (translate_expr scope inside_definition_of ctxt e2)
-        [tau] emark
+        [tau] pos
     in
     Bindlib.box_apply2
       (fun fn arg -> EApp (fn, [arg]), emark)
@@ -491,7 +491,7 @@ let rec translate_expr
                (Bindlib.box
                   ( ELit (LBool (EnumConstructor.compare c_uid c_uid' = 0)),
                     emark ))
-               [tau] emark))
+               [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
@@ -514,7 +514,7 @@ let rec translate_expr
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
-        emark
+        pos
     in
     Bindlib.box_apply2
       (fun f_pred collection ->
@@ -557,7 +557,7 @@ let rec translate_expr
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
-        emark
+        pos
     in
     let f_pred_var = Var.make "predicate" in
     let f_pred_var_e =
@@ -586,9 +586,7 @@ let rec translate_expr
         acc_var_e item_var_e f_pred_var_e
     in
     let fold_f =
-      Expr.make_abs [| acc_var; item_var |] fold_body
-        [TAny, pos; TAny, pos]
-        emark
+      Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
     in
     let fold =
       Bindlib.box_apply3
@@ -680,7 +678,7 @@ let rec translate_expr
           | Ast.Date -> KDate, (TLit TDate, pos)
           | _ ->
             Errors.raise_spanned_error pos
-              "ssible to compute the %s of two values of type %a"
+              "It is impossible to compute the %s of two values of type %a"
               (if max_or_min then "max" else "min")
               SurfacePrint.format_primitive_typ t
         in
