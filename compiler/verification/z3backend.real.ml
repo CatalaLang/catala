@@ -705,15 +705,15 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctr = List.nth ctrs idx in
     ctx, Expr.mk_app ctx.ctx_z3 ctr [z3_arg]
   | EMatch (arg, arms, enum) ->
-    (* We will encode a match as a new variable, tmp_v, and add to the hypotheses
-       that this variable is equal to the conjunction of all `A? arg ==> tmp_v == body`,
-       where `A? arg ==> body` is an arm of the match *)
+    (* We will encode a match as a new variable, tmp_v, and add to the
+       hypotheses that this variable is equal to the conjunction of all `A? arg
+       ==> tmp_v == body`, where `A? arg ==> body` is an arm of the match *)
 
-    (* We use the Var module to ensure that all names for temporary variables will be
-       fresh, and thus will not clash in Z3 *)
+    (* We use the Var module to ensure that all names for temporary variables
+       will be fresh, and thus will not clash in Z3 *)
     let fresh_v = Var.make "z3!match_tmp" in
     let name = unique_name fresh_v in
-    let Typed {ty = match_ty; _ } = Marked.get_mark vc in
+    let (Typed { ty = match_ty; _ }) = Marked.get_mark vc in
     let ctx, z3_ty = translate_typ ctx (Marked.unmark match_ty) in
     let z3_var = Expr.mk_const_s ctx.ctx_z3 name z3_ty in
 
@@ -739,7 +739,6 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     (* Add the definition of z3_var to the hypotheses *)
     let ctx = add_z3constraint (Boolean.mk_and ctx.ctx_z3 z3_arms) ctx in
     ctx, z3_var
-
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
