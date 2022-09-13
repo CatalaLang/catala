@@ -1,0 +1,24 @@
+## Test
+
+```catala
+declaration enumeration T:
+   -- C content boolean
+   -- D content integer
+
+declaration enumeration S:
+    -- A content integer
+    -- B content T
+
+declaration scope A:
+  context x content integer
+  context y content S
+
+scope A:
+  definition y equals B content (D content 1)
+  definition x under condition (match y with pattern -- A of a: 1 -- B of b: 2) < 2 consequence equals 0
+  definition x under condition match y with pattern -- A of a: a < 0 -- B of b: true consequence equals 1
+```
+
+```catala-test {id="Proof"}
+catala Proof --disable_counterexamples
+```
