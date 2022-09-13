@@ -713,7 +713,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
        fresh, and thus will not clash in Z3 *)
     let fresh_v = Var.make "z3!match_tmp" in
     let name = unique_name fresh_v in
-    let match_ty = failwith "GET TYPE" in
+    let Typed {ty = match_ty; _ } = Marked.get_mark vc in
     let ctx, z3_ty = translate_typ ctx (Marked.unmark match_ty) in
     let z3_var = Expr.mk_const_s ctx.ctx_z3 name z3_ty in
 
