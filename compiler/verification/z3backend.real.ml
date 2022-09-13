@@ -212,7 +212,7 @@ let print_model (ctx : context) (model : Model.model) : string =
   let decls = Model.get_decls model in
   Format.asprintf "%a"
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
        (fun fmt d ->
          if FuncDecl.get_arity d = 0 then
            (* Constant case *)
@@ -222,13 +222,15 @@ let print_model (ctx : context) (model : Model.model) : string =
              failwith
                "[Z3 model]: A variable does not have an associated Z3 solution"
            (* Print "name : value\n" *)
-           | Some e ->
+           | Some e -> (
              let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
-             let v = StringMap.find symbol_name ctx.ctx_z3vars in
-             Format.fprintf fmt "%s %s : %s"
-               (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
-               (print_z3model_expr ctx (Var.Map.find v ctx.ctx_var) e)
+             match StringMap.find_opt symbol_name ctx.ctx_z3vars with
+             | None -> ()
+             | Some v ->
+               Format.fprintf fmt "%s %s : %s\n"
+                 (Cli.with_style [ANSITerminal.blue] "%s" "-->")
+                 (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
+                 (print_z3model_expr ctx (Var.Map.find v ctx.ctx_var) e))
          else
            (* Declaration d is a function *)
            match Model.get_func_interp model d with
