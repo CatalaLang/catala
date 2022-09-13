@@ -219,7 +219,7 @@ let driver source_file (options : Cli.options) : int =
         | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
           | `Proof | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking...";
-          let prgm = Dcalc.Typing.infer_types_program prgm in
+          let prgm = Shared_ast.Typing.infer_types_program prgm in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Print.typ prgm.decl_ctx) typ); *)
           match backend with

@@ -264,7 +264,7 @@ type typed = { pos : Pos.t; ty : typ }
 type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
 
 (** Useful for errors and printing, for example *)
-type any_expr = AnyExpr : (_ any, _ mark) gexpr -> any_expr
+type any_expr = AnyExpr : (_, _ mark) gexpr -> any_expr
 
 (** {2 Higher-level program structure} *)
 
