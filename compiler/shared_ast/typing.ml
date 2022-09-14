@@ -552,9 +552,9 @@ and typecheck_expr_top_down :
      tau (Expr.format ctx) e; *)
   let pos_e = Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
-  let unify_and_mark (e' : (a, mark) A.naked_gexpr) tau' =
+  let unify_and_mark tau' f_e =
     unify ctx e tau' tau;
-    Marked.mark { uf = tau; pos = pos_e } e'
+    Bindlib.box_apply (Marked.mark { uf = tau; pos = pos_e }) (f_e ())
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   match Marked.unmark e with
@@ -567,8 +567,10 @@ and typecheck_expr_top_down :
         A.ScopeVarMap.find (Marked.unmark v)
           (A.SubScopeMap.find (Marked.unmark ss_name) env.subscope_vars)
     in
-    Bindlib.box (unify_and_mark e1 (ast_to_typ ty))
+    unify_and_mark (ast_to_typ ty) (fun () -> Bindlib.box e1)
   | A.EStruct (s_name, fmap) ->
+    unify_and_mark (unionfind_make (TStruct s_name))
+    @@ fun () ->
     let+ fmap' =
       (* This assumes that the fields in fmap and the struct type are already
          ensured to be the same *)
@@ -581,26 +583,29 @@ and typecheck_expr_top_down :
         (Bindlib.box A.StructFieldMap.empty)
         (A.StructMap.find s_name ctx.A.ctx_structs)
     in
-    unify_and_mark (A.EStruct (s_name, fmap')) (unionfind_make (TStruct s_name))
+    A.EStruct (s_name, fmap')
   | A.EStructAccess (e_struct, f_name, s_name) ->
-    let f_ty =
-      ast_to_typ (List.assoc f_name (A.StructMap.find s_name ctx.A.ctx_structs))
-    in
+    unify_and_mark
+      (ast_to_typ
+         (List.assoc f_name (A.StructMap.find s_name ctx.A.ctx_structs)))
+    @@ fun () ->
     let+ e_struct' =
       typecheck_expr_top_down ctx env (unionfind_make (TStruct s_name)) e_struct
     in
-    unify_and_mark (A.EStructAccess (e_struct', f_name, s_name)) f_ty
+    A.EStructAccess (e_struct', f_name, s_name)
   | A.EEnumInj (e_enum, c_name, e_name) ->
-    let c_ty =
-      ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums))
-    in
+    unify_and_mark
+      (ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums)))
+    @@ fun () ->
     let+ e_enum' =
       typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e_enum
     in
-    unify_and_mark (A.EEnumInj (e_enum', c_name, e_name)) c_ty
+    A.EEnumInj (e_enum', c_name, e_name)
   | A.EMatchS (e1, e_name, cases) ->
     let cases_ty = A.EnumMap.find e_name ctx.A.ctx_enums in
     let t_ret = unionfind_make ~pos:e1 (TAny (Any.fresh ())) in
+    unify_and_mark t_ret
+    @@ fun () ->
     let+ e1' =
       typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e1
     and+ cases' =
@@ -613,85 +618,81 @@ and typecheck_expr_top_down :
         cases
         (Bindlib.box A.EnumConstructorMap.empty)
     in
-    unify_and_mark (A.EMatchS (e1', e_name, cases')) t_ret
-  | A.ERaise ex ->
-    Bindlib.box
-      (unify_and_mark (A.ERaise ex) (unionfind_make (TAny (Any.fresh ()))))
+    A.EMatchS (e1', e_name, cases')
+  | A.ERaise _ as e1 -> Bindlib.box (mark e1)
   | A.ECatch (e1, ex, e2) ->
-    let+ e1' = typecheck_expr_bottom_up ctx env e1
-    and+ e2' = typecheck_expr_bottom_up ctx env e2 in
-    let e_ty = ty e1' in
-    unify ctx e e_ty (ty e2');
-    unify_and_mark (A.ECatch (e1', ex, e2')) e_ty
-  | A.EVar v -> begin
-    match Var.Map.find_opt v env.vars with
-    | Some tau' ->
-      let+ v' = Bindlib.box_var (Var.translate v) in
-      unify_and_mark v' tau'
-    | None ->
-      Errors.raise_spanned_error pos_e
-        "Variable %s not found in the current context" (Bindlib.name_of v)
-  end
+    let+ e1' = typecheck_expr_top_down ctx env tau e1
+    and+ e2' = typecheck_expr_top_down ctx env tau e2 in
+    mark (A.ECatch (e1', ex, e2'))
+  | A.EVar v ->
+    let tau' =
+      try Var.Map.find v env.vars
+      with Not_found ->
+        Errors.raise_spanned_error pos_e
+          "Variable %s not found in the current context" (Bindlib.name_of v)
+    in
+    unify_and_mark tau' @@ fun () -> Bindlib.box_var (Var.translate v)
   | A.ELit lit as e1 ->
-    Bindlib.box @@ unify_and_mark e1 (unionfind_make (lit_type lit))
+    unify_and_mark (unionfind_make (lit_type lit))
+    @@ fun () -> Bindlib.box @@ e1
   | A.ETuple (es, None) ->
-    let+ es' = bmap (typecheck_expr_bottom_up ctx env) es in
-    unify_and_mark
-      (A.ETuple (es', None))
-      (unionfind_make (TTuple (List.map ty es')))
+    let tys = List.map (fun _ -> unionfind_make (TAny (Any.fresh ()))) es in
+    unify_and_mark (unionfind_make (TTuple tys))
+    @@ fun () ->
+    let+ es' = bmap2 (typecheck_expr_top_down ctx env) tys es in
+    A.ETuple (es', None)
   | A.ETuple (es, Some s_name) ->
     let tys =
       List.map
         (fun (_, ty) -> ast_to_typ ty)
         (A.StructMap.find s_name ctx.A.ctx_structs)
     in
+    unify_and_mark (unionfind_make (TStruct s_name))
+    @@ fun () ->
     let+ es' = bmap2 (typecheck_expr_top_down ctx env) tys es in
-    unify_and_mark
-      (A.ETuple (es', Some s_name))
-      (unionfind_make (TStruct s_name))
-  | A.ETupleAccess (e1, n, s, typs) -> begin
+    A.ETuple (es', Some s_name)
+  | A.ETupleAccess (e1, n, s, typs) ->
     let typs' = List.map ast_to_typ typs in
     let tuple_ty = match s with None -> TTuple typs' | Some s -> TStruct s in
+    let t1n =
+      try List.nth typs' n
+      with Not_found ->
+        Errors.raise_spanned_error (Expr.pos e1)
+          "Expression should have a tuple type with at least %d elements but \
+           only has %d"
+          n (List.length typs)
+    in
+    unify_and_mark t1n
+    @@ fun () ->
     let+ e1' = typecheck_expr_top_down ctx env (unionfind_make tuple_ty) e1 in
-    match List.nth_opt typs' n with
-    | Some t1n -> unify_and_mark (A.ETupleAccess (e1', n, s, typs)) t1n
-    | None ->
-      Errors.raise_spanned_error (Expr.pos e1)
-        "Expression should have a tuple type with at least %d elements but \
-         only has %d"
-        n (List.length typs)
-  end
+    A.ETupleAccess (e1', n, s, typs)
   | A.EInj (e1, n, e_name, ts) ->
     let ts' = List.map ast_to_typ ts in
     let ts_n =
-      match List.nth_opt ts' n with
-      | Some ts_n -> ts_n
-      | None ->
+      try List.nth ts' n
+      with Not_found ->
         Errors.raise_spanned_error (Expr.pos e)
           "Expression should have a sum type with at least %d cases but only \
            has %d"
           n (List.length ts)
     in
+    unify_and_mark (unionfind_make (TEnum e_name))
+    @@ fun () ->
     let+ e1' = typecheck_expr_top_down ctx env ts_n e1 in
-    unify_and_mark (A.EInj (e1', n, e_name, ts)) (unionfind_make (TEnum e_name))
+    A.EInj (e1', n, e_name, ts)
   | A.EMatch (e1, es, e_name) ->
-    let enum_cases =
-      List.map (fun e' -> unionfind_make ~pos:e' (TAny (Any.fresh ()))) es
-    in
-    let e1' =
+    let+ es' =
+      bmap2
+        (fun es' (_, c_ty) ->
+          typecheck_expr_top_down ctx env
+            (unionfind_make ~pos:es' (TArrow (ast_to_typ c_ty, tau)))
+            es')
+        es
+        (A.EnumMap.find e_name ctx.ctx_enums)
+    and+ e1' =
       typecheck_expr_top_down ctx env (unionfind_make ~pos:e1 (TEnum e_name)) e1
     in
-    let t_ret = unionfind_make ~pos:e (TAny (Any.fresh ())) in
-    let+ e1'
-    and+ es' =
-      bmap2
-        (fun es' enum_t ->
-          typecheck_expr_top_down ctx env
-            (unionfind_make ~pos:es' (TArrow (enum_t, t_ret)))
-            es')
-        es enum_cases
-    in
-    unify_and_mark (EMatch (e1', es', e_name)) t_ret
+    mark (A.EMatch (e1', es', e_name))
   | A.EAbs (binder, t_args) ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Errors.raise_spanned_error (Expr.pos e)
@@ -699,76 +700,76 @@ and typecheck_expr_top_down :
         (Bindlib.mbinder_arity binder)
         (List.length t_args)
     else
+      let tau_args = List.map ast_to_typ t_args in
+      let t_ret = unionfind_make (TAny (Any.fresh ())) in
+      let t_func =
+        List.fold_right
+          (fun t_arg acc -> unionfind_make (TArrow (t_arg, acc)))
+          tau_args t_ret
+      in
+      unify_and_mark t_func
+      @@ fun () ->
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
-      let xstaus =
-        List.map2 (fun x t_arg -> x, ast_to_typ t_arg) (Array.to_list xs) t_args
-      in
       let env =
         {
           env with
           vars =
-            List.fold_left
-              (fun env (x, t_arg) -> Var.Map.add x t_arg env)
-              env.vars xstaus;
+            List.fold_left2
+              (fun env x tau_arg -> Var.Map.add x tau_arg env)
+              env.vars (Array.to_list xs) tau_args;
         }
       in
-      let body' = typecheck_expr_bottom_up ctx env body in
-      let t_func =
-        List.fold_right
-          (fun (_, t_arg) acc -> unionfind_make (TArrow (t_arg, acc)))
-          xstaus (box_ty body')
-      in
+      let body' = typecheck_expr_top_down ctx env t_ret body in
       let+ binder' = Bindlib.bind_mvar xs' body' in
-      unify_and_mark (EAbs (binder', t_args)) t_func
+      A.EAbs (binder', t_args)
   | A.EApp (e1, args) ->
-    let+ args' = bmap (typecheck_expr_bottom_up ctx env) args
-    and+ e1' = typecheck_expr_bottom_up ctx env e1 in
+    let t_args =
+      List.map (fun _ -> unionfind_make (TAny (Any.fresh ()))) args
+    in
     let t_func =
       List.fold_right
-        (fun arg acc -> unionfind_make (TArrow (ty arg, acc)))
-        args' tau
+        (fun t_arg acc -> unionfind_make (TArrow (t_arg, acc)))
+        t_args tau
     in
-    unify ctx e (ty e1') t_func;
-    unify_and_mark (EApp (e1', args')) tau
+    let+ e1' = typecheck_expr_top_down ctx env t_func e1
+    and+ args' = bmap2 (typecheck_expr_top_down ctx env) t_args args in
+    mark (A.EApp (e1', args'))
   | A.EOp op as e1 ->
-    let op_typ = op_type (add_pos e op) in
-    Bindlib.box (unify_and_mark e1 op_typ)
+    unify_and_mark (op_type (add_pos e op)) @@ fun () -> Bindlib.box e1
   | A.EDefault (excepts, just, cons) ->
-    let+ just' =
+    let+ cons' = typecheck_expr_top_down ctx env tau cons
+    and+ just' =
       typecheck_expr_top_down ctx env
         (unionfind_make ~pos:just (TLit TBool))
         just
-    and+ cons' = typecheck_expr_top_down ctx env tau cons
     and+ excepts' = bmap (typecheck_expr_top_down ctx env tau) excepts in
     mark (A.EDefault (excepts', just', cons'))
   | A.EIfThenElse (cond, et, ef) ->
-    let+ cond' =
+    let+ et' = typecheck_expr_top_down ctx env tau et
+    and+ ef' = typecheck_expr_top_down ctx env tau ef
+    and+ cond' =
       typecheck_expr_top_down ctx env
         (unionfind_make ~pos:cond (TLit TBool))
         cond
-    and+ et' = typecheck_expr_top_down ctx env tau et
-    and+ ef' = typecheck_expr_top_down ctx env tau ef in
+    in
     mark (A.EIfThenElse (cond', et', ef'))
   | A.EAssert e1 ->
+    unify_and_mark (unionfind_make ~pos:e1 (TLit TUnit))
+    @@ fun () ->
     let+ e1' =
       typecheck_expr_top_down ctx env (unionfind_make ~pos:e1 (TLit TBool)) e1
     in
-    unify_and_mark (EAssert e1') (unionfind_make ~pos:e1 (TLit TUnit))
+    A.EAssert e1'
   | A.ErrorOnEmpty e1 ->
     let+ e1' = typecheck_expr_top_down ctx env tau e1 in
     mark (A.ErrorOnEmpty e1')
   | A.EArray es ->
     let cell_type = unionfind_make (TAny (Any.fresh ())) in
-    let+ es' =
-      bmap
-        (fun e1 ->
-          let e1' = typecheck_expr_bottom_up ctx env e1 in
-          unify ctx e cell_type (box_ty e1');
-          e1')
-        es
-    in
-    unify_and_mark (A.EArray es') (unionfind_make (TArray cell_type))
+    unify_and_mark (unionfind_make (TArray cell_type))
+    @@ fun () ->
+    let+ es' = bmap (typecheck_expr_top_down ctx env cell_type) es in
+    A.EArray es'
 
 let wrap ctx f e =
   try
