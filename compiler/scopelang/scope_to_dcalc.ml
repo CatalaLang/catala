@@ -33,7 +33,7 @@ type scope_sig_ctx = {
   scope_sig_output_struct : StructName.t;  (** Scope output *)
 }
 
-type scope_sigs_ctx = scope_sig_ctx Ast.ScopeMap.t
+type scope_sigs_ctx = scope_sig_ctx ScopeMap.t
 
 type ctx = {
   structs : struct_ctx;
@@ -44,7 +44,7 @@ type ctx = {
     (untyped Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t;
   subscope_vars :
     (untyped Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t
-    Ast.SubScopeMap.t;
+    SubScopeMap.t;
   local_vars : (Ast.expr, untyped Dcalc.Ast.expr Var.t) Var.Map.t;
 }
 
@@ -59,7 +59,7 @@ let empty_ctx
     scope_name;
     scopes_parameters = scopes_ctx;
     scope_vars = ScopeVarMap.empty;
-    subscope_vars = Ast.SubScopeMap.empty;
+    subscope_vars = SubScopeMap.empty;
     local_vars = Var.Map.empty;
   }
 
@@ -262,7 +262,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
         retrieve_in_and_out_typ_or_any var ctx.scope_vars
       | ELocation (SubScopeVar (_, sname, var)) ->
         ctx.subscope_vars
-        |> Ast.SubScopeMap.find (Marked.unmark sname)
+        |> SubScopeMap.find (Marked.unmark sname)
         |> retrieve_in_and_out_typ_or_any var
       | _ -> TAny, TAny
     in
@@ -321,7 +321,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
     try
       let v, _, _ =
         ScopeVarMap.find (Marked.unmark a)
-          (Ast.SubScopeMap.find (Marked.unmark s) ctx.subscope_vars)
+          (SubScopeMap.find (Marked.unmark s) ctx.subscope_vars)
       in
       Bindlib.box_var v
     with Not_found ->
@@ -454,7 +454,7 @@ let translate_rule
       {
         ctx with
         subscope_vars =
-          Ast.SubScopeMap.update (Marked.unmark subs_index)
+          SubScopeMap.update (Marked.unmark subs_index)
             (fun map ->
               match map with
               | Some map ->
@@ -469,7 +469,7 @@ let translate_rule
             ctx.subscope_vars;
       } )
   | Call (subname, subindex) ->
-    let subscope_sig = Ast.ScopeMap.find subname ctx.scopes_parameters in
+    let subscope_sig = ScopeMap.find subname ctx.scopes_parameters in
     let all_subscope_vars = subscope_sig.scope_sig_local_vars in
     let all_subscope_input_vars =
       List.filter
@@ -488,7 +488,7 @@ let translate_rule
     let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
     let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let subscope_vars_defined =
-      try Ast.SubScopeMap.find subindex ctx.subscope_vars
+      try SubScopeMap.find subindex ctx.subscope_vars
       with Not_found -> ScopeVarMap.empty
     in
     let subscope_var_not_yet_defined subvar =
@@ -601,7 +601,7 @@ let translate_rule
       {
         ctx with
         subscope_vars =
-          Ast.SubScopeMap.add subindex
+          SubScopeMap.add subindex
             (List.fold_left
                (fun acc (var_ctx, dvar) ->
                  ScopeVarMap.add var_ctx.scope_var_name
@@ -676,7 +676,7 @@ let translate_scope_decl
     (sigma : Ast.scope_decl) :
     untyped Dcalc.Ast.expr scope_body Bindlib.box * struct_ctx =
   let sigma_info = ScopeName.get_info sigma.scope_decl_name in
-  let scope_sig = Ast.ScopeMap.find sigma.scope_decl_name sctx in
+  let scope_sig = ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
   let ctx =
     (* the context must be initialized for fresh variables for all only-input
@@ -811,7 +811,7 @@ let translate_program (prgm : Ast.program) :
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let decl_ctx = prgm.program_ctx in
   let sctx : scope_sigs_ctx =
-    Ast.ScopeMap.mapi
+    ScopeMap.mapi
       (fun scope_name scope ->
         let scope_dvar =
           Var.make
@@ -854,12 +854,12 @@ let translate_program (prgm : Ast.program) :
   let (scopes, decl_ctx) : untyped Dcalc.Ast.expr scopes Bindlib.box * _ =
     List.fold_right
       (fun scope_name (scopes, decl_ctx) ->
-        let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
+        let scope = ScopeMap.find scope_name prgm.program_scopes in
         let scope_body, scope_out_struct =
           translate_scope_decl decl_ctx.ctx_structs decl_ctx.ctx_enums sctx
             scope_name scope
         in
-        let dvar = (Ast.ScopeMap.find scope_name sctx).scope_sig_scope_var in
+        let dvar = (ScopeMap.find scope_name sctx).scope_sig_scope_var in
         let decl_ctx =
           {
             decl_ctx with

@@ -475,8 +475,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
              (* Before calling the sub_scope, we need to include all the
                 re-definitions of subscope parameters*)
              let sub_scope =
-               Scopelang.Ast.SubScopeMap.find sub_scope_index
-                 scope.scope_sub_scopes
+               SubScopeMap.find sub_scope_index scope.scope_sub_scopes
              in
              let sub_scope_vars_redefs_candidates =
                Ast.ScopeDefMap.filter
@@ -547,8 +546,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          ~is_subscope_var:true
                      in
                      let subscop_real_name =
-                       Scopelang.Ast.SubScopeMap.find sub_scope_index
-                         scope.scope_sub_scopes
+                       SubScopeMap.find sub_scope_index scope.scope_sub_scopes
                      in
                      let var_pos = Ast.ScopeDef.get_position def_key in
                      Scopelang.Ast.Definition
@@ -640,7 +638,7 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
      Scopelang. This involves creating a new Scopelang scope variable for every
      state of a Desugared variable. *)
   let ctx =
-    Scopelang.Ast.ScopeMap.fold
+    ScopeMap.fold
       (fun _scope scope_decl ctx ->
         ScopeVarMap.fold
           (fun scope_var (states : Ast.var_or_states) ctx ->
@@ -679,6 +677,6 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
   in
   {
     Scopelang.Ast.program_scopes =
-      Scopelang.Ast.ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
+      ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
     Scopelang.Ast.program_ctx = pgrm.program_ctx;
   }

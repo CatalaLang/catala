@@ -16,14 +16,6 @@
 
 open Utils
 open Shared_ast
-module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
-
-module SubScopeNameSet : Set.S with type elt = SubScopeName.t =
-  Set.Make (SubScopeName)
-
-module SubScopeMap : Map.S with type key = SubScopeName.t =
-  Map.Make (SubScopeName)
-
 module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
 module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 

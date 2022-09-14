@@ -48,11 +48,11 @@ module SSCC = Graph.Components.Make (SDependencies)
 let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
   let g = SDependencies.empty in
   let g =
-    Ast.ScopeMap.fold
+    ScopeMap.fold
       (fun v _ g -> SDependencies.add_vertex g v)
       prgm.program_scopes g
   in
-  Ast.ScopeMap.fold
+  ScopeMap.fold
     (fun scope_name scope g ->
       let subscopes =
         List.fold_left
@@ -68,12 +68,12 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
                    forbidden since Catala does not provide recursion"
                   ScopeName.format_t scope.Ast.scope_decl_name
               else
-                Ast.ScopeMap.add subscope
+                ScopeMap.add subscope
                   (Marked.get_mark (SubScopeName.get_info subindex))
                   acc)
-          Ast.ScopeMap.empty scope.Ast.scope_decl_rules
+          ScopeMap.empty scope.Ast.scope_decl_rules
       in
-      Ast.ScopeMap.fold
+      ScopeMap.fold
         (fun subscope pos g ->
           let edge = SDependencies.E.create subscope pos scope_name in
           SDependencies.add_edge_e g edge)

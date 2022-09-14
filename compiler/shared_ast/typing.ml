@@ -276,7 +276,18 @@ let op_type (op : A.operator Marked.pos) : unionfind_typ =
 
 (** {1 Double-directed typing} *)
 
-type 'e env = ('e, unionfind_typ) Var.Map.t
+type 'e env = {
+  vars : ('e, unionfind_typ) Var.Map.t;
+  scope_vars : A.typ A.ScopeVarMap.t;
+  subscope_vars : A.typ A.ScopeVarMap.t A.SubScopeMap.t;
+}
+
+let empty_env =
+  {
+    vars = Var.Map.empty;
+    scope_vars = A.ScopeVarMap.empty;
+    subscope_vars = A.SubScopeMap.empty;
+  }
 
 let add_pos e ty = Marked.mark (Expr.pos e) ty
 let ty (_, { uf; _ }) = uf
@@ -318,15 +329,72 @@ let rec typecheck_expr_bottom_up :
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   let mark_with_uf e1 ?pos ty = mark e1 (unionfind_make ?pos ty) in
   match Marked.unmark e with
-  | A.ELocation _ -> assert false
-  | A.EStruct _ -> assert false
-  | A.EStructAccess _ -> assert false
-  | A.EEnumInj _ -> assert false
-  | A.EMatchS _ -> assert false
-  | A.ERaise _ -> assert false
-  | A.ECatch _ -> assert false
+  | A.ELocation loc as e1 ->
+    let ty =
+      match loc with
+      | DesugaredScopeVar (v, _) | ScopelangScopeVar v ->
+        A.ScopeVarMap.find (Marked.unmark v) env.scope_vars
+      | SubScopeVar (_s_name, ss_name, v) ->
+        A.ScopeVarMap.find (Marked.unmark v)
+          (A.SubScopeMap.find (Marked.unmark ss_name) env.subscope_vars)
+    in
+    Bindlib.box (mark e1 (ast_to_typ ty))
+  | A.EStruct (s_name, fmap) ->
+    let+ fmap' =
+      (* This assumes that the fields in fmap and the struct type are already
+         ensured to be the same *)
+      List.fold_left
+        (fun fmap' (f_name, f_ty) ->
+          let f_e = A.StructFieldMap.find f_name fmap in
+          let+ fmap'
+          and+ f_e' = typecheck_expr_top_down ctx env (ast_to_typ f_ty) f_e in
+          A.StructFieldMap.add f_name f_e' fmap')
+        (Bindlib.box A.StructFieldMap.empty)
+        (A.StructMap.find s_name ctx.A.ctx_structs)
+    in
+    mark_with_uf (A.EStruct (s_name, fmap')) (TStruct s_name)
+  | A.EStructAccess (e_struct, f_name, s_name) ->
+    let f_ty =
+      ast_to_typ (List.assoc f_name (A.StructMap.find s_name ctx.A.ctx_structs))
+    in
+    let+ e_struct' =
+      typecheck_expr_top_down ctx env (unionfind_make (TStruct s_name)) e_struct
+    in
+    mark (A.EStructAccess (e_struct', f_name, s_name)) f_ty
+  | A.EEnumInj (e_enum, c_name, e_name) ->
+    let c_ty =
+      ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums))
+    in
+    let+ e_enum' =
+      typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e_enum
+    in
+    mark (A.EEnumInj (e_enum', c_name, e_name)) c_ty
+  | A.EMatchS (e1, e_name, cases) ->
+    let cases_ty = A.EnumMap.find e_name ctx.A.ctx_enums in
+    let t_ret = unionfind_make ~pos:e1 (TAny (Any.fresh ())) in
+    let+ e1' =
+      typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e1
+    and+ cases' =
+      A.EnumConstructorMap.fold
+        (fun c_name e cases' ->
+          let c_ty = List.assoc c_name cases_ty in
+          let e_ty = unionfind_make ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
+          let+ cases' and+ e' = typecheck_expr_top_down ctx env e_ty e in
+          A.EnumConstructorMap.add c_name e' cases')
+        cases
+        (Bindlib.box A.EnumConstructorMap.empty)
+    in
+    mark (A.EMatchS (e1', e_name, cases')) t_ret
+  | A.ERaise ex ->
+    Bindlib.box (mark_with_uf (A.ERaise ex) (TAny (Any.fresh ())))
+  | A.ECatch (e1, ex, e2) ->
+    let+ e1' = typecheck_expr_bottom_up ctx env e1
+    and+ e2' = typecheck_expr_bottom_up ctx env e2 in
+    let e_ty = ty e1' in
+    unify ctx e e_ty (ty e2');
+    mark (A.ECatch (e1', ex, e2')) e_ty
   | A.EVar v -> begin
-    match Var.Map.find_opt v env with
+    match Var.Map.find_opt v env.vars with
     | Some t ->
       let+ v' = Bindlib.box_var (Var.translate v) in
       mark v' t
@@ -398,7 +466,13 @@ let rec typecheck_expr_bottom_up :
       let xs' = Array.map Var.translate xs in
       let xstaus = List.mapi (fun i tau -> xs.(i), ast_to_typ tau) taus in
       let env =
-        List.fold_left (fun env (x, tau) -> Var.Map.add x tau env) env xstaus
+        {
+          env with
+          vars =
+            List.fold_left
+              (fun env (x, tau) -> Var.Map.add x tau env)
+              env.vars xstaus;
+        }
       in
       let body' = typecheck_expr_bottom_up ctx env body in
       let t_func =
@@ -484,15 +558,73 @@ and typecheck_expr_top_down :
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   match Marked.unmark e with
-  | A.ELocation _ -> assert false
-  | A.EStruct _ -> assert false
-  | A.EStructAccess _ -> assert false
-  | A.EEnumInj _ -> assert false
-  | A.EMatchS _ -> assert false
-  | A.ERaise _ -> assert false
-  | A.ECatch _ -> assert false
+  | A.ELocation loc as e1 ->
+    let ty =
+      match loc with
+      | DesugaredScopeVar (v, _) | ScopelangScopeVar v ->
+        A.ScopeVarMap.find (Marked.unmark v) env.scope_vars
+      | SubScopeVar (_s_name, ss_name, v) ->
+        A.ScopeVarMap.find (Marked.unmark v)
+          (A.SubScopeMap.find (Marked.unmark ss_name) env.subscope_vars)
+    in
+    Bindlib.box (unify_and_mark e1 (ast_to_typ ty))
+  | A.EStruct (s_name, fmap) ->
+    let+ fmap' =
+      (* This assumes that the fields in fmap and the struct type are already
+         ensured to be the same *)
+      List.fold_left
+        (fun fmap' (f_name, f_ty) ->
+          let f_e = A.StructFieldMap.find f_name fmap in
+          let+ fmap'
+          and+ f_e' = typecheck_expr_top_down ctx env (ast_to_typ f_ty) f_e in
+          A.StructFieldMap.add f_name f_e' fmap')
+        (Bindlib.box A.StructFieldMap.empty)
+        (A.StructMap.find s_name ctx.A.ctx_structs)
+    in
+    unify_and_mark (A.EStruct (s_name, fmap')) (unionfind_make (TStruct s_name))
+  | A.EStructAccess (e_struct, f_name, s_name) ->
+    let f_ty =
+      ast_to_typ (List.assoc f_name (A.StructMap.find s_name ctx.A.ctx_structs))
+    in
+    let+ e_struct' =
+      typecheck_expr_top_down ctx env (unionfind_make (TStruct s_name)) e_struct
+    in
+    unify_and_mark (A.EStructAccess (e_struct', f_name, s_name)) f_ty
+  | A.EEnumInj (e_enum, c_name, e_name) ->
+    let c_ty =
+      ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums))
+    in
+    let+ e_enum' =
+      typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e_enum
+    in
+    unify_and_mark (A.EEnumInj (e_enum', c_name, e_name)) c_ty
+  | A.EMatchS (e1, e_name, cases) ->
+    let cases_ty = A.EnumMap.find e_name ctx.A.ctx_enums in
+    let t_ret = unionfind_make ~pos:e1 (TAny (Any.fresh ())) in
+    let+ e1' =
+      typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e1
+    and+ cases' =
+      A.EnumConstructorMap.fold
+        (fun c_name e cases' ->
+          let c_ty = List.assoc c_name cases_ty in
+          let e_ty = unionfind_make ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
+          let+ cases' and+ e' = typecheck_expr_top_down ctx env e_ty e in
+          A.EnumConstructorMap.add c_name e' cases')
+        cases
+        (Bindlib.box A.EnumConstructorMap.empty)
+    in
+    unify_and_mark (A.EMatchS (e1', e_name, cases')) t_ret
+  | A.ERaise ex ->
+    Bindlib.box
+      (unify_and_mark (A.ERaise ex) (unionfind_make (TAny (Any.fresh ()))))
+  | A.ECatch (e1, ex, e2) ->
+    let+ e1' = typecheck_expr_bottom_up ctx env e1
+    and+ e2' = typecheck_expr_bottom_up ctx env e2 in
+    let e_ty = ty e1' in
+    unify ctx e e_ty (ty e2');
+    unify_and_mark (A.ECatch (e1', ex, e2')) e_ty
   | A.EVar v -> begin
-    match Var.Map.find_opt v env with
+    match Var.Map.find_opt v env.vars with
     | Some tau' ->
       let+ v' = Bindlib.box_var (Var.translate v) in
       unify_and_mark v' tau'
@@ -573,9 +705,13 @@ and typecheck_expr_top_down :
         List.map2 (fun x t_arg -> x, ast_to_typ t_arg) (Array.to_list xs) t_args
       in
       let env =
-        List.fold_left
-          (fun env (x, t_arg) -> Var.Map.add x t_arg env)
-          env xstaus
+        {
+          env with
+          vars =
+            List.fold_left
+              (fun env (x, t_arg) -> Var.Map.add x t_arg env)
+              env.vars xstaus;
+        }
       in
       let body' = typecheck_expr_bottom_up ctx env body in
       let t_func =
@@ -652,7 +788,7 @@ let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 let infer_types (type a) (ctx : A.decl_ctx) (e : (a, 'm) A.gexpr) :
     (a, A.typed A.mark) A.gexpr A.box =
   Expr.map_marks ~f:get_ty_mark
-  @@ wrap ctx (typecheck_expr_bottom_up ctx Var.Map.empty) e
+  @@ wrap ctx (typecheck_expr_bottom_up ctx empty_env) e
 
 let infer_type (type a m) ctx (e : (a, m A.mark) A.gexpr) =
   match Marked.get_mark e with
@@ -662,8 +798,7 @@ let infer_type (type a m) ctx (e : (a, m A.mark) A.gexpr) =
 (** Typechecks an expression given an expected type *)
 let check_type (type a) (ctx : A.decl_ctx) (e : (a, 'm) A.gexpr) (tau : A.typ) =
   (* todo: consider using the already inferred type if ['m] = [typed] *)
-  ignore
-  @@ wrap ctx (typecheck_expr_top_down ctx Var.Map.empty (ast_to_typ tau)) e
+  ignore @@ wrap ctx (typecheck_expr_top_down ctx empty_env (ast_to_typ tau)) e
 
 let infer_types_program prg =
   let ctx = prg.A.decl_ctx in
@@ -710,7 +845,7 @@ let infer_types_program prg =
              [unify] parameters, which keeps location of the type as defined
              instead of as inferred. *)
           let var, next = Bindlib.unbind scope_let_next in
-          let env = Var.Map.add var ty_e env in
+          let env = { env with vars = Var.Map.add var ty_e env.vars } in
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (Var.translate var) next in
           Bindlib.box_apply2
@@ -728,13 +863,13 @@ let infer_types_program prg =
       in
       let scope_body_expr =
         let var, e = Bindlib.unbind body in
-        let env = Var.Map.add var ty_in env in
+        let env = { env with vars = Var.Map.add var ty_in env.vars } in
         let e' = process_scope_body_expr env e in
         Bindlib.bind_var (Var.translate var) e'
       in
       let scope_next =
         let scope_var, next = Bindlib.unbind scope_next in
-        let env = Var.Map.add scope_var ty_scope env in
+        let env = { env with vars = Var.Map.add scope_var ty_scope env.vars } in
         let next' = process_scopes env next in
         Bindlib.bind_var (Var.translate scope_var) next'
       in
@@ -753,5 +888,5 @@ let infer_types_program prg =
             })
         scope_body_expr scope_next
   in
-  let scopes = Bindlib.unbox (process_scopes Var.Map.empty prg.scopes) in
+  let scopes = Bindlib.unbox (process_scopes empty_env prg.scopes) in
   { A.decl_ctx = ctx; scopes }

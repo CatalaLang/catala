@@ -99,17 +99,14 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  scope_sub_scopes : ScopeName.t SubScopeMap.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-type program = {
-  program_scopes : scope Scopelang.Ast.ScopeMap.t;
-  program_ctx : decl_ctx;
-}
+type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
 
 (** {1 Helpers} *)
 

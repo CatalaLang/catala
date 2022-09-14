@@ -21,10 +21,6 @@ open Shared_ast
 
 (** {1 Identifiers} *)
 
-module ScopeMap : Map.S with type key = ScopeName.t
-module SubScopeNameSet : Set.S with type elt = SubScopeName.t
-module SubScopeMap : Map.S with type key = SubScopeName.t
-
 module StructFieldMapLift : sig
   val lift_box :
     'a Bindlib.box StructFieldMap.t -> 'a StructFieldMap.t Bindlib.box

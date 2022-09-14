@@ -171,8 +171,7 @@ let driver source_file (options : Cli.options) : int =
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.scope prgm.program_ctx ~debug:options.debug)
-            ( scope_uid,
-              Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
+            (scope_uid, Shared_ast.ScopeMap.find scope_uid prgm.program_scopes)
         else
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
