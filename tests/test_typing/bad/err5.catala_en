@@ -1,0 +1,15 @@
+> Include: common.catala_en
+
+```catala
+scope S:
+  definition z equals [
+    Structure { -- i: 3 -- e: Int content x };
+    Structure { -- i: 4 -- e: y };
+    1040
+  ]
+  definition a equals number of (z ++ z) / 2
+```
+
+```catala-test {id="err"}
+catala Typecheck
+```

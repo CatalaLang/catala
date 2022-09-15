@@ -1,0 +1,24 @@
+[ERROR] Error during typechecking, incompatible types:
+--> Structure array
+--> decimal
+
+Error coming from typechecking the following expression:
+  --> tests/test_typing/bad/err2.catala_en
+   | 
+10 |   definition a equals number of (z ++ 1.1) / 2
+   |                                  ^^^^^^^^
+   + 
+
+Type Structure array coming from expression:
+  --> tests/test_typing/bad/err2.catala_en
+   | 
+10 |   definition a equals number of (z ++ 1.1) / 2
+   |                                    ^^
+   + 
+
+Type decimal coming from expression:
+  --> tests/test_typing/bad/err2.catala_en
+   | 
+10 |   definition a equals number of (z ++ 1.1) / 2
+   |                                       ^^^
+   + 
