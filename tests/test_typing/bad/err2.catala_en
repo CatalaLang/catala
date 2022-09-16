@@ -13,7 +13,7 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck
 [ERROR] Error during typechecking, incompatible types:
---> any[10] array
+--> any[4] array
 --> decimal
 
 Error coming from typechecking the following expression:
@@ -23,7 +23,7 @@ Error coming from typechecking the following expression:
    |                                  ^^^^^^^^
    + 
 
-Type any[10] array coming from expression:
+Type any[4] array coming from expression:
   --> tests/test_typing/bad/err2.catala_en
    | 
 10 |   definition a equals number of (z ++ 1.1) / 2

@@ -630,7 +630,10 @@ and typecheck_expr_top_down
     unify_and_mark (A.EArray es') (unionfind_make (TArray cell_type))
 
 let wrap ctx f e =
-  try f e
+  try
+    Bindlib.unbox (f e)
+    (* We need to unbox here, because the typing may otherwise be stored in
+       Bindlib closures and not yet applied, and would escape the `try..with` *)
   with Type_error (e, ty1, ty2) -> (
     let bt = Printexc.get_raw_backtrace () in
     try handle_type_error ctx e ty1 ty2
@@ -644,7 +647,6 @@ let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 let infer_types (ctx : A.decl_ctx) (e : 'm Ast.expr) :
     A.typed Ast.expr Bindlib.box =
   A.Expr.map_marks ~f:get_ty_mark
-  @@ Bindlib.unbox
   @@ wrap ctx (typecheck_expr_bottom_up ctx A.Var.Map.empty) e
 
 let infer_type (type m) ctx (e : m Ast.expr) =
@@ -684,13 +686,9 @@ let infer_types_program prg =
       in
       let rec process_scope_body_expr env = function
         | A.Result e ->
-          let e' = wrap ctx (typecheck_expr_bottom_up ctx env) e in
-          Bindlib.box_apply
-            (fun e1 ->
-              wrap ctx (unify ctx e (ty e1)) ty_out;
-              let e1 = A.Expr.map_marks ~f:get_ty_mark e1 in
-              A.Result (Bindlib.unbox e1))
-            e'
+          let e' = wrap ctx (typecheck_expr_top_down ctx env ty_out) e in
+          let e' = A.Expr.map_marks ~f:get_ty_mark e' in
+          Bindlib.box_apply (fun e -> A.Result e) e'
         | A.ScopeLet
             {
               scope_let_kind;
@@ -700,24 +698,23 @@ let infer_types_program prg =
               scope_let_pos;
             } ->
           let ty_e = ast_to_typ scope_let_typ in
-          let e = wrap ctx (typecheck_expr_bottom_up ctx env) e0 in
           let var, next = Bindlib.unbind scope_let_next in
           let env = A.Var.Map.add var ty_e env in
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (A.Var.translate var) next in
+          let e = wrap ctx (typecheck_expr_top_down ctx env ty_e) e0 in
           Bindlib.box_apply2
-            (fun e scope_let_next ->
-              wrap ctx (unify ctx e0 (ty e)) ty_e;
-              let e = A.Expr.map_marks ~f:get_ty_mark e in
+            (fun scope_let_expr scope_let_next ->
               A.ScopeLet
                 {
                   scope_let_kind;
                   scope_let_typ;
-                  scope_let_expr = Bindlib.unbox e;
+                  scope_let_expr;
                   scope_let_next;
                   scope_let_pos;
                 })
-            e scope_let_next
+            (A.Expr.map_marks ~f:get_ty_mark e)
+            scope_let_next
       in
       let scope_body_expr =
         let var, e = Bindlib.unbind body in
@@ -746,6 +743,5 @@ let infer_types_program prg =
             })
         scope_body_expr scope_next
   in
-  let scopes = wrap ctx (process_scopes A.Var.Map.empty) prg.scopes in
-  Bindlib.box_apply (fun scopes -> { A.decl_ctx = ctx; scopes }) scopes
-  |> Bindlib.unbox
+  let scopes = Bindlib.unbox (process_scopes A.Var.Map.empty prg.scopes) in
+  { A.decl_ctx = ctx; scopes }
