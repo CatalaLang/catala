@@ -128,8 +128,8 @@ let rec unify
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
     | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
     | TArrow (t11, t12), TArrow (t21, t22) ->
-      unify e t11 t21;
-      unify e t12 t22
+      unify e t12 t22;
+      unify e t11 t21
     | TTuple ts1, TTuple ts2 ->
       if List.length ts1 = List.length ts2 then List.iter2 (unify e) ts1 ts2
       else raise_type_error ()

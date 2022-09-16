@@ -13,7 +13,7 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck
 [ERROR] Error during typechecking, incompatible types:
---> Structure array
+--> any[10] array
 --> decimal
 
 Error coming from typechecking the following expression:
@@ -23,11 +23,11 @@ Error coming from typechecking the following expression:
    |                                  ^^^^^^^^
    + 
 
-Type Structure array coming from expression:
-  --> tests/test_typing/bad/common.catala_en
+Type any[10] array coming from expression:
+  --> tests/test_typing/bad/err2.catala_en
    | 
-14 |   output z content collection Structure
-   |                    ^^^^^^^^^^^^^^^^^^^^
+10 |   definition a equals number of (z ++ 1.1) / 2
+   |                                    ^^
    + 
 
 Type decimal coming from expression:

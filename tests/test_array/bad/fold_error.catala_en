@@ -13,8 +13,8 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [ERROR] Error during typechecking, incompatible types:
---> money
 --> integer
+--> money
 
 Error coming from typechecking the following expression:
   --> tests/test_array/bad/fold_error.catala_en
@@ -23,18 +23,18 @@ Error coming from typechecking the following expression:
    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    + Article
 
-Type money coming from expression:
-  --> tests/test_array/bad/fold_error.catala_en
-   |
-10 |   definition list_high_count equals number for m in list of (m >=$ $7)
-   |                                                                    ^^
-   + Article
-
 Type integer coming from expression:
  --> tests/test_array/bad/fold_error.catala_en
-  |
+  | 
 5 |   context list content collection integer
   |                                   ^^^^^^^
   + Article
+
+Type money coming from expression:
+  --> tests/test_array/bad/fold_error.catala_en
+   | 
+10 |   definition list_high_count equals number for m in list of (m >=$ $7)
+   |                                                                    ^^
+   + Article
 #return code 255#
 ```
