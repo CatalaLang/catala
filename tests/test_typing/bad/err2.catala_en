@@ -24,10 +24,10 @@ Error coming from typechecking the following expression:
    + 
 
 Type Structure array coming from expression:
-  --> tests/test_typing/bad/err2.catala_en
+  --> tests/test_typing/bad/common.catala_en
    | 
-10 |   definition a equals number of (z ++ 1.1) / 2
-   |                                    ^^
+14 |   output z content collection Structure
+   |                    ^^^^^^^^^^^^^^^^^^^^
    + 
 
 Type decimal coming from expression:

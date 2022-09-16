@@ -111,7 +111,8 @@ exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
 type mark = { pos : Pos.t; uf : unionfind_typ }
 
-(** Raises an error if unification cannot be performed *)
+(** Raises an error if unification cannot be performed. The position annotation
+    of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
 let rec unify
     (ctx : A.decl_ctx)
     (e : ('a, 'm A.mark) A.gexpr) (* used for error context *)
@@ -123,39 +124,31 @@ let rec unify
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let raise_type_error () = raise (Type_error (A.AnyExpr e, t1, t2)) in
-  let repr =
+  let () =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
-    | TLit tl1, TLit tl2 when tl1 = tl2 -> None
+    | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
     | TArrow (t11, t12), TArrow (t21, t22) ->
       unify e t11 t21;
-      unify e t12 t22;
-      None
+      unify e t12 t22
     | TTuple ts1, TTuple ts2 ->
-      if List.length ts1 = List.length ts2 then begin
-        List.iter2 (unify e) ts1 ts2;
-        None
-      end
+      if List.length ts1 = List.length ts2 then List.iter2 (unify e) ts1 ts2
       else raise_type_error ()
     | TStruct s1, TStruct s2 ->
-      if A.StructName.equal s1 s2 then None else raise_type_error ()
+      if not (A.StructName.equal s1 s2) then raise_type_error ()
     | TEnum e1, TEnum e2 ->
-      if A.EnumName.equal e1 e2 then None else raise_type_error ()
-    | TOption t1, TOption t2 ->
-      unify e t1 t2;
-      None
-    | TArray t1', TArray t2' ->
-      unify e t1' t2';
-      None
-    | TAny _, TAny _ -> None
-    | TAny _, _ -> Some t2_repr
-    | _, TAny _ -> Some t1_repr
+      if not (A.EnumName.equal e1 e2) then raise_type_error ()
+    | TOption t1, TOption t2 -> unify e t1 t2
+    | TArray t1', TArray t2' -> unify e t1' t2'
+    | TAny _, _ | _, TAny _ -> ()
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
         | TArray _ ),
         _ ) ->
       raise_type_error ()
   in
-  let t_union = UnionFind.union t1 t2 in
-  match repr with None -> () | Some t_repr -> UnionFind.set t_union t_repr
+  ignore
+  @@ UnionFind.merge
+       (fun t1 t2 -> match Marked.unmark t2 with TAny _ -> t1 | _ -> t2)
+       t1 t2
 
 let handle_type_error ctx e t1 t2 =
   (* TODO: if we get weird error messages, then it means that we should use the
