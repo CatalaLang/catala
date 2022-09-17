@@ -158,3 +158,12 @@ script `syntax_highlighting/fr/pygments/set_up_pygments.sh`,
 
 The scripts patch your `pigmentize` executable, used for instance by the `minted` LaTeX package.
 It will now point to the Catala-enabled version with the appropriate `catala_*` lexer.
+
+### GNU gedit
+
+Copy the file [catala.lang](syntax_highlighting/en/gedit/catala.lang) to the directory below (create if it does not exist) and then 
+restart GEdit. 
+```
+~/.local/share/gtksourceview-4/language-specs
+```
+
