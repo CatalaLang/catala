@@ -126,6 +126,7 @@ let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
       (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
   | LMoney e -> (
     match !Utils.Cli.locale_lang with
+    | Cn -> lit_style fmt (Format.asprintf "\xA5%s" (Runtime.money_to_string e))
     | En -> lit_style fmt (Format.asprintf "$%s" (Runtime.money_to_string e))
     | Fr -> lit_style fmt (Format.asprintf "%s €" (Runtime.money_to_string e))
     | Pl -> lit_style fmt (Format.asprintf "%s PLN" (Runtime.money_to_string e))

@@ -273,6 +273,7 @@ let ast_to_html
     | C.Fr -> "Sommaire"
     | C.En -> "Table of contents"
     | C.Pl -> "Spis treści."
+    | C.Cn -> "\xe7\x9b\xae\xe5\xbd\x95"
   in
 
   Format.fprintf fmt

@@ -15,7 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-type backend_lang = En | Fr | Pl
+type backend_lang = En | Fr | Pl | Cn
 
 type backend_option_builtin =
   [ `Latex

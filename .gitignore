@@ -12,4 +12,5 @@ legifrance_oauth*
 .ninja_*
 node_modules/
 build.ninja
+*~
 

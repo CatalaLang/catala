@@ -21,11 +21,17 @@ module Errors = Utils.Errors
 module Pos = Utils.Pos
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
-let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]
+let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl; "cn", Cli.Cn]
 
 (** Associates a file extension with its corresponding {!type: Cli.backend_lang}
     string representation. *)
-let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
+let extensions =
+  [
+    ".catala_fr", "fr";
+    ".catala_en", "en";
+    ".catala_pl", "pl";
+    ".catala_cn", "cn";
+  ]
 
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage: [driver source_file options]*)
