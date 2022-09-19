@@ -1,0 +1,16 @@
+(executable
+ (public_name catala_legifrance)
+ (package catala_legifrance)
+ (libraries
+  catala.surface
+  catala.utils
+  cmdliner
+  cohttp
+  lwt
+  cohttp-lwt-unix
+  yojson
+  re
+  ANSITerminal))
+
+(documentation
+ (package catala_legifrance))

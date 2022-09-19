@@ -2,7 +2,7 @@
 
 ## Articles valables du 1er octobre 2021 au 1er juillet 2022
 
-### Article 7 | LEGIARTI000044137432
+### Article 7 | LEGIARTI000044137432 [archive]
 
 Les plafonds de loyers visés au 2° de l'article D. 823-16 du même code sont fixés comme suit (en euros) :
 
@@ -18,7 +18,9 @@ III  243,48         295,15                        330,94                      47
 ---------------------------------------------------------------------------------------------------
 
 
-Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
+NOTA :
+
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
 
@@ -64,7 +66,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 
 ```
 
-### Article 8 | LEGIARTI000044137429
+### Article 8 | LEGIARTI000044137429 [archive]
 
 Dans le cas où le logement occupé est une chambre, les plafonds
 de loyers visés au 2° de l'article D. 823-16 du même code sont
@@ -129,7 +131,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Zone3: 182,61€
 ```
 
-### Article 9 | LEGIARTI000044137426
+### Article 9 | LEGIARTI000044137426 [archive]
 
 Les montants forfaitaires au titre des charges visés au 3° de
 l'article D. 823-16 du même code sont fixés comme suit (en euros) :
@@ -160,7 +162,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
-### Article 13 | LEGIARTI000044137423
+### Article 13 | LEGIARTI000044137423 [archive]
 
 La participation minimale P0 définie au 2° de l'article D. 823-17 du même code est
 égale à la plus élevée des deux valeurs suivantes : 8,5 % de la somme du loyer éligible
@@ -185,7 +187,7 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
-### Article 14 | LEGIARTI000044137420
+### Article 14 | LEGIARTI000044137420 [archive]
 
 Pour l'application de l'article D. 823-17 du même code, le taux de participation
 personnelle Tp du ménage, exprimé en pourcentage, est calculé selon la formule suivante :
@@ -203,14 +205,13 @@ Bénéficiaires                                        TF
 ---------------------------------------------------- ------
 Isolé	                                               2,83%
 Couple sans personne à charge	                       3,15%
-Personne seule ou couple ayant:
-une personne à charge                                2,70%
-2 personnes à charge                                 2,38%
-3 personnes à charge                                 2,01%
-4 personnes à charge                                 1,85%
-5 personnes à charge                                 1,79%
-6 personnes à charge                                 1,73%
-Majoration par personne à charge supplémentaire     -0,06%
+Personne seule ou couple ayant une personne à charge 2,70%
+2 enfants ou 2 personnes                             2,38%
+3 enfants ou 3 personnes                             2,01%
+4 enfants ou 4 personnes                             1,85%
+5 enfants ou 5 personnes                             1,79%
+6 enfants ou 6 personnes                             1,73%
+Majoration par personne à charge                    -0,06%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -315,7 +316,7 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
-### Article 16 | LEGIARTI000044137417
+### Article 16 | LEGIARTI000044137417 [archive]
 
 Dans le cas des colocataires prévus à l'article D. 823-18 du même code :
 
@@ -404,10 +405,10 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
-### Article 19 | LEGIARTI000044137412
+### Article 19 | LEGIARTI000044137412 [archive]
 
 Pour l'application du 4° de l'article D. 832-10 du code de la construction et
-de l'habitation, le montant forfaitaire des charges est fixé comme suit
+de l'habitation , le montant forfaitaire des charges est fixé comme suit
 (en euros) :
 
 Désignation                                         Toutes zones
@@ -430,7 +431,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
     54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
-### Article 24 | LEGIARTI000044137409
+### Article 24 | LEGIARTI000044137409 [archive]
 
 Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
@@ -472,7 +473,7 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
 les prestations dues à compter du 1er octobre 2021.
 
-### Article 27 | LEGIARTI000044137406
+### Article 27 | LEGIARTI000044137406 [archive]
 
 Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds
 sont fixées comme suit (en euros) :
@@ -542,7 +543,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
     )
 ```
 
-### Article 34 | LEGIARTI000044137403
+### Article 34 | LEGIARTI000044137403 [archive]
 
 Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-6 du même code sont fixés comme
 suit (en euros) :
@@ -566,7 +567,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
      entier_vers_décimal de nombre_personnes_à_charge))
 ```
 
-### Article 37 | LEGIARTI000044137400
+### Article 37 | LEGIARTI000044137400 [archive]
 
 Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 
@@ -611,7 +612,7 @@ Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces di
 pour les prestations dues à compter du 1er octobre 2021.
 
 
-### Article 40 | LEGIARTI000044137397
+### Article 40 | LEGIARTI000044137397 [archive]
 
 Les montants forfaitaires au titre des charges visés au 4° de l'article D. 842-15
 du même code sont fixés comme suit (en euros) :
@@ -636,7 +637,7 @@ champ d'application CalculAllocationLogementFoyer
 ```
 
 
-### Article 43 | LEGIARTI000044137394
+### Article 43 | LEGIARTI000044137394 [archive]
 
 L'équivalence de loyer L pour chacune des catégories de personnes mentionnées à l'article
 D. 842-16 du même code est égal à :
@@ -725,7 +726,7 @@ applicables pour les prestations dues à compter du 1er octobre 2021.
 
 ### Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
-#### Article 7 | LEGIARTI000042378448
+#### Article 7 | LEGIARTI000042378448 [archive]
 
 Les plafonds de loyers visés au 2° de l'article D. 823-16 du même code sont fixés comme suit (en euros) :
 
@@ -733,7 +734,7 @@ Les plafonds de loyers visés au 2° de l'article D. 823-16 du même code sont f
 Zone Personne seule Couple sans personne à charge Personne seule ou couple    Par personne à
                                                   ayant une personne à charge charge supplémentaire
 ---- -------------- ----------------------------- --------------------------- ---------------------
-I	   296,82         357,99                        404,60	                    58,70
+I	     296,82         357,99                        404,60	                    58,70
 
 II     258,69         316,64                        356,30                      51,86
 
@@ -741,7 +742,7 @@ III    242,46         293,92                        329,56                      
 ---------------------------------------------------------------------------------------------------
 
 
-Nota:
+NOTA :
 
 Conformément à l’article 3, I de l’arrêté du 25 septembre 2020,
 ces dispositions sont applicables pour les prestations dues à compter du 1er
@@ -790,7 +791,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 
 ```
 
-#### Article 8 | LEGIARTI000042378446
+#### Article 8 | LEGIARTI000042378446 [archive]
 
 Dans le cas où le logement occupé est une chambre, les plafonds
 de loyers visés au 2° de l'article D. 823-16 du même code sont
@@ -804,7 +805,7 @@ dans le cas des personnes âgées ou handicapées adultes hébergées
 On obtient les loyers plafonds suivants (en euros) :
 
 MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL
-(arrondis au centime d'euro le plus proche)
+(arrondis au centime d'euros le plus proche)
 
 ----------------------------------------
 Bénéficiaires	          Zones	Montants
@@ -854,7 +855,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Zone3: 181,85€
 ```
 
-#### Article 9 | LEGIARTI000042378444
+#### Article 9 | LEGIARTI000042378444 [archive]
 
 Les montants forfaitaires au titre des charges visés au 3° de
 l'article D. 823-16 du même code sont fixés comme suit (en euros) :
@@ -885,7 +886,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     53,99€ +€ 12,24€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
-#### Article 13 | LEGIARTI000044137423
+#### Article 13 | LEGIARTI000042378442 [archive]
 
 La participation minimale P0 définie au 2° de l'article D. 823-17 du même code est
 égale à la plus élevée des deux valeurs suivantes : 8,5 % de la somme du loyer éligible
@@ -910,7 +911,7 @@ NOTA :
 Conformément à l’article 3, I de l’arrêté du 25 septembre 2020, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2020.
 
-#### Article 14 | LEGIARTI000042378440
+#### Article 14 | LEGIARTI000042378440 [archive]
 
 Pour l'application de l'article D. 823-17 du même code, le taux de participation
 personnelle Tp du ménage, exprimé en pourcentage, est calculé selon la formule suivante :
@@ -1038,7 +1039,7 @@ dispositions sont applicables pour les prestations dues à compter du
 1er octobre 2020.
 
 
-#### Article 16 | LEGIARTI000042378438
+#### Article 16 | LEGIARTI000042378438 [archive]
 
 Dans le cas des colocataires prévus à l'article D. 823-18 du même code :
 
@@ -1126,16 +1127,16 @@ dispositions sont applicables pour les prestations dues à compter du
 1er octobre 2020.
 
 
-#### Article 19 | LEGIARTI000042378432
+#### Article 19 | LEGIARTI000042378432 [archive]
 
 Pour l'application du 4° de l'article D. 832-10 du code de la construction et
-de l'habitation, le montant forfaitaire des charges est fixé comme suit
+de l'habitation , le montant forfaitaire des charges est fixé comme suit
 (en euros) :
 
 Désignation                                         Toutes zones
 --------------------------------------------------- ------------
-Bénéficiaire isolé ou couple sans personne à charge 54,22
-Par personne supplémentaire à charge	              12,29
+Bénéficiaire isolé ou couple sans personne à charge 53,99
+Par personne supplémentaire à charge	              12,24
 
 NOTA :
 
@@ -1151,8 +1152,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
     53,99 € +€ 12,24 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
-
-#### Article 24 | LEGIARTI000042378430
+#### Article 24 | LEGIARTI000042378430 [archive]
 
 Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
@@ -1197,7 +1197,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2020.
 
 
 
-#### Article 27 | LEGIARTI000042378428
+#### Article 27 | LEGIARTI000042378428 [archive]
 
 Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds
 sont fixées comme suit (en euros) :
@@ -1268,7 +1268,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
 
 ## Articles valables du 1er janvier 2022 au 1er juillet 2022
 
-### Article 6 | LEGIARTI000045011471
+### Article 6 | LEGIARTI000045011471 [archive]
 
 Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
 égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
@@ -1283,12 +1283,12 @@ pour la location et à 4 900 euros pour la résidence en logement-foyer.
 # ressources_forfaitaires_r822_20
 ```
 
-NOTA:
+NOTA :
 
 Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
 
-### Article 15 | LEGIARTI000045011468
+### Article 15 | LEGIARTI000045011468 [archive]
 
 Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
 le tableau suivant (en euros) :
@@ -1298,13 +1298,13 @@ Composition du foyer	                     MONTANT  (en euros)
 Personne seule sans personne à charge	     4 683
 Couple sans personne à charge	             6 709
 Personne seule ou couple ayant :
-    - une personne à charge	               8 002
-    - deux personnes à charge	             8 182
-    - trois personnes à charge	           8 495
-    - quatre personnes à charge	           8 811
-    - cinq personnes à charge	             9 124
-    - six personnes à charge               9 439
-    - par personne à charge supplémentaire 311
+    -une personne à charge	               8 002
+    -deux personnes à charge	             8 182
+    -trois personnes à charge	             8 495
+    -quatre personnes à charge	           8 811
+    -cinq personnes à charge	             9 124
+    -six personnes à charge                9 439
+    -par personne à charge supplémentaire  311
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -1335,31 +1335,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 
 NOTA :
 Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
 
 
 ## Articles valables du 1er janvier 2020 au 1er janvier 2022
 
 ### Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
-#### Article 15 | LEGIARTI000041489192
-
+#### Article 15 | LEGIARTI000041489192 [archive]
 
 Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
 le tableau suivant (en euros) :
 
-Composition du foyer	                     MONTANT  (en euros)
+COMPOSITION DU FOYER	                     MONTANT  (en euros)
 -----------------------------------------  -------------------
-Personne seule sans personne à charge	     4 588
-Couple sans personne à charge	             6 572
+Personne seule sans personne à charge	     4588
+Couple sans personne à charge	             6572
 Personne seule ou couple ayant :
-    - une personne à charge	                 7 839
-    - deux personnes à charge	             8 015
-    - trois personnes à charge	             8 322
-    - quatre personnes à charge	             8 631
-    - cinq personnes à charge	             8 938
-    - six personnes à charge                 9 246
-    - par personne à charge supplémentaire   305
+    -une personne à charge	               7839
+    -deux personnes à charge	             8015
+    -trois personnes à charge	             8322
+    -quatre personnes à charge	           8631
+    -cinq personnes à charge	             8938
+    -six personnes à charge                9246
+    -par personne à charge supplémentaire  305
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif

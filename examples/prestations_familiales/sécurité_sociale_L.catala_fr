@@ -6,7 +6,7 @@
 
 ##### Chapitre 1er : Liste des prestations
 
-###### Article L511-1|LEGIARTI000038834530
+###### Article L511-1 | LEGIARTI000041979747
 
 Les prestations familiales comprennent :
 
@@ -24,9 +24,18 @@ Les prestations familiales comprennent :
 
 7°) l'allocation de rentrée scolaire ;
 
-8°) (Abrogé) ;
+8°) L'allocation forfaitaire versée en cas de décès d'un enfant ;
 
 9°) l'allocation journalière de présence parentale.
+
+NOTA :
+
+Conformément au IV de l’article 5 de la loi n° 2020-692 du 8 juin 2020,
+ces dispositions entrent en vigueur à une date fixée par décret, et au plus
+tard à compter du 1er janvier 2022, au titre des enfants dont le décès
+intervient à compter de cette date. Se reporter aux dispositions du V du
+même article en ce qui concerne le versement d'une l'allocation forfaitaire
+transitoire.
 
 ```catala
 # Voir l'énumération ÉlémentPrestationsFamiliale
@@ -34,7 +43,7 @@ Les prestations familiales comprennent :
 
 ##### Chapitre 2 : Champ d'application
 
-###### Article L512-3|LEGIARTI000038834523
+###### Article L512-3 | LEGIARTI000041979743
 
 Sous réserve des règles particulières à chaque prestation,
 ouvre droit aux prestations familiales :
@@ -49,8 +58,8 @@ champ d'application ÉligibilitéPrestationsFamiliales :
   conséquence rempli
 ```
 
-2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite,
-tout enfant dont la rémunération éventuelle n'excède pas un plafond.
+2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant
+dont la rémunération éventuelle n'excède pas un plafond.
 
 ```catala
 champ d'application ÉligibilitéPrestationsFamiliales :
@@ -73,14 +82,25 @@ champ d'application ÉligibilitéPrestationsFamiliales :
   conséquence rempli
 ```
 
-Toutefois, pour l'attribution du complément familial et de l'allocation
-de logement mentionnés aux 3° et 4° de l'article L. 511-1 , l'âge limite
-peut être différent de celui mentionné au 2° du présent article.
+Toutefois, pour l'attribution du complément familial et de l'allocation de
+logement mentionnés aux 3° et 4° de l'article L. 511-1 , l'âge limite peut être
+différent de celui mentionné au 2° du présent article.
+
+Pour l'attribution de l'allocation forfaitaire versée en cas de décès d'un enfant
+prévue à l'article L. 545-1, l'âge limite retenu peut être différent de celui
+fixé en application du 2° du présent article et la condition relative à la
+rémunération de l'enfant n'est pas exigée.
+
+NOTA : Conformément au IV de l’article 5 de la loi n° 2020-692 du 8 juin 2020,
+ces dispositions entrent en vigueur à une date fixée par décret, et au plus
+tard à compter du 1er janvier 2022, au titre des enfants dont le décès intervient
+à compter de cette date. Se reporter aux dispositions du V du même article en
+ce qui concerne le versement d'une l'allocation forfaitaire transitoire.
 
 ```catala
 # Sera géré avec une exception dans Catala. Le texte est équivalent
 # à une méta-propriété du code à vérifier : i.e. pas d'exceptions pour
-# cet âge azutre part que pour Complément Familial ou AllocationLogement.
+# cet âge autre part que pour Complément Familial ou AllocationLogement.
 ```
 
 

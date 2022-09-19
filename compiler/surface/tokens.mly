@@ -22,7 +22,7 @@
 %}
 
 %token EOF
-%token<string * string option * string option * int> LAW_HEADING
+%token<string * string option * bool * int> LAW_HEADING
 
 %token BEGIN_DIRECTIVE END_DIRECTIVE LAW_INCLUDE
 %token<int> AT_PAGE

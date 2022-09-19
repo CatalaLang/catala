@@ -98,8 +98,8 @@ I.-Peuvent bénéficier d'une aide personnelle au logement :
 1° Les personnes de nationalité française ;
 
 2° Les personnes de nationalité étrangère remplissant les conditions
-prévues par les deux premiers alinéas de l'article L. 512-2 du
-code de la sécurité sociale.
+prévues par les deux premiers alinéas de l' article L. 512-2 du
+code de la sécurité sociale .
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
@@ -187,7 +187,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 Les aides personnelles au logement ne sont pas dues si le local est loué ou
 sous-loué en partie à des tiers, sauf s'il s'agit d'une personne âgée ou
 handicapée adulte qui a passé un contrat conforme aux dispositions de
-l'article L. 442-1 du code de l'action sociale et des familles ou d'une
+l' article L. 442-1 du code de l'action sociale et des familles ou d'une
 personne de moins de trente ans.
 
 ```catala
@@ -258,7 +258,7 @@ Par dérogation à la règle énoncée au premier alinéa, lorsque le demandeur 
 aide personnelle au logement ou son conjoint est bénéficiaire de l'allocation
 aux adultes handicapés prévue à l'article L. 821-1 du code de la sécurité sociale
 ou de l'allocation d'éducation de l'enfant handicapé prévue à l'article L. 541-1
-du même code, la valeur en capital du patrimoine appréciée pour l'ensemble du ménage
+du même code , la valeur en capital du patrimoine appréciée pour l'ensemble du ménage
 n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 
 ```catala
@@ -273,7 +273,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 La même dérogation s'applique au demandeur d'une aide personnelle au logement
 résidant dans un établissement d'hébergement pour personnes âgées dépendantes
 ou dans une résidence autonomie mentionnés à l'article L. 313-12 du code de
-l'action sociale et des familles.
+l'action sociale et des familles .
 
 ```catala
 # Cette exception devrait se cumuler normalement avec la précédente puisqu'elle
@@ -329,8 +329,8 @@ contrat de travail autre qu'un contrat à durée indéterminée.
 ###### Article L822-8 | LEGIARTI000038814930
 
 Les personnes rattachées au foyer fiscal de leurs parents, lorsque ces derniers
-sont assujettis à l'impôt sur la fortune immobilière en application de l'article
-964 du code général des impôts, ne peuvent bénéficier d'aucune aide personnelle au
+sont assujettis à l'impôt sur la fortune immobilière en application de l' article
+964 du code général des impôts , ne peuvent bénéficier d'aucune aide personnelle au
 logement. Cette condition est appréciée pour chacun des membres du ménage.
 
 
@@ -351,7 +351,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 
 Pour ouvrir droit à une aide personnelle au logement, le logement doit répondre à
 des exigences de décence définies en application des deux premiers alinéas de
-l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rapports
+l' article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rapports
 locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
 
 ```catala
@@ -411,7 +411,7 @@ que les dépenses accessoires retenues forfaitairement ;
 logement meublé ou non, accédant à la propriété ou résident en logement-foyer.
 
 Pour l'application du 1°, les enfants à charge doivent respecter les conditions
-prévues à l'article L. 512-2 du code de la sécurité sociale.
+prévues à l'article L. 512-2 du code de la sécurité sociale .
 
 ```catala
 # Cet article indique ce qu'on prend en compte mais pas comment on le prend
@@ -424,12 +424,12 @@ prévues à l'article L. 512-2 du code de la sécurité sociale.
 
 ###### Article L823-2 | LEGIARTI000038814918
 
-Pour effectuer le calcul découlant du 1° de l'article L. 823-1, l'enfant à
+Pour effectuer le calcul découlant du 1° de l'article L. 823-1 , l'enfant à
 charge est rattaché à la personne qui en assume la charge effective et
 permanente.
 
 En cas de résidence alternée de l'enfant au domicile de chacun des parents
-telle que prévue à l'article 373-2-9 du code civil, mise en œuvre de manière
+telle que prévue à l'article 373-2-9 du code civil , mise en œuvre de manière
 effective, les parents désignent le bénéficiaire de l'aide.
 
 Cependant, la charge de l'enfant pour le calcul des aides personnelles au
@@ -463,7 +463,7 @@ immeubles bâtis ;
 5° La redevance mentionnée à l'article L. 615-10 du présent code ;
 
 6° L'indemnité, prévue au 4° de l'article L. 442-1 du code de l'action sociale
-et des familles, représentative de la mise à disposition de la ou des pièces
+et des familles , représentative de la mise à disposition de la ou des pièces
 réservées à la personne accueillie.
 
 ```catala
@@ -473,12 +473,12 @@ réservées à la personne accueillie.
 # Catala fera apparaître une unique case "loyers_l823_3"
 ```
 
-###### Article L823-4 | LEGIARTI000038814914
+###### Article L823-4 | LEGIARTI000046194144
 
 Le barème est révisé chaque année au 1er octobre.
 
 Sont indexés sur l'évolution de l'indice de référence des loyers défini à
-l'article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer
+l' article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer
 les rapports locatifs et portant modification de la loi n° 86-1290 du 23
 décembre 1986 :
 
@@ -492,6 +492,9 @@ la signature est postérieure à la date de révision du barème ;
 4° Les équivalences de loyer et de charges locatives ;
 
 5° Le terme constant de la participation personnelle du ménage.
+
+La date de l'indice de référence des loyers prise en compte pour cette
+révision est celle du deuxième trimestre de l'année en cours.
 
 ```catala
 # Il n'est pas vraiment utile de coder pour notre calcul les règles que
@@ -530,7 +533,7 @@ réglementaire.
 L'aide personnelle au logement peut ne pas être versée lorsque son montant
 mensuel est inférieur à un montant, qui peut varier selon la nature de l'aide
 et la qualité du demandeur telle qu'elle est définie au 4° de
-l'article L. 823-1.
+l'article L. 823-1 .
 
 Ce montant minimal est fixé par voie réglementaire.
 
@@ -550,7 +553,7 @@ cette prime sont fixés par voie réglementaire.
 
 La prime est due si le droit à l'aide personnelle au logement est ouvert dans
 un délai fixé par voie réglementaire à compter de la date d'emménagement, même
-lorsqu'en application de l'article L. 823-7, il n'est pas procédé au versement
+lorsqu'en application de l'article L. 823-7 , il n'est pas procédé au versement
 de l'aide.
 
 ```catala
@@ -597,8 +600,8 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
 
 L'aide personnalisée au logement s'applique aux :
 
-1° Logements occupés par leurs propriétaires, construits, (acquis ou améliorés
-au moyen d'aides de l'Etat) ou de prêts dont les caractéristiques et les
+1° Logements occupés par leurs propriétaires, construits, acquis ou améliorés
+au moyen d'aides de l'Etat ou de prêts dont les caractéristiques et les
 conditions d'octroi sont fixées par voie réglementaire, sous les réserves
 énoncées à l'article L. 831-2 ;
 
@@ -623,11 +626,11 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
 
 2° Logements à usage locatif appartenant à des organismes d'habitations à
 loyer modéré ou gérés par eux ou appartenant aux bailleurs du secteur locatif
-définis au quatrième alinéa de l'article 41 ter de la loi n° 86-1290 du 23
+définis au quatrième alinéa de l' article 41 ter de la loi n° 86-1290 du 23
 décembre 1986 tendant à favoriser l'investissement locatif, l'accession à la
 propriété des logements sociaux et le développement de l'offre foncière, à
 condition que ces bailleurs s'engagent à respecter les obligations précisées
-par des conventions régies par le chapitre III du titre V du livre III, ainsi
+par des conventions régies par le chapitre III du titre V du livre III , ainsi
 que les logements à usage locatif appartenant à d'autres bailleurs, à condition
 que ceux-ci s'engagent à respecter les obligations précisées par des conventions
 régies par la section 3 du chapitre Ier du titre II du livre III ;
@@ -795,7 +798,7 @@ versée à l'allocataire.
 ###### Article L832-3 | LEGIARTI000038814872
 
 Le montant de l'aide personnalisée au logement est diminué, pour les bénéficiaires
-concernés par la réduction de loyer de solidarité définie à l'article L. 442-2-1,
+concernés par la réduction de loyer de solidarité définie à l'article L. 442-2-1 ,
 à hauteur d'une fraction de cette réduction comprise entre 90 % et 98 %. Cette fraction
 est fixée par voie réglementaire.
 
@@ -816,8 +819,8 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 
 ###### Article L832-4 | LEGIARTI000038814870
 
-Dans le cas prévu à l'article L. 824-3, le versement reprend dans les conditions prévues
-à l'article L. 832-1.
+Dans le cas prévu à l'article L. 824-3 , le versement reprend dans les conditions prévues
+à l'article L. 832-1 .
 
 ```catala
 # Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
@@ -1110,7 +1113,7 @@ champ d'application CalculetteAidesAuLogement:
 ###### Article L841-3 | LEGIARTI000038814860
 
 L'allocation de logement sociale est versée aux personnes hébergées dans les unités ou centres de
-soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la sécurité sociale.
+soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la sécurité sociale .
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
@@ -1161,7 +1164,7 @@ Il verse, le cas échéant, à l'allocataire la part de l'allocation de logement
 et des charges récupérables.
 
 L'allocation ne peut être versée au bailleur que si le logement répond aux exigences prévues aux articles
-L. 822-9 et L. 822-10.
+L. 822-9 et L. 822-10 .
 
 En cas de mandat de gérance de logements, l'allocation de logement peut être versée au mandataire.
 
@@ -1172,7 +1175,7 @@ En cas de mandat de gérance de logements, l'allocation de logement peut être v
 
 ###### Article L842-2 | LEGIARTI000038814849
 
-Dans le cas prévu à l'article L. 824-3, le versement reprend au profit du bailleur, sauf dans le cas prévu
+Dans le cas prévu à l'article L. 824-3 , le versement reprend au profit du bailleur, sauf dans le cas prévu
 au troisième alinéa de l'article L. 842-1 ou en cas de refus de ce dernier.
 
 ```catala

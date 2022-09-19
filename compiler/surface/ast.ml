@@ -783,7 +783,7 @@ type source_repr = (string[@opaque]) Marked.pos
 type law_heading = {
   law_heading_name : (string[@opaque]) Marked.pos;
   law_heading_id : (string[@opaque]) option;
-  law_heading_expiration_date : (string[@opaque]) option;
+  law_heading_is_archive : bool; [@opaque]
   law_heading_precedence : (int[@opaque]);
 }
 [@@deriving

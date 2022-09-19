@@ -1,10 +1,38 @@
-# Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
+# Montants revalorisés de l'allocation de solidarité aux personnes âgées
+
+Les montants de l'allocation de solidarité aux personnes âgées pour
+2021 et 2022 n'ont pas fait l'objet de publication législative ou réglementaire.
+La raison nous en a été apportée par le bureau BRS de la 6° sous-direction
+de la direction du budget le 12/08/2022:
+
+"- L’article L. 815-4 renvoie à un décret (D. 815-1) la fixation des montants,
+en l’espèce ceux applicables à compter du 1er janvier 2020 (date de la dernière
+revalorisation ayant dérogé au principe de la revalorisation annuelle) ;
+
+- L’article L. 816-2 prévoit le principe de la revalorisation annuelle au 1er
+janvier de chaque année en fonction de l’inflation, par renvoi à l’article
+L. 161-25 ;
+
+- Il n’est nul besoin de prendre un décret chaque année en l’absence de renvoi
+de ce dernier article. Nous prenons une circulaire chaque année à des fins de
+clarification des montants applicables, qui n’a qu’une valeur interprétative.""
+
+À noter que l'article L161-25 doit être interprété de la manière suivante
+pour revaloriser correctement : au 1er janvier de l'année N, on calcule la moyenne
+de l'indice des prix hors-tabac d'octobre N-1 à novembre N-2, que l'on divise
+par cette même moyenne mais cette fois-ci calculée d'octobre N-2 à novembre N-3.
+Cela nous donne le coefficient de revalorisation à appliquer à allocation de
+solidarité aux personnes âgées. Cette méthode nous a été précisément confirmée par
+le bureau BRS de la 6° sous-direction de la direction du budget le 31/08/2022.
+
+Pour éviter de refaire les calculs de revalorisation en Catala, nous prendrons
+comme référence les valeurs de la CNAV rappelées dans des circulaires internes.
+
+## Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
+
+Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
 
 [Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2022_03_11012022.pdf)
-
-
-## Allocation de solidarité aux personnes âgées
-
 
 Le montant de l’Aspa s’élève, à compter du 1er janvier 2022, à :
 
@@ -16,7 +44,6 @@ Couple marié   17 079,77 €    1 423,31 €
 ```catala
 # Pas important pour nous
 ```
-
 
 Pour prétendre à cette allocation non contributive, les plafonds de ressources sont fixés à:
 
@@ -35,13 +62,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   conséquence égal à 11 001,44€
 ```
 
-# Circulaire de la CNAV 2021-1 du 11/01/2021 "Revalorisation à compter du 1er janvier 2021"
+## Circulaire de la CNAV 2021-1 du 11/01/2021 "Revalorisation à compter du 1er janvier 2021"
 
 [Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2021_01_11012021.pdf)
-
-
-## Allocation de solidarité aux personnes âgées
-
 
 Le montant de l’Aspa s’élève, à compter du 1er janvier 2022, à :
 
@@ -108,12 +131,12 @@ champ d'application ContributionsSocialesAidesPersonnelleLogement:
 du livre VII du code de la sécurité sociale, à l'exception de l'allocation
 d'éducation de l'enfant handicapé ;
 
-9° La prime d'activité mentionnée à l'article L. 841-1 du code de la sécurité
-sociale.
+9° La prime d'activité mentionnée à l' article L. 841-1 du code de la sécurité
+sociale .
 
 III.-La contribution due sur les prestations visées aux 7°, 8° et 9° du II est
-précomptée par l'organisme débiteur dans les conditions prévues à l'article
-L. 131-1 du code de la sécurité sociale.
+précomptée par l'organisme débiteur dans les conditions prévues à l' article
+L. 131-1 du code de la sécurité sociale .
 
 La contribution prévue au I est recouvrée et contrôlée dans les conditions et
 sous les garanties et sanctions visées à l'article L. 136-5 du code de la
@@ -123,7 +146,7 @@ IV.-Les prestations visées au 8° du II, à l'exception de l'allocation logemen
 mentionnée aux articles L. 542-1 et L. 755-21 du code de la sécurité sociale,
 ne sont assujetties à la contribution qu'à compter du 1er janvier 1997.
 
-NOTA:
+NOTA :
 Conformément aux dispositions de l'article 16 de l'ordonnance n° 2018-474 du
 12 juin 2018, les dispositions de la présente ordonnance s'appliquent aux
 cotisations et contributions dues pour les périodes courant à compter du
@@ -142,7 +165,7 @@ champ d'application ContributionsSocialesAidesPersonnelleLogement:
 Le taux de la contribution instituée au I de l'article 18 est fixé à 2,2 %.
 Le taux de la contribution instituée au III de l'article 18 est fixé à 3 %.
 
-NOTA:
+NOTA :
 
 Conformément aux dispositions du VIII de l'article 138 de la loi n° 2019-486 du
 22 mai 2019, ces dispositions entrent en vigueur le 1er janvier 2020.
@@ -153,13 +176,9 @@ ces dispositions entrent en vigueur le 1er janvier 2020.
 
 # Conseil d'État, 5ème - 4ème chambres réunies, 21/07/2017, 398563 | CETATEXT000035260342
 
-RÉPUBLIQUE FRANCAISE
-
-AU NOM DU PEUPLE FRANCAIS
-
 Vu la procédure suivante :
 
-M. A... B... a demandé au tribunal administratif de Rennes d'annuler la décision
+M. A...B...a demandé au tribunal administratif de Rennes d'annuler la décision
 du 15 octobre 2014 par laquelle la caisse d'allocations familiales les
 Côtes-d'Armor, après avis de la commission de recours amiable, a refusé de
 lui accorder le bénéfice de l'aide personnalisée au logement. Par un jugement
@@ -203,7 +222,7 @@ fonction d'un barème qui prend notamment en compte " la situation de famille
 du demandeur de l'aide occupant le logement et le nombre de personnes à charge
 vivant habituellement au foyer " ; qu'aux termes de l'article R. 351-8 du même
 code : " Sont considérés comme personnes à charge au sens des titres III à V du
-présent livre, sous réserve qu'ils vivent habituellement au foyer :
+présent livre, sous réserve qu'ils vivent habituellement au foyer : /
 1° Les enfants ouvrant droit aux prestations familiales (...) " ;
 
 3. Considérant, d'une part, qu'aux termes du deuxième alinéa de l'article
@@ -258,12 +277,16 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
 de l'habitat durable n'est pas fondé à demander l'annulation du jugement qu'il
 attaque ;
 
-DECIDE :
+D E C I D E :
+
+--------------
 
 Article 1er : Le pourvoi du ministre du logement et de l'habitat durable est rejeté.
 
 Article 2 : La présente décision sera notifiée au ministre de la cohésion
 des territoires, à M. A... B...et à la caisse d'allocations familiales des Côtes-d'Armor.
+
+ECLI:FR:CECHR:2017:398563.20170721
 
 # Règlement (CE) n°2866/98 du conseil du 31 décembre 1998 concernant les taux de conversion entre l'euro et les monnaies des États membres adoptant l'euro
 
