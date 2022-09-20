@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<language id="catala" name="Catala" version="2.0" _section="Source">
+
+  <metadata>
+    <property name="mimetypes">text/x-catala</property>
+    <property name="globs">*.catala_en</property>
+  </metadata>
+
+  <styles>
+    <style id="keyword-decl" name="Declaration" map-to="def:constant"/>
+    <style id="keyword-rule" name="Rule"        map-to="def:type"/>
+    <style id="keyword-expr" name="Expression"  map-to="def:keyword"/>
+    <style id="comment"      name="Comment"     map-to="def:special-char"/>
+    <style id="primitive"    name="Primitive"   map-to="def:preprocessor"/>
+    <style id="sc_id"        name="Snake-case"  map-to="def:identifier"/>
+    <style id="cc_id"        name="Camel-case"  map-to="def:comment"/>
+  </styles>
+
+  <definitions>
+
+    <context id="codeblock">
+      <start>```catala-metadata|```catala</start>
+      <end>```</end>
+      <include>
+	<context ref="comment"/>
+	<context ref="keyword-decl"/>
+	<context ref="keyword-rule"/>
+	<context ref="keyword-expr"/>
+	<context ref="primitive"/>
+	<context ref="operator"/>
+	<context ref="sc_id"/>
+	<context ref="cc_id"/>
+      </include>
+    </context>
+
+    <context id="comment" style-ref="comment">
+      <start>#</start>
+      <end>$</end>
+    </context>
+
+    <!--Comments below: macro names in lexer_xx.cppo.ml -->
+
+    <context id="keyword-decl" style-ref="keyword-decl">
+
+      <!--DECLARATION-->
+      <keyword>declaration</keyword>
+
+    </context>
+
+    <context id="keyword-rule" style-ref="keyword-rule">
+
+      <!--SCOPE-->
+      <keyword>scope</keyword>
+
+      <!--CONSEQUENCE-->
+      <keyword>consequence</keyword>
+
+      <!--DATA-->
+      <keyword>data</keyword>
+
+      <!--DEPENDS-->
+      <keyword>depends\s+on</keyword>
+
+      <!--CONTEXT-->
+      <keyword>context</keyword>
+      <keyword>上下文</keyword>
+
+      <!--COLLECTION-->
+      <keyword>collection</keyword>
+
+      <!--CONTAINS-->
+      <keyword>contains</keyword>
+
+      <!--ENUM-->
+      <keyword>enumeration</keyword>
+
+      <!--FILLED-->
+      <keyword>fulfilled</keyword>
+
+      <!--DEFINITION-->
+      <keyword>definition</keyword>
+
+      <!--STATE-->
+      <keyword>state</keyword>
+
+      <!--LABEL-->
+      <keyword>label</keyword>
+
+      <!--EXCEPTION-->
+      <keyword>exception</keyword>
+
+      <!--DEFINED_AS-->
+      <keyword>equals</keyword>
+
+      <!--UNDER_CONDITION-->
+      <keyword>under\s+condition</keyword>
+
+      <!--CONDITION-->
+      <keyword>condition</keyword>
+
+      <!--CONTENT-->
+      <keyword>content</keyword>
+
+      <!--STRUCT-->
+      <keyword>structure</keyword>
+
+      <!--ASSERTION-->
+      <keyword>assertion</keyword>
+
+      <!--RULE-->
+      <keyword>rule</keyword>
+
+      <!--INPUT-->
+      <keyword>input</keyword>
+
+      <!--OUTPUT-->
+      <keyword>output</keyword>
+
+      <!--INTERNAL-->
+      <keyword>internal</keyword>
+
+      <!--LAW_INCLUDE-->
+      <keyword>Include</keyword>
+
+      <!--optional-->
+      <keyword>optional</keyword>
+
+    </context>
+
+    <context id="keyword-expr" style-ref="keyword-expr">
+
+      <!--DECREASING-->
+      <keyword>decreasing</keyword>
+
+      <!--INCREASING-->
+      <keyword>increasing</keyword>
+
+      <!--OF-->
+      <keyword>of</keyword>
+
+      <!--MATCH-->
+      <keyword>match</keyword>
+
+      <!--WITH-->
+      <keyword>with\s+pattern</keyword>
+
+      <!--IF-->
+      <keyword>if</keyword>
+
+      <!--THEN-->
+      <keyword>then</keyword>
+
+      <!--ELSE-->
+      <keyword>else</keyword>
+
+      <!--VARIES-->
+      <keyword>varies</keyword>
+
+      <!--WITH_V-->
+      <keyword>with</keyword>
+
+      <!--FOR-->
+      <keyword>for</keyword>
+
+      <!--ALL-->
+      <keyword>all</keyword>
+
+      <!--WE_HAVE-->
+      <keyword>we\s+have</keyword>
+
+      <!--FIXED-->
+      <keyword>fixed</keyword>
+
+      <!--BY-->
+      <keyword>by</keyword>
+
+      <!--LET-->
+      <keyword>let</keyword>
+
+      <!--EXISTS-->
+      <keyword>exists</keyword>
+
+      <!--IN-->
+      <keyword>in</keyword>
+
+      <!--SUCH-->
+      <keyword>such</keyword>
+
+      <!--THAT-->
+      <keyword>that</keyword>
+
+      <!--INIT-->
+      <keyword>initial</keyword>
+    </context>
+
+    <context id="primitive" style-ref="primitive">
+
+      <!--INTEGER-->
+      <keyword>integer</keyword>
+
+      <!--MONEY-->
+      <keyword>money</keyword>
+
+      <!--TEXT-->
+      <keyword>text</keyword>
+
+      <!--DECIMAL-->
+      <keyword>decimal</keyword>
+
+      <!--DATE-->
+      <keyword>date</keyword>
+
+      <!--DURATION-->
+      <keyword>duration</keyword>
+
+      <!--BOOLEAN-->
+      <keyword>boolean</keyword>
+
+      <!--SUM-->
+      <keyword>sum</keyword>
+
+      <!--WILDCARD-->
+      <keyword>anything</keyword>
+
+      <!--CARDINAL-->
+      <keyword>number</keyword>
+
+    </context>
+
+    <context id="operator" style-ref="keyword-expr">
+      <!--for proper matching, do not allow unnecessary spaces in the following regex-->
+      <match>\.|\s((&lt;=|&lt;|&gt;=|&gt;|\+|-|\*|\/)(\$|\@|\^|\.|)?|not|or|xor|and|year|month|day|maximum|minimum|filter|map|true|false|!=|=|--)(\s|$)</match>
+    </context>
+
+    <!-- Snake-case identifiers-->
+    <context id="sc_id" style-ref="sc_id">
+      <match>\b[[:lower:]]([[:lower:]]|[[:upper:]]|[0-9]|_|\')*\b</match>
+    </context>
+
+    <!-- Camel-case identifiers-->
+    <context id="cc_id" style-ref="cc_id">
+      <match>\b[[:upper:]]([[:lower:]]|[[:upper:]]|[0-9]|_|\')*\b</match>
+    </context>
+
+    <!--main context-->
+    <context id="catala">
+      <include>
+	<context ref="codeblock"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>
