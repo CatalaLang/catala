@@ -604,11 +604,9 @@ let makeflags_to_ninja_flags (makeflags : string option) =
     let has_ignore = Re.execp ignore_rex makeflags in
     let jobs_rex = Re.(compile @@ seq [str "-j"; group (rep digit)]) in
     let number_of_jobs =
-      try int_of_string (Re.Group.get (Re.exec jobs_rex makeflags) 1)
-      with _ -> 0
+      try ["-j" ^ Re.Group.get (Re.exec jobs_rex makeflags) 1] with _ -> []
     in
-    String.concat " "
-      [(if has_ignore then "-k0" else ""); "-j" ^ string_of_int number_of_jobs]
+    String.concat " " ((if has_ignore then ["-k0"] else []) @ number_of_jobs)
 
 let driver
     (files_or_folders : string list)
