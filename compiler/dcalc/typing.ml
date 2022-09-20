@@ -463,11 +463,7 @@ and typecheck_expr_top_down
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.naked_gexpr) tau' =
-    (* This try...with was added because of
-       [tests/test_bool/bad/bad_assert.catala_en] but we shouldn't need it.
-       TODO: debug why it is needed here. *)
-    (try unify ctx e tau tau'
-     with Type_error (e', t1, t2) -> handle_type_error ctx e' t1 t2);
+    unify ctx e tau' tau;
     Marked.mark { uf = tau; pos = pos_e } e'
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
@@ -698,11 +694,16 @@ let infer_types_program prg =
               scope_let_pos;
             } ->
           let ty_e = ast_to_typ scope_let_typ in
+          let e = wrap ctx (typecheck_expr_bottom_up ctx env) e0 in
+          wrap ctx (fun t -> Bindlib.box (unify ctx e0 (ty e) t)) ty_e;
+          (* We could use [typecheck_expr_top_down] rather than this manual
+             unification, but we get better messages with this order of the
+             [unify] parameters, which keeps location of the type as defined
+             instead of as inferred. *)
           let var, next = Bindlib.unbind scope_let_next in
           let env = A.Var.Map.add var ty_e env in
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (A.Var.translate var) next in
-          let e = wrap ctx (typecheck_expr_top_down ctx env ty_e) e0 in
           Bindlib.box_apply2
             (fun scope_let_expr scope_let_next ->
               A.ScopeLet

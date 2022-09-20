@@ -29,8 +29,8 @@ Should be "catala Typecheck", see test err3
 ```catala-test-inline
 $ catala ocaml
 [ERROR] Error during typechecking, incompatible types:
---> integer
 --> decimal
+--> integer
 
 Error coming from typechecking the following expression:
   --> tests/test_typing/bad/err6.catala_en
@@ -39,18 +39,18 @@ Error coming from typechecking the following expression:
    |              ^^^^^
    + 
 
-Type integer coming from expression:
-  --> tests/test_typing/bad/common.catala_en
-   | 
-12 |   input x content integer
-   |                   ^^^^^^^
-   + 
-
 Type decimal coming from expression:
   --> tests/test_typing/bad/err6.catala_en
    | 
 20 |   definition sub.x equals 44.
    |                           ^^^
+   + 
+
+Type integer coming from expression:
+  --> tests/test_typing/bad/common.catala_en
+   | 
+12 |   input x content integer
+   |                   ^^^^^^^
    + 
 #return code 255#
 ```
