@@ -33,11 +33,11 @@ $ catala ocaml
 --> decimal
 
 Error coming from typechecking the following expression:
- --> tests/test_typing/bad/err6.catala_en
-  | 
-5 |   sub scope S
-  |   ^^^
-  + 
+  --> tests/test_typing/bad/err6.catala_en
+   | 
+20 |   definition sub.x equals 44.
+   |              ^^^^^
+   + 
 
 Type integer coming from expression:
   --> tests/test_typing/bad/common.catala_en

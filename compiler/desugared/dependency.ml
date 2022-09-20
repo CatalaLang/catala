@@ -185,7 +185,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                     (Vertex.Var (v_defined, s_defined))
                 in
                 ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.SubScopeVar (defined, _),
+            | ( Ast.ScopeDef.SubScopeVar (defined, _, _),
                 Ast.ScopeDef.Var (v_used, s_used) ) ->
               (* here we are defining the input of a subscope using a var of the
                  scope *)
@@ -195,8 +195,8 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                   fv_def_pos (Vertex.SubScope defined)
               in
               ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.SubScopeVar (defined, _),
-                Ast.ScopeDef.SubScopeVar (used, _) ) ->
+            | ( Ast.ScopeDef.SubScopeVar (defined, _, _),
+                Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
               (* here we are defining the input of a scope with the output of
                  another subscope *)
               if used = defined then
@@ -212,7 +212,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 in
                 ScopeDependencies.add_edge_e g edge
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
-                Ast.ScopeDef.SubScopeVar (used, _) ) ->
+                Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
               (* finally we define a scope var with the output of a subscope *)
               let edge =
                 ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos

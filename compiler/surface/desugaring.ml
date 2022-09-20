@@ -1002,7 +1002,7 @@ let process_def
     Name_resolution.get_def_key
       (Marked.unmark def.definition_name)
       def.definition_state scope_uid ctxt
-      (Marked.get_mark def.definition_expr)
+      (Marked.get_mark def.definition_name)
   in
   let scope_def_ctxt =
     Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
@@ -1331,7 +1331,9 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                            in
                            let def_key =
                              Desugared.Ast.ScopeDef.SubScopeVar
-                               (subscope_name, v)
+                               ( subscope_name,
+                                 v,
+                                 Marked.get_mark (ScopeVar.get_info v) )
                            in
                            Desugared.Ast.ScopeDefMap.add def_key
                              {
