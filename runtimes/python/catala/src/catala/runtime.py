@@ -9,7 +9,7 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, f_div, sign  # type: ignore
+from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, sign  # type: ignore
 import datetime
 import calendar
 import dateutil.relativedelta
@@ -410,11 +410,18 @@ def money_to_cents(m: Money) -> Integer:
 
 
 def money_round(m: Money) -> Money:
-    res, remainder = t_divmod(m, 100)
+    res, remainder = t_divmod(m.value.value, 100)
     if remainder < 50:
-        return res * 100
+        return Money(Integer(res * 100))
     else:
-        return (res + sign(res)) * 100
+        return Money(Integer((res + sign(res)) * 100))
+
+
+def money_of_decimal(d: Decimal) -> Money:
+    """
+    Warning: rounds to the nearest cent
+    """
+    return Money(Integer(mpz(d.value)))
 
 
 # --------
@@ -443,13 +450,18 @@ def decimal_to_string(precision: int, i: Decimal) -> str:
 
 
 def decimal_round(q: Decimal) -> Decimal:
-    # Implements the workaround by
-    # https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
-    return f_div(2*q.numerator + q.denominator, 2*q.denominator)  # type:ignore
+    """
+    Implements the workaround by
+    https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html
+    """
+    return Decimal(
+        mpq(f_div(2*q.value.numerator + q.value.denominator,
+            2*q.value.denominator), 1)  # type:ignore
+    )
 
 
 def decimal_of_money(m: Money) -> Decimal:
-    return Decimal(f_div(mpq(m.value), mpq(100)))
+    return Decimal(mpq(qdiv(m.value.value, 100)))
 
 # --------
 # Integers

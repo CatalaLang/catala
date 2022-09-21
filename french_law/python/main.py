@@ -150,5 +150,5 @@ if __name__ == '__main__':
                     "".ljust(indentation), colored("Decision taken:", "green"), colored("{}".format(log_event.payload), "magenta")))  # type: ignore
     else:
         print("Action '{}' not recognized!".format(action))
-        call_aides_logement()
+        print(call_aides_logement())
         exit(-1)

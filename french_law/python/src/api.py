@@ -361,3 +361,4 @@ def aides_logement(
         ressources_menage_prises_en_compte_in=money_of_units_int(
             ressources_menage_prises_en_compte),
     ))
+    return money_to_float(out.aide_finale_out)
