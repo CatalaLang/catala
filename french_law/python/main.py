@@ -38,11 +38,11 @@ def call_allocations_familiales() -> float:
 def call_aides_logement() -> float:
     return aides_logement(
         date_courante=date(2022, 1, 1),
-        ressources_menage_prises_en_compte=11_500.0,
+        ressources_menage_prises_en_compte=11_500,
         date_naissance_demandeur=date(1992, 1, 1),
         nationalite_demandeur=Nationalite_Code.Francaise,
-        patrimoine_produisant_revenu=0.0,
-        patrimoine_ne_produisant_pas_revenu=0.0,
+        patrimoine_produisant_revenu=0,
+        patrimoine_ne_produisant_pas_revenu=0,
         personne_hebergee_centre_soins=False,
         personne_rattache_foyer_fiscal_parent_ifi=False,
         nombre_autres_occupants_logement_hors_menage=0,
@@ -64,7 +64,7 @@ def call_aides_logement() -> float:
                 beneficie_titre_personnel_aide_personnelle_logement=False,
                 a_deja_ouvert_droit_aux_allocations_familiales=True,
                 date_de_naissance=date(2015, 1, 1),
-                remuneration_mensuelle=0.0,
+                remuneration_mensuelle=0,
                 obligation_scolaire=SituationObligationScolaire_Code.Pendant,
                 situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
                 coefficient_garde_alternee=None
@@ -74,7 +74,7 @@ def call_aides_logement() -> float:
                 beneficie_titre_personnel_aide_personnelle_logement=False,
                 a_deja_ouvert_droit_aux_allocations_familiales=True,
                 date_de_naissance=date(2016, 1, 1),
-                remuneration_mensuelle=0.0,
+                remuneration_mensuelle=0,
                 obligation_scolaire=SituationObligationScolaire_Code.Pendant,
                 situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
                 coefficient_garde_alternee=None)
@@ -150,4 +150,5 @@ if __name__ == '__main__':
                     "".ljust(indentation), colored("Decision taken:", "green"), colored("{}".format(log_event.payload), "magenta")))  # type: ignore
     else:
         print("Action '{}' not recognized!".format(action))
+        call_aides_logement()
         exit(-1)

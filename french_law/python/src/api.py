@@ -67,10 +67,10 @@ class EnfantAPL(PersonneAChargeAPL):
     def __init__(self, identifiant: int, beneficie_titre_personnel_aide_personnelle_logement: bool,
                  a_deja_ouvert_droit_aux_allocations_familiales: bool,
                  date_de_naissance: datetime.date,
-                 remuneration_mensuelle: float,
+                 remuneration_mensuelle: int,
                  obligation_scolaire: SituationObligationScolaire_Code,
                  situation_garde_alternee: SituationGardeAlternee_Code,
-                 coefficient_garde_alternee: Optional[float]):
+                 coefficient_garde_alternee: Optional[int]):
         self.identifiant = identifiant
         self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
         self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
@@ -83,7 +83,8 @@ class EnfantAPL(PersonneAChargeAPL):
 
 class ParentAPL(PersonneAChargeAPL):
     def __init__(self, date_naissance: datetime.date,
-                 ressources: float, ascendant_descendant_collateral_deuxieme_troisieme_degre: bool,
+                 ressources: int,
+                 ascendant_descendant_collateral_deuxieme_troisieme_degre: bool,
                  parente: Parente_Code,
                  incapacite_80_pourcent_ou_restriction_emploi: bool,
                  beneficiaire_l161_19_l351_8_l643_3_secu: bool,
@@ -103,16 +104,16 @@ class InfosSpecifiques(ABC):
 
 class InfosLocation(InfosSpecifiques):
     def __init__(self,
-                 loyer_principal: float,
+                 loyer_principal: int,
                  beneficiaire_aide_adulte_ou_enfant_handicapes: bool,
                  logement_est_chambre: bool,
                  colocation: bool,
                  agees_ou_handicap_adultes_hebergees_onereux_particuliers: bool,
                  logement_meuble_d842_2: bool,
-                 ancien_loyer_et_apl_relogement: Optional[Tuple[float, float]],
+                 ancien_loyer_et_apl_relogement: Optional[Tuple[int, int]],
                  type_bailleur: TypeBailleur_Code,
                  bailleur_conventionne: Optional[bool],
-                 reduction_loyer_solidarite: Optional[float]):
+                 reduction_loyer_solidarite: Optional[int]):
         self.loyer_principal = loyer_principal
         self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
         self.logement_est_chambre = logement_est_chambre
@@ -132,7 +133,7 @@ class InfosLogementFoyer(InfosSpecifiques):
                  conventionne_livre_III_titre_V_chap_III: bool,
                  date_conventionnement: datetime.date,
                  construit_application_loi_1957_12_III: bool,
-                 redevance: float,
+                 redevance: int,
                  categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code):
         self.type = type
         self.remplit_conditions_r832_21 = remplit_conditions_r832_21
@@ -146,8 +147,8 @@ class InfosLogementFoyer(InfosSpecifiques):
 class InfosAccessionPropriete(InfosSpecifiques):
     def __init__(self,
                  logement_situe_commune_desequilibre_l831_2: bool,
-                 mensualite_principale: float,
-                 charges_mensuelles_pret: float,
+                 mensualite_principale: int,
+                 charges_mensuelles_pret: int,
                  date_entree_logement: datetime.date,
                  local_habite_premiere_fois_beneficiaire: bool,
                  copropriete: bool,
@@ -177,11 +178,11 @@ class InfosAccessionPropriete(InfosSpecifiques):
 
 def aides_logement(
     date_courante: datetime.date,
-    ressources_menage_prises_en_compte: float,
+    ressources_menage_prises_en_compte: int,
     date_naissance_demandeur: datetime.date,
     nationalite_demandeur: Nationalite_Code,
-    patrimoine_produisant_revenu: float,
-    patrimoine_ne_produisant_pas_revenu: float,
+    patrimoine_produisant_revenu: int,
+    patrimoine_ne_produisant_pas_revenu: int,
     personne_hebergee_centre_soins: bool,
     personne_rattache_foyer_fiscal_parent_ifi: bool,
     nombre_autres_occupants_logement_hors_menage: int,
@@ -194,8 +195,8 @@ def aides_logement(
     logement_est_decent: bool,
     surface_logement_m_carres: int,
     zone: ZoneDHabitation_Code,
-    parts_logement_propriete_famille: Optional[float],
-    parts_logement_usufruits_famille: Optional[float],
+    parts_logement_propriete_famille: Optional[int],
+    parts_logement_usufruits_famille: Optional[int],
     date_naissance_et_conformite_sous_locataire_tiers: Optional[Tuple[datetime.date, bool]],
     mode_occupation: ModeOccupation_Code,
     infos_specifiques: InfosSpecifiques,
@@ -211,8 +212,8 @@ def aides_logement(
                 mode_occupation=ModeOccupation(
                     code=mode_occupation,
                     value=(Location(
-                        loyer_principal=money_of_decimal(
-                            decimal_of_float(infos_specifiques.loyer_principal)),
+                        loyer_principal=money_of_units_int(
+                            infos_specifiques.loyer_principal),
                         beneficiaire_aide_adulte_ou_enfant_handicapes=infos_specifiques.beneficiaire_aide_adulte_ou_enfant_handicapes,
                         logement_est_chambre=infos_specifiques.logement_est_chambre,
                         colocation=infos_specifiques.colocation,
@@ -222,15 +223,15 @@ def aides_logement(
                             code=ChangementLogementD8424_Code.PasDeChangement if infos_specifiques.ancien_loyer_et_apl_relogement is None else
                             ChangementLogementD8424_Code.Changement,
                             value=Unit() if infos_specifiques.ancien_loyer_et_apl_relogement is None else
-                            InfosChangementLogementD8424(ancien_loyer_principal=money_of_decimal(decimal_of_float(infos_specifiques.ancien_loyer_et_apl_relogement[0])),
-                                                         ancienne_allocation_logement=money_of_decimal(decimal_of_float(infos_specifiques.ancien_loyer_et_apl_relogement[1])))
+                            InfosChangementLogementD8424(ancien_loyer_principal=money_of_units_int(infos_specifiques.ancien_loyer_et_apl_relogement[0]),
+                                                         ancienne_allocation_logement=money_of_units_int(infos_specifiques.ancien_loyer_et_apl_relogement[1]))
                         ),
                         bailleur=TypeBailleur(
                             code=infos_specifiques.type_bailleur,
                             value=Unit() if infos_specifiques.type_bailleur == TypeBailleur_Code.BailleurPrive else (
                                 ConventionBailleurSocial(
                                     conventionne_livre_III_titre_V_chap_III=False if infos_specifiques.bailleur_conventionne is None else infos_specifiques.bailleur_conventionne,
-                                    reduction_loyer_solidarite_percue=money_of_decimal(decimal_of_float(0.0 if infos_specifiques.reduction_loyer_solidarite is None else infos_specifiques.reduction_loyer_solidarite)))
+                                    reduction_loyer_solidarite_percue=money_of_units_int(0 if infos_specifiques.reduction_loyer_solidarite is None else infos_specifiques.reduction_loyer_solidarite))
                             ) if infos_specifiques.type_bailleur == TypeBailleur_Code.BailleurSocial else (
                                 ConventionANHA(
                                     conventionne_livre_III_titre_II_chap_I_sec_3=False if infos_specifiques.bailleur_conventionne is None else infos_specifiques.bailleur_conventionne)
@@ -246,8 +247,8 @@ def aides_logement(
                             date_conventionnement=date_of_datetime(
                                 infos_specifiques.date_conventionnement),
                             construit_application_loi_1957_12_III=infos_specifiques.construit_application_loi_1957_12_III,
-                            redevance=money_of_decimal(
-                                decimal_of_float(infos_specifiques.redevance)),
+                            redevance=money_of_units_int(
+                                infos_specifiques.redevance),
                             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer(
                                 code=infos_specifiques.categorie_equivalence_loyer_d842_16,
                                 value=Unit()
@@ -255,10 +256,10 @@ def aides_logement(
                         ) if isinstance(infos_specifiques, InfosLogementFoyer) else
                             (Proprietaire(
                                 logement_situe_commune_desequilibre_l831_2=infos_specifiques.logement_situe_commune_desequilibre_l831_2,
-                                mensualite_principale=money_of_decimal(
-                                    decimal_of_float(infos_specifiques.mensualite_principale)),
-                                charges_mensuelles_pret=money_of_decimal(
-                                    decimal_of_float(infos_specifiques.charges_mensuelles_pret)),
+                                mensualite_principale=money_of_units_int(
+                                    infos_specifiques.mensualite_principale),
+                                charges_mensuelles_pret=money_of_units_int(
+                                    infos_specifiques.charges_mensuelles_pret),
                                 date_entree_logement=date_of_datetime(
                                     infos_specifiques.date_entree_logement),
                                 local_habite_premiere_fois_beneficiaire=infos_specifiques.local_habite_premiere_fois_beneficiaire,
@@ -312,8 +313,8 @@ def aides_logement(
                                      a_deja_ouvert_droit_aux_allocations_familiales=personne_a_charge.a_deja_ouvert_droit_aux_allocations_familiales,
                                      date_de_naissance=date_of_datetime(
                                          personne_a_charge.date_de_naissance[0]),
-                                     remuneration_mensuelle=money_of_decimal(
-                                         decimal_of_float(personne_a_charge.remuneration_mensuelle)),
+                                     remuneration_mensuelle=money_of_units_int(
+                                         personne_a_charge.remuneration_mensuelle),
                                      obligation_scolaire=SituationObligationScolaire(
                                          code=personne_a_charge.obligation_scolaire, value=Unit()),
                                      situation_garde_alternee=SituationGardeAlternee(code=personne_a_charge.situation_garde_alternee,
@@ -325,8 +326,8 @@ def aides_logement(
                      value=AutrePersonneACharge(
                          date_naissance=date_of_datetime(
                              personne_a_charge.date_naissance),
-                         ressources=money_of_decimal(
-                             decimal_of_float(personne_a_charge.ressources)),
+                         ressources=money_of_units_int(
+                             personne_a_charge.ressources),
                          ascendant_descendant_collateral_deuxieme_troisieme_degre=personne_a_charge.ascendant_descendant_collateral_deuxieme_troisieme_degre,
                          incapacite_80_pourcent_ou_restriction_emploi=personne_a_charge.incapacite_80_pourcent_ou_restriction_emploi,
                          beneficiaire_l161_19_l351_8_l643_3_secu=personne_a_charge.beneficiaire_l161_19_l351_8_l643_3_secu,
@@ -349,14 +350,14 @@ def aides_logement(
             date_naissance=date_of_datetime(date_naissance_demandeur),
             nationalite=Nationalite(code=nationalite_demandeur, value=Unit()),
             patrimoine=Patrimoine(
-                produisant_revenu_periode_r822_3_3_r822_4=money_of_decimal(decimal_of_float(
-                    patrimoine_produisant_revenu)),
-                ne_produisant_pas_revenu_periode_r822_3_3_r822_4=money_of_decimal(decimal_of_float(
-                    patrimoine_ne_produisant_pas_revenu))
+                produisant_revenu_periode_r822_3_3_r822_4=money_of_units_int(
+                    patrimoine_produisant_revenu),
+                ne_produisant_pas_revenu_periode_r822_3_3_r822_4=money_of_units_int(
+                    patrimoine_ne_produisant_pas_revenu)
             ),
             personne_hebergee_centre_soin_l_L162_22_3_securite_sociale=personne_hebergee_centre_soins,
         ),
         date_courante_in=date_of_datetime(date_courante),
-        ressources_menage_prises_en_compte_in=money_of_decimal(
-            decimal_of_float(ressources_menage_prises_en_compte)),
+        ressources_menage_prises_en_compte_in=money_of_units_int(
+            ressources_menage_prises_en_compte),
     ))

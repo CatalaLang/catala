@@ -9,7 +9,6 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from this import d
 from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, f_div, sign  # type: ignore
 import datetime
 import calendar
@@ -417,12 +416,6 @@ def money_round(m: Money) -> Money:
     else:
         return (res + sign(res)) * 100
 
-
-def money_of_decimal(m: Decimal) -> Money:
-    """
-    Warning: rounds to nearest cent.
-    """
-    return Money(mpz(m.value))
 
 # --------
 # Decimals
