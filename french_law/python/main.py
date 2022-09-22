@@ -1,7 +1,6 @@
 #!python3
 
 from datetime import date
-from tkinter import N
 from src.aides_logement import ModeOccupation_Code, Nationalite_Code, PrestationRecue_Code, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TypeBailleur_Code, ZoneDHabitation_Code
 from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code, SituationObligationScolaire
 from src.api import EnfantAPL, InfosLocation, aides_logement, allocations_familiales, Enfant
