@@ -95,9 +95,14 @@ def call_aides_logement() -> float:
     )
 
 
-def benchmark_iteration():
+def benchmark_iteration_family():
     money_given = call_allocations_familiales()
     assert (money_given == 99.46)
+
+
+def benchmark_iteration_housing():
+    money_given = call_aides_logement()
+    assert (money_given == 352.77)
 
 
 def run_with_log() -> List[LogEvent]:
@@ -123,11 +128,16 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     action = args.action[0]
-    if action == "bench":
+    if action == "bench_family":
         iterations = 1000
         print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
             iterations))
-        print(timeit.timeit(benchmark_iteration, number=iterations))
+        print(timeit.timeit(benchmark_iteration_family, number=iterations))
+    elif action == "bench_housing":
+        iterations = 1000
+        print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
+            iterations))
+        print(timeit.timeit(benchmark_iteration_housing, number=iterations))
     elif action == "show_log":
         log = run_with_log()
         indentation = 0
@@ -149,5 +159,4 @@ if __name__ == '__main__':
                     "".ljust(indentation), colored("Decision taken:", "green"), colored("{}".format(log_event.payload), "magenta")))  # type: ignore
     else:
         print("Action '{}' not recognized!".format(action))
-        print(call_aides_logement())
         exit(-1)
