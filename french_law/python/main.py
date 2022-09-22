@@ -36,7 +36,7 @@ def call_allocations_familiales() -> float:
 
 def call_aides_logement() -> float:
     return aides_logement(
-        date_courante=date(2022, 1, 1),
+        date_courante=date(2022, 5, 1),
         ressources_menage_prises_en_compte=11_500,
         date_naissance_demandeur=date(1992, 1, 1),
         nationalite_demandeur=Nationalite_Code.Francaise,
@@ -52,7 +52,7 @@ def call_aides_logement() -> float:
         residence_principale=True,
         logement_est_maison_de_retraite=False,
         surface_logement_m_carres=65,
-        zone=ZoneDHabitation_Code.Zone1,
+        zone=ZoneDHabitation_Code.Zone2,
         parts_logement_propriete_famille=None,
         parts_logement_usufruits_famille=None,
         date_naissance_et_conformite_sous_locataire_tiers=None,
