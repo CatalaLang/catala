@@ -11,6 +11,9 @@ scope A:
   assertion y = 1.04
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = 4.
+[RESULT] y = 1.04
 ```

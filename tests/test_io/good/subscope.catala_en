@@ -20,10 +20,20 @@ scope B:
   assertion a.c = 1
 ```
 
-```catala-test {id="B.Dcalc"}
-catala Dcalc -s B
+```catala-test-inline
+$ catala Dcalc -s B
+let B =
+  λ (B_in_27: B_in{}) →
+    let a.a_28 : unit → integer = λ (__29: unit) → ∅  in
+    let a.b_30 : integer = error_empty ⟨true ⊢ 2⟩ in
+    let result_31 : A_out{"c_out": integer} =
+      A_17 (A_in {"a_in"= a.a_28; "b_in"= a.b_30}) in
+    let a.c_32 : integer = result_31."c_out" in
+    let __33 : unit = assert (error_empty a.c_32 = 1) in
+    B_out {}
 ```
 
-```catala-test {id="B.Typecheck"}
-catala Typecheck -s B
+```catala-test-inline
+$ catala Typecheck -s B
+[RESULT] Typechecking successful!
 ```

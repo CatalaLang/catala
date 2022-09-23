@@ -1,3 +1,0 @@
-[RESULT] Computation successful! Results:
-[RESULT] argmax = S {"id"= 1; "income"= $9.00}
-[RESULT] argmin = S {"id"= 0; "income"= $0.00}

@@ -17,6 +17,9 @@ scope A:
   definition y equals 3
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = 1
+[RESULT] y = 2
 ```

@@ -9,6 +9,13 @@ scope A:
   definition x equals 1
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
+
+ --> tests/test_default/bad/empty.catala_en
+  | 
+6 |   context y content boolean
+  |           ^
+  + Article
 ```

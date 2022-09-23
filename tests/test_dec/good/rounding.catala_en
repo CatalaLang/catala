@@ -14,6 +14,11 @@ scope A:
   definition y1 equals round_decimal of y
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = 84.648665
+[RESULT] x1 = 85.
+[RESULT] y = 4.368297
+[RESULT] y1 = 4.
 ```

@@ -14,6 +14,11 @@ scope TestXor:
   definition f_xor_f equals false xor false
 ```
 
-```catala-test {id="TestXor.Interpret"}
-catala Interpret -s TestXor
+```catala-test-inline
+$ catala Interpret -s TestXor
+[RESULT] Computation successful! Results:
+[RESULT] f_xor_f = false
+[RESULT] f_xor_t = true
+[RESULT] t_xor_f = true
+[RESULT] t_xor_t = false
 ```

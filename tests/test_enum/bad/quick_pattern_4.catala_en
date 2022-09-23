@@ -17,6 +17,30 @@ definition x equals Case1
 definition y equals x with pattern Case3
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] Error during typechecking, incompatible types:
+--> F
+--> E
+
+Error coming from typechecking the following expression:
+  --> tests/test_enum/bad/quick_pattern_4.catala_en
+   | 
+17 | definition y equals x with pattern Case3
+   |                     ^
+   + Test
+
+Type F coming from expression:
+  --> tests/test_enum/bad/quick_pattern_4.catala_en
+   | 
+17 | definition y equals x with pattern Case3
+   |                     ^
+   + Test
+
+Type E coming from expression:
+  --> tests/test_enum/bad/quick_pattern_4.catala_en
+   | 
+12 | context x content E
+   |                   ^
+   + Test
 ```

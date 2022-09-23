@@ -17,10 +17,25 @@ scope A:
   definition f equals e + 1
 ```
 
-```catala-test {id="A.Dcalc"}
-catala Dcalc -s A
+```catala-test-inline
+$ catala Dcalc -s A
+let A =
+  λ (A_in_21: A_in{"c_in": integer; "d_in": integer; "e_in":
+                 unit → integer; "f_in": unit → integer}) →
+    let c_22 : integer = A_in_21."c_in" in
+    let d_23 : integer = A_in_21."d_in" in
+    let e_24 : unit → integer = A_in_21."e_in" in
+    let f_25 : unit → integer = A_in_21."f_in" in
+    let a_26 : integer = error_empty ⟨true ⊢ 0⟩ in
+    let b_27 : integer = error_empty ⟨true ⊢ a_26 + 1⟩ in
+    let e_28 : integer = error_empty
+      ⟨e_24 () | true ⊢ ⟨true ⊢ b_27 + c_22 + d_23 + 1⟩⟩ in
+    let f_29 : integer = error_empty
+      ⟨f_25 () | true ⊢ ⟨true ⊢ e_28 + 1⟩⟩ in
+    A_out {"b_out"= b_27; "d_out"= d_23; "f_out"= f_29}
 ```
 
-```catala-test {id="A.Typecheck"}
-catala Typecheck -s A
+```catala-test-inline
+$ catala Typecheck -s A
+[RESULT] Typechecking successful!
 ```

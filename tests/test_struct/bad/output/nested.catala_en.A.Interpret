@@ -1,7 +1,0 @@
-[ERROR] The type S is defined using itself, which is forbidden since Catala does not provide recursive types
-
- --> tests/test_struct/bad/nested.catala_en
-  | 
-5 |   data x content S
-  |                  ^
-  + Article

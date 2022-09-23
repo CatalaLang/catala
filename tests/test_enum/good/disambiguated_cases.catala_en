@@ -21,6 +21,10 @@ scope A:
     -- Case2 : 3
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] e = Case1 ()
+[RESULT] f = Case1 2
+[RESULT] x = 2
 ```

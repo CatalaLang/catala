@@ -67,18 +67,22 @@ champ d'application Test4:
   assertion réserve_héréditaire.montant_réserve_héréditaire = 16666,67 €
 ```
 
-```catala-test {id="Test1.Interpret"}
-catala Interpret -s Test1
+```catala-test-inline
+$ catala Interpret -s Test1
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test2.Interpret"}
-catala Interpret -s Test2
+```catala-test-inline
+$ catala Interpret -s Test2
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test3.Interpret"}
-catala Interpret -s Test3
+```catala-test-inline
+$ catala Interpret -s Test3
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test4.Interpret"}
-catala Interpret -s Test4
+```catala-test-inline
+$ catala Interpret -s Test4
+[RESULT] Computation successful!
 ```

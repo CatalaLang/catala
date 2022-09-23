@@ -7,6 +7,13 @@ declaration scope Bar:
   internal foo content Foo
 ```
 
-```catala-test {id="Typecheck"}
-catala Typecheck 
+```catala-test-inline
+$ catala Typecheck 
+[ERROR] The struct Foo does not have any fields; give it some for Catala to be able to accept it.
+
+ --> tests/test_struct/bad/empty_struct.catala_en
+  | 
+4 | declaration structure Foo:
+  |                       ^^^
+  + Test
 ```

@@ -15,6 +15,13 @@ scope A:
     -- anything : 31
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used as single match case)
+
+  --> tests/test_enum/bad/ambiguous_wildcard.catala_en
+   | 
+15 |     -- anything : 31
+   |        ^^^^^^^^^^^^^
+   + Wildcard cannot be used as single match case
 ```

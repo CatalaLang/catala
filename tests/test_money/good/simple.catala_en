@@ -12,6 +12,10 @@ scope A:
   definition z equals $250,000,000 *$ ((x /$ y) *. 0.2 %)
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = $123.54
+[RESULT] y = $8548650.96
+[RESULT] z = $7.23
 ```

@@ -23,6 +23,14 @@ scope A:
   definition m2 equals (2 month) *^ 3
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] m = [0 years, 0 months, 11874 days]
+[RESULT] m2 = [0 years, 6 months, 0 days]
+[RESULT] x = 2019-01-01
+[RESULT] y = 2002-09-30
+[RESULT] z = true
+[RESULT] z2 = true
+[RESULT] z3 = [0 years, 0 months, 5937 days]
 ```

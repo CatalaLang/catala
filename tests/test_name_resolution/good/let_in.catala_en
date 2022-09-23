@@ -25,8 +25,11 @@ scope S:
      A { -- x: a -- y : b }
 ```
 
-```catala-test {id="S.Interpret"}
-catala Interpret -s S
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] a = A {"x"= -2.; "y"= B {"y"= false; "z"= -1.}}
+[RESULT] b = B {"y"= true; "z"= 42.}
 ```
 
 ## Check scope of let-in vs scope variable
@@ -42,6 +45,8 @@ scope S2:
     x + 1
 ```
 
-```catala-test {id="S2.Interpret"}
-catala Interpret -s S2
+```catala-test-inline
+$ catala Interpret -s S2
+[RESULT] Computation successful! Results:
+[RESULT] y = 1
 ```

@@ -21,10 +21,17 @@ scope B:
    definition z equals for all m in a.x we have m > 0
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = [0; 9; 64]
 ```
 
-```catala-test {id="B.Interpret"}
-catala Interpret -s B
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] v = 3
+[RESULT] w = true
+[RESULT] y = true
+[RESULT] z = false
 ```

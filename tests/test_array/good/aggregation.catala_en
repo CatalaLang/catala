@@ -21,10 +21,17 @@ scope B:
    definition z equals number for m in a.x of (m >=$ $8.95)
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = [$0.00; $9.00; $5.20]
 ```
 
-```catala-test {id="B.Interpret"}
-catala Interpret -s B
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] max = $18.00
+[RESULT] min = $5.00
+[RESULT] y = $17.20
+[RESULT] z = 1
 ```

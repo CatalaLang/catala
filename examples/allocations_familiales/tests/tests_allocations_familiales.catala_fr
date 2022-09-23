@@ -348,58 +348,72 @@ champ d'application Test14:
   assertion f.i_montant_versé = 48,77€
 ```
 
-```catala-test {id="Test1.Interpret"}
-catala Interpret -s Test1
+```catala-test-inline
+$ catala Interpret -s Test1
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test2.Interpret"}
-catala Interpret -s Test2
+```catala-test-inline
+$ catala Interpret -s Test2
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test3.Interpret"}
-catala Interpret -s Test3
+```catala-test-inline
+$ catala Interpret -s Test3
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test4.Interpret"}
-catala Interpret -s Test4
+```catala-test-inline
+$ catala Interpret -s Test4
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test5.Interpret"}
-catala Interpret -s Test5
+```catala-test-inline
+$ catala Interpret -s Test5
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test6.Interpret"}
-catala Interpret -s Test6
+```catala-test-inline
+$ catala Interpret -s Test6
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test7.Interpret"}
-catala Interpret -s Test7
+```catala-test-inline
+$ catala Interpret -s Test7
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test8.Interpret"}
-catala Interpret -s Test8
+```catala-test-inline
+$ catala Interpret -s Test8
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test9.Interpret"}
-catala Interpret -s Test9
+```catala-test-inline
+$ catala Interpret -s Test9
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test10.Interpret"}
-catala Interpret -s Test10
+```catala-test-inline
+$ catala Interpret -s Test10
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test11.Interpret"}
-catala Interpret -s Test11
+```catala-test-inline
+$ catala Interpret -s Test11
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test12.Interpret"}
-catala Interpret -s Test12
+```catala-test-inline
+$ catala Interpret -s Test12
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test13.Interpret"}
-catala Interpret -s Test13
+```catala-test-inline
+$ catala Interpret -s Test13
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test14.Interpret"}
-catala Interpret -s Test13
+```catala-test-inline
+$ catala Interpret -s Test13
+[RESULT] Computation successful!
 ```

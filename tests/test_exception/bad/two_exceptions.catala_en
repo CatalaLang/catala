@@ -15,6 +15,21 @@ scope A:
   definition x equals 2
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
+
+This consequence has a valid justification:
+  --> tests/test_exception/bad/two_exceptions.catala_en
+   | 
+12 |   definition x equals 1
+   |                       ^
+   + Test
+
+This consequence has a valid justification:
+  --> tests/test_exception/bad/two_exceptions.catala_en
+   | 
+15 |   definition x equals 2
+   |                       ^
+   + Test
 ```

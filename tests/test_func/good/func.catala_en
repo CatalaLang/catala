@@ -21,6 +21,8 @@ scope R:
   definition r equals s.out
 ```
 
-```catala-test {id="R.Interpret"}
-catala Interpret -s R
+```catala-test-inline
+$ catala Interpret -s R
+[RESULT] Computation successful! Results:
+[RESULT] r = 30
 ```

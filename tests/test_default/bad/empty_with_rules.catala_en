@@ -12,6 +12,13 @@ scope A:
   definition x under condition y = 4 consequence equals 1
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
+
+ --> tests/test_default/bad/empty_with_rules.catala_en
+  | 
+5 |   context x content integer
+  |           ^
+  + Article
 ```

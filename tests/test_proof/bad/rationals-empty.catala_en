@@ -10,6 +10,13 @@ scope A:
   definition y under condition x >. 1./.3. consequence equals true
 ```
 
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[ERROR] [A.y] This variable might return an empty error:
+ --> tests/test_proof/bad/rationals-empty.catala_en
+  | 
+6 |   context y content boolean
+  |           ^
+  + Test
+Counterexample generation is disabled so none was generated.
 ```

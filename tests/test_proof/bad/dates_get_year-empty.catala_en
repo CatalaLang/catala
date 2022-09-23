@@ -13,6 +13,13 @@ scope A:
   definition y under condition get_year of x > 2020 consequence equals false
 ```
 
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[ERROR] [A.y] This variable might return an empty error:
+ --> tests/test_proof/bad/dates_get_year-empty.catala_en
+  | 
+6 |   context y content boolean
+  |           ^
+  + Test
+Counterexample generation is disabled so none was generated.
 ```

@@ -26,8 +26,25 @@ scope Test1:
   assertion my_gaming.authorized = false
 ```
 
-```catala-test {id="Test1.Interpret"}
-catala Interpret -s Test1
+```catala-test-inline
+$ catala Interpret -s Test1
+[ERROR] Syntax error at token "scope"
+Message: unexpected token
+Autosuggestion: did you mean "content", or maybe "condition"?
+
+Error token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |                     ^^^^^
+   + 
+
+Last good token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |           ^^^^^^^^^
+   + 
 ```
 
 
@@ -52,8 +69,25 @@ scope Test2:
   }
   assertion my_gaming.authorized
 ```
-```catala-test {id="Test2.Interpret"}
-catala Interpret -s Test2
+```catala-test-inline
+$ catala Interpret -s Test2
+[ERROR] Syntax error at token "scope"
+Message: unexpected token
+Autosuggestion: did you mean "content", or maybe "condition"?
+
+Error token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |                     ^^^^^
+   + 
+
+Last good token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |           ^^^^^^^^^
+   + 
 ```
 
 
@@ -78,8 +112,25 @@ scope Test3:
   }
   assertion not my_gaming.authorized
 ```
-```catala-test {id="Test3.Interpret"}
-catala Interpret -s Test3
+```catala-test-inline
+$ catala Interpret -s Test3
+[ERROR] Syntax error at token "scope"
+Message: unexpected token
+Autosuggestion: did you mean "content", or maybe "condition"?
+
+Error token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |                     ^^^^^
+   + 
+
+Last good token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |           ^^^^^^^^^
+   + 
 ```
 
 
@@ -106,6 +157,23 @@ scope Test4:
   assertion my_gaming.authorized
 ```
 
-```catala-test {id="Test4.Interpret"}
-catala Interpret -s Test4
+```catala-test-inline
+$ catala Interpret -s Test4
+[ERROR] Syntax error at token "scope"
+Message: unexpected token
+Autosuggestion: did you mean "content", or maybe "condition"?
+
+Error token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |                     ^^^^^
+   + 
+
+Last good token:
+  --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
+   | 
+11 |   context my_gaming scope GamingAuthorized
+   |           ^^^^^^^^^
+   + 
 ```

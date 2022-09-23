@@ -23,10 +23,17 @@ scope B:
   definition scopeA.a under condition a > 0 consequence equals scopeAbis.a_base
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] a = -1
+[RESULT] a_base = 1
+[RESULT] b = false
 ```
 
-```catala-test {id="B.Interpret"}
-catala Interpret -s B
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] a = 42
+[RESULT] b = true
 ```

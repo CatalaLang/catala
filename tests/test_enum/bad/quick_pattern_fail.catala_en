@@ -15,6 +15,13 @@ scope A:
   definition y equals x with pattern Case3
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] The name of this constructor has not been defined before, maybe it is a typo?
+
+  --> tests/test_enum/bad/quick_pattern_fail.catala_en
+   | 
+15 |   definition y equals x with pattern Case3
+   |                                      ^^^^^
+   + Article
 ```

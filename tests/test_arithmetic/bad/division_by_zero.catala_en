@@ -31,14 +31,65 @@ scope Money:
 ```
 
 
-```catala-test {id="Dec.Interpret"}
-catala Interpret -s Dec
+```catala-test-inline
+$ catala Interpret -s Dec
+[ERROR] division by zero at runtime
+
+The division operator:
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
+   | 
+20 |   definition i equals 1. /. 0.
+   |                       ^^^^^^^^
+   + `Division_by_zero` exception management
+   +-+ with decimals
+
+The null denominator:
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
+   | 
+20 |   definition i equals 1. /. 0.
+   |                             ^^
+   + `Division_by_zero` exception management
+   +-+ with decimals
 ```
 
-```catala-test {id="Int.Interpret"}
-catala Interpret -s Int
+```catala-test-inline
+$ catala Interpret -s Int
+[ERROR] division by zero at runtime
+
+The division operator:
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
+   | 
+10 |   definition i equals 1 / 0
+   |                       ^^^^^
+   + `Division_by_zero` exception management
+   +-+ with integers
+
+The null denominator:
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
+   | 
+10 |   definition i equals 1 / 0
+   |                           ^
+   + `Division_by_zero` exception management
+   +-+ with integers
 ```
 
-```catala-test {id="Money.Interpret"}
-catala Interpret -s Money
+```catala-test-inline
+$ catala Interpret -s Money
+[ERROR] division by zero at runtime
+
+The division operator:
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
+   | 
+30 |   definition i equals $10.0 /$ $0.0
+   |                       ^^^^^^^^^^^^^
+   + `Division_by_zero` exception management
+   +-+ with money
+
+The null denominator:
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
+   | 
+30 |   definition i equals $10.0 /$ $0.0
+   |                                ^^^^
+   + `Division_by_zero` exception management
+   +-+ with money
 ```

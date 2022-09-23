@@ -145,26 +145,32 @@ scope Test6:
    assertion scope121.income_excluded_from_gross_income = $350,000
 ```
 
-```catala-test {id="Test1.Interpret"}
-catala Interpret -s Test1
+```catala-test-inline
+$ catala Interpret -s Test1
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test2.Interpret"}
-catala Interpret -s Test2
+```catala-test-inline
+$ catala Interpret -s Test2
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test3.Interpret"}
-catala Interpret -s Test3
+```catala-test-inline
+$ catala Interpret -s Test3
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test4.Interpret"}
-catala Interpret -s Test4
+```catala-test-inline
+$ catala Interpret -s Test4
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test5.Interpret"}
-catala Interpret -s Test5
+```catala-test-inline
+$ catala Interpret -s Test5
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="Test6.Interpret"}
-catala Interpret -s Test6
+```catala-test-inline
+$ catala Interpret -s Test6
+[RESULT] Computation successful!
 ```

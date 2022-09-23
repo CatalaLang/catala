@@ -18,6 +18,7 @@ scope A:
   definition x under condition (y.a = 0) and y.b.c consequence equals 0
   definition x under condition not (y.a = 0) or not y.b.c consequence equals 1
 ```
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[RESULT] No errors found during the proof mode run.
 ```

@@ -5,6 +5,13 @@ declaration scope Foo2:
   output bar content integer
 ```
 
-```catala-test {id="foo_2_scalc"}
-catala Scalc -s Foo2 -O -t
+```catala-test-inline
+$ catala Scalc -s Foo2 -O -t
+let Foo2 (Foo2_in : Foo2_in{}) =
+  decl temp_bar : any;
+  temp_bar = dead_value_1;
+  raise NoValueProvided;
+  decl bar : integer;
+  bar = temp_bar_4;
+  return Foo2_out {"bar_out": bar_3}
 ```

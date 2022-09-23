@@ -19,6 +19,7 @@ scope Caller:
   assertion callee.output_v
 ```
 
-```catala-test {id="Caller.Interpret"}
-catala Interpret -s Caller
+```catala-test-inline
+$ catala Interpret -s Caller
+[RESULT] Computation successful!
 ```
