@@ -11,6 +11,14 @@ scope A:
   definition y equals S { -- x: 1 }
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] The type S is defined using itself, which is forbidden since Catala does not provide recursive types
+
+ --> tests/test_struct/bad/nested.catala_en
+  | 
+5 |   data x content S
+  |                  ^
+  + Article
+#return code 255#
 ```

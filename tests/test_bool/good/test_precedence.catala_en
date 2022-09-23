@@ -8,6 +8,8 @@ scope TestBool:
   definition foo equals true and not false and false = false
 ```
 
-```catala-test {id="TestBool.Interpret"}
-catala Interpret -s TestBool
+```catala-test-inline
+$ catala Interpret -s TestBool
+[RESULT] Computation successful! Results:
+[RESULT] foo = true
 ```

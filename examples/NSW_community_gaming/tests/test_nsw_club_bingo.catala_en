@@ -25,8 +25,9 @@ scope Test1:
 ```
 
 
-```catala-test {id="Test1.Interpret"}
-catala Interpret -s Test1
+```catala-test-inline
+$ catala Interpret -s Test1
+[RESULT] Computation successful!
 ```
 
 ## Test2
@@ -50,8 +51,9 @@ scope Test2:
 ```
 
 
-```catala-test {id="Test2.Interpret"}
-catala Interpret -s Test2
+```catala-test-inline
+$ catala Interpret -s Test2
+[RESULT] Computation successful!
 ```
 
 ## Test3
@@ -74,8 +76,9 @@ scope Test3:
   assertion my_gaming.authorized = false
 ```
 
-```catala-test {id="Test3.Interpret"}
-catala Interpret -s Test3
+```catala-test-inline
+$ catala Interpret -s Test3
+[RESULT] Computation successful!
 ```
 
 ## Test4
@@ -99,8 +102,9 @@ scope Test4:
 ```
 
 
-```catala-test {id="Test4.Interpret"}
-catala Interpret -s Test4
+```catala-test-inline
+$ catala Interpret -s Test4
+[RESULT] Computation successful!
 ```
 
 ## Test5
@@ -124,6 +128,7 @@ scope Test5:
 ```
 
 
-```catala-test {id="Test5.Interpret"}
-catala Interpret -s Test5
+```catala-test-inline
+$ catala Interpret -s Test5
+[RESULT] Computation successful!
 ```

@@ -15,6 +15,7 @@ scope Bar:
   assertion foo.x
 ```
 
-```catala-test {id="Bar"}
-catala Interpret -s Bar
+```catala-test-inline
+$ catala Interpret -s Bar
+[RESULT] Computation successful!
 ```

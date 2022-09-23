@@ -1,7 +1,0 @@
-[ERROR] [A.y] At least two exceptions overlap for this variable:
-  --> tests/test_proof/bad/enums_unit-overlap.catala_en
-   | 
-10 |   context y content integer
-   |           ^
-   + Article
-Counterexample generation is disabled so none was generated.

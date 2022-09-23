@@ -21,6 +21,14 @@ scope A:
     -- Case4 : true
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] This case matches a constructor of enumeration E but previous case were matching constructors of enumeration F
+
+  --> tests/test_enum/bad/too_many_cases.catala_en
+   |
+21 |     -- Case4 : true
+   |        ^^^^^^^^^^^^
+   + Article
+#return code 255#
 ```

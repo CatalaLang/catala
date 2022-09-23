@@ -40,18 +40,82 @@ scope Ge:
   definition d equals 1 month >=^ 2 day
 ```
 
-```catala-test {id="Ge.Interpret"}
-catala Interpret -s Ge
+```catala-test-inline
+$ catala Interpret -s Ge
+[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+40 |   definition d equals 1 month >=^ 2 day
+   |                       ^^^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `>=^` operator
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+40 |   definition d equals 1 month >=^ 2 day
+   |                                   ^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `>=^` operator
+#return code 255#
 ```
 
-```catala-test {id="Gt.Interpret"}
-catala Interpret -s Gt
+```catala-test-inline
+$ catala Interpret -s Gt
+[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+30 |   definition d equals 1 month >^ 2 day
+   |                       ^^^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<=^` operator
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+30 |   definition d equals 1 month >^ 2 day
+   |                                  ^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<=^` operator
+#return code 255#
 ```
 
-```catala-test {id="Le.Interpret"}
-catala Interpret -s Le
+```catala-test-inline
+$ catala Interpret -s Le
+[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+20 |   definition d equals 1 month <=^ 2 day
+   |                       ^^^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<=^` operator
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+20 |   definition d equals 1 month <=^ 2 day
+   |                                   ^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<=^` operator
+#return code 255#
 ```
 
-```catala-test {id="Lt.Interpret"}
-catala Interpret -s Lt
+```catala-test-inline
+$ catala Interpret -s Lt
+[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+10 |   definition d equals 1 month <^ 2 day
+   |                       ^^^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<^` operator
+
+  --> tests/test_date/bad/uncomparable_duration.catala_en
+   |
+10 |   definition d equals 1 month <^ 2 day
+   |                                  ^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<^` operator
+#return code 255#
 ```

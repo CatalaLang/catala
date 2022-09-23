@@ -15,6 +15,13 @@ scope A:
   definition y under condition x >=$ $100,000 consequence equals false
 ```
 
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[ERROR] [A.y] At least two exceptions overlap for this variable:
+ --> tests/test_proof/bad/money-overlap.catala_en
+  | 
+8 |   context y content boolean
+  |           ^
+  + Test
+Counterexample generation is disabled so none was generated.
 ```

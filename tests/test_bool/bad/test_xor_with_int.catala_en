@@ -8,6 +8,31 @@ scope TestXorWithInt:
   definition test_var equals 10 xor 20
 ```
 
-```catala-test {id="Typecheck"}
-catala Typecheck
+```catala-test-inline
+$ catala Typecheck
+[ERROR] Error during typechecking, incompatible types:
+--> bool
+--> integer
+
+Error coming from typechecking the following expression:
+ --> tests/test_bool/bad/test_xor_with_int.catala_en
+  |
+8 |   definition test_var equals 10 xor 20
+  |                              ^^^^^^^^^
+  + 'xor' should be a boolean operator
+
+Type bool coming from expression:
+ --> tests/test_bool/bad/test_xor_with_int.catala_en
+  |
+8 |   definition test_var equals 10 xor 20
+  |                                 ^^^
+  + 'xor' should be a boolean operator
+
+Type integer coming from expression:
+ --> tests/test_bool/bad/test_xor_with_int.catala_en
+  |
+8 |   definition test_var equals 10 xor 20
+  |                              ^^
+  + 'xor' should be a boolean operator
+#return code 255#
 ```

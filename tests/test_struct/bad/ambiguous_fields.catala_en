@@ -16,6 +16,14 @@ scope A:
   definition y equals x.f
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] This struct field name is ambiguous, it can belong to Foo or Bar. Disambiguate it by prefixing it with the struct name.
+
+  --> tests/test_struct/bad/ambiguous_fields.catala_en
+   | 
+16 |   definition y equals x.f
+   |                         ^
+   + Article
+#return code 255#
 ```

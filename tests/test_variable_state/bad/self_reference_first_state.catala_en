@@ -12,6 +12,14 @@ scope A:
   definition foo state baz equals foo + 1
 ```
 
-```catala-test {id="Typecheck"}
-catala Typecheck 
+```catala-test-inline
+$ catala Typecheck 
+[ERROR] It is impossible to refer to the variable you are defining when defining its first state.
+
+  --> tests/test_variable_state/bad/self_reference_first_state.catala_en
+   | 
+10 |   definition foo state bar equals foo + 1
+   |                                   ^^^
+   + Test
+#return code 255#
 ```

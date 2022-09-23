@@ -19,6 +19,13 @@ scope A:
     -- Case2 : true consequence equals 4
 ```
 
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[ERROR] [A.y] At least two exceptions overlap for this variable:
+  --> tests/test_proof/bad/enums_unit-overlap.catala_en
+   | 
+10 |   context y content integer
+   |           ^
+   + Article
+Counterexample generation is disabled so none was generated.
 ```

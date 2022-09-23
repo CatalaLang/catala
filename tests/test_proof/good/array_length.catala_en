@@ -11,6 +11,7 @@ scope A:
   definition y under condition (number of x) = 0 consequence equals false
 ```
 
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[RESULT] No errors found during the proof mode run.
 ```

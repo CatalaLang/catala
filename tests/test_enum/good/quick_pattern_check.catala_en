@@ -16,6 +16,10 @@ scope A:
   definition z equals x with pattern Case2
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = Case1 2
+[RESULT] y = true
+[RESULT] z = false
 ```

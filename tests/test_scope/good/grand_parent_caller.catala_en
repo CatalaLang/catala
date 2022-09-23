@@ -29,14 +29,22 @@ scope C:
   definition z2 equals b.y2
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = 0
 ```
 
-```catala-test {id="B.Interpret"}
-catala Interpret -s B
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] y1 = 1
+[RESULT] y2 = 1
 ```
 
-```catala-test {id="C.Interpret"}
-catala Interpret -s C
+```catala-test-inline
+$ catala Interpret -s C
+[RESULT] Computation successful! Results:
+[RESULT] z1 = 2
+[RESULT] z2 = 2
 ```

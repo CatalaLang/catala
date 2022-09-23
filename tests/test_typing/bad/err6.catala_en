@@ -25,13 +25,39 @@ scope S2:
 ```
 
 
-```catala-test {id="err-typecheck"}
-catala Typecheck
+```catala-test-inline
+$ catala Typecheck
+[RESULT] Typechecking successful!
 ```
 
 A bug with delayed typechecking can make the above accept the error while it is
 still triggered below.
 
-```catala-test {id="err-ocaml"}
-catala ocaml
+```catala-test-inline
+$ catala ocaml
+[ERROR] Error during typechecking, incompatible types:
+--> decimal
+--> integer
+
+Error coming from typechecking the following expression:
+  --> tests/test_typing/bad/common.catala_en
+   | 
+12 |   input x content integer
+   |         ^
+   + 
+
+Type decimal coming from expression:
+  --> tests/test_typing/bad/err6.catala_en
+   | 
+20 |   definition sub.x equals 44.
+   |                           ^^^
+   + 
+
+Type integer coming from expression:
+  --> tests/test_typing/bad/common.catala_en
+   | 
+11 | declaration scope S:
+   |                   ^
+   + 
+#return code 255#
 ```

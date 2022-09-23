@@ -10,6 +10,7 @@ scope S:
   definition a equals number of (z ++ z) / 2
 ```
 
-```catala-test {id="err"}
-catala Typecheck
+```catala-test-inline
+$ catala Typecheck
+[RESULT] Typechecking successful!
 ```

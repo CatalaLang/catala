@@ -14,6 +14,12 @@ scope A:
   definition a equals x /. (y *. (x +. y) *. (x *. x *. z *. z))
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] a =
+           -0.000000000000000000000000000000000000000000000000000000000078695580959228473468…
+[RESULT] x = 84.64866565265689623
+[RESULT] y = -4.3682977870532065498
+[RESULT] z = 654265429805103220650980650.570540510654
 ```

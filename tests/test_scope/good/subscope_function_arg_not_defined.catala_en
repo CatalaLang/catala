@@ -17,6 +17,8 @@ scope Caller:
   definition y equals sub.output_v
 ```
 
-```catala-test {id="Caller.Interpret"}
-catala Interpret -s Caller
+```catala-test-inline
+$ catala Interpret -s Caller
+[RESULT] Computation successful! Results:
+[RESULT] y = 1
 ```

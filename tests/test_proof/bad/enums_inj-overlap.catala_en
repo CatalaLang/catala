@@ -16,6 +16,13 @@ scope A:
   definition y under condition x = C2 consequence equals 3
 ```
 
-```catala-test {id="Proof"}
-catala Proof --disable_counterexamples 
+```catala-test-inline
+$ catala Proof --disable_counterexamples 
+[ERROR] [A.y] At least two exceptions overlap for this variable:
+  --> tests/test_proof/bad/enums_inj-overlap.catala_en
+   | 
+10 |   context y content integer
+   |           ^
+   + Article
+Counterexample generation is disabled so none was generated.
 ```

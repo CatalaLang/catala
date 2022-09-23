@@ -42,14 +42,17 @@ scope TestSection132_3:
   assertion section_132.qualified_employee_discount = $300
 ```
 
-```catala-test {id="TestSection132_1.Interpret"}
-catala Interpret -s TestSection132_1
+```catala-test-inline
+$ catala Interpret -s TestSection132_1
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="TestSection132_2.Interpret"}
-catala Interpret -s TestSection132_2
+```catala-test-inline
+$ catala Interpret -s TestSection132_2
+[RESULT] Computation successful!
 ```
 
-```catala-test {id="TestSection132_3.Interpret"}
-catala Interpret -s TestSection132_3
+```catala-test-inline
+$ catala Interpret -s TestSection132_3
+[RESULT] Computation successful!
 ```

@@ -241,10 +241,13 @@ champ d'application Exemple2 :
 #  }
 ```
 
-```catala-test {id="Exemple1.Interpret"}
-catala Interpret -s Exemple1
+```catala-test-inline
+$ catala Interpret -s Exemple1
+[RESULT] Computation successful! Results:
+[RESULT] éligible = true
 ```
 
-```catala-test {id="Typecheck"}
-catala Typecheck
+```catala-test-inline
+$ catala Typecheck
+[RESULT] Typechecking successful!
 ```

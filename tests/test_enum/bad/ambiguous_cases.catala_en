@@ -14,6 +14,14 @@ scope A:
   definition e equals Case1
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] This constructor name is ambiguous, it can belong to E or F. Desambiguate it by prefixing it with the enum name.
+
+  --> tests/test_enum/bad/ambiguous_cases.catala_en
+   |
+14 |   definition e equals Case1
+   |                       ^^^^^
+   + Article
+#return code 255#
 ```

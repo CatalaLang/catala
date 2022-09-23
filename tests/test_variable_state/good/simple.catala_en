@@ -15,10 +15,13 @@ scope A:
   definition foo state fizz equals foo + 1
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] foo_fizz = 3
 ```
 
-```catala-test {id="Typecheck"}
-catala Typecheck 
+```catala-test-inline
+$ catala Typecheck 
+[RESULT] Typechecking successful!
 ```

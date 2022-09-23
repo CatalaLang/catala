@@ -14,10 +14,18 @@ scope A:
 scope B:
   assertion a.y = 1
 ```
-```catala-test {id="B.Dcalc"}
-catala Dcalc -s B
+```catala-test-inline
+$ catala Dcalc -s B
+let B =
+  λ (B_in_21: B_in{}) →
+    let a.x_22 : bool = error_empty ⟨true ⊢ false⟩ in
+    let result_23 : A_out{"y_out": integer} = A_13 (A_in {"x_in"= a.x_22}) in
+    let a.y_24 : integer = result_23."y_out" in
+    let __25 : unit = assert (error_empty a.y_24 = 1) in
+    B_out {}
 ```
 
-```catala-test {id="B.Interpret"}
-catala Interpret -s B
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful!
 ```

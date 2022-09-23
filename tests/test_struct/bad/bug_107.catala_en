@@ -16,6 +16,22 @@ scope A:
   definition a equals S { --x : 0 -- y : 1 }
 ```
 
-```catala-test {id="A.Interpret"}
-catala Interpret -s A
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR] struct name "S" already defined
+
+First definition:
+ --> tests/test_struct/bad/bug_107.catala_en
+  | 
+4 | declaration structure S:
+  |                       ^
+  + https://github.com/CatalaLang/catala/issues/107
+
+Second definition:
+ --> tests/test_struct/bad/bug_107.catala_en
+  | 
+8 | declaration structure S:
+  |                       ^
+  + https://github.com/CatalaLang/catala/issues/107
+#return code 255#
 ```

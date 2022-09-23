@@ -28,10 +28,14 @@ scope S2:
   definition b equals B
 ```
 
-```catala-test {id="S2.Interpret"}
-catala Interpret -s S2
+```catala-test-inline
+$ catala Interpret -s S2
+[RESULT] Computation successful! Results:
+[RESULT] b = B ()
 ```
 
-```catala-test {id="S.Interpret"}
-catala Interpret -s S
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] a = A ()
 ```

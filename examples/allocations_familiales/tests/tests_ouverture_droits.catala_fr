@@ -61,6 +61,7 @@ champ d'application Test1:
   assertion (non (f.droit_ouvert de données.enfant4))
 ```
 
-```catala-test {id="Test1.Interpret"}
-catala Interpret -s Test1
+```catala-test-inline
+$ catala Interpret -s Test1
+[RESULT] Computation successful!
 ```

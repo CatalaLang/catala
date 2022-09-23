@@ -14,6 +14,14 @@ scope A:
   exception thing definition foo state baz under condition true consequence equals 3
 ```
 
-```catala-test {id="Typecheck"}
-catala Typecheck 
+```catala-test-inline
+$ catala Typecheck 
+[ERROR] Unknown label for the scope variable foo.baz: "thing"
+
+  --> tests/test_variable_state/bad/no_cross_exceptions.catala_en
+   | 
+14 |   exception thing definition foo state baz under condition true consequence equals 3
+   |             ^^^^^
+   + Test
+#return code 255#
 ```

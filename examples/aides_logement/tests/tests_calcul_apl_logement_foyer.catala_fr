@@ -126,22 +126,32 @@ champ d'application CasTest5:
   assertion montant = 129,65 €
 ```
 
-```catala-test {id="CasTest1.Interpret"}
-catala Interpret -s CasTest1
+```catala-test-inline
+$ catala Interpret -s CasTest1
+[RESULT] Computation successful! Results:
+[RESULT] montant = 12.06 €
 ```
 
-```catala-test {id="CasTest2.Interpret"}
-catala Interpret -s CasTest2
+```catala-test-inline
+$ catala Interpret -s CasTest2
+[RESULT] Computation successful! Results:
+[RESULT] montant = 23.12 €
 ```
 
-```catala-test {id="CasTest3.Interpret"}
-catala Interpret -s CasTest3
+```catala-test-inline
+$ catala Interpret -s CasTest3
+[RESULT] Computation successful! Results:
+[RESULT] montant = 154.78 €
 ```
 
-```catala-test {id="CasTest4.Interpret"}
-catala Interpret -s CasTest4
+```catala-test-inline
+$ catala Interpret -s CasTest4
+[RESULT] Computation successful! Results:
+[RESULT] montant = 154.78 €
 ```
 
-```catala-test {id="CasTest5.Interpret"}
-catala Interpret -s CasTest5
+```catala-test-inline
+$ catala Interpret -s CasTest5
+[RESULT] Computation successful! Results:
+[RESULT] montant = 129.65 €
 ```
