@@ -50,6 +50,7 @@ The null denominator:
    |                             ^^
    + `Division_by_zero` exception management
    +-+ with decimals
+#return code 255#
 ```
 
 ```catala-test-inline
@@ -71,6 +72,7 @@ The null denominator:
    |                           ^
    + `Division_by_zero` exception management
    +-+ with integers
+#return code 255#
 ```
 
 ```catala-test-inline
@@ -92,4 +94,5 @@ The null denominator:
    |                                ^^^^
    + `Division_by_zero` exception management
    +-+ with money
+#return code 255#
 ```

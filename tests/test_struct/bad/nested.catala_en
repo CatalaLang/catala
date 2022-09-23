@@ -20,4 +20,5 @@ $ catala Interpret -s A
 5 |   data x content S
   |                  ^
   + Article
+#return code 255#
 ```

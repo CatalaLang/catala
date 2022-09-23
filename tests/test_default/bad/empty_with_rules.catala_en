@@ -21,4 +21,5 @@ $ catala Interpret -s A
 5 |   context x content integer
   |           ^
   + Article
+#return code 255#
 ```

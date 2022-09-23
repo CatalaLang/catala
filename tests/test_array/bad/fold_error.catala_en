@@ -36,4 +36,5 @@ Type integer coming from expression:
 5 |   context list content collection integer
   |                                   ^^^^^^^
   + Article
+#return code 255#
 ```

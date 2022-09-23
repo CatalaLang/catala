@@ -33,4 +33,5 @@ Second definition:
 8 | declaration structure S:
   |                       ^
   + https://github.com/CatalaLang/catala/issues/107
+#return code 255#
 ```

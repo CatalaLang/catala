@@ -33,4 +33,5 @@ $ catala Interpret -s A
 17 |     -- Case3 : false
    |                ^^^^^
    + Article
+#return code 255#
 ```

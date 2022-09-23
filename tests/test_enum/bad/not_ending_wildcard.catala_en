@@ -55,6 +55,7 @@ Next reachable case:
    |        ^^^^^^^^^^
    + Wildcard must be the last case
    +-+ Wildcard can't be the first case
+#return code 255#
 ```
 
 ```catala-test-inline
@@ -76,4 +77,5 @@ Next reachable case:
    |        ^^^^^^^^^^
    + Wildcard must be the last case
    +-+ Wildcard can't be the first case
+#return code 255#
 ```

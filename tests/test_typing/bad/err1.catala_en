@@ -36,4 +36,5 @@ Type decimal coming from expression:
 7 |     Structure { -- i: 4.1 -- e: y };
   |                       ^^^
   + 
+#return code 255#
 ```

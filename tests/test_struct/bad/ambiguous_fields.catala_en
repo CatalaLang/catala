@@ -25,4 +25,5 @@ $ catala Interpret -s A
 16 |   definition y equals x.f
    |                         ^
    + Article
+#return code 255#
 ```

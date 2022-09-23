@@ -59,4 +59,5 @@ Type integer coming from expression:
 11 | declaration scope S:
    |                   ^
    + 
+#return code 255#
 ```

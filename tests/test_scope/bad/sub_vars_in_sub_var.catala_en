@@ -22,4 +22,5 @@ $ catala Interpret -s A
 13 |   definition a.y equals if a.x then 0 else 1
    |                            ^^^
    + Article
+#return code 255#
 ```

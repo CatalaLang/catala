@@ -23,4 +23,5 @@ $ catala Interpret -s A
 14 |   definition e equals Case1
    |                       ^^^^^
    + Article
+#return code 255#
 ```

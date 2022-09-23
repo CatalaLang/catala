@@ -24,4 +24,5 @@ $ catala Interpret -s A
 15 |     -- anything : 31
    |        ^^^^^^^^^^^^^
    + Wildcard cannot be used as single match case
+#return code 255#
 ```

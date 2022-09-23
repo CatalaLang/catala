@@ -18,4 +18,5 @@ $ catala Interpret -s A
 6 |   context y content boolean
   |           ^
   + Article
+#return code 255#
 ```

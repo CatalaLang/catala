@@ -36,4 +36,5 @@ Type Structure coming from expression:
 7 |     Structure { -- i: 4 -- e: y };
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   + 
+#return code 255#
 ```

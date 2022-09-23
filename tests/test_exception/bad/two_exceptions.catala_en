@@ -32,4 +32,5 @@ This consequence has a valid justification:
 15 |   definition x equals 2
    |                       ^
    + Test
+#return code 255#
 ```

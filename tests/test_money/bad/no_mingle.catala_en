@@ -38,4 +38,5 @@ Type money coming from expression:
 6 |   context y content money
   |                     ^^^^^
   + Article
+#return code 255#
 ```

@@ -26,4 +26,5 @@ This consequence has a valid justification:
 9 |   definition x under condition true consequence equals 0
   |                                                        ^
   + Article
+#return code 255#
 ```

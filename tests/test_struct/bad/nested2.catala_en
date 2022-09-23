@@ -44,4 +44,5 @@ Used here in the definition of another cycle type S:
 5 |   data x content E
   |                  ^
   + Article
+#return code 255#
 ```

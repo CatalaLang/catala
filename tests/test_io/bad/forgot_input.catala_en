@@ -31,4 +31,5 @@ Incriminated variable:
 6 |   input x content integer
   |         ^
   + Test
+#return code 255#
 ```

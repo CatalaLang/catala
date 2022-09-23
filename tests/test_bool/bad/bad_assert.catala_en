@@ -36,4 +36,5 @@ Type integer coming from expression:
 8 |   definition x equals 0
   |                       ^
   + Test
+#return code 255#
 ```

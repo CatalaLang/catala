@@ -45,6 +45,7 @@ Last good token:
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
    + 
+#return code 255#
 ```
 
 
@@ -88,6 +89,7 @@ Last good token:
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
    + 
+#return code 255#
 ```
 
 
@@ -131,6 +133,7 @@ Last good token:
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
    + 
+#return code 255#
 ```
 
 
@@ -176,4 +179,5 @@ Last good token:
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
    + 
+#return code 255#
 ```

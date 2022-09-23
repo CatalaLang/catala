@@ -75,4 +75,5 @@ Used here in the definition of another cyclic exception for defining "x":
 9 |   exception exception_exception_x
   |             ^^^^^^^^^^^^^^^^^^^^^
   + Test
+#return code 255#
 ```

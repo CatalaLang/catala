@@ -37,4 +37,5 @@ Incriminated subscope declaration:
 8 |   a scope A
   |   ^
   + Test
+#return code 255#
 ```

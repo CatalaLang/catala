@@ -22,4 +22,5 @@ $ catala Interpret -s A
 12 |   exception base_y
    |             ^^^^^^
    + Test
+#return code 255#
 ```

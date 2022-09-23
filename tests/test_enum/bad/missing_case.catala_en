@@ -29,4 +29,5 @@ $ catala Interpret -s A
 16 |     -- Case2 of b : b
    |     ^^^^^^^^^^^^^^^^^^
    + Article
+#return code 255#
 ```
