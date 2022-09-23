@@ -6,17 +6,11 @@ language.
 Tests are declared inside plain Catala files with the following format:
 
 ~~~markdown
-```catala-test {id="TEST-IDENT"}
-catala ARGS
+```catala-test-inline
+$ catala ARGS
+... output from the catala command ...
 ```
 ~~~
-
-The output of running catala with the given `ARGS` for a `foo.catala_en` file is
-expected to be in an `output/foo.catala_en.TEST-IDENT` file (use
-`CLERK_OPTS=--reset` to (re-)generate it).
-
-You can use `CATALA_OPTS="..." make ...` to pass in Catala compiler options when
-debugging.
 
 ## Workflow for adding new tests
 
@@ -25,31 +19,33 @@ debugging.
 2. Write your test, and pick a toplevel scope `A` to run.
 3. Add the following section to your file:
       ~~~markdown
-      ```catala-test {id="A.Interpret"}
+      ```catala-test-inline
       catala Interpret -s A
       ```
       ~~~
-4. Run `CLERK_OPTS=--reset make tests/foo/{good,bad}/bar.catala_<language>`
-   from the root of the Catala repository. This
-   will record the content of the output of your test into the target file.
-5. Check that the expected output is present in `tests/foo/{good,bad}/output/bar.catala_<language>.A.Interpret`
-6. Don't forget to `git add` both the test file and the output file.
+4. Run `make tests/foo/{good,bad}/bar.catala_<language> CLERK_OPTS=--reset`
+   from the root of the Catala repository. This will update the test with the
+   actual output of the catala command.
+5. Don't forget to `git add` the test file.
 
 ## Workflow for fixing regressions
 
-1. Run `make test_suite` from the root of the Catala repository,
-   if a test fails you should see something like
-   `[ERROR] Test failed: foo/{good,bad}/output/bar.catala_<language>.A.Interpret]`.
-2. Compare the computed and expected output with `make tests/foo/{good,bad}/bar.catala_<language>`
-   from the root of the Catala repository. Debug the compiler and the test and repeat.
+1. Run `make test_suite` from the root of the Catala repository, if a test fails
+   you should see something like
+   `FAILED: foo/{good,bad}/bar.catala_<language>.out]` followed by the diff
+   between the expected output and the current output of the command.
+2. Debug the compiler and the test and repeat. Run
+   `make tests/foo/{good,bad}/bar.catala_<language>` to check the test again.
 3. When you're finished debugging, if you are positive that a change in the test
-   output is legitimate, record the new outputs with `CLERK_OPTS=--reset make
-   tests/foo/{good,bad}/bar.catala_<language>`.
+   output is legitimate, record the new outputs with
+   `make tests/foo/{good,bad}/bar.catala_<language> CLERK_OPTS=--reset`.
 4. Re-run `make test_suite` from the root of the Catala repository to check that
    everything passes.
 5. Run `git diff` to double-check your changes to the test outputs are expected.
    If necessary, justify them in your commit message.
 
 If a compiler change causes a lot of regressions (error message formatting changes
-for instance), you can mass-reset the expected the outputs with `CLERK_OPTS=--reset make test_suite`.
+for instance), you can mass-reset the expected outputs with
+`make test_suite CLERK_OPTS=--reset`.
+`git diff` will then allow to check all the changes at once.
 **Caution**: It's your responsability to check all the changes before committing them.

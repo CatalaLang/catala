@@ -771,11 +771,11 @@ let collect_in_file
     match f ninja_start tested_file reset_test_outputs with
     | Some (test_file_name, ninja) ->
       {
-        ctx with
         last_valid_ninja = ninja;
         curr_ninja = Some ninja;
         all_file_names = tested_file :: ctx.all_file_names;
         all_test_builds = ctx.all_test_builds ^ " $\n  " ^ test_file_name;
+        all_failed_names = List.filter (( <> ) tested_file) ctx.all_failed_names;
       }
     | None ->
       {
