@@ -35,7 +35,7 @@ type scope_sig_ctx = {
 
 type scope_sigs_ctx = scope_sig_ctx ScopeMap.t
 
-type ctx = {
+type 'm ctx = {
   structs : struct_ctx;
   enums : enum_ctx;
   scope_name : ScopeName.t;
@@ -45,7 +45,7 @@ type ctx = {
   subscope_vars :
     (untyped Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t
     SubScopeMap.t;
-  local_vars : (Ast.expr, untyped Dcalc.Ast.expr Var.t) Var.Map.t;
+  local_vars : ('m Ast.expr, untyped Dcalc.Ast.expr Var.t) Var.Map.t;
 }
 
 let empty_ctx
@@ -104,16 +104,21 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (excepts : Ast.expr list) : Ast.expr list =
+let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) : m Ast.expr list =
+  let module ExprMap = Map.Make (struct
+      type t = m Ast.expr
+      let compare = Expr.compare
+    end)
+  in
   let cons_map =
     List.fold_left
       (fun map -> function
         | (EDefault ([], _, cons), _) as e ->
-          Ast.ExprMap.update cons
+          ExprMap.update cons
             (fun prev -> Some (e :: Option.value ~default:[] prev))
             map
         | _ -> map)
-      Ast.ExprMap.empty excepts
+      ExprMap.empty excepts
   in
   let _, excepts =
     List.fold_right
@@ -127,16 +132,16 @@ let collapse_similar_outcomes (excepts : Ast.expr list) : Ast.expr list =
                   [EDefault (acc, just, cons), pos]
                 | _ -> assert false)
               []
-              (Ast.ExprMap.find cons cons_map)
+              (ExprMap.find cons cons_map)
           in
-          Ast.ExprMap.add cons [] cons_map, collapsed_exc @ excepts
+          ExprMap.add cons [] cons_map, collapsed_exc @ excepts
         | e -> cons_map, e :: excepts)
       excepts (cons_map, [])
   in
   excepts
 
-let rec translate_expr (ctx : ctx) (e : Ast.expr) :
-    untyped Dcalc.Ast.expr Bindlib.box =
+let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
+    'm Dcalc.Ast.expr Bindlib.box =
   Bindlib.box_apply (fun x -> Marked.same_mark_as x e)
   @@
   match Marked.unmark e with
@@ -355,12 +360,12 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
     continuation yielding a [Dcalc.scope_body_expr] by giving it what should
     come later in the chain of let-bindings. *)
 let translate_rule
-    (ctx : ctx)
-    (rule : Ast.rule)
+    (ctx : 'm ctx)
+    (rule : 'm Ast.rule)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
-    (untyped Dcalc.Ast.expr scope_body_expr Bindlib.box ->
-    untyped Dcalc.Ast.expr scope_body_expr Bindlib.box)
-    * ctx =
+    ('m Dcalc.Ast.expr scope_body_expr Bindlib.box ->
+    'm Dcalc.Ast.expr scope_body_expr Bindlib.box)
+    * 'm ctx =
   match rule with
   | Definition ((ScopelangScopeVar a, var_def_pos), tau, a_io, e) ->
     let a_name = ScopeVar.get_info (Marked.unmark a) in
@@ -633,11 +638,11 @@ let translate_rule
       ctx )
 
 let translate_rules
-    (ctx : ctx)
-    (rules : Ast.rule list)
+    (ctx : 'm ctx)
+    (rules : 'm Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
     (sigma_return_struct_name : StructName.t) :
-    untyped Dcalc.Ast.expr scope_body_expr Bindlib.box * ctx =
+    'm Dcalc.Ast.expr scope_body_expr Bindlib.box * 'm ctx =
   let scope_lets, new_ctx =
     List.fold_left
       (fun (scope_lets, ctx) rule ->
@@ -673,8 +678,8 @@ let translate_scope_decl
     (enum_ctx : enum_ctx)
     (sctx : scope_sigs_ctx)
     (scope_name : ScopeName.t)
-    (sigma : Ast.scope_decl) :
-    untyped Dcalc.Ast.expr scope_body Bindlib.box * struct_ctx =
+    (sigma : 'm Ast.scope_decl) :
+    'm Dcalc.Ast.expr scope_body Bindlib.box * struct_ctx =
   let sigma_info = ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
@@ -800,8 +805,8 @@ let translate_scope_decl
          (input_destructurings rules_with_return_expr)),
     new_struct_ctx )
 
-let translate_program (prgm : Ast.program) :
-    untyped Dcalc.Ast.program * Dependency.TVertex.t list =
+let translate_program (prgm : 'm Ast.program) :
+    'm Dcalc.Ast.program * Dependency.TVertex.t list =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
   let types_ordering =

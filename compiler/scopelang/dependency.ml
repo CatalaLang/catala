@@ -45,7 +45,7 @@ module STopologicalTraversal = Graph.Topological.Make (SDependencies)
 module SSCC = Graph.Components.Make (SDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
-let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
+let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   let g = SDependencies.empty in
   let g =
     ScopeMap.fold

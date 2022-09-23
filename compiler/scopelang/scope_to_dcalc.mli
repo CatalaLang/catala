@@ -17,7 +17,7 @@
 (** Scope language to default calculus translator *)
 
 val translate_program :
-  Ast.program ->
+  Shared_ast.untyped Ast.program ->
   Shared_ast.untyped Dcalc.Ast.program * Dependency.TVertex.t list
 (** Usage [translate_program p] returns a tuple [(new_program, types_list)]
     where [new_program] is the map of translated scopes. Finally, [types_list]

@@ -98,7 +98,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
              SubScopeName.format_t subscope_name Print.punctuation "]"))
     decl.scope_decl_rules
 
-let program ?(debug : bool = false) (fmt : Format.formatter) (p : program) :
+let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     unit =
   let ctx = p.program_ctx in
   let pp_sep fmt () =

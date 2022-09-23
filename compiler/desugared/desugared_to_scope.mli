@@ -16,4 +16,4 @@
 
 (** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
 
-val translate_program : Ast.program -> Scopelang.Ast.program
+val translate_program : Ast.program -> Shared_ast.untyped Scopelang.Ast.program

@@ -27,18 +27,18 @@ type target_scope_vars =
 
 type ctx = {
   scope_var_mapping : target_scope_vars ScopeVarMap.t;
-  var_mapping : (Ast.expr, Scopelang.Ast.expr Var.t) Var.Map.t;
+  var_mapping : (Ast.expr, untyped Scopelang.Ast.expr Var.t) Var.Map.t;
 }
 
 let tag_with_log_entry
-    (e : Scopelang.Ast.expr)
+    (e : untyped Scopelang.Ast.expr)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) : Scopelang.Ast.expr =
+    (markings : Utils.Uid.MarkedString.info list) : untyped Scopelang.Ast.expr =
   ( EApp ((EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr) :
-    Scopelang.Ast.expr Bindlib.box =
+    untyped Scopelang.Ast.expr Bindlib.box =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
@@ -186,7 +186,7 @@ let rec rule_tree_to_expr
     (ctx : ctx)
     (def_pos : Pos.t)
     (is_func : Ast.expr Var.t option)
-    (tree : rule_tree) : Scopelang.Ast.expr Bindlib.box =
+    (tree : rule_tree) : untyped Scopelang.Ast.expr Bindlib.box =
   let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
@@ -236,7 +236,7 @@ let rec rule_tree_to_expr
       base_rules
   in
   let translate_and_unbox_list (list : Ast.expr Bindlib.box list) :
-      Scopelang.Ast.expr Bindlib.box list =
+      untyped Scopelang.Ast.expr Bindlib.box list =
     List.map
       (fun e ->
         (* There are two levels of boxing here, the outermost is introduced by
@@ -283,7 +283,7 @@ let rec rule_tree_to_expr
          that the result returned by the function is not empty *)
       let default =
         Bindlib.box_apply
-          (fun (default : Scopelang.Ast.expr) -> ErrorOnEmpty default, emark)
+          (fun (default : untyped Scopelang.Ast.expr) -> ErrorOnEmpty default, emark)
           default
       in
       Expr.make_abs
@@ -303,7 +303,7 @@ let translate_def
     (typ : typ)
     (io : Scopelang.Ast.io)
     ~(is_cond : bool)
-    ~(is_subscope_var : bool) : Scopelang.Ast.expr =
+    ~(is_subscope_var : bool) : untyped Scopelang.Ast.expr =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func =
     match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
@@ -411,7 +411,7 @@ let translate_def
                [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ] )))
 
 (** Translates a scope *)
-let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
+let translate_scope (ctx : ctx) (scope : Ast.scope) : untyped Scopelang.Ast.scope_decl =
   let scope_dependencies = Dependency.build_scope_dependencies scope in
   Dependency.check_for_cycle scope scope_dependencies;
   let scope_ordering =
@@ -633,7 +633,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
 
 (** {1 API} *)
 
-let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
+let translate_program (pgrm : Ast.program) : untyped Scopelang.Ast.program =
   (* First we give mappings to all the locations between Desugared and
      Scopelang. This involves creating a new Scopelang scope variable for every
      state of a Desugared variable. *)
