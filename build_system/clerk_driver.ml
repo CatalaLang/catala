@@ -133,6 +133,7 @@ let info =
         ( "run",
           "Runs the Catala interpreter on a given scope of a given file. See \
            the `-s` option." );
+      (* "runtest" is for internal use and not documented here *)
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
       `P "Emile Rolley <emile.rolley@tuta.io>";
@@ -172,6 +173,93 @@ let readdir_sort (dirname : string) : string array =
     dirs
   with Sys_error _ -> Array.make 0 ""
 
+type test = {
+  text_before : string;
+      (** Verbatim of everything from the last test end or beginning of file up
+          to the test output start *)
+  params : string list;
+      (** Catala command-line arguments for the test *)
+      (* Also contains test_output and return_code, but they are not relevant
+         for just running the test *)
+}
+
+type file_tests = {
+  tests : test list;
+  text_after : string;  (** Verbatim of everything following the last test *)
+}
+
+let inline_test_start_key = "```catala-test-inline"
+
+let has_inline_tests (file : string) : bool =
+  let rec aux ic =
+    match input_line ic with
+    | exception End_of_file -> false
+    | li -> String.starts_with ~prefix:inline_test_start_key li || aux ic
+  in
+  File.with_in_channel file aux
+
+let [@ocamlformat "disable"] scan_for_inline_tests (file : string)
+  : file_tests option =
+  File.with_in_channel file
+  @@ fun ic ->
+  (* Matches something of the form: {v
+     ```catala-test-inline
+    $ catala Interpret -s A
+    ... output from catala ...
+    #return code 10#
+    ```
+    v} *)
+  let test_start_rex =
+    Re.(compile (seq [bol; str inline_test_start_key; rep space; char '\n']))
+  in
+  let test_content_rex =
+    Re.compile
+      Re.(
+        seq
+          [
+            seq [char '$'; rep space; str "catala"; group (rep1 notnl);
+                 char '\n'];
+            group (non_greedy (rep any));
+            seq [bol; str "```\n"];
+          ])
+  in
+  let file_str = really_input_string ic (in_channel_length ic) in
+  let rec scan acc pos0 =
+    try
+      let header = Re.exec ~pos:pos0 test_start_rex file_str in
+      let pos = Re.Group.stop header 0 in
+      let test_contents =
+        try Re.exec ~pos test_content_rex file_str
+        with Not_found ->
+          let line =
+            String.fold_left
+              (fun n -> function '\n' -> n + 1 | _ -> n)
+              1
+              (String.sub file_str 0 pos)
+          in
+          Errors.raise_error "Bad inline-test format at %s line %d" file line
+      in
+      let params =
+        List.filter (( <> ) "")
+          (String.split_on_char ' ' (Re.Group.get test_contents 1))
+      in
+      let out_start = Re.Group.start test_contents 2 in
+      let test =
+        { text_before = String.sub file_str pos0 (out_start - pos0); params }
+      in
+      scan (test :: acc) (Re.Group.stop test_contents 2)
+    with Not_found -> (
+      match acc with
+      | [] -> None
+      | tests ->
+        Some
+          {
+            tests = List.rev tests;
+            text_after = String.sub file_str pos0 (String.length file_str - pos0);
+          })
+  in
+  scan [] 0
+
 (** Given a file, looks in the relative [output] directory if there are files
     with the same base name that contain expected outputs for different *)
 let search_for_expected_outputs (file : string) : expected_output_descr list =
@@ -206,7 +294,7 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
                    ];
               rep space;
               char '\n';
-              seq [str "catala"; rep space; group (rep1 (diff any (char '\n')))];
+              seq [str "catala"; rep space; group (rep1 notnl)];
             ]))
       in
       let file_str = really_input_string ic (in_channel_length ic) in
@@ -225,6 +313,38 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
           { tested_filename = file; output_dir; cmd; id })
         test_declarations)
         [@ocamlformat "disable"]
+
+let inline_test_rule catala_exe catala_opts =
+  let open Nj.Expr in
+  Nj.Rule.make "inline_tests"
+    ~command:
+      (Seq
+         [
+           Lit Sys.argv.(0);
+           Lit "runtest";
+           Lit ("--exe=" ^ catala_exe);
+           Lit ("--catala-opts=" ^ catala_opts);
+           Var "tested_file";
+           Lit "| colordiff -u -b";
+           Var "tested_file";
+           Lit "-";
+         ])
+    ~description:(Seq [Lit "INLINE TESTS of file"; Var "tested_file"])
+
+let inline_reset_rule catala_exe catala_opts =
+  let open Nj.Expr in
+  Nj.Rule.make "inline_tests_reset"
+    ~command:
+      (Seq
+         [
+           Lit Sys.argv.(0);
+           Lit "runtest";
+           Lit ("--exe=" ^ catala_exe);
+           Lit ("--catala-opts=" ^ catala_opts);
+           Lit "--reset";
+           Var "tested_file";
+         ])
+    ~description:(Seq [Lit "RESET INLINE TESTS of file"; Var "tested_file"])
 
 let add_reset_rules_aux
     ~(redirect : string)
@@ -275,7 +395,7 @@ let add_test_rules_aux
                  Var "catala_cmd";
                  Var "tested_file";
                  Lit "--unstyled";
-                 Lit "--output=/dev/stdout";
+                 Lit "--output=-";
                  Lit "2>&1 | colordiff -u -b";
                  Var "expected_output";
                  Lit "-";
@@ -310,6 +430,7 @@ let add_test_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
     rules needed to reset and test files. *)
 let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
   let catala_exe_opts = catala_exe ^ " " ^ catala_opts in
+  let add_rule r rules = Nj.RuleMap.(rules |> add r.Nj.Rule.name r) in
   let run_and_display_final_message =
     Nj.Rule.make "run_and_display_final_message"
       ~command:Nj.Expr.(Seq [Lit ":"])
@@ -323,9 +444,50 @@ let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
         empty
         |> add_reset_rules catala_exe_opts
         |> add_test_rules catala_exe_opts
+        |> add_rule (inline_test_rule catala_exe catala_opts)
+        |> add_rule (inline_reset_rule catala_exe catala_opts)
         |> add run_and_display_final_message.name run_and_display_final_message);
     builds = Nj.BuildMap.empty;
   }
+
+let collect_inline_ninja_builds
+    (ninja : ninja)
+    (tested_file : string)
+    (reset_test_outputs : bool) : (string * ninja) option =
+  if not (has_inline_tests tested_file) then None
+  else
+    let ninja =
+      let vars = ["tested_file", Nj.Expr.Lit tested_file] in
+      let rule_to_call =
+        if reset_test_outputs then "inline_tests_reset" else "inline_tests"
+      in
+      let rule_output = tested_file ^ ".out" in
+      {
+        ninja with
+        builds =
+          Nj.BuildMap.add rule_output
+            (Nj.Build.make_with_vars ~outputs:[Nj.Expr.Lit rule_output]
+               ~rule:rule_to_call ~vars)
+            ninja.builds;
+      }
+    in
+    let test_name =
+      tested_file
+      |> (if reset_test_outputs then Printf.sprintf "reset_file_%s"
+         else Printf.sprintf "test_file_%s")
+      |> Nj.Build.unpath
+    in
+    Some
+      ( test_name,
+        {
+          ninja with
+          builds =
+            Nj.BuildMap.add test_name
+              (Nj.Build.make_with_inputs ~outputs:[Nj.Expr.Lit test_name]
+                 ~rule:"phony"
+                 ~inputs:[Nj.Expr.Lit (tested_file ^ ".out")])
+              ninja.builds;
+        } )
 
 (** [collect_all_ninja_build ninja tested_file catala_exe catala_opts reset_test_outputs]
     creates and returns all ninja build statements needed to test the
@@ -424,6 +586,38 @@ let add_root_test_build
         ninja.builds;
   }
 
+(** Directly runs the test (not using ninja, this will be called by ninja rules
+    through the "clerk runtest" command) *)
+let run_inline_tests ~(reset : bool) (file : string) (catala_exe : string) =
+  match scan_for_inline_tests file with
+  | None -> Cli.warning_print "No inline tests found in %s" file
+  | Some file_tests ->
+    let run oc =
+      List.iter
+        (fun test ->
+          output_string oc test.text_before;
+          flush oc;
+          let out_descr = Unix.descr_of_out_channel oc in
+          let cmd =
+            Array.of_list
+              ((catala_exe :: test.params) @ [file; "--unstyled"; "--output=-"])
+          in
+          let pid =
+            Unix.create_process catala_exe cmd Unix.stdin out_descr out_descr
+          in
+          let return_code =
+            match Unix.waitpid [] pid with
+            | _, Unix.WEXITED n -> n
+            | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+          in
+          if return_code <> 0 then
+            Printf.fprintf oc "#return code %d#\n" return_code)
+        file_tests.tests;
+      output_string oc file_tests.text_after;
+      flush oc
+    in
+    if reset then File.with_out_channel file run else run stdout
+
 (**{1 Running}*)
 
 let run_file
@@ -494,14 +688,18 @@ let collect_in_folder
     (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   let ninja, test_file_names =
+    let collect f (ninja, test_file_names) file =
+      match f ninja file reset_test_outputs with
+      | None ->
+        (* Skips none Catala file. *)
+        ninja, test_file_names
+      | Some (test_file_name, ninja) ->
+        ninja, test_file_names ^ " $\n  " ^ test_file_name
+    in
     List.fold_left
-      (fun (ninja, test_file_names) file ->
-        match collect_all_ninja_build ninja file reset_test_outputs with
-        | None ->
-          (* Skips none Catala file. *)
-          ninja, test_file_names
-        | Some (test_file_name, ninja) ->
-          ninja, test_file_names ^ " $\n  " ^ test_file_name)
+      (fun acc file ->
+        let acc = collect collect_all_ninja_build acc file in
+        collect collect_inline_ninja_builds acc file)
       (ninja_start, "")
       (get_catala_files_in_folder folder)
   in
@@ -552,22 +750,27 @@ let collect_in_file
     (tested_file : string)
     (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
-  match collect_all_ninja_build ninja_start tested_file reset_test_outputs with
-  | Some (test_file_name, ninja) ->
-    {
-      ctx with
-      last_valid_ninja = ninja;
-      curr_ninja = Some ninja;
-      all_file_names = tested_file :: ctx.all_file_names;
-      all_test_builds = ctx.all_test_builds ^ " $\n  " ^ test_file_name;
-    }
-  | None ->
-    {
-      ctx with
-      last_valid_ninja = ninja_start;
-      curr_ninja = None;
-      all_failed_names = tested_file :: ctx.all_failed_names;
-    }
+  let add ctx f ninja_start tested_file =
+    match f ninja_start tested_file reset_test_outputs with
+    | Some (test_file_name, ninja) ->
+      {
+        ctx with
+        last_valid_ninja = ninja;
+        curr_ninja = Some ninja;
+        all_file_names = tested_file :: ctx.all_file_names;
+        all_test_builds = ctx.all_test_builds ^ " $\n  " ^ test_file_name;
+      }
+    | None ->
+      {
+        ctx with
+        last_valid_ninja = ninja_start;
+        curr_ninja = None;
+        all_failed_names = tested_file :: ctx.all_failed_names;
+      }
+  in
+  let ctx = add ctx collect_all_ninja_build ninja_start tested_file in
+  let ninja = Option.value ~default:ninja_start ctx.curr_ninja in
+  add ctx collect_inline_ninja_builds ninja tested_file
 
 (** {1 Return code values} *)
 
@@ -626,7 +829,7 @@ let driver
     and catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts
     and ninja_output =
       Option.fold
-        ~none:(Filename.temp_file "clerk_build" ".ninja")
+        ~none:(Filename.temp_file "clerk_build_" ".ninja")
         ~some:Fun.id ninja_output
     in
     match String.lowercase_ascii command with
@@ -663,7 +866,9 @@ let driver
             "ninja -f " ^ ninja_output ^ " " ^ ninja_flags ^ " test"
           in
           Cli.debug_print "executing '%s'..." ninja_cmd;
-          Sys.command ninja_cmd
+          let return = Sys.command ninja_cmd in
+          if not debug then Sys.remove ninja_output;
+          return
         with Sys_error e ->
           Cli.error_print "can not write in %s" e;
           return_err)
@@ -678,6 +883,14 @@ let driver
         if 0 <> res then return_err else return_ok
       | None ->
         Cli.error_print "Please provide a scope to run with the -s option";
+        return_err)
+    | "runtest" -> (
+      match files_or_folders with
+      | [f] ->
+        run_inline_tests ~reset:reset_test_outputs f catala_exe;
+        0
+      | _ ->
+        Cli.error_print "Please specify a single catala file to test";
         return_err)
     | _ ->
       Cli.error_print "The command \"%s\" is unknown to clerk." command;
