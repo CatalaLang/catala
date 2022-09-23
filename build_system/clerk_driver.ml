@@ -596,15 +596,25 @@ let run_inline_tests ~(reset : bool) (file : string) (catala_exe : string) =
       List.iter
         (fun test ->
           output_string oc test.text_before;
-          flush oc;
-          let out_descr = Unix.descr_of_out_channel oc in
+          let cmd_out_rd, cmd_out_wr = Unix.pipe () in
+          let ic = Unix.in_channel_of_descr cmd_out_rd in
           let cmd =
             Array.of_list
               ((catala_exe :: test.params) @ [file; "--unstyled"; "--output=-"])
           in
           let pid =
-            Unix.create_process catala_exe cmd Unix.stdin out_descr out_descr
+            Unix.create_process catala_exe cmd Unix.stdin cmd_out_wr cmd_out_wr
           in
+          Unix.close cmd_out_wr;
+          let rec process_cmd_out () =
+            let s = input_line ic in
+            if s = "```" || String.starts_with ~prefix:"#return code" s then
+              output_char oc '\\';
+            output_string oc s;
+            output_char oc '\n';
+            process_cmd_out ()
+          in
+          let () = try process_cmd_out () with End_of_file -> close_in ic in
           let return_code =
             match Unix.waitpid [] pid with
             | _, Unix.WEXITED n -> n
@@ -616,7 +626,14 @@ let run_inline_tests ~(reset : bool) (file : string) (catala_exe : string) =
       output_string oc file_tests.text_after;
       flush oc
     in
-    if reset then File.with_out_channel file run else run stdout
+    if reset then (
+      let out = file ^ ".out" in
+      (try File.with_out_channel out run
+       with e ->
+         Sys.remove out;
+         raise e);
+      Sys.rename out file)
+    else run stdout
 
 (**{1 Running}*)
 
