@@ -34,17 +34,17 @@ Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |                     ^^^^^
-   + 
+   +
 
 Last good token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
-   + 
+   +
 #return code 255#
 ```
 
@@ -78,17 +78,17 @@ Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |                     ^^^^^
-   + 
+   +
 
 Last good token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
-   + 
+   +
 #return code 255#
 ```
 
@@ -122,17 +122,17 @@ Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |                     ^^^^^
-   + 
+   +
 
 Last good token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
-   + 
+   +
 #return code 255#
 ```
 
@@ -168,16 +168,16 @@ Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |                     ^^^^^
-   + 
+   +
 
 Last good token:
   --> examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en
-   | 
+   |
 11 |   context my_gaming scope GamingAuthorized
    |           ^^^^^^^^^
-   + 
+   +
 #return code 255#
 ```

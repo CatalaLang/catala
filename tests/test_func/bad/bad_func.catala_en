@@ -33,14 +33,14 @@ $ catala Interpret -s S
 
 This consequence has a valid justification:
   --> tests/test_func/bad/bad_func.catala_en
-   | 
+   |
 14 |   definition f of x under condition (x >= x) consequence equals x + x
    |                                                                 ^^^^^
    + Article
 
 This consequence has a valid justification:
   --> tests/test_func/bad/bad_func.catala_en
-   | 
+   |
 15 |   definition f of x under condition not b consequence equals x * x
    |                                                              ^^^^^
    + Article

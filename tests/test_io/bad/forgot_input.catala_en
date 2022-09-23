@@ -20,14 +20,14 @@ $ catala Typecheck
 
 Incriminated subscope:
  --> tests/test_io/bad/forgot_input.catala_en
-  | 
+  |
 9 |   a scope A
   |   ^
   + Test
 
 Incriminated variable:
  --> tests/test_io/bad/forgot_input.catala_en
-  | 
+  |
 6 |   input x content integer
   |         ^
   + Test

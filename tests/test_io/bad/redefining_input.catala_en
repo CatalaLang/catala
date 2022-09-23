@@ -13,16 +13,16 @@ $ catala Typecheck
 
 Incriminated variable:
  --> tests/test_io/bad/redefining_input.catala_en
-  | 
+  |
 5 |   input a content integer
   |         ^
   + Test
 
 Incriminated variable definition:
  --> tests/test_io/bad/redefining_input.catala_en
-  | 
+  |
 8 |   definition a equals 0
   |   ^^^^^^^^^^^^^^^^^^^^^
-  + 
+  +
 #return code 255#
 ```

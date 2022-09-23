@@ -45,14 +45,14 @@ $ catala Interpret -s Ge
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 40 |   definition d equals 1 month >=^ 2 day
    |                       ^^^^^^^
    + `UncomparableDurations` exception management
    +-+ `>=^` operator
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 40 |   definition d equals 1 month >=^ 2 day
    |                                   ^^^^^
    + `UncomparableDurations` exception management
@@ -65,14 +65,14 @@ $ catala Interpret -s Gt
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 30 |   definition d equals 1 month >^ 2 day
    |                       ^^^^^^^
    + `UncomparableDurations` exception management
    +-+ `<=^` operator
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 30 |   definition d equals 1 month >^ 2 day
    |                                  ^^^^^
    + `UncomparableDurations` exception management
@@ -85,14 +85,14 @@ $ catala Interpret -s Le
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 20 |   definition d equals 1 month <=^ 2 day
    |                       ^^^^^^^
    + `UncomparableDurations` exception management
    +-+ `<=^` operator
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 20 |   definition d equals 1 month <=^ 2 day
    |                                   ^^^^^
    + `UncomparableDurations` exception management
@@ -105,14 +105,14 @@ $ catala Interpret -s Lt
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 10 |   definition d equals 1 month <^ 2 day
    |                       ^^^^^^^
    + `UncomparableDurations` exception management
    +-+ `<^` operator
 
   --> tests/test_date/bad/uncomparable_duration.catala_en
-   | 
+   |
 10 |   definition d equals 1 month <^ 2 day
    |                                  ^^^^^
    + `UncomparableDurations` exception management

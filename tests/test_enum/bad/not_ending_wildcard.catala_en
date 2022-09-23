@@ -42,7 +42,7 @@ $ catala Interpret -s First_case
 
 Not ending wildcard:
   --> tests/test_enum/bad/not_ending_wildcard.catala_en
-   | 
+   |
 19 |     -- anything : 31
    |        ^^^^^^^^^^^^^
    + Wildcard must be the last case
@@ -50,7 +50,7 @@ Not ending wildcard:
 
 Next reachable case:
   --> tests/test_enum/bad/not_ending_wildcard.catala_en
-   | 
+   |
 20 |     -- Case2 : 42
    |        ^^^^^^^^^^
    + Wildcard must be the last case
@@ -64,7 +64,7 @@ $ catala Interpret -s Middle_case
 
 Not ending wildcard:
   --> tests/test_enum/bad/not_ending_wildcard.catala_en
-   | 
+   |
 19 |     -- anything : 31
    |        ^^^^^^^^^^^^^
    + Wildcard must be the last case
@@ -72,7 +72,7 @@ Not ending wildcard:
 
 Next reachable case:
   --> tests/test_enum/bad/not_ending_wildcard.catala_en
-   | 
+   |
 20 |     -- Case2 : 42
    |        ^^^^^^^^^^
    + Wildcard must be the last case

@@ -26,21 +26,21 @@ $ catala Interpret -s A
 
 Error coming from typechecking the following expression:
   --> tests/test_enum/bad/quick_pattern_3.catala_en
-   | 
+   |
 18 | definition y equals x with pattern Case3
    |                     ^
    + Article
 
 Type F coming from expression:
   --> tests/test_enum/bad/quick_pattern_3.catala_en
-   | 
+   |
 18 | definition y equals x with pattern Case3
    |                     ^
    + Article
 
 Type E coming from expression:
   --> tests/test_enum/bad/quick_pattern_3.catala_en
-   | 
+   |
 13 | context x content E
    |                   ^
    + Article

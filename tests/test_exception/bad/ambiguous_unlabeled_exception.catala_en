@@ -19,11 +19,11 @@ $ catala Interpret -s A
 
 Ambiguous exception
   --> tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en
-   | 
+   |
 10 |   definition x equals 1
-   |                       
-11 | 
-   | 
+   |
+11 |
+   |
 12 |   exception
    |   ^^^^^^^^^
 13 |   definition x equals 2
@@ -32,14 +32,14 @@ Ambiguous exception
 
 Candidate definition
   --> tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en
-   | 
+   |
 10 |   definition x equals 1
    |              ^
    + Test
 
 Candidate definition
  --> tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en
-  | 
+  |
 8 |   definition x equals 0
   |              ^
   + Test

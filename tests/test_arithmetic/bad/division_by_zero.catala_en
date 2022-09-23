@@ -37,7 +37,7 @@ $ catala Interpret -s Dec
 
 The division operator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
-   | 
+   |
 20 |   definition i equals 1. /. 0.
    |                       ^^^^^^^^
    + `Division_by_zero` exception management
@@ -45,7 +45,7 @@ The division operator:
 
 The null denominator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
-   | 
+   |
 20 |   definition i equals 1. /. 0.
    |                             ^^
    + `Division_by_zero` exception management
@@ -59,7 +59,7 @@ $ catala Interpret -s Int
 
 The division operator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
-   | 
+   |
 10 |   definition i equals 1 / 0
    |                       ^^^^^
    + `Division_by_zero` exception management
@@ -67,7 +67,7 @@ The division operator:
 
 The null denominator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
-   | 
+   |
 10 |   definition i equals 1 / 0
    |                           ^
    + `Division_by_zero` exception management
@@ -81,7 +81,7 @@ $ catala Interpret -s Money
 
 The division operator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
-   | 
+   |
 30 |   definition i equals $10.0 /$ $0.0
    |                       ^^^^^^^^^^^^^
    + `Division_by_zero` exception management
@@ -89,7 +89,7 @@ The division operator:
 
 The null denominator:
   --> tests/test_arithmetic/bad/division_by_zero.catala_en
-   | 
+   |
 30 |   definition i equals $10.0 /$ $0.0
    |                                ^^^^
    + `Division_by_zero` exception management

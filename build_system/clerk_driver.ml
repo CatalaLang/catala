@@ -610,7 +610,12 @@ let run_inline_tests ~(reset : bool) (file : string) (catala_exe : string) =
             let s = input_line ic in
             if s = "```" || String.starts_with ~prefix:"#return code" s then
               output_char oc '\\';
-            output_string oc s;
+            let rec trail s i =
+              if i < 1 then String.length s
+              else if s.[i - 1] = ' ' then trail s (i - 1)
+              else i
+            in
+            output_substring oc s 0 (trail s (String.length s));
             output_char oc '\n';
             process_cmd_out ()
           in

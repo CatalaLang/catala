@@ -18,21 +18,21 @@ $ catala Interpret -s Foo
 
 Error coming from typechecking the following expression:
  --> tests/test_bool/bad/bad_assert.catala_en
-  | 
+  |
 9 |   assertion x
   |             ^
   + Test
 
 Type bool coming from expression:
  --> tests/test_bool/bad/bad_assert.catala_en
-  | 
+  |
 9 |   assertion x
   |             ^
   + Test
 
 Type integer coming from expression:
  --> tests/test_bool/bad/bad_assert.catala_en
-  | 
+  |
 8 |   definition x equals 0
   |                       ^
   + Test

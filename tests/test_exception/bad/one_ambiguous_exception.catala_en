@@ -25,11 +25,11 @@ $ catala Interpret -s A
 
 Ambiguous exception
   --> tests/test_exception/bad/one_ambiguous_exception.catala_en
-   | 
+   |
 16 |   definition y equals 4
-   |                       
-17 | 
-   | 
+   |
+17 |
+   |
 18 |   exception
    |   ^^^^^^^^^
 19 |   definition y equals 3
@@ -38,14 +38,14 @@ Ambiguous exception
 
 Candidate definition
   --> tests/test_exception/bad/one_ambiguous_exception.catala_en
-   | 
+   |
 16 |   definition y equals 4
    |              ^
    + Test
 
 Candidate definition
   --> tests/test_exception/bad/one_ambiguous_exception.catala_en
-   | 
+   |
 14 |   definition y equals 2
    |              ^
    + Test
