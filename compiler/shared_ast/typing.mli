@@ -19,16 +19,16 @@
 
 open Definitions
 
-val infer_types :
-  decl_ctx -> ('a, untyped mark) gexpr -> ('a, typed mark) gexpr box
-(** Infers types everywhere on the given expression, and adds (or replaces) type
-    annotations on each node *)
+type 'e env
 
-val infer_type : decl_ctx -> ('a, 'm mark) gexpr -> typ
-(** Gets the outer type of the given expression, using either the existing
-    annotations or inference *)
+val expr :
+  decl_ctx ->
+  ?env:'e env ->
+  ?typ:typ ->
+  (('a, 'm mark) gexpr as 'e) ->
+  ('a, typed mark) gexpr box
+(** Infers and marks the types for the given expression. If [typ] is provided,
+    it is assumed to be the outer type and used for inference top-down. *)
 
-val check_type : decl_ctx -> ('a, 'm mark) gexpr -> typ -> unit
-
-val infer_types_program :
-  ('a, untyped mark) gexpr program -> ('a, typed mark) gexpr program
+val program : ('a, untyped mark) gexpr program -> ('a, typed mark) gexpr program
+(** Typing on whole programs *)
