@@ -222,7 +222,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
     in
     if EnumConstructorMap.cardinal remaining_e_cases > 0 then
       Errors.raise_spanned_error (Expr.pos e)
-        "Patter matching is incomplete for enum %a: missing cases %a"
+        "Pattern matching is incomplete for enum %a: missing cases %a"
         EnumName.format_t enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")

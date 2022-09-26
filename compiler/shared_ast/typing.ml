@@ -386,10 +386,8 @@ let rec typecheck_expr_bottom_up :
     let c_ty =
       ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums))
     in
-    let+ e_enum' =
-      typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e_enum
-    in
-    mark (A.EEnumInj (e_enum', c_name, e_name)) c_ty
+    let+ e_enum' = typecheck_expr_top_down ctx env c_ty e_enum in
+    mark (A.EEnumInj (e_enum', c_name, e_name)) (unionfind_make (TEnum e_name))
   | A.EMatchS (e1, e_name, cases) ->
     let cases_ty = A.EnumMap.find e_name ctx.A.ctx_enums in
     let t_ret = unionfind_make ~pos:e1 (TAny (Any.fresh ())) in
@@ -612,11 +610,12 @@ and typecheck_expr_top_down :
     in
     A.EStructAccess (e_struct', f_name, s_name)
   | A.EEnumInj (e_enum, c_name, e_name) ->
-    unify_and_mark
-      (ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums)))
+    unify_and_mark (unionfind_make (TEnum e_name))
     @@ fun () ->
     let+ e_enum' =
-      typecheck_expr_top_down ctx env (unionfind_make (TEnum e_name)) e_enum
+      typecheck_expr_top_down ctx env
+        (ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums)))
+        e_enum
     in
     A.EEnumInj (e_enum', c_name, e_name)
   | A.EMatchS (e1, e_name, cases) ->

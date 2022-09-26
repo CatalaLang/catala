@@ -89,7 +89,8 @@ let type_rule decl_ctx env = function
     let expr' = Typing.expr decl_ctx ~env ~typ expr in
     Definition (loc, typ, io, Bindlib.unbox expr')
   | Assertion expr ->
-    let expr' = Typing.expr decl_ctx ~env expr in
+    let typ = Marked.mark (Expr.pos expr) (TLit TBool) in
+    let expr' = Typing.expr decl_ctx ~env ~typ expr in
     Assertion (Bindlib.unbox expr')
   | Call (sc_name, ssc_name) -> Call (sc_name, ssc_name)
 
