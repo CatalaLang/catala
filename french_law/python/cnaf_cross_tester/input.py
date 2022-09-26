@@ -135,8 +135,8 @@ class LogementChambre(Logement):
 
 
 class SeulOuCouple(Enum):
-    Seul = 'SEUL'
-    EnCouple = 'COUPLE'
+    Seul = 'CEL'
+    EnCouple = 'VIM'
 
 
 class Enfant():
