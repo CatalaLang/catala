@@ -1,5 +1,5 @@
 import random
-from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, Logement, LogementChambre, LogementCrous, LogementCrousType, LogementFoyer, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple
+from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, Logement, LogementChambre, LogementCrous, LogementCrousType, LogementFoyer, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
 
 
 def generate_random_child() -> Enfant:
@@ -9,13 +9,13 @@ def generate_random_child() -> Enfant:
 
 
 def generate_random_input() -> CnafSimulatorInput:
-    zone = random.randint(1, 3)
-    if zone == 1:
-        code_postal = "75000"
-    elif zone == 2:
-        code_postal = "69000"
-    else:  # zone == 3
-        code_postal = "46800"
+    zone_i = random.randint(1, 3)
+    if zone_i == 1:
+        zone = Zone.Zone1
+    elif zone_i == 2:
+        zone = Zone.Zone2
+    else:  # zone_i == 3
+        zone = Zone.Zone3
     loyer = random.randint(300, 1800)
     revenus_pris_en_compte = random.randint(0, 200) * 100
     seul_ou_couple_i = random.randint(1, 2)
@@ -57,7 +57,7 @@ def generate_random_input() -> CnafSimulatorInput:
     else:  # typ_logement == 6:
         logement = LogementChambre(meuble)
     return CnafSimulatorInput(
-        code_postal=code_postal,
+        zone=zone,
         logement=logement,
         loyer=loyer,
         seul_ou_couple=seul_ou_couple,

@@ -150,15 +150,21 @@ class Enfant():
         return "Enfant(age={},remuneration_derniere_annee={})".format(self.age, self.remuneration_derniere_annee)
 
 
+class Zone(Enum):
+    Zone1 = "75001"
+    Zone2 = "69001"
+    Zone3 = "46800"
+
+
 class CnafSimulatorInput():
     def __init__(self,
-                 code_postal: str,
+                 zone: Zone,
                  logement: Logement,
                  loyer: int,
                  seul_ou_couple: SeulOuCouple,
                  enfants: List[Enfant],
                  revenu_pris_en_compte: int):
-        self.code_postal = code_postal
+        self.zone = zone
         self.logement = logement
         self.loyer = loyer
         self.seul_ou_couple = seul_ou_couple
@@ -167,7 +173,7 @@ class CnafSimulatorInput():
 
     def __str__(self):
         return "-> Code postal : {}\n-> Logement : {}\n-> Loyer : {} €\n-> Seul of couple : {}\n-> Enfants:\n{}\n-> Revenus pris en compte : {} €".format(
-            self.code_postal,
+            self.zone.name,
             self.logement,
             self.loyer,
             self.seul_ou_couple.name,

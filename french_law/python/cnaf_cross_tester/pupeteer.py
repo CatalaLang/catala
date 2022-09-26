@@ -33,7 +33,7 @@ def run_simulator(input: CnafSimulatorInput) -> int:
         code_postal_input = page.wait_for_selector('input[id="cpCommune"]')
         if code_postal_input is None:
             raise RuntimeError
-        code_postal_input.fill(input.code_postal)
+        code_postal_input.fill(input.zone.value)
 
         # Select first match
         page.wait_for_selector('a[class="ng-tns-c31-0"]')
