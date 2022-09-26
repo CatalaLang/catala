@@ -176,8 +176,15 @@ let driver source_file (options : Cli.options) : int =
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
             prgm
-      | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-        | `Proof | `Plugin _ ) as backend -> (
+      | `Typecheck ->
+        Cli.debug_print "Typechecking...";
+        let _prgm = Scopelang.Ast.type_program prgm in
+        (* That's it! *)
+        Cli.result_print "Typechecking successful!"
+      | ( `Interpret (* `Typecheck | *)
+        | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as
+        backend -> (
+        let _prgm = Scopelang.Ast.type_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm, type_ordering =
           Scopelang.Scope_to_dcalc.translate_program prgm
