@@ -25,14 +25,14 @@ Error coming from typechecking the following expression:
 
 Type integer coming from expression:
  --> tests/test_array/bad/fold_error.catala_en
-  | 
+  |
 5 |   context list content collection integer
   |                                   ^^^^^^^
   + Article
 
 Type money coming from expression:
   --> tests/test_array/bad/fold_error.catala_en
-   | 
+   |
 10 |   definition list_high_count equals number for m in list of (m >=$ $7)
    |                                                                    ^^
    + Article

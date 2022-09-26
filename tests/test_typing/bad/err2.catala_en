@@ -18,23 +18,23 @@ $ catala Typecheck
 
 Error coming from typechecking the following expression:
   --> tests/test_typing/bad/err2.catala_en
-   | 
+   |
 10 |   definition a equals number of (z ++ 1.1) / 2
    |                                  ^^^^^^^^
-   + 
+   +
 
 Type any[10] array coming from expression:
   --> tests/test_typing/bad/err2.catala_en
-   | 
+   |
 10 |   definition a equals number of (z ++ 1.1) / 2
    |                                    ^^
-   + 
+   +
 
 Type decimal coming from expression:
   --> tests/test_typing/bad/err2.catala_en
-   | 
+   |
 10 |   definition a equals number of (z ++ 1.1) / 2
    |                                       ^^^
-   + 
+   +
 #return code 255#
 ```
