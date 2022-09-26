@@ -172,7 +172,7 @@ class CnafSimulatorInput():
         self.revenu_pris_en_compte = revenu_pris_en_compte
 
     def __str__(self):
-        return "-> Code postal : {}\n-> Logement : {}\n-> Loyer : {} €\n-> Seul of couple : {}\n-> Enfants:\n{}\n-> Revenus pris en compte : {} €".format(
+        return "-> Code postal : {}\n-> Logement : {}\n-> Loyer : {} €\n-> Seul of couple : {}\n-> Enfants :\n{}\n-> Revenus pris en compte : {} €".format(
             self.zone.name,
             self.logement,
             self.loyer,

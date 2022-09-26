@@ -96,15 +96,16 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
     return round(housing_benefits_gross*0.995)  # We take the CRDS
 
 
+print("🏡 Description du ménage")
 print(sample_input)
 housing_benefits_catala = run_catala_by_converting_cnaf_input(sample_input)
-print("Aides au logement (Catala): {} €".format(housing_benefits_catala))
+print("💰 Aides au logement (Catala): {} €".format(housing_benefits_catala))
 housing_benefits_cnaf = run_simulator(sample_input)
-print("Aides au logement (CNAF) : {} €".format(housing_benefits_cnaf))
+print("💰 Aides au logement (CNAF) : {} €".format(housing_benefits_cnaf))
 delta = abs(housing_benefits_catala - housing_benefits_cnaf)
 if delta == 0:
-    print("No difference!")
+    print("✅ Pas de difference")
     exit(0)
 else:
-    print("There is a difference!")
+    print("❌ Différence")
     exit(-1)
