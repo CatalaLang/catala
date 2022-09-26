@@ -885,7 +885,7 @@ let driver
                 (add_root_test_build ninja ctx.all_file_names
                    ctx.all_test_builds));
           let ninja_cmd =
-            "ninja -f " ^ ninja_output ^ " " ^ ninja_flags ^ " test"
+            "ninja -k 0 -f " ^ ninja_output ^ " " ^ ninja_flags ^ " test"
           in
           Cli.debug_print "executing '%s'..." ninja_cmd;
           let return = Sys.command ninja_cmd in

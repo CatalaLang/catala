@@ -150,7 +150,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
 (** Retrieves the type of a scope definition from the context *)
 let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ =
   match def with
-  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
+  | Desugared.Ast.ScopeDef.SubScopeVar (_, x, _)
   (* we don't need to look at the subscope prefix because [x] is already the uid
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
@@ -158,7 +158,7 @@ let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ =
 
 let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   match def with
-  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
+  | Desugared.Ast.ScopeDef.SubScopeVar (_, x, _)
   (* we don't need to look at the subscope prefix because [x] is already the uid
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
@@ -530,7 +530,7 @@ let get_def_key
     (state : Ast.ident Marked.pos option)
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    (default_pos : Pos.t) : Desugared.Ast.ScopeDef.t =
+    (pos : Pos.t) : Desugared.Ast.ScopeDef.t =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match name with
   | [x] ->
@@ -572,9 +572,9 @@ let get_def_key
       Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
-    Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
+    Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
   | _ ->
-    Errors.raise_spanned_error default_pos
+    Errors.raise_spanned_error pos
       "This line is defining a quantity that is neither a scope variable nor a \
        subscope variable. In particular, it is not possible to define struct \
        fields individually in Catala."
@@ -593,7 +593,7 @@ let process_definition
             get_def_key
               (Marked.unmark d.definition_name)
               d.definition_state s_name ctxt
-              (Marked.get_mark d.definition_expr)
+              (Marked.get_mark d.definition_name)
           in
           match s_ctxt with
           | None -> assert false (* should not happen *)

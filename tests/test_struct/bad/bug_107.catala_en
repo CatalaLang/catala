@@ -22,14 +22,14 @@ $ catala Interpret -s A
 
 First definition:
  --> tests/test_struct/bad/bug_107.catala_en
-  | 
+  |
 4 | declaration structure S:
   |                       ^
   + https://github.com/CatalaLang/catala/issues/107
 
 Second definition:
  --> tests/test_struct/bad/bug_107.catala_en
-  | 
+  |
 8 | declaration structure S:
   |                       ^
   + https://github.com/CatalaLang/catala/issues/107

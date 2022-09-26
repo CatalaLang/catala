@@ -16,7 +16,7 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] This variable might return an empty error:
  --> tests/test_proof/bad/dates_simple-empty.catala_en
-  | 
+  |
 6 |   context y content boolean
   |           ^
   + Test

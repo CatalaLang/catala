@@ -483,7 +483,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                  (fun def_key scope_def ->
                    match def_key with
                    | Ast.ScopeDef.Var _ -> false
-                   | Ast.ScopeDef.SubScopeVar (sub_scope_index', _) ->
+                   | Ast.ScopeDef.SubScopeVar (sub_scope_index', _, _) ->
                      sub_scope_index = sub_scope_index'
                      (* We exclude subscope variables that have 0 re-definitions
                         and are not visible in the input of the subscope *)
@@ -504,7 +504,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                    let is_cond = scope_def.scope_def_is_condition in
                    match def_key with
                    | Ast.ScopeDef.Var _ -> assert false (* should not happen *)
-                   | Ast.ScopeDef.SubScopeVar (_, sub_scope_var) ->
+                   | Ast.ScopeDef.SubScopeVar (sscope, sub_scope_var, pos) ->
                      (* This definition redefines a variable of the correct
                         subscope. But we have to check that this redefinition is
                         allowed with respect to the io parameters of that
@@ -515,7 +515,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                      | Scopelang.Ast.NoInput ->
                        Errors.raise_multispanned_error
                          (( Some "Incriminated subscope:",
-                            Ast.ScopeDef.get_position def_key )
+                            Marked.get_mark (SubScopeName.get_info sscope) )
                          :: ( Some "Incriminated variable:",
                               Marked.get_mark (ScopeVar.get_info sub_scope_var)
                             )
@@ -533,9 +533,8 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                        Errors.raise_multispanned_error
                          [
                            ( Some "Incriminated subscope:",
-                             Ast.ScopeDef.get_position def_key );
-                           ( Some "Incriminated variable:",
-                             Marked.get_mark (ScopeVar.get_info sub_scope_var) );
+                             Marked.get_mark (SubScopeName.get_info sscope) );
+                           Some "Incriminated variable:", pos;
                          ]
                          "This subscope variable is a mandatory input but no \
                           definition was provided."
@@ -551,9 +550,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                        Scopelang.Ast.SubScopeMap.find sub_scope_index
                          scope.scope_sub_scopes
                      in
-                     let var_pos =
-                       Marked.get_mark (ScopeVar.get_info sub_scope_var)
-                     in
+                     let var_pos = Ast.ScopeDef.get_position def_key in
                      Scopelang.Ast.Definition
                        ( ( SubScopeVar
                              ( subscop_real_name,

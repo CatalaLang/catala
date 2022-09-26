@@ -104,14 +104,18 @@ let rec format_typ
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1
       format_typ t2
-  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
-  | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
+  | TArray t1 -> (
+    match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
+    | TAny _ -> Format.pp_print_string fmt "collection"
+    | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
+  | TAny d -> Format.pp_print_string fmt "<any>"
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
 type mark = { pos : Pos.t; uf : unionfind_typ }
 
-(** Raises an error if unification cannot be performed *)
+(** Raises an error if unification cannot be performed. The position annotation
+    of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
 let rec unify
     (ctx : A.decl_ctx)
     (e : ('a, 'm A.mark) A.gexpr) (* used for error context *)
@@ -123,39 +127,31 @@ let rec unify
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let raise_type_error () = raise (Type_error (A.AnyExpr e, t1, t2)) in
-  let repr =
+  let () =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
-    | TLit tl1, TLit tl2 when tl1 = tl2 -> None
+    | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
     | TArrow (t11, t12), TArrow (t21, t22) ->
-      unify e t11 t21;
       unify e t12 t22;
-      None
+      unify e t11 t21
     | TTuple ts1, TTuple ts2 ->
-      if List.length ts1 = List.length ts2 then begin
-        List.iter2 (unify e) ts1 ts2;
-        None
-      end
+      if List.length ts1 = List.length ts2 then List.iter2 (unify e) ts1 ts2
       else raise_type_error ()
     | TStruct s1, TStruct s2 ->
-      if A.StructName.equal s1 s2 then None else raise_type_error ()
+      if not (A.StructName.equal s1 s2) then raise_type_error ()
     | TEnum e1, TEnum e2 ->
-      if A.EnumName.equal e1 e2 then None else raise_type_error ()
-    | TOption t1, TOption t2 ->
-      unify e t1 t2;
-      None
-    | TArray t1', TArray t2' ->
-      unify e t1' t2';
-      None
-    | TAny _, TAny _ -> None
-    | TAny _, _ -> Some t2_repr
-    | _, TAny _ -> Some t1_repr
+      if not (A.EnumName.equal e1 e2) then raise_type_error ()
+    | TOption t1, TOption t2 -> unify e t1 t2
+    | TArray t1', TArray t2' -> unify e t1' t2'
+    | TAny _, _ | _, TAny _ -> ()
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
         | TArray _ ),
         _ ) ->
       raise_type_error ()
   in
-  let t_union = UnionFind.union t1 t2 in
-  match repr with None -> () | Some t_repr -> UnionFind.set t_union t_repr
+  ignore
+  @@ UnionFind.merge
+       (fun t1 t2 -> match Marked.unmark t2 with TAny _ -> t1 | _ -> t2)
+       t1 t2
 
 let handle_type_error ctx e t1 t2 =
   (* TODO: if we get weird error messages, then it means that we should use the
@@ -470,11 +466,7 @@ and typecheck_expr_top_down
   let pos_e = A.Expr.pos e in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark (e' : (A.dcalc, mark) A.naked_gexpr) tau' =
-    (* This try...with was added because of
-       [tests/test_bool/bad/bad_assert.catala_en] but we shouldn't need it.
-       TODO: debug why it is needed here. *)
-    (try unify ctx e tau tau'
-     with Type_error (e', t1, t2) -> handle_type_error ctx e' t1 t2);
+    unify ctx e tau' tau;
     Marked.mark { uf = tau; pos = pos_e } e'
   in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
@@ -637,7 +629,10 @@ and typecheck_expr_top_down
     unify_and_mark (A.EArray es') (unionfind_make (TArray cell_type))
 
 let wrap ctx f e =
-  try f e
+  try
+    Bindlib.unbox (f e)
+    (* We need to unbox here, because the typing may otherwise be stored in
+       Bindlib closures and not yet applied, and would escape the `try..with` *)
   with Type_error (e, ty1, ty2) -> (
     let bt = Printexc.get_raw_backtrace () in
     try handle_type_error ctx e ty1 ty2
@@ -651,7 +646,6 @@ let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 let infer_types (ctx : A.decl_ctx) (e : 'm Ast.expr) :
     A.typed Ast.expr Bindlib.box =
   A.Expr.map_marks ~f:get_ty_mark
-  @@ Bindlib.unbox
   @@ wrap ctx (typecheck_expr_bottom_up ctx A.Var.Map.empty) e
 
 let infer_type (type m) ctx (e : m Ast.expr) =
@@ -691,13 +685,9 @@ let infer_types_program prg =
       in
       let rec process_scope_body_expr env = function
         | A.Result e ->
-          let e' = wrap ctx (typecheck_expr_bottom_up ctx env) e in
-          Bindlib.box_apply
-            (fun e1 ->
-              wrap ctx (unify ctx e (ty e1)) ty_out;
-              let e1 = A.Expr.map_marks ~f:get_ty_mark e1 in
-              A.Result (Bindlib.unbox e1))
-            e'
+          let e' = wrap ctx (typecheck_expr_top_down ctx env ty_out) e in
+          let e' = A.Expr.map_marks ~f:get_ty_mark e' in
+          Bindlib.box_apply (fun e -> A.Result e) e'
         | A.ScopeLet
             {
               scope_let_kind;
@@ -708,23 +698,27 @@ let infer_types_program prg =
             } ->
           let ty_e = ast_to_typ scope_let_typ in
           let e = wrap ctx (typecheck_expr_bottom_up ctx env) e0 in
+          wrap ctx (fun t -> Bindlib.box (unify ctx e0 (ty e) t)) ty_e;
+          (* We could use [typecheck_expr_top_down] rather than this manual
+             unification, but we get better messages with this order of the
+             [unify] parameters, which keeps location of the type as defined
+             instead of as inferred. *)
           let var, next = Bindlib.unbind scope_let_next in
           let env = A.Var.Map.add var ty_e env in
           let next = process_scope_body_expr env next in
           let scope_let_next = Bindlib.bind_var (A.Var.translate var) next in
           Bindlib.box_apply2
-            (fun e scope_let_next ->
-              wrap ctx (unify ctx e0 (ty e)) ty_e;
-              let e = A.Expr.map_marks ~f:get_ty_mark e in
+            (fun scope_let_expr scope_let_next ->
               A.ScopeLet
                 {
                   scope_let_kind;
                   scope_let_typ;
-                  scope_let_expr = Bindlib.unbox e;
+                  scope_let_expr;
                   scope_let_next;
                   scope_let_pos;
                 })
-            e scope_let_next
+            (A.Expr.map_marks ~f:get_ty_mark e)
+            scope_let_next
       in
       let scope_body_expr =
         let var, e = Bindlib.unbind body in
@@ -753,6 +747,5 @@ let infer_types_program prg =
             })
         scope_body_expr scope_next
   in
-  let scopes = wrap ctx (process_scopes A.Var.Map.empty) prg.scopes in
-  Bindlib.box_apply (fun scopes -> { A.decl_ctx = ctx; scopes }) scopes
-  |> Bindlib.unbox
+  let scopes = Bindlib.unbox (process_scopes A.Var.Map.empty prg.scopes) in
+  { A.decl_ctx = ctx; scopes }

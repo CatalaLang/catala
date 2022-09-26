@@ -34,7 +34,7 @@ module LabelSet : Set.S with type elt = LabelName.t
 module ScopeDef : sig
   type t =
     | Var of ScopeVar.t * StateName.t option
-    | SubScopeVar of SubScopeName.t * ScopeVar.t
+    | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
 
   val compare : t -> t -> int
   val get_position : t -> Pos.t
