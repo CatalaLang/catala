@@ -84,4 +84,37 @@ type 'm program = {
   program_ctx : decl_ctx;
 }
 
-(* let type_program: untyped  *)
+let type_rule decl_ctx env = function
+  | Definition (loc, typ, io, expr) ->
+    let expr' = Typing.expr decl_ctx ~env ~typ expr in
+    Definition (loc, typ, io, Bindlib.unbox expr')
+  | Assertion expr ->
+    let expr' = Typing.expr decl_ctx ~env expr in
+    Assertion (Bindlib.unbox expr')
+  | Call (sc_name, ssc_name) -> Call (sc_name, ssc_name)
+
+let type_program (prg : 'm program) : typed program =
+  let typing_env =
+    ScopeMap.fold
+      (fun scope_name scope_decl ->
+        Typing.Env.add_scope scope_name
+          (ScopeVarMap.map fst scope_decl.scope_sig))
+      prg.program_scopes Typing.Env.empty
+  in
+  let program_scopes =
+    ScopeMap.map
+      (fun scope_decl ->
+        let typing_env =
+          ScopeVarMap.fold
+            (fun svar (typ, _) env -> Typing.Env.add_scope_var svar typ env)
+            scope_decl.scope_sig typing_env
+        in
+        let scope_decl_rules =
+          List.map
+            (type_rule prg.program_ctx typing_env)
+            scope_decl.scope_decl_rules
+        in
+        { scope_decl with scope_decl_rules })
+      prg.program_scopes
+  in
+  { prg with program_scopes }

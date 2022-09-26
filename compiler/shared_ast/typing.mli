@@ -19,11 +19,18 @@
 
 open Definitions
 
-type 'e env
+module Env : sig
+  type 'e t
+
+  val empty : 'e t
+  val add_var : 'e Var.t -> typ -> 'e t -> 'e t
+  val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
+  val add_scope : ScopeName.t -> typ ScopeVarMap.t -> 'e t -> 'e t
+end
 
 val expr :
   decl_ctx ->
-  ?env:'e env ->
+  ?env:'e Env.t ->
   ?typ:typ ->
   (('a, 'm mark) gexpr as 'e) ->
   ('a, typed mark) gexpr box
@@ -31,4 +38,5 @@ val expr :
     it is assumed to be the outer type and used for inference top-down. *)
 
 val program : ('a, untyped mark) gexpr program -> ('a, typed mark) gexpr program
-(** Typing on whole programs *)
+(** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
+    later dcalc/lcalc stages *)

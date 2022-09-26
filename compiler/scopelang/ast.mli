@@ -77,3 +77,5 @@ type 'm program = {
   program_scopes : 'm scope_decl ScopeMap.t;
   program_ctx : decl_ctx;
 }
+
+val type_program : 'm program -> typed program
