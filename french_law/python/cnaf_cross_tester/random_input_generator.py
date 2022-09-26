@@ -4,7 +4,8 @@ from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInp
 
 def generate_random_child() -> Enfant:
     age = random.randint(0, 25)
-    remuneration_derniere_annee = random.randint(0, 12 * 1500)
+    # For now we don't put income for children for simplicity
+    remuneration_derniere_annee = random.randint(0, 0)
     return Enfant(age, remuneration_derniere_annee)
 
 

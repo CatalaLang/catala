@@ -10,7 +10,7 @@ HOME_PAGE = 'https://wwwd.caf.fr/wps/portal/caffr/aidesetservices/lesservicesenl
 
 def run_simulator(input: CnafSimulatorInput) -> int:
     with sync_playwright() as p:
-        browser = p.firefox.launch(headless=True, slow_mo=100)
+        browser = p.firefox.launch(headless=False, slow_mo=100)
         page = browser.new_page()
 
         # Go to the CNAF simulator
@@ -104,6 +104,7 @@ def run_simulator(input: CnafSimulatorInput) -> int:
             raise RuntimeError
         salaires_input.fill("{}".format(
             int(float(input.revenu_pris_en_compte) / 0.9)))
+        salaires_input.wait_for_element_state(state="stable")
         # We divide by 0.9 because salaries have a 10% franchise
         # Now if the salary is too low you have to click another button
         status_selector = "input[id=\"sitro_0_SITPRO_ACT_INCONNUE\"]"
@@ -184,18 +185,21 @@ def run_simulator(input: CnafSimulatorInput) -> int:
                 raise RuntimeError
             continuer_button.click(force=True)
 
-        # Retrieve the amount
-        page.wait_for_selector('section[id="resultat"]')
-        result = page.locator('text=/\\d+ € par mois/').text_content()
-        if result is None:
-            raise RuntimeError
+        # Wait for result page
+        page.wait_for_selector("section[id=\"resultat\"]")
 
-        match = re.search("(\\d+) € par mois", result)
-        if match is None:
-            raise RuntimeError
-        housing_benefits = match.group(1)
-        if housing_benefits is None:
-            raise RuntimeError
+        # Retrieve the amount
+        result = page.query_selector('text=/\\d+ € par mois/').text_content()
+        if result is None:
+            # Then no benefits!
+            housing_benefits = 0
+        else:
+            match = re.search("(\\d+) € par mois", result)
+            if match is None:
+                raise RuntimeError
+            housing_benefits = match.group(1)
+            if housing_benefits is None:
+                raise RuntimeError
 
         browser.close()
         return int(housing_benefits)
