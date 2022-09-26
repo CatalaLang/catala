@@ -1,0 +1,52 @@
+🏡 Description du ménage
+-> Code postal : Zone2
+-> Logement : AppartementOuMaison(typ=Colocation,meuble=True)
+-> Loyer : 1240 €
+-> Seul of couple : Seul
+-> Enfants :
+Enfant(age=13,remuneration_derniere_annee=7385)
+-> Revenus pris en compte : 5800 €
+💰 Aides au logement (Catala): 394 €
+💰 Aides au logement (CNAF) : 137 €
+❌ Différence
+
+🏡 Description du ménage
+-> Code postal : Zone3
+-> Logement : LogementResidenceSocialeFJT
+-> Loyer : 1557 €
+-> Seul of couple : Seul
+-> Enfants :
+Enfant(age=10,remuneration_derniere_annee=8827)
+Enfant(age=7,remuneration_derniere_annee=8643)
+-> Revenus pris en compte : 3800 €
+💰 Aides au logement (Catala): 435 €
+💰 Aides au logement (CNAF) : 81 €
+❌ Différence
+
+🏡 Description du ménage
+-> Code postal : Zone1
+-> Logement : LogementChambre(meuble=True)
+-> Loyer : 1225 €
+-> Seul of couple : EnCouple
+-> Enfants :
+Enfant(age=16,remuneration_derniere_annee=0)
+Enfant(age=10,remuneration_derniere_annee=0)
+Enfant(age=19,remuneration_derniere_annee=0)
+Enfant(age=7,remuneration_derniere_annee=0)
+-> Revenus pris en compte : 11800 €
+💰 Aides au logement (Catala): 0 €
+💰 Aides au logement (CNAF) : 291 €
+❌ Différence
+
+🏡 Description du ménage
+-> Code postal : Zone3
+-> Logement : LogementCrous(typ=Studio)
+-> Loyer : 1271 €
+-> Seul of couple : EnCouple
+-> Enfants :
+Enfant(age=12,remuneration_derniere_annee=3789)
+Enfant(age=10,remuneration_derniere_annee=4198)
+-> Revenus pris en compte : 9200 €
+💰 Aides au logement (Catala): 0 €
+💰 Aides au logement (CNAF) : 297 €
+❌ Différence
