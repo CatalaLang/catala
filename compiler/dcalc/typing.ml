@@ -104,8 +104,11 @@ let rec format_typ
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1
       format_typ t2
-  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
-  | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
+  | TArray t1 -> (
+    match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
+    | TAny _ -> Format.pp_print_string fmt "collection"
+    | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
+  | TAny d -> Format.pp_print_string fmt "<any>"
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
