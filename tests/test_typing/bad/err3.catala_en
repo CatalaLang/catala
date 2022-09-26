@@ -39,8 +39,7 @@ Type decimal coming from expression:
 #return code 255#
 ```
 
-A bug with delayed typechecking can make the above accept the error while it is
-still triggered below.
+Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subcommands output the same type error consistently (bug pointed out and fixed in 498429e).
 
 ```catala-test-inline
 $ catala ocaml
