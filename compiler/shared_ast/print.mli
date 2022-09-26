@@ -43,7 +43,7 @@ val unop : Format.formatter -> unop -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 
-val naked_expr :
+val expr :
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->

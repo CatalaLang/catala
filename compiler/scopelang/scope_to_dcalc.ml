@@ -104,12 +104,13 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) : m Ast.expr list =
+let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) :
+    m Ast.expr list =
   let module ExprMap = Map.Make (struct
-      type t = m Ast.expr
-      let compare = Expr.compare
-    end)
-  in
+    type t = m Ast.expr
+
+    let compare = Expr.compare
+  end) in
   let cons_map =
     List.fold_left
       (fun map -> function

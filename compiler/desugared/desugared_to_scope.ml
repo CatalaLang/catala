@@ -283,7 +283,8 @@ let rec rule_tree_to_expr
          that the result returned by the function is not empty *)
       let default =
         Bindlib.box_apply
-          (fun (default : untyped Scopelang.Ast.expr) -> ErrorOnEmpty default, emark)
+          (fun (default : untyped Scopelang.Ast.expr) ->
+            ErrorOnEmpty default, emark)
           default
       in
       Expr.make_abs
@@ -411,7 +412,8 @@ let translate_def
                [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ] )))
 
 (** Translates a scope *)
-let translate_scope (ctx : ctx) (scope : Ast.scope) : untyped Scopelang.Ast.scope_decl =
+let translate_scope (ctx : ctx) (scope : Ast.scope) :
+    untyped Scopelang.Ast.scope_decl =
   let scope_dependencies = Dependency.build_scope_dependencies scope in
   Dependency.check_for_cycle scope scope_dependencies;
   let scope_ordering =

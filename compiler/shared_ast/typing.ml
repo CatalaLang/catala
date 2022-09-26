@@ -108,7 +108,7 @@ let rec format_typ
     match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
     | TAny _ -> Format.pp_print_string fmt "collection"
     | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
-  | TAny d -> Format.pp_print_string fmt "<any>"
+  | TAny _ -> Format.pp_print_string fmt "<any>"
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
