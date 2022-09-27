@@ -314,21 +314,26 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
         test_declarations)
         [@ocamlformat "disable"]
 
+let pipe_diff_cmd =
+  let open Nj.Expr in
+  let has_patdiff = Sys.command "type patdiff >/dev/null 2>&1" = 0 in
+  if has_patdiff then
+    [Lit "| patdiff -alt-new new-result"; Var "tested_file"; Lit "/dev/stdin"]
+  else [Lit "| colordiff -u -b"; Var "tested_file"; Lit "-"]
+
 let inline_test_rule catala_exe catala_opts =
   let open Nj.Expr in
   Nj.Rule.make "inline_tests"
     ~command:
       (Seq
-         [
-           Lit Sys.argv.(0);
-           Lit "runtest";
-           Lit ("--exe=" ^ catala_exe);
-           Lit ("--catala-opts=" ^ catala_opts);
-           Var "tested_file";
-           Lit "| colordiff -u -b";
-           Var "tested_file";
-           Lit "-";
-         ])
+         ([
+            Lit Sys.argv.(0);
+            Lit "runtest";
+            Lit ("--exe=" ^ catala_exe);
+            Lit ("--catala-opts=" ^ catala_opts);
+            Var "tested_file";
+          ]
+         @ pipe_diff_cmd))
     ~description:(Seq [Lit "INLINE TESTS of file"; Var "tested_file"])
 
 let inline_reset_rule catala_exe catala_opts =
