@@ -593,7 +593,11 @@ let add_root_test_build
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
-let run_inline_tests ~(reset : bool) (file : string) (catala_exe : string) =
+let run_inline_tests
+    ~(reset : bool)
+    (file : string)
+    (catala_exe : string)
+    (catala_opts : string list) =
   match scan_for_inline_tests file with
   | None -> Cli.warning_print "No inline tests found in %s" file
   | Some file_tests ->
@@ -605,10 +609,20 @@ let run_inline_tests ~(reset : bool) (file : string) (catala_exe : string) =
           let ic = Unix.in_channel_of_descr cmd_out_rd in
           let cmd =
             Array.of_list
-              ((catala_exe :: test.params) @ [file; "--unstyled"; "--output=-"])
+              ((catala_exe :: catala_opts)
+              @ test.params
+              @ [file; "--unstyled"; "--output=-"])
+          in
+          let env =
+            Unix.environment ()
+            |> Array.to_seq
+            |> Seq.filter (fun s ->
+                   not (String.starts_with ~prefix:"OCAMLRUNPARAM=" s))
+            |> Array.of_seq
           in
           let pid =
-            Unix.create_process catala_exe cmd Unix.stdin cmd_out_wr cmd_out_wr
+            Unix.create_process_env catala_exe cmd env Unix.stdin cmd_out_wr
+              cmd_out_wr
           in
           Unix.close cmd_out_wr;
           let rec process_cmd_out () =
@@ -914,7 +928,8 @@ let driver
     | "runtest" -> (
       match files_or_folders with
       | [f] ->
-        run_inline_tests ~reset:reset_test_outputs f catala_exe;
+        run_inline_tests ~reset:reset_test_outputs f catala_exe
+          (List.filter (( <> ) "") (String.split_on_char ' ' catala_opts));
         0
       | _ ->
         Cli.error_print "Please specify a single catala file to test";
