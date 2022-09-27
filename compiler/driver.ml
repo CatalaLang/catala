@@ -191,7 +191,7 @@ let driver source_file (options : Cli.options) : int =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
             prgm.program_ctx.ctx_enums
         in
-        let prgm = Scopelang.Ast.type_program prgm in
+        let _prgm = Scopelang.Ast.type_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm = Scopelang.Scope_to_dcalc.translate_program prgm in
         let prgm =
@@ -227,10 +227,10 @@ let driver source_file (options : Cli.options) : int =
             Format.fprintf fmt "%a\n"
               (Shared_ast.Expr.format prgm.decl_ctx)
               prgrm_dcalc_expr
-        | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
-          | `Proof | `Plugin _ ) as backend -> (
-          Cli.debug_print "Typechecking...";
-          let prgm = Shared_ast.Typing.program prgm in
+        | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
+          as backend -> (
+            Cli.debug_print "Typechecking again...";
+            let prgm = Shared_ast.Typing.program prgm in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Print.typ prgm.decl_ctx) typ); *)
           match backend with
