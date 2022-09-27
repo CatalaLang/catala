@@ -18,8 +18,4 @@
 
 val translate_program :
   Shared_ast.untyped Ast.program ->
-  Shared_ast.untyped Dcalc.Ast.program * Dependency.TVertex.t list
-(** Usage [translate_program p] returns a tuple [(new_program, types_list)]
-    where [new_program] is the map of translated scopes. Finally, [types_list]
-    is a list of all types (structs and enums) used in the program, correctly
-    ordered with respect to inter-types dependency. *)
+  Shared_ast.untyped Dcalc.Ast.program

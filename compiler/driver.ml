@@ -178,17 +178,22 @@ let driver source_file (options : Cli.options) : int =
             prgm
       | `Typecheck ->
         Cli.debug_print "Typechecking...";
+        let _type_ordering =
+          Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
+            prgm.program_ctx.ctx_enums
+        in
         let _prgm = Scopelang.Ast.type_program prgm in
         (* That's it! *)
         Cli.result_print "Typechecking successful!"
-      | ( `Interpret (* `Typecheck | *)
-        | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as
-        backend -> (
-        let _prgm = Scopelang.Ast.type_program prgm in
-        Cli.debug_print "Translating to default calculus...";
-        let prgm, type_ordering =
-          Scopelang.Scope_to_dcalc.translate_program prgm
+      | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc | `Proof
+        | `Plugin _ ) as backend -> (
+        let type_ordering =
+          Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
+            prgm.program_ctx.ctx_enums
         in
+        let prgm = Scopelang.Ast.type_program prgm in
+        Cli.debug_print "Translating to default calculus...";
+        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm in
         let prgm =
           if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";

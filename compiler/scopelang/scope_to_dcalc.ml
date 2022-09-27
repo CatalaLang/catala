@@ -807,13 +807,9 @@ let translate_scope_decl
     new_struct_ctx )
 
 let translate_program (prgm : 'm Ast.program) :
-    'm Dcalc.Ast.program * Dependency.TVertex.t list =
+    'm Dcalc.Ast.program =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
-  let types_ordering =
-    Dependency.check_type_cycles prgm.program_ctx.ctx_structs
-      prgm.program_ctx.ctx_enums
-  in
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let decl_ctx = prgm.program_ctx in
   let sctx : scope_sigs_ctx =
@@ -886,4 +882,4 @@ let translate_program (prgm : 'm Ast.program) :
       scope_ordering
       (Bindlib.box Nil, decl_ctx)
   in
-  { scopes = Bindlib.unbox scopes; decl_ctx }, types_ordering
+  { scopes = Bindlib.unbox scopes; decl_ctx }
