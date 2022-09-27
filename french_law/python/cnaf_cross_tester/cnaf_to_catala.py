@@ -23,9 +23,10 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
         ))
         i += 1
 
+    mode_occupation: ModeOccupation_Code
     infos_specifiques: InfosSpecifiques
     if isinstance(sample_input.logement, AppartementOuMaison):
-        mode_occupation = AppartementOuMaisonType.Location
+        mode_occupation = ModeOccupation_Code.Locataire
         infos_specifiques = InfosLocation(
             loyer_principal=sample_input.loyer,
             beneficiaire_aide_adulte_ou_enfant_handicapes=False,
