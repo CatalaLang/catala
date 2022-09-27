@@ -35,8 +35,18 @@ val expr :
   (('a, 'm mark) gexpr as 'e) ->
   ('a, typed mark) gexpr box
 (** Infers and marks the types for the given expression. If [typ] is provided,
-    it is assumed to be the outer type and used for inference top-down. *)
+    it is assumed to be the outer type and used for inference top-down.
 
-val program : ('a, untyped mark) gexpr program -> ('a, typed mark) gexpr program
+    If the input expression already has type annotations, the full inference is
+    still done, but with unification with the existing annotations at every
+    step. This can be used for double-checking after AST transformations and
+    filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
+    what you want. *)
+
+val program : ('a, 'm mark) gexpr program -> ('a, typed mark) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
-    later dcalc/lcalc stages *)
+    later dcalc/lcalc stages.
+
+    Any existing type annotations are checked for unification. Use
+    [Program.untype] to remove them beforehand if this is not the desired
+    behaviour. *)

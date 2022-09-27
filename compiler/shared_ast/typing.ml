@@ -334,16 +334,25 @@ let box_ty e = Bindlib.unbox (Bindlib.box_apply ty e)
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up :
-    type a.
+    type a m.
     A.decl_ctx ->
-    (a, 'm A.mark) A.gexpr Env.t ->
-    (a, 'm A.mark) A.gexpr ->
+    (a, m A.mark) A.gexpr Env.t ->
+    (a, m A.mark) A.gexpr ->
     (a, mark) A.gexpr A.box =
  fun ctx env e ->
   (* Cli.debug_format "Looking for type of %a" (Expr.format ~debug:true ctx)
      e; *)
   let pos_e = Expr.pos e in
-  let mark e uf = Marked.mark { uf; pos = pos_e } e in
+  let mark e1 uf =
+    let () =
+      (* If the expression already has a type annotation, validate it before
+         rewrite *)
+      match Marked.get_mark e with
+      | A.Untyped _ | A.Typed { A.ty = A.TAny, _; _ } -> ()
+      | A.Typed { A.ty; _ } -> unify ctx e uf (ast_to_typ ty)
+    in
+    Marked.mark { uf; pos = pos_e } e1
+  in
   let unionfind_make ?(pos = e) t = UnionFind.make (add_pos pos t) in
   let mark_with_uf e1 ?pos ty = mark e1 (unionfind_make ?pos ty) in
   match Marked.unmark e with
@@ -554,16 +563,23 @@ let rec typecheck_expr_bottom_up :
 
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down :
-    type a.
+    type a m.
     A.decl_ctx ->
-    (a, 'm A.mark) A.gexpr Env.t ->
+    (a, m A.mark) A.gexpr Env.t ->
     unionfind_typ ->
-    (a, 'm A.mark) A.gexpr ->
+    (a, m A.mark) A.gexpr ->
     (a, mark) A.gexpr Bindlib.box =
  fun ctx env tau e ->
   (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx)
      tau (Expr.format ctx) e; *)
   let pos_e = Expr.pos e in
+  let () =
+    (* If there already is a type annotation on the given expr, ensure it
+       matches *)
+    match Marked.get_mark e with
+    | A.Untyped _ | A.Typed { A.ty = A.TAny, _; _ } -> ()
+    | A.Typed { A.ty; _ } -> unify ctx e tau (ast_to_typ ty)
+  in
   let mark e = Marked.mark { uf = tau; pos = pos_e } e in
   let unify_and_mark tau' f_e =
     unify ctx e tau' tau;
