@@ -191,7 +191,7 @@ let driver source_file (options : Cli.options) : int =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
             prgm.program_ctx.ctx_enums
         in
-        let _prgm = Scopelang.Ast.type_program prgm in
+        let prgm = Scopelang.Ast.type_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm = Scopelang.Scope_to_dcalc.translate_program prgm in
         let prgm =
@@ -229,8 +229,17 @@ let driver source_file (options : Cli.options) : int =
               prgrm_dcalc_expr
         | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
           as backend -> (
-            Cli.debug_print "Typechecking again...";
-            let prgm = Shared_ast.Typing.program prgm in
+          Cli.debug_print "Typechecking again...";
+          let prgm =
+            try Shared_ast.Typing.program prgm
+            with Errors.StructuredError (msg, details) ->
+              let msg =
+                "Typing error occured during re-typing on the 'default \
+                 calculus'. This is a bug in the Catala compiler.\n"
+                ^ msg
+              in
+              raise (Errors.StructuredError (msg, details))
+          in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Print.typ prgm.decl_ctx) typ); *)
           match backend with
