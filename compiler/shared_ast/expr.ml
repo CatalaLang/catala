@@ -242,6 +242,10 @@ let rec equal_typ ty1 ty2 =
 and equal_typ_list tys1 tys2 =
   try List.for_all2 equal_typ tys1 tys2 with Invalid_argument _ -> false
 
+(* Note: not a real unification check! Only superficially allows [TAny] *)
+let unifiable ty1 ty2 =
+  (Marked.unmark ty1 = TAny || Marked.unmark ty2 = TAny) || equal_typ ty1 ty2
+
 let rec compare_typ ty1 ty2 =
   match Marked.unmark ty1, Marked.unmark ty2 with
   | TLit l1, TLit l2 -> compare_tlit l1 l2
@@ -728,7 +732,7 @@ let make_app e u pos =
                 (fun tf tx ->
                   match Marked.unmark tf with
                   | TArrow (tx', tr) ->
-                    assert (Marked.unmark tx' = TAny || equal_typ tx.ty tx');
+                    assert (unifiable tx.ty tx');
                     (* wrong arg type *)
                     tr
                   | TAny -> tf
