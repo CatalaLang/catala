@@ -50,3 +50,20 @@ Enfant(age=10,remuneration_derniere_annee=4198)
 💰 Aides au logement (Catala): 0 €
 💰 Aides au logement (CNAF) : 297 €
 ❌ Différence
+
+🏡 Description du ménage
+-> Code postal : Zone3
+-> Logement : LogementCrous(typ=Studio)
+-> Loyer : 513 €
+-> Seul of couple : Seul
+-> Enfants :
+Enfant(age=18,remuneration_derniere_annee=0)
+Enfant(age=7,remuneration_derniere_annee=0)
+Enfant(age=17,remuneration_derniere_annee=0)
+Enfant(age=21,remuneration_derniere_annee=0)
+Enfant(age=6,remuneration_derniere_annee=0)
+Enfant(age=5,remuneration_derniere_annee=0)
+-> Revenus pris en compte : 11800 €
+💰 Aides au logement (Catala): 524 €
+💰 Aides au logement (CNAF) : 372 €
+❌ Différence
