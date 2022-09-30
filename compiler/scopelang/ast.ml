@@ -77,6 +77,7 @@ type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
   scope_sig : (typ * io) ScopeVarMap.t;
   scope_decl_rules : 'm rule list;
+  scope_mark : 'm mark;
 }
 
 type 'm program = {
@@ -115,7 +116,13 @@ let type_program (prg : 'm program) : typed program =
             (type_rule prg.program_ctx typing_env)
             scope_decl.scope_decl_rules
         in
-        { scope_decl with scope_decl_rules })
+        let scope_mark =
+          let pos =
+            Marked.get_mark (ScopeName.get_info scope_decl.scope_decl_name)
+          in
+          Typed { pos; ty = Marked.mark pos TAny }
+        in
+        { scope_decl with scope_decl_rules; scope_mark })
       prg.program_scopes
   in
   { prg with program_scopes }

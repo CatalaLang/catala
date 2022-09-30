@@ -627,10 +627,12 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) :
             acc states)
       scope.scope_vars ScopeVarMap.empty
   in
+  let pos = Marked.get_mark (ScopeName.get_info scope.scope_uid) in
   {
     Scopelang.Ast.scope_decl_name = scope.scope_uid;
     Scopelang.Ast.scope_decl_rules;
     Scopelang.Ast.scope_sig;
+    Scopelang.Ast.scope_mark = Untyped { pos };
   }
 
 (** {1 API} *)

@@ -71,6 +71,7 @@ type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
   scope_sig : (typ * io) ScopeVarMap.t;
   scope_decl_rules : 'm rule list;
+  scope_mark : 'm mark;
 }
 
 type 'm program = {
