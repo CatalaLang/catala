@@ -47,5 +47,15 @@ val expr :
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->
-  ('a, 't) gexpr ->
+  ('a, 'm mark) gexpr ->
   unit
+
+(** {1 Debugging versions that don't require a context} *)
+
+val expr_debug :
+  ?debug:bool (** [true] for debug printing *) ->
+  Format.formatter ->
+  ('a, 'm mark) gexpr ->
+  unit
+
+val typ_debug : Format.formatter -> typ -> unit
