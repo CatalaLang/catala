@@ -92,9 +92,15 @@ let map_exprs ~f ~varf scopes =
         new_body_expr new_next)
     ~init:(Bindlib.box Nil) scopes
 
+let rec get_body_expr_mark = function
+  | Result e -> Marked.get_mark e
+  | ScopeLet sl ->
+    let _, e = Bindlib.unbind sl.scope_let_next in
+    get_body_expr_mark e
+
 let get_body_mark scope_body =
-  match snd (Bindlib.unbind scope_body.scope_body_expr) with
-  | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
+  let _, e = Bindlib.unbind scope_body.scope_body_expr in
+  get_body_expr_mark e
 
 let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
     'e box =
