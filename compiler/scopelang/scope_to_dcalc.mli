@@ -16,6 +16,4 @@
 
 (** Scope language to default calculus translator *)
 
-val translate_program :
-  Shared_ast.untyped Ast.program ->
-  Shared_ast.untyped Dcalc.Ast.program
+val translate_program : 'm Ast.program -> 'm Dcalc.Ast.program

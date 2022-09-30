@@ -103,6 +103,7 @@ val eraise : except -> 't -> (lcalc, 't) gexpr box
 
 val no_mark : 'm mark -> 'm mark
 val mark_pos : 'm mark -> Pos.t
+val with_pos : Pos.t -> 'm mark -> 'm mark
 
 val with_ty : 'm mark -> ?pos:Pos.t -> typ -> 'm mark
 (** Adds the given type information only on typed marks *)

@@ -23,35 +23,33 @@ type scope_var_ctx = {
   scope_var_io : Ast.io;
 }
 
-type scope_sig_ctx = {
+type 'm scope_sig_ctx = {
   scope_sig_local_vars : scope_var_ctx list;  (** List of scope variables *)
-  scope_sig_scope_var : untyped Dcalc.Ast.expr Var.t;
+  scope_sig_scope_var : 'm Dcalc.Ast.expr Var.t;
       (** Var representing the scope *)
-  scope_sig_input_var : untyped Dcalc.Ast.expr Var.t;
+  scope_sig_input_var : 'm Dcalc.Ast.expr Var.t;
       (** Var representing the scope input inside the scope func *)
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
 }
 
-type scope_sigs_ctx = scope_sig_ctx ScopeMap.t
+type 'm scope_sigs_ctx = 'm scope_sig_ctx ScopeMap.t
 
 type 'm ctx = {
   structs : struct_ctx;
   enums : enum_ctx;
   scope_name : ScopeName.t;
-  scopes_parameters : scope_sigs_ctx;
-  scope_vars :
-    (untyped Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t;
+  scopes_parameters : 'm scope_sigs_ctx;
+  scope_vars : ('m Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t;
   subscope_vars :
-    (untyped Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t
-    SubScopeMap.t;
-  local_vars : ('m Ast.expr, untyped Dcalc.Ast.expr Var.t) Var.Map.t;
+    ('m Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t SubScopeMap.t;
+  local_vars : ('m Ast.expr, 'm Dcalc.Ast.expr Var.t) Var.Map.t;
 }
 
 let empty_ctx
     (struct_ctx : struct_ctx)
     (enum_ctx : enum_ctx)
-    (scopes_ctx : scope_sigs_ctx)
+    (scopes_ctx : 'm scope_sigs_ctx)
     (scope_name : ScopeName.t) =
   {
     structs = struct_ctx;
@@ -474,7 +472,7 @@ let translate_rule
                      (a_var, Marked.unmark tau, a_io)))
             ctx.subscope_vars;
       } )
-  | Call (subname, subindex) ->
+  | Call (subname, subindex, m) ->
     let subscope_sig = ScopeMap.find subname ctx.scopes_parameters in
     let all_subscope_vars = subscope_sig.scope_sig_local_vars in
     let all_subscope_input_vars =
@@ -677,7 +675,7 @@ let translate_rules
 let translate_scope_decl
     (struct_ctx : struct_ctx)
     (enum_ctx : enum_ctx)
-    (sctx : scope_sigs_ctx)
+    (sctx : 'm scope_sigs_ctx)
     (scope_name : ScopeName.t)
     (sigma : 'm Ast.scope_decl) :
     'm Dcalc.Ast.expr scope_body Bindlib.box * struct_ctx =
@@ -806,13 +804,12 @@ let translate_scope_decl
          (input_destructurings rules_with_return_expr)),
     new_struct_ctx )
 
-let translate_program (prgm : 'm Ast.program) :
-    'm Dcalc.Ast.program =
+let translate_program (prgm : 'm Ast.program) : 'm Dcalc.Ast.program =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let decl_ctx = prgm.program_ctx in
-  let sctx : scope_sigs_ctx =
+  let sctx : 'm scope_sigs_ctx =
     ScopeMap.mapi
       (fun scope_name scope ->
         let scope_dvar =
@@ -853,7 +850,7 @@ let translate_program (prgm : 'm Ast.program) :
   in
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. *)
-  let (scopes, decl_ctx) : untyped Dcalc.Ast.expr scopes Bindlib.box * _ =
+  let (scopes, decl_ctx) : 'm Dcalc.Ast.expr scopes Bindlib.box * _ =
     List.fold_right
       (fun scope_name (scopes, decl_ctx) ->
         let scope = ScopeMap.find scope_name prgm.program_scopes in

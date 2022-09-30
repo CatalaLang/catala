@@ -71,7 +71,7 @@ type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
 type 'm rule =
   | Definition of location Marked.pos * typ * io * 'm expr
   | Assertion of 'm expr
-  | Call of ScopeName.t * SubScopeName.t
+  | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
@@ -93,7 +93,9 @@ let type_rule decl_ctx env = function
     let typ = Marked.mark (Expr.pos expr) (TLit TBool) in
     let expr' = Typing.expr decl_ctx ~env ~typ expr in
     Assertion (Bindlib.unbox expr')
-  | Call (sc_name, ssc_name) -> Call (sc_name, ssc_name)
+  | Call (sc_name, ssc_name, m) ->
+    let pos = Expr.mark_pos m in
+    Call (sc_name, ssc_name, Typed { pos; ty = Marked.mark pos TAny })
 
 let type_program (prg : 'm program) : typed program =
   let typing_env =

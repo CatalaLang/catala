@@ -65,7 +65,7 @@ type io = {
 type 'm rule =
   | Definition of location Marked.pos * typ * io * 'm expr
   | Assertion of 'm expr
-  | Call of ScopeName.t * SubScopeName.t
+  | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;

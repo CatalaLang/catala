@@ -59,7 +59,7 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
           (fun acc r ->
             match r with
             | Ast.Definition _ | Ast.Assertion _ -> acc
-            | Ast.Call (subscope, subindex) ->
+            | Ast.Call (subscope, subindex, _) ->
               if subscope = scope_name then
                 Errors.raise_spanned_error
                   (Marked.get_mark

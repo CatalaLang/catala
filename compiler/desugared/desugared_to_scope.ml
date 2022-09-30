@@ -575,7 +575,17 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) :
                List.map snd (Ast.ScopeDefMap.bindings sub_scope_vars_redefs)
              in
              sub_scope_vars_redefs
-             @ [Scopelang.Ast.Call (sub_scope, sub_scope_index)])
+             @ [
+                 Scopelang.Ast.Call
+                   ( sub_scope,
+                     sub_scope_index,
+                     Untyped
+                       {
+                         pos =
+                           Marked.get_mark
+                             (SubScopeName.get_info sub_scope_index);
+                       } );
+               ])
          scope_ordering)
   in
   (* Then, after having computed all the scopes variables, we add the

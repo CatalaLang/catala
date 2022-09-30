@@ -91,7 +91,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
              (Print.expr ~debug ctx) e
-         | Call (scope_name, subscope_name) ->
+         | Call (scope_name, subscope_name, _) ->
            Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
              ScopeName.format_t scope_name Print.punctuation "["
              SubScopeName.format_t subscope_name Print.punctuation "]"))

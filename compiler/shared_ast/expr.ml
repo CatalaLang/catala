@@ -138,6 +138,9 @@ let fold_marks
         ty = ty_f (List.map (function Typed m -> m) ms);
       }
 
+let with_pos (type m) (pos : Pos.t) (m : m mark) : m mark =
+  map_mark (fun _ -> pos) (fun ty -> ty) m
+
 let map_ty (type m) (ty_f : typ -> typ) (m : m mark) : m mark =
   map_mark (fun pos -> pos) ty_f m
 
