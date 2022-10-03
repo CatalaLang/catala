@@ -526,7 +526,7 @@ let translate_rule
                should have been defined (even an empty definition, if they're
                not defined by any rule in the source code) by the translation
                from desugared to the scope language. *)
-            Bindlib.box (Expr.empty_thunked_term m)
+            Expr.empty_thunked_term m
           else
             let a_var, _, _ =
               ScopeVarMap.find subvar.scope_var_name subscope_vars_defined
@@ -635,20 +635,23 @@ let translate_rule
       } )
   | Assertion e ->
     let new_e = translate_expr ctx e in
+    let scope_let_pos = Expr.pos e in
+    let scope_let_typ = TLit TUnit, scope_let_pos in
     ( (fun next ->
         Bindlib.box_apply2
           (fun next new_e ->
             ScopeLet
               {
                 scope_let_next = next;
-                scope_let_pos = Expr.pos e;
-                scope_let_typ = TLit TUnit, Expr.pos e;
+                scope_let_pos;
+                scope_let_typ;
                 scope_let_expr =
                   (* To ensure that we throw an error if the value is not
                      defined, we add an check "ErrorOnEmpty" here. *)
-                  Marked.same_mark_as
+                  Marked.mark
+                    (Expr.map_ty (fun _ -> scope_let_typ) (Marked.get_mark e))
                     (EAssert (Marked.same_mark_as (ErrorOnEmpty new_e) e))
-                    new_e;
+                    ;
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)

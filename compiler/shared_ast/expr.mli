@@ -188,7 +188,7 @@ val make_app :
   ('a, 'm mark) gexpr box
 
 val empty_thunked_term :
-  'm mark -> ([< dcalc | desugared | scopelang ], 'm mark) gexpr
+  'm mark -> ([< dcalc | desugared | scopelang ], 'm mark) gexpr box
 
 val make_let_in :
   ('a, 'm mark) gexpr Var.t ->
@@ -224,6 +224,13 @@ val make_default :
     - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
       exceptions, is collapsed into [<ex | def>]
     - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
+
+(** Builds a tuple; the mark argument is only used as witness and for position when building 0-uples *)
+val make_tuple:
+  ([< dcalc | lcalc] as 'a, 'm mark) gexpr box list ->
+  StructName.t option ->
+  'm mark ->
+  ('a, 'm mark) gexpr box
 
 (** {2 Transformations} *)
 

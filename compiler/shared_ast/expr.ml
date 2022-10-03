@@ -753,11 +753,10 @@ let make_app e u pos =
 let empty_thunked_term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
-  Bindlib.unbox
-    (make_abs [| silent |]
-       (Bindlib.box (ELit LEmptyError, mark))
-       [TLit TUnit, pos]
-       pos)
+  make_abs [| silent |]
+    (Bindlib.box (ELit LEmptyError, mark))
+    [TLit TUnit, pos]
+    pos
 
 let make_let_in x tau e1 e2 mpos =
   make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos (Bindlib.unbox e2))
@@ -781,3 +780,19 @@ let make_default exceptions just cons mark =
     EDefault (exceptions, just, cons), mark
   | [except], Some false, _ -> except
   | exceptions, _, cons -> EDefault (exceptions, just, cons), mark
+
+let make_tuple el structname m0 =
+  match el with
+  | [] ->
+    etuple [] structname
+      (with_ty m0 (match structname with
+           | Some n -> TStruct n, mark_pos m0
+           | None -> TTuple [], mark_pos m0))
+  | el ->
+    let m =
+      fold_marks
+        (fun posl -> List.hd posl)
+        (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
+        (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) el)
+    in
+    etuple el structname m
