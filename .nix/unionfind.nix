@@ -2,7 +2,7 @@
 
 buildDunePackage rec {
   pname = "unionFind";
-  version = "20200320";
+  version = "20220122";
 
   minimumOCamlVersion = "4.0.8";
 
@@ -10,8 +10,8 @@ buildDunePackage rec {
 
   src = fetchurl {
     url =
-      "https://gitlab.inria.fr/fpottier/unionFind/-/archive/20200320/archive.tar.gz";
-    hash = "sha256-szIwK9QyAw6fIIWDOiiyfyrEFZaaErGPRLkGhIK9STI=";
+      "https://gitlab.inria.fr/fpottier/${pname}/-/archive/${version}/archive.tar.gz";
+    hash = "sha256-85+5KNYKXsNAH568qR8/AFC9UDviLJEO/Fztc9cRHZA=";
   };
 
   meta = with lib; {
