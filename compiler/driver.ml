@@ -243,9 +243,6 @@ let driver source_file (options : Cli.options) : int =
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Print.typ prgm.decl_ctx) typ); *)
           match backend with
-          | `Typecheck ->
-            (* That's it! *)
-            Cli.result_print "Typechecking successful!"
           | `Proof ->
             let vcs =
               Verification.Conditions.generate_verification_conditions prgm

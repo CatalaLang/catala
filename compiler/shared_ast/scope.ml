@@ -92,11 +92,14 @@ let map_exprs ~f ~varf scopes =
         new_body_expr new_next)
     ~init:(Bindlib.box Nil) scopes
 
+(* TODO: compute the expected body expr arrow type manually instead of [TAny] for double-checking types ? *)
 let rec get_body_expr_mark = function
-  | Result e -> Marked.get_mark e
   | ScopeLet sl ->
     let _, e = Bindlib.unbind sl.scope_let_next in
     get_body_expr_mark e
+  | Result e ->
+    let m = Marked.get_mark e in
+    (Expr.with_ty m (Utils.Marked.mark (Expr.mark_pos m) TAny))
 
 let get_body_mark scope_body =
   let _, e = Bindlib.unbind scope_body.scope_body_expr in

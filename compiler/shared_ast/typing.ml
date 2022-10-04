@@ -545,7 +545,7 @@ let rec typecheck_expr_bottom_up :
     let+ e1' =
       typecheck_expr_top_down ctx env (unionfind_make ~pos:e1 (TLit TBool)) e1
     in
-    mark_with_uf (A.EAssert e1') ~pos:e1 (TLit TUnit)
+    mark_with_uf (A.EAssert e1') (TLit TUnit)
   | A.ErrorOnEmpty e1 ->
     let+ e1' = typecheck_expr_bottom_up ctx env e1 in
     mark (A.ErrorOnEmpty e1') (ty e1')
@@ -785,7 +785,7 @@ and typecheck_expr_top_down :
     in
     mark (A.EIfThenElse (cond', et', ef'))
   | A.EAssert e1 ->
-    unify_and_mark (unionfind_make ~pos:e1 (TLit TUnit))
+    unify_and_mark (unionfind_make (TLit TUnit))
     @@ fun () ->
     let+ e1' =
       typecheck_expr_top_down ctx env (unionfind_make ~pos:e1 (TLit TBool)) e1

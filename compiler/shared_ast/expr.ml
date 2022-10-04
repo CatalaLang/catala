@@ -245,9 +245,24 @@ let rec equal_typ ty1 ty2 =
 and equal_typ_list tys1 tys2 =
   try List.for_all2 equal_typ tys1 tys2 with Invalid_argument _ -> false
 
-(* Note: not a real unification check! Only superficially allows [TAny] *)
-let unifiable ty1 ty2 =
-  (Marked.unmark ty1 = TAny || Marked.unmark ty2 = TAny) || equal_typ ty1 ty2
+(* Similar to [equal_typ], but allows TAny holes *)
+let rec unifiable ty1 ty2 =
+  match Marked.unmark ty1, Marked.unmark ty2 with
+  | TAny, _ | _, TAny -> true
+  | TLit l1, TLit l2 -> equal_tlit l1 l2
+  | TTuple tys1, TTuple tys2 -> unifiable_list tys1 tys2
+  | TStruct n1, TStruct n2 -> StructName.equal n1 n2
+  | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
+  | TOption t1, TOption t2 -> unifiable t1 t2
+  | TArrow (t1, t1'), TArrow (t2, t2') -> unifiable t1 t2 && unifiable t1' t2'
+  | TArray t1, TArray t2 -> unifiable t1 t2
+  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
+      | TArray _ ),
+      _ ) ->
+    false
+
+and unifiable_list tys1 tys2 =
+  try List.for_all2 unifiable tys1 tys2 with Invalid_argument _ -> false
 
 let rec compare_typ ty1 ty2 =
   match Marked.unmark ty1, Marked.unmark ty2 with
@@ -739,11 +754,10 @@ let make_app e u pos =
                     (* wrong arg type *)
                     tr
                   | TAny -> tf
-                  | _ -> Marked.same_mark_as TAny tf
-                  (* TODO: enable this assert and debug cases where we propagate wrong types!
-                   * Format.kasprintf failwith "Attempt to construct application of 'function' of type %a"
-                   *   (fun ppf t -> Print.typ {ctx_enums = EnumMap.empty; ctx_structs = StructMap.empty} ppf t) tf
-                   *   (\* apply of non-arrow type *\) *))
+                  | _ ->
+                    Format.eprintf "Attempt to construct application of non-arrow type %a:@\n%a"
+                      Print.typ_debug tf (Print.expr_debug ~debug:false) e;
+                    assert false)
                 fty.ty argtys)
           (List.map Marked.get_mark (e :: u))
       in
