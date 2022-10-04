@@ -36,7 +36,7 @@ Error coming from typechecking the following expression:
   --> tests/test_typing/bad/err6.catala_en
    |
 20 |   definition sub.x equals 44.
-   |              ^^^^^
+   |                           ^^^
    +
 
 Type decimal coming from expression:

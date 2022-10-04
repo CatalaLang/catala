@@ -16,7 +16,7 @@ scope A:
 $ catala Interpret -s A
 [ERROR] The type E is defined using itself, which is forbidden since Catala does not provide recursive types
 
- --> /home/lg/inria/catala/tests/test_struct/bad/nested.catala_en
+ --> tests/test_struct/bad/nested.catala_en
   |
 6 |   -- Rec content E
   |                  ^
