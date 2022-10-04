@@ -256,8 +256,7 @@ let rec unifiable ty1 ty2 =
   | TOption t1, TOption t2 -> unifiable t1 t2
   | TArrow (t1, t1'), TArrow (t2, t2') -> unifiable t1 t2 && unifiable t1' t2'
   | TArray t1, TArray t2 -> unifiable t1 t2
-  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ ),
+  | ( (TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _ | TArray _),
       _ ) ->
     false
 
@@ -755,8 +754,12 @@ let make_app e u pos =
                     tr
                   | TAny -> tf
                   | _ ->
-                    Format.eprintf "Attempt to construct application of non-arrow type %a:@\n%a"
-                      Print.typ_debug tf (Print.expr_debug ~debug:false) e;
+                    Format.eprintf
+                      "Attempt to construct application of non-arrow type %a:@\n\
+                       %a"
+                      Print.typ_debug tf
+                      (Print.expr_debug ~debug:false)
+                      e;
                     assert false)
                 fty.ty argtys)
           (List.map Marked.get_mark (e :: u))
@@ -799,9 +802,10 @@ let make_tuple el structname m0 =
   match el with
   | [] ->
     etuple [] structname
-      (with_ty m0 (match structname with
-           | Some n -> TStruct n, mark_pos m0
-           | None -> TTuple [], mark_pos m0))
+      (with_ty m0
+         (match structname with
+         | Some n -> TStruct n, mark_pos m0
+         | None -> TTuple [], mark_pos m0))
   | el ->
     let m =
       fold_marks

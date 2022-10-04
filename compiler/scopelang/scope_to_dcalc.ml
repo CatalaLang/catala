@@ -61,20 +61,16 @@ let empty_ctx
     local_vars = Var.Map.empty;
   }
 
-let mark_tany m pos =
-  Expr.with_ty m (Marked.mark pos TAny) ~pos
+let mark_tany m pos = Expr.with_ty m (Marked.mark pos TAny) ~pos
 
 (* Expression argument is used as a type witness, its type and positions aren't
    used *)
-let pos_mark_mk (type a m) (e : (a, m mark) gexpr):
-  (Pos.t -> m mark) *
-  ((_, Pos.t) Marked.t -> m mark) =
+let pos_mark_mk (type a m) (e : (a, m mark) gexpr) :
+    (Pos.t -> m mark) * ((_, Pos.t) Marked.t -> m mark) =
   let pos_mark pos =
     Expr.map_mark (fun _ -> pos) (fun _ -> TAny, pos) (Marked.get_mark e)
   in
-  let pos_mark_as e =
-    pos_mark (Marked.get_mark e)
-  in
+  let pos_mark_as e = pos_mark (Marked.get_mark e) in
   pos_mark, pos_mark_as
 
 let merge_defaults
@@ -92,7 +88,8 @@ let merge_defaults
       (fun caller callee ->
         let m = Marked.get_mark callee in
         let ltrue =
-          Marked.mark (Expr.with_ty m (Marked.mark (Expr.mark_pos m) (TLit TBool)))
+          Marked.mark
+            (Expr.with_ty m (Marked.mark (Expr.mark_pos m) (TLit TBool)))
             (ELit (LBool true))
         in
         Marked.mark m (EDefault ([caller], ltrue, callee)))
@@ -108,8 +105,7 @@ let tag_with_log_entry
   Bindlib.box_apply
     (fun e ->
       let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
-      Marked.mark m
-        (EApp (Marked.mark m (EOp (Unop (Log (l, markings)))), [e])))
+      Marked.mark m (EApp (Marked.mark m (EOp (Unop (Log (l, markings)))), [e])))
     e
 
 (* In a list of exceptions, it is normally an error if more than a single one
@@ -555,8 +551,7 @@ let translate_rule
     in
     let subscope_func =
       tag_with_log_entry
-        (Expr.make_var
-           (scope_dcalc_var, mark_tany m pos_call))
+        (Expr.make_var (scope_dcalc_var, mark_tany m pos_call))
         BeginCall
         [
           sigma_name, pos_sigma;
@@ -650,8 +645,7 @@ let translate_rule
                      defined, we add an check "ErrorOnEmpty" here. *)
                   Marked.mark
                     (Expr.map_ty (fun _ -> scope_let_typ) (Marked.get_mark e))
-                    (EAssert (Marked.same_mark_as (ErrorOnEmpty new_e) e))
-                    ;
+                    (EAssert (Marked.same_mark_as (ErrorOnEmpty new_e) e));
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
@@ -662,7 +656,7 @@ let translate_rules
     (ctx : 'm ctx)
     (rules : 'm Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
-    (mark: 'm mark)
+    (mark : 'm mark)
     (sigma_return_struct_name : StructName.t) :
     'm Dcalc.Ast.expr scope_body_expr Bindlib.box * 'm ctx =
   let scope_lets, new_ctx =
@@ -684,8 +678,7 @@ let translate_rules
   let return_exp =
     Bindlib.box_apply
       (fun args ->
-        ETuple (args, Some sigma_return_struct_name),
-        mark_tany mark pos_sigma)
+        ETuple (args, Some sigma_return_struct_name), mark_tany mark pos_sigma)
       (Bindlib.box_list
          (List.map
             (fun (_, (dcalc_var, _, _)) ->
@@ -790,7 +783,8 @@ let translate_scope_decl
                          mark_tany sigma.scope_mark pos_sigma );
                    })
                (Bindlib.bind_var v next)
-               (Expr.make_var (scope_input_var, mark_tany sigma.scope_mark pos_sigma)),
+               (Expr.make_var
+                  (scope_input_var, mark_tany sigma.scope_mark pos_sigma)),
              i - 1 ))
          scope_input_variables
          (next, List.length scope_input_variables - 1))

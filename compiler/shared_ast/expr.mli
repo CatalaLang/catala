@@ -225,12 +225,13 @@ val make_default :
       exceptions, is collapsed into [<ex | def>]
     - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
 
-(** Builds a tuple; the mark argument is only used as witness and for position when building 0-uples *)
-val make_tuple:
-  ([< dcalc | lcalc] as 'a, 'm mark) gexpr box list ->
+val make_tuple :
+  (([< dcalc | lcalc ] as 'a), 'm mark) gexpr box list ->
   StructName.t option ->
   'm mark ->
   ('a, 'm mark) gexpr box
+(** Builds a tuple; the mark argument is only used as witness and for position
+    when building 0-uples *)
 
 (** {2 Transformations} *)
 

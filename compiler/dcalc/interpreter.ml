@@ -479,7 +479,7 @@ let interpret_program :
  fun (ctx : decl_ctx) (e : 'm Ast.expr) :
      (Uid.MarkedString.info * 'm Ast.expr) list ->
   match evaluate_expr ctx e with
-  | EAbs (_, [((TStruct s_in, _) as _targs)]), mark_e as e -> begin
+  | (EAbs (_, [((TStruct s_in, _) as _targs)]), mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we can provide
@@ -503,7 +503,7 @@ let interpret_program :
     in
     let to_interpret =
       Expr.make_app (Bindlib.box e)
-        [ Expr.make_tuple application_term (Some s_in) mark_e ]
+        [Expr.make_tuple application_term (Some s_in) mark_e]
         (Expr.pos e)
     in
     match Marked.unmark (evaluate_expr ctx (Bindlib.unbox to_interpret)) with

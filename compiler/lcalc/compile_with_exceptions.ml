@@ -41,8 +41,9 @@ let rec translate_default
   let pos = Expr.mark_pos mark_default in
   let exceptions =
     Expr.make_app
-      (Expr.make_var (Var.translate A.handle_default,
-                      (Expr.with_ty mark_default (Utils.Marked.mark pos TAny))))
+      (Expr.make_var
+         ( Var.translate A.handle_default,
+           Expr.with_ty mark_default (Utils.Marked.mark pos TAny) ))
       [
         Expr.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just);
