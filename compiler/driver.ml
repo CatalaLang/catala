@@ -176,17 +176,9 @@ let driver source_file (options : Cli.options) : int =
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
             prgm
-      | `Typecheck ->
+      | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
+        | `Proof | `Plugin _ ) as backend -> (
         Cli.debug_print "Typechecking...";
-        let _type_ordering =
-          Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
-            prgm.program_ctx.ctx_enums
-        in
-        let _prgm = Scopelang.Ast.type_program prgm in
-        (* That's it! *)
-        Cli.result_print "Typechecking successful!"
-      | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc | `Proof
-        | `Plugin _ ) as backend -> (
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
             prgm.program_ctx.ctx_enums
@@ -202,6 +194,9 @@ let driver source_file (options : Cli.options) : int =
           else prgm
         in
         match backend with
+        | `Typecheck ->
+          (* That's it! *)
+          Cli.result_print "Typechecking successful!"
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
           with_output
