@@ -312,7 +312,7 @@ let rec generate_verification_conditions_scope_body_expr
            the subscope so we just ought to verify only that the exceptions
            overlap. *)
         let e =
-          Bindlib.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
+          Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
         in
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl, vc_confl_typs =

@@ -249,7 +249,13 @@ and ('a, 't) naked_gexpr =
       ('a, 't) gexpr * except * ('a, 't) gexpr
       -> ((lcalc as 'a), 't) naked_gexpr
 
-type 'a box = 'a Bindlib.box
+type ('a, 't) boxed_gexpr = (('a, 't) naked_gexpr Bindlib.box, 't) Marked.t
+(** The annotation is lifted outside of the box for expressions *)
+
+type 'e boxed = ('a, 't) boxed_gexpr constraint 'e = ('a, 't) gexpr
+(** [('a, 't) gexpr boxed] is [('a, 't) boxed_gexpr]. The difference with
+    [('a, 't) gexpr Bindlib.box] is that the annotations is outside of the box,
+    and can therefore be accessed without the need to resolve the box *)
 
 type ('e, 'b) binder = (('a, 't) naked_gexpr, 'b) Bindlib.binder
   constraint 'e = ('a, 't) gexpr

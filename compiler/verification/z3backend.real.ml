@@ -427,18 +427,15 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
       match args with
       | [e1; e2; e3] -> e1, e2, e3
       | _ ->
-        failwith
-          (Format.asprintf
-             "[Z3 encoding] Ill-formed ternary operator application: %a"
-             (Shared_ast.Expr.format ctx.ctx_decl)
-             ( EApp
-                 ( (EOp op, Untyped { pos = Pos.no_pos }),
-                   List.map
-                     (fun arg -> Bindlib.unbox (Shared_ast.Expr.untype arg))
-                     args ),
-               Untyped { pos = Pos.no_pos } ))
+        Format.kasprintf failwith
+          "[Z3 encoding] Ill-formed ternary operator application: %a"
+          (Shared_ast.Expr.format ctx.ctx_decl)
+          (Shared_ast.Expr.eapp
+             (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
+             (List.map Shared_ast.Expr.untype args)
+             (Untyped { pos = Pos.no_pos })
+          |> Shared_ast.Expr.unbox)
     in
-
     failwith "[Z3 encoding] ternary operator application not supported"
   | Binop bop -> (
     (* Special case for GetYear comparisons *)
@@ -520,17 +517,14 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
           let ctx, e2 = translate_expr ctx e2 in
           ctx, e1, e2
         | _ ->
-          failwith
-            (Format.asprintf
-               "[Z3 encoding] Ill-formed binary operator application: %a"
-               (Shared_ast.Expr.format ctx.ctx_decl)
-               ( EApp
-                   ( (EOp op, Untyped { pos = Pos.no_pos }),
-                     List.map
-                       (fun arg ->
-                         arg |> Shared_ast.Expr.untype |> Bindlib.unbox)
-                       args ),
-                 Untyped { pos = Pos.no_pos } ))
+          Format.kasprintf failwith
+            "[Z3 encoding] Ill-formed binary operator application: %a"
+            (Shared_ast.Expr.format ctx.ctx_decl)
+            (Shared_ast.Expr.eapp
+               (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
+               (List.map Shared_ast.Expr.untype args)
+               (Untyped { pos = Pos.no_pos })
+            |> Shared_ast.Expr.unbox)
       in
 
       match bop with
@@ -573,16 +567,14 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
       match args with
       | [e1] -> translate_expr ctx e1
       | _ ->
-        failwith
-          (Format.asprintf
-             "[Z3 encoding] Ill-formed unary operator application: %a"
-             (Shared_ast.Expr.format ctx.ctx_decl)
-             ( EApp
-                 ( (EOp op, Untyped { pos = Pos.no_pos }),
-                   List.map
-                     (fun arg -> arg |> Shared_ast.Expr.untype |> Bindlib.unbox)
-                     args ),
-               Untyped { pos = Pos.no_pos } ))
+        Format.kasprintf failwith
+          "[Z3 encoding] Ill-formed unary operator application: %a"
+          (Shared_ast.Expr.format ctx.ctx_decl)
+          (Shared_ast.Expr.eapp
+             (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
+             (List.map Shared_ast.Expr.untype args)
+             (Untyped { pos = Pos.no_pos })
+          |> Shared_ast.Expr.unbox)
     in
 
     match uop with

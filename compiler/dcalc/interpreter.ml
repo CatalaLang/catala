@@ -502,11 +502,11 @@ let interpret_program :
         taus
     in
     let to_interpret =
-      Expr.make_app (Bindlib.box e)
+      Expr.make_app (Expr.box e)
         [Expr.make_tuple application_term (Some s_in) mark_e]
         (Expr.pos e)
     in
-    match Marked.unmark (evaluate_expr ctx (Bindlib.unbox to_interpret)) with
+    match Marked.unmark (evaluate_expr ctx (Expr.unbox to_interpret)) with
     | ETuple (args, Some s_out) ->
       let s_out_fields =
         List.map

@@ -124,7 +124,7 @@ let rec translate_expr
     (scope : ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    (expr : Ast.expression Marked.pos) : Desugared.Ast.expr Bindlib.box =
+    (expr : Ast.expression Marked.pos) : Desugared.Ast.expr boxed =
   let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   let pos = Marked.get_mark expr in
@@ -145,64 +145,53 @@ let rec translate_expr
         (fun c_uid' tau ->
           if EnumConstructor.compare c_uid c_uid' <> 0 then
             let nop_var = Var.make "_" in
-            Bindlib.unbox
-              (Expr.make_abs [| nop_var |]
-                 (Bindlib.box (ELit (LBool false), emark))
-                 [tau] pos)
+            Expr.make_abs [| nop_var |]
+              (Expr.elit (LBool false) emark)
+              [tau] pos
           else
             let ctxt, binding_var =
               Name_resolution.add_def_local_var ctxt (Marked.unmark binding)
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
-            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] pos))
+            Expr.make_abs [| binding_var |] e2 [tau] pos)
         (EnumMap.find enum_uid ctxt.enums)
     in
-    Bindlib.box_apply
-      (fun e1_sub -> EMatchS (e1_sub, enum_uid, cases), emark)
+    Expr.ematchs
       (translate_expr scope inside_definition_of ctxt e1_sub)
+      enum_uid cases emark
   | IfThenElse (e_if, e_then, e_else) ->
-    Bindlib.box_apply3
-      (fun e_if e_then e_else -> EIfThenElse (e_if, e_then, e_else), emark)
-      (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
+    Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
+      emark
   | Binop ((op, pos), e1, e2) ->
-    let op_term =
-      Marked.mark (Untyped { pos }) (EOp (Binop (translate_binop op)))
-    in
-    Bindlib.box_apply2
-      (fun e1 e2 -> EApp (op_term, [e1; e2]), emark)
-      (rec_helper e1) (rec_helper e2)
+    let op_term = Expr.eop (Binop (translate_binop op)) (Untyped { pos }) in
+    Expr.eapp op_term [rec_helper e1; rec_helper e2] emark
   | Unop ((op, pos), e) ->
-    let op_term =
-      Marked.mark (Untyped { pos }) (EOp (Unop (translate_unop op)))
-    in
-    Bindlib.box_apply (fun e -> EApp (op_term, [e]), emark) (rec_helper e)
+    let op_term = Expr.eop (Unop (translate_unop op)) (Untyped { pos }) in
+    Expr.eapp op_term [rec_helper e] emark
   | Literal l ->
-    let untyped_term =
+    let lit =
       match l with
-      | LNumber ((Int i, _), None) -> ELit (LInt (Runtime.integer_of_string i))
+      | LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
       | LNumber ((Int i, _), Some (Percent, _)) ->
-        ELit (LRat Runtime.(decimal_of_string i /& decimal_of_string "100"))
+        LRat Runtime.(decimal_of_string i /& decimal_of_string "100")
       | LNumber ((Dec (i, f), _), None) ->
-        ELit (LRat Runtime.(decimal_of_string (i ^ "." ^ f)))
+        LRat Runtime.(decimal_of_string (i ^ "." ^ f))
       | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
-        ELit
-          (LRat
-             Runtime.(
-               decimal_of_string (i ^ "." ^ f) /& decimal_of_string "100"))
-      | LBool b -> ELit (LBool b)
+        LRat
+          Runtime.(decimal_of_string (i ^ "." ^ f) /& decimal_of_string "100")
+      | LBool b -> LBool b
       | LMoneyAmount i ->
-        ELit
-          (LMoney
-             Runtime.(
-               money_of_cents_integer
-                 ((integer_of_string i.money_amount_units *! integer_of_int 100)
-                 +! integer_of_string i.money_amount_cents)))
+        LMoney
+          Runtime.(
+            money_of_cents_integer
+              ((integer_of_string i.money_amount_units *! integer_of_int 100)
+              +! integer_of_string i.money_amount_cents))
       | LNumber ((Int i, _), Some (Year, _)) ->
-        ELit (LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0))
+        LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
       | LNumber ((Int i, _), Some (Month, _)) ->
-        ELit (LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0))
+        LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0)
       | LNumber ((Int i, _), Some (Day, _)) ->
-        ELit (LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i)))
+        LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
       | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
         Errors.raise_spanned_error pos
           "Impossible to specify decimal amounts of days, months or years"
@@ -213,17 +202,16 @@ let rec translate_expr
         if date.literal_date_day > 31 then
           Errors.raise_spanned_error pos
             "There is an error in this date: the day number is bigger than 31";
-        ELit
-          (LDate
-             (try
-                Runtime.date_of_numbers date.literal_date_year
-                  date.literal_date_month date.literal_date_day
-              with Runtime.ImpossibleDate ->
-                Errors.raise_spanned_error pos
-                  "There is an error in this date, it does not correspond to a \
-                   correct calendar day"))
+        LDate
+          (try
+             Runtime.date_of_numbers date.literal_date_year
+               date.literal_date_month date.literal_date_day
+           with Runtime.ImpossibleDate ->
+             Errors.raise_spanned_error pos
+               "There is an error in this date, it does not correspond to a \
+                correct calendar day")
     in
-    Bindlib.box (untyped_term, emark)
+    Expr.elit lit emark
   | Ident x -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables *)
@@ -269,12 +257,12 @@ let rec translate_expr
               (* we take the last state in the chain *)
               Some (List.hd (List.rev states)))
         in
-        Bindlib.box (ELocation (DesugaredScopeVar ((uid, pos), x_state)), emark)
+        Expr.elocation (DesugaredScopeVar ((uid, pos), x_state)) emark
       | None ->
         Name_resolution.raise_unknown_identifier
           "for a local or scope-wide variable" (x, pos))
     | Some uid ->
-      Expr.make_var (uid, emark)
+      Expr.make_var uid emark
       (* the whole box thing is to accomodate for this case *))
   | Dotted (e, c, x) -> (
     match Marked.unmark e with
@@ -289,11 +277,10 @@ let rec translate_expr
       let subscope_var_uid =
         Name_resolution.get_var_uid subscope_real_uid ctxt x
       in
-      Bindlib.box
-        ( ELocation
-            (SubScopeVar
-               (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
-          emark )
+      Expr.elocation
+        (SubScopeVar
+           (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos)))
+        emark
     | _ -> (
       (* In this case e.x is the struct field x access of expression e *)
       let e = translate_expr scope inside_definition_of ctxt e in
@@ -317,7 +304,7 @@ let rec translate_expr
             (StructMap.bindings x_possible_structs)
         else
           let s_uid, f_uid = StructMap.choose x_possible_structs in
-          Bindlib.box_apply (fun e -> EStructAccess (e, f_uid, s_uid), emark) e
+          Expr.estructaccess e f_uid s_uid emark
       | Some c_name -> (
         try
           let c_uid =
@@ -325,19 +312,14 @@ let rec translate_expr
           in
           try
             let f_uid = StructMap.find c_uid x_possible_structs in
-            Bindlib.box_apply
-              (fun e -> EStructAccess (e, f_uid, c_uid), emark)
-              e
+            Expr.estructaccess e f_uid c_uid emark
           with Not_found ->
             Errors.raise_spanned_error pos "Struct %s does not contain field %s"
               (Marked.unmark c_name) (Marked.unmark x)
         with Not_found ->
           Errors.raise_spanned_error (Marked.get_mark c_name)
             "Struct %s has not been defined before" (Marked.unmark c_name))))
-  | FunCall (f, arg) ->
-    Bindlib.box_apply2
-      (fun f arg -> EApp (f, [arg]), emark)
-      (rec_helper f) (rec_helper arg)
+  | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
     let tau = TAny, Marked.get_mark x in
@@ -346,9 +328,7 @@ let rec translate_expr
         (translate_expr scope inside_definition_of ctxt e2)
         [tau] pos
     in
-    Bindlib.box_apply2
-      (fun fn arg -> EApp (fn, [arg]), emark)
-      fn (rec_helper e1)
+    Expr.eapp fn [rec_helper e1] emark
   | StructLit (s_name, fields) ->
     let s_uid =
       try Desugared.Ast.IdentMap.find (Marked.unmark s_name) ctxt.struct_idmap
@@ -374,9 +354,7 @@ let rec translate_expr
           | None -> ()
           | Some e_field ->
             Errors.raise_multispanned_error
-              [
-                None, Marked.get_mark f_e; None, Expr.pos (Bindlib.unbox e_field);
-              ]
+              [None, Marked.get_mark f_e; None, Expr.pos e_field]
               "The field %a has been defined twice:" StructFieldName.format_t
               f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
@@ -392,9 +370,7 @@ let rec translate_expr
             StructFieldName.format_t expected_f)
       expected_s_fields;
 
-    Bindlib.box_apply
-      (fun s_fields -> EStruct (s_uid, s_fields), emark)
-      (LiftStructFieldMap.lift_box s_fields)
+    Expr.estruct s_uid s_fields emark
   | EnumInject (enum, (constructor, pos_constructor), payload) -> (
     let possible_c_uids =
       try Desugared.Ast.IdentMap.find constructor ctxt.constructor_idmap
@@ -424,16 +400,11 @@ let rec translate_expr
         let payload =
           Option.map (translate_expr scope inside_definition_of ctxt) payload
         in
-        Bindlib.box_apply
-          (fun payload ->
-            ( EEnumInj
-                ( (match payload with
-                  | Some e' -> e'
-                  | None -> ELit LUnit, mark_constructor),
-                  c_uid,
-                  e_uid ),
-              emark ))
-          (Bindlib.box_opt payload)
+        Expr.eenuminj
+          (match payload with
+          | Some e' -> e'
+          | None -> Expr.elit LUnit mark_constructor)
+          c_uid e_uid emark
     | Some enum -> (
       try
         (* The path has been fully qualified *)
@@ -445,16 +416,11 @@ let rec translate_expr
           let payload =
             Option.map (translate_expr scope inside_definition_of ctxt) payload
           in
-          Bindlib.box_apply
-            (fun payload ->
-              ( EEnumInj
-                  ( (match payload with
-                    | Some e' -> e'
-                    | None -> ELit LUnit, mark_constructor),
-                    c_uid,
-                    e_uid ),
-                emark ))
-            (Bindlib.box_opt payload)
+          Expr.eenuminj
+            (match payload with
+            | Some e' -> e'
+            | None -> Expr.elit LUnit mark_constructor)
+            c_uid e_uid emark
         with Not_found ->
           Errors.raise_spanned_error pos "Enum %s does not contain case %s"
             (Marked.unmark enum) constructor
@@ -467,10 +433,7 @@ let rec translate_expr
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
         cases
     in
-    Bindlib.box_apply2
-      (fun e1 cases_d -> EMatchS (e1, e_uid, cases_d), emark)
-      e1
-      (LiftEnumConstructorMap.lift_box cases_d)
+    Expr.ematchs e1 e_uid cases_d emark
   | TestMatchCase (e1, pattern) ->
     (match snd (Marked.unmark pattern) with
     | None -> ()
@@ -486,21 +449,15 @@ let rec translate_expr
       EnumConstructorMap.mapi
         (fun c_uid' tau ->
           let nop_var = Var.make "_" in
-          Bindlib.unbox
-            (Expr.make_abs [| nop_var |]
-               (Bindlib.box
-                  ( ELit (LBool (EnumConstructor.compare c_uid c_uid' = 0)),
-                    emark ))
-               [tau] pos))
+          Expr.make_abs [| nop_var |]
+            (Expr.elit (LBool (EnumConstructor.compare c_uid c_uid' = 0)) emark)
+            [tau] pos)
         (EnumMap.find enum_uid ctxt.enums)
     in
-    Bindlib.box_apply
-      (fun e -> EMatchS (e, enum_uid, cases), emark)
+    Expr.ematchs
       (translate_expr scope inside_definition_of ctxt e1)
-  | ArrayLit es ->
-    Bindlib.box_apply
-      (fun es -> EArray es, emark)
-      (Bindlib.box_list (List.map rec_helper es))
+      enum_uid cases emark
+  | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
   | CollectionOp
       ( (((Ast.Filter | Ast.Map) as op'), _pos_op'),
         param',
@@ -516,18 +473,14 @@ let rec translate_expr
         [TAny, pos]
         pos
     in
-    Bindlib.box_apply2
-      (fun f_pred collection ->
-        ( EApp
-            ( ( EOp
-                  (match op' with
-                  | Ast.Map -> Binop Map
-                  | Ast.Filter -> Binop Filter
-                  | _ -> assert false (* should not happen *)),
-                emark ),
-              [f_pred; collection] ),
-          emark ))
-      f_pred collection
+    Expr.eapp
+      (Expr.eop
+         (match op' with
+         | Ast.Map -> Binop Map
+         | Ast.Filter -> Binop Filter
+         | _ -> assert false (* should not happen *))
+         emark)
+      [f_pred; collection] emark
   | CollectionOp
       ( ( Ast.Aggregate (Ast.AggregateArgExtremum (max_or_min, pred_typ, init)),
           pos_op' ),
@@ -561,38 +514,28 @@ let rec translate_expr
     in
     let f_pred_var = Var.make "predicate" in
     let f_pred_var_e =
-      Expr.make_var (f_pred_var, Untyped { pos = Marked.get_mark predicate })
+      Expr.make_var f_pred_var (Untyped { pos = Marked.get_mark predicate })
     in
     let acc_var = Var.make "acc" in
-    let acc_var_e = Expr.make_var (acc_var, emark) in
+    let acc_var_e = Expr.make_var acc_var emark in
     let item_var = Var.make "item" in
-    let item_var_e =
-      Expr.make_var (item_var, Marked.get_mark (Bindlib.unbox collection))
-    in
+    let item_var_e = Expr.make_var item_var (Marked.get_mark collection) in
     let fold_body =
-      Bindlib.box_apply3
-        (fun acc_var_e item_var_e f_pred_var_e ->
-          ( EIfThenElse
-              ( ( EApp
-                    ( (EOp (Binop cmp_op), Untyped { pos = pos_op' }),
-                      [
-                        EApp (f_pred_var_e, [acc_var_e]), emark;
-                        EApp (f_pred_var_e, [item_var_e]), emark;
-                      ] ),
-                  emark ),
-                acc_var_e,
-                item_var_e ),
-            emark ))
-        acc_var_e item_var_e f_pred_var_e
+      Expr.eifthenelse
+        (Expr.eapp
+           (Expr.eop (Binop cmp_op) (Untyped { pos = pos_op' }))
+           [
+             Expr.eapp f_pred_var_e [acc_var_e] emark;
+             Expr.eapp f_pred_var_e [item_var_e] emark;
+           ]
+           emark)
+        acc_var_e item_var_e emark
     in
     let fold_f =
       Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
     in
     let fold =
-      Bindlib.box_apply3
-        (fun fold_f collection init ->
-          EApp ((EOp (Ternop Fold), emark), [fold_f; init; collection]), emark)
-        fold_f collection init
+      Expr.eapp (Expr.eop (Ternop Fold) emark) [fold_f; init; collection] emark
     in
     Expr.make_let_in f_pred_var (TAny, pos) f_pred fold pos
   | CollectionOp (op', param', collection, predicate) ->
@@ -605,55 +548,46 @@ let rec translate_expr
       match Marked.unmark op' with
       | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Exists -> Bindlib.box (ELit (LBool false), mark)
-      | Ast.Forall -> Bindlib.box (ELit (LBool true), mark)
+      | Ast.Exists -> Expr.elit (LBool false) mark
+      | Ast.Forall -> Expr.elit (LBool true) mark
       | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
-        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), mark)
+        Expr.elit (LInt (Runtime.integer_of_int 0)) mark
       | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
-        Bindlib.box (ELit (LRat (Runtime.decimal_of_string "0")), mark)
+        Expr.elit (LRat (Runtime.decimal_of_string "0")) mark
       | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
-        Bindlib.box
-          ( ELit
-              (LMoney
-                 (Runtime.money_of_cents_integer (Runtime.integer_of_int 0))),
-            mark )
+        Expr.elit
+          (LMoney (Runtime.money_of_cents_integer (Runtime.integer_of_int 0)))
+          mark
       | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
-        Bindlib.box (ELit (LDuration (Runtime.duration_of_numbers 0 0 0)), mark)
+        Expr.elit (LDuration (Runtime.duration_of_numbers 0 0 0)) mark
       | Ast.Aggregate (Ast.AggregateSum t) ->
         Errors.raise_spanned_error pos
           "It is impossible to sum two values of type %a together"
           SurfacePrint.format_primitive_typ t
       | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
       | Ast.Aggregate Ast.AggregateCount ->
-        Bindlib.box (ELit (LInt (Runtime.integer_of_int 0)), mark)
+        Expr.elit (LInt (Runtime.integer_of_int 0)) mark
     in
     let acc_var = Var.make "acc" in
     let acc =
-      Expr.make_var (acc_var, Untyped { pos = Marked.get_mark param' })
+      Expr.make_var acc_var (Untyped { pos = Marked.get_mark param' })
     in
     let f_body =
       let make_body (op : binop) =
-        Bindlib.box_apply2
-          (fun predicate acc ->
-            EApp ((EOp (Binop op), mark), [acc; predicate]), emark)
-          (translate_expr scope inside_definition_of ctxt predicate)
-          acc
+        Expr.eapp (Expr.eop (Binop op) mark)
+          [acc; translate_expr scope inside_definition_of ctxt predicate]
+          emark
       in
       let make_extr_body (cmp_op : binop) (t : typ) =
         let tmp_var = Var.make "tmp" in
         let tmp =
-          Expr.make_var (tmp_var, Untyped { pos = Marked.get_mark param' })
+          Expr.make_var tmp_var (Untyped { pos = Marked.get_mark param' })
         in
         Expr.make_let_in tmp_var t
           (translate_expr scope inside_definition_of ctxt predicate)
-          (Bindlib.box_apply2
-             (fun acc tmp ->
-               ( EIfThenElse
-                   ( (EApp ((EOp (Binop cmp_op), mark), [acc; tmp]), emark),
-                     acc,
-                     tmp ),
-                 emark ))
-             acc tmp)
+          (Expr.eifthenelse
+             (Expr.eapp (Expr.eop (Binop cmp_op) mark) [acc; tmp] emark)
+             acc tmp emark)
           pos
       in
       match Marked.unmark op' with
@@ -685,38 +619,33 @@ let rec translate_expr
         let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
         make_extr_body cmp_op typ
       | Ast.Aggregate Ast.AggregateCount ->
-        Bindlib.box_apply2
-          (fun predicate acc ->
-            ( EIfThenElse
-                ( predicate,
-                  ( EApp
-                      ( (EOp (Binop (Add KInt)), mark),
-                        [
-                          acc;
-                          ( ELit (LInt (Runtime.integer_of_int 1)),
-                            Marked.get_mark predicate );
-                        ] ),
-                    emark ),
-                  acc ),
-              emark ))
-          (translate_expr scope inside_definition_of ctxt predicate)
-          acc
+        let predicate =
+          translate_expr scope inside_definition_of ctxt predicate
+        in
+        Expr.eifthenelse predicate
+          (Expr.eapp
+             (Expr.eop (Binop (Add KInt)) mark)
+             [
+               acc;
+               Expr.elit
+                 (LInt (Runtime.integer_of_int 1))
+                 (Marked.get_mark predicate);
+             ]
+             emark)
+          acc emark
     in
     let f =
       let make_f (t : typ_lit) =
-        Bindlib.box_apply
-          (fun binder ->
-            ( EAbs
-                ( binder,
-                  [
-                    TLit t, Marked.get_mark op';
-                    TAny, pos
-                    (* we put any here because the type of the elements of the
-                       arrays is not always the type of the accumulator; for
-                       instance in AggregateCount. *);
-                  ] ),
-              emark ))
-          (Bindlib.bind_mvar [| acc_var; param |] f_body)
+        Expr.eabs
+          (Expr.bind [| acc_var; param |] f_body)
+          [
+            TLit t, Marked.get_mark op';
+            TAny, pos
+            (* we put any here because the type of the elements of the arrays is
+               not always the type of the accumulator; for instance in
+               AggregateCount. *);
+          ]
+          emark
       in
       match Marked.unmark op' with
       | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
@@ -740,54 +669,46 @@ let rec translate_expr
         assert false (* should not happen *)
       | Ast.Aggregate Ast.AggregateCount -> make_f TInt
     in
-    Bindlib.box_apply3
-      (fun f collection init ->
-        EApp ((EOp (Ternop Fold), emark), [f; init; collection]), emark)
-      f collection init
+    Expr.eapp (Expr.eop (Ternop Fold) emark) [f; init; collection] emark
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
-    let param = Expr.make_var (param_var, emark) in
+    let param = Expr.make_var param_var emark in
     let collection = rec_helper collection in
-    let init = Bindlib.box (ELit (LBool false), emark) in
+    let init = Expr.elit (LBool false) emark in
     let acc_var = Var.make "acc" in
-    let acc = Expr.make_var (acc_var, emark) in
+    let acc = Expr.make_var acc_var emark in
     let f_body =
-      Bindlib.box_apply3
-        (fun member acc param ->
-          ( EApp
-              ( (EOp (Binop Or), emark),
-                [EApp ((EOp (Binop Eq), emark), [member; param]), emark; acc] ),
-            emark ))
-        (translate_expr scope inside_definition_of ctxt member)
-        acc param
+      let member = translate_expr scope inside_definition_of ctxt member in
+      Expr.eapp
+        (Expr.eop (Binop Or) emark)
+        [Expr.eapp (Expr.eop (Binop Eq) emark) [member; param] emark; acc]
+        emark
     in
     let f =
-      Bindlib.box_apply
-        (fun binder -> EAbs (binder, [TLit TBool, pos; TAny, pos]), emark)
-        (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
+      Expr.eabs
+        (Expr.bind [| acc_var; param_var |] f_body)
+        [TLit TBool, pos; TAny, pos]
+        emark
     in
-    Bindlib.box_apply3
-      (fun f collection init ->
-        EApp ((EOp (Ternop Fold), emark), [f; init; collection]), emark)
-      f collection init
-  | Builtin IntToDec -> Bindlib.box (EOp (Unop IntToRat), emark)
-  | Builtin MoneyToDec -> Bindlib.box (EOp (Unop MoneyToRat), emark)
-  | Builtin DecToMoney -> Bindlib.box (EOp (Unop RatToMoney), emark)
-  | Builtin Cardinal -> Bindlib.box (EOp (Unop Length), emark)
-  | Builtin GetDay -> Bindlib.box (EOp (Unop GetDay), emark)
-  | Builtin GetMonth -> Bindlib.box (EOp (Unop GetMonth), emark)
-  | Builtin GetYear -> Bindlib.box (EOp (Unop GetYear), emark)
-  | Builtin FirstDayOfMonth -> Bindlib.box (EOp (Unop FirstDayOfMonth), emark)
-  | Builtin LastDayOfMonth -> Bindlib.box (EOp (Unop LastDayOfMonth), emark)
-  | Builtin RoundMoney -> Bindlib.box (EOp (Unop RoundMoney), emark)
-  | Builtin RoundDecimal -> Bindlib.box (EOp (Unop RoundDecimal), emark)
+    Expr.eapp (Expr.eop (Ternop Fold) emark) [f; init; collection] emark
+  | Builtin IntToDec -> Expr.eop (Unop IntToRat) emark
+  | Builtin MoneyToDec -> Expr.eop (Unop MoneyToRat) emark
+  | Builtin DecToMoney -> Expr.eop (Unop RatToMoney) emark
+  | Builtin Cardinal -> Expr.eop (Unop Length) emark
+  | Builtin GetDay -> Expr.eop (Unop GetDay) emark
+  | Builtin GetMonth -> Expr.eop (Unop GetMonth) emark
+  | Builtin GetYear -> Expr.eop (Unop GetYear) emark
+  | Builtin FirstDayOfMonth -> Expr.eop (Unop FirstDayOfMonth) emark
+  | Builtin LastDayOfMonth -> Expr.eop (Unop LastDayOfMonth) emark
+  | Builtin RoundMoney -> Expr.eop (Unop RoundMoney) emark
+  | Builtin RoundDecimal -> Expr.eop (Unop RoundDecimal) emark
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr Bindlib.box EnumConstructorMap.t * EnumName.t =
+    Desugared.Ast.expr boxed EnumConstructorMap.t * EnumName.t =
   let create_var = function
     | None -> ctxt, Var.make "_"
     | Some param ->
@@ -798,20 +719,14 @@ and disambiguate_match_and_build_expression
       (c_uid : EnumConstructor.t)
       (e_uid : EnumName.t)
       (ctxt : Name_resolution.context)
-      (case_body : ('a * untyped mark) Bindlib.box)
-      (e_binder : (Desugared.Ast.expr, Desugared.Ast.expr) mbinder box) :
-      'c Bindlib.box =
-    Bindlib.box_apply2
-      (fun e_binder case_body ->
-        Marked.same_mark_as
-          (EAbs
-             ( e_binder,
-               [
-                 EnumConstructorMap.find c_uid
-                   (EnumMap.find e_uid ctxt.Name_resolution.enums);
-               ] ))
-          case_body)
-      e_binder case_body
+      case_body
+      e_binder =
+    Expr.eabs e_binder
+      [
+        EnumConstructorMap.find c_uid
+          (EnumMap.find e_uid ctxt.Name_resolution.enums);
+      ]
+      (Marked.get_mark case_body)
   in
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
     match case with
@@ -837,17 +752,14 @@ and disambiguate_match_and_build_expression
       | None -> ()
       | Some e_case ->
         Errors.raise_multispanned_error
-          [
-            None, Marked.get_mark case.match_case_expr;
-            None, Expr.pos (Bindlib.unbox e_case);
-          ]
+          [None, Marked.get_mark case.match_case_expr; None, Expr.pos e_case]
           "The constructor %a has been matched twice:" EnumConstructor.format_t
           c_uid);
       let ctxt, param_var = create_var (Option.map Marked.unmark binding) in
       let case_body =
         translate_expr scope inside_definition_of ctxt case.Ast.match_case_expr
       in
-      let e_binder = Bindlib.bind_mvar [| param_var |] case_body in
+      let e_binder = Expr.bind [| param_var |] case_body in
       let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
       EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1
     | Ast.WildCard match_case_expr -> (
@@ -898,7 +810,7 @@ and disambiguate_match_and_build_expression
         let case_body =
           translate_expr scope inside_definition_of ctxt match_case_expr
         in
-        let e_binder = Bindlib.bind_mvar [| payload_var |] case_body in
+        let e_binder = Expr.bind [| payload_var |] case_body in
 
         (* For each missing cases, binds the wildcard payload. *)
         EnumConstructorMap.fold
@@ -924,22 +836,16 @@ and disambiguate_match_and_build_expression
     this precondition has to be appended to the justifications of each
     definition in the subscope use. This is what this function does. *)
 let merge_conditions
-    (precond : Desugared.Ast.expr Bindlib.box option)
-    (cond : Desugared.Ast.expr Bindlib.box option)
-    (default_pos : Pos.t) : Desugared.Ast.expr Bindlib.box =
+    (precond : Desugared.Ast.expr boxed option)
+    (cond : Desugared.Ast.expr boxed option)
+    (default_pos : Pos.t) : Desugared.Ast.expr boxed =
   match precond, cond with
   | Some precond, Some cond ->
-    let op_term = EOp (Binop And), Marked.get_mark (Bindlib.unbox cond) in
-    Bindlib.box_apply2
-      (fun precond cond ->
-        EApp (op_term, [precond; cond]), Marked.get_mark cond)
-      precond cond
-  | Some precond, None ->
-    Bindlib.box_apply
-      (fun precond -> Marked.unmark precond, Untyped { pos = default_pos })
-      precond
+    let op_term = Expr.eop (Binop And) (Marked.get_mark cond) in
+    Expr.eapp op_term [precond; cond] (Marked.get_mark cond)
+  | Some precond, None -> Marked.unmark precond, Untyped { pos = default_pos }
   | None, Some cond -> cond
-  | None, None -> Bindlib.box (ELit (LBool true), Untyped { pos = default_pos })
+  | None, None -> Expr.elit (LBool true) (Untyped { pos = default_pos })
 
 (** Translates a surface definition into condition into a desugared {!type:
     Desugared.Ast.rule} *)
@@ -949,7 +855,7 @@ let process_default
     (def_key : Desugared.Ast.ScopeDef.t Marked.pos)
     (rule_id : Desugared.Ast.RuleName.t)
     (param_uid : Desugared.Ast.expr Var.t Marked.pos option)
-    (precond : Desugared.Ast.expr Bindlib.box option)
+    (precond : Desugared.Ast.expr boxed option)
     (exception_situation : Desugared.Ast.exception_situation)
     (label_situation : Desugared.Ast.label_situation)
     (just : Ast.expression Marked.pos option)
@@ -971,12 +877,10 @@ let process_default
        match Marked.unmark def_key_typ, param_uid with
        | TArrow (t_in, _), Some param_uid -> Some (Marked.unmark param_uid, t_in)
        | TArrow _, None ->
-         Errors.raise_spanned_error
-           (Expr.pos (Bindlib.unbox cons))
+         Errors.raise_spanned_error (Expr.pos cons)
            "This definition has a function type but the parameter is missing"
        | _, Some _ ->
-         Errors.raise_spanned_error
-           (Expr.pos (Bindlib.unbox cons))
+         Errors.raise_spanned_error (Expr.pos cons)
            "This definition has a parameter but its type is not a function"
        | _ -> None);
     rule_exception = exception_situation;
@@ -987,7 +891,7 @@ let process_default
 (** Wrapper around {!val: process_default} that performs some name
     disambiguation *)
 let process_def
-    (precond : Desugared.Ast.expr Bindlib.box option)
+    (precond : Desugared.Ast.expr boxed option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)
@@ -1075,7 +979,7 @@ let process_def
 
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
 let process_rule
-    (precond : Desugared.Ast.expr Bindlib.box option)
+    (precond : Desugared.Ast.expr boxed option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)
@@ -1085,7 +989,7 @@ let process_rule
 
 (** Translates assertions *)
 let process_assert
-    (precond : Desugared.Ast.expr Bindlib.box option)
+    (precond : Desugared.Ast.expr boxed option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)
@@ -1107,12 +1011,9 @@ let process_assert
   let ass =
     match precond with
     | Some precond ->
-      Bindlib.box_apply2
-        (fun precond ass ->
-          ( EIfThenElse
-              (precond, ass, Marked.same_mark_as (ELit (LBool true)) precond),
-            Marked.get_mark precond ))
-        precond ass
+      Expr.eifthenelse precond ass
+        (Expr.elit (LBool true) (Marked.get_mark precond))
+        (Marked.get_mark precond)
     | None -> ass
   in
   let new_scope =

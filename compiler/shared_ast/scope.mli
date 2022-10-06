@@ -43,10 +43,10 @@ val fold_right_lets :
     scope lets to be examined (which are before in the program order). *)
 
 val map_exprs_in_lets :
-  f:('expr1 -> 'expr2 box) ->
+  f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scope_body_expr ->
-  'expr2 scope_body_expr box
+  'expr2 scope_body_expr Bindlib.box
 
 val fold_left :
   f:('a -> 'expr1 scope_def -> 'expr1 Var.t -> 'a) ->
@@ -67,13 +67,16 @@ val fold_right :
     where [scope_var] is the variable bound to the scope in the next scopes to
     be examined (which are before in the program order). *)
 
-val map : f:('e scope_def -> 'e scope_def box) -> 'e scopes -> 'e scopes box
+val map :
+  f:('e scope_def -> 'e scope_def Bindlib.box) ->
+  'e scopes ->
+  'e scopes Bindlib.box
 
 val map_exprs :
-  f:('expr1 -> 'expr2 box) ->
+  f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scopes ->
-  'expr2 scopes box
+  'expr2 scopes Bindlib.box
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
@@ -92,7 +95,7 @@ val to_expr :
   decl_ctx ->
   ('a any, 'm mark) gexpr scope_body ->
   'm mark ->
-  ('a, 'm mark) gexpr box
+  ('a, 'm mark) boxed_gexpr
 (** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
     to the line of the scope declaration for instance. *)
 
@@ -103,7 +106,7 @@ val unfold :
   ((_, 'm mark) gexpr as 'e) scopes ->
   'm mark ->
   'e scope_name_or_var ->
-  'e box
+  'e boxed
 
 val build_typ_from_sig :
   decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ

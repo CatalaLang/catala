@@ -73,40 +73,30 @@ let pos_mark_mk (type a m) (e : (a, m mark) gexpr) :
   let pos_mark_as e = pos_mark (Marked.get_mark e) in
   pos_mark, pos_mark_as
 
-let merge_defaults
-    (caller : 'a Dcalc.Ast.expr Bindlib.box)
-    (callee : 'a Dcalc.Ast.expr Bindlib.box) : 'a Dcalc.Ast.expr Bindlib.box =
+let merge_defaults caller callee =
   let caller =
-    let m = Marked.get_mark (Bindlib.unbox caller) in
+    let m = Marked.get_mark caller in
     let pos = Expr.mark_pos m in
     Expr.make_app caller
-      [Bindlib.box (ELit LUnit, Expr.with_ty m (Marked.mark pos (TLit TUnit)))]
+      [Expr.elit LUnit (Expr.with_ty m (Marked.mark pos (TLit TUnit)))]
       pos
   in
   let body =
-    Bindlib.box_apply2
-      (fun caller callee ->
-        let m = Marked.get_mark callee in
-        let ltrue =
-          Marked.mark
-            (Expr.with_ty m (Marked.mark (Expr.mark_pos m) (TLit TBool)))
-            (ELit (LBool true))
-        in
-        Marked.mark m (EDefault ([caller], ltrue, callee)))
-      caller callee
+    let m = Marked.get_mark callee in
+    let ltrue =
+      Expr.elit (LBool true)
+        (Expr.with_ty m (Marked.mark (Expr.mark_pos m) (TLit TBool)))
+    in
+    Expr.edefault [caller] ltrue callee m
   in
   body
 
 let tag_with_log_entry
-    (e : 'm Dcalc.Ast.expr Bindlib.box)
+    (e : 'm Dcalc.Ast.expr boxed)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) :
-    'm Dcalc.Ast.expr Bindlib.box =
-  Bindlib.box_apply
-    (fun e ->
-      let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
-      Marked.mark m (EApp (Marked.mark m (EOp (Unop (Log (l, markings)))), [e])))
-    e
+    (markings : Utils.Uid.MarkedString.info list) : 'm Dcalc.Ast.expr boxed =
+  let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
+  Expr.eapp (Expr.eop (Unop (Log (l, markings))) m) [e] m
 
 (* In a list of exceptions, it is normally an error if more than a single one
    apply at the same time. This relaxes this constraint slightly, allowing a
@@ -153,15 +143,14 @@ let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) :
   excepts
 
 let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
-    'm Dcalc.Ast.expr Bindlib.box =
-  Bindlib.box_apply (fun x -> Marked.same_mark_as x e)
-  @@
+    'm Dcalc.Ast.expr boxed =
+  let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EVar v -> Bindlib.box_var (Var.Map.find v ctx.local_vars)
+  | EVar v -> Expr.evar (Var.Map.find v ctx.local_vars) m
   | ELit
       (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
        | LDuration _ ) as l) ->
-    Bindlib.box (ELit l)
+    Expr.elit l m
   | EStruct (struct_name, e_fields) ->
     let struct_sig = StructMap.find struct_name ctx.structs in
     let d_fields, remaining_e_fields =
@@ -181,10 +170,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
            (fun fmt (field_name, _) ->
              Format.fprintf fmt "%a" StructFieldName.format_t field_name))
         (StructFieldMap.bindings remaining_e_fields)
-    else
-      Bindlib.box_apply
-        (fun d_fields -> ETuple (d_fields, Some struct_name))
-        (Bindlib.box_list d_fields)
+    else Expr.etuple d_fields (Some struct_name) m
   | EStructAccess (e1, field_name, struct_name) ->
     let struct_sig = StructMap.find struct_name ctx.structs in
     let _, field_index =
@@ -196,10 +182,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
           StructFieldName.format_t field_name StructName.format_t struct_name
     in
     let e1 = translate_expr ctx e1 in
-    Bindlib.box_apply
-      (fun e1 ->
-        ETupleAccess (e1, field_index, Some struct_name, List.map snd struct_sig))
-      e1
+    Expr.etupleaccess e1 field_index (Some struct_name)
+      (List.map snd struct_sig) m
   | EEnumInj (e1, constructor, enum_name) ->
     let enum_sig = EnumMap.find enum_name ctx.enums in
     let _, constructor_index =
@@ -211,9 +195,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
           EnumConstructor.format_t constructor EnumName.format_t enum_name
     in
     let e1 = translate_expr ctx e1 in
-    Bindlib.box_apply
-      (fun e1 -> EInj (e1, constructor_index, enum_name, List.map snd enum_sig))
-      e1
+    Expr.einj e1 constructor_index enum_name (List.map snd enum_sig) m
   | EMatchS (e1, enum_name, cases) ->
     let enum_sig = EnumMap.find enum_name ctx.enums in
     let d_cases, remaining_e_cases =
@@ -242,9 +224,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
         (EnumConstructorMap.bindings remaining_e_cases)
     else
       let e1 = translate_expr ctx e1 in
-      Bindlib.box_apply2
-        (fun d_fields e1 -> EMatch (e1, d_fields, enum_name))
-        (Bindlib.box_list d_cases) e1
+      Expr.ematch e1 d_cases enum_name m
   | EApp (e1, args) ->
     (* We insert various log calls to record arguments and outputs of
        user-defined functions belonging to scopes *)
@@ -292,12 +272,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
         ]
       | _ -> new_args
     in
-    let new_e =
-      Bindlib.box_apply2
-        (fun e' u -> Marked.same_mark_as (EApp (e', u)) e)
-        e1_func
-        (Bindlib.box_list new_args)
-    in
+    let new_e = Expr.eapp e1_func new_args m in
     let new_e =
       match Marked.unmark e1 with
       | ELocation l ->
@@ -307,7 +282,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
           EndCall (markings l)
       | _ -> new_e
     in
-    Bindlib.box_apply Marked.unmark new_e
+    new_e
   | EAbs (binder, typ) ->
     let xs, body = Bindlib.unmbind binder in
     let new_xs = Array.map (fun x -> Var.make (Bindlib.name_of x)) xs in
@@ -323,24 +298,23 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
         }
         body
     in
-    let binder = Bindlib.bind_mvar new_xs body in
-    Bindlib.box_apply (fun b -> EAbs (b, typ)) binder
+    let binder = Expr.bind new_xs body in
+    Expr.eabs binder typ m
   | EDefault (excepts, just, cons) ->
     let excepts = collapse_similar_outcomes excepts in
-    Bindlib.box_apply3
-      (fun e j c -> EDefault (e, j, c))
-      (Bindlib.box_list (List.map (translate_expr ctx) excepts))
-      (translate_expr ctx just) (translate_expr ctx cons)
+    Expr.edefault
+      (List.map (translate_expr ctx) excepts)
+      (translate_expr ctx just) (translate_expr ctx cons) m
   | ELocation (ScopelangScopeVar a) ->
     let v, _, _ = ScopeVarMap.find (Marked.unmark a) ctx.scope_vars in
-    Bindlib.box_var v
+    Expr.evar v m
   | ELocation (SubScopeVar (_, s, a)) -> (
     try
       let v, _, _ =
         ScopeVarMap.find (Marked.unmark a)
           (SubScopeMap.find (Marked.unmark s) ctx.subscope_vars)
       in
-      Bindlib.box_var v
+      Expr.evar v m
     with Not_found ->
       Errors.raise_multispanned_error
         [
@@ -355,16 +329,11 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
         SubScopeName.format_t (Marked.unmark s) ScopeVar.format_t
         (Marked.unmark a) SubScopeName.format_t (Marked.unmark s))
   | EIfThenElse (cond, et, ef) ->
-    Bindlib.box_apply3
-      (fun c t f -> EIfThenElse (c, t, f))
-      (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
-  | EOp op -> Bindlib.box (EOp op)
-  | ErrorOnEmpty e' ->
-    Bindlib.box_apply (fun e' -> ErrorOnEmpty e') (translate_expr ctx e')
-  | EArray es ->
-    Bindlib.box_apply
-      (fun es -> EArray es)
-      (Bindlib.box_list (List.map (translate_expr ctx) es))
+    Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx et)
+      (translate_expr ctx ef) m
+  | EOp op -> Expr.eop op m
+  | ErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
+  | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 
 (** The result of a rule translation is a list of assignment, with variables and
     expressions. We also return the new translation context available after the
@@ -384,17 +353,16 @@ let translate_rule
     let a_name = ScopeVar.get_info (Marked.unmark a) in
     let a_var = Var.make (Marked.unmark a_name) in
     let new_e = translate_expr ctx e in
-    let a_expr = Expr.make_var (a_var, pos_mark var_def_pos) in
+    let a_expr = Expr.make_var a_var (pos_mark var_def_pos) in
     let merged_expr =
-      Bindlib.box_apply
-        (fun merged_expr -> ErrorOnEmpty merged_expr, pos_mark_as a_name)
+      Expr.eerroronempty
         (match Marked.unmark a_io.io_input with
-        | OnlyInput ->
-          failwith "should not happen"
-          (* scopelang should not contain any definitions of input only
-             variables *)
+        | OnlyInput -> failwith "should not happen"
+        (* scopelang should not contain any definitions of input only
+           variables *)
         | Reentrant -> merge_defaults a_expr new_e
         | NoInput -> new_e)
+        (pos_mark_as a_name)
     in
     let merged_expr =
       tag_with_log_entry merged_expr
@@ -413,7 +381,7 @@ let translate_rule
                 scope_let_pos = Marked.get_mark a;
               })
           (Bindlib.bind_var a_var next)
-          merged_expr),
+          (Expr.Box.inj merged_expr)),
       {
         ctx with
         scope_vars =
@@ -443,10 +411,7 @@ let translate_rule
     let thunked_or_nonempty_new_e =
       match Marked.unmark a_io.io_input with
       | NoInput -> failwith "should not happen"
-      | OnlyInput ->
-        Bindlib.box_apply
-          (fun new_e -> ErrorOnEmpty new_e, pos_mark_as subs_var)
-          new_e
+      | OnlyInput -> Expr.eerroronempty new_e (pos_mark_as subs_var)
       | Reentrant ->
         Expr.make_abs [| silent_var |] new_e
           [TLit TUnit, var_def_pos]
@@ -469,7 +434,7 @@ let translate_rule
                 scope_let_kind = SubScopeVarDefinition;
               })
           (Bindlib.bind_var a_var next)
-          thunked_or_nonempty_new_e),
+          (Expr.Box.inj thunked_or_nonempty_new_e)),
       {
         ctx with
         subscope_vars =
@@ -527,15 +492,12 @@ let translate_rule
             let a_var, _, _ =
               ScopeVarMap.find subvar.scope_var_name subscope_vars_defined
             in
-            Expr.make_var (a_var, mark_tany m pos_call))
+            Expr.make_var a_var (mark_tany m pos_call))
         all_subscope_input_vars
     in
     let subscope_struct_arg =
-      Bindlib.box_apply
-        (fun subscope_args ->
-          ( ETuple (subscope_args, Some called_scope_input_struct),
-            mark_tany m pos_call ))
-        (Bindlib.box_list subscope_args)
+      Expr.etuple subscope_args (Some called_scope_input_struct)
+        (mark_tany m pos_call)
     in
     let all_subscope_output_vars_dcalc =
       List.map
@@ -551,7 +513,7 @@ let translate_rule
     in
     let subscope_func =
       tag_with_log_entry
-        (Expr.make_var (scope_dcalc_var, mark_tany m pos_call))
+        (Expr.make_var scope_dcalc_var (mark_tany m pos_call))
         BeginCall
         [
           sigma_name, pos_sigma;
@@ -561,9 +523,7 @@ let translate_rule
     in
     let call_expr =
       tag_with_log_entry
-        (Bindlib.box_apply2
-           (fun e u -> EApp (e, [u]), mark_tany m pos_call)
-           subscope_func subscope_struct_arg)
+        (Expr.eapp subscope_func [subscope_struct_arg] (mark_tany m pos_call))
         EndCall
         [
           sigma_name, pos_sigma;
@@ -585,7 +545,7 @@ let translate_rule
               scope_let_expr = call_expr;
             })
         (Bindlib.bind_var result_tuple_var next)
-        call_expr
+        (Expr.Box.inj call_expr)
     in
     let result_bindings_lets next =
       List.fold_right
@@ -610,7 +570,8 @@ let translate_rule
                         mark_tany m pos_sigma );
                   })
               (Bindlib.bind_var v next)
-              (Expr.make_var (result_tuple_var, mark_tany m pos_sigma)),
+              (Expr.Box.inj
+                 (Expr.make_var result_tuple_var (mark_tany m pos_sigma))),
             i - 1 ))
         all_subscope_output_vars_dcalc
         (next, List.length all_subscope_output_vars_dcalc - 1)
@@ -649,7 +610,7 @@ let translate_rule
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
-          new_e),
+          (Expr.Box.inj new_e)),
       ctx )
 
 let translate_rules
@@ -676,17 +637,17 @@ let translate_rules
       scope_variables
   in
   let return_exp =
-    Bindlib.box_apply
-      (fun args ->
-        ETuple (args, Some sigma_return_struct_name), mark_tany mark pos_sigma)
-      (Bindlib.box_list
-         (List.map
-            (fun (_, (dcalc_var, _, _)) ->
-              Expr.make_var (dcalc_var, mark_tany mark pos_sigma))
-            scope_output_variables))
+    Expr.etuple
+      (List.map
+         (fun (_, (dcalc_var, _, _)) ->
+           Expr.make_var dcalc_var (mark_tany mark pos_sigma))
+         scope_output_variables)
+      (Some sigma_return_struct_name) (mark_tany mark pos_sigma)
   in
   ( scope_lets
-      (Bindlib.box_apply (fun return_exp -> Result return_exp) return_exp),
+      (Bindlib.box_apply
+         (fun return_exp -> Result return_exp)
+         (Expr.Box.inj return_exp)),
     new_ctx )
 
 let translate_scope_decl
@@ -783,8 +744,9 @@ let translate_scope_decl
                          mark_tany sigma.scope_mark pos_sigma );
                    })
                (Bindlib.bind_var v next)
-               (Expr.make_var
-                  (scope_input_var, mark_tany sigma.scope_mark pos_sigma)),
+               (Expr.Box.inj
+                  (Expr.make_var scope_input_var
+                     (mark_tany sigma.scope_mark pos_sigma))),
              i - 1 ))
          scope_input_variables
          (next, List.length scope_input_variables - 1))

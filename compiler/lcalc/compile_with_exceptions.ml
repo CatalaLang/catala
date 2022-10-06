@@ -23,9 +23,9 @@ type 'm ctx = ('m D.expr, 'm A.expr Var.t) Var.Map.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
-let thunk_expr (type m) (e : m A.expr Bindlib.box) : m A.expr Bindlib.box =
+let thunk_expr (type m) (e : m A.expr boxed) : m A.expr boxed =
   let dummy_var = Var.make "_" in
-  let pos = Expr.pos (Bindlib.unbox e) in
+  let pos = Expr.pos e in
   let arg_t = Marked.mark pos (TLit TUnit) in
   Expr.make_abs [| dummy_var |] e [arg_t] pos
 
@@ -34,7 +34,7 @@ let rec translate_default
     (exceptions : 'm D.expr list)
     (just : 'm D.expr)
     (cons : 'm D.expr)
-    (mark_default : 'm mark) : 'm A.expr Bindlib.box =
+    (mark_default : 'm mark) : 'm A.expr boxed =
   let exceptions =
     List.map (fun except -> thunk_expr (translate_expr ctx except)) exceptions
   in
@@ -42,8 +42,8 @@ let rec translate_default
   let exceptions =
     Expr.make_app
       (Expr.make_var
-         ( Var.translate A.handle_default,
-           Expr.with_ty mark_default (Utils.Marked.mark pos TAny) ))
+         (Var.translate A.handle_default)
+         (Expr.with_ty mark_default (Utils.Marked.mark pos TAny)))
       [
         Expr.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just);
@@ -53,9 +53,9 @@ let rec translate_default
   in
   exceptions
 
-and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr Bindlib.box =
+and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
   match Marked.unmark e with
-  | EVar v -> Expr.make_var (Var.Map.find v ctx, Marked.get_mark e)
+  | EVar v -> Expr.make_var (Var.Map.find v ctx) (Marked.get_mark e)
   | ETuple (args, s) ->
     Expr.etuple (List.map (translate_expr ctx) args) s (Marked.get_mark e)
   | ETupleAccess (e1, i, s, ts) ->
@@ -71,8 +71,8 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr Bindlib.box =
   | ELit
       ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
       l) ->
-    Bindlib.box (Marked.same_mark_as (ELit l) e)
-  | ELit LEmptyError -> Bindlib.box (Marked.same_mark_as (ERaise EmptyError) e)
+    Expr.elit l (Marked.get_mark e)
+  | ELit LEmptyError -> Expr.eraise EmptyError (Marked.get_mark e)
   | EOp op -> Expr.eop op (Marked.get_mark e)
   | EIfThenElse (e1, e2, e3) ->
     Expr.eifthenelse (translate_expr ctx e1) (translate_expr ctx e2)
@@ -80,7 +80,7 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr Bindlib.box =
   | EAssert e1 -> Expr.eassert (translate_expr ctx e1) (Marked.get_mark e)
   | ErrorOnEmpty arg ->
     Expr.ecatch (translate_expr ctx arg) EmptyError
-      (Bindlib.box (Marked.same_mark_as (ERaise NoValueProvided) e))
+      (Expr.eraise NoValueProvided (Marked.get_mark e))
       (Marked.get_mark e)
   | EApp (e1, args) ->
     Expr.eapp (translate_expr ctx e1)
@@ -97,14 +97,12 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr Bindlib.box =
     in
     let lc_vars = Array.of_list lc_vars in
     let new_body = translate_expr ctx body in
-    let new_binder = Bindlib.bind_mvar lc_vars new_body in
-    Bindlib.box_apply
-      (fun new_binder -> Marked.same_mark_as (EAbs (new_binder, ts)) e)
-      new_binder
+    let new_binder = Expr.bind lc_vars new_body in
+    Expr.eabs new_binder ts (Marked.get_mark e)
   | EDefault ([exn], just, cons) when !Cli.optimize_flag ->
     Expr.ecatch (translate_expr ctx exn) EmptyError
       (Expr.eifthenelse (translate_expr ctx just) (translate_expr ctx cons)
-         (Bindlib.box (Marked.same_mark_as (ERaise EmptyError) e))
+         (Expr.eraise EmptyError (Marked.get_mark e))
          (Marked.get_mark e))
       (Marked.get_mark e)
   | EDefault (exceptions, just, cons) ->
@@ -116,7 +114,8 @@ let rec translate_scope_lets
     (scope_lets : 'm D.expr scope_body_expr) :
     'm A.expr scope_body_expr Bindlib.box =
   match scope_lets with
-  | Result e -> Bindlib.box_apply (fun e -> Result e) (translate_expr ctx e)
+  | Result e ->
+    Bindlib.box_apply (fun e -> Result e) (Expr.Box.inj (translate_expr ctx e))
   | ScopeLet scope_let ->
     let old_scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
@@ -136,7 +135,8 @@ let rec translate_scope_lets
             scope_let_next = new_scope_next;
             scope_let_expr = new_scope_let_expr;
           })
-      new_scope_next new_scope_let_expr
+      new_scope_next
+      (Expr.Box.inj new_scope_let_expr)
 
 let rec translate_scopes
     (decl_ctx : decl_ctx)

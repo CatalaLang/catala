@@ -33,7 +33,7 @@ val expr :
   ?env:'e Env.t ->
   ?typ:typ ->
   (('a, 'm mark) gexpr as 'e) ->
-  ('a, typed mark) gexpr box
+  ('a, typed mark) boxed_gexpr
 (** Infers and marks the types for the given expression. If [typ] is provided,
     it is assumed to be the outer type and used for inference top-down.
 

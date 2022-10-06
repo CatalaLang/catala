@@ -33,23 +33,20 @@ val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : (EnumConstructor.t * typ) list
-val make_none : 'm mark -> 'm expr Bindlib.box
-val make_some : 'm expr Bindlib.box -> 'm expr Bindlib.box
+val make_none : 'm mark -> 'm expr boxed
+val make_some : 'm expr boxed -> 'm expr boxed
 
 val make_matchopt_with_abs_arms :
-  'm expr Bindlib.box ->
-  'm expr Bindlib.box ->
-  'm expr Bindlib.box ->
-  'm expr Bindlib.box
+  'm expr boxed -> 'm expr boxed -> 'm expr boxed -> 'm expr boxed
 
 val make_matchopt :
   Utils.Pos.t ->
   'm expr Var.t ->
   typ ->
-  'm expr Bindlib.box ->
-  'm expr Bindlib.box ->
-  'm expr Bindlib.box ->
-  'm expr Bindlib.box
+  'm expr boxed ->
+  'm expr boxed ->
+  'm expr boxed ->
+  'm expr boxed
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 

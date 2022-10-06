@@ -20,17 +20,17 @@ open Definitions
 (** {2 Transformations} *)
 
 val map_exprs :
-  f:('expr1 -> 'expr2 box) ->
+  f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 program ->
-  'expr2 program box
+  'expr2 program Bindlib.box
 
 val untype :
   (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
   ('a, untyped mark) gexpr program
 
 val to_expr :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e box
+  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)

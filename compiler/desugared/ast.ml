@@ -112,8 +112,8 @@ type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
 
 type rule = {
   rule_id : RuleName.t;
-  rule_just : expr Bindlib.box;
-  rule_cons : expr Bindlib.box;
+  rule_just : expr boxed;
+  rule_cons : expr boxed;
   rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
@@ -127,25 +127,25 @@ module Rule = struct
   let compare r1 r2 =
     match r1.rule_parameter, r2.rule_parameter with
     | None, None -> (
-      let j1 = Bindlib.unbox r1.rule_just in
-      let j2 = Bindlib.unbox r2.rule_just in
+      let j1 = Expr.unbox r1.rule_just in
+      let j2 = Expr.unbox r2.rule_just in
       match Expr.compare j1 j2 with
       | 0 ->
-        let c1 = Bindlib.unbox r1.rule_cons in
-        let c2 = Bindlib.unbox r2.rule_cons in
+        let c1 = Expr.unbox r1.rule_cons in
+        let c2 = Expr.unbox r2.rule_cons in
         Expr.compare c1 c2
       | n -> n)
     | Some (v1, t1), Some (v2, t2) -> (
       match Shared_ast.Expr.compare_typ t1 t2 with
       | 0 -> (
         let open Bindlib in
-        let b1 = unbox (bind_var v1 r1.rule_just) in
-        let b2 = unbox (bind_var v2 r2.rule_just) in
+        let b1 = unbox (bind_var v1 (Expr.Box.inj r1.rule_just)) in
+        let b2 = unbox (bind_var v2 (Expr.Box.inj r2.rule_just)) in
         let _, j1, j2 = unbind2 b1 b2 in
         match Expr.compare j1 j2 with
         | 0 ->
-          let b1 = unbox (bind_var v1 r1.rule_cons) in
-          let b2 = unbox (bind_var v2 r2.rule_cons) in
+          let b1 = unbox (bind_var v1 (Expr.Box.inj r1.rule_cons)) in
+          let b2 = unbox (bind_var v2 (Expr.Box.inj r2.rule_cons)) in
           let _, c1, c2 = unbind2 b1 b2 in
           Expr.compare c1 c2
         | n -> n)
@@ -156,8 +156,8 @@ end
 
 let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
-    rule_just = Bindlib.box (ELit (LBool false), Untyped { pos });
-    rule_cons = Bindlib.box (ELit LEmptyError, Untyped { pos });
+    rule_just = Expr.box (ELit (LBool false), Untyped { pos });
+    rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
     rule_parameter =
       (match have_parameter with
       | Some typ -> Some (Var.make "dummy", typ)
@@ -169,8 +169,8 @@ let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
 
 let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
   {
-    rule_just = Bindlib.box (ELit (LBool true), Untyped { pos });
-    rule_cons = Bindlib.box (ELit (LBool false), Untyped { pos });
+    rule_just = Expr.box (ELit (LBool true), Untyped { pos });
+    rule_cons = Expr.box (ELit (LBool false), Untyped { pos });
     rule_parameter =
       (match have_parameter with
       | Some typ -> Some (Var.make "dummy", typ)
@@ -180,7 +180,7 @@ let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
     rule_label = Unlabeled;
   }
 
-type assertion = expr Bindlib.box
+type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 
@@ -263,8 +263,8 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
     (fun _ rule acc ->
       let locs =
         LocationSet.union
-          (locations_used (Bindlib.unbox rule.rule_just))
-          (locations_used (Bindlib.unbox rule.rule_cons))
+          (locations_used (Expr.unbox rule.rule_just))
+          (locations_used (Expr.unbox rule.rule_cons))
       in
       add_locs acc locs)
     def ScopeDefMap.empty
