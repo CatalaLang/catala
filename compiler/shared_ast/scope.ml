@@ -114,7 +114,7 @@ let get_body_mark scope_body =
 
 let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) =
   match scope_let with
-  | Result e -> Expr.box e
+  | Result e -> Expr.rebox e
   | ScopeLet
       {
         scope_let_kind = _;
@@ -124,7 +124,8 @@ let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) =
         scope_let_pos;
       } ->
     let var, next = Bindlib.unbind scope_let_next in
-    Expr.make_let_in var scope_let_typ (Expr.box scope_let_expr)
+    Expr.make_let_in var scope_let_typ
+      (Expr.rebox scope_let_expr)
       (unfold_body_expr ctx next)
       scope_let_pos
 
