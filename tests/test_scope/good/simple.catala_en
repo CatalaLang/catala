@@ -11,10 +11,10 @@ scope Foo:
 ```catala-test-inline
 $ catala Lcalc -s Foo
 let Foo =
-  λ (Foo_in_27: Foo_in{}) →
-    let bar_28 : integer =
+  λ (Foo_in_28: Foo_in{}) →
+    let bar_29 : integer =
       try
-        handle_default_0 [] (λ (__29: any) → true) (λ (__30: any) → 0)
-        with EmptyError -> raise NoValueProvided in
-    Foo_out {"bar_out"= bar_28}
+        handle_default_0 [] (λ (__30: unit) → true)
+          (λ (__31: unit) → 0) with EmptyError -> raise NoValueProvided in
+    Foo_out {"bar_out"= bar_29}
 ```

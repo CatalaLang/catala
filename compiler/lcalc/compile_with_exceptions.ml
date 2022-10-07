@@ -23,10 +23,11 @@ type 'm ctx = ('m D.expr, 'm A.expr Var.t) Var.Map.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
-let thunk_expr (e : 'm A.expr Bindlib.box) (mark : 'm mark) :
-    'm A.expr Bindlib.box =
+let thunk_expr (type m) (e : m A.expr Bindlib.box) : m A.expr Bindlib.box =
   let dummy_var = Var.make "_" in
-  Expr.make_abs [| dummy_var |] e [TAny, Expr.mark_pos mark] mark
+  let pos = Expr.pos (Bindlib.unbox e) in
+  let arg_t = Marked.mark pos (TLit TUnit) in
+  Expr.make_abs [| dummy_var |] e [arg_t] pos
 
 let rec translate_default
     (ctx : 'm ctx)
@@ -35,19 +36,20 @@ let rec translate_default
     (cons : 'm D.expr)
     (mark_default : 'm mark) : 'm A.expr Bindlib.box =
   let exceptions =
-    List.map
-      (fun except -> thunk_expr (translate_expr ctx except) mark_default)
-      exceptions
+    List.map (fun except -> thunk_expr (translate_expr ctx except)) exceptions
   in
+  let pos = Expr.mark_pos mark_default in
   let exceptions =
     Expr.make_app
-      (Expr.make_var (Var.translate A.handle_default, mark_default))
+      (Expr.make_var
+         ( Var.translate A.handle_default,
+           Expr.with_ty mark_default (Utils.Marked.mark pos TAny) ))
       [
         Expr.earray exceptions mark_default;
-        thunk_expr (translate_expr ctx just) mark_default;
-        thunk_expr (translate_expr ctx cons) mark_default;
+        thunk_expr (translate_expr ctx just);
+        thunk_expr (translate_expr ctx cons);
       ]
-      mark_default
+      pos
   in
   exceptions
 

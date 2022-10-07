@@ -16,14 +16,6 @@
 
 open Utils
 open Shared_ast
-module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
-
-module SubScopeNameSet : Set.S with type elt = SubScopeName.t =
-  Set.Make (SubScopeName)
-
-module SubScopeMap : Map.S with type key = SubScopeName.t =
-  Map.Make (SubScopeName)
-
 module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
 module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 
@@ -36,15 +28,9 @@ Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type expr = (scopelang, untyped mark) gexpr
+type 'm expr = (scopelang, 'm mark) gexpr
 
-module ExprMap = Map.Make (struct
-  type t = expr
-
-  let compare = Expr.compare
-end)
-
-let rec locations_used (e : expr) : LocationSet.t =
+let rec locations_used (e : 'm expr) : LocationSet.t =
   match Marked.unmark e with
   | ELocation l -> LocationSet.singleton (l, Expr.pos e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
@@ -82,18 +68,63 @@ let rec locations_used (e : expr) : LocationSet.t =
 type io_input = NoInput | OnlyInput | Reentrant
 type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
 
-type rule =
-  | Definition of location Marked.pos * typ * io * expr
-  | Assertion of expr
-  | Call of ScopeName.t * SubScopeName.t
+type 'm rule =
+  | Definition of location Marked.pos * typ * io * 'm expr
+  | Assertion of 'm expr
+  | Call of ScopeName.t * SubScopeName.t * 'm mark
 
-type scope_decl = {
+type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
   scope_sig : (typ * io) ScopeVarMap.t;
-  scope_decl_rules : rule list;
+  scope_decl_rules : 'm rule list;
+  scope_mark : 'm mark;
 }
 
-type program = {
-  program_scopes : scope_decl ScopeMap.t;
+type 'm program = {
+  program_scopes : 'm scope_decl ScopeMap.t;
   program_ctx : decl_ctx;
 }
+
+let type_rule decl_ctx env = function
+  | Definition (loc, typ, io, expr) ->
+    let expr' = Typing.expr decl_ctx ~env ~typ expr in
+    Definition (loc, typ, io, Bindlib.unbox expr')
+  | Assertion expr ->
+    let typ = Marked.mark (Expr.pos expr) (TLit TBool) in
+    let expr' = Typing.expr decl_ctx ~env ~typ expr in
+    Assertion (Bindlib.unbox expr')
+  | Call (sc_name, ssc_name, m) ->
+    let pos = Expr.mark_pos m in
+    Call (sc_name, ssc_name, Typed { pos; ty = Marked.mark pos TAny })
+
+let type_program (prg : 'm program) : typed program =
+  let typing_env =
+    ScopeMap.fold
+      (fun scope_name scope_decl ->
+        Typing.Env.add_scope scope_name
+          (ScopeVarMap.map fst scope_decl.scope_sig))
+      prg.program_scopes Typing.Env.empty
+  in
+  let program_scopes =
+    ScopeMap.map
+      (fun scope_decl ->
+        let typing_env =
+          ScopeVarMap.fold
+            (fun svar (typ, _) env -> Typing.Env.add_scope_var svar typ env)
+            scope_decl.scope_sig typing_env
+        in
+        let scope_decl_rules =
+          List.map
+            (type_rule prg.program_ctx typing_env)
+            scope_decl.scope_decl_rules
+        in
+        let scope_mark =
+          let pos =
+            Marked.get_mark (ScopeName.get_info scope_decl.scope_decl_name)
+          in
+          Typed { pos; ty = Marked.mark pos TAny }
+        in
+        { scope_decl with scope_decl_rules; scope_mark })
+      prg.program_scopes
+  in
+  { prg with program_scopes }

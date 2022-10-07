@@ -43,7 +43,7 @@ val make_matchopt_with_abs_arms :
   'm expr Bindlib.box
 
 val make_matchopt :
-  'm mark ->
+  Utils.Pos.t ->
   'm expr Var.t ->
   typ ->
   'm expr Bindlib.box ->

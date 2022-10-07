@@ -162,7 +162,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) :
           (Array.concat [Array.make 1 inner_c_var; vars])
           new_closure_body
           ((TAny, binder_pos) :: typs)
-          (Marked.get_mark e)
+          (Expr.pos e)
       in
       ( Expr.make_let_in code_var
           (TAny, Expr.pos e)

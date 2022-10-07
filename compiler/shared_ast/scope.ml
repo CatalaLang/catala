@@ -92,9 +92,19 @@ let map_exprs ~f ~varf scopes =
         new_body_expr new_next)
     ~init:(Bindlib.box Nil) scopes
 
+(* TODO: compute the expected body expr arrow type manually instead of [TAny]
+   for double-checking types ? *)
+let rec get_body_expr_mark = function
+  | ScopeLet sl ->
+    let _, e = Bindlib.unbind sl.scope_let_next in
+    get_body_expr_mark e
+  | Result e ->
+    let m = Marked.get_mark e in
+    Expr.with_ty m (Utils.Marked.mark (Expr.mark_pos m) TAny)
+
 let get_body_mark scope_body =
-  match snd (Bindlib.unbind scope_body.scope_body_expr) with
-  | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
+  let _, e = Bindlib.unbind scope_body.scope_body_expr in
+  get_body_expr_mark e
 
 let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
     'e box =
@@ -130,7 +140,7 @@ let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr
     [TStruct body.scope_body_input_struct, Expr.mark_pos mark_scope]
-    mark_scope
+    (Expr.mark_pos mark_scope)
 
 let format
     ?(debug : bool = false)

@@ -171,18 +171,21 @@ let driver source_file (options : Cli.options) : int =
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.scope prgm.program_ctx ~debug:options.debug)
-            ( scope_uid,
-              Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
+            (scope_uid, Shared_ast.ScopeMap.find scope_uid prgm.program_scopes)
         else
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
             prgm
       | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
         | `Proof | `Plugin _ ) as backend -> (
-        Cli.debug_print "Translating to default calculus...";
-        let prgm, type_ordering =
-          Scopelang.Scope_to_dcalc.translate_program prgm
+        Cli.debug_print "Typechecking...";
+        let type_ordering =
+          Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
+            prgm.program_ctx.ctx_enums
         in
+        let prgm = Scopelang.Ast.type_program prgm in
+        Cli.debug_print "Translating to default calculus...";
+        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm in
         let prgm =
           if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";
@@ -191,6 +194,9 @@ let driver source_file (options : Cli.options) : int =
           else prgm
         in
         match backend with
+        | `Typecheck ->
+          (* That's it! *)
+          Cli.result_print "Typechecking successful!"
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
           with_output
@@ -216,16 +222,22 @@ let driver source_file (options : Cli.options) : int =
             Format.fprintf fmt "%a\n"
               (Shared_ast.Expr.format prgm.decl_ctx)
               prgrm_dcalc_expr
-        | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc
-          | `Proof | `Plugin _ ) as backend -> (
-          Cli.debug_print "Typechecking...";
-          let prgm = Dcalc.Typing.infer_types_program prgm in
+        | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
+          as backend -> (
+          Cli.debug_print "Typechecking again...";
+          let prgm =
+            try Shared_ast.Typing.program prgm
+            with Errors.StructuredError (msg, details) ->
+              let msg =
+                "Typing error occured during re-typing on the 'default \
+                 calculus'. This is a bug in the Catala compiler.\n"
+                ^ msg
+              in
+              raise (Errors.StructuredError (msg, details))
+          in
           (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
              (Print.typ prgm.decl_ctx) typ); *)
           match backend with
-          | `Typecheck ->
-            (* That's it! *)
-            Cli.result_print "Typechecking successful!"
           | `Proof ->
             let vcs =
               Verification.Conditions.generate_verification_conditions prgm

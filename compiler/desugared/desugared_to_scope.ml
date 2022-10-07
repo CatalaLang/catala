@@ -27,18 +27,18 @@ type target_scope_vars =
 
 type ctx = {
   scope_var_mapping : target_scope_vars ScopeVarMap.t;
-  var_mapping : (Ast.expr, Scopelang.Ast.expr Var.t) Var.Map.t;
+  var_mapping : (Ast.expr, untyped Scopelang.Ast.expr Var.t) Var.Map.t;
 }
 
 let tag_with_log_entry
-    (e : Scopelang.Ast.expr)
+    (e : untyped Scopelang.Ast.expr)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) : Scopelang.Ast.expr =
+    (markings : Utils.Uid.MarkedString.info list) : untyped Scopelang.Ast.expr =
   ( EApp ((EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
     Marked.get_mark e )
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr) :
-    Scopelang.Ast.expr Bindlib.box =
+    untyped Scopelang.Ast.expr Bindlib.box =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
@@ -186,7 +186,7 @@ let rec rule_tree_to_expr
     (ctx : ctx)
     (def_pos : Pos.t)
     (is_func : Ast.expr Var.t option)
-    (tree : rule_tree) : Scopelang.Ast.expr Bindlib.box =
+    (tree : rule_tree) : untyped Scopelang.Ast.expr Bindlib.box =
   let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
@@ -236,7 +236,7 @@ let rec rule_tree_to_expr
       base_rules
   in
   let translate_and_unbox_list (list : Ast.expr Bindlib.box list) :
-      Scopelang.Ast.expr Bindlib.box list =
+      untyped Scopelang.Ast.expr Bindlib.box list =
     List.map
       (fun e ->
         (* There are two levels of boxing here, the outermost is introduced by
@@ -283,12 +283,13 @@ let rec rule_tree_to_expr
          that the result returned by the function is not empty *)
       let default =
         Bindlib.box_apply
-          (fun (default : Scopelang.Ast.expr) -> ErrorOnEmpty default, emark)
+          (fun (default : untyped Scopelang.Ast.expr) ->
+            ErrorOnEmpty default, emark)
           default
       in
       Expr.make_abs
         [| Var.Map.find new_param ctx.var_mapping |]
-        default [typ] emark
+        default [typ] def_pos
     else default
   | _ -> (* should not happen *) assert false
 
@@ -303,7 +304,7 @@ let translate_def
     (typ : typ)
     (io : Scopelang.Ast.io)
     ~(is_cond : bool)
-    ~(is_subscope_var : bool) : Scopelang.Ast.expr =
+    ~(is_subscope_var : bool) : untyped Scopelang.Ast.expr =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func =
     match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
@@ -411,7 +412,8 @@ let translate_def
                [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ] )))
 
 (** Translates a scope *)
-let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
+let translate_scope (ctx : ctx) (scope : Ast.scope) :
+    untyped Scopelang.Ast.scope_decl =
   let scope_dependencies = Dependency.build_scope_dependencies scope in
   Dependency.check_for_cycle scope scope_dependencies;
   let scope_ordering =
@@ -475,8 +477,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
              (* Before calling the sub_scope, we need to include all the
                 re-definitions of subscope parameters*)
              let sub_scope =
-               Scopelang.Ast.SubScopeMap.find sub_scope_index
-                 scope.scope_sub_scopes
+               SubScopeMap.find sub_scope_index scope.scope_sub_scopes
              in
              let sub_scope_vars_redefs_candidates =
                Ast.ScopeDefMap.filter
@@ -547,8 +548,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          ~is_subscope_var:true
                      in
                      let subscop_real_name =
-                       Scopelang.Ast.SubScopeMap.find sub_scope_index
-                         scope.scope_sub_scopes
+                       SubScopeMap.find sub_scope_index scope.scope_sub_scopes
                      in
                      let var_pos = Ast.ScopeDef.get_position def_key in
                      Scopelang.Ast.Definition
@@ -575,7 +575,17 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                List.map snd (Ast.ScopeDefMap.bindings sub_scope_vars_redefs)
              in
              sub_scope_vars_redefs
-             @ [Scopelang.Ast.Call (sub_scope, sub_scope_index)])
+             @ [
+                 Scopelang.Ast.Call
+                   ( sub_scope,
+                     sub_scope_index,
+                     Untyped
+                       {
+                         pos =
+                           Marked.get_mark
+                             (SubScopeName.get_info sub_scope_index);
+                       } );
+               ])
          scope_ordering)
   in
   (* Then, after having computed all the scopes variables, we add the
@@ -627,20 +637,22 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
             acc states)
       scope.scope_vars ScopeVarMap.empty
   in
+  let pos = Marked.get_mark (ScopeName.get_info scope.scope_uid) in
   {
     Scopelang.Ast.scope_decl_name = scope.scope_uid;
     Scopelang.Ast.scope_decl_rules;
     Scopelang.Ast.scope_sig;
+    Scopelang.Ast.scope_mark = Untyped { pos };
   }
 
 (** {1 API} *)
 
-let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
+let translate_program (pgrm : Ast.program) : untyped Scopelang.Ast.program =
   (* First we give mappings to all the locations between Desugared and
      Scopelang. This involves creating a new Scopelang scope variable for every
      state of a Desugared variable. *)
   let ctx =
-    Scopelang.Ast.ScopeMap.fold
+    ScopeMap.fold
       (fun _scope scope_decl ctx ->
         ScopeVarMap.fold
           (fun scope_var (states : Ast.var_or_states) ctx ->
@@ -679,6 +691,6 @@ let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
   in
   {
     Scopelang.Ast.program_scopes =
-      Scopelang.Ast.ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
+      ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
     Scopelang.Ast.program_ctx = pgrm.program_ctx;
   }

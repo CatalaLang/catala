@@ -155,7 +155,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
       scope.scope_vars g
   in
   let g =
-    Scopelang.Ast.SubScopeMap.fold
+    SubScopeMap.fold
       (fun (v : SubScopeName.t) _ g ->
         ScopeDependencies.add_vertex g (Vertex.SubScope v))
       scope.scope_sub_scopes g

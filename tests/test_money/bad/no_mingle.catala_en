@@ -15,21 +15,14 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [ERROR] Error during typechecking, incompatible types:
---> decimal
 --> money
+--> decimal
 
 Error coming from typechecking the following expression:
   --> tests/test_money/bad/no_mingle.catala_en
    |
 12 |   definition z equals (x *$ y)
-   |                        ^^^^^^
-   + Article
-
-Type decimal coming from expression:
-  --> tests/test_money/bad/no_mingle.catala_en
-   |
-12 |   definition z equals (x *$ y)
-   |                          ^^
+   |                             ^
    + Article
 
 Type money coming from expression:
@@ -38,5 +31,12 @@ Type money coming from expression:
 6 |   context y content money
   |                     ^^^^^
   + Article
+
+Type decimal coming from expression:
+  --> tests/test_money/bad/no_mingle.catala_en
+   |
+12 |   definition z equals (x *$ y)
+   |                          ^^
+   + Article
 #return code 255#
 ```

@@ -48,14 +48,14 @@ let scope_a (scope_a_in: ScopeAIn.t) : ScopeAOut.t =
       (handle_default
          {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
            start_line=5; start_column=18; end_line=5; end_column=19;
-           law_headings=["Article"]} ([|(fun (_: _) -> a_ ())|])
-         (fun (_: _) -> true)
-         (fun (_: _) ->
+           law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
+         (fun (_: unit) -> true)
+         (fun (_: unit) ->
             handle_default
               {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
                 start_line=5; start_column=18; end_line=5; end_column=19;
-                law_headings=["Article"]} ([||]) (fun (_: _) -> true)
-              (fun (_: _) -> true)))
+                law_headings=["Article"]} ([||]) (fun (_: unit) -> true)
+              (fun (_: unit) -> true)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
@@ -73,14 +73,14 @@ let scope_b (scope_b_in: ScopeBIn.t) : ScopeBOut.t =
       (handle_default
          {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
            start_line=8; start_column=11; end_line=8; end_column=12;
-           law_headings=["Article"]} ([|(fun (_: _) -> a_ ())|])
-         (fun (_: _) -> true)
-         (fun (_: _) ->
+           law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
+         (fun (_: unit) -> true)
+         (fun (_: unit) ->
             handle_default
               {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
                 start_line=8; start_column=11; end_line=8; end_column=12;
-                law_headings=["Article"]} ([||]) (fun (_: _) -> true)
-              (fun (_: _) -> scope_a_dot_a_)))
+                law_headings=["Article"]} ([||]) (fun (_: unit) -> true)
+              (fun (_: unit) -> scope_a_dot_a_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";

@@ -125,7 +125,7 @@ let rec translate_expr
     (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (expr : Ast.expression Marked.pos) : Desugared.Ast.expr Bindlib.box =
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   let pos = Marked.get_mark expr in
   let emark = Untyped { pos } in
@@ -148,13 +148,13 @@ let rec translate_expr
             Bindlib.unbox
               (Expr.make_abs [| nop_var |]
                  (Bindlib.box (ELit (LBool false), emark))
-                 [tau] emark)
+                 [tau] pos)
           else
             let ctxt, binding_var =
               Name_resolution.add_def_local_var ctxt (Marked.unmark binding)
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
-            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] emark))
+            Bindlib.unbox (Expr.make_abs [| binding_var |] e2 [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
@@ -284,7 +284,7 @@ let rec translate_expr
         Name_resolution.get_subscope_uid scope ctxt (Marked.same_mark_as y e)
       in
       let subscope_real_uid : ScopeName.t =
-        Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
+        SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
       in
       let subscope_var_uid =
         Name_resolution.get_var_uid subscope_real_uid ctxt x
@@ -344,7 +344,7 @@ let rec translate_expr
     let fn =
       Expr.make_abs [| v |]
         (translate_expr scope inside_definition_of ctxt e2)
-        [tau] emark
+        [tau] pos
     in
     Bindlib.box_apply2
       (fun fn arg -> EApp (fn, [arg]), emark)
@@ -491,7 +491,7 @@ let rec translate_expr
                (Bindlib.box
                   ( ELit (LBool (EnumConstructor.compare c_uid c_uid' = 0)),
                     emark ))
-               [tau] emark))
+               [tau] pos))
         (EnumMap.find enum_uid ctxt.enums)
     in
     Bindlib.box_apply
@@ -514,7 +514,7 @@ let rec translate_expr
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
-        emark
+        pos
     in
     Bindlib.box_apply2
       (fun f_pred collection ->
@@ -557,7 +557,7 @@ let rec translate_expr
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
-        emark
+        pos
     in
     let f_pred_var = Var.make "predicate" in
     let f_pred_var_e =
@@ -586,9 +586,7 @@ let rec translate_expr
         acc_var_e item_var_e f_pred_var_e
     in
     let fold_f =
-      Expr.make_abs [| acc_var; item_var |] fold_body
-        [TAny, pos; TAny, pos]
-        emark
+      Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
     in
     let fold =
       Bindlib.box_apply3
@@ -680,7 +678,7 @@ let rec translate_expr
           | Ast.Date -> KDate, (TLit TDate, pos)
           | _ ->
             Errors.raise_spanned_error pos
-              "ssible to compute the %s of two values of type %a"
+              "It is impossible to compute the %s of two values of type %a"
               (if max_or_min then "max" else "min")
               SurfacePrint.format_primitive_typ t
         in
@@ -995,9 +993,9 @@ let process_def
     (prgm : Desugared.Ast.program)
     (def : Ast.definition) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope =
-    Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes
+    ScopeMap.find scope_uid prgm.program_scopes
   in
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let scope_ctxt = ScopeMap.find scope_uid ctxt.scopes in
   let def_key =
     Name_resolution.get_def_key
       (Marked.unmark def.definition_name)
@@ -1072,8 +1070,7 @@ let process_def
   in
   {
     prgm with
-    program_scopes =
-      Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm.program_scopes;
+    program_scopes = ScopeMap.add scope_uid scope_updated prgm.program_scopes;
   }
 
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
@@ -1094,7 +1091,7 @@ let process_assert
     (prgm : Desugared.Ast.program)
     (ass : Ast.assertion) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope =
-    Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes
+    ScopeMap.find scope_uid prgm.program_scopes
   in
   let ass =
     translate_expr scope_uid None ctxt
@@ -1123,8 +1120,7 @@ let process_assert
   in
   {
     prgm with
-    program_scopes =
-      Scopelang.Ast.ScopeMap.add scope_uid new_scope prgm.program_scopes;
+    program_scopes = ScopeMap.add scope_uid new_scope prgm.program_scopes;
   }
 
 (** Translates a surface definition, rule or assertion *)
@@ -1149,7 +1145,7 @@ let check_unlabeled_exception
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
     (item : Ast.scope_use_item Marked.pos) : unit =
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   match Marked.unmark item with
   | Ast.Rule _ | Ast.Definition _ -> (
     let def_key, exception_to =
@@ -1199,7 +1195,7 @@ let process_scope_use
   let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
   (* Make sure the scope exists *)
   let prgm =
-    match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm.program_scopes with
+    match ScopeMap.find_opt scope_uid prgm.program_scopes with
     | Some _ -> prgm
     | None -> assert false
     (* should not happen *)
@@ -1236,7 +1232,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
             EnumMap.map EnumConstructorMap.bindings ctxt.Name_resolution.enums;
         };
       Desugared.Ast.program_scopes =
-        Scopelang.Ast.ScopeMap.mapi
+        ScopeMap.mapi
           (fun s_uid s_context ->
             {
               Desugared.Ast.scope_vars =
@@ -1322,7 +1318,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                      Desugared.Ast.ScopeDefMap.empty
                  in
                  let scope_and_subscope_vars_defs =
-                   Scopelang.Ast.SubScopeMap.fold
+                   SubScopeMap.fold
                      (fun subscope_name subscope_uid acc ->
                        Desugared.Ast.IdentMap.fold
                          (fun _ v acc ->
@@ -1346,8 +1342,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                                  attribute_to_io v_sig.var_sig_io;
                              }
                              acc)
-                         (Scopelang.Ast.ScopeMap.find subscope_uid
-                            ctxt.Name_resolution.scopes)
+                         (ScopeMap.find subscope_uid ctxt.Name_resolution.scopes)
                            .Name_resolution.var_idmap acc)
                      s_context.sub_scopes scope_vars_defs
                  in
