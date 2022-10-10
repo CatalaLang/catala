@@ -208,40 +208,16 @@ type scope = {
 
 type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
 
-let rec locations_used (e : expr) : LocationSet.t =
-  match Marked.unmark e with
-  | ELocation l -> LocationSet.singleton (l, Expr.pos e)
-  | EVar _ | ELit _ | EOp _ -> LocationSet.empty
-  | EAbs (binder, _) ->
+let rec locations_used e : LocationSet.t =
+  match e with
+  | ELocation l, m -> LocationSet.singleton (l, Expr.mark_pos m)
+  | EAbs (binder, _), _ ->
     let _, body = Bindlib.unmbind binder in
     locations_used body
-  | EStruct (_, es) ->
-    StructFieldMap.fold
-      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-      es LocationSet.empty
-  | EStructAccess (e1, _, _) -> locations_used e1
-  | EEnumInj (e1, _, _) -> locations_used e1
-  | EMatchS (e1, _, es) ->
-    EnumConstructorMap.fold
-      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-      es (locations_used e1)
-  | EApp (e1, args) ->
-    List.fold_left
-      (fun acc arg -> LocationSet.union (locations_used arg) acc)
-      (locations_used e1) args
-  | EIfThenElse (e1, e2, e3) ->
-    LocationSet.union (locations_used e1)
-      (LocationSet.union (locations_used e2) (locations_used e3))
-  | EDefault (excepts, just, cons) ->
-    List.fold_left
-      (fun acc except -> LocationSet.union (locations_used except) acc)
-      (LocationSet.union (locations_used just) (locations_used cons))
-      excepts
-  | EArray es ->
-    List.fold_left
-      (fun acc e' -> LocationSet.union acc (locations_used e'))
-      LocationSet.empty es
-  | ErrorOnEmpty e' -> locations_used e'
+  | e ->
+    Expr.shallow_fold
+      (fun e -> LocationSet.union (locations_used e))
+      e LocationSet.empty
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
   let add_locs (acc : Pos.t ScopeDefMap.t) (locs : LocationSet.t) :

@@ -221,6 +221,12 @@ val map_top_down :
 
 val map_marks : f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) boxed_gexpr
 
+val shallow_fold :
+  (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
+(** Applies a function on all sub-terms of the given expression. Does not
+    recurse, and doesn't open binders. Useful as helper for recursive calls
+    within traversal functions *)
+
 (** {2 Expression building helpers} *)
 
 val make_var : ('a, 't) gexpr Var.t -> 't -> ('a, 't) boxed_gexpr

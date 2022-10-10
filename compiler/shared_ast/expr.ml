@@ -231,6 +231,34 @@ let rec map_top_down ~f e = map () ~f:(fun () -> map_top_down ~f) (f e)
 let map_marks ~f e =
   map_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
 
+(* Folds the given function on the direct children of the given expression. Does
+   not open binders. *)
+let shallow_fold
+    (type a)
+    (f : (a, 'm) gexpr -> 'acc -> 'acc)
+    (e : (a, 'm) gexpr)
+    (acc : 'acc) : 'acc =
+  let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
+  match Marked.unmark e with
+  | ELit _ | EOp _ | EVar _ | ERaise _ | ELocation _ -> acc
+  | EApp (e1, args) -> acc |> f e1 |> lfold args
+  | EArray args -> acc |> lfold args
+  | EAbs _ -> acc
+  | EIfThenElse (e1, e2, e3) -> acc |> f e1 |> f e2 |> f e3
+  | ETuple (args, _) -> acc |> lfold args
+  | ETupleAccess (e1, _, _, _) -> acc |> f e1
+  | EInj (e1, _, _, _) -> acc |> f e1
+  | EMatch (arg, arms, _) -> acc |> f arg |> lfold arms
+  | EAssert e1 -> acc |> f e1
+  | EDefault (excepts, just, cons) -> acc |> lfold excepts |> f just |> f cons
+  | ErrorOnEmpty e1 -> acc |> f e1
+  | ECatch (e1, _, e2) -> acc |> f e1 |> f e2
+  | EStruct (_, fields) -> acc |> StructFieldMap.fold (fun _ -> f) fields
+  | EStructAccess (e1, _, _) -> acc |> f e1
+  | EEnumInj (e1, _, _) -> acc |> f e1
+  | EMatchS (e1, _, cases) ->
+    acc |> f e1 |> EnumConstructorMap.fold (fun _ -> f) cases
+
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
@@ -661,45 +689,12 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
 
-let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t =
- fun e ->
-  match Marked.unmark e with
-  | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
-  | EVar v -> Var.Set.singleton v
-  | ETuple (es, _) ->
-    es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | EArray es ->
-    es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | ETupleAccess (e1, _, _, _) -> free_vars e1
-  | EAssert e1 -> free_vars e1
-  | EInj (e1, _, _, _) -> free_vars e1
-  | ErrorOnEmpty e1 -> free_vars e1
-  | ECatch (etry, _, ewith) -> Var.Set.union (free_vars etry) (free_vars ewith)
-  | EApp (e1, es) ->
-    e1 :: es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | EMatch (e1, es, _) ->
-    e1 :: es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | EDefault (es, ejust, econs) ->
-    ejust :: econs :: es
-    |> List.map free_vars
-    |> List.fold_left Var.Set.union Var.Set.empty
-  | EIfThenElse (e1, e2, e3) ->
-    [e1; e2; e3]
-    |> List.map free_vars
-    |> List.fold_left Var.Set.union Var.Set.empty
-  | EAbs (binder, _) ->
+let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t = function
+  | EVar v, _ -> Var.Set.singleton v
+  | EAbs (binder, _), _ ->
     let vs, body = Bindlib.unmbind binder in
     Array.fold_right Var.Set.remove vs (free_vars body)
-  | ELocation _ -> Var.Set.empty
-  | EStruct (_, fields) ->
-    StructFieldMap.fold
-      (fun _ e -> Var.Set.union (free_vars e))
-      fields Var.Set.empty
-  | EStructAccess (e1, _, _) -> free_vars e1
-  | EEnumInj (e1, _, _) -> free_vars e1
-  | EMatchS (e1, _, cases) ->
-    free_vars e1
-    |> EnumConstructorMap.fold (fun _ e -> Var.Set.union (free_vars e)) cases
+  | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
 
 let remove_logging_calls e =
   let rec f () e =
