@@ -23,13 +23,13 @@ scope B:
 ```catala-test-inline
 $ catala Dcalc -s B
 let B =
-  λ (B_in_32: B_in{}) →
-    let a.a_33 : unit → integer = λ (__34: unit) → ∅  in
-    let a.b_35 : integer = error_empty ⟨true ⊢ 2⟩ in
-    let result_36 : A_out{"c_out": integer} =
-      A_17 (A_in {"a_in"= a.a_33; "b_in"= a.b_35}) in
-    let a.c_37 : integer = result_36."c_out" in
-    let __38 : unit = assert (error_empty a.c_37 = 1) in
+  λ (B_in: B_in{}) →
+    let a.a : unit → integer = λ (_: unit) → ∅  in
+    let a.b : integer = error_empty ⟨true ⊢ 2⟩ in
+    let result : A_out{"c_out": integer} =
+      A (A_in {"a_in"= a.a; "b_in"= a.b}) in
+    let a.c : integer = result."c_out" in
+    let _ : unit = assert (error_empty a.c = 1) in
     B_out {}
 ```
 
