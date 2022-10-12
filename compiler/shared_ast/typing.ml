@@ -56,8 +56,12 @@ let rec typ_to_ast (ty : unionfind_typ) : A.typ =
   | TEnum e -> A.TEnum e, pos
   | TOption t -> A.TOption (typ_to_ast t), pos
   | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
-  | TAny _ -> A.TAny, pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
+  | TAny _ ->
+    (* No polymorphism in Catala: type inference should return full types
+       without wildcards, and this function is used to recover the types after
+       typing. *)
+    assert false
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
