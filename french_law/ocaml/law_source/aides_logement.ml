@@ -15253,7 +15253,7 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
              if
               (demandeur_exerce_activite_remuneree_ &&
                  (conjoint_exerce_activite_remuneree_ &&
-                    ((ressources_conjoint_ +$ ressources_conjoint_) >=$
+                    ((ressources_demandeur_ +$ ressources_conjoint_) >=$
                        (base_mensuelle_allocations_familiales_dot_montant_ *$
                           (decimal_of_string "12."))))) then
               montant_forfaitaire_r_822_7_ else (money_of_cents_string "0")))

@@ -1,8 +1,9 @@
 #!python3
 
 from datetime import date
-from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code
-from src.api import allocations_familiales, Enfant
+from src.aides_logement import ModeOccupation_Code, Nationalite_Code, PrestationRecue_Code, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TypeBailleur_Code, ZoneDHabitation_Code
+from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code, SituationObligationScolaire
+from src.api import EnfantAPL, InfosLocation, aides_logement, allocations_familiales, Enfant
 from catala.runtime import LogEvent, LogEventCode, reset_log, retrieve_log
 import timeit
 import argparse
@@ -33,9 +34,75 @@ def call_allocations_familiales() -> float:
     )
 
 
-def benchmark_iteration():
+def call_aides_logement() -> float:
+    return aides_logement(
+        date_courante=date(2022, 5, 1),
+        ressources_menage_prises_en_compte=11_500,
+        date_naissance_demandeur=date(1992, 1, 1),
+        nationalite_demandeur=Nationalite_Code.Francaise,
+        patrimoine_produisant_revenu=0,
+        patrimoine_ne_produisant_pas_revenu=0,
+        personne_hebergee_centre_soins=False,
+        personne_rattache_foyer_fiscal_parent_ifi=False,
+        nombre_autres_occupants_logement_hors_menage=0,
+        enfant_a_naitre_apres_quatrieme_mois_grossesse=False,
+        situation_familiale=SituationFamiliale_Code.Concubins,
+        date_mariage=None,
+        prestations_recues=[],
+        residence_principale=True,
+        logement_est_maison_de_retraite=False,
+        surface_logement_m_carres=65,
+        zone=ZoneDHabitation_Code.Zone2,
+        parts_logement_propriete_famille=None,
+        parts_logement_usufruits_famille=None,
+        date_naissance_et_conformite_sous_locataire_tiers=None,
+        mode_occupation=ModeOccupation_Code.Locataire,
+        personnes_a_charge=[
+            EnfantAPL(
+                identifiant=1,
+                beneficie_titre_personnel_aide_personnelle_logement=False,
+                a_deja_ouvert_droit_aux_allocations_familiales=True,
+                date_de_naissance=date(2015, 1, 1),
+                remuneration_mensuelle=0,
+                obligation_scolaire=SituationObligationScolaire_Code.Pendant,
+                situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
+                coefficient_garde_alternee=None
+            ),
+            EnfantAPL(
+                identifiant=2,
+                beneficie_titre_personnel_aide_personnelle_logement=False,
+                a_deja_ouvert_droit_aux_allocations_familiales=True,
+                date_de_naissance=date(2016, 1, 1),
+                remuneration_mensuelle=0,
+                obligation_scolaire=SituationObligationScolaire_Code.Pendant,
+                situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
+                coefficient_garde_alternee=None)
+        ],
+        logement_est_decent=True,
+        infos_specifiques=InfosLocation(
+            loyer_principal=450,
+            beneficiaire_aide_adulte_ou_enfant_handicapes=False,
+            colocation=False,
+            logement_est_chambre=False,
+            agees_ou_handicap_adultes_hebergees_onereux_particuliers=False,
+            logement_meuble_d842_2=False,
+            ancien_loyer_et_apl_relogement=None,
+            type_bailleur=TypeBailleur_Code.BailleurPrive,
+            bailleur_conventionne=None,
+            reduction_loyer_solidarite=None
+        )
+
+    )
+
+
+def benchmark_iteration_family():
     money_given = call_allocations_familiales()
     assert (money_given == 99.46)
+
+
+def benchmark_iteration_housing():
+    money_given = call_aides_logement()
+    assert (money_given == 352.77)
 
 
 def run_with_log() -> List[LogEvent]:
@@ -61,11 +128,16 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     action = args.action[0]
-    if action == "bench":
+    if action == "bench_family":
         iterations = 1000
         print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
             iterations))
-        print(timeit.timeit(benchmark_iteration, number=iterations))
+        print(timeit.timeit(benchmark_iteration_family, number=iterations))
+    elif action == "bench_housing":
+        iterations = 1000
+        print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
+            iterations))
+        print(timeit.timeit(benchmark_iteration_housing, number=iterations))
     elif action == "show_log":
         log = run_with_log()
         indentation = 0

@@ -1,3 +1,5 @@
-from setuptools import setup
+from setuptools import setup  # type: ignore
 
-setup()
+setup(package_data={
+    'catala-runtime': ['py.typed'],
+},)
