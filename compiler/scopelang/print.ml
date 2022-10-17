@@ -21,7 +21,8 @@ open Ast
 let struc
     ctx
     (fmt : Format.formatter)
-    ((name, fields) : StructName.t * (StructFieldName.t * typ) list) : unit =
+    (name : StructName.t)
+    (fields : (StructFieldName.t * typ) list) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "type"
     StructName.format_t name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
@@ -34,7 +35,8 @@ let struc
 let enum
     ctx
     (fmt : Format.formatter)
-    ((name, cases) : EnumName.t * (EnumConstructor.t * typ) list) : unit =
+    (name : EnumName.t)
+    (cases : (EnumConstructor.t * typ) list) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "type"
     EnumName.format_t name Print.punctuation "="
     (Format.pp_print_list
@@ -74,7 +76,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
              (Print.typ ctx) typ Print.punctuation "="
              (fun fmt e ->
                match Marked.unmark loc with
-               | SubScopeVar _ -> Print.naked_expr ctx fmt e
+               | SubScopeVar _ -> Print.expr ctx fmt e
                | ScopelangScopeVar v -> (
                  match
                    Marked.unmark
@@ -83,36 +85,36 @@ let scope ?(debug = false) ctx fmt (name, decl) =
                  with
                  | Reentrant ->
                    Format.fprintf fmt "%a@ %a" Print.operator
-                     "reentrant or by default"
-                     (Print.naked_expr ~debug ctx)
-                     e
-                 | _ -> Format.fprintf fmt "%a" (Print.naked_expr ~debug ctx) e))
+                     "reentrant or by default" (Print.expr ~debug ctx) e
+                 | _ -> Format.fprintf fmt "%a" (Print.expr ~debug ctx) e))
              e
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
-             (Print.naked_expr ~debug ctx)
-             e
-         | Call (scope_name, subscope_name) ->
+             (Print.expr ~debug ctx) e
+         | Call (scope_name, subscope_name, _) ->
            Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
              ScopeName.format_t scope_name Print.punctuation "["
              SubScopeName.format_t subscope_name Print.punctuation "]"))
     decl.scope_decl_rules
 
-let program ?(debug : bool = false) (fmt : Format.formatter) (p : program) :
+let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     unit =
   let ctx = p.program_ctx in
   let pp_sep fmt () =
     Format.pp_print_cut fmt ();
     Format.pp_print_cut fmt ()
   in
-  Format.fprintf fmt "@[<v>%a%a%a%a%a@]"
-    (Format.pp_print_list ~pp_sep (struc ctx))
-    (StructMap.bindings ctx.ctx_structs)
-    (if StructMap.is_empty ctx.ctx_structs then fun _ _ -> () else pp_sep)
-    ()
-    (Format.pp_print_list ~pp_sep (enum ctx))
-    (EnumMap.bindings ctx.ctx_enums)
-    (if EnumMap.is_empty ctx.ctx_enums then fun _ _ -> () else pp_sep)
-    ()
-    (Format.pp_print_list ~pp_sep (scope ~debug ctx))
-    (ScopeMap.bindings p.program_scopes)
+  Format.pp_open_vbox fmt 0;
+  StructMap.iter
+    (fun n s ->
+      struc ctx fmt n s;
+      pp_sep fmt ())
+    ctx.ctx_structs;
+  EnumMap.iter
+    (fun n e ->
+      enum ctx fmt n e;
+      pp_sep fmt ())
+    ctx.ctx_enums;
+  Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
+    (ScopeMap.bindings p.program_scopes);
+  Format.pp_close_box fmt ()

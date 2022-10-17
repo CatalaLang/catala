@@ -14,7 +14,7 @@ scope B:
   assertion a.a = 0
 ```
 ```catala-test-inline
-$ catala Typecheck 
+$ catala Typecheck
 [ERROR] The variable a.a cannot be used here, as it is not part subscope a's results. Maybe you forgot to qualify it as an output?
 
 Incriminated variable usage:

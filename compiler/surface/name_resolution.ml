@@ -40,7 +40,7 @@ type scope_context = {
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
-  sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  sub_scopes : ScopeName.t SubScopeMap.t;
       (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
@@ -75,8 +75,7 @@ type context = {
   constructor_idmap : EnumConstructor.t EnumMap.t Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
-  scopes : scope_context Scopelang.Ast.ScopeMap.t;
-      (** For each scope, its context *)
+  scopes : scope_context ScopeMap.t;  (** For each scope, its context *)
   structs : struct_context StructMap.t;  (** For each struct, its context *)
   enums : enum_context EnumMap.t;  (** For each enum, its context *)
   var_typs : var_sig ScopeVarMap.t;
@@ -114,7 +113,7 @@ let get_var_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
     ((x, pos) : ident Marked.pos) : ScopeVar.t =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
   | None ->
     raise_unknown_identifier
@@ -127,7 +126,7 @@ let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
     ((y, pos) : ident Marked.pos) : SubScopeName.t =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
   | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
   | Some sub_uid -> sub_uid
@@ -136,13 +135,13 @@ let get_subscope_uid
     subscopes of [scope_uid]. *)
 let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : ident) :
     bool =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     bool =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.exists
     (fun _ var_uid -> ScopeVar.compare uid var_uid = 0)
     scope.var_idmap
@@ -150,7 +149,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
 (** Retrieves the type of a scope definition from the context *)
 let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ =
   match def with
-  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
+  | Desugared.Ast.ScopeDef.SubScopeVar (_, x, _)
   (* we don't need to look at the subscope prefix because [x] is already the uid
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
@@ -158,7 +157,7 @@ let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ =
 
 let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   match def with
-  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
+  | Desugared.Ast.ScopeDef.SubScopeVar (_, x, _)
   (* we don't need to look at the subscope prefix because [x] is already the uid
      referring back to the original subscope *)
   | Desugared.Ast.ScopeDef.Var (x, _) ->
@@ -173,7 +172,7 @@ let process_subscope_decl
     (decl : Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   match
     Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap
   with
@@ -200,14 +199,11 @@ let process_subscope_decl
           Desugared.Ast.IdentMap.add name sub_scope_uid
             scope_ctxt.sub_scopes_idmap;
         sub_scopes =
-          Scopelang.Ast.SubScopeMap.add sub_scope_uid original_subscope_uid
+          SubScopeMap.add sub_scope_uid original_subscope_uid
             scope_ctxt.sub_scopes;
       }
     in
-    {
-      ctxt with
-      scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
-    }
+    { ctxt with scopes = ScopeMap.add scope scope_ctxt ctxt.scopes }
 
 let is_type_cond ((typ, _) : Ast.typ) =
   match typ with
@@ -264,7 +260,7 @@ let process_data_decl
   let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
   let is_cond = is_type_cond decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
     Errors.raise_multispanned_error
@@ -295,7 +291,7 @@ let process_data_decl
     in
     {
       ctxt with
-      scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
+      scopes = ScopeMap.add scope scope_ctxt ctxt.scopes;
       var_typs =
         ScopeVarMap.add uid
           {
@@ -454,12 +450,12 @@ let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
         ctxt with
         scope_idmap = Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
         scopes =
-          Scopelang.Ast.ScopeMap.add scope_uid
+          ScopeMap.add scope_uid
             {
               var_idmap = Desugared.Ast.IdentMap.empty;
               scope_defs_contexts = Desugared.Ast.ScopeDefMap.empty;
               sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
-              sub_scopes = Scopelang.Ast.SubScopeMap.empty;
+              sub_scopes = SubScopeMap.empty;
             }
             ctxt.scopes;
       })
@@ -530,8 +526,8 @@ let get_def_key
     (state : Ast.ident Marked.pos option)
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    (default_pos : Pos.t) : Desugared.Ast.ScopeDef.t =
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+    (pos : Pos.t) : Desugared.Ast.ScopeDef.t =
+  let scope_ctxt = ScopeMap.find scope_uid ctxt.scopes in
   match name with
   | [x] ->
     let x_uid = get_var_uid scope_uid ctxt x in
@@ -569,12 +565,12 @@ let get_def_key
   | [y; x] ->
     let subscope_uid : SubScopeName.t = get_subscope_uid scope_uid ctxt y in
     let subscope_real_uid : ScopeName.t =
-      Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
+      SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
-    Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
+    Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
   | _ ->
-    Errors.raise_spanned_error default_pos
+    Errors.raise_spanned_error pos
       "This line is defining a quantity that is neither a scope variable nor a \
        subscope variable. In particular, it is not possible to define struct \
        fields individually in Catala."
@@ -587,13 +583,13 @@ let process_definition
   {
     ctxt with
     scopes =
-      Scopelang.Ast.ScopeMap.update s_name
+      ScopeMap.update s_name
         (fun (s_ctxt : scope_context option) ->
           let def_key =
             get_def_key
               (Marked.unmark d.definition_name)
               d.definition_state s_name ctxt
-              (Marked.get_mark d.definition_expr)
+              (Marked.get_mark d.definition_name)
           in
           match s_ctxt with
           | None -> assert false (* should not happen *)
@@ -727,7 +723,7 @@ let form_context (prgm : Ast.program) : context =
     {
       local_var_idmap = Desugared.Ast.IdentMap.empty;
       scope_idmap = Desugared.Ast.IdentMap.empty;
-      scopes = Scopelang.Ast.ScopeMap.empty;
+      scopes = ScopeMap.empty;
       var_typs = ScopeVarMap.empty;
       structs = StructMap.empty;
       struct_idmap = Desugared.Ast.IdentMap.empty;

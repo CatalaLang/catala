@@ -409,7 +409,7 @@ champ d'application RessourcesAidesPersonnelleLogement:
   définition abattement_r_822_7 égal à
     si demandeur_exerce_activité_rémunérée et
       conjoint_exerce_activité_rémunérée et
-      (ressources_conjoint +€ ressources_conjoint) >=€
+      (ressources_demandeur +€ ressources_conjoint) >=€
        base_mensuelle_allocations_familiales.montant *€ 12,0
     alors
       montant_forfaitaire_r_822_7

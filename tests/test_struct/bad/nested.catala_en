@@ -1,23 +1,24 @@
 ## Article
 
 ```catala
-declaration structure S:
-  data x content S
+declaration enumeration E:
+  -- Empty
+  -- Rec content E
 
 declaration scope A:
-  context y content S
+  context y content E
 
 scope A:
-  definition y equals S { -- x: 1 }
+  definition y equals E.Empty
 ```
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] The type S is defined using itself, which is forbidden since Catala does not provide recursive types
+[ERROR] The type E is defined using itself, which is forbidden since Catala does not provide recursive types
 
  --> tests/test_struct/bad/nested.catala_en
-  | 
-5 |   data x content S
+  |
+6 |   -- Rec content E
   |                  ^
   + Article
 #return code 255#

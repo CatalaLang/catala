@@ -98,7 +98,7 @@ let pos (type m) (x : ('a, m mark) Marked.t) : Pos.t =
 
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
-let with_ty (type m) (ty : typ) (x : ('a, m mark) Marked.t) :
+let set_ty (type m) (ty : typ) (x : ('a, m mark) Marked.t) :
     ('a, typed mark) Marked.t =
   Marked.mark
     (match Marked.get_mark x with
@@ -137,6 +137,18 @@ let fold_marks
         pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
         ty = ty_f (List.map (function Typed m -> m) ms);
       }
+
+let with_pos (type m) (pos : Pos.t) (m : m mark) : m mark =
+  map_mark (fun _ -> pos) (fun ty -> ty) m
+
+let map_ty (type m) (ty_f : typ -> typ) (m : m mark) : m mark =
+  map_mark (fun pos -> pos) ty_f m
+
+let with_ty (type m) (m : m mark) ?pos (ty : typ) : m mark =
+  map_mark (fun default -> Option.value pos ~default) (fun _ -> ty) m
+
+let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
+  match m with Untyped { pos } -> Marked.mark pos typ | Typed { ty; _ } -> ty
 
 (* - Traversal functions - *)
 
@@ -205,74 +217,6 @@ let box e =
 
 let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
-(* - Expression building helpers - *)
-
-let make_var (x, mark) =
-  Bindlib.box_apply (fun x -> x, mark) (Bindlib.box_var x)
-
-let make_abs xs e taus mark =
-  Bindlib.box_apply (fun b -> EAbs (b, taus), mark) (Bindlib.bind_mvar xs e)
-
-let make_app e u mark =
-  Bindlib.box_apply2 (fun e u -> EApp (e, u), mark) e (Bindlib.box_list u)
-
-let empty_thunked_term mark =
-  let silent = Var.make "_" in
-  let pos = mark_pos mark in
-  Bindlib.unbox
-    (make_abs [| silent |]
-       (Bindlib.box (ELit LEmptyError, mark))
-       [TLit TUnit, pos]
-       (map_mark
-          (fun pos -> pos)
-          (fun ty ->
-            Marked.mark pos (TArrow (Marked.mark pos (TLit TUnit), ty)))
-          mark))
-
-let make_let_in x tau e1 e2 pos =
-  let m_e1 = Marked.get_mark (Bindlib.unbox e1) in
-  let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
-  let m_abs =
-    map_mark2
-      (fun _ _ -> pos)
-      (fun m1 m2 -> Marked.mark pos (TArrow (m1.ty, m2.ty)))
-      m_e1 m_e2
-  in
-  make_app (make_abs [| x |] e2 [tau] m_abs) [e1] m_e2
-
-let make_multiple_let_in xs taus e1s e2 pos =
-  (* let m_e1s = List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s in *)
-  let m_e1s =
-    fold_marks List.hd
-      (fun tys -> TTuple (List.map (fun t -> t.ty) tys), (List.hd tys).pos)
-      (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) e1s)
-  in
-  let m_e2 = Marked.get_mark (Bindlib.unbox e2) in
-  let m_abs =
-    map_mark2
-      (fun _ _ -> pos)
-      (fun m1 m2 -> Marked.mark pos (TArrow (m1.ty, m2.ty)))
-      m_e1s m_e2
-  in
-  make_app (make_abs xs e2 taus m_abs) e1s m_e2
-
-let make_default exceptions just cons mark =
-  let rec bool_value = function
-    | ELit (LBool b), _ -> Some b
-    | EApp ((EOp (Unop (Log (l, _))), _), [e]), _
-      when l <> PosRecordIfTrueBool
-           (* we don't remove the log calls corresponding to source code
-              definitions !*) ->
-      bool_value e
-    | _ -> None
-  in
-  match exceptions, bool_value just, cons with
-  | [], Some true, cons -> cons
-  | exceptions, Some true, (EDefault ([], just, cons), mark) ->
-    EDefault (exceptions, just, cons), mark
-  | [except], Some false, _ -> except
-  | exceptions, _, cons -> EDefault (exceptions, just, cons), mark
-
 (* Tests *)
 
 let is_value (type a) (e : (a, _) gexpr) =
@@ -300,6 +244,24 @@ let rec equal_typ ty1 ty2 =
 
 and equal_typ_list tys1 tys2 =
   try List.for_all2 equal_typ tys1 tys2 with Invalid_argument _ -> false
+
+(* Similar to [equal_typ], but allows TAny holes *)
+let rec unifiable ty1 ty2 =
+  match Marked.unmark ty1, Marked.unmark ty2 with
+  | TAny, _ | _, TAny -> true
+  | TLit l1, TLit l2 -> equal_tlit l1 l2
+  | TTuple tys1, TTuple tys2 -> unifiable_list tys1 tys2
+  | TStruct n1, TStruct n2 -> StructName.equal n1 n2
+  | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
+  | TOption t1, TOption t2 -> unifiable t1 t2
+  | TArrow (t1, t1'), TArrow (t2, t2') -> unifiable t1 t2 && unifiable t1' t2'
+  | TArray t1, TArray t2 -> unifiable t1 t2
+  | ( (TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _ | TArray _),
+      _ ) ->
+    false
+
+and unifiable_list tys1 tys2 =
+  try List.for_all2 unifiable tys1 tys2 with Invalid_argument _ -> false
 
 let rec compare_typ ty1 ty2 =
   match Marked.unmark ty1, Marked.unmark ty2 with
@@ -722,7 +684,7 @@ let remove_logging_calls e =
   in
   f () e
 
-let format ?debug decl_ctx ppf e = Print.naked_expr ?debug decl_ctx ppf e
+let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
 
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
@@ -756,3 +718,99 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EEnumInj (e1, _, _) -> 1 + size e1
   | EMatchS (e1, _, cases) ->
     EnumConstructorMap.fold (fun _ e acc -> acc + 1 + size e) cases (size e1)
+
+(* - Expression building helpers - *)
+
+let make_var (x, mark) =
+  Bindlib.box_apply (fun x -> x, mark) (Bindlib.box_var x)
+
+let make_abs xs e taus pos =
+  let mark =
+    map_mark
+      (fun _ -> pos)
+      (fun ety ->
+        List.fold_right
+          (fun tx acc -> Marked.mark pos (TArrow (tx, acc)))
+          taus ety)
+      (Marked.get_mark (Bindlib.unbox e))
+  in
+  Bindlib.box_apply (fun b -> EAbs (b, taus), mark) (Bindlib.bind_mvar xs e)
+
+let make_app e u pos =
+  Bindlib.box_apply2
+    (fun e u ->
+      let mark =
+        fold_marks
+          (fun _ -> pos)
+          (function
+            | [] -> assert false
+            | fty :: argtys ->
+              List.fold_left
+                (fun tf tx ->
+                  match Marked.unmark tf with
+                  | TArrow (tx', tr) ->
+                    assert (unifiable tx.ty tx');
+                    (* wrong arg type *)
+                    tr
+                  | TAny -> tf
+                  | _ ->
+                    Format.eprintf
+                      "Attempt to construct application of non-arrow type %a:@\n\
+                       %a"
+                      Print.typ_debug tf
+                      (Print.expr_debug ~debug:false)
+                      e;
+                    assert false)
+                fty.ty argtys)
+          (List.map Marked.get_mark (e :: u))
+      in
+      EApp (e, u), mark)
+    e (Bindlib.box_list u)
+
+let empty_thunked_term mark =
+  let silent = Var.make "_" in
+  let pos = mark_pos mark in
+  make_abs [| silent |]
+    (Bindlib.box (ELit LEmptyError, mark))
+    [TLit TUnit, pos]
+    pos
+
+let make_let_in x tau e1 e2 mpos =
+  make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos (Bindlib.unbox e2))
+
+let make_multiple_let_in xs taus e1s e2 mpos =
+  make_app (make_abs xs e2 taus mpos) e1s (pos (Bindlib.unbox e2))
+
+let make_default exceptions just cons mark =
+  let rec bool_value = function
+    | ELit (LBool b), _ -> Some b
+    | EApp ((EOp (Unop (Log (l, _))), _), [e]), _
+      when l <> PosRecordIfTrueBool
+           (* we don't remove the log calls corresponding to source code
+              definitions !*) ->
+      bool_value e
+    | _ -> None
+  in
+  match exceptions, bool_value just, cons with
+  | [], Some true, cons -> cons
+  | exceptions, Some true, (EDefault ([], just, cons), mark) ->
+    EDefault (exceptions, just, cons), mark
+  | [except], Some false, _ -> except
+  | exceptions, _, cons -> EDefault (exceptions, just, cons), mark
+
+let make_tuple el structname m0 =
+  match el with
+  | [] ->
+    etuple [] structname
+      (with_ty m0
+         (match structname with
+         | Some n -> TStruct n, mark_pos m0
+         | None -> TTuple [], mark_pos m0))
+  | el ->
+    let m =
+      fold_marks
+        (fun posl -> List.hd posl)
+        (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
+        (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) el)
+    in
+    etuple el structname m

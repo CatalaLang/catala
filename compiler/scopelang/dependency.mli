@@ -27,7 +27,7 @@ open Shared_ast
 module SDependencies :
   Graph.Sig.P with type V.t = ScopeName.t and type E.label = Pos.t
 
-val build_program_dep_graph : Ast.program -> SDependencies.t
+val build_program_dep_graph : 'm Ast.program -> SDependencies.t
 val check_for_cycle_in_scope : SDependencies.t -> unit
 val get_scope_ordering : SDependencies.t -> ScopeName.t list
 

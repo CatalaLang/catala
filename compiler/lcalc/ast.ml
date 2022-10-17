@@ -39,9 +39,7 @@ let make_none m =
   Bindlib.box
   @@ mark
   @@ EInj
-       ( Marked.mark
-           (Expr.map_mark (fun pos -> pos) (fun _ -> tunit) m)
-           (ELit LUnit),
+       ( Marked.mark (Expr.with_ty m tunit) (ELit LUnit),
          0,
          option_enum,
          [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos] )
@@ -74,12 +72,12 @@ let make_matchopt_with_abs_arms arg e_none e_some =
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to
     e_some, permitting it to be used inside the expression. There is no
     requirements on the form of both e_some and e_none. *)
-let make_matchopt m v tau arg e_none e_some =
+let make_matchopt pos v tau arg e_none e_some =
   let x = Var.make "_" in
 
   make_matchopt_with_abs_arms arg
-    (Expr.make_abs [| x |] e_none [TLit TUnit, Expr.mark_pos m] m)
-    (Expr.make_abs [| v |] e_some [tau] m)
+    (Expr.make_abs [| x |] e_none [TLit TUnit, pos] pos)
+    (Expr.make_abs [| v |] e_some [tau] pos)
 
 let handle_default = Var.make "handle_default"
 let handle_default_opt = Var.make "handle_default_opt"

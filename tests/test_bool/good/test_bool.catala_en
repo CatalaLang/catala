@@ -13,21 +13,21 @@ scope TestBool:
 
 ```catala-test-inline
 $ catala Dcalc 
-let TestBool_14 :
+let TestBool_22 :
   TestBool_in{"foo_in": unit → bool; "bar_in": unit → integer} →
     TestBool_out{"foo_out": bool; "bar_out": integer} =
-  λ (TestBool_in_15: TestBool_in{"foo_in": unit → bool; "bar_in":
+  λ (TestBool_in_23: TestBool_in{"foo_in": unit → bool; "bar_in":
                         unit → integer}) →
-    let foo_16 : unit → bool = TestBool_in_15."foo_in" in
-    let bar_17 : unit → integer = TestBool_in_15."bar_in" in
-    let bar_18 : integer = error_empty
-      ⟨bar_17 () | true ⊢ ⟨true ⊢ 1⟩⟩ in
-    let foo_19 : bool = error_empty
-      ⟨foo_16 () | true ⊢
-        ⟨⟨bar_18 >= 0 ⊢ true⟩, ⟨bar_18 < 0 ⊢ false⟩ | false ⊢
+    let foo_24 : unit → bool = TestBool_in_23."foo_in" in
+    let bar_25 : unit → integer = TestBool_in_23."bar_in" in
+    let bar_26 : integer = error_empty
+      ⟨bar_25 () | true ⊢ ⟨true ⊢ 1⟩⟩ in
+    let foo_27 : bool = error_empty
+      ⟨foo_24 () | true ⊢
+        ⟨⟨bar_26 >= 0 ⊢ true⟩, ⟨bar_26 < 0 ⊢ false⟩ | false ⊢
           ∅ ⟩⟩ in
-    TestBool_out {"foo_out"= foo_19; "bar_out"= bar_18} in
-TestBool_14
+    TestBool_out {"foo_out"= foo_27; "bar_out"= bar_26} in
+TestBool_22
 ```
 
 ```catala-test-inline

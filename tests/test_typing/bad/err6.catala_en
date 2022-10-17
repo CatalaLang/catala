@@ -24,14 +24,7 @@ scope S2:
   definition a equals if r then Int content (number of sub.z) else Dec content 0.0
 ```
 
-
-```catala-test-inline
-$ catala Typecheck
-[RESULT] Typechecking successful!
-```
-
-A bug with delayed typechecking can make the above accept the error while it is
-still triggered below.
+Should be "catala Typecheck", see test err3
 
 ```catala-test-inline
 $ catala ocaml
@@ -40,24 +33,24 @@ $ catala ocaml
 --> integer
 
 Error coming from typechecking the following expression:
-  --> tests/test_typing/bad/common.catala_en
-   | 
-12 |   input x content integer
-   |         ^
-   + 
+  --> tests/test_typing/bad/err6.catala_en
+   |
+20 |   definition sub.x equals 44.
+   |                           ^^^
+   +
 
 Type decimal coming from expression:
   --> tests/test_typing/bad/err6.catala_en
-   | 
+   |
 20 |   definition sub.x equals 44.
    |                           ^^^
-   + 
+   +
 
 Type integer coming from expression:
   --> tests/test_typing/bad/common.catala_en
-   | 
-11 | declaration scope S:
-   |                   ^
-   + 
+   |
+12 |   input x content integer
+   |                   ^^^^^^^
+   +
 #return code 255#
 ```

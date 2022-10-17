@@ -53,6 +53,9 @@ build_dev: parser-messages
 		$(BUILD_SYSTEM_DIR)/clerk.exe \
 		$(CATALA_LEGIFRANCE_DIR)/catala_legifrance.exe
 
+# Just the base compiler as needed to run the tests
+compiler: parser-messages
+	dune build $(COMPILER_DIR)/catala.exe $(COMPILER_DIR)/plugins/ $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> build					: Builds the Catala compiler
 build: parser-messages format build_dev
@@ -305,11 +308,11 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 
 .FORCE:
 
-test_suite: .FORCE
-	$(MAKE) -C tests pass_all_tests
+test_suite: .FORCE compiler
+	@$(MAKE) -C tests pass_all_tests
 
-test_examples: .FORCE
-	$(MAKE) -C examples pass_all_tests
+test_examples: .FORCE compiler
+	@$(MAKE) -C examples pass_all_tests
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples

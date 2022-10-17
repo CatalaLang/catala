@@ -13,17 +13,10 @@ scope Foo:
 ```catala-test-inline
 $ catala Interpret -s Foo
 [ERROR] Error during typechecking, incompatible types:
---> bool
 --> integer
+--> bool
 
 Error coming from typechecking the following expression:
- --> tests/test_bool/bad/bad_assert.catala_en
-  |
-9 |   assertion x
-  |             ^
-  + Test
-
-Type bool coming from expression:
  --> tests/test_bool/bad/bad_assert.catala_en
   |
 9 |   assertion x
@@ -33,8 +26,15 @@ Type bool coming from expression:
 Type integer coming from expression:
  --> tests/test_bool/bad/bad_assert.catala_en
   |
-8 |   definition x equals 0
-  |                       ^
+5 |   internal x content integer
+  |                      ^^^^^^^
+  + Test
+
+Type bool coming from expression:
+ --> tests/test_bool/bad/bad_assert.catala_en
+  |
+9 |   assertion x
+  |             ^
   + Test
 #return code 255#
 ```

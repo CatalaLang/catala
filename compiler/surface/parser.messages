@@ -1741,7 +1741,7 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE YEAR
 ## small_expression
 ##
 
-expected an enum constructor to test if the expression on the left
+expected the function application operator
 
 
 

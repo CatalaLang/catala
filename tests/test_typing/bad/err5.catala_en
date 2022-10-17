@@ -18,23 +18,23 @@ $ catala Typecheck
 
 Error coming from typechecking the following expression:
  --> tests/test_typing/bad/err5.catala_en
-  | 
-7 |     Structure { -- i: 4 -- e: y };
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  + 
+  |
+8 |     1040
+  |     ^^^^
+  +
 
 Type integer coming from expression:
  --> tests/test_typing/bad/err5.catala_en
-  | 
+  |
 8 |     1040
   |     ^^^^
-  + 
+  +
 
 Type Structure coming from expression:
- --> tests/test_typing/bad/err5.catala_en
-  | 
-7 |     Structure { -- i: 4 -- e: y };
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  + 
+  --> tests/test_typing/bad/common.catala_en
+   |
+14 |   output z content collection Structure
+   |                               ^^^^^^^^^
+   +
 #return code 255#
 ```

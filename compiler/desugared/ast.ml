@@ -40,7 +40,7 @@ module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
 module ScopeDef = struct
   type t =
     | Var of ScopeVar.t * StateName.t option
-    | SubScopeVar of SubScopeName.t * ScopeVar.t
+    | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
         (** In this case, the [ScopeVar.t] lives inside the context of the
             subscope's original declaration *)
 
@@ -49,13 +49,13 @@ module ScopeDef = struct
     | Var (x, None), Var (y, None)
     | Var (x, Some _), Var (y, None)
     | Var (x, None), Var (y, Some _)
-    | Var (x, _), SubScopeVar (_, y)
-    | SubScopeVar (_, x), Var (y, _) ->
+    | Var (x, _), SubScopeVar (_, y, _)
+    | SubScopeVar (_, x, _), Var (y, _) ->
       ScopeVar.compare x y
     | Var (x, Some sx), Var (y, Some sy) ->
       let cmp = ScopeVar.compare x y in
       if cmp = 0 then StateName.compare sx sy else cmp
-    | SubScopeVar (x', x), SubScopeVar (y', y) ->
+    | SubScopeVar (x', x, _), SubScopeVar (y', y, _) ->
       let cmp = SubScopeName.compare x' y' in
       if cmp = 0 then ScopeVar.compare x y else cmp
 
@@ -63,21 +63,22 @@ module ScopeDef = struct
     match x with
     | Var (x, None) -> Marked.get_mark (ScopeVar.get_info x)
     | Var (_, Some sx) -> Marked.get_mark (StateName.get_info sx)
-    | SubScopeVar (x, _) -> Marked.get_mark (SubScopeName.get_info x)
+    | SubScopeVar (_, _, pos) -> pos
 
   let format_t fmt x =
     match x with
     | Var (v, None) -> ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
       Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
-    | SubScopeVar (s, v) ->
+    | SubScopeVar (s, v, _) ->
       Format.fprintf fmt "%a.%a" SubScopeName.format_t s ScopeVar.format_t v
 
   let hash x =
     match x with
     | Var (v, None) -> ScopeVar.hash v
     | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
-    | SubScopeVar (w, v) -> Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
+    | SubScopeVar (w, v, _) ->
+      Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
 end
 
 module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
@@ -198,17 +199,14 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  scope_sub_scopes : ScopeName.t SubScopeMap.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-type program = {
-  program_scopes : scope Scopelang.Ast.ScopeMap.t;
-  program_ctx : decl_ctx;
-}
+type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
 
 let rec locations_used (e : expr) : LocationSet.t =
   match Marked.unmark e with
@@ -254,7 +252,10 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
           (match loc with
           | DesugaredScopeVar (v, st) -> ScopeDef.Var (Marked.unmark v, st)
           | SubScopeVar (_, sub_index, sub_var) ->
-            ScopeDef.SubScopeVar (Marked.unmark sub_index, Marked.unmark sub_var))
+            ScopeDef.SubScopeVar
+              ( Marked.unmark sub_index,
+                Marked.unmark sub_var,
+                Marked.get_mark sub_index ))
           loc_pos acc)
       locs acc
   in

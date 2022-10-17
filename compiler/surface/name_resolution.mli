@@ -40,7 +40,7 @@ type scope_context = {
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
-  sub_scopes : ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  sub_scopes : ScopeName.t SubScopeMap.t;
       (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
@@ -75,8 +75,7 @@ type context = {
   constructor_idmap : EnumConstructor.t EnumMap.t Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
-  scopes : scope_context Scopelang.Ast.ScopeMap.t;
-      (** For each scope, its context *)
+  scopes : scope_context ScopeMap.t;  (** For each scope, its context *)
   structs : struct_context StructMap.t;  (** For each struct, its context *)
   enums : enum_context EnumMap.t;  (** For each enum, its context *)
   var_typs : var_sig ScopeVarMap.t;

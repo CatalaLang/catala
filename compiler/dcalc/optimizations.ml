@@ -25,7 +25,7 @@ type partial_evaluation_ctx = {
 
 let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     'm expr Bindlib.box =
-  let pos = Marked.get_mark e in
+  let mark = Marked.get_mark e in
   let rec_helper = partial_evaluation ctx in
   match Marked.unmark e with
   | EApp
@@ -35,9 +35,9 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     (* reduction of logical not *)
     (Bindlib.box_apply (fun e1 ->
          match e1 with
-         | ELit (LBool false), _ -> ELit (LBool true), pos
-         | ELit (LBool true), _ -> ELit (LBool false), pos
-         | _ -> EApp (op, [e1]), pos))
+         | ELit (LBool false), _ -> ELit (LBool true), mark
+         | ELit (LBool true), _ -> ELit (LBool false), mark
+         | _ -> EApp (op, [e1]), mark))
       (rec_helper e1)
   | EApp
       ( (( EOp (Binop Or), _
@@ -49,8 +49,8 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
          | (ELit (LBool false), _), new_e | new_e, (ELit (LBool false), _) ->
            new_e
          | (ELit (LBool true), _), _ | _, (ELit (LBool true), _) ->
-           ELit (LBool true), pos
-         | _ -> EApp (op, [e1; e2]), pos))
+           ELit (LBool true), mark
+         | _ -> EApp (op, [e1; e2]), mark))
       (rec_helper e1) (rec_helper e2)
   | EApp
       ( (( EOp (Binop And), _
@@ -62,21 +62,21 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
          | (ELit (LBool true), _), new_e | new_e, (ELit (LBool true), _) ->
            new_e
          | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
-           ELit (LBool false), pos
-         | _ -> EApp (op, [e1; e2]), pos))
+           ELit (LBool false), mark
+         | _ -> EApp (op, [e1; e2]), mark))
       (rec_helper e1) (rec_helper e2)
-  | EVar x -> Bindlib.box_apply (fun x -> x, pos) (Bindlib.box_var x)
+  | EVar x -> Bindlib.box_apply (fun x -> x, mark) (Bindlib.box_var x)
   | ETuple (args, s_name) ->
     Bindlib.box_apply
-      (fun args -> ETuple (args, s_name), pos)
+      (fun args -> ETuple (args, s_name), mark)
       (List.map rec_helper args |> Bindlib.box_list)
   | ETupleAccess (arg, i, s_name, typs) ->
     Bindlib.box_apply
-      (fun arg -> ETupleAccess (arg, i, s_name, typs), pos)
+      (fun arg -> ETupleAccess (arg, i, s_name, typs), mark)
       (rec_helper arg)
   | EInj (arg, i, e_name, typs) ->
     Bindlib.box_apply
-      (fun arg -> EInj (arg, i, e_name, typs), pos)
+      (fun arg -> EInj (arg, i, e_name, typs), mark)
       (rec_helper arg)
   | EMatch (arg, arms, e_name) ->
     Bindlib.box_apply2
@@ -85,20 +85,20 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
         | (EInj (e1, i, e_name', _ts), _), _
           when EnumName.compare e_name e_name' = 0 ->
           (* iota reduction *)
-          EApp (List.nth arms i, [e1]), pos
-        | _ -> EMatch (arg, arms, e_name), pos)
+          EApp (List.nth arms i, [e1]), mark
+        | _ -> EMatch (arg, arms, e_name), mark)
       (rec_helper arg)
       (List.map rec_helper arms |> Bindlib.box_list)
   | EArray args ->
     Bindlib.box_apply
-      (fun args -> EArray args, pos)
+      (fun args -> EArray args, mark)
       (List.map rec_helper args |> Bindlib.box_list)
-  | ELit l -> Bindlib.box (ELit l, pos)
+  | ELit l -> Bindlib.box (ELit l, mark)
   | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
     let new_body = rec_helper body in
     let new_binder = Bindlib.bind_mvar vars new_body in
-    Bindlib.box_apply (fun binder -> EAbs (binder, typs), pos) new_binder
+    Bindlib.box_apply (fun binder -> EAbs (binder, typs), mark) new_binder
   | EApp (f, args) ->
     Bindlib.box_apply2
       (fun f args ->
@@ -106,11 +106,11 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
         | EAbs (binder, _ts) ->
           (* beta reduction *)
           Bindlib.msubst binder (List.map fst args |> Array.of_list)
-        | _ -> EApp (f, args), pos)
+        | _ -> EApp (f, args), mark)
       (rec_helper f)
       (List.map rec_helper args |> Bindlib.box_list)
-  | EAssert e1 -> Bindlib.box_apply (fun e1 -> EAssert e1, pos) (rec_helper e1)
-  | EOp op -> Bindlib.box (EOp op, pos)
+  | EAssert e1 -> Bindlib.box_apply (fun e1 -> EAssert e1, mark) (rec_helper e1)
+  | EOp op -> Bindlib.box (EOp op, mark)
   | EDefault (exceptions, just, cons) ->
     Bindlib.box_apply3
       (fun exceptions just cons ->
@@ -135,7 +135,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
              feed the expression to the interpreter that will print the
              beautiful right error message *)
           Interpreter.evaluate_expr ctx.decl_ctx
-            (EDefault (exceptions, just, cons), pos)
+            (EDefault (exceptions, just, cons), mark)
         | [except], _, _ when Expr.is_value except ->
           (* if there is only one exception and it is a non-empty value it is
              always chosen *)
@@ -151,15 +151,15 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
               | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ),
               _ ),
             _ ) ->
-          ELit LEmptyError, pos
+          ELit LEmptyError, mark
         | [], just, cons when not !Cli.avoid_exceptions_flag ->
           (* without exceptions, a default is just an [if then else] raising an
              error in the else case. This exception is only valid in the context
              of compilation_with_exceptions, so we desactivate with a global
              flag to know if we will be compiling using exceptions or the option
              monad. *)
-          EIfThenElse (just, cons, (ELit LEmptyError, pos)), pos
-        | exceptions, just, cons -> EDefault (exceptions, just, cons), pos)
+          EIfThenElse (just, cons, (ELit LEmptyError, mark)), mark
+        | exceptions, just, cons -> EDefault (exceptions, just, cons), mark)
       (List.map rec_helper exceptions |> Bindlib.box_list)
       (rec_helper just) (rec_helper cons)
   | EIfThenElse (e1, e2, e3) ->
@@ -179,10 +179,10 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
             | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ) ) ->
           e1
         | _ when Expr.equal e2 e3 -> e2
-        | _ -> EIfThenElse (e1, e2, e3), pos)
+        | _ -> EIfThenElse (e1, e2, e3), mark)
       (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | ErrorOnEmpty e1 ->
-    Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, pos) (rec_helper e1)
+    Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, mark) (rec_helper e1)
 
 let optimize_expr (decl_ctx : decl_ctx) (e : 'm expr) =
   partial_evaluation { var_values = Var.Map.empty; decl_ctx } e
@@ -248,9 +248,8 @@ let program_map
     (fun new_scopes -> { p with scopes = new_scopes })
     (scopes_map t ctx p.scopes)
 
-let optimize_program (p : 'm program) : untyped program =
+let optimize_program (p : 'm program) : 'm program =
   Bindlib.unbox
     (program_map partial_evaluation
        { var_values = Var.Map.empty; decl_ctx = p.decl_ctx }
        p)
-  |> Program.untype
