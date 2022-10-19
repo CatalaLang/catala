@@ -21,16 +21,6 @@ open Shared_ast
 
 (** {1 Identifiers} *)
 
-module StructFieldMapLift : sig
-  val lift_box :
-    'a Bindlib.box StructFieldMap.t -> 'a StructFieldMap.t Bindlib.box
-end
-
-module EnumConstructorMapLift : sig
-  val lift_box :
-    'a Bindlib.box EnumConstructorMap.t -> 'a EnumConstructorMap.t Bindlib.box
-end
-
 type location = scopelang glocation
 
 module LocationSet : Set.S with type elt = location Marked.pos

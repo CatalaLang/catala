@@ -31,14 +31,16 @@ type ctx = {
 }
 
 let tag_with_log_entry
-    (e : untyped Scopelang.Ast.expr)
+    (e : untyped Scopelang.Ast.expr boxed)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) : untyped Scopelang.Ast.expr =
-  ( EApp ((EOp (Unop (Log (l, markings))), Marked.get_mark e), [e]),
-    Marked.get_mark e )
+    (markings : Utils.Uid.MarkedString.info list) :
+    untyped Scopelang.Ast.expr boxed =
+  Expr.eapp
+    (Expr.eop (Unop (Log (l, markings))) (Marked.get_mark e))
+    [e] (Marked.get_mark e)
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr) :
-    untyped Scopelang.Ast.expr Bindlib.box =
+    untyped Scopelang.Ast.expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
@@ -50,55 +52,40 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
       | States states ->
         Marked.same_mark_as (snd (List.hd (List.rev states))) s_var
     in
-    Bindlib.box (ELocation (SubScopeVar (s_name, ss_name, new_s_var)), m)
+    Expr.elocation (SubScopeVar (s_name, ss_name, new_s_var)) m
   | ELocation (DesugaredScopeVar (s_var, None)) ->
-    Bindlib.box
-      ( ELocation
-          (ScopelangScopeVar
-             (match
-                ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
-              with
-             | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
-             | States _ -> failwith "should not happen")),
-        m )
+    Expr.elocation
+      (ScopelangScopeVar
+         (match
+            ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
+          with
+         | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
+         | States _ -> failwith "should not happen"))
+      m
   | ELocation (DesugaredScopeVar (s_var, Some state)) ->
-    Bindlib.box
-      ( ELocation
-          (ScopelangScopeVar
-             (match
-                ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
-              with
-             | WholeVar _ -> failwith "should not happen"
-             | States states ->
-               Marked.same_mark_as (List.assoc state states) s_var)),
-        m )
-  | EVar v ->
-    Bindlib.box_apply
-      (fun v -> Marked.same_mark_as v e)
-      (Bindlib.box_var (Var.Map.find v ctx.var_mapping))
+    Expr.elocation
+      (ScopelangScopeVar
+         (match
+            ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
+          with
+         | WholeVar _ -> failwith "should not happen"
+         | States states -> Marked.same_mark_as (List.assoc state states) s_var))
+      m
+  | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct (s_name, fields) ->
-    Bindlib.box_apply
-      (fun new_fields -> EStruct (s_name, new_fields), m)
-      (Scopelang.Ast.StructFieldMapLift.lift_box
-         (StructFieldMap.map (translate_expr ctx) fields))
+    Expr.estruct s_name (StructFieldMap.map (translate_expr ctx) fields) m
   | EStructAccess (e1, s_name, f_name) ->
-    Bindlib.box_apply
-      (fun new_e1 -> EStructAccess (new_e1, s_name, f_name), m)
-      (translate_expr ctx e1)
+    Expr.estructaccess (translate_expr ctx e1) s_name f_name m
   | EEnumInj (e1, cons, e_name) ->
-    Bindlib.box_apply
-      (fun new_e1 -> EEnumInj (new_e1, cons, e_name), m)
-      (translate_expr ctx e1)
+    Expr.eenuminj (translate_expr ctx e1) cons e_name m
   | EMatchS (e1, e_name, arms) ->
-    Bindlib.box_apply2
-      (fun new_e1 new_arms -> EMatchS (new_e1, e_name, new_arms), m)
-      (translate_expr ctx e1)
-      (Scopelang.Ast.EnumConstructorMapLift.lift_box
-         (EnumConstructorMap.map (translate_expr ctx) arms))
+    Expr.ematchs (translate_expr ctx e1) e_name
+      (EnumConstructorMap.map (translate_expr ctx) arms)
+      m
   | ELit
       (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
        | LDuration _ ) as l) ->
-    Bindlib.box (ELit l, m)
+    Expr.elit l m
   | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
     let new_vars = Array.map (fun var -> Var.make (Bindlib.name_of var)) vars in
@@ -108,33 +95,19 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
           { ctx with var_mapping = Var.Map.add var new_var ctx.var_mapping })
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
-    Bindlib.box_apply
-      (fun new_binder -> EAbs (new_binder, typs), m)
-      (Bindlib.bind_mvar new_vars (translate_expr ctx body))
+    Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) typs m
   | EApp (e1, args) ->
-    Bindlib.box_apply2
-      (fun new_e1 new_args -> EApp (new_e1, new_args), m)
-      (translate_expr ctx e1)
-      (Bindlib.box_list (List.map (translate_expr ctx) args))
-  | EOp op -> Bindlib.box (EOp op, m)
+    Expr.eapp (translate_expr ctx e1) (List.map (translate_expr ctx) args) m
+  | EOp op -> Expr.eop op m
   | EDefault (excepts, just, cons) ->
-    Bindlib.box_apply3
-      (fun new_excepts new_just new_cons ->
-        Expr.make_default new_excepts new_just new_cons m)
-      (Bindlib.box_list (List.map (translate_expr ctx) excepts))
-      (translate_expr ctx just) (translate_expr ctx cons)
+    Expr.edefault
+      (List.map (translate_expr ctx) excepts)
+      (translate_expr ctx just) (translate_expr ctx cons) m
   | EIfThenElse (e1, e2, e3) ->
-    Bindlib.box_apply3
-      (fun new_e1 new_e2 new_e3 -> EIfThenElse (new_e1, new_e2, new_e3), m)
-      (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
-  | EArray args ->
-    Bindlib.box_apply
-      (fun new_args -> EArray new_args, m)
-      (Bindlib.box_list (List.map (translate_expr ctx) args))
-  | ErrorOnEmpty e1 ->
-    Bindlib.box_apply
-      (fun new_e1 -> ErrorOnEmpty new_e1, m)
-      (translate_expr ctx e1)
+    Expr.eifthenelse (translate_expr ctx e1) (translate_expr ctx e2)
+      (translate_expr ctx e3) m
+  | EArray args -> Expr.earray (List.map (translate_expr ctx) args) m
+  | ErrorOnEmpty e1 -> Expr.eerroronempty (translate_expr ctx e1) m
 
 (** {1 Rule tree construction} *)
 
@@ -186,7 +159,7 @@ let rec rule_tree_to_expr
     (ctx : ctx)
     (def_pos : Pos.t)
     (is_func : Ast.expr Var.t option)
-    (tree : rule_tree) : untyped Scopelang.Ast.expr Bindlib.box =
+    (tree : rule_tree) : untyped Scopelang.Ast.expr boxed =
   let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
@@ -194,15 +167,16 @@ let rec rule_tree_to_expr
   (* because each rule has its own variable parameter and we want to convert the
      whole rule tree into a function, we need to perform some alpha-renaming of
      all the expressions *)
-  let substitute_parameter (e : Ast.expr Bindlib.box) (rule : Ast.rule) :
-      Ast.expr Bindlib.box =
+  let substitute_parameter (e : Ast.expr boxed) (rule : Ast.rule) :
+      Ast.expr boxed =
     match is_func, rule.Ast.rule_parameter with
     | Some new_param, Some (old_param, _) ->
-      let binder = Bindlib.bind_var old_param e in
-      Bindlib.box_apply2
-        (fun binder new_param -> Bindlib.subst binder new_param)
-        binder
-        (Bindlib.box_var new_param)
+      let binder = Bindlib.bind_var old_param (Marked.unmark e) in
+      Marked.mark (Marked.get_mark e)
+      @@ Bindlib.box_apply2
+           (fun binder new_param -> Bindlib.subst binder new_param)
+           binder
+           (Bindlib.box_var new_param)
     | None, None -> e
     | _ -> assert false
     (* should not happen *)
@@ -235,45 +209,38 @@ let rec rule_tree_to_expr
       (fun rule -> substitute_parameter rule.Ast.rule_cons rule)
       base_rules
   in
-  let translate_and_unbox_list (list : Ast.expr Bindlib.box list) :
-      untyped Scopelang.Ast.expr Bindlib.box list =
+  let translate_and_unbox_list (list : Ast.expr boxed list) :
+      untyped Scopelang.Ast.expr boxed list =
     List.map
       (fun e ->
         (* There are two levels of boxing here, the outermost is introduced by
            the [translate_expr] function for which all of the bindings should
            have been closed by now, so we can safely unbox. *)
-        Bindlib.unbox (Bindlib.box_apply (translate_expr ctx) e))
+        translate_expr ctx (Expr.unbox e))
       list
   in
   let default_containing_base_cases =
-    Bindlib.box_apply2
-      (fun base_just_list base_cons_list ->
-        Expr.make_default
-          (List.map2
-             (fun base_just base_cons ->
-               Expr.make_default []
-                 (* Here we insert the logging command that records when a
-                    decision is taken for the value of a variable. *)
-                 (tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 base_cons emark)
-             base_just_list base_cons_list)
-          (ELit (LBool false), emark)
-          (ELit LEmptyError, emark) emark)
-      (Bindlib.box_list (translate_and_unbox_list base_just_list))
-      (Bindlib.box_list (translate_and_unbox_list base_cons_list))
+    Expr.make_default
+      (List.map2
+         (fun base_just base_cons ->
+           Expr.make_default []
+             (* Here we insert the logging command that records when a decision
+                is taken for the value of a variable. *)
+             (tag_with_log_entry base_just PosRecordIfTrueBool [])
+             base_cons emark)
+         (translate_and_unbox_list base_just_list)
+         (translate_and_unbox_list base_cons_list))
+      (Expr.elit (LBool false) emark)
+      (Expr.elit LEmptyError emark)
+      emark
   in
   let exceptions =
-    Bindlib.box_list
-      (List.map
-         (rule_tree_to_expr ~toplevel:false ctx def_pos is_func)
-         exceptions)
+    List.map (rule_tree_to_expr ~toplevel:false ctx def_pos is_func) exceptions
   in
   let default =
-    Bindlib.box_apply2
-      (fun exceptions default_containing_base_cases ->
-        Expr.make_default exceptions (ELit (LBool true), emark)
-          default_containing_base_cases emark)
-      exceptions default_containing_base_cases
+    Expr.make_default exceptions
+      (Expr.elit (LBool true) emark)
+      default_containing_base_cases emark
   in
   match is_func, (List.hd base_rules).Ast.rule_parameter with
   | None, None -> default
@@ -281,12 +248,7 @@ let rec rule_tree_to_expr
     if toplevel then
       (* When we're creating a function from multiple defaults, we must check
          that the result returned by the function is not empty *)
-      let default =
-        Bindlib.box_apply
-          (fun (default : untyped Scopelang.Ast.expr) ->
-            ErrorOnEmpty default, emark)
-          default
-      in
+      let default = Expr.eerroronempty default emark in
       Expr.make_abs
         [| Var.Map.find new_param ctx.var_mapping |]
         default [typ] def_pos
@@ -304,7 +266,7 @@ let translate_def
     (typ : typ)
     (io : Scopelang.Ast.io)
     ~(is_cond : bool)
-    ~(is_subscope_var : bool) : untyped Scopelang.Ast.expr =
+    ~(is_subscope_var : bool) : untyped Scopelang.Ast.expr boxed =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func =
     match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
@@ -330,13 +292,12 @@ let translate_def
       let spans =
         List.map
           (fun (_, r) ->
-            ( Some "This definition is a function:",
-              Expr.pos (Bindlib.unbox r.Ast.rule_cons) ))
+            Some "This definition is a function:", Expr.pos r.Ast.rule_cons)
           (Ast.RuleMap.bindings (Ast.RuleMap.filter is_rule_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
-                Expr.pos (Bindlib.unbox r.Ast.rule_cons) ))
+                Expr.pos r.Ast.rule_cons ))
             (Ast.RuleMap.bindings
                (Ast.RuleMap.filter (fun n r -> not (is_rule_func n r)) def))
       in
@@ -386,30 +347,30 @@ let translate_def
        defined as an OnlyInput to a subscope, since the [false] default value
        will not be provided by the calee scope, it has to be placed in the
        caller. *)
-  then ELit LEmptyError, Untyped { pos = Ast.ScopeDef.get_position def_info }
+  then
+    Expr.elit LEmptyError (Untyped { pos = Ast.ScopeDef.get_position def_info })
   else
-    Bindlib.unbox
-      (rule_tree_to_expr ~toplevel:true ctx
-         (Ast.ScopeDef.get_position def_info)
-         (Option.map (fun _ -> Var.make "param") is_def_func_param_typ)
-         (match top_list, top_value with
-         | [], None ->
-           (* In this case, there are no rules to define the expression and no
-              default value so we put an empty rule. *)
-           Leaf [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ]
-         | [], Some top_value ->
-           (* In this case, there are no rules to define the expression but a
-              default value so we put it. *)
-           Leaf [top_value]
-         | _, Some top_value ->
-           (* When there are rules + a default value, we put the rules as
-              exceptions to the default value *)
-           Node (top_list, [top_value])
-         | [top_tree], None -> top_tree
-         | _, None ->
-           Node
-             ( top_list,
-               [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ] )))
+    rule_tree_to_expr ~toplevel:true ctx
+      (Ast.ScopeDef.get_position def_info)
+      (Option.map (fun _ -> Var.make "param") is_def_func_param_typ)
+      (match top_list, top_value with
+      | [], None ->
+        (* In this case, there are no rules to define the expression and no
+           default value so we put an empty rule. *)
+        Leaf [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ]
+      | [], Some top_value ->
+        (* In this case, there are no rules to define the expression but a
+           default value so we put it. *)
+        Leaf [top_value]
+      | _, Some top_value ->
+        (* When there are rules + a default value, we put the rules as
+           exceptions to the default value *)
+        Node (top_list, [top_value])
+      | [top_tree], None -> top_tree
+      | _, None ->
+        Node
+          ( top_list,
+            [Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ] ))
 
 (** Translates a scope *)
 let translate_scope (ctx : ctx) (scope : Ast.scope) :
@@ -471,7 +432,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) :
                        Marked.get_mark (ScopeVar.get_info scope_var) ),
                      var_typ,
                      scope_def.Ast.scope_def_io,
-                     expr_def );
+                     Expr.unbox expr_def );
                ])
            | Dependency.Vertex.SubScope sub_scope_index ->
              (* Before calling the sub_scope, we need to include all the
@@ -568,7 +529,7 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) :
                            var_pos ),
                          def_typ,
                          scope_def.Ast.scope_def_io,
-                         expr_def ))
+                         Expr.unbox expr_def ))
                  sub_scope_vars_redefs_candidates
              in
              let sub_scope_vars_redefs =
@@ -595,12 +556,9 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) :
     scope_decl_rules
     @ List.map
         (fun e ->
-          let scope_e = translate_expr ctx e in
-          Bindlib.unbox
-            (Bindlib.box_apply
-               (fun scope_e -> Scopelang.Ast.Assertion scope_e)
-               scope_e))
-        (Bindlib.unbox (Bindlib.box_list scope.Ast.scope_assertions))
+          let scope_e = translate_expr ctx (Expr.unbox e) in
+          Scopelang.Ast.Assertion (Expr.unbox scope_e))
+        scope.Ast.scope_assertions
   in
   let scope_sig =
     ScopeVarMap.fold

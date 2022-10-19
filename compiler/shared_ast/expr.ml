@@ -22,67 +22,99 @@ open Definitions
 
 (* Basic block constructors *)
 
-let evar v mark = Bindlib.box_apply (Marked.mark mark) (Bindlib.box_var v)
+module Box = struct
+  module B = Bindlib
 
-let etuple args s mark =
-  Bindlib.box_apply (fun args -> ETuple (args, s), mark) (Bindlib.box_list args)
+  let app0 x mark = B.box x, mark
+  let app1 (xb, m) f mark = B.box_apply (fun x -> f (x, m)) xb, mark
 
-let etupleaccess e1 i s typs mark =
-  Bindlib.box_apply (fun e1 -> ETupleAccess (e1, i, s, typs), mark) e1
+  let app2 (xb1, m1) (xb2, m2) f mark =
+    B.box_apply2 (fun x1 x2 -> f (x1, m1) (x2, m2)) xb1 xb2, mark
 
-let einj e1 i e_name typs mark =
-  Bindlib.box_apply (fun e1 -> EInj (e1, i, e_name, typs), mark) e1
+  let app3 (xb1, m1) (xb2, m2) (xb3, m3) f mark =
+    ( B.box_apply3 (fun x1 x2 x3 -> f (x1, m1) (x2, m2) (x3, m3)) xb1 xb2 xb3,
+      mark )
 
-let ematch arg arms e_name mark =
-  Bindlib.box_apply2
-    (fun arg arms -> EMatch (arg, arms, e_name), mark)
-    arg (Bindlib.box_list arms)
+  let appn xmbl f mark =
+    let xbl, ml = List.split xmbl in
+    B.box_apply (fun xl -> f (List.combine xl ml)) (B.box_list xbl), mark
 
-let earray args mark =
-  Bindlib.box_apply (fun args -> EArray args, mark) (Bindlib.box_list args)
+  let app1n (xb0, m0) xmbl f mark =
+    let xbl, ml = List.split xmbl in
+    ( B.box_apply2
+        (fun x0 xl -> f (x0, m0) (List.combine xl ml))
+        xb0 (B.box_list xbl),
+      mark )
 
-let elit l mark = Bindlib.box (ELit l, mark)
+  let app2n (xb0, m0) (xb1, m1) xmbl f mark =
+    let xbl, ml = List.split xmbl in
+    ( B.box_apply3
+        (fun x0 x1 xl -> f (x0, m0) (x1, m1) (List.combine xl ml))
+        xb0 xb1 (B.box_list xbl),
+      mark )
+
+  let inj : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
+   fun em ->
+    B.box_apply (fun e -> Marked.mark (Marked.get_mark em) e) (Marked.unmark em)
+end
+
+let bind vars e = Bindlib.bind_mvar vars (Box.inj e)
+
+let subst binder vars =
+  Bindlib.msubst binder (Array.of_list (List.map Marked.unmark vars))
+
+let evar v mark = Marked.mark mark (Bindlib.box_var v)
+let etuple args s = Box.appn args @@ fun args -> ETuple (args, s)
+
+let etupleaccess e1 i s typs =
+  Box.app1 e1 @@ fun e1 -> ETupleAccess (e1, i, s, typs)
+
+let einj e1 i e_name typs = Box.app1 e1 @@ fun e1 -> EInj (e1, i, e_name, typs)
+
+let ematch arg arms e_name =
+  Box.app1n arg arms @@ fun arg arms -> EMatch (arg, arms, e_name)
+
+let earray args = Box.appn args @@ fun args -> EArray args
+let elit l mark = Marked.mark mark (Bindlib.box (ELit l))
 
 let eabs binder typs mark =
-  Bindlib.box_apply (fun binder -> EAbs (binder, typs), mark) binder
+  Bindlib.box_apply (fun binder -> EAbs (binder, typs)) binder, mark
 
-let eapp e1 args mark =
-  Bindlib.box_apply2
-    (fun e1 args -> EApp (e1, args), mark)
-    e1 (Bindlib.box_list args)
+let eapp e1 args = Box.app1n e1 args @@ fun e1 args -> EApp (e1, args)
+let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
+let eop op = Box.app0 @@ EOp op
 
-let eassert e1 mark = Bindlib.box_apply (fun e1 -> EAssert e1, mark) e1
-let eop op mark = Bindlib.box (EOp op, mark)
+let edefault excepts just cons =
+  Box.app2n just cons excepts
+  @@ fun just cons excepts -> EDefault (excepts, just, cons)
 
-let edefault excepts just cons mark =
-  Bindlib.box_apply3
-    (fun excepts just cons -> EDefault (excepts, just, cons), mark)
-    (Bindlib.box_list excepts) just cons
+let eifthenelse e1 e2 e3 =
+  Box.app3 e1 e2 e3 @@ fun e1 e2 e3 -> EIfThenElse (e1, e2, e3)
 
-let eifthenelse e1 e2 e3 mark =
-  Bindlib.box_apply3 (fun e1 e2 e3 -> EIfThenElse (e1, e2, e3), mark) e1 e2 e3
+let eerroronempty e1 = Box.app1 e1 @@ fun e1 -> ErrorOnEmpty e1
+let eraise e1 = Box.app0 @@ ERaise e1
+let ecatch e1 exn e2 = Box.app2 e1 e2 @@ fun e1 e2 -> ECatch (e1, exn, e2)
+let elocation loc = Box.app0 @@ ELocation loc
 
-let eerroronempty e1 mark =
-  Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, mark) e1
+let estruct name (fields : ('a, 't) boxed_gexpr StructFieldMap.t) mark =
+  let module Lift = Bindlib.Lift (StructFieldMap) in
+  Marked.mark mark
+  @@ Bindlib.box_apply
+       (fun fields -> EStruct (name, fields))
+       (Lift.lift_box (StructFieldMap.map Box.inj fields))
 
-let eraise e1 mark = Bindlib.box (ERaise e1, mark)
+let estructaccess e1 field struc =
+  Box.app1 e1 @@ fun e1 -> EStructAccess (e1, field, struc)
 
-let ecatch e1 exn e2 mark =
-  Bindlib.box_apply2 (fun e1 e2 -> ECatch (e1, exn, e2), mark) e1 e2
-
-let elocation loc mark = Bindlib.box (ELocation loc, mark)
-
-let estruct name fields mark =
-  Bindlib.box_apply (fun es -> EStruct (name, es), mark) fields
-
-let estructaccess e1 field struc mark =
-  Bindlib.box_apply (fun e1 -> EStructAccess (e1, field, struc), mark) e1
-
-let eenuminj e1 cons enum mark =
-  Bindlib.box_apply (fun e1 -> EEnumInj (e1, cons, enum), mark) e1
+let eenuminj e1 cons enum = Box.app1 e1 @@ fun e1 -> EEnumInj (e1, cons, enum)
 
 let ematchs e1 enum cases mark =
-  Bindlib.box_apply2 (fun e1 cases -> EMatchS (e1, enum, cases), mark) e1 cases
+  let module Lift = Bindlib.Lift (EnumConstructorMap) in
+  Marked.mark mark
+  @@ Bindlib.box_apply2
+       (fun e1 cases -> EMatchS (e1, enum, cases))
+       (Box.inj e1)
+       (Lift.lift_box (EnumConstructorMap.map Box.inj cases))
 
 (* - Manipulation of marks - *)
 
@@ -156,18 +188,20 @@ let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
 let map
     (type a)
     (ctx : 'ctx)
-    ~(f : 'ctx -> (a, 'm1) gexpr -> (a, 'm2) gexpr box)
-    (e : ((a, 'm1) naked_gexpr, 'm2) Marked.t) : (a, 'm2) gexpr box =
+    ~(f : 'ctx -> (a, 'm1) gexpr -> (a, 'm2) boxed_gexpr)
+    (e : ((a, 'm1) naked_gexpr, 'm2) Marked.t) : (a, 'm2) boxed_gexpr =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELit l -> elit l m
   | EApp (e1, args) -> eapp (f ctx e1) (List.map (f ctx) args) m
-  | EOp op -> Bindlib.box (EOp op, m)
+  | EOp op -> eop op m
   | EArray args -> earray (List.map (f ctx) args) m
   | EVar v -> evar (Var.translate v) m
   | EAbs (binder, typs) ->
     let vars, body = Bindlib.unmbind binder in
-    eabs (Bindlib.bind_mvar (Array.map Var.translate vars) (f ctx body)) typs m
+    let body = f ctx body in
+    let binder = bind (Array.map Var.translate vars) body in
+    eabs binder typs m
   | EIfThenElse (e1, e2, e3) ->
     eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) m
   | ETuple (args, s) -> etuple (List.map (f ctx) args) s m
@@ -184,23 +218,12 @@ let map
   | ERaise exn -> eraise exn m
   | ELocation loc -> elocation loc m
   | EStruct (name, fields) ->
-    let fields =
-      StructFieldMap.fold
-        (fun fld e -> Bindlib.box_apply2 (StructFieldMap.add fld) (f ctx e))
-        fields
-        (Bindlib.box StructFieldMap.empty)
-    in
+    let fields = StructFieldMap.map (f ctx) fields in
     estruct name fields m
   | EStructAccess (e1, field, struc) -> estructaccess (f ctx e1) field struc m
   | EEnumInj (e1, cons, enum) -> eenuminj (f ctx e1) cons enum m
   | EMatchS (e1, enum, cases) ->
-    let cases =
-      EnumConstructorMap.fold
-        (fun cstr e ->
-          Bindlib.box_apply2 (EnumConstructorMap.add cstr) (f ctx e))
-        cases
-        (Bindlib.box EnumConstructorMap.empty)
-    in
+    let cases = EnumConstructorMap.map (f ctx) cases in
     ematchs (f ctx e1) enum cases m
 
 let rec map_top_down ~f e = map () ~f:(fun () -> map_top_down ~f) (f e)
@@ -211,10 +234,12 @@ let map_marks ~f e =
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
-let box e =
+let rebox e =
   let rec id_t () e = map () ~f:id_t e in
   id_t () e
 
+let box e = Marked.same_mark_as (Bindlib.box (Marked.unmark e)) e
+let unbox (e, m) = Bindlib.unbox e, m
 let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
 (* Tests *)
@@ -721,8 +746,7 @@ let rec size : type a. (a, 't) gexpr -> int =
 
 (* - Expression building helpers - *)
 
-let make_var (x, mark) =
-  Bindlib.box_apply (fun x -> x, mark) (Bindlib.box_var x)
+let make_var v mark = evar v mark
 
 let make_abs xs e taus pos =
   let mark =
@@ -732,56 +756,46 @@ let make_abs xs e taus pos =
         List.fold_right
           (fun tx acc -> Marked.mark pos (TArrow (tx, acc)))
           taus ety)
-      (Marked.get_mark (Bindlib.unbox e))
+      (Marked.get_mark e)
   in
-  Bindlib.box_apply (fun b -> EAbs (b, taus), mark) (Bindlib.bind_mvar xs e)
+  eabs (bind xs e) taus mark
 
 let make_app e u pos =
-  Bindlib.box_apply2
-    (fun e u ->
-      let mark =
-        fold_marks
-          (fun _ -> pos)
-          (function
-            | [] -> assert false
-            | fty :: argtys ->
-              List.fold_left
-                (fun tf tx ->
-                  match Marked.unmark tf with
-                  | TArrow (tx', tr) ->
-                    assert (unifiable tx.ty tx');
-                    (* wrong arg type *)
-                    tr
-                  | TAny -> tf
-                  | _ ->
-                    Format.eprintf
-                      "Attempt to construct application of non-arrow type %a:@\n\
-                       %a"
-                      Print.typ_debug tf
-                      (Print.expr_debug ~debug:false)
-                      e;
-                    assert false)
-                fty.ty argtys)
-          (List.map Marked.get_mark (e :: u))
-      in
-      EApp (e, u), mark)
-    e (Bindlib.box_list u)
+  let mark =
+    fold_marks
+      (fun _ -> pos)
+      (function
+        | [] -> assert false
+        | fty :: argtys ->
+          List.fold_left
+            (fun tf tx ->
+              match Marked.unmark tf with
+              | TArrow (tx', tr) ->
+                assert (unifiable tx.ty tx');
+                (* wrong arg type *)
+                tr
+              | TAny -> tf
+              | _ -> assert false)
+            fty.ty argtys)
+      (List.map Marked.get_mark (e :: u))
+  in
+  eapp e u mark
 
 let empty_thunked_term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
   make_abs [| silent |]
-    (Bindlib.box (ELit LEmptyError, mark))
+    (Bindlib.box (ELit LEmptyError), mark)
     [TLit TUnit, pos]
     pos
 
 let make_let_in x tau e1 e2 mpos =
-  make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos (Bindlib.unbox e2))
+  make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos e2)
 
 let make_multiple_let_in xs taus e1s e2 mpos =
-  make_app (make_abs xs e2 taus mpos) e1s (pos (Bindlib.unbox e2))
+  make_app (make_abs xs e2 taus mpos) e1s (pos e2)
 
-let make_default exceptions just cons mark =
+let make_default_unboxed exceptions just cons =
   let rec bool_value = function
     | ELit (LBool b), _ -> Some b
     | EApp ((EOp (Unop (Log (l, _))), _), [e]), _
@@ -792,11 +806,15 @@ let make_default exceptions just cons mark =
     | _ -> None
   in
   match exceptions, bool_value just, cons with
-  | [], Some true, cons -> cons
-  | exceptions, Some true, (EDefault ([], just, cons), mark) ->
-    EDefault (exceptions, just, cons), mark
-  | [except], Some false, _ -> except
-  | exceptions, _, cons -> EDefault (exceptions, just, cons), mark
+  | [], Some true, cons -> Marked.unmark cons
+  | exceptions, Some true, (EDefault ([], just, cons), _) ->
+    EDefault (exceptions, just, cons)
+  | [except], Some false, _ -> Marked.unmark except
+  | exceptions, _, cons -> EDefault (exceptions, just, cons)
+
+let make_default exceptions just cons =
+  Box.app2n just cons exceptions
+  @@ fun just cons exceptions -> make_default_unboxed exceptions just cons
 
 let make_tuple el structname m0 =
   match el with
@@ -811,6 +829,6 @@ let make_tuple el structname m0 =
       fold_marks
         (fun posl -> List.hd posl)
         (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
-        (List.map (fun e -> Marked.get_mark (Bindlib.unbox e)) el)
+        (List.map (fun e -> Marked.get_mark e) el)
     in
     etuple el structname m

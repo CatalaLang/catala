@@ -16,8 +16,6 @@
 
 open Utils
 open Shared_ast
-module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
-module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 
 type location = scopelang glocation
 
@@ -88,11 +86,11 @@ type 'm program = {
 let type_rule decl_ctx env = function
   | Definition (loc, typ, io, expr) ->
     let expr' = Typing.expr decl_ctx ~env ~typ expr in
-    Definition (loc, typ, io, Bindlib.unbox expr')
+    Definition (loc, typ, io, Expr.unbox expr')
   | Assertion expr ->
     let typ = Marked.mark (Expr.pos expr) (TLit TBool) in
     let expr' = Typing.expr decl_ctx ~env ~typ expr in
-    Assertion (Bindlib.unbox expr')
+    Assertion (Expr.unbox expr')
   | Call (sc_name, ssc_name, m) ->
     let pos = Expr.mark_pos m in
     Call (sc_name, ssc_name, Typed { pos; ty = Marked.mark pos TAny })

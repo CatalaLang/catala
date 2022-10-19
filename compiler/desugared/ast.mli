@@ -68,8 +68,8 @@ type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
 
 type rule = {
   rule_id : RuleName.t;
-  rule_just : expr Bindlib.box;
-  rule_cons : expr Bindlib.box;
+  rule_just : expr boxed;
+  rule_cons : expr boxed;
   rule_parameter : (expr Var.t * typ) option;
   rule_exception : exception_situation;
   rule_label : label_situation;
@@ -80,7 +80,7 @@ module Rule : Set.OrderedType with type t = rule
 val empty_rule : Pos.t -> typ option -> rule
 val always_false_rule : Pos.t -> typ option -> rule
 
-type assertion = expr Bindlib.box
+type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 

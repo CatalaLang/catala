@@ -217,7 +217,7 @@ let driver source_file (options : Cli.options) : int =
                      prgm.scopes) )
           else
             let prgrm_dcalc_expr =
-              Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
+              Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
               (Shared_ast.Expr.format prgm.decl_ctx)
@@ -250,7 +250,7 @@ let driver source_file (options : Cli.options) : int =
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
-              Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
+              Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
@@ -322,7 +322,8 @@ let driver source_file (options : Cli.options) : int =
                          prgm.scopes) )
               else
                 let prgrm_lcalc_expr =
-                  Bindlib.unbox (Shared_ast.Program.to_expr prgm scope_uid)
+                  Shared_ast.Expr.unbox
+                    (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
                   (Shared_ast.Expr.format prgm.decl_ctx)

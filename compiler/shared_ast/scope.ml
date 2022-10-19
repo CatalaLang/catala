@@ -33,15 +33,21 @@ let rec fold_right_lets ~f ~init scope_body_expr =
     let next_result = fold_right_lets ~f ~init next in
     f scope_let var next_result
 
-let map_exprs_in_lets ~f ~varf scope_body_expr =
+let map_exprs_in_lets :
+    f:('expr1 -> 'expr2 boxed) ->
+    varf:('expr1 Var.t -> 'expr2 Var.t) ->
+    'expr1 scope_body_expr ->
+    'expr2 scope_body_expr Bindlib.box =
+ fun ~f ~varf scope_body_expr ->
   fold_right_lets
     ~f:(fun scope_let var_next acc ->
       Bindlib.box_apply2
         (fun scope_let_next scope_let_expr ->
           ScopeLet { scope_let with scope_let_next; scope_let_expr })
         (Bindlib.bind_var (varf var_next) acc)
-        (f scope_let.scope_let_expr))
-    ~init:(fun res -> Bindlib.box_apply (fun res -> Result res) (f res))
+        (Expr.Box.inj (f scope_let.scope_let_expr)))
+    ~init:(fun res ->
+      Bindlib.box_apply (fun res -> Result res) (Expr.Box.inj (f res)))
     scope_body_expr
 
 let rec fold_left ~f ~init scopes =
@@ -106,10 +112,9 @@ let get_body_mark scope_body =
   let _, e = Bindlib.unbind scope_body.scope_body_expr in
   get_body_expr_mark e
 
-let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
-    'e box =
+let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) =
   match scope_let with
-  | Result e -> Expr.box e
+  | Result e -> Expr.rebox e
   | ScopeLet
       {
         scope_let_kind = _;
@@ -119,7 +124,8 @@ let rec unfold_body_expr (ctx : decl_ctx) (scope_let : 'e scope_body_expr) :
         scope_let_pos;
       } ->
     let var, next = Bindlib.unbind scope_let_next in
-    Expr.make_let_in var scope_let_typ (Expr.box scope_let_expr)
+    Expr.make_let_in var scope_let_typ
+      (Expr.rebox scope_let_expr)
       (unfold_body_expr ctx next)
       scope_let_pos
 
@@ -135,7 +141,7 @@ let build_typ_from_sig
 type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
-    'e box =
+    'e boxed =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr
@@ -149,7 +155,7 @@ let format
     ((n, s) : ScopeName.t * 'm scope_body) =
   Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" Print.keyword "let"
     ScopeName.format_t n (Expr.format ctx ~debug)
-    (Bindlib.unbox
+    (Expr.unbox
        (to_expr ctx s
           (Expr.map_mark
              (fun _ -> Marked.get_mark (ScopeName.get_info n))
@@ -160,11 +166,11 @@ let rec unfold
     (ctx : decl_ctx)
     (s : 'e scopes)
     (mark : 'm mark)
-    (main_scope : 'expr scope_name_or_var) : 'e Bindlib.box =
+    (main_scope : 'expr scope_name_or_var) : 'e boxed =
   match s with
   | Nil -> (
     match main_scope with
-    | ScopeVar v -> Bindlib.box_apply (fun v -> v, mark) (Bindlib.box_var v)
+    | ScopeVar v -> Expr.make_var v mark
     | ScopeName _ -> failwith "should not happen")
   | ScopeDef { scope_name; scope_body; scope_next } ->
     let scope_var, scope_next = Bindlib.unbind scope_next in

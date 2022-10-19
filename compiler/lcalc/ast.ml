@@ -34,39 +34,25 @@ let option_enum_config : (EnumConstructor.t * typ) list =
 (* FIXME: proper typing in all the constructors below *)
 
 let make_none m =
-  let mark = Marked.mark m in
   let tunit = TLit TUnit, Expr.mark_pos m in
-  Bindlib.box
-  @@ mark
-  @@ EInj
-       ( Marked.mark (Expr.with_ty m tunit) (ELit LUnit),
-         0,
-         option_enum,
-         [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos] )
+  Expr.einj
+    (Expr.elit LUnit (Expr.with_ty m tunit))
+    0 option_enum
+    [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos]
+    m
 
 let make_some e =
-  let m = Marked.get_mark @@ Bindlib.unbox e in
-  let mark = Marked.mark m in
-  Bindlib.box_apply
-    (fun e ->
-      mark
-      @@ EInj
-           ( e,
-             1,
-             option_enum,
-             [TLit TUnit, Expr.mark_pos m; TAny, Expr.mark_pos m] ))
-    e
+  let m = Marked.get_mark e in
+  Expr.einj e 1 option_enum
+    [TLit TUnit, Expr.mark_pos m; TAny, Expr.mark_pos m]
+    m
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and
     e_none to be in the form [EAbs ...].*)
 let make_matchopt_with_abs_arms arg e_none e_some =
-  let m = Marked.get_mark @@ Bindlib.unbox arg in
-  let mark = Marked.mark m in
-  Bindlib.box_apply3
-    (fun arg e_none e_some ->
-      mark @@ EMatch (arg, [e_none; e_some], option_enum))
-    arg e_none e_some
+  let m = Marked.get_mark arg in
+  Expr.ematch arg [e_none; e_some] option_enum m
 
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to
@@ -74,7 +60,6 @@ let make_matchopt_with_abs_arms arg e_none e_some =
     requirements on the form of both e_some and e_none. *)
 let make_matchopt pos v tau arg e_none e_some =
   let x = Var.make "_" in
-
   make_matchopt_with_abs_arms arg
     (Expr.make_abs [| x |] e_none [TLit TUnit, pos] pos)
     (Expr.make_abs [| v |] e_some [tau] pos)
