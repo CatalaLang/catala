@@ -61,24 +61,20 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
 
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
-  | DesugaredScopeVar (v, _st) ->
-    Format.fprintf fmt "%a" ScopeVar.format_t (Marked.unmark v)
-  | ScopelangScopeVar v ->
-    Format.fprintf fmt "%a" ScopeVar.format_t (Marked.unmark v)
+  | DesugaredScopeVar (v, _st) -> ScopeVar.format_t fmt (Marked.unmark v)
+  | ScopelangScopeVar v -> ScopeVar.format_t fmt (Marked.unmark v)
   | SubScopeVar (_, subindex, subvar) ->
     Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
       ScopeVar.format_t (Marked.unmark subvar)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
-  Format.fprintf fmt "%a"
-    (Utils.Cli.format_with_style [ANSITerminal.magenta])
+  Utils.Cli.format_with_style [ANSITerminal.magenta] fmt
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
 let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
   let typ = typ ctx in
   let typ_with_parens (fmt : Format.formatter) (t : typ) =
-    if typ_needs_parens t then Format.fprintf fmt "(%a)" typ t
-    else Format.fprintf fmt "%a" typ t
+    if typ_needs_parens t then Format.fprintf fmt "(%a)" typ t else typ fmt t
   in
   match Marked.unmark ty with
   | TLit l -> tlit fmt l
@@ -86,7 +82,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " operator "*")
-         (fun fmt t -> Format.fprintf fmt "%a" typ t))
+         typ)
       ts
   | TStruct s -> (
     match ctx with
@@ -213,18 +209,25 @@ let except (fmt : Format.formatter) (exn : except) : unit =
     | Crash -> "Crash"
     | NoValueProvided -> "NoValueProvided")
 
-let var fmt v =
+let var_debug fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
+
+let var fmt v = Format.pp_print_string fmt (Bindlib.name_of v)
 
 let needs_parens (type a) (e : (a, _) gexpr) : bool =
   match Marked.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
-let rec expr :
+let rec expr_aux :
     type a.
-    ?debug:bool -> decl_ctx option -> Format.formatter -> (a, 't) gexpr -> unit
-    =
- fun ?(debug = false) ctx fmt e ->
-  let expr e = expr ~debug ctx e in
+    ?debug:bool ->
+    decl_ctx option ->
+    Bindlib.ctxt ->
+    Format.formatter ->
+    (a, 't) gexpr ->
+    unit =
+ fun ?(debug = false) ctx bnd_ctx fmt e ->
+  let exprb bnd_ctx e = expr_aux ~debug ctx bnd_ctx e in
+  let expr e = exprb bnd_ctx e in
   let with_parens fmt e =
     if needs_parens e then (
       punctuation fmt "(";
@@ -233,12 +236,12 @@ let rec expr :
     else expr fmt e
   in
   match Marked.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" var v
+  | EVar v -> if debug then var_debug fmt v else var fmt v
   | ETuple (es, None) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt e -> Format.fprintf fmt "%a" expr e))
+         (fun fmt e -> expr fmt e))
       es punctuation ")"
   | ETuple (es, Some s) -> (
     match ctx with
@@ -258,16 +261,21 @@ let rec expr :
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "["
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-         (fun fmt e -> Format.fprintf fmt "%a" expr e))
+         (fun fmt e -> expr fmt e))
       es punctuation "]"
   | ETupleAccess (e1, n, s, _ts) -> (
     match s, ctx with
-    | None, _ | _, None -> Format.fprintf fmt "%a%a%d" expr e1 punctuation "." n
+    | None, _ | _, None ->
+      expr fmt e1;
+      punctuation fmt ".";
+      Format.pp_print_int fmt n
     | Some s, Some ctx ->
-      Format.fprintf fmt "%a%a%a%a%a" expr e1 operator "." punctuation "\""
-        StructFieldName.format_t
-        (fst (List.nth (StructMap.find s ctx.ctx_structs) n))
-        punctuation "\"")
+      expr fmt e1;
+      operator fmt ".";
+      punctuation fmt "\"";
+      StructFieldName.format_t fmt
+        (fst (List.nth (StructMap.find s ctx.ctx_structs) n));
+      punctuation fmt "\"")
   | EInj (e, n, en, _ts) -> (
     match ctx with
     | None ->
@@ -298,7 +306,8 @@ let rec expr :
         (List.combine es (List.map fst (EnumMap.find e_name ctx.ctx_enums))))
   | ELit l -> lit fmt l
   | EApp ((EAbs (binder, taus), _), args) ->
-    let xs, body = Bindlib.unmbind binder in
+    let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+    let expr = exprb bnd_ctx in
     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) taus in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "%a%a"
@@ -310,7 +319,8 @@ let rec expr :
              keyword "in"))
       xs_tau_arg expr body
   | EAbs (binder, taus) ->
-    let xs, body = Bindlib.unmbind binder in
+    let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+    let expr = exprb bnd_ctx in
     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) taus in
     Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" punctuation "λ"
       (Format.pp_print_list
@@ -337,9 +347,9 @@ let rec expr :
   | EIfThenElse (e1, e2, e3) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" keyword "if" expr e1
       keyword "then" expr e2 keyword "else" expr e3
-  | EOp (Ternop op) -> Format.fprintf fmt "%a" ternop op
-  | EOp (Binop op) -> Format.fprintf fmt "%a" binop op
-  | EOp (Unop op) -> Format.fprintf fmt "%a" unop op
+  | EOp (Ternop op) -> ternop fmt op
+  | EOp (Binop op) -> binop fmt op
+  | EOp (Unop op) -> unop fmt op
   | EDefault (exceptions, just, cons) ->
     if List.length exceptions = 0 then
       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" expr just
@@ -390,5 +400,5 @@ let rec expr :
 
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)
-let expr_debug ?debug = expr ?debug None
-let expr ?debug ctx = expr ?debug (Some ctx)
+let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt
+let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt
