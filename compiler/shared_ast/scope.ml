@@ -45,9 +45,9 @@ let map_exprs_in_lets :
         (fun scope_let_next scope_let_expr ->
           ScopeLet { scope_let with scope_let_next; scope_let_expr })
         (Bindlib.bind_var (varf var_next) acc)
-        (Expr.Box.inj (f scope_let.scope_let_expr)))
+        (Expr.Box.lift (f scope_let.scope_let_expr)))
     ~init:(fun res ->
-      Bindlib.box_apply (fun res -> Result res) (Expr.Box.inj (f res)))
+      Bindlib.box_apply (fun res -> Result res) (Expr.Box.lift (f res)))
     scope_body_expr
 
 let rec fold_left ~f ~init scopes =

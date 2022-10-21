@@ -53,12 +53,24 @@ module Box = struct
         xb0 xb1 (B.box_list xbl),
       mark )
 
-  let inj : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
+  let lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
    fun em ->
     B.box_apply (fun e -> Marked.mark (Marked.get_mark em) e) (Marked.unmark em)
+
+  module LiftStruct = Bindlib.Lift (StructFieldMap)
+
+  let lift_struct = LiftStruct.lift_box
+
+  module LiftEnum = Bindlib.Lift (EnumConstructorMap)
+
+  let lift_enum = LiftEnum.lift_box
+
+  module LiftScopeVars = Bindlib.Lift (ScopeVarMap)
+
+  let lift_scope_vars = LiftScopeVars.lift_box
 end
 
-let bind vars e = Bindlib.bind_mvar vars (Box.inj e)
+let bind vars e = Bindlib.bind_mvar vars (Box.lift e)
 
 let subst binder vars =
   Bindlib.msubst binder (Array.of_list (List.map Marked.unmark vars))
@@ -97,11 +109,10 @@ let ecatch e1 exn e2 = Box.app2 e1 e2 @@ fun e1 e2 -> ECatch (e1, exn, e2)
 let elocation loc = Box.app0 @@ ELocation loc
 
 let estruct name (fields : ('a, 't) boxed_gexpr StructFieldMap.t) mark =
-  let module Lift = Bindlib.Lift (StructFieldMap) in
   Marked.mark mark
   @@ Bindlib.box_apply
        (fun fields -> EStruct (name, fields))
-       (Lift.lift_box (StructFieldMap.map Box.inj fields))
+       (Box.lift_struct (StructFieldMap.map Box.lift fields))
 
 let estructaccess e1 field struc =
   Box.app1 e1 @@ fun e1 -> EStructAccess (e1, field, struc)
@@ -109,12 +120,11 @@ let estructaccess e1 field struc =
 let eenuminj e1 cons enum = Box.app1 e1 @@ fun e1 -> EEnumInj (e1, cons, enum)
 
 let ematchs e1 enum cases mark =
-  let module Lift = Bindlib.Lift (EnumConstructorMap) in
   Marked.mark mark
   @@ Bindlib.box_apply2
        (fun e1 cases -> EMatchS (e1, enum, cases))
-       (Box.inj e1)
-       (Lift.lift_box (EnumConstructorMap.map Box.inj cases))
+       (Box.lift e1)
+       (Box.lift_enum (EnumConstructorMap.map Box.lift cases))
 
 (* - Manipulation of marks - *)
 

@@ -139,13 +139,13 @@ module Rule = struct
       match Shared_ast.Expr.compare_typ t1 t2 with
       | 0 -> (
         let open Bindlib in
-        let b1 = unbox (bind_var v1 (Expr.Box.inj r1.rule_just)) in
-        let b2 = unbox (bind_var v2 (Expr.Box.inj r2.rule_just)) in
+        let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
+        let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_just)) in
         let _, j1, j2 = unbind2 b1 b2 in
         match Expr.compare j1 j2 with
         | 0 ->
-          let b1 = unbox (bind_var v1 (Expr.Box.inj r1.rule_cons)) in
-          let b2 = unbox (bind_var v2 (Expr.Box.inj r2.rule_cons)) in
+          let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_cons)) in
+          let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_cons)) in
           let _, c1, c2 = unbind2 b1 b2 in
           Expr.compare c1 c2
         | n -> n)

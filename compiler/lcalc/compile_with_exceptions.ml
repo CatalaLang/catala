@@ -115,7 +115,7 @@ let rec translate_scope_lets
     'm A.expr scope_body_expr Bindlib.box =
   match scope_lets with
   | Result e ->
-    Bindlib.box_apply (fun e -> Result e) (Expr.Box.inj (translate_expr ctx e))
+    Bindlib.box_apply (fun e -> Result e) (Expr.Box.lift (translate_expr ctx e))
   | ScopeLet scope_let ->
     let old_scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
@@ -136,7 +136,7 @@ let rec translate_scope_lets
             scope_let_expr = new_scope_let_expr;
           })
       new_scope_next
-      (Expr.Box.inj new_scope_let_expr)
+      (Expr.Box.lift new_scope_let_expr)
 
 let rec translate_scopes
     (decl_ctx : decl_ctx)

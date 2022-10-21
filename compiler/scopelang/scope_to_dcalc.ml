@@ -381,7 +381,7 @@ let translate_rule
                 scope_let_pos = Marked.get_mark a;
               })
           (Bindlib.bind_var a_var next)
-          (Expr.Box.inj merged_expr)),
+          (Expr.Box.lift merged_expr)),
       {
         ctx with
         scope_vars =
@@ -434,7 +434,7 @@ let translate_rule
                 scope_let_kind = SubScopeVarDefinition;
               })
           (Bindlib.bind_var a_var next)
-          (Expr.Box.inj thunked_or_nonempty_new_e)),
+          (Expr.Box.lift thunked_or_nonempty_new_e)),
       {
         ctx with
         subscope_vars =
@@ -545,7 +545,7 @@ let translate_rule
               scope_let_expr = call_expr;
             })
         (Bindlib.bind_var result_tuple_var next)
-        (Expr.Box.inj call_expr)
+        (Expr.Box.lift call_expr)
     in
     let result_bindings_lets next =
       List.fold_right
@@ -570,7 +570,7 @@ let translate_rule
                         mark_tany m pos_sigma );
                   })
               (Bindlib.bind_var v next)
-              (Expr.Box.inj
+              (Expr.Box.lift
                  (Expr.make_var result_tuple_var (mark_tany m pos_sigma))),
             i - 1 ))
         all_subscope_output_vars_dcalc
@@ -610,7 +610,7 @@ let translate_rule
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
-          (Expr.Box.inj new_e)),
+          (Expr.Box.lift new_e)),
       ctx )
 
 let translate_rules
@@ -647,7 +647,7 @@ let translate_rules
   ( scope_lets
       (Bindlib.box_apply
          (fun return_exp -> Result return_exp)
-         (Expr.Box.inj return_exp)),
+         (Expr.Box.lift return_exp)),
     new_ctx )
 
 let translate_scope_decl
@@ -744,7 +744,7 @@ let translate_scope_decl
                          mark_tany sigma.scope_mark pos_sigma );
                    })
                (Bindlib.bind_var v next)
-               (Expr.Box.inj
+               (Expr.Box.lift
                   (Expr.make_var scope_input_var
                      (mark_tany sigma.scope_mark pos_sigma))),
              i - 1 ))

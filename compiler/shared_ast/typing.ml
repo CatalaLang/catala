@@ -508,7 +508,7 @@ and typecheck_expr_top_down :
           env (Array.to_list xs) tau_args
       in
       let body' = typecheck_expr_top_down ctx env t_ret body in
-      let binder' = Bindlib.bind_mvar xs' (Expr.Box.inj body') in
+      let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' t_args mark
   | A.EApp (e1, args) ->
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
@@ -585,7 +585,7 @@ let rec scope_body_expr ctx env ty_out body_expr =
   | A.Result e ->
     let e' = wrap_expr ctx (typecheck_expr_top_down ctx env ty_out) e in
     let e' = Expr.map_marks ~f:get_ty_mark e' in
-    Bindlib.box_apply (fun e -> A.Result e) (Expr.Box.inj e')
+    Bindlib.box_apply (fun e -> A.Result e) (Expr.Box.lift e')
   | A.ScopeLet
       {
         scope_let_kind;
@@ -615,7 +615,7 @@ let rec scope_body_expr ctx env ty_out body_expr =
             scope_let_next;
             scope_let_pos;
           })
-      (Expr.Box.inj (Expr.map_marks ~f:get_ty_mark e))
+      (Expr.Box.lift (Expr.map_marks ~f:get_ty_mark e))
       scope_let_next
 
 let scope_body ctx env body =

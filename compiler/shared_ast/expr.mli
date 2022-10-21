@@ -335,9 +335,9 @@ module Box : sig
       the latter would force us to resolve the box every time we need to recover
       the annotation, which happens often. It's more efficient and convenient to
       add the annotation outside of the box, and delay its injection (using
-      [box_inj]) to when the parent term gets built. *)
+      [lift]) to when the parent term gets built. *)
 
-  val inj : ('a, 't) boxed_gexpr -> ('a, 't) gexpr Bindlib.box
+  val lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr Bindlib.box
   (** Inject the annotation within the box, to use e.g. when a [gexpr box] is
       required for building parent terms *)
 
