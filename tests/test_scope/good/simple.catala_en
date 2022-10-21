@@ -15,5 +15,5 @@ let Foo =
     let bar : integer =
       try handle_default [] (λ (_: unit) → true) (λ (_: unit) → 0) with
         EmptyError -> raise NoValueProvided in
-    Foo_out {"bar_out"= bar}
+    Foo {"bar"= bar}
 ```

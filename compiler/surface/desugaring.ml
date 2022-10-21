@@ -102,9 +102,7 @@ let disambiguate_constructor
   | Some enum -> (
     try
       (* The path is fully qualified *)
-      let e_uid =
-        Desugared.Ast.IdentMap.find (Marked.unmark enum) ctxt.enum_idmap
-      in
+      let e_uid = Name_resolution.get_enum ctxt enum in
       try
         let c_uid = EnumMap.find e_uid possible_c_uids in
         e_uid, c_uid
@@ -118,7 +116,7 @@ let disambiguate_constructor
 
 (** Usage: [translate_expr scope ctxt naked_expr]
 
-    Translates [naked_expr] into its desugared equivalent. [scope] is used to
+    Translates [expr] into its desugared equivalent. [scope] is used to
     disambiguate the scope and subscopes variables than occur in the expression *)
 let rec translate_expr
     (scope : ScopeName.t)
@@ -218,7 +216,7 @@ let rec translate_expr
     match Desugared.Ast.IdentMap.find_opt x ctxt.local_var_idmap with
     | None -> (
       match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
-      | Some uid ->
+      | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
            desambiguate. In general, only the last state can be referenced.
            Except if defining a state of the same variable, then it references
@@ -258,7 +256,7 @@ let rec translate_expr
               Some (List.hd (List.rev states)))
         in
         Expr.elocation (DesugaredScopeVar ((uid, pos), x_state)) emark
-      | None ->
+      | Some (SubScope _) | None ->
         Name_resolution.raise_unknown_identifier
           "for a local or scope-wide variable" (x, pos))
     | Some uid ->
@@ -268,11 +266,10 @@ let rec translate_expr
     match Marked.unmark e with
     | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
       (* In this case, y.x is a subscope variable *)
-      let subscope_uid : SubScopeName.t =
-        Name_resolution.get_subscope_uid scope ctxt (Marked.same_mark_as y e)
-      in
-      let subscope_real_uid : ScopeName.t =
-        SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
+      let subscope_uid, subscope_real_uid =
+        match Desugared.Ast.IdentMap.find y scope_ctxt.var_idmap with
+        | SubScope (sub, sc) -> sub, sc
+        | ScopeVar _ -> assert false
       in
       let subscope_var_uid =
         Name_resolution.get_var_uid subscope_real_uid ctxt x
@@ -307,9 +304,7 @@ let rec translate_expr
           Expr.estructaccess e f_uid s_uid emark
       | Some c_name -> (
         try
-          let c_uid =
-            Desugared.Ast.IdentMap.find (Marked.unmark c_name) ctxt.struct_idmap
-          in
+          let c_uid = Name_resolution.get_struct ctxt c_name in
           try
             let f_uid = StructMap.find c_uid x_possible_structs in
             Expr.estructaccess e f_uid c_uid emark
@@ -320,6 +315,24 @@ let rec translate_expr
           Errors.raise_spanned_error (Marked.get_mark c_name)
             "Struct %s has not been defined before" (Marked.unmark c_name))))
   | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
+  | ScopeCall (sc_name, fields) ->
+    let called_scope = Name_resolution.get_scope ctxt sc_name in
+    let scope_def = ScopeMap.find called_scope ctxt.scopes in
+    let in_struct =
+      List.fold_left
+        (fun acc (fld_id, e) ->
+          let var =
+            match
+              Desugared.Ast.IdentMap.find (Marked.unmark fld_id)
+                scope_def.var_idmap
+            with
+            | ScopeVar v -> v
+            | SubScope _ -> assert false
+          in
+          ScopeVarMap.add var (rec_helper e) acc)
+        ScopeVarMap.empty fields
+    in
+    Expr.escopecall called_scope in_struct emark
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
     let tau = TAny, Marked.get_mark x in
@@ -331,8 +344,11 @@ let rec translate_expr
     Expr.eapp fn [rec_helper e1] emark
   | StructLit (s_name, fields) ->
     let s_uid =
-      try Desugared.Ast.IdentMap.find (Marked.unmark s_name) ctxt.struct_idmap
-      with Not_found ->
+      match
+        Desugared.Ast.IdentMap.find_opt (Marked.unmark s_name) ctxt.typedefs
+      with
+      | Some (Name_resolution.TStruct s_uid) -> s_uid
+      | _ ->
         Errors.raise_spanned_error (Marked.get_mark s_name)
           "This identifier should refer to a struct name"
     in
@@ -408,9 +424,7 @@ let rec translate_expr
     | Some enum -> (
       try
         (* The path has been fully qualified *)
-        let e_uid =
-          Desugared.Ast.IdentMap.find (Marked.unmark enum) ctxt.enum_idmap
-        in
+        let e_uid = Name_resolution.get_enum ctxt enum in
         try
           let c_uid = EnumMap.find e_uid possible_c_uids in
           let payload =
@@ -1092,8 +1106,7 @@ let process_scope_use
     (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program)
     (use : Ast.scope_use) : Desugared.Ast.program =
-  let name = fst use.scope_use_name in
-  let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
+  let scope_uid = Name_resolution.get_scope ctxt use.scope_use_name in
   (* Make sure the scope exists *)
   let prgm =
     match ScopeMap.find_opt scope_uid prgm.program_scopes with
@@ -1120,10 +1133,127 @@ let attribute_to_io (attr : Ast.scope_decl_context_io) : Scopelang.Ast.io =
         attr.scope_decl_context_io_input;
   }
 
+let init_scope_defs ctxt scope_idmap =
+  (* Initializing the definitions of all scopes and subscope vars, with no rules
+     yet inside *)
+  let add_def _ v scope_def_map =
+    match v with
+    | Name_resolution.ScopeVar v -> (
+      let v_sig = ScopeVarMap.find v ctxt.Name_resolution.var_typs in
+      match v_sig.var_sig_states_list with
+      | [] ->
+        let def_key = Desugared.Ast.ScopeDef.Var (v, None) in
+        Desugared.Ast.ScopeDefMap.add def_key
+          {
+            Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+            Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
+            Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+            Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
+          }
+          scope_def_map
+      | states ->
+        let scope_def, _ =
+          List.fold_left
+            (fun (acc, i) state ->
+              let def_key = Desugared.Ast.ScopeDef.Var (v, Some state) in
+              let def =
+                {
+                  Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+                  Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
+                  Desugared.Ast.scope_def_is_condition =
+                    v_sig.var_sig_is_condition;
+                  Desugared.Ast.scope_def_io =
+                    (* The first state should have the input I/O of the original
+                       variable, and the last state should have the output I/O
+                       of the original variable. All intermediate states shall
+                       have "internal" I/O.*)
+                    (let original_io = attribute_to_io v_sig.var_sig_io in
+                     let io_input =
+                       if i = 0 then original_io.io_input
+                       else
+                         ( Scopelang.Ast.NoInput,
+                           Marked.get_mark (StateName.get_info state) )
+                     in
+                     let io_output =
+                       if i = List.length states - 1 then original_io.io_output
+                       else false, Marked.get_mark (StateName.get_info state)
+                     in
+                     { io_input; io_output });
+                }
+              in
+              Desugared.Ast.ScopeDefMap.add def_key def acc, i + 1)
+            (scope_def_map, 0) states
+        in
+        scope_def)
+    | Name_resolution.SubScope (v0, subscope_uid) ->
+      let sub_scope_def =
+        ScopeMap.find subscope_uid ctxt.Name_resolution.scopes
+      in
+      Desugared.Ast.IdentMap.fold
+        (fun _ v scope_def_map ->
+          match v with
+          | Name_resolution.SubScope _ -> scope_def_map
+          | Name_resolution.ScopeVar v ->
+            (* TODO: shouldn't we ignore internal variables too at this point
+               ? *)
+            let v_sig = ScopeVarMap.find v ctxt.Name_resolution.var_typs in
+            let def_key =
+              Desugared.Ast.ScopeDef.SubScopeVar
+                (v0, v, Marked.get_mark (ScopeVar.get_info v))
+            in
+            Desugared.Ast.ScopeDefMap.add def_key
+              {
+                Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+                Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
+                Desugared.Ast.scope_def_is_condition =
+                  v_sig.var_sig_is_condition;
+                Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
+              }
+              scope_def_map)
+        sub_scope_def.Name_resolution.var_idmap scope_def_map
+  in
+  Desugared.Ast.IdentMap.fold add_def scope_idmap
+    Desugared.Ast.ScopeDefMap.empty
+
 (** Main function of this module *)
 let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
     Desugared.Ast.program =
   let empty_prgm =
+    let program_scopes =
+      ScopeMap.mapi
+        (fun s_uid s_context ->
+          let scope_vars =
+            Desugared.Ast.IdentMap.fold
+              (fun _ v acc ->
+                match v with
+                | Name_resolution.SubScope _ -> acc
+                | Name_resolution.ScopeVar v -> (
+                  let v_sig = ScopeVarMap.find v ctxt.var_typs in
+                  match v_sig.var_sig_states_list with
+                  | [] -> ScopeVarMap.add v Desugared.Ast.WholeVar acc
+                  | states ->
+                    ScopeVarMap.add v (Desugared.Ast.States states) acc))
+              s_context.Name_resolution.var_idmap ScopeVarMap.empty
+          in
+          let scope_sub_scopes =
+            Desugared.Ast.IdentMap.fold
+              (fun _ v acc ->
+                match v with
+                | Name_resolution.ScopeVar _ -> acc
+                | Name_resolution.SubScope (sub_var, sub_scope) ->
+                  SubScopeMap.add sub_var sub_scope acc)
+              s_context.Name_resolution.var_idmap SubScopeMap.empty
+          in
+          {
+            Desugared.Ast.scope_vars;
+            scope_sub_scopes;
+            scope_defs = init_scope_defs ctxt s_context.var_idmap;
+            scope_assertions = [];
+            scope_meta_assertions = [];
+            scope_uid = s_uid;
+          })
+        ctxt.Name_resolution.scopes
+    in
     {
       Desugared.Ast.program_ctx =
         {
@@ -1131,128 +1261,16 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
             StructMap.map StructFieldMap.bindings ctxt.Name_resolution.structs;
           ctx_enums =
             EnumMap.map EnumConstructorMap.bindings ctxt.Name_resolution.enums;
+          ctx_scopes =
+            Desugared.Ast.IdentMap.fold
+              (fun _ def acc ->
+                match def with
+                | Name_resolution.TScope (scope, struc) ->
+                  ScopeMap.add scope struc acc
+                | _ -> acc)
+              ctxt.Name_resolution.typedefs ScopeMap.empty;
         };
-      Desugared.Ast.program_scopes =
-        ScopeMap.mapi
-          (fun s_uid s_context ->
-            {
-              Desugared.Ast.scope_vars =
-                Desugared.Ast.IdentMap.fold
-                  (fun _ v acc ->
-                    let v_sig = ScopeVarMap.find v ctxt.var_typs in
-                    match v_sig.var_sig_states_list with
-                    | [] -> ScopeVarMap.add v Desugared.Ast.WholeVar acc
-                    | states ->
-                      ScopeVarMap.add v (Desugared.Ast.States states) acc)
-                  s_context.Name_resolution.var_idmap ScopeVarMap.empty;
-              Desugared.Ast.scope_sub_scopes =
-                s_context.Name_resolution.sub_scopes;
-              Desugared.Ast.scope_defs =
-                (* Initializing the definitions of all scopes and subscope vars,
-                   with no rules yet inside *)
-                (let scope_vars_defs =
-                   Desugared.Ast.IdentMap.fold
-                     (fun _ v acc ->
-                       let v_sig =
-                         ScopeVarMap.find v ctxt.Name_resolution.var_typs
-                       in
-                       match v_sig.var_sig_states_list with
-                       | [] ->
-                         let def_key = Desugared.Ast.ScopeDef.Var (v, None) in
-                         Desugared.Ast.ScopeDefMap.add def_key
-                           {
-                             Desugared.Ast.scope_def_rules =
-                               Desugared.Ast.RuleMap.empty;
-                             Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
-                             Desugared.Ast.scope_def_is_condition =
-                               v_sig.var_sig_is_condition;
-                             Desugared.Ast.scope_def_io =
-                               attribute_to_io v_sig.var_sig_io;
-                           }
-                           acc
-                       | states ->
-                         fst
-                           (List.fold_left
-                              (fun (acc, i) state ->
-                                let def_key =
-                                  Desugared.Ast.ScopeDef.Var (v, Some state)
-                                in
-                                ( Desugared.Ast.ScopeDefMap.add def_key
-                                    {
-                                      Desugared.Ast.scope_def_rules =
-                                        Desugared.Ast.RuleMap.empty;
-                                      Desugared.Ast.scope_def_typ =
-                                        v_sig.var_sig_typ;
-                                      Desugared.Ast.scope_def_is_condition =
-                                        v_sig.var_sig_is_condition;
-                                      Desugared.Ast.scope_def_io =
-                                        (* The first state should have the input
-                                           I/O of the original variable, and the
-                                           last state should have the output I/O
-                                           of the original variable. All
-                                           intermediate states shall have
-                                           "internal" I/O.*)
-                                        (let original_io =
-                                           attribute_to_io v_sig.var_sig_io
-                                         in
-                                         let io_input =
-                                           if i = 0 then original_io.io_input
-                                           else
-                                             ( Scopelang.Ast.NoInput,
-                                               Marked.get_mark
-                                                 (StateName.get_info state) )
-                                         in
-                                         let io_output =
-                                           if i = List.length states - 1 then
-                                             original_io.io_output
-                                           else
-                                             ( false,
-                                               Marked.get_mark
-                                                 (StateName.get_info state) )
-                                         in
-                                         { io_input; io_output });
-                                    }
-                                    acc,
-                                  i + 1 ))
-                              (acc, 0) states))
-                     s_context.Name_resolution.var_idmap
-                     Desugared.Ast.ScopeDefMap.empty
-                 in
-                 let scope_and_subscope_vars_defs =
-                   SubScopeMap.fold
-                     (fun subscope_name subscope_uid acc ->
-                       Desugared.Ast.IdentMap.fold
-                         (fun _ v acc ->
-                           let v_sig =
-                             ScopeVarMap.find v ctxt.Name_resolution.var_typs
-                           in
-                           let def_key =
-                             Desugared.Ast.ScopeDef.SubScopeVar
-                               ( subscope_name,
-                                 v,
-                                 Marked.get_mark (ScopeVar.get_info v) )
-                           in
-                           Desugared.Ast.ScopeDefMap.add def_key
-                             {
-                               Desugared.Ast.scope_def_rules =
-                                 Desugared.Ast.RuleMap.empty;
-                               Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
-                               Desugared.Ast.scope_def_is_condition =
-                                 v_sig.var_sig_is_condition;
-                               Desugared.Ast.scope_def_io =
-                                 attribute_to_io v_sig.var_sig_io;
-                             }
-                             acc)
-                         (ScopeMap.find subscope_uid ctxt.Name_resolution.scopes)
-                           .Name_resolution.var_idmap acc)
-                     s_context.sub_scopes scope_vars_defs
-                 in
-                 scope_and_subscope_vars_defs);
-              Desugared.Ast.scope_assertions = [];
-              Desugared.Ast.scope_meta_assertions = [];
-              Desugared.Ast.scope_uid = s_uid;
-            })
-          ctxt.Name_resolution.scopes;
+      Desugared.Ast.program_scopes;
     }
   in
   let rec processer_structure

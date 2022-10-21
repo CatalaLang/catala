@@ -26,6 +26,7 @@ module Runtime = Runtime_ocaml.Runtime
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info =
   Uid.Make (Uid.MarkedString) ()
 
+module ScopeSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
 module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
 
 module StructName : Uid.Id with type info = Uid.MarkedString.info =
@@ -222,6 +223,9 @@ and ('a, 't) naked_gexpr =
   | EMatchS :
       ('a, 't) gexpr * EnumName.t * ('a, 't) gexpr EnumConstructorMap.t
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
+  | EScopeCall :
+      ScopeName.t * ('a, 't) gexpr ScopeVarMap.t
+      -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
   (* Lambda-like *)
   | ETuple :
       ('a, 't) gexpr list * StructName.t option
@@ -348,5 +352,12 @@ and 'e scopes =
 
 type struct_ctx = (StructFieldName.t * typ) list StructMap.t
 type enum_ctx = (EnumConstructor.t * typ) list EnumMap.t
-type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
+
+type decl_ctx = {
+  ctx_enums : enum_ctx;
+  ctx_structs : struct_ctx;
+  ctx_scopes : StructName.t ScopeMap.t;
+      (** The output structure type of every scope *)
+}
+
 type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

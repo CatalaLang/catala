@@ -74,13 +74,26 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct (s_name, fields) ->
     Expr.estruct s_name (StructFieldMap.map (translate_expr ctx) fields) m
-  | EStructAccess (e1, s_name, f_name) ->
-    Expr.estructaccess (translate_expr ctx e1) s_name f_name m
+  | EStructAccess (e1, f_name, s_name) ->
+    Expr.estructaccess (translate_expr ctx e1) f_name s_name m
   | EEnumInj (e1, cons, e_name) ->
     Expr.eenuminj (translate_expr ctx e1) cons e_name m
   | EMatchS (e1, e_name, arms) ->
     Expr.ematchs (translate_expr ctx e1) e_name
       (EnumConstructorMap.map (translate_expr ctx) arms)
+      m
+  | EScopeCall (sc_name, fields) ->
+    Expr.escopecall sc_name
+      (ScopeVarMap.fold
+         (fun v e fields' ->
+           let v' =
+             match ScopeVarMap.find v ctx.scope_var_mapping with
+             | WholeVar v' -> v'
+             | States _ ->
+               assert false (* TODO: what about input var states ?? *)
+           in
+           ScopeVarMap.add v' (translate_expr ctx e) fields')
+         fields ScopeVarMap.empty)
       m
   | ELit
       (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _

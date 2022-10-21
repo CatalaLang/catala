@@ -33,6 +33,10 @@ scope Foo:
 
 ```catala-test-inline
 $ catala Scopelang
+type Foo = {
+  x: integer
+}
+
 let scope Foo (y: integer|input) (x: integer|internal|output) =
   let x : integer =
     ⟨⟨⟨⟨y = 4 ⊢ 4⟩, ⟨y = 5 ⊢ 5⟩ | false ⊢ ∅ ⟩ | true

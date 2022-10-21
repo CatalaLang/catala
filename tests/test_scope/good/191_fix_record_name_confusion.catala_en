@@ -23,16 +23,16 @@ open Runtime_ocaml.Runtime
 
 [@@@ocaml.warning "-4-26-27-32-41-42"]
 
-module ScopeAOut = struct
-  type t = {a_out: bool}
+module ScopeA = struct
+  type t = {a: bool}
+end
+
+module ScopeB = struct
+  type t = unit
 end
 
 module ScopeAIn = struct
   type t = {a_in: unit -> bool}
-end
-
-module ScopeBOut = struct
-  type t = unit
 end
 
 module ScopeBIn = struct
@@ -41,7 +41,7 @@ end
 
 
 
-let scope_a (scope_a_in: ScopeAIn.t) : ScopeAOut.t =
+let scope_a (scope_a_in: ScopeAIn.t) : ScopeA.t =
   let a_: unit -> bool = scope_a_in.ScopeAIn.a_in in
   let a_: bool = (
     try
@@ -61,13 +61,13 @@ let scope_a (scope_a_in: ScopeAIn.t) : ScopeAOut.t =
       {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
         start_line=5; start_column=18; end_line=5; end_column=19;
         law_headings=["Article"]}))) in
-  {ScopeAOut.a_out = a_}
+  {ScopeA.a = a_}
 
-let scope_b (scope_b_in: ScopeBIn.t) : ScopeBOut.t =
+let scope_b (scope_b_in: ScopeBIn.t) : ScopeB.t =
   let a_: unit -> bool = scope_b_in.ScopeBIn.a_in in
   let scope_a_dot_a_: unit -> bool = fun (_: unit) -> (raise EmptyError) in
-  let result_: ScopeAOut.t = ((scope_a) {ScopeAIn.a_in = scope_a_dot_a_}) in
-  let scope_a_dot_a_: bool = result_.ScopeAOut.a_out in
+  let result_: ScopeA.t = ((scope_a) {ScopeAIn.a_in = scope_a_dot_a_}) in
+  let scope_a_dot_a_: bool = result_.ScopeA.a in
   let a_: bool = (
     try
       (handle_default

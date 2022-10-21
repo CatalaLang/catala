@@ -150,6 +150,12 @@ val ematchs :
   't ->
   ('a, 't) boxed_gexpr
 
+val escopecall :
+  ScopeName.t ->
+  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVarMap.t ->
+  't ->
+  ('a, 't) boxed_gexpr
+
 (** Manipulation of marks *)
 
 val no_mark : 'm mark -> 'm mark

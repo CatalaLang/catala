@@ -32,7 +32,7 @@ let A =
       ⟨e () | true ⊢ ⟨true ⊢ b + c + d + 1⟩⟩ in
     let f1 : integer = error_empty
       ⟨f () | true ⊢ ⟨true ⊢ e1 + 1⟩⟩ in
-    A_out {"b_out"= b; "d_out"= d; "f_out"= f1}
+    A {"b"= b; "d"= d; "f"= f1}
 ```
 
 ```catala-test-inline

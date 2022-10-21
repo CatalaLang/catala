@@ -34,14 +34,17 @@ type scope_def_context = {
   label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
 }
 
+type scope_var_or_subscope =
+  | ScopeVar of ScopeVar.t
+  | SubScope of SubScopeName.t * ScopeName.t
+
 type scope_context = {
-  var_idmap : ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
+  var_idmap : scope_var_or_subscope Desugared.Ast.IdentMap.t;
+      (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
-  sub_scopes_idmap : SubScopeName.t Desugared.Ast.IdentMap.t;
-      (** Sub-scopes variables *)
-  sub_scopes : ScopeName.t SubScopeMap.t;
-      (** To what scope sub-scopes refer to? *)
+  sub_scopes : ScopeSet.t;
+      (** Other scopes referred to by this scope. Used for dependency analysis *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
@@ -59,19 +62,23 @@ type var_sig = {
   var_sig_states_list : StateName.t list;
 }
 
+(** Capitalised type names share a namespace on the user side, but may
+    correspond to only one of the following *)
+type typedef =
+  | TStruct of StructName.t
+  | TEnum of EnumName.t
+  | TScope of ScopeName.t * StructName.t
+      (** Implicitly defined output struct *)
+
 type context = {
   local_var_idmap : Desugared.Ast.expr Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
-  scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
-      (** The names of the scopes *)
-  struct_idmap : StructName.t Desugared.Ast.IdentMap.t;
-      (** The names of the structs *)
+  typedefs : typedef Desugared.Ast.IdentMap.t;
+      (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructFieldName.t StructMap.t Desugared.Ast.IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  enum_idmap : EnumName.t Desugared.Ast.IdentMap.t;
-      (** The names of the enums *)
   constructor_idmap : EnumConstructor.t EnumMap.t Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
@@ -130,6 +137,18 @@ val get_def_key :
   Pos.t ->
   Desugared.Ast.ScopeDef.t
 (** Usage: [get_def_key var_name var_state scope_uid ctxt pos]*)
+
+val get_enum : context -> ident Marked.pos -> EnumName.t
+(** Find an enum definition from the typedefs, failing if there is none or it
+    has a different kind *)
+
+val get_struct : context -> ident Marked.pos -> StructName.t
+(** Find a struct definition from the typedefs (possibly an implicit output
+    struct from a scope), failing if there is none or it has a different kind *)
+
+val get_scope : context -> ident Marked.pos -> ScopeName.t
+(** Find a scope definition from the typedefs, failing if there is none or it
+    has a different kind *)
 
 (** {1 API} *)
 

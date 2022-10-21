@@ -13,5 +13,5 @@ let Foo2 (Foo2_in : Foo2_in{}) =
   raise NoValueProvided;
   decl bar : integer;
   bar = temp_bar_4;
-  return Foo2_out {"bar_out": bar_3}
+  return Foo2 {"bar": bar_3}
 ```

@@ -79,6 +79,12 @@ small_expression:
 | e = small_expression DOT c = option(terminated(constructor,DOT)) i = ident {
   (Dotted (e, c, i), Pos.from_lpos $sloc)
 }
+| CARDINAL {
+  (Builtin Cardinal, Pos.from_lpos $sloc)
+}
+| LSQUARE l = separated_list(SEMICOLON, expression) RSQUARE {
+  (ArrayLit l, Pos.from_lpos $sloc)
+}
 
 struct_content_field:
 | field = ident COLON e = logical_expression {
@@ -89,7 +95,7 @@ enum_inject_content:
 | CONTENT e = small_expression { e }
 
 struct_inject_content:
-| LBRACKET ALT fields = separated_nonempty_list(ALT, struct_content_field) RBRACKET { fields }
+| LBRACKET fields = nonempty_list(preceded(ALT, struct_content_field)) RBRACKET { fields }
 
 struct_or_enum_inject:
 | enum = constructor c = option(preceded(DOT, constructor)) data = option(enum_inject_content) {
@@ -103,14 +109,8 @@ struct_or_enum_inject:
 
 primitive_expression:
 | e = small_expression { e }
-| CARDINAL {
-  (Builtin Cardinal, Pos.from_lpos $sloc)
-}
 | e = struct_or_enum_inject {
   e
-}
-| LSQUARE l = separated_list(SEMICOLON, expression) RSQUARE {
-  (ArrayLit l, Pos.from_lpos $sloc)
 }
 
 num_literal:
@@ -199,8 +199,13 @@ aggregate:
 base_expression:
 | e = primitive_expression { e }
 | ag = aggregate { ag }
-| e1 = primitive_expression OF e2 = base_expression {
+| e1 = small_expression OF e2 = base_expression {
   (FunCall (e1, e2), Pos.from_lpos $sloc)
+}
+| c = constructor OF
+  LBRACKET fields = list(preceded (ALT, struct_content_field)) RBRACKET {
+  (* empty list is allowed *)
+  (ScopeCall (c, fields), Pos.from_lpos $sloc)
 }
 | e = primitive_expression WITH c = constructor_binding {
   (TestMatchCase (e, (c, Pos.from_lpos $sloc)), Pos.from_lpos $sloc)

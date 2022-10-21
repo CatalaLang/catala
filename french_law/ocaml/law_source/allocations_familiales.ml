@@ -127,6 +127,47 @@ let embed_collectivite (x: Collectivite.t) : runtime_value =
     | Mayotte x -> ("Mayotte", embed_unit x))
 
 
+module AllocationFamilialesAvril2008 = struct
+  type t = {age_minimum_alinea_1_l521_3: duration}
+end
+let embed_allocation_familiales_avril2008 (x: AllocationFamilialesAvril2008.t) : runtime_value =
+  Struct(["AllocationFamilialesAvril2008"],
+  [("âge_minimum_alinéa_1_l521_3", embed_duration
+    x.AllocationFamilialesAvril2008.age_minimum_alinea_1_l521_3)])
+
+
+module AllocationsFamiliales = struct
+  type t = {montant_verse: money}
+end
+let embed_allocations_familiales (x: AllocationsFamiliales.t) : runtime_value =
+  Struct(["AllocationsFamiliales"],
+  [("montant_versé", embed_money x.AllocationsFamiliales.montant_verse)])
+
+
+module Smic = struct
+  type t = {brut_horaire: money}
+end
+let embed_smic (x: Smic.t) : runtime_value = Struct(["Smic"],
+  [("brut_horaire", embed_money x.Smic.brut_horaire)])
+
+
+module BaseMensuelleAllocationsFamiliales = struct
+  type t = {montant: money}
+end
+let embed_base_mensuelle_allocations_familiales (x: BaseMensuelleAllocationsFamiliales.t) : runtime_value =
+  Struct(["BaseMensuelleAllocationsFamiliales"],
+  [("montant", embed_money x.BaseMensuelleAllocationsFamiliales.montant)])
+
+
+module InterfaceAllocationsFamiliales = struct
+  type t = {i_montant_verse: money}
+end
+let embed_interface_allocations_familiales (x: InterfaceAllocationsFamiliales.t) : runtime_value =
+  Struct(["InterfaceAllocationsFamiliales"],
+  [("i_montant_versé", embed_money
+    x.InterfaceAllocationsFamiliales.i_montant_verse)])
+
+
 module EnfantEntree = struct
   type t = {
     d_identifiant: integer;
@@ -181,24 +222,32 @@ let embed_enfant (x: Enfant.t) : runtime_value = Struct(["Enfant"],
     x.Enfant.beneficie_titre_personnel_aide_personnelle_logement)])
 
 
-module PrestationsFamilialesOut = struct
+module EnfantLePlusAge = struct
+  type t = {le_plus_age: Enfant.t}
+end
+let embed_enfant_le_plus_age (x: EnfantLePlusAge.t) : runtime_value =
+  Struct(["EnfantLePlusÂgé"],
+  [("le_plus_âgé", embed_enfant x.EnfantLePlusAge.le_plus_age)])
+
+
+module PrestationsFamiliales = struct
   type t = {
-    droit_ouvert_out: Enfant.t -> bool;
-    conditions_hors_age_out: Enfant.t -> bool;
-    age_l512_3_2_out: duration;
-    regime_outre_mer_l751_1_out: bool
+    droit_ouvert: Enfant.t -> bool;
+    conditions_hors_age: Enfant.t -> bool;
+    age_l512_3_2: duration;
+    regime_outre_mer_l751_1: bool
   }
 end
-let embed_prestations_familiales_out (x: PrestationsFamilialesOut.t) : runtime_value =
-  Struct(["PrestationsFamiliales_out"],
-  [("droit_ouvert_out", unembeddable
-    x.PrestationsFamilialesOut.droit_ouvert_out);
-    ("conditions_hors_âge_out", unembeddable
-    x.PrestationsFamilialesOut.conditions_hors_age_out);
-    ("âge_l512_3_2_out", embed_duration
-    x.PrestationsFamilialesOut.age_l512_3_2_out);
-    ("régime_outre_mer_l751_1_out", embed_bool
-    x.PrestationsFamilialesOut.regime_outre_mer_l751_1_out)])
+let embed_prestations_familiales (x: PrestationsFamiliales.t) : runtime_value =
+  Struct(["PrestationsFamiliales"],
+  [("droit_ouvert", unembeddable
+    x.PrestationsFamiliales.droit_ouvert);
+    ("conditions_hors_âge", unembeddable
+    x.PrestationsFamiliales.conditions_hors_age);
+    ("âge_l512_3_2", embed_duration
+    x.PrestationsFamiliales.age_l512_3_2);
+    ("régime_outre_mer_l751_1", embed_bool
+    x.PrestationsFamiliales.regime_outre_mer_l751_1)])
 
 
 module PrestationsFamilialesIn = struct
@@ -218,27 +267,10 @@ let embed_prestations_familiales_in (x: PrestationsFamilialesIn.t) : runtime_val
     x.PrestationsFamilialesIn.residence_in)])
 
 
-module AllocationFamilialesAvril2008Out = struct
-  type t = {age_minimum_alinea_1_l521_3_out: duration}
-end
-let embed_allocation_familiales_avril2008_out (x: AllocationFamilialesAvril2008Out.t) : runtime_value =
-  Struct(["AllocationFamilialesAvril2008_out"],
-  [("âge_minimum_alinéa_1_l521_3_out", embed_duration
-    x.AllocationFamilialesAvril2008Out.age_minimum_alinea_1_l521_3_out)])
-
-
 module AllocationFamilialesAvril2008In = struct
   type t = unit
 end
 let embed_allocation_familiales_avril2008_in (_: AllocationFamilialesAvril2008In.t) : runtime_value = Unit
-
-
-module EnfantLePlusAgeOut = struct
-  type t = {le_plus_age_out: Enfant.t}
-end
-let embed_enfant_le_plus_age_out (x: EnfantLePlusAgeOut.t) : runtime_value =
-  Struct(["EnfantLePlusÂgé_out"],
-  [("le_plus_âgé_out", embed_enfant x.EnfantLePlusAgeOut.le_plus_age_out)])
 
 
 module EnfantLePlusAgeIn = struct
@@ -247,15 +279,6 @@ end
 let embed_enfant_le_plus_age_in (x: EnfantLePlusAgeIn.t) : runtime_value =
   Struct(["EnfantLePlusÂgé_in"],
   [("enfants_in", embed_array (embed_enfant) x.EnfantLePlusAgeIn.enfants_in)])
-
-
-module AllocationsFamilialesOut = struct
-  type t = {montant_verse_out: money}
-end
-let embed_allocations_familiales_out (x: AllocationsFamilialesOut.t) : runtime_value =
-  Struct(["AllocationsFamiliales_out"],
-  [("montant_versé_out", embed_money
-    x.AllocationsFamilialesOut.montant_verse_out)])
 
 
 module AllocationsFamilialesIn = struct
@@ -287,13 +310,6 @@ let embed_allocations_familiales_in (x: AllocationsFamilialesIn.t) : runtime_val
     x.AllocationsFamilialesIn.avait_enfant_a_charge_avant_1er_janvier_2012_in)])
 
 
-module SmicOut = struct
-  type t = {brut_horaire_out: money}
-end
-let embed_smic_out (x: SmicOut.t) : runtime_value = Struct(["Smic_out"],
-  [("brut_horaire_out", embed_money x.SmicOut.brut_horaire_out)])
-
-
 module SmicIn = struct
   type t = {date_courante_in: date; residence_in: Collectivite.t}
 end
@@ -303,15 +319,6 @@ let embed_smic_in (x: SmicIn.t) : runtime_value = Struct(["Smic_in"],
     ("résidence_in", embed_collectivite x.SmicIn.residence_in)])
 
 
-module BaseMensuelleAllocationsFamilialesOut = struct
-  type t = {montant_out: money}
-end
-let embed_base_mensuelle_allocations_familiales_out (x: BaseMensuelleAllocationsFamilialesOut.t) : runtime_value =
-  Struct(["BaseMensuelleAllocationsFamiliales_out"],
-  [("montant_out", embed_money
-    x.BaseMensuelleAllocationsFamilialesOut.montant_out)])
-
-
 module BaseMensuelleAllocationsFamilialesIn = struct
   type t = {date_courante_in: date}
 end
@@ -319,15 +326,6 @@ let embed_base_mensuelle_allocations_familiales_in (x: BaseMensuelleAllocationsF
   Struct(["BaseMensuelleAllocationsFamiliales_in"],
   [("date_courante_in", embed_date
     x.BaseMensuelleAllocationsFamilialesIn.date_courante_in)])
-
-
-module InterfaceAllocationsFamilialesOut = struct
-  type t = {i_montant_verse_out: money}
-end
-let embed_interface_allocations_familiales_out (x: InterfaceAllocationsFamilialesOut.t) : runtime_value =
-  Struct(["InterfaceAllocationsFamiliales_out"],
-  [("i_montant_versé_out", embed_money
-    x.InterfaceAllocationsFamilialesOut.i_montant_verse_out)])
 
 
 module InterfaceAllocationsFamilialesIn = struct
@@ -361,7 +359,7 @@ let embed_interface_allocations_familiales_in (x: InterfaceAllocationsFamiliales
 
 
 
-let allocation_familiales_avril2008 (allocation_familiales_avril2008_in: AllocationFamilialesAvril2008In.t) : AllocationFamilialesAvril2008Out.t =
+let allocation_familiales_avril2008 (allocation_familiales_avril2008_in: AllocationFamilialesAvril2008In.t) : AllocationFamilialesAvril2008.t =
   let age_minimum_alinea_1_l521_3_: duration = (log_variable_definition
     ["AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3"]
     (embed_duration) (
@@ -387,10 +385,10 @@ let allocation_familiales_avril2008 (allocation_familiales_avril2008_in: Allocat
         start_line=76; start_column=10; end_line=76; end_column=37;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
-  {AllocationFamilialesAvril2008Out.age_minimum_alinea_1_l521_3_out =
+  {AllocationFamilialesAvril2008.age_minimum_alinea_1_l521_3 =
      age_minimum_alinea_1_l521_3_}
 
-let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePlusAgeOut.t =
+let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePlusAge.t =
   let enfants_: Enfant.t array = enfant_le_plus_age_in.EnfantLePlusAgeIn.enfants_in in
   let le_plus_age_: Enfant.t = (log_variable_definition
     ["EnfantLePlusÂgé"; "le_plus_âgé"] (embed_enfant) (
@@ -431,9 +429,9 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
         start_line=80; start_column=10; end_line=80; end_column=21;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
-  {EnfantLePlusAgeOut.le_plus_age_out = le_plus_age_}
+  {EnfantLePlusAge.le_plus_age = le_plus_age_}
 
-let smic (smic_in: SmicIn.t) : SmicOut.t =
+let smic (smic_in: SmicIn.t) : Smic.t =
   let date_courante_: date = smic_in.SmicIn.date_courante_in in
   let residence_: Collectivite.t = smic_in.SmicIn.residence_in in
   let brut_horaire_: money = (log_variable_definition
@@ -724,9 +722,9 @@ let smic (smic_in: SmicIn.t) : SmicOut.t =
       {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
         start_line=11; start_column=10; end_line=11; end_column=22;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  {SmicOut.brut_horaire_out = brut_horaire_}
+  {Smic.brut_horaire = brut_horaire_}
 
-let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales_in: BaseMensuelleAllocationsFamilialesIn.t) : BaseMensuelleAllocationsFamilialesOut.t =
+let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales_in: BaseMensuelleAllocationsFamilialesIn.t) : BaseMensuelleAllocationsFamiliales.t =
   let date_courante_: date = base_mensuelle_allocations_familiales_in.BaseMensuelleAllocationsFamilialesIn.date_courante_in in
   let montant_: money = (log_variable_definition
     ["BaseMensuelleAllocationsFamiliales"; "montant"] (embed_money) (
@@ -801,9 +799,9 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
       {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
         start_line=6; start_column=10; end_line=6; end_column=17;
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
-  {BaseMensuelleAllocationsFamilialesOut.montant_out = montant_}
+  {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
-let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t) : PrestationsFamilialesOut.t =
+let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t) : PrestationsFamiliales.t =
   let date_courante_: date = prestations_familiales_in.PrestationsFamilialesIn.date_courante_in in
   let prestation_courante_: ElementPrestationsFamiliales.t = prestations_familiales_in.PrestationsFamilialesIn.prestation_courante_in in
   let residence_: Collectivite.t = prestations_familiales_in.PrestationsFamilialesIn.residence_in in
@@ -871,12 +869,12 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
         start_line=68; start_column=14; end_line=68; end_column=28;
         law_headings=["Prestations familiales"; "Champs d'applications";
                        "Prologue"]})) in
-  let result_: SmicOut.t = (log_end_call
+  let result_: Smic.t = (log_end_call
     ["PrestationsFamiliales"; "smic"; "Smic"] ((log_begin_call
     ["PrestationsFamiliales"; "smic"; "Smic"] smic)
     {SmicIn.date_courante_in = smic_dot_date_courante_;
        SmicIn.residence_in = smic_dot_residence_})) in
-  let smic_dot_brut_horaire_: money = result_.SmicOut.brut_horaire_out in
+  let smic_dot_brut_horaire_: money = result_.Smic.brut_horaire in
   let regime_outre_mer_l751_1_: bool = (log_variable_definition
     ["PrestationsFamiliales"; "régime_outre_mer_l751_1"] (embed_bool) (
     try
@@ -1185,13 +1183,12 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
         start_line=57; start_column=10; end_line=57; end_column=22;
         law_headings=["Prestations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
-  {PrestationsFamilialesOut.droit_ouvert_out = droit_ouvert_;
-     PrestationsFamilialesOut.conditions_hors_age_out = conditions_hors_age_;
-     PrestationsFamilialesOut.age_l512_3_2_out = age_l512_3_2_;
-     PrestationsFamilialesOut.regime_outre_mer_l751_1_out =
-       regime_outre_mer_l751_1_}
+  {PrestationsFamiliales.droit_ouvert = droit_ouvert_;
+     PrestationsFamiliales.conditions_hors_age = conditions_hors_age_;
+     PrestationsFamiliales.age_l512_3_2 = age_l512_3_2_;
+     PrestationsFamiliales.regime_outre_mer_l751_1 = regime_outre_mer_l751_1_}
 
-let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t) : AllocationsFamilialesOut.t =
+let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t) : AllocationsFamiliales.t =
   let personne_charge_effective_permanente_est_parent_: bool = allocations_familiales_in.AllocationsFamilialesIn.personne_charge_effective_permanente_est_parent_in in
   let personne_charge_effective_permanente_remplit_titre__i_: bool = allocations_familiales_in.AllocationsFamilialesIn.personne_charge_effective_permanente_remplit_titre_I_in in
   let ressources_menage_: money = allocations_familiales_in.AllocationsFamilialesIn.ressources_menage_in in
@@ -1612,13 +1609,13 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
         start_line=147; start_column=11; end_line=147; end_column=41;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
-  let result_: AllocationFamilialesAvril2008Out.t = (log_end_call
+  let result_: AllocationFamilialesAvril2008.t = (log_end_call
     ["AllocationsFamiliales"; "version_avril_2008";
       "AllocationFamilialesAvril2008"] ((log_begin_call
     ["AllocationsFamiliales"; "version_avril_2008";
       "AllocationFamilialesAvril2008"] allocation_familiales_avril2008)
     ())) in
-  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_: duration = result_.AllocationFamilialesAvril2008Out.age_minimum_alinea_1_l521_3_out in
+  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_: duration = result_.AllocationFamilialesAvril2008.age_minimum_alinea_1_l521_3 in
   let bmaf_dot_date_courante_: date = 
     try ((log_variable_definition
       ["AllocationsFamiliales"; "bmaf.date_courante"] (embed_date)
@@ -1639,14 +1636,14 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
         start_line=159; start_column=14; end_line=159; end_column=32;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})) in
-  let result_: BaseMensuelleAllocationsFamilialesOut.t = (log_end_call
+  let result_: BaseMensuelleAllocationsFamiliales.t = (log_end_call
     ["AllocationsFamiliales"; "bmaf"; "BaseMensuelleAllocationsFamiliales"]
     ((log_begin_call
     ["AllocationsFamiliales"; "bmaf"; "BaseMensuelleAllocationsFamiliales"]
     base_mensuelle_allocations_familiales)
     {BaseMensuelleAllocationsFamilialesIn.date_courante_in =
        bmaf_dot_date_courante_})) in
-  let bmaf_dot_montant_: money = result_.BaseMensuelleAllocationsFamilialesOut.montant_out in
+  let bmaf_dot_montant_: money = result_.BaseMensuelleAllocationsFamiliales.montant in
   let prestations_familiales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["AllocationsFamiliales"; "prestations_familiales.date_courante"]
@@ -1711,7 +1708,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
         start_line=157; start_column=14; end_line=157; end_column=46;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})) in
-  let result_: PrestationsFamilialesOut.t = (log_end_call
+  let result_: PrestationsFamiliales.t = (log_end_call
     ["AllocationsFamiliales"; "prestations_familiales";
       "PrestationsFamiliales"] ((log_begin_call
     ["AllocationsFamiliales"; "prestations_familiales";
@@ -1722,10 +1719,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
          prestations_familiales_dot_prestation_courante_;
        PrestationsFamilialesIn.residence_in =
          prestations_familiales_dot_residence_})) in
-  let prestations_familiales_dot_droit_ouvert_: Enfant.t -> bool = result_.PrestationsFamilialesOut.droit_ouvert_out in
-  let prestations_familiales_dot_conditions_hors_age_: Enfant.t -> bool = result_.PrestationsFamilialesOut.conditions_hors_age_out in
-  let prestations_familiales_dot_age_l512_3_2_: duration = result_.PrestationsFamilialesOut.age_l512_3_2_out in
-  let prestations_familiales_dot_regime_outre_mer_l751_1_: bool = result_.PrestationsFamilialesOut.regime_outre_mer_l751_1_out in
+  let prestations_familiales_dot_droit_ouvert_: Enfant.t -> bool = result_.PrestationsFamiliales.droit_ouvert in
+  let prestations_familiales_dot_conditions_hors_age_: Enfant.t -> bool = result_.PrestationsFamiliales.conditions_hors_age in
+  let prestations_familiales_dot_age_l512_3_2_: duration = result_.PrestationsFamiliales.age_l512_3_2 in
+  let prestations_familiales_dot_regime_outre_mer_l751_1_: bool = result_.PrestationsFamiliales.regime_outre_mer_l751_1 in
   let enfant_le_plus_age_dot_enfants_: Enfant.t array = 
     try ((log_variable_definition
       ["AllocationsFamiliales"; "enfant_le_plus_âgé.enfants"]
@@ -1744,13 +1741,13 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
         start_line=32; start_column=14; end_line=32; end_column=40;
         law_headings=["Règles diverses"; "Épilogue"]})) in
-  let result_: EnfantLePlusAgeOut.t = (log_end_call
+  let result_: EnfantLePlusAge.t = (log_end_call
     ["AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé"]
     ((log_begin_call
     ["AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé"]
     enfant_le_plus_age)
     {EnfantLePlusAgeIn.enfants_in = enfant_le_plus_age_dot_enfants_})) in
-  let enfant_le_plus_age_dot_le_plus_age_: Enfant.t = result_.EnfantLePlusAgeOut.le_plus_age_out in
+  let enfant_le_plus_age_dot_le_plus_age_: Enfant.t = result_.EnfantLePlusAge.le_plus_age in
   let age_minimum_alinea_1_l521_3_: Enfant.t -> duration = (log_variable_definition
     ["AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3"] (unembeddable)
     (
@@ -4889,9 +4886,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                                           "Partie législative";
                                                           "Code de la sécurité sociale"]}) in
-  {AllocationsFamilialesOut.montant_verse_out = montant_verse_}
+  {AllocationsFamiliales.montant_verse = montant_verse_}
 
-let interface_allocations_familiales (interface_allocations_familiales_in: InterfaceAllocationsFamilialesIn.t) : InterfaceAllocationsFamilialesOut.t =
+let interface_allocations_familiales (interface_allocations_familiales_in: InterfaceAllocationsFamilialesIn.t) : InterfaceAllocationsFamiliales.t =
   let i_date_courante_: date = interface_allocations_familiales_in.InterfaceAllocationsFamilialesIn.i_date_courante_in in
   let i_enfants_: EnfantEntree.t array = interface_allocations_familiales_in.InterfaceAllocationsFamilialesIn.i_enfants_in in
   let i_ressources_menage_: money = interface_allocations_familiales_in.InterfaceAllocationsFamilialesIn.i_ressources_menage_in in
@@ -5113,7 +5110,7 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
         start_line=99; start_column=5; end_line=99; end_column=72;
         law_headings=["Interface du programme"; "Épilogue"]})) in
-  let result_: AllocationsFamilialesOut.t = (log_end_call
+  let result_: AllocationsFamiliales.t = (log_end_call
     ["InterfaceAllocationsFamiliales"; "allocations_familiales";
       "AllocationsFamiliales"] ((log_begin_call
     ["InterfaceAllocationsFamiliales"; "allocations_familiales";
@@ -5132,7 +5129,7 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
          allocations_familiales_dot_enfants_a_charge_;
        AllocationsFamilialesIn.avait_enfant_a_charge_avant_1er_janvier_2012_in =
          allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_})) in
-  let allocations_familiales_dot_montant_verse_: money = result_.AllocationsFamilialesOut.montant_verse_out in
+  let allocations_familiales_dot_montant_verse_: money = result_.AllocationsFamiliales.montant_verse in
   let i_montant_verse_: money = (log_variable_definition
     ["InterfaceAllocationsFamiliales"; "i_montant_versé"] (embed_money) (
     try
@@ -5150,4 +5147,4 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
         start_line=79; start_column=10; end_line=79; end_column=25;
         law_headings=["Interface du programme"; "Épilogue"]})))) in
-  {InterfaceAllocationsFamilialesOut.i_montant_verse_out = i_montant_verse_}
+  {InterfaceAllocationsFamiliales.i_montant_verse = i_montant_verse_}

@@ -148,16 +148,24 @@ let driver source_file (options : Cli.options) : int =
         | None, `Interpret ->
           Errors.raise_error "No scope was provided for execution."
         | None, _ ->
-          snd
-            (try Desugared.Ast.IdentMap.choose ctxt.scope_idmap
-             with Not_found ->
-               Errors.raise_error "There isn't any scope inside the program.")
+          let _, scope =
+            try
+              Desugared.Ast.IdentMap.filter_map
+                (fun _ -> function
+                  | Surface.Name_resolution.TScope (uid, _) -> Some uid
+                  | _ -> None)
+                ctxt.typedefs
+              |> Desugared.Ast.IdentMap.choose
+            with Not_found ->
+              Errors.raise_error "There isn't any scope inside the program."
+          in
+          scope
         | Some name, _ -> (
-          match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-          | None ->
+          match Desugared.Ast.IdentMap.find_opt name ctxt.typedefs with
+          | Some (Surface.Name_resolution.TScope (uid, _)) -> uid
+          | _ ->
             Errors.raise_error "There is no scope \"%s\" inside the program."
-              name
-          | Some uid -> uid)
+              name)
       in
       Cli.debug_print "Desugaring...";
       let prgm = Surface.Desugaring.desugar_program ctxt prgm in
@@ -254,16 +262,6 @@ let driver source_file (options : Cli.options) : int =
             in
             let results =
               Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
-            in
-            let out_regex = Re.Pcre.regexp "\\_out$" in
-            let results =
-              List.map
-                (fun ((v1, v1_pos), e1) ->
-                  let v1 =
-                    Re.Pcre.substitute ~rex:out_regex ~subst:(fun _ -> "") v1
-                  in
-                  (v1, v1_pos), e1)
-                results
             in
             let results =
               List.sort

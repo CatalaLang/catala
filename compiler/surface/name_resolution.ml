@@ -34,14 +34,17 @@ type scope_def_context = {
   label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
 }
 
+type scope_var_or_subscope =
+  | ScopeVar of ScopeVar.t
+  | SubScope of SubScopeName.t * ScopeName.t
+
 type scope_context = {
-  var_idmap : ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
+  var_idmap : scope_var_or_subscope Desugared.Ast.IdentMap.t;
+      (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
-  sub_scopes_idmap : SubScopeName.t Desugared.Ast.IdentMap.t;
-      (** Sub-scopes variables *)
-  sub_scopes : ScopeName.t SubScopeMap.t;
-      (** To what scope sub-scopes refer to? *)
+  sub_scopes : ScopeSet.t;
+      (** Other scopes referred to by this scope. Used for dependency analysis *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
@@ -59,19 +62,23 @@ type var_sig = {
   var_sig_states_list : StateName.t list;
 }
 
+(** Capitalised type names share a namespace on the user side, but may
+    correspond to only one of the following *)
+type typedef =
+  | TStruct of StructName.t
+  | TEnum of EnumName.t
+  | TScope of ScopeName.t * StructName.t
+      (** Implicitly defined output struct *)
+
 type context = {
   local_var_idmap : Desugared.Ast.expr Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
-  scope_idmap : ScopeName.t Desugared.Ast.IdentMap.t;
-      (** The names of the scopes *)
-  struct_idmap : StructName.t Desugared.Ast.IdentMap.t;
-      (** The names of the structs *)
+  typedefs : typedef Desugared.Ast.IdentMap.t;
+      (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructFieldName.t StructMap.t Desugared.Ast.IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  enum_idmap : EnumName.t Desugared.Ast.IdentMap.t;
-      (** The names of the enums *)
   constructor_idmap : EnumConstructor.t EnumMap.t Desugared.Ast.IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
@@ -115,11 +122,11 @@ let get_var_uid
     ((x, pos) : ident Marked.pos) : ScopeVar.t =
   let scope = ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
-  | None ->
+  | Some (ScopeVar uid) -> uid
+  | _ ->
     raise_unknown_identifier
       (Format.asprintf "for a variable of scope %a" ScopeName.format_t scope_uid)
       (x, pos)
-  | Some uid -> uid
 
 (** Get the subscope uid inside the scope given in argument *)
 let get_subscope_uid
@@ -127,23 +134,27 @@ let get_subscope_uid
     (ctxt : context)
     ((y, pos) : ident Marked.pos) : SubScopeName.t =
   let scope = ScopeMap.find scope_uid ctxt.scopes in
-  match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
-  | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
-  | Some sub_uid -> sub_uid
+  match Desugared.Ast.IdentMap.find_opt y scope.var_idmap with
+  | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
+  | _ -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
 
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
 let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : ident) :
     bool =
   let scope = ScopeMap.find scope_uid ctxt.scopes in
-  Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
+  match Desugared.Ast.IdentMap.find_opt y scope.var_idmap with
+  | Some (SubScope _) -> true
+  | _ -> false
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     bool =
   let scope = ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.exists
-    (fun _ var_uid -> ScopeVar.compare uid var_uid = 0)
+    (fun _ -> function
+      | ScopeVar var_uid -> ScopeVar.equal uid var_uid
+      | _ -> false)
     scope.var_idmap
 
 (** Retrieves the type of a scope definition from the context *)
@@ -163,6 +174,62 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   | Desugared.Ast.ScopeDef.Var (x, _) ->
     is_var_cond ctxt x
 
+let get_enum ctxt id =
+  match Desugared.Ast.IdentMap.find (Marked.unmark id) ctxt.typedefs with
+  | TEnum id -> id
+  | TStruct sid ->
+    Errors.raise_multispanned_error
+      [
+        None, Marked.get_mark id;
+        Some "Structure defined at", Marked.get_mark (StructName.get_info sid);
+      ]
+      "Expecting an enum, but found a structure"
+  | TScope (sid, _) ->
+    Errors.raise_multispanned_error
+      [
+        None, Marked.get_mark id;
+        Some "Scope defined at", Marked.get_mark (ScopeName.get_info sid);
+      ]
+      "Expecting an enum, but found a scope"
+  | exception Not_found ->
+    Errors.raise_spanned_error (Marked.get_mark id) "No enum named %s found"
+      (Marked.unmark id)
+
+let get_struct ctxt id =
+  match Desugared.Ast.IdentMap.find (Marked.unmark id) ctxt.typedefs with
+  | TStruct id | TScope (_, id) -> id
+  | TEnum eid ->
+    Errors.raise_multispanned_error
+      [
+        None, Marked.get_mark id;
+        Some "Enum defined at", Marked.get_mark (EnumName.get_info eid);
+      ]
+      "Expecting an struct, but found an enum"
+  | exception Not_found ->
+    Errors.raise_spanned_error (Marked.get_mark id) "No struct named %s found"
+      (Marked.unmark id)
+
+let get_scope ctxt id =
+  match Desugared.Ast.IdentMap.find (Marked.unmark id) ctxt.typedefs with
+  | TScope (id, _) -> id
+  | TEnum eid ->
+    Errors.raise_multispanned_error
+      [
+        None, Marked.get_mark id;
+        Some "Enum defined at", Marked.get_mark (EnumName.get_info eid);
+      ]
+      "Expecting an scope, but found an enum"
+  | TStruct sid ->
+    Errors.raise_multispanned_error
+      [
+        None, Marked.get_mark id;
+        Some "Structure defined at", Marked.get_mark (StructName.get_info sid);
+      ]
+      "Expecting an scope, but found a structure"
+  | exception Not_found ->
+    Errors.raise_spanned_error (Marked.get_mark id) "No scope named %s found"
+      (Marked.unmark id)
+
 (** {1 Declarations pass} *)
 
 (** Process a subscope declaration *)
@@ -173,34 +240,31 @@ let process_subscope_decl
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = ScopeMap.find scope ctxt.scopes in
-  match
-    Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap
-  with
+  match Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.var_idmap with
   | Some use ->
+    let info =
+      match use with
+      | ScopeVar v -> ScopeVar.get_info v
+      | SubScope (ssc, _) -> SubScopeName.get_info ssc
+    in
     Errors.raise_multispanned_error
-      [
-        Some "first use", Marked.get_mark (SubScopeName.get_info use);
-        Some "second use", s_pos;
-      ]
+      [Some "first use", Marked.get_mark info; Some "second use", s_pos]
       "Subscope name \"%a\" already used"
       (Utils.Cli.format_with_style [ANSITerminal.yellow])
       subscope
   | None ->
     let sub_scope_uid = SubScopeName.fresh (name, name_pos) in
     let original_subscope_uid =
-      match Desugared.Ast.IdentMap.find_opt subscope ctxt.scope_idmap with
-      | None -> raise_unknown_identifier "for a scope" (subscope, s_pos)
-      | Some id -> id
+      get_scope ctxt decl.scope_decl_context_scope_sub_scope
     in
     let scope_ctxt =
       {
         scope_ctxt with
-        sub_scopes_idmap =
-          Desugared.Ast.IdentMap.add name sub_scope_uid
-            scope_ctxt.sub_scopes_idmap;
-        sub_scopes =
-          SubScopeMap.add sub_scope_uid original_subscope_uid
-            scope_ctxt.sub_scopes;
+        var_idmap =
+          Desugared.Ast.IdentMap.add name
+            (SubScope (sub_scope_uid, original_subscope_uid))
+            scope_ctxt.var_idmap;
+        sub_scopes = ScopeSet.add original_subscope_uid scope_ctxt.sub_scopes;
       }
     in
     { ctxt with scopes = ScopeMap.add scope scope_ctxt ctxt.scopes }
@@ -232,16 +296,15 @@ let rec process_base_typ
     | Ast.Boolean -> TLit TBool, typ_pos
     | Ast.Text -> raise_unsupported_feature "text type" typ_pos
     | Ast.Named ident -> (
-      match Desugared.Ast.IdentMap.find_opt ident ctxt.struct_idmap with
-      | Some s_uid -> TStruct s_uid, typ_pos
-      | None -> (
-        match Desugared.Ast.IdentMap.find_opt ident ctxt.enum_idmap with
-        | Some e_uid -> TEnum e_uid, typ_pos
-        | None ->
-          Errors.raise_spanned_error typ_pos
-            "Unknown type \"%a\", not a struct or enum previously declared"
-            (Utils.Cli.format_with_style [ANSITerminal.yellow])
-            ident)))
+      match Desugared.Ast.IdentMap.find_opt ident ctxt.typedefs with
+      | Some (TStruct s_uid) -> TStruct s_uid, typ_pos
+      | Some (TEnum e_uid) -> TEnum e_uid, typ_pos
+      | Some (TScope (_, s_uid)) -> TStruct s_uid, typ_pos
+      | None ->
+        Errors.raise_spanned_error typ_pos
+          "Unknown type \"%a\", not a struct or enum previously declared"
+          (Utils.Cli.format_with_style [ANSITerminal.yellow])
+          ident))
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Ast.typ) : typ =
@@ -263,11 +326,13 @@ let process_data_decl
   let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
+    let info =
+      match use with
+      | ScopeVar v -> ScopeVar.get_info v
+      | SubScope (ssc, _) -> SubScopeName.get_info ssc
+    in
     Errors.raise_multispanned_error
-      [
-        Some "First use:", Marked.get_mark (ScopeVar.get_info use);
-        Some "Second use:", pos;
-      ]
+      [Some "First use:", Marked.get_mark info; Some "Second use:", pos]
       "Variable name \"%a\" already used"
       (Utils.Cli.format_with_style [ANSITerminal.yellow])
       name
@@ -276,7 +341,8 @@ let process_data_decl
     let scope_ctxt =
       {
         scope_ctxt with
-        var_idmap = Desugared.Ast.IdentMap.add name uid scope_ctxt.var_idmap;
+        var_idmap =
+          Desugared.Ast.IdentMap.add name (ScopeVar uid) scope_ctxt.var_idmap;
       }
     in
     let states_idmap, states_list =
@@ -304,15 +370,6 @@ let process_data_decl
           ctxt.var_typs;
     }
 
-(** Process an item declaration *)
-let process_item_decl
-    (scope : ScopeName.t)
-    (ctxt : context)
-    (decl : Ast.scope_decl_context_item) : context =
-  match decl with
-  | Ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
-  | Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
-
 (** Adds a binding to the context *)
 let add_def_local_var (ctxt : context) (name : ident) :
     context * Desugared.Ast.expr Var.t =
@@ -326,20 +383,10 @@ let add_def_local_var (ctxt : context) (name : ident) :
   in
   ctxt, local_var_uid
 
-(** Process a scope declaration *)
-let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
-  let name, _ = decl.scope_decl_name in
-  let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
-  List.fold_left
-    (fun ctxt item -> process_item_decl scope_uid ctxt (Marked.unmark item))
-    ctxt decl.scope_decl_context
-
 (** Process a struct declaration *)
 let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
-  let s_uid =
-    Desugared.Ast.IdentMap.find (fst sdecl.struct_decl_name) ctxt.struct_idmap
-  in
-  if List.length sdecl.struct_decl_fields = 0 then
+  let s_uid = get_struct ctxt sdecl.struct_decl_name in
+  if sdecl.struct_decl_fields = [] then
     Errors.raise_spanned_error
       (Marked.get_mark sdecl.struct_decl_name)
       "The struct %s does not have any fields; give it some for Catala to be \
@@ -382,9 +429,7 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
 
 (** Process an enum declaration *)
 let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
-  let e_uid =
-    Desugared.Ast.IdentMap.find (fst edecl.enum_decl_name) ctxt.enum_idmap
-  in
+  let e_uid = get_enum ctxt edecl.enum_decl_name in
   if List.length edecl.enum_decl_cases = 0 then
     Errors.raise_spanned_error
       (Marked.get_mark edecl.enum_decl_name)
@@ -424,6 +469,65 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
       })
     ctxt edecl.enum_decl_cases
 
+(** Process an item declaration *)
+let process_item_decl
+    (scope : ScopeName.t)
+    (ctxt : context)
+    (decl : Ast.scope_decl_context_item) : context =
+  match decl with
+  | Ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
+  | Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
+
+(** Process a scope declaration *)
+let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
+  let scope_uid = get_scope ctxt decl.scope_decl_name in
+  let ctxt =
+    List.fold_left
+      (fun ctxt item -> process_item_decl scope_uid ctxt (Marked.unmark item))
+      ctxt decl.scope_decl_context
+  in
+  (* Add an implicit struct def for the scope output type *)
+  let output_fields =
+    List.fold_right
+      (fun item acc ->
+        match Marked.unmark item with
+        | Ast.ContextData
+            ({
+               scope_decl_context_item_attribute =
+                 { scope_decl_context_io_output = true, _; _ };
+               _;
+             } as data) ->
+          Marked.mark (Marked.get_mark item)
+            {
+              Ast.struct_decl_field_name = data.scope_decl_context_item_name;
+              Ast.struct_decl_field_typ = data.scope_decl_context_item_typ;
+            }
+          :: acc
+        | _ -> acc)
+      decl.scope_decl_context []
+  in
+  if output_fields = [] then
+    (* we allow scopes without output variables, and still define their (empty)
+       output struct for convenience *)
+    {
+      ctxt with
+      structs =
+        StructMap.add
+          (get_struct ctxt decl.scope_decl_name)
+          StructFieldMap.empty ctxt.structs;
+    }
+  else
+    process_struct_decl ctxt
+      {
+        struct_decl_name = decl.scope_decl_name;
+        struct_decl_fields = output_fields;
+      }
+
+let typedef_info = function
+  | TStruct t -> StructName.get_info t
+  | TEnum t -> EnumName.get_info t
+  | TScope (s, _) -> ScopeName.get_info s
+
 (** Process the names of all declaration items *)
 let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
     context =
@@ -438,56 +542,58 @@ let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
       name
   in
   match Marked.unmark item with
-  | ScopeDecl decl -> (
+  | ScopeDecl decl ->
     let name, pos = decl.scope_decl_name in
     (* Checks if the name is already used *)
-    match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-    | Some use ->
-      raise_already_defined_error (ScopeName.get_info use) name pos "scope"
-    | None ->
-      let scope_uid = ScopeName.fresh (name, pos) in
-      {
-        ctxt with
-        scope_idmap = Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
-        scopes =
-          ScopeMap.add scope_uid
-            {
-              var_idmap = Desugared.Ast.IdentMap.empty;
-              scope_defs_contexts = Desugared.Ast.ScopeDefMap.empty;
-              sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
-              sub_scopes = SubScopeMap.empty;
-            }
-            ctxt.scopes;
-      })
-  | StructDecl sdecl -> (
+    Option.iter
+      (fun use ->
+        raise_already_defined_error (typedef_info use) name pos "scope")
+      (Desugared.Ast.IdentMap.find_opt name ctxt.typedefs);
+    let scope_uid = ScopeName.fresh (name, pos) in
+    let out_struct_uid = StructName.fresh (name, pos) in
+    {
+      ctxt with
+      typedefs =
+        Desugared.Ast.IdentMap.add name
+          (TScope (scope_uid, out_struct_uid))
+          ctxt.typedefs;
+      scopes =
+        ScopeMap.add scope_uid
+          {
+            var_idmap = Desugared.Ast.IdentMap.empty;
+            scope_defs_contexts = Desugared.Ast.ScopeDefMap.empty;
+            sub_scopes = ScopeSet.empty;
+          }
+          ctxt.scopes;
+    }
+  | StructDecl sdecl ->
     let name, pos = sdecl.struct_decl_name in
-    match Desugared.Ast.IdentMap.find_opt name ctxt.struct_idmap with
-    | Some use ->
-      raise_already_defined_error (StructName.get_info use) name pos "struct"
-    | None ->
-      let s_uid = StructName.fresh sdecl.struct_decl_name in
-      {
-        ctxt with
-        struct_idmap =
-          Desugared.Ast.IdentMap.add
-            (Marked.unmark sdecl.struct_decl_name)
-            s_uid ctxt.struct_idmap;
-      })
-  | EnumDecl edecl -> (
+    Option.iter
+      (fun use ->
+        raise_already_defined_error (typedef_info use) name pos "struct")
+      (Desugared.Ast.IdentMap.find_opt name ctxt.typedefs);
+    let s_uid = StructName.fresh sdecl.struct_decl_name in
+    {
+      ctxt with
+      typedefs =
+        Desugared.Ast.IdentMap.add
+          (Marked.unmark sdecl.struct_decl_name)
+          (TStruct s_uid) ctxt.typedefs;
+    }
+  | EnumDecl edecl ->
     let name, pos = edecl.enum_decl_name in
-    match Desugared.Ast.IdentMap.find_opt name ctxt.enum_idmap with
-    | Some use ->
-      raise_already_defined_error (EnumName.get_info use) name pos "enum"
-    | None ->
-      let e_uid = EnumName.fresh edecl.enum_decl_name in
-
-      {
-        ctxt with
-        enum_idmap =
-          Desugared.Ast.IdentMap.add
-            (Marked.unmark edecl.enum_decl_name)
-            e_uid ctxt.enum_idmap;
-      })
+    Option.iter
+      (fun use ->
+        raise_already_defined_error (typedef_info use) name pos "enum")
+      (Desugared.Ast.IdentMap.find_opt name ctxt.typedefs);
+    let e_uid = EnumName.fresh edecl.enum_decl_name in
+    {
+      ctxt with
+      typedefs =
+        Desugared.Ast.IdentMap.add
+          (Marked.unmark edecl.enum_decl_name)
+          (TEnum e_uid) ctxt.typedefs;
+    }
   | ScopeUse _ -> ctxt
 
 (** Process a code item that is a declaration *)
@@ -563,9 +669,12 @@ let get_def_key
               ScopeVar.format_t x_uid
           else None )
   | [y; x] ->
-    let subscope_uid : SubScopeName.t = get_subscope_uid scope_uid ctxt y in
-    let subscope_real_uid : ScopeName.t =
-      SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
+    let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =
+      match
+        Desugared.Ast.IdentMap.find (Marked.unmark y) scope_ctxt.var_idmap
+      with
+      | SubScope (v, u) -> v, u
+      | _ -> invalid_arg "subscope_real_uid"
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
     Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
@@ -696,11 +805,13 @@ let process_scope_use_item
 
 let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
   let s_name =
-    try
-      Desugared.Ast.IdentMap.find
+    match
+      Desugared.Ast.IdentMap.find_opt
         (Marked.unmark suse.Ast.scope_use_name)
-        ctxt.scope_idmap
-    with Not_found ->
+        ctxt.typedefs
+    with
+    | Some (TScope (sn, _)) -> sn
+    | _ ->
       Errors.raise_spanned_error
         (Marked.get_mark suse.Ast.scope_use_name)
         "\"%a\": this scope has not been declared anywhere, is it a typo?"
@@ -722,14 +833,12 @@ let form_context (prgm : Ast.program) : context =
   let empty_ctxt =
     {
       local_var_idmap = Desugared.Ast.IdentMap.empty;
-      scope_idmap = Desugared.Ast.IdentMap.empty;
+      typedefs = Desugared.Ast.IdentMap.empty;
       scopes = ScopeMap.empty;
       var_typs = ScopeVarMap.empty;
       structs = StructMap.empty;
-      struct_idmap = Desugared.Ast.IdentMap.empty;
       field_idmap = Desugared.Ast.IdentMap.empty;
       enums = EnumMap.empty;
-      enum_idmap = Desugared.Ast.IdentMap.empty;
       constructor_idmap = Desugared.Ast.IdentMap.empty;
     }
   in

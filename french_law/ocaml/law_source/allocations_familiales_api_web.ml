@@ -337,6 +337,101 @@ let collectivite_of_jsoo (collectivite : collectivite Js.t)
         "Unexpected '%s' kind for the enumeration 'Collectivite.t'" cons)
 
 
+class type allocation_familiales_avril2008 =
+  object
+    method ageMinimumAlinea1L5213:
+      Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+  end
+  let allocation_familiales_avril2008_to_jsoo
+    (allocation_familiales_avril2008 : AllocationFamilialesAvril2008.t)
+    : allocation_familiales_avril2008 Js.t =
+    object%js
+      val ageMinimumAlinea1L5213 =
+        duration_to_jsoo allocation_familiales_avril2008.age_minimum_alinea_1_l521_3
+      end
+  let allocation_familiales_avril2008_of_jsoo
+    (allocation_familiales_avril2008 : allocation_familiales_avril2008 Js.t) :
+    AllocationFamilialesAvril2008.t =
+    {
+      age_minimum_alinea_1_l521_3 =
+        duration_of_jsoo
+          allocation_familiales_avril2008##.ageMinimumAlinea1L5213
+    }
+
+class type allocations_familiales =
+  object method montantVerse: Js.number Js.t Js.readonly_prop
+  end
+  let allocations_familiales_to_jsoo (allocations_familiales
+    : AllocationsFamiliales.t) : allocations_familiales Js.t =
+    object%js
+      val montantVerse =
+        Js.number_of_float @@ money_to_float allocations_familiales.montant_verse
+      end
+  let allocations_familiales_of_jsoo
+    (allocations_familiales : allocations_familiales Js.t) :
+    AllocationsFamiliales.t =
+    {
+      montant_verse =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          allocations_familiales##.montantVerse
+    }
+
+class type smic =
+  object method brutHoraire: Js.number Js.t Js.readonly_prop
+  end
+  let smic_to_jsoo (smic : Smic.t) : smic Js.t =
+    object%js
+      val brutHoraire =
+        Js.number_of_float @@ money_to_float smic.brut_horaire
+      end
+  let smic_of_jsoo (smic : smic Js.t) : Smic.t =
+    {
+      brut_horaire =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          smic##.brutHoraire
+    }
+
+class type base_mensuelle_allocations_familiales =
+  object method montant: Js.number Js.t Js.readonly_prop
+  end
+  let base_mensuelle_allocations_familiales_to_jsoo
+    (base_mensuelle_allocations_familiales
+    : BaseMensuelleAllocationsFamiliales.t)
+    : base_mensuelle_allocations_familiales Js.t =
+    object%js
+      val montant =
+        Js.number_of_float @@ money_to_float base_mensuelle_allocations_familiales.montant
+      end
+  let base_mensuelle_allocations_familiales_of_jsoo
+    (base_mensuelle_allocations_familiales
+      : base_mensuelle_allocations_familiales Js.t) :
+    BaseMensuelleAllocationsFamiliales.t =
+    {
+      montant =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          base_mensuelle_allocations_familiales##.montant
+    }
+
+class type interface_allocations_familiales =
+  object method iMontantVerse: Js.number Js.t Js.readonly_prop
+  end
+  let interface_allocations_familiales_to_jsoo
+    (interface_allocations_familiales : InterfaceAllocationsFamiliales.t)
+    : interface_allocations_familiales Js.t =
+    object%js
+      val iMontantVerse =
+        Js.number_of_float @@ money_to_float interface_allocations_familiales.i_montant_verse
+      end
+  let interface_allocations_familiales_of_jsoo
+    (interface_allocations_familiales
+      : interface_allocations_familiales Js.t) :
+    InterfaceAllocationsFamiliales.t =
+    {
+      i_montant_verse =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          interface_allocations_familiales##.iMontantVerse
+    }
+
 class type enfant_entree =
   object
     method dIdentifiant: int Js.readonly_prop
@@ -422,40 +517,51 @@ class type enfant =
         Js.to_bool enfant##.beneficieTitrePersonnelAidePersonnelleLogement
     }
 
-class type prestations_familiales_out =
-  object
-    method droitOuvertOut: (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method conditionsHorsAgeOut:
-      (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method ageL51232Out: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
-    method regimeOutreMerL7511Out: bool Js.t Js.readonly_prop
+class type enfant_le_plus_age =
+  object method lePlusAge: enfant Js.t Js.readonly_prop
   end
-  let prestations_familiales_out_to_jsoo (prestations_familiales_out
-    : PrestationsFamilialesOut.t) : prestations_familiales_out Js.t =
+  let enfant_le_plus_age_to_jsoo (enfant_le_plus_age : EnfantLePlusAge.t)
+    : enfant_le_plus_age Js.t =
     object%js
-      method droitOuvertOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.bool (prestations_familiales_out.droit_ouvert_out (enfant_of_jsoo input)))
-      method conditionsHorsAgeOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.bool (prestations_familiales_out.conditions_hors_age_out (enfant_of_jsoo input)))
-      val ageL51232Out =
-        duration_to_jsoo prestations_familiales_out.age_l512_3_2_out
-      val regimeOutreMerL7511Out =
-        Js.bool prestations_familiales_out.regime_outre_mer_l751_1_out
+      val lePlusAge = enfant_to_jsoo enfant_le_plus_age.le_plus_age
       end
-  let prestations_familiales_out_of_jsoo
-    (prestations_familiales_out : prestations_familiales_out Js.t) :
-    PrestationsFamilialesOut.t =
+  let enfant_le_plus_age_of_jsoo
+    (enfant_le_plus_age : enfant_le_plus_age Js.t) : EnfantLePlusAge.t =
+    {le_plus_age = enfant_of_jsoo enfant_le_plus_age##.lePlusAge
+    }
+
+class type prestations_familiales =
+  object
+    method droitOuvert: (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
+    method conditionsHorsAge:
+      (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
+    method ageL51232: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+    method regimeOutreMerL7511: bool Js.t Js.readonly_prop
+  end
+  let prestations_familiales_to_jsoo (prestations_familiales
+    : PrestationsFamiliales.t) : prestations_familiales Js.t =
+    object%js
+      method droitOuvert = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.bool (prestations_familiales.droit_ouvert (enfant_of_jsoo input)))
+      method conditionsHorsAge = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.bool (prestations_familiales.conditions_hors_age (enfant_of_jsoo input)))
+      val ageL51232 = duration_to_jsoo prestations_familiales.age_l512_3_2
+      val regimeOutreMerL7511 =
+        Js.bool prestations_familiales.regime_outre_mer_l751_1
+      end
+  let prestations_familiales_of_jsoo
+    (prestations_familiales : prestations_familiales Js.t) :
+    PrestationsFamiliales.t =
     {
-      droit_ouvert_out = failwith "The function 'droit_ouvert_out' translation isn't yet supported...";
-      conditions_hors_age_out = failwith "The function 'conditions_hors_age_out' translation isn't yet supported...";
-      age_l512_3_2_out =
-        duration_of_jsoo prestations_familiales_out##.ageL51232Out;
-      regime_outre_mer_l751_1_out =
-        Js.to_bool prestations_familiales_out##.regimeOutreMerL7511Out
+      droit_ouvert = failwith "The function 'droit_ouvert' translation isn't yet supported...";
+      conditions_hors_age = failwith "The function 'conditions_hors_age' translation isn't yet supported...";
+      age_l512_3_2 = duration_of_jsoo prestations_familiales##.ageL51232;
+      regime_outre_mer_l751_1 =
+        Js.to_bool prestations_familiales##.regimeOutreMerL7511
     }
 
 class type prestations_familiales_in =
@@ -488,48 +594,10 @@ class type prestations_familiales_in =
         collectivite_of_jsoo prestations_familiales_in##.residenceIn
     }
 
-class type allocation_familiales_avril2008_out =
-  object
-    method ageMinimumAlinea1L5213Out:
-      Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
-  end
-  let allocation_familiales_avril2008_out_to_jsoo
-    (allocation_familiales_avril2008_out
-    : AllocationFamilialesAvril2008Out.t)
-    : allocation_familiales_avril2008_out Js.t =
-    object%js
-      val ageMinimumAlinea1L5213Out =
-        duration_to_jsoo allocation_familiales_avril2008_out.age_minimum_alinea_1_l521_3_out
-      end
-  let allocation_familiales_avril2008_out_of_jsoo
-    (allocation_familiales_avril2008_out
-      : allocation_familiales_avril2008_out Js.t) :
-    AllocationFamilialesAvril2008Out.t =
-    {
-      age_minimum_alinea_1_l521_3_out =
-        duration_of_jsoo
-          allocation_familiales_avril2008_out##.ageMinimumAlinea1L5213Out
-    }
-
 class type allocation_familiales_avril2008_in =
 object end
 let allocation_familiales_avril2008_in_to_jsoo (_ : AllocationFamilialesAvril2008In.t) : allocation_familiales_avril2008_in Js.t = object%js end
 let allocation_familiales_avril2008_in_of_jsoo (_ : allocation_familiales_avril2008_in Js.t) : AllocationFamilialesAvril2008In.t = ()
-class type enfant_le_plus_age_out =
-  object method lePlusAgeOut: enfant Js.t Js.readonly_prop
-  end
-  let enfant_le_plus_age_out_to_jsoo (enfant_le_plus_age_out
-    : EnfantLePlusAgeOut.t) : enfant_le_plus_age_out Js.t =
-    object%js
-      val lePlusAgeOut =
-        enfant_to_jsoo enfant_le_plus_age_out.le_plus_age_out
-      end
-  let enfant_le_plus_age_out_of_jsoo
-    (enfant_le_plus_age_out : enfant_le_plus_age_out Js.t) :
-    EnfantLePlusAgeOut.t =
-    {le_plus_age_out = enfant_of_jsoo enfant_le_plus_age_out##.lePlusAgeOut
-    }
-
 class type enfant_le_plus_age_in =
   object method enfantsIn: enfant Js.t Js.js_array Js.t Js.readonly_prop
   end
@@ -546,24 +614,6 @@ class type enfant_le_plus_age_in =
       enfants_in =
         Array.map (fun x -> enfant_of_jsoo x) @@ Js.to_array
           enfant_le_plus_age_in##.enfantsIn
-    }
-
-class type allocations_familiales_out =
-  object method montantVerseOut: Js.number Js.t Js.readonly_prop
-  end
-  let allocations_familiales_out_to_jsoo (allocations_familiales_out
-    : AllocationsFamilialesOut.t) : allocations_familiales_out Js.t =
-    object%js
-      val montantVerseOut =
-        Js.number_of_float @@ money_to_float allocations_familiales_out.montant_verse_out
-      end
-  let allocations_familiales_out_of_jsoo
-    (allocations_familiales_out : allocations_familiales_out Js.t) :
-    AllocationsFamilialesOut.t =
-    {
-      montant_verse_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          allocations_familiales_out##.montantVerseOut
     }
 
 class type allocations_familiales_in =
@@ -624,21 +674,6 @@ class type allocations_familiales_in =
           allocations_familiales_in##.avaitEnfantAChargeAvant1erJanvier2012In
     }
 
-class type smic_out =
-  object method brutHoraireOut: Js.number Js.t Js.readonly_prop
-  end
-  let smic_out_to_jsoo (smic_out : SmicOut.t) : smic_out Js.t =
-    object%js
-      val brutHoraireOut =
-        Js.number_of_float @@ money_to_float smic_out.brut_horaire_out
-      end
-  let smic_out_of_jsoo (smic_out : smic_out Js.t) : SmicOut.t =
-    {
-      brut_horaire_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          smic_out##.brutHoraireOut
-    }
-
 class type smic_in =
   object
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
@@ -653,27 +688,6 @@ class type smic_in =
     {
       date_courante_in = date_of_jsoo smic_in##.dateCouranteIn;
       residence_in = collectivite_of_jsoo smic_in##.residenceIn
-    }
-
-class type base_mensuelle_allocations_familiales_out =
-  object method montantOut: Js.number Js.t Js.readonly_prop
-  end
-  let base_mensuelle_allocations_familiales_out_to_jsoo
-    (base_mensuelle_allocations_familiales_out
-    : BaseMensuelleAllocationsFamilialesOut.t)
-    : base_mensuelle_allocations_familiales_out Js.t =
-    object%js
-      val montantOut =
-        Js.number_of_float @@ money_to_float base_mensuelle_allocations_familiales_out.montant_out
-      end
-  let base_mensuelle_allocations_familiales_out_of_jsoo
-    (base_mensuelle_allocations_familiales_out
-      : base_mensuelle_allocations_familiales_out Js.t) :
-    BaseMensuelleAllocationsFamilialesOut.t =
-    {
-      montant_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          base_mensuelle_allocations_familiales_out##.montantOut
     }
 
 class type base_mensuelle_allocations_familiales_in =
@@ -695,27 +709,6 @@ class type base_mensuelle_allocations_familiales_in =
       date_courante_in =
         date_of_jsoo
           base_mensuelle_allocations_familiales_in##.dateCouranteIn
-    }
-
-class type interface_allocations_familiales_out =
-  object method iMontantVerseOut: Js.number Js.t Js.readonly_prop
-  end
-  let interface_allocations_familiales_out_to_jsoo
-    (interface_allocations_familiales_out
-    : InterfaceAllocationsFamilialesOut.t)
-    : interface_allocations_familiales_out Js.t =
-    object%js
-      val iMontantVerseOut =
-        Js.number_of_float @@ money_to_float interface_allocations_familiales_out.i_montant_verse_out
-      end
-  let interface_allocations_familiales_out_of_jsoo
-    (interface_allocations_familiales_out
-      : interface_allocations_familiales_out Js.t) :
-    InterfaceAllocationsFamilialesOut.t =
-    {
-      i_montant_verse_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          interface_allocations_familiales_out##.iMontantVerseOut
     }
 
 class type interface_allocations_familiales_in =
@@ -786,85 +779,85 @@ class type interface_allocations_familiales_in =
 
 let allocation_familiales_avril2008
   (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in Js.t)
-  : allocation_familiales_avril2008_out Js.t =
+  : allocation_familiales_avril2008 Js.t =
   allocation_familiales_avril2008_in
   |> allocation_familiales_avril2008_in_of_jsoo
   |> allocation_familiales_avril2008
-  |> allocation_familiales_avril2008_out_to_jsoo
+  |> allocation_familiales_avril2008_to_jsoo
 
 
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in Js.t)
-  : enfant_le_plus_age_out Js.t =
+  : enfant_le_plus_age Js.t =
   enfant_le_plus_age_in
   |> enfant_le_plus_age_in_of_jsoo
   |> enfant_le_plus_age
-  |> enfant_le_plus_age_out_to_jsoo
+  |> enfant_le_plus_age_to_jsoo
 
 
 let smic (smic_in : smic_in Js.t)
-  : smic_out Js.t =
-  smic_in |> smic_in_of_jsoo |> smic |> smic_out_to_jsoo
+  : smic Js.t =
+  smic_in |> smic_in_of_jsoo |> smic |> smic_to_jsoo
 
 
 let base_mensuelle_allocations_familiales
   (base_mensuelle_allocations_familiales_in : base_mensuelle_allocations_familiales_in Js.t)
-  : base_mensuelle_allocations_familiales_out Js.t =
+  : base_mensuelle_allocations_familiales Js.t =
   base_mensuelle_allocations_familiales_in
   |> base_mensuelle_allocations_familiales_in_of_jsoo
   |> base_mensuelle_allocations_familiales
-  |> base_mensuelle_allocations_familiales_out_to_jsoo
+  |> base_mensuelle_allocations_familiales_to_jsoo
 
 
 let prestations_familiales
   (prestations_familiales_in : prestations_familiales_in Js.t)
-  : prestations_familiales_out Js.t =
+  : prestations_familiales Js.t =
   prestations_familiales_in
   |> prestations_familiales_in_of_jsoo
   |> prestations_familiales
-  |> prestations_familiales_out_to_jsoo
+  |> prestations_familiales_to_jsoo
 
 
 let allocations_familiales
   (allocations_familiales_in : allocations_familiales_in Js.t)
-  : allocations_familiales_out Js.t =
+  : allocations_familiales Js.t =
   allocations_familiales_in
   |> allocations_familiales_in_of_jsoo
   |> allocations_familiales
-  |> allocations_familiales_out_to_jsoo
+  |> allocations_familiales_to_jsoo
 
 
 let interface_allocations_familiales
   (interface_allocations_familiales_in : interface_allocations_familiales_in Js.t)
-  : interface_allocations_familiales_out Js.t =
+  : interface_allocations_familiales Js.t =
   interface_allocations_familiales_in
   |> interface_allocations_familiales_in_of_jsoo
   |> interface_allocations_familiales
-  |> interface_allocations_familiales_out_to_jsoo
+  |> interface_allocations_familiales_to_jsoo
 
 
 let _ =
    Js.export "AllocationsFamilialesLib"
     (object%js
       
-      method allocationFamilialesAvril2008 : (allocation_familiales_avril2008_in Js.t -> allocation_familiales_avril2008_out Js.t) Js.callback =
+      method allocationFamilialesAvril2008 : (allocation_familiales_avril2008_in Js.t -> allocation_familiales_avril2008 Js.t) Js.callback =
         Js.wrap_callback allocation_familiales_avril2008
       
-      method enfantLePlusAge : (enfant_le_plus_age_in Js.t -> enfant_le_plus_age_out Js.t) Js.callback =
+      method enfantLePlusAge : (enfant_le_plus_age_in Js.t -> enfant_le_plus_age Js.t) Js.callback =
         Js.wrap_callback enfant_le_plus_age
       
-      method smic : (smic_in Js.t -> smic_out Js.t) Js.callback =
+      method smic : (smic_in Js.t -> smic Js.t) Js.callback =
         Js.wrap_callback smic
       
-      method baseMensuelleAllocationsFamiliales : (base_mensuelle_allocations_familiales_in Js.t -> base_mensuelle_allocations_familiales_out Js.t) Js.callback =
+      method baseMensuelleAllocationsFamiliales : (base_mensuelle_allocations_familiales_in Js.t -> base_mensuelle_allocations_familiales Js.t) Js.callback =
         Js.wrap_callback base_mensuelle_allocations_familiales
       
-      method prestationsFamiliales : (prestations_familiales_in Js.t -> prestations_familiales_out Js.t) Js.callback =
+      method prestationsFamiliales : (prestations_familiales_in Js.t -> prestations_familiales Js.t) Js.callback =
         Js.wrap_callback prestations_familiales
       
-      method allocationsFamiliales : (allocations_familiales_in Js.t -> allocations_familiales_out Js.t) Js.callback =
+      method allocationsFamiliales : (allocations_familiales_in Js.t -> allocations_familiales Js.t) Js.callback =
         Js.wrap_callback allocations_familiales
       
-      method interfaceAllocationsFamiliales : (interface_allocations_familiales_in Js.t -> interface_allocations_familiales_out Js.t) Js.callback =
+      method interfaceAllocationsFamiliales : (interface_allocations_familiales_in Js.t -> interface_allocations_familiales Js.t) Js.callback =
         Js.wrap_callback interface_allocations_familiales
       
     end)

@@ -397,6 +397,24 @@ let rec expr_aux :
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
              enum_constructor cons_name punctuation "→" expr case_expr))
       (EnumConstructorMap.bindings cases)
+  | EScopeCall (scope, fields) ->
+    Format.pp_open_hovbox fmt 2;
+    ScopeName.format_t fmt scope;
+    Format.pp_print_space fmt ();
+    keyword fmt "of";
+    Format.pp_print_space fmt ();
+    Format.pp_open_hvbox fmt 2;
+    punctuation fmt "{";
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
+      (fun fmt (field_name, field_expr) ->
+        Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\"" ScopeVar.format_t
+          field_name punctuation "\"" punctuation "=" expr field_expr)
+      fmt
+      (ScopeVarMap.bindings fields);
+    Format.pp_close_box fmt ();
+    punctuation fmt "}";
+    Format.pp_close_box fmt ()
 
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)

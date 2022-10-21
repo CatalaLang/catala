@@ -126,6 +126,12 @@ let ematchs e1 enum cases mark =
        (Box.lift e1)
        (Box.lift_enum (EnumConstructorMap.map Box.lift cases))
 
+let escopecall scope_name fields mark =
+  Marked.mark mark
+  @@ Bindlib.box_apply
+       (fun fields -> EScopeCall (scope_name, fields))
+       (Box.lift_scope_vars (ScopeVarMap.map Box.lift fields))
+
 (* - Manipulation of marks - *)
 
 let no_mark : type m. m mark -> m mark = function
@@ -235,6 +241,9 @@ let map
   | EMatchS (e1, enum, cases) ->
     let cases = EnumConstructorMap.map (f ctx) cases in
     ematchs (f ctx e1) enum cases m
+  | EScopeCall (scope_name, fields) ->
+    let fields = ScopeVarMap.map (f ctx) fields in
+    escopecall scope_name fields m
 
 let rec map_top_down ~f e = map () ~f:(fun () -> map_top_down ~f) (f e)
 
@@ -268,6 +277,7 @@ let shallow_fold
   | EEnumInj (e1, _, _) -> acc |> f e1
   | EMatchS (e1, _, cases) ->
     acc |> f e1 |> EnumConstructorMap.fold (fun _ -> f) cases
+  | EScopeCall (_, fields) -> acc |> ScopeVarMap.fold (fun _ -> f) fields
 
 (* - *)
 
@@ -595,10 +605,12 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     EnumName.equal n1 n2
     && equal e1 e2
     && EnumConstructorMap.equal equal cases1 cases2
+  | EScopeCall (s1, fields1), EScopeCall (s2, fields2) ->
+    ScopeName.equal s1 s2 && ScopeVarMap.equal equal fields1 fields2
   | ( ( EVar _ | ETuple _ | ETupleAccess _ | EInj _ | EMatch _ | EArray _
       | ELit _ | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _
       | EIfThenElse _ | ErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _
-      | EStruct _ | EStructAccess _ | EEnumInj _ | EMatchS _ ),
+      | EStruct _ | EStructAccess _ | EEnumInj _ | EMatchS _ | EScopeCall _ ),
       _ ) ->
     false
 
@@ -646,6 +658,9 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2 @@< fun () ->
     EnumName.compare name1 name2 @@< fun () ->
     EnumConstructorMap.compare compare emap1 emap2
+  | EScopeCall (name1, field_map1), EScopeCall (name2, field_map2) ->
+    ScopeName.compare name1 name2 @@< fun () ->
+    ScopeVarMap.compare compare field_map1 field_map2
   | ETuple (es1, s1), ETuple (es2, s2) ->
     Option.compare StructName.compare s1 s2 @@< fun () ->
     List.compare compare es1 es2
@@ -689,6 +704,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EStructAccess _, _ -> -1 | _, EStructAccess _ -> 1
   | EEnumInj _, _ -> -1 | _, EEnumInj _ -> 1
   | EMatchS _, _ -> -1 | _, EMatchS _ -> 1
+  | EScopeCall _, _ -> -1 | _, EScopeCall _ -> 1
   | ETuple _, _ -> -1 | _, ETuple _ -> 1
   | ETupleAccess _, _ -> -1 | _, ETupleAccess _ -> 1
   | EInj _, _ -> -1 | _, EInj _ -> 1
@@ -748,6 +764,8 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EEnumInj (e1, _, _) -> 1 + size e1
   | EMatchS (e1, _, cases) ->
     EnumConstructorMap.fold (fun _ e acc -> acc + 1 + size e) cases (size e1)
+  | EScopeCall (_, fields) ->
+    ScopeVarMap.fold (fun _ e acc -> acc + 1 + size e) fields 1
 
 (* - Expression building helpers - *)
 
