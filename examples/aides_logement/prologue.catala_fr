@@ -387,7 +387,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
 ### Éligibilité aux allocations de logement
 
 ```catala-metadata
-déclaration énumération ÉligibilitéAllocationLogement:
+déclaration énumération TypeÉligibilitéAllocationLogement:
   -- PasÉligible
   -- AllocationLogementFamiliale
   -- AllocationLogementSociale
@@ -407,7 +407,7 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
 
 
-  sortie éligibilité contenu ÉligibilitéAllocationLogement
+  sortie éligibilité contenu TypeÉligibilitéAllocationLogement
     état dispositions_communes
     état l841_2
   sortie nombre_personnes_à_charge_prises_en_compte contenu entier

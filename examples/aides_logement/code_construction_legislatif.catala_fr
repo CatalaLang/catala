@@ -845,7 +845,7 @@ champ d'application ÉligibilitéAllocationLogement:
       PasÉligible
     sinon
       # Valeur par défaut, sera réécrit à l'application de L841-2.
-      ÉligibilitéAllocationLogement.AllocationLogementSociale
+      TypeÉligibilitéAllocationLogement.AllocationLogementSociale
 ```
 
 ###### Article L841-1 | LEGIARTI000038814864
@@ -1031,9 +1031,9 @@ champ d'application ÉligibilitéAllocationLogement:
     si éligibilité = PasÉligible ou bénéficie_aide_personnalisée_logement alors
       PasÉligible
     sinon (si éligibilité_allocation_logement_familiale alors
-      ÉligibilitéAllocationLogement.AllocationLogementFamiliale
+      TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
     sinon
-      ÉligibilitéAllocationLogement.AllocationLogementSociale)
+      TypeÉligibilitéAllocationLogement.AllocationLogementSociale)
 
 champ d'application CalculetteAidesAuLogement:
   # Le champ d'application CalculetteAidesAuLogement suppose un scenario type
@@ -1052,8 +1052,8 @@ champ d'application CalculetteAidesAuLogement:
     éligibilité_aide_personnalisée_logement.éligibilité ou
     (selon éligibilité_allocation_logement.éligibilité sous forme
       -- PasÉligible: faux
-      -- ÉligibilitéAllocationLogement.AllocationLogementFamiliale: vrai
-      -- ÉligibilitéAllocationLogement.AllocationLogementSociale: vrai)
+      -- TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale: vrai
+      -- TypeÉligibilitéAllocationLogement.AllocationLogementSociale: vrai)
 
   # Pour chaque calcul d'aide potentielle à donner, on suppose que c'est
   # cette aide qui est donnée.
@@ -1064,9 +1064,9 @@ champ d'application CalculetteAidesAuLogement:
       -- PasÉligible:
         # Valeur par défaut, ne sera pas utilisée
         TypeAidesPersonnelleLogement.AllocationLogementSociale
-      -- ÉligibilitéAllocationLogement.AllocationLogementFamiliale:
+      -- TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale:
         TypeAidesPersonnelleLogement.AllocationLogementFamiliale
-      -- ÉligibilitéAllocationLogement.AllocationLogementSociale:
+      -- TypeÉligibilitéAllocationLogement.AllocationLogementSociale:
         TypeAidesPersonnelleLogement.AllocationLogementSociale)
 
   définition aide_finale_formule égal à
@@ -1120,7 +1120,7 @@ champ d'application ÉligibilitéAllocationLogement:
   exception définition éligibilité état l841_2 sous condition
     demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
   conséquence égal à
-    ÉligibilitéAllocationLogement.AllocationLogementSociale
+    TypeÉligibilitéAllocationLogement.AllocationLogementSociale
 ```
 
 ###### Article L841-4 | LEGIARTI000038814858

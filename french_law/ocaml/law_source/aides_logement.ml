@@ -283,16 +283,16 @@ let embed_mode_occupation_impaye (x: ModeOccupationImpaye.t)
     | ImpayePret x -> ("ImpayéPrêt", embed_unit x))
 
 
-module EligibiliteAllocationLogement = struct
+module TypeEligibiliteAllocationLogement = struct
 
   type t =
     | PasEligible of unit
     | AllocationLogementFamiliale of unit
     | AllocationLogementSociale of unit
   end
-let embed_eligibilite_allocation_logement
-  (x: EligibiliteAllocationLogement.t) : runtime_value =
-  Enum(["ÉligibilitéAllocationLogement"],
+let embed_type_eligibilite_allocation_logement
+  (x: TypeEligibiliteAllocationLogement.t) : runtime_value =
+  Enum(["TypeÉligibilitéAllocationLogement"],
   match x with
     | PasEligible x -> ("PasÉligible", embed_unit x)
     | AllocationLogementFamiliale x ->
@@ -584,6 +584,181 @@ let embed_personne_vivant_habituellement_au_foyer (x: PersonneVivantHabituelleme
     x.PersonneVivantHabituellementAuFoyer.ressources)])
 
 
+module EligibiliteAidePersonnaliseeLogement = struct
+  type t = {
+    date_courante: date;
+    eligibilite: bool;
+    nombre_personnes_a_charge_prises_en_compte: integer;
+    coefficents_enfants_garde_alternee_pris_en_compte: decimal array
+  }
+end
+let embed_eligibilite_aide_personnalisee_logement (x: EligibiliteAidePersonnaliseeLogement.t) : runtime_value =
+  Struct(["ÉligibilitéAidePersonnaliséeLogement"],
+  [("date_courante", embed_date
+    x.EligibiliteAidePersonnaliseeLogement.date_courante);
+    ("éligibilité", embed_bool
+    x.EligibiliteAidePersonnaliseeLogement.eligibilite);
+    ("nombre_personnes_à_charge_prises_en_compte", embed_integer
+    x.EligibiliteAidePersonnaliseeLogement.nombre_personnes_a_charge_prises_en_compte);
+    ("coefficents_enfants_garde_alternée_pris_en_compte",
+    embed_array (embed_decimal)
+    x.EligibiliteAidePersonnaliseeLogement.coefficents_enfants_garde_alternee_pris_en_compte)])
+
+
+module EligibilitePrimeDeDemenagement = struct
+  type t = {montant_prime_demenagement: money}
+end
+let embed_eligibilite_prime_de_demenagement (x: EligibilitePrimeDeDemenagement.t) : runtime_value =
+  Struct(["ÉligibilitéPrimeDeDéménagement"],
+  [("montant_prime_déménagement", embed_money
+    x.EligibilitePrimeDeDemenagement.montant_prime_demenagement)])
+
+
+module RessourcesAidesPersonnelleLogement = struct
+  type t = {ressources_prises_en_compte: money}
+end
+let embed_ressources_aides_personnelle_logement (x: RessourcesAidesPersonnelleLogement.t) : runtime_value =
+  Struct(["RessourcesAidesPersonnelleLogement"],
+  [("ressources_prises_en_compte", embed_money
+    x.RessourcesAidesPersonnelleLogement.ressources_prises_en_compte)])
+
+
+module ContributionsSocialesAidesPersonnelleLogement = struct
+  type t = {montant: money -> money}
+end
+let embed_contributions_sociales_aides_personnelle_logement (x: ContributionsSocialesAidesPersonnelleLogement.t) : runtime_value =
+  Struct(["ContributionsSocialesAidesPersonnelleLogement"],
+  [("montant", unembeddable
+    x.ContributionsSocialesAidesPersonnelleLogement.montant)])
+
+
+module CalculAidePersonnaliseeLogementLocatif = struct
+  type t = {
+    montant_forfaitaire_charges_d823_16: money;
+    plafond_loyer_d823_16_2: money;
+    participation_minimale: money;
+    taux_composition_familiale: decimal;
+    participation_personnelle: money;
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_aide_personnalisee_logement_locatif (x: CalculAidePersonnaliseeLogementLocatif.t) : runtime_value =
+  Struct(["CalculAidePersonnaliséeLogementLocatif"],
+  [("montant_forfaitaire_charges_d823_16", embed_money
+    x.CalculAidePersonnaliseeLogementLocatif.montant_forfaitaire_charges_d823_16);
+    ("plafond_loyer_d823_16_2", embed_money
+    x.CalculAidePersonnaliseeLogementLocatif.plafond_loyer_d823_16_2);
+    ("participation_minimale", embed_money
+    x.CalculAidePersonnaliseeLogementLocatif.participation_minimale);
+    ("taux_composition_familiale", embed_decimal
+    x.CalculAidePersonnaliseeLogementLocatif.taux_composition_familiale);
+    ("participation_personnelle", embed_money
+    x.CalculAidePersonnaliseeLogementLocatif.participation_personnelle);
+    ("aide_finale_formule", embed_money
+    x.CalculAidePersonnaliseeLogementLocatif.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAidePersonnaliseeLogementLocatif.traitement_aide_finale)])
+
+
+module CalculEquivalenceLoyerMinimale = struct
+  type t = {montant: money}
+end
+let embed_calcul_equivalence_loyer_minimale (x: CalculEquivalenceLoyerMinimale.t) : runtime_value =
+  Struct(["CalculÉquivalenceLoyerMinimale"],
+  [("montant", embed_money x.CalculEquivalenceLoyerMinimale.montant)])
+
+
+module CalculNombrePartLogementFoyer = struct
+  type t = {n_nombre_parts_d832_25: decimal}
+end
+let embed_calcul_nombre_part_logement_foyer (x: CalculNombrePartLogementFoyer.t) : runtime_value =
+  Struct(["CalculNombrePartLogementFoyer"],
+  [("n_nombre_parts_d832_25", embed_decimal
+    x.CalculNombrePartLogementFoyer.n_nombre_parts_d832_25)])
+
+
+module CalculAidePersonnaliseeLogementFoyer = struct
+  type t = {
+    coefficient_multiplicateur_d832_25: money;
+    coefficient_r_d832_25: money;
+    n_nombre_parts_d832_25: decimal;
+    equivalence_loyer_eligible: money;
+    plafond_equivalence_loyer_eligible: money;
+    equivalence_loyer_minimale: money;
+    coefficient_prise_en_charge_d832_25: decimal;
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_aide_personnalisee_logement_foyer (x: CalculAidePersonnaliseeLogementFoyer.t) : runtime_value =
+  Struct(["CalculAidePersonnaliséeLogementFoyer"],
+  [("coefficient_multiplicateur_d832_25", embed_money
+    x.CalculAidePersonnaliseeLogementFoyer.coefficient_multiplicateur_d832_25);
+    ("coefficient_r_d832_25", embed_money
+    x.CalculAidePersonnaliseeLogementFoyer.coefficient_r_d832_25);
+    ("n_nombre_parts_d832_25", embed_decimal
+    x.CalculAidePersonnaliseeLogementFoyer.n_nombre_parts_d832_25);
+    ("équivalence_loyer_éligible", embed_money
+    x.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_eligible);
+    ("plafond_équivalence_loyer_éligible", embed_money
+    x.CalculAidePersonnaliseeLogementFoyer.plafond_equivalence_loyer_eligible);
+    ("équivalence_loyer_minimale", embed_money
+    x.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_minimale);
+    ("coefficient_prise_en_charge_d832_25", embed_decimal
+    x.CalculAidePersonnaliseeLogementFoyer.coefficient_prise_en_charge_d832_25);
+    ("aide_finale_formule", embed_money
+    x.CalculAidePersonnaliseeLogementFoyer.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAidePersonnaliseeLogementFoyer.traitement_aide_finale)])
+
+
+module CalculNombrePartsAccessionPropriete = struct
+  type t = {n_nombre_parts_d832_11: decimal}
+end
+let embed_calcul_nombre_parts_accession_propriete (x: CalculNombrePartsAccessionPropriete.t) : runtime_value =
+  Struct(["CalculNombrePartsAccessionPropriété"],
+  [("n_nombre_parts_d832_11", embed_decimal
+    x.CalculNombrePartsAccessionPropriete.n_nombre_parts_d832_11)])
+
+
+module CalculAidePersonnaliseeLogementAccessionPropriete = struct
+  type t = {
+    mensualite_eligible: money;
+    mensualite_minimale: money;
+    coefficient_prise_en_charge_d832_10: decimal;
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_aide_personnalisee_logement_accession_propriete (x: CalculAidePersonnaliseeLogementAccessionPropriete.t) : runtime_value =
+  Struct(["CalculAidePersonnaliséeLogementAccessionPropriété"],
+  [("mensualité_éligible", embed_money
+    x.CalculAidePersonnaliseeLogementAccessionPropriete.mensualite_eligible);
+    ("mensualité_minimale", embed_money
+    x.CalculAidePersonnaliseeLogementAccessionPropriete.mensualite_minimale);
+    ("coefficient_prise_en_charge_d832_10", embed_decimal
+    x.CalculAidePersonnaliseeLogementAccessionPropriete.coefficient_prise_en_charge_d832_10);
+    ("aide_finale_formule", embed_money
+    x.CalculAidePersonnaliseeLogementAccessionPropriete.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAidePersonnaliseeLogementAccessionPropriete.traitement_aide_finale)])
+
+
+module CalculAidePersonnaliseeLogement = struct
+  type t = {
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_aide_personnalisee_logement (x: CalculAidePersonnaliseeLogement.t) : runtime_value =
+  Struct(["CalculAidePersonnaliséeLogement"],
+  [("aide_finale_formule", embed_money
+    x.CalculAidePersonnaliseeLogement.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAidePersonnaliseeLogement.traitement_aide_finale)])
+
+
 module InfosChangementLogementD8424 = struct
   type t = {
     ancien_loyer_principal: money;
@@ -596,6 +771,138 @@ let embed_infos_changement_logement_d842_4 (x: InfosChangementLogementD8424.t) :
     x.InfosChangementLogementD8424.ancien_loyer_principal);
     ("ancienne_allocation_logement", embed_money
     x.InfosChangementLogementD8424.ancienne_allocation_logement)])
+
+
+module CalculAllocationLogementLocatif = struct
+  type t = {
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_allocation_logement_locatif (x: CalculAllocationLogementLocatif.t) : runtime_value =
+  Struct(["CalculAllocationLogementLocatif"],
+  [("aide_finale_formule", embed_money
+    x.CalculAllocationLogementLocatif.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAllocationLogementLocatif.traitement_aide_finale)])
+
+
+module CalculAllocationLogementAccessionPropriete = struct
+  type t = {
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_allocation_logement_accession_propriete (x: CalculAllocationLogementAccessionPropriete.t) : runtime_value =
+  Struct(["CalculAllocationLogementAccessionPropriété"],
+  [("aide_finale_formule", embed_money
+    x.CalculAllocationLogementAccessionPropriete.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAllocationLogementAccessionPropriete.traitement_aide_finale)])
+
+
+module CalculAllocationLogementFoyer = struct
+  type t = {
+    coefficient_prise_en_charge: decimal;
+    equivalence_loyer: money;
+    montant_forfaitaire_charges: money;
+    loyer_minimal: money;
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_allocation_logement_foyer (x: CalculAllocationLogementFoyer.t) : runtime_value =
+  Struct(["CalculAllocationLogementFoyer"],
+  [("coefficient_prise_en_charge", embed_decimal
+    x.CalculAllocationLogementFoyer.coefficient_prise_en_charge);
+    ("équivalence_loyer", embed_money
+    x.CalculAllocationLogementFoyer.equivalence_loyer);
+    ("montant_forfaitaire_charges", embed_money
+    x.CalculAllocationLogementFoyer.montant_forfaitaire_charges);
+    ("loyer_minimal", embed_money
+    x.CalculAllocationLogementFoyer.loyer_minimal);
+    ("aide_finale_formule", embed_money
+    x.CalculAllocationLogementFoyer.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAllocationLogementFoyer.traitement_aide_finale)])
+
+
+module CalculAllocationLogement = struct
+  type t = {
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money
+  }
+end
+let embed_calcul_allocation_logement (x: CalculAllocationLogement.t) : runtime_value =
+  Struct(["CalculAllocationLogement"],
+  [("aide_finale_formule", embed_money
+    x.CalculAllocationLogement.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculAllocationLogement.traitement_aide_finale)])
+
+
+module OuvertureDroitsRetraite = struct
+  type t = {age_ouverture_droit: duration}
+end
+let embed_ouverture_droits_retraite (x: OuvertureDroitsRetraite.t) : runtime_value =
+  Struct(["OuvertureDroitsRetraite"],
+  [("âge_ouverture_droit", embed_duration
+    x.OuvertureDroitsRetraite.age_ouverture_droit)])
+
+
+module ImpayeDepenseLogement = struct
+  type t = {montant_impaye: money}
+end
+let embed_impaye_depense_logement (x: ImpayeDepenseLogement.t) : runtime_value =
+  Struct(["ImpayéDépenseLogement"],
+  [("montant_impayé", embed_money x.ImpayeDepenseLogement.montant_impaye)])
+
+
+module CalculetteAidesAuLogement = struct
+  type t = {
+    eligibilite: bool;
+    aide_finale_formule: money;
+    traitement_aide_finale: money -> money;
+    coefficents_enfants_garde_alternee_pris_en_compte: decimal array
+  }
+end
+let embed_calculette_aides_au_logement (x: CalculetteAidesAuLogement.t) : runtime_value =
+  Struct(["CalculetteAidesAuLogement"],
+  [("éligibilité", embed_bool
+    x.CalculetteAidesAuLogement.eligibilite);
+    ("aide_finale_formule", embed_money
+    x.CalculetteAidesAuLogement.aide_finale_formule);
+    ("traitement_aide_finale", unembeddable
+    x.CalculetteAidesAuLogement.traitement_aide_finale);
+    ("coefficents_enfants_garde_alternée_pris_en_compte",
+    embed_array (embed_decimal)
+    x.CalculetteAidesAuLogement.coefficents_enfants_garde_alternee_pris_en_compte)])
+
+
+module CalculetteAidesAuLogementGardeAlternee = struct
+  type t = {eligibilite: bool; aide_finale: money}
+end
+let embed_calculette_aides_au_logement_garde_alternee (x: CalculetteAidesAuLogementGardeAlternee.t) : runtime_value =
+  Struct(["CalculetteAidesAuLogementGardeAlternée"],
+  [("éligibilité", embed_bool
+    x.CalculetteAidesAuLogementGardeAlternee.eligibilite);
+    ("aide_finale", embed_money
+    x.CalculetteAidesAuLogementGardeAlternee.aide_finale)])
+
+
+module BaseMensuelleAllocationsFamiliales = struct
+  type t = {montant: money}
+end
+let embed_base_mensuelle_allocations_familiales (x: BaseMensuelleAllocationsFamiliales.t) : runtime_value =
+  Struct(["BaseMensuelleAllocationsFamiliales"],
+  [("montant", embed_money x.BaseMensuelleAllocationsFamiliales.montant)])
+
+
+module Smic = struct
+  type t = {brut_horaire: money}
+end
+let embed_smic (x: Smic.t) : runtime_value = Struct(["Smic"],
+  [("brut_horaire", embed_money x.Smic.brut_horaire)])
 
 
 module Pret = struct
@@ -686,6 +993,24 @@ let embed_date_naissance_troisieme_ou_dernier_plus_enfant
     | MoinsDeTroisEnfants x -> ("MoinsDeTroisEnfants", embed_unit x)
     | PlusDeTroisEnfants x ->
       ("PlusDeTroisEnfants", embed_date_de_naissance_ou_mois_de_grossesse x))
+
+
+module EligibiliteAllocationLogement = struct
+  type t = {
+    eligibilite: TypeEligibiliteAllocationLogement.t;
+    nombre_personnes_a_charge_prises_en_compte: integer;
+    coefficents_enfants_garde_alternee_pris_en_compte: decimal array
+  }
+end
+let embed_eligibilite_allocation_logement (x: EligibiliteAllocationLogement.t) : runtime_value =
+  Struct(["ÉligibilitéAllocationLogement"],
+  [("éligibilité", embed_type_eligibilite_allocation_logement
+    x.EligibiliteAllocationLogement.eligibilite);
+    ("nombre_personnes_à_charge_prises_en_compte", embed_integer
+    x.EligibiliteAllocationLogement.nombre_personnes_a_charge_prises_en_compte);
+    ("coefficents_enfants_garde_alternée_pris_en_compte",
+    embed_array (embed_decimal)
+    x.EligibiliteAllocationLogement.coefficents_enfants_garde_alternee_pris_en_compte)])
 
 
 module LogementFoyer = struct
@@ -891,6 +1216,26 @@ let embed_informations_prime_de_demenagement (x: InformationsPrimeDeDemenagement
     x.InformationsPrimeDeDemenagement.date_naissance_troisieme_enfant_ou_dernier_si_plus)])
 
 
+module EligibilitePrestationsFamiliales = struct
+  type t = {
+    droit_ouvert: EnfantPrestationsFamiliales.t -> bool;
+    conditions_hors_age: EnfantPrestationsFamiliales.t -> bool;
+    age_l512_3_2: duration;
+    regime_outre_mer_l751_1: bool
+  }
+end
+let embed_eligibilite_prestations_familiales (x: EligibilitePrestationsFamiliales.t) : runtime_value =
+  Struct(["ÉligibilitéPrestationsFamiliales"],
+  [("droit_ouvert", unembeddable
+    x.EligibilitePrestationsFamiliales.droit_ouvert);
+    ("conditions_hors_âge", unembeddable
+    x.EligibilitePrestationsFamiliales.conditions_hors_age);
+    ("âge_l512_3_2", embed_duration
+    x.EligibilitePrestationsFamiliales.age_l512_3_2);
+    ("régime_outre_mer_l751_1", embed_bool
+    x.EligibilitePrestationsFamiliales.regime_outre_mer_l751_1)])
+
+
 module PersonneACharge = struct
 
   type t =
@@ -953,6 +1298,30 @@ let embed_location (x: Location.t) : runtime_value = Struct(["Location"],
     x.Location.logement_meuble_d842_2);
     ("changement_logement_d842_4", embed_changement_logement_d842_4
     x.Location.changement_logement_d842_4)])
+
+
+module EligibiliteAidesPersonnelleLogement = struct
+  type t = {
+    date_courante: date;
+    eligibilite: bool;
+    nombre_personnes_a_charge_prises_en_compte: integer;
+    coefficents_enfants_garde_alternee_pris_en_compte: decimal array;
+    condition_2_r823_4: PersonneACharge.t -> bool
+  }
+end
+let embed_eligibilite_aides_personnelle_logement (x: EligibiliteAidesPersonnelleLogement.t) : runtime_value =
+  Struct(["ÉligibilitéAidesPersonnelleLogement"],
+  [("date_courante", embed_date
+    x.EligibiliteAidesPersonnelleLogement.date_courante);
+    ("éligibilité", embed_bool
+    x.EligibiliteAidesPersonnelleLogement.eligibilite);
+    ("nombre_personnes_à_charge_prises_en_compte", embed_integer
+    x.EligibiliteAidesPersonnelleLogement.nombre_personnes_a_charge_prises_en_compte);
+    ("coefficents_enfants_garde_alternée_pris_en_compte",
+    embed_array (embed_decimal)
+    x.EligibiliteAidesPersonnelleLogement.coefficents_enfants_garde_alternee_pris_en_compte);
+    ("condition_2_r823_4", unembeddable
+    x.EligibiliteAidesPersonnelleLogement.condition_2_r823_4)])
 
 
 module ModeOccupation = struct
@@ -1035,30 +1404,6 @@ let embed_menage (x: Menage.t) : runtime_value = Struct(["Ménage"],
     x.Menage.enfant_a_naitre_apres_quatrieme_mois_grossesse)])
 
 
-module EligibiliteAidesPersonnelleLogementOut = struct
-  type t = {
-    date_courante_out: date;
-    eligibilite_out: bool;
-    nombre_personnes_a_charge_prises_en_compte_out: integer;
-    coefficents_enfants_garde_alternee_pris_en_compte_out: decimal array;
-    condition_2_r823_4_out: PersonneACharge.t -> bool
-  }
-end
-let embed_eligibilite_aides_personnelle_logement_out (x: EligibiliteAidesPersonnelleLogementOut.t) : runtime_value =
-  Struct(["ÉligibilitéAidesPersonnelleLogement_out"],
-  [("date_courante_out", embed_date
-    x.EligibiliteAidesPersonnelleLogementOut.date_courante_out);
-    ("éligibilité_out", embed_bool
-    x.EligibiliteAidesPersonnelleLogementOut.eligibilite_out);
-    ("nombre_personnes_à_charge_prises_en_compte_out", embed_integer
-    x.EligibiliteAidesPersonnelleLogementOut.nombre_personnes_a_charge_prises_en_compte_out);
-    ("coefficents_enfants_garde_alternée_pris_en_compte_out",
-    embed_array (embed_decimal)
-    x.EligibiliteAidesPersonnelleLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out);
-    ("condition_2_r823_4_out", unembeddable
-    x.EligibiliteAidesPersonnelleLogementOut.condition_2_r823_4_out)])
-
-
 module EligibiliteAidesPersonnelleLogementIn = struct
   type t = {
     menage_in: Menage.t;
@@ -1082,27 +1427,6 @@ let embed_eligibilite_aides_personnelle_logement_in (x: EligibiliteAidesPersonne
     x.EligibiliteAidesPersonnelleLogementIn.condition_logement_surface_in)])
 
 
-module EligibiliteAidePersonnaliseeLogementOut = struct
-  type t = {
-    date_courante_out: date;
-    eligibilite_out: bool;
-    nombre_personnes_a_charge_prises_en_compte_out: integer;
-    coefficents_enfants_garde_alternee_pris_en_compte_out: decimal array
-  }
-end
-let embed_eligibilite_aide_personnalisee_logement_out (x: EligibiliteAidePersonnaliseeLogementOut.t) : runtime_value =
-  Struct(["ÉligibilitéAidePersonnaliséeLogement_out"],
-  [("date_courante_out", embed_date
-    x.EligibiliteAidePersonnaliseeLogementOut.date_courante_out);
-    ("éligibilité_out", embed_bool
-    x.EligibiliteAidePersonnaliseeLogementOut.eligibilite_out);
-    ("nombre_personnes_à_charge_prises_en_compte_out", embed_integer
-    x.EligibiliteAidePersonnaliseeLogementOut.nombre_personnes_a_charge_prises_en_compte_out);
-    ("coefficents_enfants_garde_alternée_pris_en_compte_out",
-    embed_array (embed_decimal)
-    x.EligibiliteAidePersonnaliseeLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out)])
-
-
 module EligibiliteAidePersonnaliseeLogementIn = struct
   type t = {
     menage_in: Menage.t;
@@ -1118,24 +1442,6 @@ let embed_eligibilite_aide_personnalisee_logement_in (x: EligibiliteAidePersonna
     x.EligibiliteAidePersonnaliseeLogementIn.demandeur_in);
     ("date_courante_in", embed_date
     x.EligibiliteAidePersonnaliseeLogementIn.date_courante_in)])
-
-
-module EligibiliteAllocationLogementOut = struct
-  type t = {
-    eligibilite_l841_2_out: EligibiliteAllocationLogement.t;
-    nombre_personnes_a_charge_prises_en_compte_out: integer;
-    coefficents_enfants_garde_alternee_pris_en_compte_out: decimal array
-  }
-end
-let embed_eligibilite_allocation_logement_out (x: EligibiliteAllocationLogementOut.t) : runtime_value =
-  Struct(["ÉligibilitéAllocationLogement_out"],
-  [("éligibilité_l841_2_out", embed_eligibilite_allocation_logement
-    x.EligibiliteAllocationLogementOut.eligibilite_l841_2_out);
-    ("nombre_personnes_à_charge_prises_en_compte_out", embed_integer
-    x.EligibiliteAllocationLogementOut.nombre_personnes_a_charge_prises_en_compte_out);
-    ("coefficents_enfants_garde_alternée_pris_en_compte_out",
-    embed_array (embed_decimal)
-    x.EligibiliteAllocationLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out)])
 
 
 module EligibiliteAllocationLogementIn = struct
@@ -1156,15 +1462,6 @@ let embed_eligibilite_allocation_logement_in (x: EligibiliteAllocationLogementIn
     x.EligibiliteAllocationLogementIn.demandeur_in);
     ("bénéficie_aide_personnalisée_logement_in", embed_bool
     x.EligibiliteAllocationLogementIn.beneficie_aide_personnalisee_logement_in)])
-
-
-module EligibilitePrimeDeDemenagementOut = struct
-  type t = {montant_prime_demenagement_out: money}
-end
-let embed_eligibilite_prime_de_demenagement_out (x: EligibilitePrimeDeDemenagementOut.t) : runtime_value =
-  Struct(["ÉligibilitéPrimeDeDéménagement_out"],
-  [("montant_prime_déménagement_out", embed_money
-    x.EligibilitePrimeDeDemenagementOut.montant_prime_demenagement_out)])
 
 
 module EligibilitePrimeDeDemenagementIn = struct
@@ -1191,15 +1488,6 @@ let embed_eligibilite_prime_de_demenagement_in (x: EligibilitePrimeDeDemenagemen
     x.EligibilitePrimeDeDemenagementIn.date_courante_in);
     ("dépenses_justifiées_réellement_engagées_in", embed_money
     x.EligibilitePrimeDeDemenagementIn.depenses_justifiees_reellement_engagees_in)])
-
-
-module RessourcesAidesPersonnelleLogementOut = struct
-  type t = {ressources_prises_en_compte_out: money}
-end
-let embed_ressources_aides_personnelle_logement_out (x: RessourcesAidesPersonnelleLogementOut.t) : runtime_value =
-  Struct(["RessourcesAidesPersonnelleLogement_out"],
-  [("ressources_prises_en_compte_out", embed_money
-    x.RessourcesAidesPersonnelleLogementOut.ressources_prises_en_compte_out)])
 
 
 module RessourcesAidesPersonnelleLogementIn = struct
@@ -1253,15 +1541,6 @@ let embed_ressources_aides_personnelle_logement_in (x: RessourcesAidesPersonnell
     x.RessourcesAidesPersonnelleLogementIn.ressources_menage_arrondies_base_in)])
 
 
-module ContributionsSocialesAidesPersonnelleLogementOut = struct
-  type t = {montant_out: money -> money}
-end
-let embed_contributions_sociales_aides_personnelle_logement_out (x: ContributionsSocialesAidesPersonnelleLogementOut.t) : runtime_value =
-  Struct(["ContributionsSocialesAidesPersonnelleLogement_out"],
-  [("montant_out", unembeddable
-    x.ContributionsSocialesAidesPersonnelleLogementOut.montant_out)])
-
-
 module ContributionsSocialesAidesPersonnelleLogementIn = struct
   type t = {date_courante_in: date}
 end
@@ -1269,35 +1548,6 @@ let embed_contributions_sociales_aides_personnelle_logement_in (x: Contributions
   Struct(["ContributionsSocialesAidesPersonnelleLogement_in"],
   [("date_courante_in", embed_date
     x.ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in)])
-
-
-module CalculAidePersonnaliseeLogementLocatifOut = struct
-  type t = {
-    montant_forfaitaire_charges_d823_16_out: money;
-    plafond_loyer_d823_16_2_out: money;
-    participation_minimale_out: money;
-    taux_composition_familiale_out: decimal;
-    participation_personnelle_out: money;
-    aide_finale_formule_out: money;
-    traitement_aide_finale_montant_minimal_out: money -> money
-  }
-end
-let embed_calcul_aide_personnalisee_logement_locatif_out (x: CalculAidePersonnaliseeLogementLocatifOut.t) : runtime_value =
-  Struct(["CalculAidePersonnaliséeLogementLocatif_out"],
-  [("montant_forfaitaire_charges_d823_16_out", embed_money
-    x.CalculAidePersonnaliseeLogementLocatifOut.montant_forfaitaire_charges_d823_16_out);
-    ("plafond_loyer_d823_16_2_out", embed_money
-    x.CalculAidePersonnaliseeLogementLocatifOut.plafond_loyer_d823_16_2_out);
-    ("participation_minimale_out", embed_money
-    x.CalculAidePersonnaliseeLogementLocatifOut.participation_minimale_out);
-    ("taux_composition_familiale_out", embed_decimal
-    x.CalculAidePersonnaliseeLogementLocatifOut.taux_composition_familiale_out);
-    ("participation_personnelle_out", embed_money
-    x.CalculAidePersonnaliseeLogementLocatifOut.participation_personnelle_out);
-    ("aide_finale_formule_out", embed_money
-    x.CalculAidePersonnaliseeLogementLocatifOut.aide_finale_formule_out);
-    ("traitement_aide_finale_montant_minimal_out", unembeddable
-    x.CalculAidePersonnaliseeLogementLocatifOut.traitement_aide_finale_montant_minimal_out)])
 
 
 module CalculAidePersonnaliseeLogementLocatifIn = struct
@@ -1349,15 +1599,6 @@ let embed_calcul_aide_personnalisee_logement_locatif_in (x: CalculAidePersonnali
     x.CalculAidePersonnaliseeLogementLocatifIn.logement_meuble_d842_2_in)])
 
 
-module CalculEquivalenceLoyerMinimaleOut = struct
-  type t = {montant_out: money}
-end
-let embed_calcul_equivalence_loyer_minimale_out (x: CalculEquivalenceLoyerMinimaleOut.t) : runtime_value =
-  Struct(["CalculÉquivalenceLoyerMinimale_out"],
-  [("montant_out", embed_money
-    x.CalculEquivalenceLoyerMinimaleOut.montant_out)])
-
-
 module CalculEquivalenceLoyerMinimaleIn = struct
   type t = {
     ressources_menage_arrondies_in: money;
@@ -1373,15 +1614,6 @@ let embed_calcul_equivalence_loyer_minimale_in (x: CalculEquivalenceLoyerMinimal
     x.CalculEquivalenceLoyerMinimaleIn.condition_2_du_832_25_in);
     ("n_nombre_parts_d832_25_in", embed_decimal
     x.CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in)])
-
-
-module CalculNombrePartLogementFoyerOut = struct
-  type t = {n_nombre_parts_d832_25_out: decimal}
-end
-let embed_calcul_nombre_part_logement_foyer_out (x: CalculNombrePartLogementFoyerOut.t) : runtime_value =
-  Struct(["CalculNombrePartLogementFoyer_out"],
-  [("n_nombre_parts_d832_25_out", embed_decimal
-    x.CalculNombrePartLogementFoyerOut.n_nombre_parts_d832_25_out)])
 
 
 module CalculNombrePartLogementFoyerIn = struct
@@ -1400,41 +1632,6 @@ let embed_calcul_nombre_part_logement_foyer_in (x: CalculNombrePartLogementFoyer
     ("situation_familiale_calcul_apl_in",
     embed_situation_familiale_calcul_a_p_l
     x.CalculNombrePartLogementFoyerIn.situation_familiale_calcul_apl_in)])
-
-
-module CalculAidePersonnaliseeLogementFoyerOut = struct
-  type t = {
-    coefficient_multiplicateur_d832_25_out: money;
-    coefficient_r_d832_25_out: money;
-    n_nombre_parts_d832_25_out: decimal;
-    equivalence_loyer_eligible_out: money;
-    plafond_equivalence_loyer_eligible_out: money;
-    equivalence_loyer_minimale_out: money;
-    coefficient_prise_en_charge_d832_25_seuil_out: decimal;
-    aide_finale_formule_out: money;
-    traitement_aide_finale_montant_minimal_out: money -> money
-  }
-end
-let embed_calcul_aide_personnalisee_logement_foyer_out (x: CalculAidePersonnaliseeLogementFoyerOut.t) : runtime_value =
-  Struct(["CalculAidePersonnaliséeLogementFoyer_out"],
-  [("coefficient_multiplicateur_d832_25_out", embed_money
-    x.CalculAidePersonnaliseeLogementFoyerOut.coefficient_multiplicateur_d832_25_out);
-    ("coefficient_r_d832_25_out", embed_money
-    x.CalculAidePersonnaliseeLogementFoyerOut.coefficient_r_d832_25_out);
-    ("n_nombre_parts_d832_25_out", embed_decimal
-    x.CalculAidePersonnaliseeLogementFoyerOut.n_nombre_parts_d832_25_out);
-    ("équivalence_loyer_éligible_out", embed_money
-    x.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_eligible_out);
-    ("plafond_équivalence_loyer_éligible_out", embed_money
-    x.CalculAidePersonnaliseeLogementFoyerOut.plafond_equivalence_loyer_eligible_out);
-    ("équivalence_loyer_minimale_out", embed_money
-    x.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_minimale_out);
-    ("coefficient_prise_en_charge_d832_25_seuil_out", embed_decimal
-    x.CalculAidePersonnaliseeLogementFoyerOut.coefficient_prise_en_charge_d832_25_seuil_out);
-    ("aide_finale_formule_out", embed_money
-    x.CalculAidePersonnaliseeLogementFoyerOut.aide_finale_formule_out);
-    ("traitement_aide_finale_montant_minimal_out", unembeddable
-    x.CalculAidePersonnaliseeLogementFoyerOut.traitement_aide_finale_montant_minimal_out)])
 
 
 module CalculAidePersonnaliseeLogementFoyerIn = struct
@@ -1476,15 +1673,6 @@ let embed_calcul_aide_personnalisee_logement_foyer_in (x: CalculAidePersonnalise
     x.CalculAidePersonnaliseeLogementFoyerIn.n_nombre_parts_d832_25_in)])
 
 
-module CalculNombrePartsAccessionProprieteOut = struct
-  type t = {n_nombre_parts_d832_11_out: decimal}
-end
-let embed_calcul_nombre_parts_accession_propriete_out (x: CalculNombrePartsAccessionProprieteOut.t) : runtime_value =
-  Struct(["CalculNombrePartsAccessionPropriété_out"],
-  [("n_nombre_parts_d832_11_out", embed_decimal
-    x.CalculNombrePartsAccessionProprieteOut.n_nombre_parts_d832_11_out)])
-
-
 module CalculNombrePartsAccessionProprieteIn = struct
   type t = {
     nombre_personnes_a_charge_in: integer;
@@ -1498,29 +1686,6 @@ let embed_calcul_nombre_parts_accession_propriete_in (x: CalculNombrePartsAccess
     ("situation_familiale_calcul_apl_in",
     embed_situation_familiale_calcul_a_p_l
     x.CalculNombrePartsAccessionProprieteIn.situation_familiale_calcul_apl_in)])
-
-
-module CalculAidePersonnaliseeLogementAccessionProprieteOut = struct
-  type t = {
-    mensualite_eligible_out: money;
-    mensualite_minimale_out: money;
-    coefficient_prise_en_charge_d832_10_seuil_out: decimal;
-    aide_finale_formule_out: money;
-    traitement_aide_finale_montant_minimal_out: money -> money
-  }
-end
-let embed_calcul_aide_personnalisee_logement_accession_propriete_out (x: CalculAidePersonnaliseeLogementAccessionProprieteOut.t) : runtime_value =
-  Struct(["CalculAidePersonnaliséeLogementAccessionPropriété_out"],
-  [("mensualité_éligible_out", embed_money
-    x.CalculAidePersonnaliseeLogementAccessionProprieteOut.mensualite_eligible_out);
-    ("mensualité_minimale_out", embed_money
-    x.CalculAidePersonnaliseeLogementAccessionProprieteOut.mensualite_minimale_out);
-    ("coefficient_prise_en_charge_d832_10_seuil_out", embed_decimal
-    x.CalculAidePersonnaliseeLogementAccessionProprieteOut.coefficient_prise_en_charge_d832_10_seuil_out);
-    ("aide_finale_formule_out", embed_money
-    x.CalculAidePersonnaliseeLogementAccessionProprieteOut.aide_finale_formule_out);
-    ("traitement_aide_finale_montant_minimal_out", unembeddable
-    x.CalculAidePersonnaliseeLogementAccessionProprieteOut.traitement_aide_finale_montant_minimal_out)])
 
 
 module CalculAidePersonnaliseeLogementAccessionProprieteIn = struct
@@ -1574,20 +1739,6 @@ let embed_calcul_aide_personnalisee_logement_accession_propriete_in (x: CalculAi
     x.CalculAidePersonnaliseeLogementAccessionProprieteIn.date_courante_in)])
 
 
-module CalculAidePersonnaliseeLogementOut = struct
-  type t = {
-    aide_finale_formule_out: money;
-    traitement_aide_finale_out: money -> money
-  }
-end
-let embed_calcul_aide_personnalisee_logement_out (x: CalculAidePersonnaliseeLogementOut.t) : runtime_value =
-  Struct(["CalculAidePersonnaliséeLogement_out"],
-  [("aide_finale_formule_out", embed_money
-    x.CalculAidePersonnaliseeLogementOut.aide_finale_formule_out);
-    ("traitement_aide_finale_out", unembeddable
-    x.CalculAidePersonnaliseeLogementOut.traitement_aide_finale_out)])
-
-
 module CalculAidePersonnaliseeLogementIn = struct
   type t = {
     mode_occupation_in: ModeOccupation.t;
@@ -1615,20 +1766,6 @@ let embed_calcul_aide_personnalisee_logement_in (x: CalculAidePersonnaliseeLogem
     x.CalculAidePersonnaliseeLogementIn.zone_in);
     ("date_courante_in", embed_date
     x.CalculAidePersonnaliseeLogementIn.date_courante_in)])
-
-
-module CalculAllocationLogementLocatifOut = struct
-  type t = {
-    aide_finale_formule_out: money;
-    traitement_aide_finale_out: money -> money
-  }
-end
-let embed_calcul_allocation_logement_locatif_out (x: CalculAllocationLogementLocatifOut.t) : runtime_value =
-  Struct(["CalculAllocationLogementLocatif_out"],
-  [("aide_finale_formule_out", embed_money
-    x.CalculAllocationLogementLocatifOut.aide_finale_formule_out);
-    ("traitement_aide_finale_out", unembeddable
-    x.CalculAllocationLogementLocatifOut.traitement_aide_finale_out)])
 
 
 module CalculAllocationLogementLocatifIn = struct
@@ -1683,20 +1820,6 @@ let embed_calcul_allocation_logement_locatif_in (x: CalculAllocationLogementLoca
     x.CalculAllocationLogementLocatifIn.changement_logement_d842_4_in)])
 
 
-module CalculAllocationLogementAccessionProprieteOut = struct
-  type t = {
-    aide_finale_formule_out: money;
-    traitement_aide_finale_montant_minimal_out: money -> money
-  }
-end
-let embed_calcul_allocation_logement_accession_propriete_out (x: CalculAllocationLogementAccessionProprieteOut.t) : runtime_value =
-  Struct(["CalculAllocationLogementAccessionPropriété_out"],
-  [("aide_finale_formule_out", embed_money
-    x.CalculAllocationLogementAccessionProprieteOut.aide_finale_formule_out);
-    ("traitement_aide_finale_montant_minimal_out", unembeddable
-    x.CalculAllocationLogementAccessionProprieteOut.traitement_aide_finale_montant_minimal_out)])
-
-
 module CalculAllocationLogementAccessionProprieteIn = struct
   type t = {
     ressources_menage_arrondies_base_in: money;
@@ -1745,32 +1868,6 @@ let embed_calcul_allocation_logement_accession_propriete_in (x: CalculAllocation
     x.CalculAllocationLogementAccessionProprieteIn.copropriete_in)])
 
 
-module CalculAllocationLogementFoyerOut = struct
-  type t = {
-    coefficient_prise_en_charge_out: decimal;
-    equivalence_loyer_out: money;
-    montant_forfaitaire_charges_out: money;
-    loyer_minimal_out: money;
-    aide_finale_formule_out: money;
-    traitement_aide_finale_montant_minimal_out: money -> money
-  }
-end
-let embed_calcul_allocation_logement_foyer_out (x: CalculAllocationLogementFoyerOut.t) : runtime_value =
-  Struct(["CalculAllocationLogementFoyer_out"],
-  [("coefficient_prise_en_charge_out", embed_decimal
-    x.CalculAllocationLogementFoyerOut.coefficient_prise_en_charge_out);
-    ("équivalence_loyer_out", embed_money
-    x.CalculAllocationLogementFoyerOut.equivalence_loyer_out);
-    ("montant_forfaitaire_charges_out", embed_money
-    x.CalculAllocationLogementFoyerOut.montant_forfaitaire_charges_out);
-    ("loyer_minimal_out", embed_money
-    x.CalculAllocationLogementFoyerOut.loyer_minimal_out);
-    ("aide_finale_formule_out", embed_money
-    x.CalculAllocationLogementFoyerOut.aide_finale_formule_out);
-    ("traitement_aide_finale_montant_minimal_out", unembeddable
-    x.CalculAllocationLogementFoyerOut.traitement_aide_finale_montant_minimal_out)])
-
-
 module CalculAllocationLogementFoyerIn = struct
   type t = {
     type_logement_foyer_in: TypeLogementFoyer.t;
@@ -1809,20 +1906,6 @@ let embed_calcul_allocation_logement_foyer_in (x: CalculAllocationLogementFoyerI
     x.CalculAllocationLogementFoyerIn.categorie_equivalence_loyer_d842_16_in)])
 
 
-module CalculAllocationLogementOut = struct
-  type t = {
-    aide_finale_formule_out: money;
-    traitement_aide_finale_out: money -> money
-  }
-end
-let embed_calcul_allocation_logement_out (x: CalculAllocationLogementOut.t) : runtime_value =
-  Struct(["CalculAllocationLogement_out"],
-  [("aide_finale_formule_out", embed_money
-    x.CalculAllocationLogementOut.aide_finale_formule_out);
-    ("traitement_aide_finale_out", unembeddable
-    x.CalculAllocationLogementOut.traitement_aide_finale_out)])
-
-
 module CalculAllocationLogementIn = struct
   type t = {
     mode_occupation_in: ModeOccupation.t;
@@ -1852,15 +1935,6 @@ let embed_calcul_allocation_logement_in (x: CalculAllocationLogementIn.t) : runt
     x.CalculAllocationLogementIn.type_aide_in)])
 
 
-module OuvertureDroitsRetraiteOut = struct
-  type t = {age_ouverture_droit_out: duration}
-end
-let embed_ouverture_droits_retraite_out (x: OuvertureDroitsRetraiteOut.t) : runtime_value =
-  Struct(["OuvertureDroitsRetraite_out"],
-  [("âge_ouverture_droit_out", embed_duration
-    x.OuvertureDroitsRetraiteOut.age_ouverture_droit_out)])
-
-
 module OuvertureDroitsRetraiteIn = struct
   type t = {date_naissance_assure_in: date}
 end
@@ -1868,15 +1942,6 @@ let embed_ouverture_droits_retraite_in (x: OuvertureDroitsRetraiteIn.t) : runtim
   Struct(["OuvertureDroitsRetraite_in"],
   [("date_naissance_assuré_in", embed_date
     x.OuvertureDroitsRetraiteIn.date_naissance_assure_in)])
-
-
-module ImpayeDepenseLogementOut = struct
-  type t = {montant_impaye_out: money}
-end
-let embed_impaye_depense_logement_out (x: ImpayeDepenseLogementOut.t) : runtime_value =
-  Struct(["ImpayéDépenseLogement_out"],
-  [("montant_impayé_out", embed_money
-    x.ImpayeDepenseLogementOut.montant_impaye_out)])
 
 
 module ImpayeDepenseLogementIn = struct
@@ -1905,27 +1970,6 @@ let embed_impaye_depense_logement_in (x: ImpayeDepenseLogementIn.t) : runtime_va
     x.ImpayeDepenseLogementIn.montant_dette_in)])
 
 
-module CalculetteAidesAuLogementOut = struct
-  type t = {
-    eligibilite_out: bool;
-    aide_finale_formule_out: money;
-    traitement_aide_finale_out: money -> money;
-    coefficents_enfants_garde_alternee_pris_en_compte_out: decimal array
-  }
-end
-let embed_calculette_aides_au_logement_out (x: CalculetteAidesAuLogementOut.t) : runtime_value =
-  Struct(["CalculetteAidesAuLogement_out"],
-  [("éligibilité_out", embed_bool
-    x.CalculetteAidesAuLogementOut.eligibilite_out);
-    ("aide_finale_formule_out", embed_money
-    x.CalculetteAidesAuLogementOut.aide_finale_formule_out);
-    ("traitement_aide_finale_out", unembeddable
-    x.CalculetteAidesAuLogementOut.traitement_aide_finale_out);
-    ("coefficents_enfants_garde_alternée_pris_en_compte_out",
-    embed_array (embed_decimal)
-    x.CalculetteAidesAuLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out)])
-
-
 module CalculetteAidesAuLogementIn = struct
   type t = {
     menage_in: Menage.t;
@@ -1944,17 +1988,6 @@ let embed_calculette_aides_au_logement_in (x: CalculetteAidesAuLogementIn.t) : r
     x.CalculetteAidesAuLogementIn.date_courante_in);
     ("ressources_ménage_prises_en_compte_in", embed_money
     x.CalculetteAidesAuLogementIn.ressources_menage_prises_en_compte_in)])
-
-
-module CalculetteAidesAuLogementGardeAlterneeOut = struct
-  type t = {eligibilite_out: bool; aide_finale_out: money}
-end
-let embed_calculette_aides_au_logement_garde_alternee_out (x: CalculetteAidesAuLogementGardeAlterneeOut.t) : runtime_value =
-  Struct(["CalculetteAidesAuLogementGardeAlternée_out"],
-  [("éligibilité_out", embed_bool
-    x.CalculetteAidesAuLogementGardeAlterneeOut.eligibilite_out);
-    ("aide_finale_out", embed_money
-    x.CalculetteAidesAuLogementGardeAlterneeOut.aide_finale_out)])
 
 
 module CalculetteAidesAuLogementGardeAlterneeIn = struct
@@ -1977,15 +2010,6 @@ let embed_calculette_aides_au_logement_garde_alternee_in (x: CalculetteAidesAuLo
     x.CalculetteAidesAuLogementGardeAlterneeIn.ressources_menage_prises_en_compte_in)])
 
 
-module BaseMensuelleAllocationsFamilialesOut = struct
-  type t = {montant_out: money}
-end
-let embed_base_mensuelle_allocations_familiales_out (x: BaseMensuelleAllocationsFamilialesOut.t) : runtime_value =
-  Struct(["BaseMensuelleAllocationsFamiliales_out"],
-  [("montant_out", embed_money
-    x.BaseMensuelleAllocationsFamilialesOut.montant_out)])
-
-
 module BaseMensuelleAllocationsFamilialesIn = struct
   type t = {date_courante_in: date}
 end
@@ -1995,13 +2019,6 @@ let embed_base_mensuelle_allocations_familiales_in (x: BaseMensuelleAllocationsF
     x.BaseMensuelleAllocationsFamilialesIn.date_courante_in)])
 
 
-module SmicOut = struct
-  type t = {brut_horaire_out: money}
-end
-let embed_smic_out (x: SmicOut.t) : runtime_value = Struct(["Smic_out"],
-  [("brut_horaire_out", embed_money x.SmicOut.brut_horaire_out)])
-
-
 module SmicIn = struct
   type t = {date_courante_in: date; residence_in: Collectivite.t}
 end
@@ -2009,26 +2026,6 @@ let embed_smic_in (x: SmicIn.t) : runtime_value = Struct(["Smic_in"],
   [("date_courante_in", embed_date
     x.SmicIn.date_courante_in);
     ("résidence_in", embed_collectivite x.SmicIn.residence_in)])
-
-
-module EligibilitePrestationsFamilialesOut = struct
-  type t = {
-    droit_ouvert_out: EnfantPrestationsFamiliales.t -> bool;
-    conditions_hors_age_out: EnfantPrestationsFamiliales.t -> bool;
-    age_l512_3_2_out: duration;
-    regime_outre_mer_l751_1_out: bool
-  }
-end
-let embed_eligibilite_prestations_familiales_out (x: EligibilitePrestationsFamilialesOut.t) : runtime_value =
-  Struct(["ÉligibilitéPrestationsFamiliales_out"],
-  [("droit_ouvert_out", unembeddable
-    x.EligibilitePrestationsFamilialesOut.droit_ouvert_out);
-    ("conditions_hors_âge_out", unembeddable
-    x.EligibilitePrestationsFamilialesOut.conditions_hors_age_out);
-    ("âge_l512_3_2_out", embed_duration
-    x.EligibilitePrestationsFamilialesOut.age_l512_3_2_out);
-    ("régime_outre_mer_l751_1_out", embed_bool
-    x.EligibilitePrestationsFamilialesOut.regime_outre_mer_l751_1_out)])
 
 
 module EligibilitePrestationsFamilialesIn = struct
@@ -2050,7 +2047,7 @@ let embed_eligibilite_prestations_familiales_in (x: EligibilitePrestationsFamili
 
 
 
-let contributions_sociales_aides_personnelle_logement (contributions_sociales_aides_personnelle_logement_in: ContributionsSocialesAidesPersonnelleLogementIn.t) : ContributionsSocialesAidesPersonnelleLogementOut.t =
+let contributions_sociales_aides_personnelle_logement (contributions_sociales_aides_personnelle_logement_in: ContributionsSocialesAidesPersonnelleLogementIn.t) : ContributionsSocialesAidesPersonnelleLogement.t =
   let date_courante_: date = contributions_sociales_aides_personnelle_logement_in.ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in in
   let exonere_csg_: bool = (log_variable_definition
     ["ContributionsSocialesAidesPersonnelleLogement"; "exonéré_csg"]
@@ -2170,9 +2167,9 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
                                            law_headings=["Article 14";
                                                           "Chapitre II : Des contributions pour le remboursement de la dette sociale.";
                                                           "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]}) in
-  {ContributionsSocialesAidesPersonnelleLogementOut.montant_out = montant_}
+  {ContributionsSocialesAidesPersonnelleLogement.montant = montant_}
 
-let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: CalculEquivalenceLoyerMinimaleIn.t) : CalculEquivalenceLoyerMinimaleOut.t =
+let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: CalculEquivalenceLoyerMinimaleIn.t) : CalculEquivalenceLoyerMinimale.t =
   let ressources_menage_arrondies_: money = calcul_equivalence_loyer_minimale_in.CalculEquivalenceLoyerMinimaleIn.ressources_menage_arrondies_in in
   let condition_2_du_832_25_: bool = calcul_equivalence_loyer_minimale_in.CalculEquivalenceLoyerMinimaleIn.condition_2_du_832_25_in in
   let n_nombre_parts_d832_25_: decimal = calcul_equivalence_loyer_minimale_in.CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in in
@@ -2469,9 +2466,9 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {CalculEquivalenceLoyerMinimaleOut.montant_out = montant_}
+  {CalculEquivalenceLoyerMinimale.montant = montant_}
 
-let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: CalculNombrePartLogementFoyerIn.t) : CalculNombrePartLogementFoyerOut.t =
+let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: CalculNombrePartLogementFoyerIn.t) : CalculNombrePartLogementFoyer.t =
   let condition_2_du_832_25_: bool = calcul_nombre_part_logement_foyer_in.CalculNombrePartLogementFoyerIn.condition_2_du_832_25_in in
   let nombre_personnes_a_charge_: integer = calcul_nombre_part_logement_foyer_in.CalculNombrePartLogementFoyerIn.nombre_personnes_a_charge_in in
   let situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = calcul_nombre_part_logement_foyer_in.CalculNombrePartLogementFoyerIn.situation_familiale_calcul_apl_in in
@@ -2580,10 +2577,10 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {CalculNombrePartLogementFoyerOut.n_nombre_parts_d832_25_out =
+  {CalculNombrePartLogementFoyer.n_nombre_parts_d832_25 =
      n_nombre_parts_d832_25_}
 
-let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propriete_in: CalculNombrePartsAccessionProprieteIn.t) : CalculNombrePartsAccessionProprieteOut.t =
+let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propriete_in: CalculNombrePartsAccessionProprieteIn.t) : CalculNombrePartsAccessionPropriete.t =
   let nombre_personnes_a_charge_: integer = calcul_nombre_parts_accession_propriete_in.CalculNombrePartsAccessionProprieteIn.nombre_personnes_a_charge_in in
   let situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = calcul_nombre_parts_accession_propriete_in.CalculNombrePartsAccessionProprieteIn.situation_familiale_calcul_apl_in in
   let n_nombre_parts_d832_11_: decimal = (log_variable_definition
@@ -2639,10 +2636,10 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {CalculNombrePartsAccessionProprieteOut.n_nombre_parts_d832_11_out =
+  {CalculNombrePartsAccessionPropriete.n_nombre_parts_d832_11 =
      n_nombre_parts_d832_11_}
 
-let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetraiteIn.t) : OuvertureDroitsRetraiteOut.t =
+let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetraiteIn.t) : OuvertureDroitsRetraite.t =
   let date_naissance_assure_: date = ouverture_droits_retraite_in.OuvertureDroitsRetraiteIn.date_naissance_assure_in in
   let age_ouverture_droit_: duration = (log_variable_definition
     ["OuvertureDroitsRetraite"; "âge_ouverture_droit"] (embed_duration) (
@@ -2815,9 +2812,9 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
         law_headings=["Date d'ouverture des droits à la retraite";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
-  {OuvertureDroitsRetraiteOut.age_ouverture_droit_out = age_ouverture_droit_}
+  {OuvertureDroitsRetraite.age_ouverture_droit = age_ouverture_droit_}
 
-let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn.t) : ImpayeDepenseLogementOut.t =
+let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn.t) : ImpayeDepenseLogement.t =
   let mode_occupation_: ModeOccupation.t = impaye_depense_logement_in.ImpayeDepenseLogementIn.mode_occupation_in in
   let aide_versee_: VersementA.t = impaye_depense_logement_in.ImpayeDepenseLogementIn.aide_versee_in in
   let montant_apl_: money = impaye_depense_logement_in.ImpayeDepenseLogementIn.montant_apl_in in
@@ -3261,9 +3258,9 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
         law_headings=["Quantification des impayés de dépense de logement";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
-  {ImpayeDepenseLogementOut.montant_impaye_out = montant_impaye_}
+  {ImpayeDepenseLogement.montant_impaye = montant_impaye_}
 
-let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales_in: BaseMensuelleAllocationsFamilialesIn.t) : BaseMensuelleAllocationsFamilialesOut.t =
+let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales_in: BaseMensuelleAllocationsFamilialesIn.t) : BaseMensuelleAllocationsFamiliales.t =
   let date_courante_: date = base_mensuelle_allocations_familiales_in.BaseMensuelleAllocationsFamilialesIn.date_courante_in in
   let montant_: money = (log_variable_definition
     ["BaseMensuelleAllocationsFamiliales"; "montant"] (embed_money) (
@@ -3338,9 +3335,9 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
       {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
         start_line=6; start_column=10; end_line=6; end_column=17;
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
-  {BaseMensuelleAllocationsFamilialesOut.montant_out = montant_}
+  {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
-let smic (smic_in: SmicIn.t) : SmicOut.t =
+let smic (smic_in: SmicIn.t) : Smic.t =
   let date_courante_: date = smic_in.SmicIn.date_courante_in in
   let residence_: Collectivite.t = smic_in.SmicIn.residence_in in
   let brut_horaire_: money = (log_variable_definition
@@ -3631,9 +3628,9 @@ let smic (smic_in: SmicIn.t) : SmicOut.t =
       {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
         start_line=11; start_column=10; end_line=11; end_column=22;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  {SmicOut.brut_horaire_out = brut_horaire_}
+  {Smic.brut_horaire = brut_horaire_}
 
-let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logement_locatif_in: CalculAidePersonnaliseeLogementLocatifIn.t) : CalculAidePersonnaliseeLogementLocatifOut.t =
+let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logement_locatif_in: CalculAidePersonnaliseeLogementLocatifIn.t) : CalculAidePersonnaliseeLogementLocatif.t =
   let loyer_principal_base_: money = calcul_aide_personnalisee_logement_locatif_in.CalculAidePersonnaliseeLogementLocatifIn.loyer_principal_base_in in
   let ressources_menage_arrondies_: money = calcul_aide_personnalisee_logement_locatif_in.CalculAidePersonnaliseeLogementLocatifIn.ressources_menage_arrondies_in in
   let beneficiaire_aide_adulte_ou_enfant_handicapes_: bool = calcul_aide_personnalisee_logement_locatif_in.CalculAidePersonnaliseeLogementLocatifIn.beneficiaire_aide_adulte_ou_enfant_handicapes_in in
@@ -3731,7 +3728,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})) in
-  let result_: ContributionsSocialesAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: ContributionsSocialesAidesPersonnelleLogement.t = (log_end_call
     ["CalculAidePersonnaliséeLogementLocatif"; "contributions_sociales";
       "ContributionsSocialesAidesPersonnelleLogement"] ((log_begin_call
     ["CalculAidePersonnaliséeLogementLocatif"; "contributions_sociales";
@@ -3739,7 +3736,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     contributions_sociales_aides_personnelle_logement)
     {ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in =
        contributions_sociales_dot_date_courante_})) in
-  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogementOut.montant_out in
+  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let taux_composition_familiale_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "taux_composition_familiale"]
     (embed_decimal) (
@@ -6592,22 +6589,22 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie législative";
                                                           "Code de la construction et de l'habitation"]}) in
-  {CalculAidePersonnaliseeLogementLocatifOut.montant_forfaitaire_charges_d823_16_out =
+  {CalculAidePersonnaliseeLogementLocatif.montant_forfaitaire_charges_d823_16 =
      montant_forfaitaire_charges_d823_16_;
-     CalculAidePersonnaliseeLogementLocatifOut.plafond_loyer_d823_16_2_out =
+     CalculAidePersonnaliseeLogementLocatif.plafond_loyer_d823_16_2 =
        plafond_loyer_d823_16_2_;
-     CalculAidePersonnaliseeLogementLocatifOut.participation_minimale_out =
+     CalculAidePersonnaliseeLogementLocatif.participation_minimale =
        participation_minimale_;
-     CalculAidePersonnaliseeLogementLocatifOut.taux_composition_familiale_out =
+     CalculAidePersonnaliseeLogementLocatif.taux_composition_familiale =
        taux_composition_familiale_;
-     CalculAidePersonnaliseeLogementLocatifOut.participation_personnelle_out =
+     CalculAidePersonnaliseeLogementLocatif.participation_personnelle =
        participation_personnelle_;
-     CalculAidePersonnaliseeLogementLocatifOut.aide_finale_formule_out =
+     CalculAidePersonnaliseeLogementLocatif.aide_finale_formule =
        aide_finale_formule_;
-     CalculAidePersonnaliseeLogementLocatifOut.traitement_aide_finale_montant_minimal_out =
+     CalculAidePersonnaliseeLogementLocatif.traitement_aide_finale =
        traitement_aide_finale_montant_minimal_}
 
-let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement_foyer_in: CalculAidePersonnaliseeLogementFoyerIn.t) : CalculAidePersonnaliseeLogementFoyerOut.t =
+let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement_foyer_in: CalculAidePersonnaliseeLogementFoyerIn.t) : CalculAidePersonnaliseeLogementFoyer.t =
   let type_logement_foyer_: TypeLogementFoyer.t = calcul_aide_personnalisee_logement_foyer_in.CalculAidePersonnaliseeLogementFoyerIn.type_logement_foyer_in in
   let date_conventionnement_: date = calcul_aide_personnalisee_logement_foyer_in.CalculAidePersonnaliseeLogementFoyerIn.date_conventionnement_in in
   let ressources_menage_arrondies_: money = calcul_aide_personnalisee_logement_foyer_in.CalculAidePersonnaliseeLogementFoyerIn.ressources_menage_arrondies_in in
@@ -6777,7 +6774,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})) in
-  let result_: ContributionsSocialesAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: ContributionsSocialesAidesPersonnelleLogement.t = (log_end_call
     ["CalculAidePersonnaliséeLogementFoyer"; "contributions_sociales";
       "ContributionsSocialesAidesPersonnelleLogement"] ((log_begin_call
     ["CalculAidePersonnaliséeLogementFoyer"; "contributions_sociales";
@@ -6785,7 +6782,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     contributions_sociales_aides_personnelle_logement)
     {ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in =
        contributions_sociales_dot_date_courante_})) in
-  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogementOut.montant_out in
+  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let plafond_equivalence_loyer_eligible_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
       "plafond_équivalence_loyer_éligible"] (embed_money) (
@@ -7282,7 +7279,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculNombrePartLogementFoyerOut.t = (log_end_call
+  let result_: CalculNombrePartLogementFoyer.t = (log_end_call
     ["CalculAidePersonnaliséeLogementFoyer"; "calcul_nombre_parts";
       "CalculNombrePartLogementFoyer"] ((log_begin_call
     ["CalculAidePersonnaliséeLogementFoyer"; "calcul_nombre_parts";
@@ -7293,7 +7290,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
          calcul_nombre_parts_dot_nombre_personnes_a_charge_;
        CalculNombrePartLogementFoyerIn.situation_familiale_calcul_apl_in =
          calcul_nombre_parts_dot_situation_familiale_calcul_apl_})) in
-  let calcul_nombre_parts_dot_n_nombre_parts_d832_25_: decimal = result_.CalculNombrePartLogementFoyerOut.n_nombre_parts_d832_25_out in
+  let calcul_nombre_parts_dot_n_nombre_parts_d832_25_: decimal = result_.CalculNombrePartLogementFoyer.n_nombre_parts_d832_25 in
   let montant_forfaitaire_d832_27_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "montant_forfaitaire_d832_27"]
     (embed_money) (
@@ -7596,7 +7593,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculEquivalenceLoyerMinimaleOut.t = (log_end_call
+  let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAidePersonnaliséeLogementFoyer";
       "calcul_équivalence_loyer_minimale";
       "CalculÉquivalenceLoyerMinimale"] ((log_begin_call
@@ -7609,7 +7606,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
          calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_;
        CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in =
          calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_})) in
-  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimaleOut.montant_out in
+  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let coefficient_prise_en_charge_d832_25_formule_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
       "coefficient_prise_en_charge_d832_25_formule"] (embed_decimal) (
@@ -8158,26 +8155,26 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {CalculAidePersonnaliseeLogementFoyerOut.coefficient_multiplicateur_d832_25_out =
+  {CalculAidePersonnaliseeLogementFoyer.coefficient_multiplicateur_d832_25 =
      coefficient_multiplicateur_d832_25_;
-     CalculAidePersonnaliseeLogementFoyerOut.coefficient_r_d832_25_out =
+     CalculAidePersonnaliseeLogementFoyer.coefficient_r_d832_25 =
        coefficient_r_d832_25_;
-     CalculAidePersonnaliseeLogementFoyerOut.n_nombre_parts_d832_25_out =
+     CalculAidePersonnaliseeLogementFoyer.n_nombre_parts_d832_25 =
        n_nombre_parts_d832_25_;
-     CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_eligible_out =
+     CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_eligible =
        equivalence_loyer_eligible_;
-     CalculAidePersonnaliseeLogementFoyerOut.plafond_equivalence_loyer_eligible_out =
+     CalculAidePersonnaliseeLogementFoyer.plafond_equivalence_loyer_eligible =
        plafond_equivalence_loyer_eligible_;
-     CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_minimale_out =
+     CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_minimale =
        equivalence_loyer_minimale_;
-     CalculAidePersonnaliseeLogementFoyerOut.coefficient_prise_en_charge_d832_25_seuil_out =
+     CalculAidePersonnaliseeLogementFoyer.coefficient_prise_en_charge_d832_25 =
        coefficient_prise_en_charge_d832_25_seuil_;
-     CalculAidePersonnaliseeLogementFoyerOut.aide_finale_formule_out =
+     CalculAidePersonnaliseeLogementFoyer.aide_finale_formule =
        aide_finale_formule_;
-     CalculAidePersonnaliseeLogementFoyerOut.traitement_aide_finale_montant_minimal_out =
+     CalculAidePersonnaliseeLogementFoyer.traitement_aide_finale =
        traitement_aide_finale_montant_minimal_}
 
-let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personnalisee_logement_accession_propriete_in: CalculAidePersonnaliseeLogementAccessionProprieteIn.t) : CalculAidePersonnaliseeLogementAccessionProprieteOut.t =
+let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personnalisee_logement_accession_propriete_in: CalculAidePersonnaliseeLogementAccessionProprieteIn.t) : CalculAidePersonnaliseeLogementAccessionPropriete.t =
   let mensualite_principale_: money = calcul_aide_personnalisee_logement_accession_propriete_in.CalculAidePersonnaliseeLogementAccessionProprieteIn.mensualite_principale_in in
   let ressources_menage_arrondies_: money = calcul_aide_personnalisee_logement_accession_propriete_in.CalculAidePersonnaliseeLogementAccessionProprieteIn.ressources_menage_arrondies_in in
   let nombre_personnes_a_charge_: integer = calcul_aide_personnalisee_logement_accession_propriete_in.CalculAidePersonnaliseeLogementAccessionProprieteIn.nombre_personnes_a_charge_in in
@@ -8476,7 +8473,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculNombrePartsAccessionProprieteOut.t = (log_end_call
+  let result_: CalculNombrePartsAccessionPropriete.t = (log_end_call
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "calcul_nombre_parts"; "CalculNombrePartsAccessionPropriété"]
     ((log_begin_call
@@ -8487,7 +8484,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
        calcul_nombre_parts_dot_nombre_personnes_a_charge_;
        CalculNombrePartsAccessionProprieteIn.situation_familiale_calcul_apl_in =
          calcul_nombre_parts_dot_situation_familiale_calcul_apl_})) in
-  let calcul_nombre_parts_dot_n_nombre_parts_d832_11_: decimal = result_.CalculNombrePartsAccessionProprieteOut.n_nombre_parts_d832_11_out in
+  let calcul_nombre_parts_dot_n_nombre_parts_d832_11_: decimal = result_.CalculNombrePartsAccessionPropriete.n_nombre_parts_d832_11 in
   let coefficient_multiplicateur_d832_17_3_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "coefficient_multiplicateur_d832_17_3"] (embed_decimal) (
@@ -8560,7 +8557,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})) in
-  let result_: ContributionsSocialesAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: ContributionsSocialesAidesPersonnelleLogement.t = (log_end_call
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "contributions_sociales";
       "ContributionsSocialesAidesPersonnelleLogement"] ((log_begin_call
@@ -8570,7 +8567,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     contributions_sociales_aides_personnelle_logement)
     {ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in =
        contributions_sociales_dot_date_courante_})) in
-  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogementOut.montant_out in
+  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let montant_forfaitaire_charges_d832_10_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "montant_forfaitaire_charges_d832_10"] (embed_money) (
@@ -12603,7 +12600,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculEquivalenceLoyerMinimaleOut.t = (log_end_call
+  let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "calcul_équivalence_loyer_minimale";
       "CalculÉquivalenceLoyerMinimale"] ((log_begin_call
@@ -12616,7 +12613,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_;
        CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in =
          calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_})) in
-  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimaleOut.montant_out in
+  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let coefficient_prise_en_charge_d832_10_formule_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "coefficient_prise_en_charge_d832_10_formule"] (embed_decimal) (
@@ -13279,18 +13276,18 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {CalculAidePersonnaliseeLogementAccessionProprieteOut.mensualite_eligible_out =
+  {CalculAidePersonnaliseeLogementAccessionPropriete.mensualite_eligible =
      mensualite_eligible_;
-     CalculAidePersonnaliseeLogementAccessionProprieteOut.mensualite_minimale_out =
+     CalculAidePersonnaliseeLogementAccessionPropriete.mensualite_minimale =
        mensualite_minimale_;
-     CalculAidePersonnaliseeLogementAccessionProprieteOut.coefficient_prise_en_charge_d832_10_seuil_out =
+     CalculAidePersonnaliseeLogementAccessionPropriete.coefficient_prise_en_charge_d832_10 =
        coefficient_prise_en_charge_d832_10_seuil_;
-     CalculAidePersonnaliseeLogementAccessionProprieteOut.aide_finale_formule_out =
+     CalculAidePersonnaliseeLogementAccessionPropriete.aide_finale_formule =
        aide_finale_formule_;
-     CalculAidePersonnaliseeLogementAccessionProprieteOut.traitement_aide_finale_montant_minimal_out =
+     CalculAidePersonnaliseeLogementAccessionPropriete.traitement_aide_finale =
        traitement_aide_finale_montant_minimal_}
 
-let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logement_in: EligibiliteAidesPersonnelleLogementIn.t) : EligibiliteAidesPersonnelleLogementOut.t =
+let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logement_in: EligibiliteAidesPersonnelleLogementIn.t) : EligibiliteAidesPersonnelleLogement.t =
   let menage_: Menage.t = eligibilite_aides_personnelle_logement_in.EligibiliteAidesPersonnelleLogementIn.menage_in in
   let demandeur_: Demandeur.t = eligibilite_aides_personnelle_logement_in.EligibiliteAidesPersonnelleLogementIn.demandeur_in in
   let date_courante_: date = eligibilite_aides_personnelle_logement_in.EligibiliteAidesPersonnelleLogementIn.date_courante_in in
@@ -13773,14 +13770,14 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Titre III: Titre III : Dispositions communes relatives au financement";
                        "Partie législative";
                        "Code de la sécurité sociale"]})) in
-  let result_: OuvertureDroitsRetraiteOut.t = (log_end_call
+  let result_: OuvertureDroitsRetraite.t = (log_end_call
     ["ÉligibilitéAidesPersonnelleLogement"; "ouverture_droits_retraite";
       "OuvertureDroitsRetraite"] ((log_begin_call
     ["ÉligibilitéAidesPersonnelleLogement"; "ouverture_droits_retraite";
       "OuvertureDroitsRetraite"] ouverture_droits_retraite)
     {OuvertureDroitsRetraiteIn.date_naissance_assure_in =
        ouverture_droits_retraite_dot_date_naissance_assure_})) in
-  let ouverture_droits_retraite_dot_age_ouverture_droit_: duration = result_.OuvertureDroitsRetraiteOut.age_ouverture_droit_out in
+  let ouverture_droits_retraite_dot_age_ouverture_droit_: duration = result_.OuvertureDroitsRetraite.age_ouverture_droit in
   let patrimoine_total_demandeur_: money = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "patrimoine_total_demandeur"]
     (embed_money) (
@@ -14864,16 +14861,16 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie législative";
                                                           "Code de la construction et de l'habitation"]}) in
-  {EligibiliteAidesPersonnelleLogementOut.date_courante_out = date_courante_;
-     EligibiliteAidesPersonnelleLogementOut.eligibilite_out = eligibilite_;
-     EligibiliteAidesPersonnelleLogementOut.nombre_personnes_a_charge_prises_en_compte_out =
+  {EligibiliteAidesPersonnelleLogement.date_courante = date_courante_;
+     EligibiliteAidesPersonnelleLogement.eligibilite = eligibilite_;
+     EligibiliteAidesPersonnelleLogement.nombre_personnes_a_charge_prises_en_compte =
        nombre_personnes_a_charge_prises_en_compte_;
-     EligibiliteAidesPersonnelleLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out =
+     EligibiliteAidesPersonnelleLogement.coefficents_enfants_garde_alternee_pris_en_compte =
        coefficents_enfants_garde_alternee_pris_en_compte_;
-     EligibiliteAidesPersonnelleLogementOut.condition_2_r823_4_out =
+     EligibiliteAidesPersonnelleLogement.condition_2_r823_4 =
        condition_2_r823_4_}
 
-let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement_in: RessourcesAidesPersonnelleLogementIn.t) : RessourcesAidesPersonnelleLogementOut.t =
+let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement_in: RessourcesAidesPersonnelleLogementIn.t) : RessourcesAidesPersonnelleLogement.t =
   let ressources_demandeur_: money = ressources_aides_personnelle_logement_in.RessourcesAidesPersonnelleLogementIn.ressources_demandeur_in in
   let ressources_conjoint_: money = ressources_aides_personnelle_logement_in.RessourcesAidesPersonnelleLogementIn.ressources_conjoint_in in
   let personnes_vivant_habituellement_foyer_: PersonneVivantHabituellementAuFoyer.t
@@ -15109,7 +15106,7 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: BaseMensuelleAllocationsFamilialesOut.t = (log_end_call
+  let result_: BaseMensuelleAllocationsFamiliales.t = (log_end_call
     ["RessourcesAidesPersonnelleLogement";
       "base_mensuelle_allocations_familiales";
       "BaseMensuelleAllocationsFamiliales"] ((log_begin_call
@@ -15119,7 +15116,7 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
     base_mensuelle_allocations_familiales)
     {BaseMensuelleAllocationsFamilialesIn.date_courante_in =
        base_mensuelle_allocations_familiales_dot_date_courante_})) in
-  let base_mensuelle_allocations_familiales_dot_montant_: money = result_.BaseMensuelleAllocationsFamilialesOut.montant_out in
+  let base_mensuelle_allocations_familiales_dot_montant_: money = result_.BaseMensuelleAllocationsFamiliales.montant in
   let abattement_r_822_8_: money = (log_variable_definition
     ["RessourcesAidesPersonnelleLogement"; "abattement_r_822_8"]
     (embed_money) (
@@ -15296,10 +15293,10 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie réglementaire";
                                                           "Code de la construction et de l'habitation"]}) in
-  {RessourcesAidesPersonnelleLogementOut.ressources_prises_en_compte_out =
+  {RessourcesAidesPersonnelleLogement.ressources_prises_en_compte =
      ressources_prises_en_compte_}
 
-let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: EligibilitePrestationsFamilialesIn.t) : EligibilitePrestationsFamilialesOut.t =
+let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: EligibilitePrestationsFamilialesIn.t) : EligibilitePrestationsFamiliales.t =
   let date_courante_: date = eligibilite_prestations_familiales_in.EligibilitePrestationsFamilialesIn.date_courante_in in
   let prestation_courante_: ElementPrestationsFamiliales.t = eligibilite_prestations_familiales_in.EligibilitePrestationsFamilialesIn.prestation_courante_in in
   let residence_: Collectivite.t = eligibilite_prestations_familiales_in.EligibilitePrestationsFamilialesIn.residence_in in
@@ -15362,12 +15359,12 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
         start_line=51; start_column=14; end_line=51; end_column=28;
         law_headings=["Prologue : prestations familiales"]})) in
-  let result_: SmicOut.t = (log_end_call
+  let result_: Smic.t = (log_end_call
     ["ÉligibilitéPrestationsFamiliales"; "smic"; "Smic"] ((log_begin_call
     ["ÉligibilitéPrestationsFamiliales"; "smic"; "Smic"] smic)
     {SmicIn.date_courante_in = smic_dot_date_courante_;
        SmicIn.residence_in = smic_dot_residence_})) in
-  let smic_dot_brut_horaire_: money = result_.SmicOut.brut_horaire_out in
+  let smic_dot_brut_horaire_: money = result_.Smic.brut_horaire in
   let regime_outre_mer_l751_1_: bool = (log_variable_definition
     ["ÉligibilitéPrestationsFamiliales"; "régime_outre_mer_l751_1"]
     (embed_bool) (
@@ -15627,14 +15624,14 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
         start_line=40; start_column=10; end_line=40; end_column=22;
         law_headings=["Prologue : prestations familiales"]})))) in
-  {EligibilitePrestationsFamilialesOut.droit_ouvert_out = droit_ouvert_;
-     EligibilitePrestationsFamilialesOut.conditions_hors_age_out =
+  {EligibilitePrestationsFamiliales.droit_ouvert = droit_ouvert_;
+     EligibilitePrestationsFamiliales.conditions_hors_age =
        conditions_hors_age_;
-     EligibilitePrestationsFamilialesOut.age_l512_3_2_out = age_l512_3_2_;
-     EligibilitePrestationsFamilialesOut.regime_outre_mer_l751_1_out =
+     EligibilitePrestationsFamiliales.age_l512_3_2 = age_l512_3_2_;
+     EligibilitePrestationsFamiliales.regime_outre_mer_l751_1 =
        regime_outre_mer_l751_1_}
 
-let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: CalculAllocationLogementLocatifIn.t) : CalculAllocationLogementLocatifOut.t =
+let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: CalculAllocationLogementLocatifIn.t) : CalculAllocationLogementLocatif.t =
   let loyer_principal_: money = calcul_allocation_logement_locatif_in.CalculAllocationLogementLocatifIn.loyer_principal_in in
   let ressources_menage_arrondies_: money = calcul_allocation_logement_locatif_in.CalculAllocationLogementLocatifIn.ressources_menage_arrondies_in in
   let beneficiaire_aide_adulte_ou_enfant_handicapes_: bool = calcul_allocation_logement_locatif_in.CalculAllocationLogementLocatifIn.beneficiaire_aide_adulte_ou_enfant_handicapes_in in
@@ -15965,7 +15962,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})) in
-  let result_: CalculAidePersonnaliseeLogementLocatifOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogementLocatif.t = (log_end_call
     ["CalculAllocationLogementLocatif"; "calcul_apl_locatif";
       "CalculAidePersonnaliséeLogementLocatif"] ((log_begin_call
     ["CalculAllocationLogementLocatif"; "calcul_apl_locatif";
@@ -15997,14 +15994,14 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
          calcul_apl_locatif_dot_reduction_loyer_solidarite_;
        CalculAidePersonnaliseeLogementLocatifIn.logement_meuble_d842_2_in =
          calcul_apl_locatif_dot_logement_meuble_d842_2_})) in
-  let calcul_apl_locatif_dot_montant_forfaitaire_charges_d823_16_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.montant_forfaitaire_charges_d823_16_out in
-  let calcul_apl_locatif_dot_plafond_loyer_d823_16_2_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.plafond_loyer_d823_16_2_out in
-  let calcul_apl_locatif_dot_participation_minimale_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.participation_minimale_out in
-  let calcul_apl_locatif_dot_taux_composition_familiale_: decimal = result_.CalculAidePersonnaliseeLogementLocatifOut.taux_composition_familiale_out in
-  let calcul_apl_locatif_dot_participation_personnelle_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.participation_personnelle_out in
-  let calcul_apl_locatif_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.aide_finale_formule_out in
+  let calcul_apl_locatif_dot_montant_forfaitaire_charges_d823_16_: money = result_.CalculAidePersonnaliseeLogementLocatif.montant_forfaitaire_charges_d823_16 in
+  let calcul_apl_locatif_dot_plafond_loyer_d823_16_2_: money = result_.CalculAidePersonnaliseeLogementLocatif.plafond_loyer_d823_16_2 in
+  let calcul_apl_locatif_dot_participation_minimale_: money = result_.CalculAidePersonnaliseeLogementLocatif.participation_minimale in
+  let calcul_apl_locatif_dot_taux_composition_familiale_: decimal = result_.CalculAidePersonnaliseeLogementLocatif.taux_composition_familiale in
+  let calcul_apl_locatif_dot_participation_personnelle_: money = result_.CalculAidePersonnaliseeLogementLocatif.participation_personnelle in
+  let calcul_apl_locatif_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementLocatif.aide_finale_formule in
   let calcul_apl_locatif_dot_traitement_aide_finale_montant_minimal_: 
-    money -> money = result_.CalculAidePersonnaliseeLogementLocatifOut.traitement_aide_finale_montant_minimal_out in
+    money -> money = result_.CalculAidePersonnaliseeLogementLocatif.traitement_aide_finale in
   let traitement_aide_finale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementLocatif"; "traitement_aide_finale"]
     (unembeddable) (
@@ -16138,12 +16135,11 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
-  {CalculAllocationLogementLocatifOut.aide_finale_formule_out =
-     aide_finale_formule_;
-     CalculAllocationLogementLocatifOut.traitement_aide_finale_out =
+  {CalculAllocationLogementLocatif.aide_finale_formule = aide_finale_formule_;
+     CalculAllocationLogementLocatif.traitement_aide_finale =
        traitement_aide_finale_}
 
-let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: CalculAllocationLogementFoyerIn.t) : CalculAllocationLogementFoyerOut.t =
+let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: CalculAllocationLogementFoyerIn.t) : CalculAllocationLogementFoyer.t =
   let type_logement_foyer_: TypeLogementFoyer.t = calcul_allocation_logement_foyer_in.CalculAllocationLogementFoyerIn.type_logement_foyer_in in
   let date_conventionnement_: date = calcul_allocation_logement_foyer_in.CalculAllocationLogementFoyerIn.date_conventionnement_in in
   let redevance_: money = calcul_allocation_logement_foyer_in.CalculAllocationLogementFoyerIn.redevance_in in
@@ -16331,7 +16327,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculNombrePartLogementFoyerOut.t = (log_end_call
+  let result_: CalculNombrePartLogementFoyer.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "calcul_nombre_parts";
       "CalculNombrePartLogementFoyer"] ((log_begin_call
     ["CalculAllocationLogementFoyer"; "calcul_nombre_parts";
@@ -16342,7 +16338,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
          calcul_nombre_parts_dot_nombre_personnes_a_charge_;
        CalculNombrePartLogementFoyerIn.situation_familiale_calcul_apl_in =
          calcul_nombre_parts_dot_situation_familiale_calcul_apl_})) in
-  let calcul_nombre_parts_dot_n_nombre_parts_d832_25_: decimal = result_.CalculNombrePartLogementFoyerOut.n_nombre_parts_d832_25_out in
+  let calcul_nombre_parts_dot_n_nombre_parts_d832_25_: decimal = result_.CalculNombrePartLogementFoyer.n_nombre_parts_d832_25 in
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -16367,7 +16363,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})) in
-  let result_: ContributionsSocialesAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: ContributionsSocialesAidesPersonnelleLogement.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "contributions_sociales";
       "ContributionsSocialesAidesPersonnelleLogement"] ((log_begin_call
     ["CalculAllocationLogementFoyer"; "contributions_sociales";
@@ -16375,7 +16371,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     contributions_sociales_aides_personnelle_logement)
     {ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in =
        contributions_sociales_dot_date_courante_})) in
-  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogementOut.montant_out in
+  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let calcul_apl_logement_foyer_dot_type_logement_foyer_: TypeLogementFoyer.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -16602,7 +16598,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
       ["CalculAllocationLogementFoyer";
         "calcul_apl_logement_foyer.n_nombre_parts_d832_25"] (embed_decimal)
       (raise EmptyError)) in
-  let result_: CalculAidePersonnaliseeLogementFoyerOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogementFoyer.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "calcul_apl_logement_foyer";
       "CalculAidePersonnaliséeLogementFoyer"] ((log_begin_call
     ["CalculAllocationLogementFoyer"; "calcul_apl_logement_foyer";
@@ -16628,16 +16624,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
          calcul_apl_logement_foyer_dot_condition_2_du_832_25_;
        CalculAidePersonnaliseeLogementFoyerIn.n_nombre_parts_d832_25_in =
          calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_})) in
-  let calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_multiplicateur_d832_25_out in
-  let calcul_apl_logement_foyer_dot_coefficient_r_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_r_d832_25_out in
-  let calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_: decimal = result_.CalculAidePersonnaliseeLogementFoyerOut.n_nombre_parts_d832_25_out in
-  let calcul_apl_logement_foyer_dot_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_eligible_out in
-  let calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.plafond_equivalence_loyer_eligible_out in
-  let calcul_apl_logement_foyer_dot_equivalence_loyer_minimale_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_minimale_out in
-  let calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_: decimal = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_prise_en_charge_d832_25_seuil_out in
-  let calcul_apl_logement_foyer_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.aide_finale_formule_out in
+  let calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_multiplicateur_d832_25 in
+  let calcul_apl_logement_foyer_dot_coefficient_r_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_r_d832_25 in
+  let calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_: decimal = result_.CalculAidePersonnaliseeLogementFoyer.n_nombre_parts_d832_25 in
+  let calcul_apl_logement_foyer_dot_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_eligible in
+  let calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyer.plafond_equivalence_loyer_eligible in
+  let calcul_apl_logement_foyer_dot_equivalence_loyer_minimale_: money = result_.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_minimale in
+  let calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_: decimal = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_prise_en_charge_d832_25 in
+  let calcul_apl_logement_foyer_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementFoyer.aide_finale_formule in
   let calcul_apl_logement_foyer_dot_traitement_aide_finale_montant_minimal_: 
-    money -> money = result_.CalculAidePersonnaliseeLogementFoyerOut.traitement_aide_finale_montant_minimal_out in
+    money -> money = result_.CalculAidePersonnaliseeLogementFoyer.traitement_aide_finale in
   let montant_forfaitaire_charges_: money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "montant_forfaitaire_charges"]
     (embed_money) (
@@ -17153,7 +17149,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculEquivalenceLoyerMinimaleOut.t = (log_end_call
+  let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "calcul_équivalence_loyer_minimale";
       "CalculÉquivalenceLoyerMinimale"] ((log_begin_call
     ["CalculAllocationLogementFoyer"; "calcul_équivalence_loyer_minimale";
@@ -17164,7 +17160,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
          calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_;
        CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in =
          calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_})) in
-  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimaleOut.montant_out in
+  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let coefficient_prise_en_charge_: decimal = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "coefficient_prise_en_charge"]
     (embed_decimal) (
@@ -17620,19 +17616,17 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
-  {CalculAllocationLogementFoyerOut.coefficient_prise_en_charge_out =
+  {CalculAllocationLogementFoyer.coefficient_prise_en_charge =
      coefficient_prise_en_charge_;
-     CalculAllocationLogementFoyerOut.equivalence_loyer_out =
-       equivalence_loyer_;
-     CalculAllocationLogementFoyerOut.montant_forfaitaire_charges_out =
+     CalculAllocationLogementFoyer.equivalence_loyer = equivalence_loyer_;
+     CalculAllocationLogementFoyer.montant_forfaitaire_charges =
        montant_forfaitaire_charges_;
-     CalculAllocationLogementFoyerOut.loyer_minimal_out = loyer_minimal_;
-     CalculAllocationLogementFoyerOut.aide_finale_formule_out =
-       aide_finale_formule_;
-     CalculAllocationLogementFoyerOut.traitement_aide_finale_montant_minimal_out =
+     CalculAllocationLogementFoyer.loyer_minimal = loyer_minimal_;
+     CalculAllocationLogementFoyer.aide_finale_formule = aide_finale_formule_;
+     CalculAllocationLogementFoyer.traitement_aide_finale =
        traitement_aide_finale_montant_minimal_}
 
-let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_accession_propriete_in: CalculAllocationLogementAccessionProprieteIn.t) : CalculAllocationLogementAccessionProprieteOut.t =
+let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_accession_propriete_in: CalculAllocationLogementAccessionProprieteIn.t) : CalculAllocationLogementAccessionPropriete.t =
   let ressources_menage_arrondies_base_: money = calcul_allocation_logement_accession_propriete_in.CalculAllocationLogementAccessionProprieteIn.ressources_menage_arrondies_base_in in
   let nombre_personnes_a_charge_: integer = calcul_allocation_logement_accession_propriete_in.CalculAllocationLogementAccessionProprieteIn.nombre_personnes_a_charge_in in
   let situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = calcul_allocation_logement_accession_propriete_in.CalculAllocationLogementAccessionProprieteIn.situation_familiale_calcul_apl_in in
@@ -17890,7 +17884,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculNombrePartsAccessionProprieteOut.t = (log_end_call
+  let result_: CalculNombrePartsAccessionPropriete.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété"; "calcul_nombre_parts";
       "CalculNombrePartsAccessionPropriété"] ((log_begin_call
     ["CalculAllocationLogementAccessionPropriété"; "calcul_nombre_parts";
@@ -17900,7 +17894,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
        calcul_nombre_parts_dot_nombre_personnes_a_charge_;
        CalculNombrePartsAccessionProprieteIn.situation_familiale_calcul_apl_in =
          calcul_nombre_parts_dot_situation_familiale_calcul_apl_})) in
-  let calcul_nombre_parts_dot_n_nombre_parts_d832_11_: decimal = result_.CalculNombrePartsAccessionProprieteOut.n_nombre_parts_d832_11_out in
+  let calcul_nombre_parts_dot_n_nombre_parts_d832_11_: decimal = result_.CalculNombrePartsAccessionPropriete.n_nombre_parts_d832_11 in
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
@@ -17925,7 +17919,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})) in
-  let result_: ContributionsSocialesAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: ContributionsSocialesAidesPersonnelleLogement.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété";
       "contributions_sociales";
       "ContributionsSocialesAidesPersonnelleLogement"] ((log_begin_call
@@ -17935,7 +17929,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     contributions_sociales_aides_personnelle_logement)
     {ContributionsSocialesAidesPersonnelleLogementIn.date_courante_in =
        contributions_sociales_dot_date_courante_})) in
-  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogementOut.montant_out in
+  let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let montant_forfaitaire_charges_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
       "montant_forfaitaire_charges"] (embed_money) (
@@ -22029,7 +22023,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculEquivalenceLoyerMinimaleOut.t = (log_end_call
+  let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété";
       "calcul_équivalence_loyer_minimale";
       "CalculÉquivalenceLoyerMinimale"] ((log_begin_call
@@ -22042,7 +22036,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
          calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_;
        CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in =
          calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_})) in
-  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimaleOut.montant_out in
+  let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let calcul_apl_logement_foyer_dot_type_logement_foyer_: TypeLogementFoyer.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
@@ -22292,7 +22286,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_nombre_parts_dot_n_nombre_parts_d832_11_))) in
-  let result_: CalculAidePersonnaliseeLogementFoyerOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogementFoyer.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété";
       "calcul_apl_logement_foyer"; "CalculAidePersonnaliséeLogementFoyer"]
     ((log_begin_call
@@ -22319,16 +22313,16 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
          calcul_apl_logement_foyer_dot_condition_2_du_832_25_;
        CalculAidePersonnaliseeLogementFoyerIn.n_nombre_parts_d832_25_in =
          calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_})) in
-  let calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_multiplicateur_d832_25_out in
-  let calcul_apl_logement_foyer_dot_coefficient_r_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_r_d832_25_out in
-  let calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_: decimal = result_.CalculAidePersonnaliseeLogementFoyerOut.n_nombre_parts_d832_25_out in
-  let calcul_apl_logement_foyer_dot_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_eligible_out in
-  let calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.plafond_equivalence_loyer_eligible_out in
-  let calcul_apl_logement_foyer_dot_equivalence_loyer_minimale_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_minimale_out in
-  let calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_: decimal = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_prise_en_charge_d832_25_seuil_out in
-  let calcul_apl_logement_foyer_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.aide_finale_formule_out in
+  let calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_multiplicateur_d832_25 in
+  let calcul_apl_logement_foyer_dot_coefficient_r_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_r_d832_25 in
+  let calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_: decimal = result_.CalculAidePersonnaliseeLogementFoyer.n_nombre_parts_d832_25 in
+  let calcul_apl_logement_foyer_dot_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_eligible in
+  let calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyer.plafond_equivalence_loyer_eligible in
+  let calcul_apl_logement_foyer_dot_equivalence_loyer_minimale_: money = result_.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_minimale in
+  let calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_: decimal = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_prise_en_charge_d832_25 in
+  let calcul_apl_logement_foyer_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementFoyer.aide_finale_formule in
   let calcul_apl_logement_foyer_dot_traitement_aide_finale_montant_minimal_: 
-    money -> money = result_.CalculAidePersonnaliseeLogementFoyerOut.traitement_aide_finale_montant_minimal_out in
+    money -> money = result_.CalculAidePersonnaliseeLogementFoyer.traitement_aide_finale in
   let seuil_minimal_depense_nette_minimale_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
       "seuil_minimal_dépense_nette_minimale"] (embed_money) (
@@ -22793,12 +22787,12 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
-  {CalculAllocationLogementAccessionProprieteOut.aide_finale_formule_out =
+  {CalculAllocationLogementAccessionPropriete.aide_finale_formule =
      aide_finale_formule_;
-     CalculAllocationLogementAccessionProprieteOut.traitement_aide_finale_montant_minimal_out =
+     CalculAllocationLogementAccessionPropriete.traitement_aide_finale =
        traitement_aide_finale_montant_minimal_}
 
-let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: CalculAidePersonnaliseeLogementIn.t) : CalculAidePersonnaliseeLogementOut.t =
+let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: CalculAidePersonnaliseeLogementIn.t) : CalculAidePersonnaliseeLogement.t =
   let mode_occupation_: ModeOccupation.t = calcul_aide_personnalisee_logement_in.CalculAidePersonnaliseeLogementIn.mode_occupation_in in
   let type_aide_: TypeAidesPersonnelleLogement.t = calcul_aide_personnalisee_logement_in.CalculAidePersonnaliseeLogementIn.type_aide_in in
   let ressources_menage_sans_arrondi_: money = calcul_aide_personnalisee_logement_in.CalculAidePersonnaliseeLogementIn.ressources_menage_sans_arrondi_in in
@@ -23545,7 +23539,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculAidePersonnaliseeLogementAccessionProprieteOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogementAccessionPropriete.t = (log_end_call
     ["CalculAidePersonnaliséeLogement"; "accession_propriété";
       "CalculAidePersonnaliséeLogementAccessionPropriété"]
     ((log_begin_call
@@ -23580,12 +23574,12 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
          accession_propriete_dot_anciennete_logement_;
        CalculAidePersonnaliseeLogementAccessionProprieteIn.date_courante_in =
          accession_propriete_dot_date_courante_})) in
-  let accession_propriete_dot_mensualite_eligible_: money = result_.CalculAidePersonnaliseeLogementAccessionProprieteOut.mensualite_eligible_out in
-  let accession_propriete_dot_mensualite_minimale_: money = result_.CalculAidePersonnaliseeLogementAccessionProprieteOut.mensualite_minimale_out in
-  let accession_propriete_dot_coefficient_prise_en_charge_d832_10_seuil_: decimal = result_.CalculAidePersonnaliseeLogementAccessionProprieteOut.coefficient_prise_en_charge_d832_10_seuil_out in
-  let accession_propriete_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementAccessionProprieteOut.aide_finale_formule_out in
+  let accession_propriete_dot_mensualite_eligible_: money = result_.CalculAidePersonnaliseeLogementAccessionPropriete.mensualite_eligible in
+  let accession_propriete_dot_mensualite_minimale_: money = result_.CalculAidePersonnaliseeLogementAccessionPropriete.mensualite_minimale in
+  let accession_propriete_dot_coefficient_prise_en_charge_d832_10_seuil_: decimal = result_.CalculAidePersonnaliseeLogementAccessionPropriete.coefficient_prise_en_charge_d832_10 in
+  let accession_propriete_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementAccessionPropriete.aide_finale_formule in
   let accession_propriete_dot_traitement_aide_finale_montant_minimal_: 
-    money -> money = result_.CalculAidePersonnaliseeLogementAccessionProprieteOut.traitement_aide_finale_montant_minimal_out in
+    money -> money = result_.CalculAidePersonnaliseeLogementAccessionPropriete.traitement_aide_finale in
   let logement_foyer_dot_type_logement_foyer_: TypeLogementFoyer.t = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogement";
@@ -23933,7 +23927,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                                     (embed_decimal)
                                                                     (raise
                                                                     EmptyError)) in
-  let result_: CalculAidePersonnaliseeLogementFoyerOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogementFoyer.t = (log_end_call
     ["CalculAidePersonnaliséeLogement"; "logement_foyer";
       "CalculAidePersonnaliséeLogementFoyer"] ((log_begin_call
     ["CalculAidePersonnaliséeLogement"; "logement_foyer";
@@ -23959,16 +23953,16 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
          logement_foyer_dot_condition_2_du_832_25_;
        CalculAidePersonnaliseeLogementFoyerIn.n_nombre_parts_d832_25_in =
          logement_foyer_dot_n_nombre_parts_d832_25_})) in
-  let logement_foyer_dot_coefficient_multiplicateur_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_multiplicateur_d832_25_out in
-  let logement_foyer_dot_coefficient_r_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_r_d832_25_out in
-  let logement_foyer_dot_n_nombre_parts_d832_25_: decimal = result_.CalculAidePersonnaliseeLogementFoyerOut.n_nombre_parts_d832_25_out in
-  let logement_foyer_dot_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_eligible_out in
-  let logement_foyer_dot_plafond_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.plafond_equivalence_loyer_eligible_out in
-  let logement_foyer_dot_equivalence_loyer_minimale_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.equivalence_loyer_minimale_out in
-  let logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_: decimal = result_.CalculAidePersonnaliseeLogementFoyerOut.coefficient_prise_en_charge_d832_25_seuil_out in
-  let logement_foyer_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementFoyerOut.aide_finale_formule_out in
+  let logement_foyer_dot_coefficient_multiplicateur_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_multiplicateur_d832_25 in
+  let logement_foyer_dot_coefficient_r_d832_25_: money = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_r_d832_25 in
+  let logement_foyer_dot_n_nombre_parts_d832_25_: decimal = result_.CalculAidePersonnaliseeLogementFoyer.n_nombre_parts_d832_25 in
+  let logement_foyer_dot_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_eligible in
+  let logement_foyer_dot_plafond_equivalence_loyer_eligible_: money = result_.CalculAidePersonnaliseeLogementFoyer.plafond_equivalence_loyer_eligible in
+  let logement_foyer_dot_equivalence_loyer_minimale_: money = result_.CalculAidePersonnaliseeLogementFoyer.equivalence_loyer_minimale in
+  let logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_: decimal = result_.CalculAidePersonnaliseeLogementFoyer.coefficient_prise_en_charge_d832_25 in
+  let logement_foyer_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementFoyer.aide_finale_formule in
   let logement_foyer_dot_traitement_aide_finale_montant_minimal_: money ->
-                                                                    money = result_.CalculAidePersonnaliseeLogementFoyerOut.traitement_aide_finale_montant_minimal_out in
+                                                                    money = result_.CalculAidePersonnaliseeLogementFoyer.traitement_aide_finale in
   let locatif_dot_loyer_principal_base_: money = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogement"; "locatif.loyer_principal_base"]
@@ -24547,7 +24541,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculAidePersonnaliseeLogementLocatifOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogementLocatif.t = (log_end_call
     ["CalculAidePersonnaliséeLogement"; "locatif";
       "CalculAidePersonnaliséeLogementLocatif"] ((log_begin_call
     ["CalculAidePersonnaliséeLogement"; "locatif";
@@ -24578,13 +24572,13 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
          locatif_dot_reduction_loyer_solidarite_;
        CalculAidePersonnaliseeLogementLocatifIn.logement_meuble_d842_2_in =
          locatif_dot_logement_meuble_d842_2_})) in
-  let locatif_dot_montant_forfaitaire_charges_d823_16_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.montant_forfaitaire_charges_d823_16_out in
-  let locatif_dot_plafond_loyer_d823_16_2_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.plafond_loyer_d823_16_2_out in
-  let locatif_dot_participation_minimale_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.participation_minimale_out in
-  let locatif_dot_taux_composition_familiale_: decimal = result_.CalculAidePersonnaliseeLogementLocatifOut.taux_composition_familiale_out in
-  let locatif_dot_participation_personnelle_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.participation_personnelle_out in
-  let locatif_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementLocatifOut.aide_finale_formule_out in
-  let locatif_dot_traitement_aide_finale_montant_minimal_: money -> money = result_.CalculAidePersonnaliseeLogementLocatifOut.traitement_aide_finale_montant_minimal_out in
+  let locatif_dot_montant_forfaitaire_charges_d823_16_: money = result_.CalculAidePersonnaliseeLogementLocatif.montant_forfaitaire_charges_d823_16 in
+  let locatif_dot_plafond_loyer_d823_16_2_: money = result_.CalculAidePersonnaliseeLogementLocatif.plafond_loyer_d823_16_2 in
+  let locatif_dot_participation_minimale_: money = result_.CalculAidePersonnaliseeLogementLocatif.participation_minimale in
+  let locatif_dot_taux_composition_familiale_: decimal = result_.CalculAidePersonnaliseeLogementLocatif.taux_composition_familiale in
+  let locatif_dot_participation_personnelle_: money = result_.CalculAidePersonnaliseeLogementLocatif.participation_personnelle in
+  let locatif_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementLocatif.aide_finale_formule in
+  let locatif_dot_traitement_aide_finale_montant_minimal_: money -> money = result_.CalculAidePersonnaliseeLogementLocatif.traitement_aide_finale in
   let traitement_aide_finale_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogement"; "traitement_aide_finale"]
     (unembeddable) (
@@ -24710,12 +24704,11 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {CalculAidePersonnaliseeLogementOut.aide_finale_formule_out =
-     aide_finale_formule_;
-     CalculAidePersonnaliseeLogementOut.traitement_aide_finale_out =
+  {CalculAidePersonnaliseeLogement.aide_finale_formule = aide_finale_formule_;
+     CalculAidePersonnaliseeLogement.traitement_aide_finale =
        traitement_aide_finale_}
 
-let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: EligibilitePrimeDeDemenagementIn.t) : EligibilitePrimeDeDemenagementOut.t =
+let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: EligibilitePrimeDeDemenagementIn.t) : EligibilitePrimeDeDemenagement.t =
   let informations_: InformationsPrimeDeDemenagement.t = eligibilite_prime_de_demenagement_in.EligibilitePrimeDeDemenagementIn.informations_in in
   let date_emmenagement_: date = eligibilite_prime_de_demenagement_in.EligibilitePrimeDeDemenagementIn.date_emmenagement_in in
   let menage_: Menage.t = eligibilite_prime_de_demenagement_in.EligibilitePrimeDeDemenagementIn.menage_in in
@@ -24830,7 +24823,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
         law_headings=["Éligibilité à la prime de déménagement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})) in
-  let result_: BaseMensuelleAllocationsFamilialesOut.t = (log_end_call
+  let result_: BaseMensuelleAllocationsFamiliales.t = (log_end_call
     ["ÉligibilitéPrimeDeDéménagement";
       "base_mensuelle_allocations_familiales";
       "BaseMensuelleAllocationsFamiliales"] ((log_begin_call
@@ -24840,7 +24833,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
     base_mensuelle_allocations_familiales)
     {BaseMensuelleAllocationsFamilialesIn.date_courante_in =
        base_mensuelle_allocations_familiales_dot_date_courante_})) in
-  let base_mensuelle_allocations_familiales_dot_montant_: money = result_.BaseMensuelleAllocationsFamilialesOut.montant_out in
+  let base_mensuelle_allocations_familiales_dot_montant_: money = result_.BaseMensuelleAllocationsFamiliales.montant in
   let eligibilite_apl_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement"; "éligibilité_apl.ménage"]
@@ -24924,7 +24917,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
       ["ÉligibilitéPrimeDeDéménagement";
         "éligibilité_apl.condition_logement_surface"] (embed_bool) (raise
       EmptyError)) in
-  let result_: EligibiliteAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: EligibiliteAidesPersonnelleLogement.t = (log_end_call
     ["ÉligibilitéPrimeDeDéménagement"; "éligibilité_apl";
       "ÉligibilitéAidesPersonnelleLogement"] ((log_begin_call
     ["ÉligibilitéPrimeDeDéménagement"; "éligibilité_apl";
@@ -24940,12 +24933,12 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
          eligibilite_apl_dot_condition_logement_residence_principale_;
        EligibiliteAidesPersonnelleLogementIn.condition_logement_surface_in =
          eligibilite_apl_dot_condition_logement_surface_})) in
-  let eligibilite_apl_dot_date_courante_: date = result_.EligibiliteAidesPersonnelleLogementOut.date_courante_out in
-  let eligibilite_apl_dot_eligibilite_: bool = result_.EligibiliteAidesPersonnelleLogementOut.eligibilite_out in
-  let eligibilite_apl_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidesPersonnelleLogementOut.nombre_personnes_a_charge_prises_en_compte_out in
+  let eligibilite_apl_dot_date_courante_: date = result_.EligibiliteAidesPersonnelleLogement.date_courante in
+  let eligibilite_apl_dot_eligibilite_: bool = result_.EligibiliteAidesPersonnelleLogement.eligibilite in
+  let eligibilite_apl_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidesPersonnelleLogement.nombre_personnes_a_charge_prises_en_compte in
   let eligibilite_apl_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.EligibiliteAidesPersonnelleLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
-  let eligibilite_apl_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogementOut.condition_2_r823_4_out in
+    decimal array = result_.EligibiliteAidesPersonnelleLogement.coefficents_enfants_garde_alternee_pris_en_compte in
+  let eligibilite_apl_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogement.condition_2_r823_4 in
   let condition_periode_demenagement_: bool = (log_variable_definition
     ["ÉligibilitéPrimeDeDéménagement";
       "condition_période_déménagement"] (embed_bool) (
@@ -25143,10 +25136,10 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
         law_headings=["Éligibilité à la prime de déménagement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {EligibilitePrimeDeDemenagementOut.montant_prime_demenagement_out =
+  {EligibilitePrimeDeDemenagement.montant_prime_demenagement =
      montant_prime_demenagement_}
 
-let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_logement_in: EligibiliteAidePersonnaliseeLogementIn.t) : EligibiliteAidePersonnaliseeLogementOut.t =
+let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_logement_in: EligibiliteAidePersonnaliseeLogementIn.t) : EligibiliteAidePersonnaliseeLogement.t =
   let menage_: Menage.t = eligibilite_aide_personnalisee_logement_in.EligibiliteAidePersonnaliseeLogementIn.menage_in in
   let demandeur_: Demandeur.t = eligibilite_aide_personnalisee_logement_in.EligibiliteAidePersonnaliseeLogementIn.demandeur_in in
   let date_courante_: date = eligibilite_aide_personnalisee_logement_in.EligibiliteAidePersonnaliseeLogementIn.date_courante_in in
@@ -25531,7 +25524,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
       ["ÉligibilitéAidePersonnaliséeLogement";
         "éligibilité_commune.condition_logement_surface"] (embed_bool)
       (raise EmptyError)) in
-  let result_: EligibiliteAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: EligibiliteAidesPersonnelleLogement.t = (log_end_call
     ["ÉligibilitéAidePersonnaliséeLogement"; "éligibilité_commune";
       "ÉligibilitéAidesPersonnelleLogement"] ((log_begin_call
     ["ÉligibilitéAidePersonnaliséeLogement"; "éligibilité_commune";
@@ -25547,12 +25540,12 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
          eligibilite_commune_dot_condition_logement_residence_principale_;
        EligibiliteAidesPersonnelleLogementIn.condition_logement_surface_in =
          eligibilite_commune_dot_condition_logement_surface_})) in
-  let eligibilite_commune_dot_date_courante_: date = result_.EligibiliteAidesPersonnelleLogementOut.date_courante_out in
-  let eligibilite_commune_dot_eligibilite_: bool = result_.EligibiliteAidesPersonnelleLogementOut.eligibilite_out in
-  let eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidesPersonnelleLogementOut.nombre_personnes_a_charge_prises_en_compte_out in
+  let eligibilite_commune_dot_date_courante_: date = result_.EligibiliteAidesPersonnelleLogement.date_courante in
+  let eligibilite_commune_dot_eligibilite_: bool = result_.EligibiliteAidesPersonnelleLogement.eligibilite in
+  let eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidesPersonnelleLogement.nombre_personnes_a_charge_prises_en_compte in
   let eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.EligibiliteAidesPersonnelleLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
-  let eligibilite_commune_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogementOut.condition_2_r823_4_out in
+    decimal array = result_.EligibiliteAidesPersonnelleLogement.coefficents_enfants_garde_alternee_pris_en_compte in
+  let eligibilite_commune_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogement.condition_2_r823_4 in
   let condition_logement_bailleur_: bool = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
       "condition_logement_bailleur"] (embed_bool) (
@@ -25889,14 +25882,14 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
         law_headings=["Éligibilité à l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {EligibiliteAidePersonnaliseeLogementOut.date_courante_out = date_courante_;
-     EligibiliteAidePersonnaliseeLogementOut.eligibilite_out = eligibilite_;
-     EligibiliteAidePersonnaliseeLogementOut.nombre_personnes_a_charge_prises_en_compte_out =
+  {EligibiliteAidePersonnaliseeLogement.date_courante = date_courante_;
+     EligibiliteAidePersonnaliseeLogement.eligibilite = eligibilite_;
+     EligibiliteAidePersonnaliseeLogement.nombre_personnes_a_charge_prises_en_compte =
        nombre_personnes_a_charge_prises_en_compte_;
-     EligibiliteAidePersonnaliseeLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out =
+     EligibiliteAidePersonnaliseeLogement.coefficents_enfants_garde_alternee_pris_en_compte =
        coefficents_enfants_garde_alternee_pris_en_compte_}
 
-let eligibilite_allocation_logement (eligibilite_allocation_logement_in: EligibiliteAllocationLogementIn.t) : EligibiliteAllocationLogementOut.t =
+let eligibilite_allocation_logement (eligibilite_allocation_logement_in: EligibiliteAllocationLogementIn.t) : EligibiliteAllocationLogement.t =
   let date_courante_: date = eligibilite_allocation_logement_in.EligibiliteAllocationLogementIn.date_courante_in in
   let menage_: Menage.t = eligibilite_allocation_logement_in.EligibiliteAllocationLogementIn.menage_in in
   let demandeur_: Demandeur.t = eligibilite_allocation_logement_in.EligibiliteAllocationLogementIn.demandeur_in in
@@ -26001,7 +25994,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
         law_headings=["Éligibilité aux allocations de logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})) in
-  let result_: EligibilitePrestationsFamilialesOut.t = (log_end_call
+  let result_: EligibilitePrestationsFamiliales.t = (log_end_call
     ["ÉligibilitéAllocationLogement"; "prestations_familiales";
       "ÉligibilitéPrestationsFamiliales"] ((log_begin_call
     ["ÉligibilitéAllocationLogement"; "prestations_familiales";
@@ -26014,11 +26007,11 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
        EligibilitePrestationsFamilialesIn.residence_in =
          prestations_familiales_dot_residence_})) in
   let prestations_familiales_dot_droit_ouvert_: EnfantPrestationsFamiliales.t ->
-                                                  bool = result_.EligibilitePrestationsFamilialesOut.droit_ouvert_out in
+                                                  bool = result_.EligibilitePrestationsFamiliales.droit_ouvert in
   let prestations_familiales_dot_conditions_hors_age_: EnfantPrestationsFamiliales.t ->
-                                                         bool = result_.EligibilitePrestationsFamilialesOut.conditions_hors_age_out in
-  let prestations_familiales_dot_age_l512_3_2_: duration = result_.EligibilitePrestationsFamilialesOut.age_l512_3_2_out in
-  let prestations_familiales_dot_regime_outre_mer_l751_1_: bool = result_.EligibilitePrestationsFamilialesOut.regime_outre_mer_l751_1_out in
+                                                         bool = result_.EligibilitePrestationsFamiliales.conditions_hors_age in
+  let prestations_familiales_dot_age_l512_3_2_: duration = result_.EligibilitePrestationsFamiliales.age_l512_3_2 in
+  let prestations_familiales_dot_regime_outre_mer_l751_1_: bool = result_.EligibilitePrestationsFamiliales.regime_outre_mer_l751_1 in
   let condition_accession_propriete_: bool = (log_variable_definition
     ["ÉligibilitéAllocationLogement"; "condition_accession_propriété"]
     (embed_bool) (
@@ -26392,7 +26385,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
              | ModeOccupation.SousLocataire _ -> false
              | ModeOccupation.LocationAccession _ -> false)))
          (fun (_: unit) -> true))) in
-  let result_: EligibiliteAidesPersonnelleLogementOut.t = (log_end_call
+  let result_: EligibiliteAidesPersonnelleLogement.t = (log_end_call
     ["ÉligibilitéAllocationLogement"; "éligibilité_commune";
       "ÉligibilitéAidesPersonnelleLogement"] ((log_begin_call
     ["ÉligibilitéAllocationLogement"; "éligibilité_commune";
@@ -26408,12 +26401,12 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
          eligibilite_commune_dot_condition_logement_residence_principale_;
        EligibiliteAidesPersonnelleLogementIn.condition_logement_surface_in =
          eligibilite_commune_dot_condition_logement_surface_})) in
-  let eligibilite_commune_dot_date_courante_: date = result_.EligibiliteAidesPersonnelleLogementOut.date_courante_out in
-  let eligibilite_commune_dot_eligibilite_: bool = result_.EligibiliteAidesPersonnelleLogementOut.eligibilite_out in
-  let eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidesPersonnelleLogementOut.nombre_personnes_a_charge_prises_en_compte_out in
+  let eligibilite_commune_dot_date_courante_: date = result_.EligibiliteAidesPersonnelleLogement.date_courante in
+  let eligibilite_commune_dot_eligibilite_: bool = result_.EligibiliteAidesPersonnelleLogement.eligibilite in
+  let eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidesPersonnelleLogement.nombre_personnes_a_charge_prises_en_compte in
   let eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.EligibiliteAidesPersonnelleLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
-  let eligibilite_commune_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogementOut.condition_2_r823_4_out in
+    decimal array = result_.EligibiliteAidesPersonnelleLogement.coefficents_enfants_garde_alternee_pris_en_compte in
+  let eligibilite_commune_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogement.condition_2_r823_4 in
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["ÉligibilitéAllocationLogement";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
@@ -26465,10 +26458,10 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
         law_headings=["Éligibilité aux allocations de logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  let eligibilite_dispositions_communes_: EligibiliteAllocationLogement.t = (log_variable_definition
+  let eligibilite_dispositions_communes_: TypeEligibiliteAllocationLogement.t = (log_variable_definition
     ["ÉligibilitéAllocationLogement";
       "éligibilité_dispositions_communes"]
-    (embed_eligibilite_allocation_logement) (
+    (embed_type_eligibilite_allocation_logement) (
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
@@ -26489,8 +26482,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
              if
               ((not eligibilite_commune_dot_eligibilite_) ||
                  (not condition_accession_propriete_)) then
-              (EligibiliteAllocationLogement.PasEligible ()) else
-              (EligibiliteAllocationLogement.AllocationLogementSociale ())))
+              (TypeEligibiliteAllocationLogement.PasEligible ()) else
+              (TypeEligibiliteAllocationLogement.AllocationLogementSociale ())))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
@@ -26896,9 +26889,9 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
         law_headings=["Éligibilité aux allocations de logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  let eligibilite_l841_2_: EligibiliteAllocationLogement.t = (log_variable_definition
+  let eligibilite_l841_2_: TypeEligibiliteAllocationLogement.t = (log_variable_definition
     ["ÉligibilitéAllocationLogement"; "éligibilité_l841_2"]
-    (embed_eligibilite_allocation_logement) (
+    (embed_type_eligibilite_allocation_logement) (
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
@@ -26935,7 +26928,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                              "Code de la construction et de l'habitation"]}
                             (demandeur_.Demandeur.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale)))
                          (fun (_: unit) ->
-                            EligibiliteAllocationLogement.AllocationLogementSociale
+                            TypeEligibiliteAllocationLogement.AllocationLogementSociale
                               ()));
                     (fun (_: unit) ->
                        handle_default
@@ -26968,7 +26961,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                              | ModeOccupation.SousLocataire _ -> false
                              | ModeOccupation.LocationAccession _ -> false)))
                          (fun (_: unit) ->
-                            EligibiliteAllocationLogement.PasEligible ()))|])
+                            TypeEligibiliteAllocationLogement.PasEligible ()))|])
                  (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
@@ -26983,13 +26976,14 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
          (fun (_: unit) ->
              if
               ((eligibilite_dispositions_communes_ =
-                  (EligibiliteAllocationLogement.PasEligible ())) ||
+                  (TypeEligibiliteAllocationLogement.PasEligible ())) ||
                  beneficie_aide_personnalisee_logement_) then
-              (EligibiliteAllocationLogement.PasEligible ()) else
+              (TypeEligibiliteAllocationLogement.PasEligible ()) else
               ( if eligibilite_allocation_logement_familiale_ then
-                 (EligibiliteAllocationLogement.AllocationLogementFamiliale
+                 (TypeEligibiliteAllocationLogement.AllocationLogementFamiliale
                     ()) else
-                 (EligibiliteAllocationLogement.AllocationLogementSociale ()))))
+                 (TypeEligibiliteAllocationLogement.AllocationLogementSociale
+                    ()))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
@@ -26997,14 +26991,13 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
         law_headings=["Éligibilité aux allocations de logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
-  {EligibiliteAllocationLogementOut.eligibilite_l841_2_out =
-     eligibilite_l841_2_;
-     EligibiliteAllocationLogementOut.nombre_personnes_a_charge_prises_en_compte_out =
+  {EligibiliteAllocationLogement.eligibilite = eligibilite_l841_2_;
+     EligibiliteAllocationLogement.nombre_personnes_a_charge_prises_en_compte =
        nombre_personnes_a_charge_prises_en_compte_;
-     EligibiliteAllocationLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out =
+     EligibiliteAllocationLogement.coefficents_enfants_garde_alternee_pris_en_compte =
        coefficents_enfants_garde_alternee_pris_en_compte_}
 
-let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationLogementIn.t) : CalculAllocationLogementOut.t =
+let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationLogementIn.t) : CalculAllocationLogement.t =
   let mode_occupation_: ModeOccupation.t = calcul_allocation_logement_in.CalculAllocationLogementIn.mode_occupation_in in
   let ressources_menage_sans_arrondi_: money = calcul_allocation_logement_in.CalculAllocationLogementIn.ressources_menage_sans_arrondi_in in
   let situation_familiale_: SituationFamiliale.t = calcul_allocation_logement_in.CalculAllocationLogementIn.situation_familiale_in in
@@ -27698,7 +27691,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculAllocationLogementAccessionProprieteOut.t = (log_end_call
+  let result_: CalculAllocationLogementAccessionPropriete.t = (log_end_call
     ["CalculAllocationLogement"; "accession_propriété";
       "CalculAllocationLogementAccessionPropriété"] ((log_begin_call
     ["CalculAllocationLogement"; "accession_propriété";
@@ -27730,9 +27723,9 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
          accession_propriete_dot_charges_mensuelles_pret_;
        CalculAllocationLogementAccessionProprieteIn.copropriete_in =
          accession_propriete_dot_copropriete_})) in
-  let accession_propriete_dot_aide_finale_formule_: money = result_.CalculAllocationLogementAccessionProprieteOut.aide_finale_formule_out in
+  let accession_propriete_dot_aide_finale_formule_: money = result_.CalculAllocationLogementAccessionPropriete.aide_finale_formule in
   let accession_propriete_dot_traitement_aide_finale_montant_minimal_: 
-    money -> money = result_.CalculAllocationLogementAccessionProprieteOut.traitement_aide_finale_montant_minimal_out in
+    money -> money = result_.CalculAllocationLogementAccessionPropriete.traitement_aide_finale in
   let logement_foyer_dot_type_logement_foyer_: TypeLogementFoyer.t = 
     try ((log_variable_definition
       ["CalculAllocationLogement"; "logement_foyer.type_logement_foyer"]
@@ -28118,7 +28111,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculAllocationLogementFoyerOut.t = (log_end_call
+  let result_: CalculAllocationLogementFoyer.t = (log_end_call
     ["CalculAllocationLogement"; "logement_foyer";
       "CalculAllocationLogementFoyer"] ((log_begin_call
     ["CalculAllocationLogement"; "logement_foyer";
@@ -28140,13 +28133,13 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
          logement_foyer_dot_date_courante_;
        CalculAllocationLogementFoyerIn.categorie_equivalence_loyer_d842_16_in =
          logement_foyer_dot_categorie_equivalence_loyer_d842_16_})) in
-  let logement_foyer_dot_coefficient_prise_en_charge_: decimal = result_.CalculAllocationLogementFoyerOut.coefficient_prise_en_charge_out in
-  let logement_foyer_dot_equivalence_loyer_: money = result_.CalculAllocationLogementFoyerOut.equivalence_loyer_out in
-  let logement_foyer_dot_montant_forfaitaire_charges_: money = result_.CalculAllocationLogementFoyerOut.montant_forfaitaire_charges_out in
-  let logement_foyer_dot_loyer_minimal_: money = result_.CalculAllocationLogementFoyerOut.loyer_minimal_out in
-  let logement_foyer_dot_aide_finale_formule_: money = result_.CalculAllocationLogementFoyerOut.aide_finale_formule_out in
+  let logement_foyer_dot_coefficient_prise_en_charge_: decimal = result_.CalculAllocationLogementFoyer.coefficient_prise_en_charge in
+  let logement_foyer_dot_equivalence_loyer_: money = result_.CalculAllocationLogementFoyer.equivalence_loyer in
+  let logement_foyer_dot_montant_forfaitaire_charges_: money = result_.CalculAllocationLogementFoyer.montant_forfaitaire_charges in
+  let logement_foyer_dot_loyer_minimal_: money = result_.CalculAllocationLogementFoyer.loyer_minimal in
+  let logement_foyer_dot_aide_finale_formule_: money = result_.CalculAllocationLogementFoyer.aide_finale_formule in
   let logement_foyer_dot_traitement_aide_finale_montant_minimal_: money ->
-                                                                    money = result_.CalculAllocationLogementFoyerOut.traitement_aide_finale_montant_minimal_out in
+                                                                    money = result_.CalculAllocationLogementFoyer.traitement_aide_finale in
   let locatif_dot_loyer_principal_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogement"; "locatif.loyer_principal"] (embed_money)
@@ -28771,7 +28764,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculAllocationLogementLocatifOut.t = (log_end_call
+  let result_: CalculAllocationLogementLocatif.t = (log_end_call
     ["CalculAllocationLogement"; "locatif";
       "CalculAllocationLogementLocatif"] ((log_begin_call
     ["CalculAllocationLogement"; "locatif";
@@ -28803,8 +28796,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
          locatif_dot_logement_meuble_d842_2_;
        CalculAllocationLogementLocatifIn.changement_logement_d842_4_in =
          locatif_dot_changement_logement_d842_4_})) in
-  let locatif_dot_aide_finale_formule_: money = result_.CalculAllocationLogementLocatifOut.aide_finale_formule_out in
-  let locatif_dot_traitement_aide_finale_: money -> money = result_.CalculAllocationLogementLocatifOut.traitement_aide_finale_out in
+  let locatif_dot_aide_finale_formule_: money = result_.CalculAllocationLogementLocatif.aide_finale_formule in
+  let locatif_dot_traitement_aide_finale_: money -> money = result_.CalculAllocationLogementLocatif.traitement_aide_finale in
   let traitement_aide_finale_: money -> money = (log_variable_definition
     ["CalculAllocationLogement"; "traitement_aide_finale"] (unembeddable) (
     try
@@ -28922,11 +28915,11 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
         law_headings=["Tous secteurs"; "Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
-  {CalculAllocationLogementOut.aide_finale_formule_out = aide_finale_formule_;
-     CalculAllocationLogementOut.traitement_aide_finale_out =
+  {CalculAllocationLogement.aide_finale_formule = aide_finale_formule_;
+     CalculAllocationLogement.traitement_aide_finale =
        traitement_aide_finale_}
 
-let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAidesAuLogementIn.t) : CalculetteAidesAuLogementOut.t =
+let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAidesAuLogementIn.t) : CalculetteAidesAuLogement.t =
   let menage_: Menage.t = calculette_aides_au_logement_in.CalculetteAidesAuLogementIn.menage_in in
   let demandeur_: Demandeur.t = calculette_aides_au_logement_in.CalculetteAidesAuLogementIn.demandeur_in in
   let date_courante_: date = calculette_aides_au_logement_in.CalculetteAidesAuLogementIn.date_courante_in in
@@ -29025,7 +29018,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                        "Livre VIII : Aides personnelles au logement";
                        "Partie législative";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: EligibiliteAllocationLogementOut.t = (log_end_call
+  let result_: EligibiliteAllocationLogement.t = (log_end_call
     ["CalculetteAidesAuLogement"; "éligibilité_allocation_logement";
       "ÉligibilitéAllocationLogement"] ((log_begin_call
     ["CalculetteAidesAuLogement"; "éligibilité_allocation_logement";
@@ -29038,10 +29031,10 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          eligibilite_allocation_logement_dot_demandeur_;
        EligibiliteAllocationLogementIn.beneficie_aide_personnalisee_logement_in =
          eligibilite_allocation_logement_dot_beneficie_aide_personnalisee_logement_})) in
-  let eligibilite_allocation_logement_dot_eligibilite_l841_2_: EligibiliteAllocationLogement.t = result_.EligibiliteAllocationLogementOut.eligibilite_l841_2_out in
-  let eligibilite_allocation_logement_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAllocationLogementOut.nombre_personnes_a_charge_prises_en_compte_out in
+  let eligibilite_allocation_logement_dot_eligibilite_l841_2_: TypeEligibiliteAllocationLogement.t = result_.EligibiliteAllocationLogement.eligibilite in
+  let eligibilite_allocation_logement_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAllocationLogement.nombre_personnes_a_charge_prises_en_compte in
   let eligibilite_allocation_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.EligibiliteAllocationLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
+    decimal array = result_.EligibiliteAllocationLogement.coefficents_enfants_garde_alternee_pris_en_compte in
   let eligibilite_aide_personnalisee_logement_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
@@ -29104,7 +29097,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
       {filename = "examples/aides_logement/prologue.catala_fr";
         start_line=1069; start_column=14; end_line=1069; end_column=67;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})) in
-  let result_: EligibiliteAidePersonnaliseeLogementOut.t = (log_end_call
+  let result_: EligibiliteAidePersonnaliseeLogement.t = (log_end_call
     ["CalculetteAidesAuLogement";
       "éligibilité_aide_personnalisée_logement";
       "ÉligibilitéAidePersonnaliséeLogement"] ((log_begin_call
@@ -29118,11 +29111,11 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          eligibilite_aide_personnalisee_logement_dot_demandeur_;
        EligibiliteAidePersonnaliseeLogementIn.date_courante_in =
          eligibilite_aide_personnalisee_logement_dot_date_courante_})) in
-  let eligibilite_aide_personnalisee_logement_dot_date_courante_: date = result_.EligibiliteAidePersonnaliseeLogementOut.date_courante_out in
-  let eligibilite_aide_personnalisee_logement_dot_eligibilite_: bool = result_.EligibiliteAidePersonnaliseeLogementOut.eligibilite_out in
-  let eligibilite_aide_personnalisee_logement_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidePersonnaliseeLogementOut.nombre_personnes_a_charge_prises_en_compte_out in
+  let eligibilite_aide_personnalisee_logement_dot_date_courante_: date = result_.EligibiliteAidePersonnaliseeLogement.date_courante in
+  let eligibilite_aide_personnalisee_logement_dot_eligibilite_: bool = result_.EligibiliteAidePersonnaliseeLogement.eligibilite in
+  let eligibilite_aide_personnalisee_logement_dot_nombre_personnes_a_charge_prises_en_compte_: integer = result_.EligibiliteAidePersonnaliseeLogement.nombre_personnes_a_charge_prises_en_compte in
   let eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.EligibiliteAidePersonnaliseeLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
+    decimal array = result_.EligibiliteAidePersonnaliseeLogement.coefficents_enfants_garde_alternee_pris_en_compte in
   let calcul_allocation_logement_dot_mode_occupation_: ModeOccupation.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
@@ -29274,11 +29267,11 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          (fun (_: unit) ->
             match eligibilite_allocation_logement_dot_eligibilite_l841_2_
             with
-            | EligibiliteAllocationLogement.PasEligible _ ->
+            | TypeEligibiliteAllocationLogement.PasEligible _ ->
                 (TypeAidesPersonnelleLogement.AllocationLogementSociale ())
-            | EligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
+            | TypeEligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
                 (TypeAidesPersonnelleLogement.AllocationLogementFamiliale ())
-            | EligibiliteAllocationLogement.AllocationLogementSociale _ ->
+            | TypeEligibiliteAllocationLogement.AllocationLogementSociale _ ->
                 (TypeAidesPersonnelleLogement.AllocationLogementSociale ())))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -29289,7 +29282,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                        "Livre VIII : Aides personnelles au logement";
                        "Partie législative";
                        "Code de la construction et de l'habitation"]})) in
-  let result_: CalculAllocationLogementOut.t = (log_end_call
+  let result_: CalculAllocationLogement.t = (log_end_call
     ["CalculetteAidesAuLogement"; "calcul_allocation_logement";
       "CalculAllocationLogement"] ((log_begin_call
     ["CalculetteAidesAuLogement"; "calcul_allocation_logement";
@@ -29308,8 +29301,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          calcul_allocation_logement_dot_date_courante_;
        CalculAllocationLogementIn.type_aide_in =
          calcul_allocation_logement_dot_type_aide_})) in
-  let calcul_allocation_logement_dot_aide_finale_formule_: money = result_.CalculAllocationLogementOut.aide_finale_formule_out in
-  let calcul_allocation_logement_dot_traitement_aide_finale_: money -> money = result_.CalculAllocationLogementOut.traitement_aide_finale_out in
+  let calcul_allocation_logement_dot_aide_finale_formule_: money = result_.CalculAllocationLogement.aide_finale_formule in
+  let calcul_allocation_logement_dot_traitement_aide_finale_: money -> money = result_.CalculAllocationLogement.traitement_aide_finale in
   let calcul_aide_personnalisee_logement_dot_mode_occupation_: ModeOccupation.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
@@ -29471,7 +29464,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
       {filename = "examples/aides_logement/prologue.catala_fr";
         start_line=1096; start_column=14; end_line=1096; end_column=62;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})) in
-  let result_: CalculAidePersonnaliseeLogementOut.t = (log_end_call
+  let result_: CalculAidePersonnaliseeLogement.t = (log_end_call
     ["CalculetteAidesAuLogement"; "calcul_aide_personnalisée_logement";
       "CalculAidePersonnaliséeLogement"] ((log_begin_call
     ["CalculetteAidesAuLogement"; "calcul_aide_personnalisée_logement";
@@ -29490,9 +29483,9 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          calcul_aide_personnalisee_logement_dot_zone_;
        CalculAidePersonnaliseeLogementIn.date_courante_in =
          calcul_aide_personnalisee_logement_dot_date_courante_})) in
-  let calcul_aide_personnalisee_logement_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogementOut.aide_finale_formule_out in
+  let calcul_aide_personnalisee_logement_dot_aide_finale_formule_: money = result_.CalculAidePersonnaliseeLogement.aide_finale_formule in
   let calcul_aide_personnalisee_logement_dot_traitement_aide_finale_: 
-    money -> money = result_.CalculAidePersonnaliseeLogementOut.traitement_aide_finale_out in
+    money -> money = result_.CalculAidePersonnaliseeLogement.traitement_aide_finale in
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["CalculetteAidesAuLogement";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
@@ -29537,10 +29530,10 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
             eligibilite_aide_personnalisee_logement_dot_eligibilite_ ||
               (match eligibilite_allocation_logement_dot_eligibilite_l841_2_
                with
-               | EligibiliteAllocationLogement.PasEligible _ -> false
-               | EligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
+               | TypeEligibiliteAllocationLogement.PasEligible _ -> false
+               | TypeEligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
                    true
-               | EligibiliteAllocationLogement.AllocationLogementSociale _ ->
+               | TypeEligibiliteAllocationLogement.AllocationLogementSociale _ ->
                    true)))
     with
     EmptyError -> (raise (NoValueProvided
@@ -29603,11 +29596,11 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                              (match
                                 eligibilite_allocation_logement_dot_eligibilite_l841_2_
                               with
-                              | EligibiliteAllocationLogement.PasEligible _ ->
+                              | TypeEligibiliteAllocationLogement.PasEligible _ ->
                                   true
-                              | EligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
+                              | TypeEligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
                                   false
-                              | EligibiliteAllocationLogement.AllocationLogementSociale _ ->
+                              | TypeEligibiliteAllocationLogement.AllocationLogementSociale _ ->
                                   false))) then
                        ( if (aide_finale_apl_ >$ aide_finale_al_) then
                           aide_finale_apl_ else aide_finale_al_) else
@@ -29651,10 +29644,11 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                        (match
                           eligibilite_allocation_logement_dot_eligibilite_l841_2_
                         with
-                        | EligibiliteAllocationLogement.PasEligible _ -> true
-                        | EligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
+                        | TypeEligibiliteAllocationLogement.PasEligible _ ->
+                            true
+                        | TypeEligibiliteAllocationLogement.AllocationLogementFamiliale _ ->
                             false
-                        | EligibiliteAllocationLogement.AllocationLogementSociale _ ->
+                        | TypeEligibiliteAllocationLogement.AllocationLogementSociale _ ->
                             false))) then
                  ( if
                     (((log_end_call
@@ -29695,15 +29689,14 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
       {filename = "examples/aides_logement/prologue.catala_fr";
         start_line=1055; start_column=10; end_line=1055; end_column=29;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})))) in
-  {CalculetteAidesAuLogementOut.eligibilite_out = eligibilite_;
-     CalculetteAidesAuLogementOut.aide_finale_formule_out =
-       aide_finale_formule_;
-     CalculetteAidesAuLogementOut.traitement_aide_finale_out =
+  {CalculetteAidesAuLogement.eligibilite = eligibilite_;
+     CalculetteAidesAuLogement.aide_finale_formule = aide_finale_formule_;
+     CalculetteAidesAuLogement.traitement_aide_finale =
        traitement_aide_finale_;
-     CalculetteAidesAuLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out =
+     CalculetteAidesAuLogement.coefficents_enfants_garde_alternee_pris_en_compte =
        coefficents_enfants_garde_alternee_pris_en_compte_}
 
-let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_garde_alternee_in: CalculetteAidesAuLogementGardeAlterneeIn.t) : CalculetteAidesAuLogementGardeAlterneeOut.t =
+let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_garde_alternee_in: CalculetteAidesAuLogementGardeAlterneeIn.t) : CalculetteAidesAuLogementGardeAlternee.t =
   let menage_: Menage.t = calculette_aides_au_logement_garde_alternee_in.CalculetteAidesAuLogementGardeAlterneeIn.menage_in in
   let demandeur_: Demandeur.t = calculette_aides_au_logement_garde_alternee_in.CalculetteAidesAuLogementGardeAlterneeIn.demandeur_in in
   let date_courante_: date = calculette_aides_au_logement_garde_alternee_in.CalculetteAidesAuLogementGardeAlterneeIn.date_courante_in in
@@ -29838,7 +29831,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
         start_line=1137; start_column=14; end_line=1137; end_column=59;
         law_headings=["Calculette avec garde alternée";
                        "Prologue : aides au logement"]})) in
-  let result_: CalculetteAidesAuLogementOut.t = (log_end_call
+  let result_: CalculetteAidesAuLogement.t = (log_end_call
     ["CalculetteAidesAuLogementGardeAlternée"; "calculette";
       "CalculetteAidesAuLogement"] ((log_begin_call
     ["CalculetteAidesAuLogementGardeAlternée"; "calculette";
@@ -29849,11 +29842,11 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
          calculette_dot_date_courante_;
        CalculetteAidesAuLogementIn.ressources_menage_prises_en_compte_in =
          calculette_dot_ressources_menage_prises_en_compte_})) in
-  let calculette_dot_eligibilite_: bool = result_.CalculetteAidesAuLogementOut.eligibilite_out in
-  let calculette_dot_aide_finale_formule_: money = result_.CalculetteAidesAuLogementOut.aide_finale_formule_out in
-  let calculette_dot_traitement_aide_finale_: money -> money = result_.CalculetteAidesAuLogementOut.traitement_aide_finale_out in
+  let calculette_dot_eligibilite_: bool = result_.CalculetteAidesAuLogement.eligibilite in
+  let calculette_dot_aide_finale_formule_: money = result_.CalculetteAidesAuLogement.aide_finale_formule in
+  let calculette_dot_traitement_aide_finale_: money -> money = result_.CalculetteAidesAuLogement.traitement_aide_finale in
   let calculette_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.CalculetteAidesAuLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
+    decimal array = result_.CalculetteAidesAuLogement.coefficents_enfants_garde_alternee_pris_en_compte in
   let calculette_sans_garde_alternee_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée";
@@ -29939,7 +29932,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
         start_line=1146; start_column=5; end_line=1146; end_column=70;
         law_headings=["Calculette avec garde alternée";
                        "Prologue : aides au logement"]})) in
-  let result_: CalculetteAidesAuLogementOut.t = (log_end_call
+  let result_: CalculetteAidesAuLogement.t = (log_end_call
     ["CalculetteAidesAuLogementGardeAlternée";
       "calculette_sans_garde_alternée"; "CalculetteAidesAuLogement"]
     ((log_begin_call
@@ -29954,12 +29947,12 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
          calculette_sans_garde_alternee_dot_date_courante_;
        CalculetteAidesAuLogementIn.ressources_menage_prises_en_compte_in =
          calculette_sans_garde_alternee_dot_ressources_menage_prises_en_compte_})) in
-  let calculette_sans_garde_alternee_dot_eligibilite_: bool = result_.CalculetteAidesAuLogementOut.eligibilite_out in
-  let calculette_sans_garde_alternee_dot_aide_finale_formule_: money = result_.CalculetteAidesAuLogementOut.aide_finale_formule_out in
+  let calculette_sans_garde_alternee_dot_eligibilite_: bool = result_.CalculetteAidesAuLogement.eligibilite in
+  let calculette_sans_garde_alternee_dot_aide_finale_formule_: money = result_.CalculetteAidesAuLogement.aide_finale_formule in
   let calculette_sans_garde_alternee_dot_traitement_aide_finale_: money ->
-                                                                    money = result_.CalculetteAidesAuLogementOut.traitement_aide_finale_out in
+                                                                    money = result_.CalculetteAidesAuLogement.traitement_aide_finale in
   let calculette_sans_garde_alternee_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
-    decimal array = result_.CalculetteAidesAuLogementOut.coefficents_enfants_garde_alternee_pris_en_compte_out in
+    decimal array = result_.CalculetteAidesAuLogement.coefficents_enfants_garde_alternee_pris_en_compte in
   let eligibilite_: bool = (log_variable_definition
     ["CalculetteAidesAuLogementGardeAlternée"; "éligibilité"] (embed_bool)
     (
@@ -30050,5 +30043,5 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
         start_line=1128; start_column=10; end_line=1128; end_column=21;
         law_headings=["Calculette avec garde alternée";
                        "Prologue : aides au logement"]})))) in
-  {CalculetteAidesAuLogementGardeAlterneeOut.eligibilite_out = eligibilite_;
-     CalculetteAidesAuLogementGardeAlterneeOut.aide_finale_out = aide_finale_}
+  {CalculetteAidesAuLogementGardeAlternee.eligibilite = eligibilite_;
+     CalculetteAidesAuLogementGardeAlternee.aide_finale = aide_finale_}
