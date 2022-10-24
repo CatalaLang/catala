@@ -851,7 +851,17 @@ let make_tuple el structname m0 =
     let m =
       fold_marks
         (fun posl -> List.hd posl)
-        (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
+        (fun ml ->
+          let pos = (List.hd ml).pos in
+          match structname with
+          | Some n -> TStruct n, pos
+          | None -> TTuple (List.map (fun t -> t.ty) ml), pos)
         (List.map (fun e -> Marked.get_mark e) el)
     in
     etuple el structname m
+
+let make_struct fieldmap structname m =
+  let fields =
+    List.rev (StructFieldMap.fold (fun _ e acc -> e :: acc) fieldmap [])
+  in
+  make_tuple fields (Some structname) m

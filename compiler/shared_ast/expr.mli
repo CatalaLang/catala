@@ -296,6 +296,14 @@ val make_tuple :
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
 
+val make_struct :
+  (([< dcalc | lcalc ] as 'a), 'm mark) boxed_gexpr StructFieldMap.t ->
+  StructName.t ->
+  'm mark ->
+  ('a, 'm mark) boxed_gexpr
+(** Builds the tuple of values for the given struct with proper ordering,
+    assuming the structfieldmap contains the fields defined for structname *)
+
 (** {2 Transformations} *)
 
 val remove_logging_calls : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
