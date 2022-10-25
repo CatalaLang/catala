@@ -75,19 +75,8 @@ let type_program (prg : 'm program) : typed program =
   let typing_env =
     ScopeMap.fold
       (fun scope_name scope_decl ->
-        let input_vars, output_vars =
-          ScopeVarMap.fold
-            (fun var (typ, io) (input, output) ->
-              ( (if Marked.unmark io.io_input <> NoInput then
-                 ScopeVarMap.add var typ input
-                else input),
-                if Marked.unmark io.io_output then
-                  ScopeVarMap.add var typ output
-                else output ))
-            scope_decl.scope_sig
-            (ScopeVarMap.empty, ScopeVarMap.empty)
-        in
-        Typing.Env.add_scope scope_name ~input_vars ~output_vars)
+        let vars = ScopeVarMap.map fst scope_decl.scope_sig in
+        Typing.Env.add_scope scope_name ~vars)
       prg.program_scopes Typing.Env.empty
   in
   let program_scopes =

@@ -284,8 +284,7 @@ module Env = struct
   type 'e t = {
     vars : ('e, unionfind_typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVarMap.t;
-    scopes : (A.typ A.ScopeVarMap.t * A.typ A.ScopeVarMap.t) A.ScopeMap.t;
-        (* input * output *)
+    scopes : A.typ A.ScopeVarMap.t A.ScopeMap.t;
   }
 
   let empty =
@@ -299,7 +298,7 @@ module Env = struct
   let get_scope_var t sv = A.ScopeVarMap.find_opt sv t.scope_vars
 
   let get_subscope_out_var t scope var =
-    Option.bind (A.ScopeMap.find_opt scope t.scopes) (fun (_, vmap) ->
+    Option.bind (A.ScopeMap.find_opt scope t.scopes) (fun vmap ->
         A.ScopeVarMap.find_opt var vmap)
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
@@ -308,11 +307,8 @@ module Env = struct
   let add_scope_var v typ t =
     { t with scope_vars = A.ScopeVarMap.add v typ t.scope_vars }
 
-  let add_scope scope_name ~input_vars ~output_vars t =
-    {
-      t with
-      scopes = A.ScopeMap.add scope_name (input_vars, output_vars) t.scopes;
-    }
+  let add_scope scope_name ~vars t =
+    { t with scopes = A.ScopeMap.add scope_name vars t.scopes }
 end
 
 let add_pos e ty = Marked.mark (Expr.pos e) ty
@@ -422,12 +418,12 @@ and typecheck_expr_top_down :
   | A.EScopeCall (scope_name, fields) ->
     let scope_out_struct = A.ScopeMap.find scope_name ctx.ctx_scopes in
     let mark = uf_mark (unionfind (TStruct scope_out_struct)) in
-    let vars_in, _vars_out = A.ScopeMap.find scope_name env.scopes in
+    let vars = A.ScopeMap.find scope_name env.scopes in
     let fields' =
       A.ScopeVarMap.mapi
         (fun name ->
           typecheck_expr_top_down ctx env
-            (ast_to_typ (A.ScopeVarMap.find name vars_in)))
+            (ast_to_typ (A.ScopeVarMap.find name vars)))
         fields
     in
     Expr.escopecall scope_name fields' mark

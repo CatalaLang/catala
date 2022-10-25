@@ -383,7 +383,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
           ( Some "Incriminated subscope declaration:",
             Marked.get_mark (SubScopeName.get_info (Marked.unmark s)) );
         ]
-        "The variable %a.%a cannot be used here, as it is not part subscope \
+        "The variable %a.%a cannot be used here, as it is not part of subscope \
          %a's results. Maybe you forgot to qualify it as an output?"
         SubScopeName.format_t (Marked.unmark s) ScopeVar.format_t
         (Marked.unmark a) SubScopeName.format_t (Marked.unmark s))
