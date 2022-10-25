@@ -316,30 +316,6 @@ class ZoneDHabitation:
     def __str__(self) -> str:
         return "{}({})".format(self.code, self.value)
 
-class CategorieCalculAPL_Code(Enum):
-    Location = 0
-    AccessionPropriete = 1
-    LogementFoyer = 2
-
-class CategorieCalculAPL:
-    def __init__(self, code: CategorieCalculAPL_Code, value: Any) -> None:
-        self.code = code
-        self.value = value
-
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CategorieCalculAPL):
-            return self.code == other.code and self.value == other.value
-        else:
-            return False
-
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "{}({})".format(self.code, self.value)
-
 class PaiementLogementDistinctProfessionnel_Code(Enum):
     OuiAvecLoyerOuCharges = 0
     Non = 1
@@ -1039,6 +1015,25 @@ class CalculAidePersonnaliseeLogementAccessionPropriete:
             self.mensualite_minimale,
             self.coefficient_prise_en_charge_d832_10,
             self.aide_finale_formule, self.traitement_aide_finale)
+
+class TraitementFormuleAideFinale:
+    def __init__(self, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, TraitementFormuleAideFinale):
+            return (self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "TraitementFormuleAideFinale(aide_finale_formule={},traitement_aide_finale={})".format(self.aide_finale_formule,
+            self.traitement_aide_finale)
 
 class CalculAidePersonnaliseeLogement:
     def __init__(self, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
@@ -1817,6 +1812,30 @@ class EligibiliteAidesPersonnelleLogement:
             self.nombre_personnes_a_charge_prises_en_compte,
             self.coefficents_enfants_garde_alternee_pris_en_compte,
             self.condition_2_r823_4)
+
+class CategorieCalculAPL_Code(Enum):
+    Location = 0
+    AccessionPropriete = 1
+    LogementFoyer = 2
+
+class CategorieCalculAPL:
+    def __init__(self, code: CategorieCalculAPL_Code, value: Any) -> None:
+        self.code = code
+        self.value = value
+
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CategorieCalculAPL):
+            return self.code == other.code and self.value == other.value
+        else:
+            return False
+
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "{}({})".format(self.code, self.value)
 
 class ModeOccupation_Code(Enum):
     Locataire = 0
@@ -3059,9 +3078,9 @@ def ouverture_droits_retraite(ouverture_droits_retraite_in:OuvertureDroitsRetrai
             else:
                 raise EmptyError
         temp_age_ouverture_droit_8 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                    start_line=1000,
+                                                    start_line=998,
                                                     start_column=10,
-                                                    end_line=1000, end_column=29,
+                                                    end_line=998, end_column=29,
                                                     law_headings=["Date d'ouverture des droits à la retraite",
                                                     "Calcul du montant de l'allocation logement",
                                                     "Prologue : aides au logement"]), [temp_age_ouverture_droit_7,
@@ -3075,9 +3094,8 @@ def ouverture_droits_retraite(ouverture_droits_retraite_in:OuvertureDroitsRetrai
     except EmptyError:
         temp_age_ouverture_droit_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1000,
-                                             start_column=10, end_line=1000,
-                                             end_column=29,
+                                             start_line=998, start_column=10,
+                                             end_line=998, end_column=29,
                                              law_headings=["Date d'ouverture des droits à la retraite",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -3116,8 +3134,8 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
     except EmptyError:
         temp_mode_occupation_impaye = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1016,
-                                             start_column=11, end_line=1016,
+                                             start_line=1014,
+                                             start_column=11, end_line=1014,
                                              end_column=33,
                                              law_headings=["Quantification des impayés de dépense de logement",
                                              "Calcul du montant de l'allocation logement",
@@ -3153,8 +3171,8 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
     except EmptyError:
         temp_depense_logement_brute_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1017,
-                                             start_column=11, end_line=1017,
+                                             start_line=1015,
+                                             start_column=11, end_line=1015,
                                              end_column=33,
                                              law_headings=["Quantification des impayés de dépense de logement",
                                              "Calcul du montant de l'allocation logement",
@@ -3214,9 +3232,9 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
             else:
                 raise EmptyError
         temp_depense_logement_nette_6 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                       start_line=1018,
+                                                       start_line=1016,
                                                        start_column=11,
-                                                       end_line=1018, end_column=33,
+                                                       end_line=1016, end_column=33,
                                                        law_headings=["Quantification des impayés de dépense de logement",
                                                        "Calcul du montant de l'allocation logement",
                                                        "Prologue : aides au logement"]), [temp_depense_logement_nette_4,
@@ -3226,8 +3244,8 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
     except EmptyError:
         temp_depense_logement_nette_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1018,
-                                             start_column=11, end_line=1018,
+                                             start_line=1016,
+                                             start_column=11, end_line=1016,
                                              end_column=33,
                                              law_headings=["Quantification des impayés de dépense de logement",
                                              "Calcul du montant de l'allocation logement",
@@ -3371,9 +3389,9 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
             else:
                 raise EmptyError
         temp_seuil_impaye_depense_de_logement_14 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                                  start_line=1015,
+                                                                  start_line=1013,
                                                                   start_column=11,
-                                                                  end_line=1015, end_column=43,
+                                                                  end_line=1013, end_column=43,
                                                                   law_headings=["Quantification des impayés de dépense de logement",
                                                                   "Calcul du montant de l'allocation logement",
                                                                   "Prologue : aides au logement"]), [temp_seuil_impaye_depense_de_logement_11,
@@ -3385,8 +3403,8 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
     except EmptyError:
         temp_seuil_impaye_depense_de_logement_14 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1015,
-                                             start_column=11, end_line=1015,
+                                             start_line=1013,
+                                             start_column=11, end_line=1013,
                                              end_column=43,
                                              law_headings=["Quantification des impayés de dépense de logement",
                                              "Calcul du montant de l'allocation logement",
@@ -3430,8 +3448,8 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
     except EmptyError:
         temp_montant_impaye_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1020,
-                                             start_column=10, end_line=1020,
+                                             start_line=1018,
+                                             start_column=10, end_line=1018,
                                              end_column=24,
                                              law_headings=["Quantification des impayés de dépense de logement",
                                              "Calcul du montant de l'allocation logement",
@@ -5440,8 +5458,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp___1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=2050,
-                                             start_column=13, end_line=2050,
+                                             start_line=1797,
+                                             start_column=13, end_line=1797,
                                              end_column=76,
                                              law_headings=["Article D823-16",
                                              "Sous-section 2 : Calcul de l'aide en secteur locatif",
@@ -5453,8 +5471,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Code de la construction et de l'habitation"]))
     if not (temp___1):
         raise AssertionFailure(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                              start_line=2050,
-                                              start_column=13, end_line=2050,
+                                              start_line=1797,
+                                              start_column=13, end_line=1797,
                                               end_column=76,
                                               law_headings=["Article D823-16",
                                                            "Sous-section 2 : Calcul de l'aide en secteur locatif",
@@ -5919,8 +5937,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_condition_2_du_832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4131,
-                                             start_column=14, end_line=4131,
+                                             start_line=3878,
+                                             start_column=14, end_line=3878,
                                              end_column=55,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -5936,8 +5954,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4127,
-                                             start_column=14, end_line=4127,
+                                             start_line=3874,
+                                             start_column=14, end_line=3874,
                                              end_column=59,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -5953,8 +5971,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4129,
-                                             start_column=14, end_line=4129,
+                                             start_line=3876,
+                                             start_column=14, end_line=3876,
                                              end_column=64,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -6059,8 +6077,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3965,
-                                             start_column=14, end_line=3965,
+                                             start_line=3712,
+                                             start_column=14, end_line=3712,
                                              end_column=75,
                                              law_headings=["Article D832-24",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -6076,8 +6094,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3963,
-                                             start_column=14, end_line=3963,
+                                             start_line=3710,
+                                             start_column=14, end_line=3710,
                                              end_column=69,
                                              law_headings=["Article D832-24",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -6093,8 +6111,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3967,
-                                             start_column=14, end_line=3967,
+                                             start_line=3714,
+                                             start_column=14, end_line=3714,
                                              end_column=70,
                                              law_headings=["Article D832-24",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -6482,8 +6500,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3473,
-                                             start_column=14, end_line=3473,
+                                             start_line=3220,
+                                             start_column=14, end_line=3220,
                                              end_column=59,
                                              law_headings=["Article D832-11",
                                              "Section 2 : Accession à la propriété",
@@ -6498,8 +6516,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3475,
-                                             start_column=14, end_line=3475,
+                                             start_line=3222,
+                                             start_column=14, end_line=3222,
                                              end_column=64,
                                              law_headings=["Article D832-11",
                                              "Section 2 : Accession à la propriété",
@@ -10275,8 +10293,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3679,
-                                             start_column=14, end_line=3679,
+                                             start_line=3426,
+                                             start_column=14, end_line=3426,
                                              end_column=75,
                                              law_headings=["Article D832-15",
                                              "Section 2 : Accession à la propriété",
@@ -10291,8 +10309,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3678,
-                                             start_column=14, end_line=3678,
+                                             start_line=3425,
+                                             start_column=14, end_line=3425,
                                              end_column=69,
                                              law_headings=["Article D832-15",
                                              "Section 2 : Accession à la propriété",
@@ -10307,8 +10325,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3681,
-                                             start_column=14, end_line=3681,
+                                             start_line=3428,
+                                             start_column=14, end_line=3428,
                                              end_column=70,
                                              law_headings=["Article D832-15",
                                              "Section 2 : Accession à la propriété",
@@ -12017,8 +12035,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_loyer_principal_base = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=790, start_column=14,
-                                             end_line=790, end_column=48,
+                                             start_line=791, start_column=14,
+                                             end_line=791, end_column=48,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12028,8 +12046,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_ressources_menage_arrondies = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=792, start_column=14,
-                                             end_line=792, end_column=60,
+                                             start_line=793, start_column=14,
+                                             end_line=793, end_column=60,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12039,8 +12057,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=794, start_column=14,
-                                             end_line=794, end_column=78,
+                                             start_line=795, start_column=14,
+                                             end_line=795, end_column=78,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12050,8 +12068,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=797, start_column=14,
-                                             end_line=797, end_column=46,
+                                             start_line=798, start_column=14,
+                                             end_line=798, end_column=46,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12061,8 +12079,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=799, start_column=14,
-                                             end_line=799, end_column=58,
+                                             start_line=800, start_column=14,
+                                             end_line=800, end_column=58,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12072,8 +12090,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_situation_familiale_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=801, start_column=14,
-                                             end_line=801, end_column=63,
+                                             start_line=802, start_column=14,
+                                             end_line=802, end_column=63,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12083,8 +12101,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_zone = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=803, start_column=14,
-                                             end_line=803, end_column=37,
+                                             start_line=804, start_column=14,
+                                             end_line=804, end_column=37,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12094,8 +12112,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_logement_est_chambre = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=805, start_column=14,
-                                             end_line=805, end_column=53,
+                                             start_line=806, start_column=14,
+                                             end_line=806, end_column=53,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12105,8 +12123,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=808, start_column=5,
-                                             end_line=809, end_column=63,
+                                             start_line=809, start_column=5,
+                                             end_line=810, end_column=63,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12116,8 +12134,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_type_aide = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=812, start_column=14,
-                                             end_line=812, end_column=42,
+                                             start_line=813, start_column=14,
+                                             end_line=813, end_column=42,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12127,8 +12145,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_colocation = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=814, start_column=14,
-                                             end_line=814, end_column=43,
+                                             start_line=815, start_column=14,
+                                             end_line=815, end_column=43,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12138,8 +12156,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_reduction_loyer_solidarite = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=816, start_column=14,
-                                             end_line=816, end_column=59,
+                                             start_line=817, start_column=14,
+                                             end_line=817, end_column=59,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12149,8 +12167,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_logement_meuble_d842_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=818, start_column=14,
-                                             end_line=818, end_column=55,
+                                             start_line=819, start_column=14,
+                                             end_line=819, end_column=55,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12196,9 +12214,9 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                         param_24)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=787,
+                                                     start_line=788,
                                                      start_column=10,
-                                                     end_line=787,
+                                                     end_line=788,
                                                      end_column=32,
                                                      law_headings=["Secteur locatif",
                                                      "Calcul du montant de l'allocation logement",
@@ -12206,8 +12224,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_traitement_aide_finale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=787, start_column=10,
-                                             end_line=787, end_column=32,
+                                             start_line=788, start_column=10,
+                                             end_line=788, end_column=32,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12240,8 +12258,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_aide_finale_formule_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=785, start_column=10,
-                                             end_line=785, end_column=29,
+                                             start_line=786, start_column=10,
+                                             end_line=786, end_column=29,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12264,8 +12282,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_montant_minimal_aide_d842_15 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=926, start_column=11,
-                                             end_line=926, end_column=39,
+                                             start_line=927, start_column=11,
+                                             end_line=927, end_column=39,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12275,8 +12293,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_montant_forfaitaire_d842_15 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=927, start_column=11,
-                                             end_line=927, end_column=38,
+                                             start_line=928, start_column=11,
+                                             end_line=928, end_column=38,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12286,8 +12304,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_montant_minimal_depense_nette_d842_17 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=928, start_column=11,
-                                             end_line=928, end_column=48,
+                                             start_line=929, start_column=11,
+                                             end_line=929, end_column=48,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12297,8 +12315,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_condition_2_du_832_25_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=5031,
-                                             start_column=14, end_line=5031,
+                                             start_line=4778,
+                                             start_column=14, end_line=4778,
                                              end_column=55,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -12313,8 +12331,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=5027,
-                                             start_column=14, end_line=5027,
+                                             start_line=4774,
+                                             start_column=14, end_line=4774,
                                              end_column=59,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -12329,8 +12347,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=5029,
-                                             start_column=14, end_line=5029,
+                                             start_line=4776,
+                                             start_column=14, end_line=4776,
                                              end_column=64,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -12349,8 +12367,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_contributions_sociales_dot_date_courante_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=967, start_column=14,
-                                             end_line=967, end_column=50,
+                                             start_line=968, start_column=14,
+                                             end_line=968, end_column=50,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12362,8 +12380,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_type_logement_foyer = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=951, start_column=14,
-                                             end_line=951, end_column=59,
+                                             start_line=952, start_column=14,
+                                             end_line=952, end_column=59,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12373,8 +12391,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_date_conventionnement = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=953, start_column=14,
-                                             end_line=953, end_column=61,
+                                             start_line=954, start_column=14,
+                                             end_line=954, end_column=61,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12384,8 +12402,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_ressources_menage_arrondies = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=957, start_column=14,
-                                             end_line=957, end_column=67,
+                                             start_line=958, start_column=14,
+                                             end_line=958, end_column=67,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12395,8 +12413,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=959, start_column=14,
-                                             end_line=959, end_column=65,
+                                             start_line=960, start_column=14,
+                                             end_line=960, end_column=65,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12406,8 +12424,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_situation_familiale_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=961, start_column=14,
-                                             end_line=961, end_column=70,
+                                             start_line=962, start_column=14,
+                                             end_line=962, end_column=70,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12417,8 +12435,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_zone = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=963, start_column=14,
-                                             end_line=963, end_column=44,
+                                             start_line=964, start_column=14,
+                                             end_line=964, end_column=44,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12428,8 +12446,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=965, start_column=14,
-                                             end_line=965, end_column=53,
+                                             start_line=966, start_column=14,
+                                             end_line=966, end_column=53,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12439,8 +12457,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_redevance = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=955, start_column=14,
-                                             end_line=955, end_column=49,
+                                             start_line=956, start_column=14,
+                                             end_line=956, end_column=49,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12503,9 +12521,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
             else:
                 raise EmptyError
         temp_montant_forfaitaire_charges_4 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                            start_line=931,
+                                                            start_line=932,
                                                             start_column=10,
-                                                            end_line=931, end_column=37,
+                                                            end_line=932, end_column=37,
                                                             law_headings=["Secteur logement-foyer",
                                                             "Calcul du montant de l'allocation logement",
                                                             "Prologue : aides au logement"]), [temp_montant_forfaitaire_charges_3,
@@ -12515,8 +12533,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_montant_forfaitaire_charges_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=931, start_column=10,
-                                             end_line=931, end_column=37,
+                                             start_line=932, start_column=10,
+                                             end_line=932, end_column=37,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12733,9 +12751,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
             else:
                 raise EmptyError
         temp_equivalence_loyer_16 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                   start_line=930,
+                                                   start_line=931,
                                                    start_column=10,
-                                                   end_line=930, end_column=27,
+                                                   end_line=931, end_column=27,
                                                    law_headings=["Secteur logement-foyer",
                                                    "Calcul du montant de l'allocation logement",
                                                    "Prologue : aides au logement"]), [temp_equivalence_loyer_14,
@@ -12749,8 +12767,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_equivalence_loyer_16 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=930, start_column=10,
-                                             end_line=930, end_column=27,
+                                             start_line=931, start_column=10,
+                                             end_line=931, end_column=27,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12765,9 +12783,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                     return (param_25 - montant_forfaitaire_d842_15)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=944,
+                                                     start_line=945,
                                                      start_column=10,
-                                                     end_line=944,
+                                                     end_line=945,
                                                      end_column=32,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -12775,8 +12793,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_traitement_aide_finale_minoration_forfaitaire_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=944, start_column=10,
-                                             end_line=944, end_column=32,
+                                             start_line=945, start_column=10,
+                                             end_line=945, end_column=32,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12786,8 +12804,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=5024,
-                                             start_column=14, end_line=5024,
+                                             start_line=4771,
+                                             start_column=14, end_line=4771,
                                              end_column=75,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -12802,8 +12820,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=5023,
-                                             start_column=14, end_line=5023,
+                                             start_line=4770,
+                                             start_column=14, end_line=4770,
                                              end_column=69,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -12818,8 +12836,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=5033,
-                                             start_column=14, end_line=5033,
+                                             start_line=4780,
+                                             start_column=14, end_line=4780,
                                              end_column=70,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -12838,8 +12856,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_coefficient_prise_en_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=929, start_column=10,
-                                             end_line=929, end_column=37,
+                                             start_line=930, start_column=10,
+                                             end_line=930, end_column=37,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12851,9 +12869,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                     param_26)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=924,
+                                                     start_line=925,
                                                      start_column=11,
-                                                     end_line=924,
+                                                     end_line=925,
                                                      end_column=33,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -12861,8 +12879,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_depense_nette_minimale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=924, start_column=11,
-                                             end_line=924, end_column=33,
+                                             start_line=925, start_column=11,
+                                             end_line=925, end_column=33,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12872,8 +12890,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_loyer_minimal = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=932, start_column=10,
-                                             end_line=932, end_column=23,
+                                             start_line=933, start_column=10,
+                                             end_line=933, end_column=23,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12889,9 +12907,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                     return money_of_cents_string("0")
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=925,
+                                                     start_line=926,
                                                      start_column=11,
-                                                     end_line=925,
+                                                     end_line=926,
                                                      end_column=44,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -12899,8 +12917,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_abattement_depense_nette_minimale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=925, start_column=11,
-                                             end_line=925, end_column=44,
+                                             start_line=926, start_column=11,
+                                             end_line=926, end_column=44,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12912,8 +12930,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_aide_finale_formule_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=942, start_column=10,
-                                             end_line=942, end_column=29,
+                                             start_line=943, start_column=10,
+                                             end_line=943, end_column=29,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12934,9 +12952,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                                           param_28)))
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=945,
+                                                     start_line=946,
                                                      start_column=10,
-                                                     end_line=945,
+                                                     end_line=946,
                                                      end_column=32,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -12944,8 +12962,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_traitement_aide_finale_depense_nette_minimale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=945, start_column=10,
-                                             end_line=945, end_column=32,
+                                             start_line=946, start_column=10,
+                                             end_line=946, end_column=32,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12961,9 +12979,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                         param_29)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=946,
+                                                     start_line=947,
                                                      start_column=10,
-                                                     end_line=946,
+                                                     end_line=947,
                                                      end_column=19,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -12971,8 +12989,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_traitement_aide_finale_redevance = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=946, start_column=10,
-                                             end_line=946, end_column=19,
+                                             start_line=947, start_column=10,
+                                             end_line=947, end_column=19,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12998,9 +13016,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                     return money_of_cents_string("0")
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=947,
+                                                     start_line=948,
                                                      start_column=10,
-                                                     end_line=947,
+                                                     end_line=948,
                                                      end_column=40,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -13008,8 +13026,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_traitement_aide_finale_contributions_sociales_arrondi_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=947, start_column=10,
-                                             end_line=947, end_column=40,
+                                             start_line=948, start_column=10,
+                                             end_line=948, end_column=40,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13026,9 +13044,9 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                         param_31)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=948,
+                                                     start_line=949,
                                                      start_column=10,
-                                                     end_line=948,
+                                                     end_line=949,
                                                      end_column=25,
                                                      law_headings=["Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -13036,8 +13054,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_traitement_aide_finale_montant_minimal_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=948, start_column=10,
-                                             end_line=948, end_column=25,
+                                             start_line=949, start_column=10,
+                                             end_line=949, end_column=25,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13068,8 +13086,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_montant_forfaitaire_d842_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=855, start_column=11,
-                                             end_line=855, end_column=37,
+                                             start_line=856, start_column=11,
+                                             end_line=856, end_column=37,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13080,8 +13098,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_taux_francs_vers_euros_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=858, start_column=11,
-                                             end_line=858, end_column=33,
+                                             start_line=859, start_column=11,
+                                             end_line=859, end_column=33,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13091,8 +13109,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_montant_minimal_aide_d842_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=861, start_column=11,
-                                             end_line=861, end_column=38,
+                                             start_line=862, start_column=11,
+                                             end_line=862, end_column=38,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13102,8 +13120,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_montant_forfaitaire_d842_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=862, start_column=11,
-                                             end_line=862, end_column=38,
+                                             start_line=863, start_column=11,
+                                             end_line=863, end_column=38,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13113,8 +13131,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_montant_forfaitaire_d842_12 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=863, start_column=11,
-                                             end_line=863, end_column=38,
+                                             start_line=864, start_column=11,
+                                             end_line=864, end_column=38,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13124,8 +13142,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_coefficient_d842_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=864, start_column=11,
-                                             end_line=864, end_column=30,
+                                             start_line=865, start_column=11,
+                                             end_line=865, end_column=30,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13135,8 +13153,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_coefficient_d842_12 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=865, start_column=11,
-                                             end_line=865, end_column=30,
+                                             start_line=866, start_column=11,
+                                             end_line=866, end_column=30,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13146,8 +13164,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4638,
-                                             start_column=14, end_line=4638,
+                                             start_line=4385,
+                                             start_column=14, end_line=4385,
                                              end_column=59,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -13162,8 +13180,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4640,
-                                             start_column=14, end_line=4640,
+                                             start_line=4387,
+                                             start_column=14, end_line=4387,
                                              end_column=64,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -13181,8 +13199,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_contributions_sociales_dot_date_courante_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=906, start_column=14,
-                                             end_line=906, end_column=50,
+                                             start_line=907, start_column=14,
+                                             end_line=907, end_column=50,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13253,9 +13271,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                 else:
                     raise EmptyError
         temp_montant_forfaitaire_charges_11 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                             start_line=848,
+                                                             start_line=849,
                                                              start_column=11,
-                                                             end_line=848, end_column=38,
+                                                             end_line=849, end_column=38,
                                                              law_headings=["Secteur accession à la propriété",
                                                              "Calcul du montant de l'allocation logement",
                                                              "Prologue : aides au logement"]), [temp_montant_forfaitaire_charges_9,
@@ -13265,8 +13283,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_montant_forfaitaire_charges_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=848, start_column=11,
-                                             end_line=848, end_column=38,
+                                             start_line=849, start_column=11,
+                                             end_line=849, end_column=38,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -13281,9 +13299,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                     return (param_32 - montant_forfaitaire_d842_6)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=878,
+                                                     start_line=879,
                                                      start_column=10,
-                                                     end_line=878,
+                                                     end_line=879,
                                                      end_column=32,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -13291,8 +13309,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_traitement_aide_finale_minoration_forfaitaire_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=878, start_column=10,
-                                             end_line=878, end_column=32,
+                                             start_line=879, start_column=10,
+                                             end_line=879, end_column=32,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -15870,8 +15888,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                     else:
                         raise EmptyError
                 return handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                      start_line=853, start_column=10,
-                                      end_line=853, end_column=14,
+                                      start_line=854, start_column=10,
+                                      end_line=854, end_column=14,
                                       law_headings=["Secteur accession à la propriété",
                                       "Calcul du montant de l'allocation logement",
                                       "Prologue : aides au logement"]), [temp_calcul_plafond_mensualite_d842_6_base_30,
@@ -15900,9 +15918,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                       temp_calcul_plafond_mensualite_d842_6_base_1)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=853,
+                                                     start_line=854,
                                                      start_column=10,
-                                                     end_line=853,
+                                                     end_line=854,
                                                      end_column=14,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -15910,8 +15928,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_plafond_mensualite_d842_6_base = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=853, start_column=10,
-                                             end_line=853, end_column=14,
+                                             start_line=854, start_column=10,
+                                             end_line=854, end_column=14,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -15990,9 +16008,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
             else:
                 raise EmptyError
         temp_seuil_minimal_ressources_menage_8 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                                start_line=857,
+                                                                start_line=858,
                                                                 start_column=11,
-                                                                end_line=857, end_column=42,
+                                                                end_line=858, end_column=42,
                                                                 law_headings=["Secteur accession à la propriété",
                                                                 "Calcul du montant de l'allocation logement",
                                                                 "Prologue : aides au logement"]), [temp_seuil_minimal_ressources_menage_4,
@@ -16002,8 +16020,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_seuil_minimal_ressources_menage_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=857, start_column=11,
-                                             end_line=857, end_column=42,
+                                             start_line=858, start_column=11,
+                                             end_line=858, end_column=42,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16015,9 +16033,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                     montant_forfaitaire_charges_1) - param_34)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=859,
+                                                     start_line=860,
                                                      start_column=11,
-                                                     end_line=859,
+                                                     end_line=860,
                                                      end_column=33,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -16025,8 +16043,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_depense_nette_minimale_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=859, start_column=11,
-                                             end_line=859, end_column=33,
+                                             start_line=860, start_column=11,
+                                             end_line=860, end_column=33,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16068,9 +16086,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                         raise EmptyError
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=854,
+                                                     start_line=855,
                                                      start_column=10,
-                                                     end_line=854,
+                                                     end_line=855,
                                                      end_column=26,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -16078,8 +16096,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_plafond_mensualite_d842_6_avec_copropriete = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=854, start_column=10,
-                                             end_line=854, end_column=26,
+                                             start_line=855, start_column=10,
+                                             end_line=855, end_column=26,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16102,8 +16120,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_ressources_menage_arrondies_seuil_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=833, start_column=10,
-                                             end_line=833, end_column=15,
+                                             start_line=834, start_column=10,
+                                             end_line=834, end_column=15,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16129,8 +16147,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_plafond_mensualite_d842_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=851, start_column=11,
-                                             end_line=851, end_column=36,
+                                             start_line=852, start_column=11,
+                                             end_line=852, end_column=36,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16140,8 +16158,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4634,
-                                             start_column=14, end_line=4634,
+                                             start_line=4381,
+                                             start_column=14, end_line=4381,
                                              end_column=75,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -16156,8 +16174,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4633,
-                                             start_column=14, end_line=4633,
+                                             start_line=4380,
+                                             start_column=14, end_line=4380,
                                              end_column=69,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -16172,8 +16190,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4636,
-                                             start_column=14, end_line=4636,
+                                             start_line=4383,
+                                             start_column=14, end_line=4383,
                                              end_column=70,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -16193,8 +16211,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_type_logement_foyer_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=890, start_column=14,
-                                             end_line=890, end_column=59,
+                                             start_line=891, start_column=14,
+                                             end_line=891, end_column=59,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16204,8 +16222,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_date_conventionnement_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=892, start_column=14,
-                                             end_line=892, end_column=61,
+                                             start_line=893, start_column=14,
+                                             end_line=893, end_column=61,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16215,8 +16233,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_ressources_menage_arrondies_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=896, start_column=14,
-                                             end_line=896, end_column=67,
+                                             start_line=897, start_column=14,
+                                             end_line=897, end_column=67,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16226,8 +16244,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_nombre_personnes_a_charge_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=898, start_column=14,
-                                             end_line=898, end_column=65,
+                                             start_line=899, start_column=14,
+                                             end_line=899, end_column=65,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16237,8 +16255,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_situation_familiale_calcul_apl_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=900, start_column=14,
-                                             end_line=900, end_column=70,
+                                             start_line=901, start_column=14,
+                                             end_line=901, end_column=70,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16248,8 +16266,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_zone_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=902, start_column=14,
-                                             end_line=902, end_column=44,
+                                             start_line=903, start_column=14,
+                                             end_line=903, end_column=44,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16259,8 +16277,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_date_courante_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=904, start_column=14,
-                                             end_line=904, end_column=53,
+                                             start_line=905, start_column=14,
+                                             end_line=905, end_column=53,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16270,8 +16288,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_apl_logement_foyer_dot_redevance_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=894, start_column=14,
-                                             end_line=894, end_column=49,
+                                             start_line=895, start_column=14,
+                                             end_line=895, end_column=49,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16357,8 +16375,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_seuil_minimal_depense_nette_minimale_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=856, start_column=11,
-                                             end_line=856, end_column=47,
+                                             start_line=857, start_column=11,
+                                             end_line=857, end_column=47,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16372,8 +16390,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_mensualite_eligible_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=847, start_column=11,
-                                             end_line=847, end_column=30,
+                                             start_line=848, start_column=11,
+                                             end_line=848, end_column=30,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16383,8 +16401,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_mensualite_minimale_10 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=849, start_column=11,
-                                             end_line=849, end_column=30,
+                                             start_line=850, start_column=11,
+                                             end_line=850, end_column=30,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16394,8 +16412,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_coefficient_prise_en_charge_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=850, start_column=11,
-                                             end_line=850, end_column=38,
+                                             start_line=851, start_column=11,
+                                             end_line=851, end_column=38,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16411,9 +16429,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                     return money_of_cents_string("0")
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=860,
+                                                     start_line=861,
                                                      start_column=11,
-                                                     end_line=860,
+                                                     end_line=861,
                                                      end_column=44,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -16421,8 +16439,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_abattement_depense_nette_minimale_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=860, start_column=11,
-                                             end_line=860, end_column=44,
+                                             start_line=861, start_column=11,
+                                             end_line=861, end_column=44,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16434,8 +16452,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_aide_finale_formule_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=875, start_column=10,
-                                             end_line=875, end_column=29,
+                                             start_line=876, start_column=10,
+                                             end_line=876, end_column=29,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16454,9 +16472,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                                             param_37)))
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=879,
+                                                     start_line=880,
                                                      start_column=10,
-                                                     end_line=879,
+                                                     end_line=880,
                                                      end_column=32,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -16464,8 +16482,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_traitement_aide_finale_depense_nette_minimale_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=879, start_column=10,
-                                             end_line=879, end_column=32,
+                                             start_line=880, start_column=10,
+                                             end_line=880, end_column=32,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16492,9 +16510,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                     return money_of_cents_string("0")
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=880,
+                                                     start_line=881,
                                                      start_column=10,
-                                                     end_line=880,
+                                                     end_line=881,
                                                      end_column=40,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -16502,8 +16520,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_traitement_aide_finale_contributions_sociales_arrondi_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=880, start_column=10,
-                                             end_line=880, end_column=40,
+                                             start_line=881, start_column=10,
+                                             end_line=881, end_column=40,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16520,9 +16538,9 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                         param_39)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=881,
+                                                     start_line=882,
                                                      start_column=10,
-                                                     end_line=881,
+                                                     end_line=882,
                                                      end_column=25,
                                                      law_headings=["Secteur accession à la propriété",
                                                      "Calcul du montant de l'allocation logement",
@@ -16530,8 +16548,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_traitement_aide_finale_montant_minimal_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=881, start_column=10,
-                                             end_line=881, end_column=25,
+                                             start_line=882, start_column=10,
+                                             end_line=882, end_column=25,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16550,30 +16568,30 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
     try:
         match_arg_501 = mode_occupation_2
         if match_arg_501.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_501.value
+            location = match_arg_501.value
             temp_categorie_calcul_apl = CategorieCalculAPL(CategorieCalculAPL_Code.Location,
-                Unit())
+                location)
         elif match_arg_501.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_501.value
+            logementfoyer = match_arg_501.value
             temp_categorie_calcul_apl = CategorieCalculAPL(CategorieCalculAPL_Code.LogementFoyer,
-                Unit())
+                logementfoyer)
         elif match_arg_501.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_501.value
+            proprietaire = match_arg_501.value
             temp_categorie_calcul_apl = CategorieCalculAPL(CategorieCalculAPL_Code.AccessionPropriete,
-                Unit())
+                proprietaire)
         elif match_arg_501.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_501.value
+            location_1 = match_arg_501.value
             temp_categorie_calcul_apl = CategorieCalculAPL(CategorieCalculAPL_Code.Location,
-                Unit())
+                location_1)
         elif match_arg_501.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_501.value
+            proprietaire_1 = match_arg_501.value
             temp_categorie_calcul_apl = CategorieCalculAPL(CategorieCalculAPL_Code.AccessionPropriete,
-                Unit())
+                proprietaire_1)
     except EmptyError:
         temp_categorie_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=736, start_column=11,
-                                             end_line=736, end_column=31,
+                                             start_line=740, start_column=11,
+                                             end_line=740, end_column=31,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -16586,8 +16604,8 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
     except EmptyError:
         temp_ressources_menage_avec_arrondi = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=730, start_column=10,
-                                             end_line=730, end_column=22,
+                                             start_line=734, start_column=10,
+                                             end_line=734, end_column=22,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -16622,997 +16640,1267 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
     except EmptyError:
         temp_situation_familiale_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=737, start_column=11,
-                                             end_line=737, end_column=41,
+                                             start_line=741, start_column=11,
+                                             end_line=741, end_column=41,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     situation_familiale_calcul_apl_8 = temp_situation_familiale_calcul_apl
     try:
-        match_arg_503 = mode_occupation_2
-        if match_arg_503.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_503.value
-            temp_accession_propriete_dot_mensualite_principale = money_of_cents_string("0")
-        elif match_arg_503.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_503.value
-            temp_accession_propriete_dot_mensualite_principale = money_of_cents_string("0")
-        elif match_arg_503.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire = match_arg_503.value
-            temp_accession_propriete_dot_mensualite_principale = proprietaire.mensualite_principale
-        elif match_arg_503.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_503.value
-            temp_accession_propriete_dot_mensualite_principale = money_of_cents_string("0")
-        elif match_arg_503.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_1 = match_arg_503.value
-            temp_accession_propriete_dot_mensualite_principale = proprietaire_1.mensualite_principale
-        temp_accession_propriete_dot_mensualite_principale_1 = temp_accession_propriete_dot_mensualite_principale
+        match_arg_503 = categorie_calcul_apl
+        if match_arg_503.code == CategorieCalculAPL_Code.Location:
+            location_2 = match_arg_503.value
+            try:
+                temp_sous_calcul_traitement = location_2.logement_meuble_d842_2
+            except EmptyError:
+                temp_sous_calcul_traitement = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1436,
+                                                     start_column=38,
+                                                     end_line=1436,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                match_arg_504 = location_2.bailleur
+                if match_arg_504.code == TypeBailleur_Code.BailleurSocial:
+                    bailleur = match_arg_504.value
+                    temp_sous_calcul_traitement_1 = bailleur.reduction_loyer_solidarite_percue
+                elif match_arg_504.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                    _ = match_arg_504.value
+                    temp_sous_calcul_traitement_1 = money_of_cents_string("0")
+                elif match_arg_504.code == TypeBailleur_Code.BailleurPrive:
+                    _ = match_arg_504.value
+                    temp_sous_calcul_traitement_1 = money_of_cents_string("0")
+            except EmptyError:
+                temp_sous_calcul_traitement_1 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1432,
+                                                     start_column=16,
+                                                     end_line=1435,
+                                                     end_column=39,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_2 = location_2.colocation
+            except EmptyError:
+                temp_sous_calcul_traitement_2 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1427,
+                                                     start_column=26,
+                                                     end_line=1427,
+                                                     end_column=45,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_3 = type_aide_2
+            except EmptyError:
+                temp_sous_calcul_traitement_3 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1430,
+                                                     start_column=25,
+                                                     end_line=1430,
+                                                     end_column=34,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_4 = location_2.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+            except EmptyError:
+                temp_sous_calcul_traitement_4 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1429,
+                                                     start_column=15,
+                                                     end_line=1429,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_5 = location_2.logement_est_chambre
+            except EmptyError:
+                temp_sous_calcul_traitement_5 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1426,
+                                                     start_column=36,
+                                                     end_line=1426,
+                                                     end_column=65,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_6 = zone_6
+            except EmptyError:
+                temp_sous_calcul_traitement_6 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1420,
+                                                     start_column=20,
+                                                     end_line=1420,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_7 = situation_familiale_calcul_apl_8
+            except EmptyError:
+                temp_sous_calcul_traitement_7 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1422,
+                                                     start_column=46,
+                                                     end_line=1422,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_8 = nombre_personnes_a_charge_8
+            except EmptyError:
+                temp_sous_calcul_traitement_8 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1419,
+                                                     start_column=41,
+                                                     end_line=1419,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_9 = date_courante_11
+            except EmptyError:
+                temp_sous_calcul_traitement_9 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1421,
+                                                     start_column=29,
+                                                     end_line=1421,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_10 = location_2.beneficiaire_aide_adulte_ou_enfant_handicapes
+            except EmptyError:
+                temp_sous_calcul_traitement_10 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1425,
+                                                     start_column=15,
+                                                     end_line=1425,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_11 = ressources_menage_avec_arrondi
+            except EmptyError:
+                temp_sous_calcul_traitement_11 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1418,
+                                                     start_column=43,
+                                                     end_line=1418,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_12 = location_2.loyer_principal
+            except EmptyError:
+                temp_sous_calcul_traitement_12 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1423,
+                                                     start_column=31,
+                                                     end_line=1423,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_13 = location_2.logement_meuble_d842_2
+            except EmptyError:
+                temp_sous_calcul_traitement_13 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1436,
+                                                     start_column=38,
+                                                     end_line=1436,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                match_arg_505 = location_2.bailleur
+                if match_arg_505.code == TypeBailleur_Code.BailleurSocial:
+                    bailleur_1 = match_arg_505.value
+                    temp_sous_calcul_traitement_14 = bailleur_1.reduction_loyer_solidarite_percue
+                elif match_arg_505.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                    _ = match_arg_505.value
+                    temp_sous_calcul_traitement_14 = money_of_cents_string("0")
+                elif match_arg_505.code == TypeBailleur_Code.BailleurPrive:
+                    _ = match_arg_505.value
+                    temp_sous_calcul_traitement_14 = money_of_cents_string("0")
+            except EmptyError:
+                temp_sous_calcul_traitement_14 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1432,
+                                                     start_column=16,
+                                                     end_line=1435,
+                                                     end_column=39,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_15 = location_2.colocation
+            except EmptyError:
+                temp_sous_calcul_traitement_15 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1427,
+                                                     start_column=26,
+                                                     end_line=1427,
+                                                     end_column=45,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_16 = type_aide_2
+            except EmptyError:
+                temp_sous_calcul_traitement_16 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1430,
+                                                     start_column=25,
+                                                     end_line=1430,
+                                                     end_column=34,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_17 = location_2.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+            except EmptyError:
+                temp_sous_calcul_traitement_17 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1429,
+                                                     start_column=15,
+                                                     end_line=1429,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_18 = location_2.logement_est_chambre
+            except EmptyError:
+                temp_sous_calcul_traitement_18 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1426,
+                                                     start_column=36,
+                                                     end_line=1426,
+                                                     end_column=65,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_19 = zone_6
+            except EmptyError:
+                temp_sous_calcul_traitement_19 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1420,
+                                                     start_column=20,
+                                                     end_line=1420,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_20 = situation_familiale_calcul_apl_8
+            except EmptyError:
+                temp_sous_calcul_traitement_20 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1422,
+                                                     start_column=46,
+                                                     end_line=1422,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_21 = nombre_personnes_a_charge_8
+            except EmptyError:
+                temp_sous_calcul_traitement_21 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1419,
+                                                     start_column=41,
+                                                     end_line=1419,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_22 = date_courante_11
+            except EmptyError:
+                temp_sous_calcul_traitement_22 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1421,
+                                                     start_column=29,
+                                                     end_line=1421,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_23 = location_2.beneficiaire_aide_adulte_ou_enfant_handicapes
+            except EmptyError:
+                temp_sous_calcul_traitement_23 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1425,
+                                                     start_column=15,
+                                                     end_line=1425,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_24 = ressources_menage_avec_arrondi
+            except EmptyError:
+                temp_sous_calcul_traitement_24 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1418,
+                                                     start_column=43,
+                                                     end_line=1418,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_25 = location_2.loyer_principal
+            except EmptyError:
+                temp_sous_calcul_traitement_25 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1423,
+                                                     start_column=31,
+                                                     end_line=1423,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_26 = TraitementFormuleAideFinale(aide_finale_formule = calcul_aide_personnalisee_logement_locatif(
+                CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_base_in = temp_sous_calcul_traitement_12,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_11,
+                beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_10,
+                date_courante_in = temp_sous_calcul_traitement_9,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_8,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_7,
+                zone_in = temp_sous_calcul_traitement_6,
+                logement_est_chambre_in = temp_sous_calcul_traitement_5,
+                agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = temp_sous_calcul_traitement_4,
+                type_aide_in = temp_sous_calcul_traitement_3,
+                colocation_in = temp_sous_calcul_traitement_2,
+                reduction_loyer_solidarite_in = temp_sous_calcul_traitement_1,
+                logement_meuble_d842_2_in = temp_sous_calcul_traitement)).aide_finale_formule,
+                traitement_aide_finale = calcul_aide_personnalisee_logement_locatif(
+                CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_base_in = temp_sous_calcul_traitement_25,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_24,
+                beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_23,
+                date_courante_in = temp_sous_calcul_traitement_22,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_21,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_20,
+                zone_in = temp_sous_calcul_traitement_19,
+                logement_est_chambre_in = temp_sous_calcul_traitement_18,
+                agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = temp_sous_calcul_traitement_17,
+                type_aide_in = temp_sous_calcul_traitement_16,
+                colocation_in = temp_sous_calcul_traitement_15,
+                reduction_loyer_solidarite_in = temp_sous_calcul_traitement_14,
+                logement_meuble_d842_2_in = temp_sous_calcul_traitement_13)).traitement_aide_finale)
+        elif match_arg_503.code == CategorieCalculAPL_Code.AccessionPropriete:
+            proprietaire_2 = match_arg_503.value
+            try:
+                temp_sous_calcul_traitement_27 = date_courante_11
+            except EmptyError:
+                temp_sous_calcul_traitement_27 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1464,
+                                                     start_column=30,
+                                                     end_line=1464,
+                                                     end_column=43,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_28 = proprietaire_2.anciennete_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_28 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1474,
+                                                     start_column=36,
+                                                     end_line=1474,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_29 = proprietaire_2.pret.type_pret
+            except EmptyError:
+                temp_sous_calcul_traitement_29 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1473,
+                                                     start_column=26,
+                                                     end_line=1473,
+                                                     end_column=53,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_30 = zone_6
+            except EmptyError:
+                temp_sous_calcul_traitement_30 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1463,
+                                                     start_column=21,
+                                                     end_line=1463,
+                                                     end_column=25,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_31 = proprietaire_2.situation_r822_11_13_17
+            except EmptyError:
+                temp_sous_calcul_traitement_31 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1472,
+                                                     start_column=40,
+                                                     end_line=1472,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_32 = proprietaire_2.copropriete
+            except EmptyError:
+                temp_sous_calcul_traitement_32 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1471,
+                                                     start_column=28,
+                                                     end_line=1471,
+                                                     end_column=52,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_33 = proprietaire_2.date_entree_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_33 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1470,
+                                                     start_column=37,
+                                                     end_line=1470,
+                                                     end_column=70,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_34 = proprietaire_2.local_habite_premiere_fois_beneficiaire
+            except EmptyError:
+                temp_sous_calcul_traitement_34 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1469,
+                                                     start_column=56,
+                                                     end_line=1469,
+                                                     end_column=108,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_35 = proprietaire_2.pret.date_signature
+            except EmptyError:
+                temp_sous_calcul_traitement_35 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1468,
+                                                     start_column=36,
+                                                     end_line=1468,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_36 = proprietaire_2.type_travaux_logement_d832_15
+            except EmptyError:
+                temp_sous_calcul_traitement_36 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1467,
+                                                     start_column=38,
+                                                     end_line=1467,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_37 = situation_familiale_calcul_apl_8
+            except EmptyError:
+                temp_sous_calcul_traitement_37 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1465,
+                                                     start_column=47,
+                                                     end_line=1465,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_38 = nombre_personnes_a_charge_8
+            except EmptyError:
+                temp_sous_calcul_traitement_38 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1462,
+                                                     start_column=42,
+                                                     end_line=1462,
+                                                     end_column=67,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_39 = ressources_menage_avec_arrondi
+            except EmptyError:
+                temp_sous_calcul_traitement_39 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1461,
+                                                     start_column=44,
+                                                     end_line=1461,
+                                                     end_column=61,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_40 = proprietaire_2.mensualite_principale
+            except EmptyError:
+                temp_sous_calcul_traitement_40 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1466,
+                                                     start_column=38,
+                                                     end_line=1466,
+                                                     end_column=72,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_41 = date_courante_11
+            except EmptyError:
+                temp_sous_calcul_traitement_41 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1464,
+                                                     start_column=30,
+                                                     end_line=1464,
+                                                     end_column=43,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_42 = proprietaire_2.anciennete_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_42 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1474,
+                                                     start_column=36,
+                                                     end_line=1474,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_43 = proprietaire_2.pret.type_pret
+            except EmptyError:
+                temp_sous_calcul_traitement_43 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1473,
+                                                     start_column=26,
+                                                     end_line=1473,
+                                                     end_column=53,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_44 = zone_6
+            except EmptyError:
+                temp_sous_calcul_traitement_44 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1463,
+                                                     start_column=21,
+                                                     end_line=1463,
+                                                     end_column=25,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_45 = proprietaire_2.situation_r822_11_13_17
+            except EmptyError:
+                temp_sous_calcul_traitement_45 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1472,
+                                                     start_column=40,
+                                                     end_line=1472,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_46 = proprietaire_2.copropriete
+            except EmptyError:
+                temp_sous_calcul_traitement_46 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1471,
+                                                     start_column=28,
+                                                     end_line=1471,
+                                                     end_column=52,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_47 = proprietaire_2.date_entree_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_47 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1470,
+                                                     start_column=37,
+                                                     end_line=1470,
+                                                     end_column=70,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_48 = proprietaire_2.local_habite_premiere_fois_beneficiaire
+            except EmptyError:
+                temp_sous_calcul_traitement_48 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1469,
+                                                     start_column=56,
+                                                     end_line=1469,
+                                                     end_column=108,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_49 = proprietaire_2.pret.date_signature
+            except EmptyError:
+                temp_sous_calcul_traitement_49 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1468,
+                                                     start_column=36,
+                                                     end_line=1468,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_50 = proprietaire_2.type_travaux_logement_d832_15
+            except EmptyError:
+                temp_sous_calcul_traitement_50 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1467,
+                                                     start_column=38,
+                                                     end_line=1467,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_51 = situation_familiale_calcul_apl_8
+            except EmptyError:
+                temp_sous_calcul_traitement_51 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1465,
+                                                     start_column=47,
+                                                     end_line=1465,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_52 = nombre_personnes_a_charge_8
+            except EmptyError:
+                temp_sous_calcul_traitement_52 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1462,
+                                                     start_column=42,
+                                                     end_line=1462,
+                                                     end_column=67,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_53 = ressources_menage_avec_arrondi
+            except EmptyError:
+                temp_sous_calcul_traitement_53 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1461,
+                                                     start_column=44,
+                                                     end_line=1461,
+                                                     end_column=61,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_54 = proprietaire_2.mensualite_principale
+            except EmptyError:
+                temp_sous_calcul_traitement_54 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1466,
+                                                     start_column=38,
+                                                     end_line=1466,
+                                                     end_column=72,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_26 = TraitementFormuleAideFinale(aide_finale_formule = calcul_aide_personnalisee_logement_accession_propriete(
+                CalculAidePersonnaliseeLogementAccessionProprieteIn(mensualite_principale_in = temp_sous_calcul_traitement_40,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_39,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_38,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_37,
+                type_travaux_logement_in = temp_sous_calcul_traitement_36,
+                date_signature_pret_in = temp_sous_calcul_traitement_35,
+                local_habite_premiere_fois_beneficiaire_in = temp_sous_calcul_traitement_34,
+                date_entree_logement_in = temp_sous_calcul_traitement_33,
+                copropriete_in = temp_sous_calcul_traitement_32,
+                situation_r822_11_13_17_in = temp_sous_calcul_traitement_31,
+                zone_in = temp_sous_calcul_traitement_30,
+                type_pret_in = temp_sous_calcul_traitement_29,
+                anciennete_logement_in = temp_sous_calcul_traitement_28,
+                date_courante_in = temp_sous_calcul_traitement_27)).aide_finale_formule,
+                traitement_aide_finale = calcul_aide_personnalisee_logement_accession_propriete(
+                CalculAidePersonnaliseeLogementAccessionProprieteIn(mensualite_principale_in = temp_sous_calcul_traitement_54,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_53,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_52,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_51,
+                type_travaux_logement_in = temp_sous_calcul_traitement_50,
+                date_signature_pret_in = temp_sous_calcul_traitement_49,
+                local_habite_premiere_fois_beneficiaire_in = temp_sous_calcul_traitement_48,
+                date_entree_logement_in = temp_sous_calcul_traitement_47,
+                copropriete_in = temp_sous_calcul_traitement_46,
+                situation_r822_11_13_17_in = temp_sous_calcul_traitement_45,
+                zone_in = temp_sous_calcul_traitement_44,
+                type_pret_in = temp_sous_calcul_traitement_43,
+                anciennete_logement_in = temp_sous_calcul_traitement_42,
+                date_courante_in = temp_sous_calcul_traitement_41)).traitement_aide_finale)
+        elif match_arg_503.code == CategorieCalculAPL_Code.LogementFoyer:
+            logement_foyer_ = match_arg_503.value
+            def temp_sous_calcul_traitement_55(_:Unit):
+                raise EmptyError
+            def temp_sous_calcul_traitement_56(_:Unit):
+                raise EmptyError
+            try:
+                temp_sous_calcul_traitement_57 = logement_foyer_.redevance
+            except EmptyError:
+                temp_sous_calcul_traitement_57 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1450,
+                                                     start_column=25,
+                                                     end_line=1450,
+                                                     end_column=50,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_58 = date_courante_11
+            except EmptyError:
+                temp_sous_calcul_traitement_58 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1448,
+                                                     start_column=29,
+                                                     end_line=1448,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_59 = zone_6
+            except EmptyError:
+                temp_sous_calcul_traitement_59 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1447,
+                                                     start_column=20,
+                                                     end_line=1447,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_60 = situation_familiale_calcul_apl_8
+            except EmptyError:
+                temp_sous_calcul_traitement_60 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1449,
+                                                     start_column=46,
+                                                     end_line=1449,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_61 = nombre_personnes_a_charge_8
+            except EmptyError:
+                temp_sous_calcul_traitement_61 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1446,
+                                                     start_column=41,
+                                                     end_line=1446,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_62 = ressources_menage_avec_arrondi
+            except EmptyError:
+                temp_sous_calcul_traitement_62 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1445,
+                                                     start_column=43,
+                                                     end_line=1445,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_63 = logement_foyer_.date_conventionnement
+            except EmptyError:
+                temp_sous_calcul_traitement_63 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1452,
+                                                     start_column=37,
+                                                     end_line=1452,
+                                                     end_column=74,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_64 = logement_foyer_.type
+            except EmptyError:
+                temp_sous_calcul_traitement_64 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1451,
+                                                     start_column=35,
+                                                     end_line=1451,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            def temp_sous_calcul_traitement_65(_:Unit):
+                raise EmptyError
+            def temp_sous_calcul_traitement_66(_:Unit):
+                raise EmptyError
+            try:
+                temp_sous_calcul_traitement_67 = logement_foyer_.redevance
+            except EmptyError:
+                temp_sous_calcul_traitement_67 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1450,
+                                                     start_column=25,
+                                                     end_line=1450,
+                                                     end_column=50,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_68 = date_courante_11
+            except EmptyError:
+                temp_sous_calcul_traitement_68 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1448,
+                                                     start_column=29,
+                                                     end_line=1448,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_69 = zone_6
+            except EmptyError:
+                temp_sous_calcul_traitement_69 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1447,
+                                                     start_column=20,
+                                                     end_line=1447,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_70 = situation_familiale_calcul_apl_8
+            except EmptyError:
+                temp_sous_calcul_traitement_70 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1449,
+                                                     start_column=46,
+                                                     end_line=1449,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_71 = nombre_personnes_a_charge_8
+            except EmptyError:
+                temp_sous_calcul_traitement_71 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1446,
+                                                     start_column=41,
+                                                     end_line=1446,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_72 = ressources_menage_avec_arrondi
+            except EmptyError:
+                temp_sous_calcul_traitement_72 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1445,
+                                                     start_column=43,
+                                                     end_line=1445,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_73 = logement_foyer_.date_conventionnement
+            except EmptyError:
+                temp_sous_calcul_traitement_73 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1452,
+                                                     start_column=37,
+                                                     end_line=1452,
+                                                     end_column=74,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_74 = logement_foyer_.type
+            except EmptyError:
+                temp_sous_calcul_traitement_74 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1451,
+                                                     start_column=35,
+                                                     end_line=1451,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_26 = TraitementFormuleAideFinale(aide_finale_formule = calcul_aide_personnalisee_logement_foyer(
+                CalculAidePersonnaliseeLogementFoyerIn(type_logement_foyer_in = temp_sous_calcul_traitement_64,
+                date_conventionnement_in = temp_sous_calcul_traitement_63,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_62,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_61,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_60,
+                zone_in = temp_sous_calcul_traitement_59,
+                date_courante_in = temp_sous_calcul_traitement_58,
+                redevance_in = temp_sous_calcul_traitement_57,
+                condition_2_du_832_25_in = temp_sous_calcul_traitement_56,
+                n_nombre_parts_d832_25_in = temp_sous_calcul_traitement_55)).aide_finale_formule,
+                traitement_aide_finale = calcul_aide_personnalisee_logement_foyer(
+                CalculAidePersonnaliseeLogementFoyerIn(type_logement_foyer_in = temp_sous_calcul_traitement_74,
+                date_conventionnement_in = temp_sous_calcul_traitement_73,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_72,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_71,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_70,
+                zone_in = temp_sous_calcul_traitement_69,
+                date_courante_in = temp_sous_calcul_traitement_68,
+                redevance_in = temp_sous_calcul_traitement_67,
+                condition_2_du_832_25_in = temp_sous_calcul_traitement_66,
+                n_nombre_parts_d832_25_in = temp_sous_calcul_traitement_65)).traitement_aide_finale)
     except EmptyError:
-        temp_accession_propriete_dot_mensualite_principale_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1538,
-                                             start_column=14, end_line=1538,
-                                             end_column=55,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_mensualite_principale = temp_accession_propriete_dot_mensualite_principale_1
-    try:
-        temp_accession_propriete_dot_ressources_menage_arrondies = ressources_menage_avec_arrondi
-    except EmptyError:
-        temp_accession_propriete_dot_ressources_menage_arrondies = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1452,
-                                             start_column=14, end_line=1452,
-                                             end_column=61,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_ressources_menage_arrondies = temp_accession_propriete_dot_ressources_menage_arrondies
-    try:
-        temp_accession_propriete_dot_nombre_personnes_a_charge = nombre_personnes_a_charge_8
-    except EmptyError:
-        temp_accession_propriete_dot_nombre_personnes_a_charge = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1458,
-                                             start_column=14, end_line=1458,
-                                             end_column=59,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_nombre_personnes_a_charge = temp_accession_propriete_dot_nombre_personnes_a_charge
-    try:
-        temp_accession_propriete_dot_situation_familiale_calcul_apl = situation_familiale_calcul_apl_8
-    except EmptyError:
-        temp_accession_propriete_dot_situation_familiale_calcul_apl = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1470,
-                                             start_column=14, end_line=1470,
-                                             end_column=64,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_situation_familiale_calcul_apl = temp_accession_propriete_dot_situation_familiale_calcul_apl
-    try:
-        match_arg_504 = mode_occupation_2
-        if match_arg_504.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_504.value
-            temp_accession_propriete_dot_type_travaux_logement = TypeTravauxLogementD83215(TypeTravauxLogementD83215_Code.PasDeTravaux,
-                Unit())
-        elif match_arg_504.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_504.value
-            temp_accession_propriete_dot_type_travaux_logement = TypeTravauxLogementD83215(TypeTravauxLogementD83215_Code.PasDeTravaux,
-                Unit())
-        elif match_arg_504.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_2 = match_arg_504.value
-            temp_accession_propriete_dot_type_travaux_logement = proprietaire_2.type_travaux_logement_d832_15
-        elif match_arg_504.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_504.value
-            temp_accession_propriete_dot_type_travaux_logement = TypeTravauxLogementD83215(TypeTravauxLogementD83215_Code.PasDeTravaux,
-                Unit())
-        elif match_arg_504.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_3 = match_arg_504.value
-            temp_accession_propriete_dot_type_travaux_logement = proprietaire_3.type_travaux_logement_d832_15
-        temp_accession_propriete_dot_type_travaux_logement_1 = temp_accession_propriete_dot_type_travaux_logement
-    except EmptyError:
-        temp_accession_propriete_dot_type_travaux_logement_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1547,
-                                             start_column=14, end_line=1547,
-                                             end_column=55,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_type_travaux_logement = temp_accession_propriete_dot_type_travaux_logement_1
-    try:
-        match_arg_505 = mode_occupation_2
-        if match_arg_505.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_505.value
-            temp_accession_propriete_dot_date_signature_pret = date_of_numbers(2010,1,1)
-        elif match_arg_505.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_505.value
-            temp_accession_propriete_dot_date_signature_pret = date_of_numbers(2010,1,1)
-        elif match_arg_505.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_4 = match_arg_505.value
-            temp_accession_propriete_dot_date_signature_pret = proprietaire_4.pret.date_signature
-        elif match_arg_505.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_505.value
-            temp_accession_propriete_dot_date_signature_pret = date_of_numbers(2010,1,1)
-        elif match_arg_505.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_5 = match_arg_505.value
-            temp_accession_propriete_dot_date_signature_pret = proprietaire_5.pret.date_signature
-        temp_accession_propriete_dot_date_signature_pret_1 = temp_accession_propriete_dot_date_signature_pret
-    except EmptyError:
-        temp_accession_propriete_dot_date_signature_pret_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1558,
-                                             start_column=14, end_line=1558,
-                                             end_column=53,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_date_signature_pret = temp_accession_propriete_dot_date_signature_pret_1
-    try:
-        match_arg_506 = mode_occupation_2
-        if match_arg_506.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_506.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire = False
-        elif match_arg_506.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_506.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire = False
-        elif match_arg_506.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_6 = match_arg_506.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire = proprietaire_6.local_habite_premiere_fois_beneficiaire
-        elif match_arg_506.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_506.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire = False
-        elif match_arg_506.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_7 = match_arg_506.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire = proprietaire_7.local_habite_premiere_fois_beneficiaire
-        temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_1 = temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire
-    except EmptyError:
-        temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1567,
-                                             start_column=14, end_line=1567,
-                                             end_column=73,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_local_habite_premiere_fois_beneficiaire = temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_1
-    try:
-        match_arg_507 = mode_occupation_2
-        if match_arg_507.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_507.value
-            temp_accession_propriete_dot_date_entree_logement = date_of_numbers(2010,1,1)
-        elif match_arg_507.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_507.value
-            temp_accession_propriete_dot_date_entree_logement = date_of_numbers(2010,1,1)
-        elif match_arg_507.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_8 = match_arg_507.value
-            temp_accession_propriete_dot_date_entree_logement = proprietaire_8.date_entree_logement
-        elif match_arg_507.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_507.value
-            temp_accession_propriete_dot_date_entree_logement = date_of_numbers(2010,1,1)
-        elif match_arg_507.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_9 = match_arg_507.value
-            temp_accession_propriete_dot_date_entree_logement = proprietaire_9.date_entree_logement
-        temp_accession_propriete_dot_date_entree_logement_1 = temp_accession_propriete_dot_date_entree_logement
-    except EmptyError:
-        temp_accession_propriete_dot_date_entree_logement_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1576,
-                                             start_column=14, end_line=1576,
-                                             end_column=54,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_date_entree_logement = temp_accession_propriete_dot_date_entree_logement_1
-    try:
-        match_arg_508 = mode_occupation_2
-        if match_arg_508.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_508.value
-            temp_accession_propriete_dot_copropriete = False
-        elif match_arg_508.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_508.value
-            temp_accession_propriete_dot_copropriete = False
-        elif match_arg_508.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_10 = match_arg_508.value
-            temp_accession_propriete_dot_copropriete = proprietaire_10.copropriete
-        elif match_arg_508.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_508.value
-            temp_accession_propriete_dot_copropriete = False
-        elif match_arg_508.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_11 = match_arg_508.value
-            temp_accession_propriete_dot_copropriete = proprietaire_11.copropriete
-        temp_accession_propriete_dot_copropriete_1 = temp_accession_propriete_dot_copropriete
-    except EmptyError:
-        temp_accession_propriete_dot_copropriete_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1585,
-                                             start_column=14, end_line=1585,
-                                             end_column=45,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_copropriete = temp_accession_propriete_dot_copropriete_1
-    try:
-        match_arg_509 = mode_occupation_2
-        if match_arg_509.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_509.value
-            temp_accession_propriete_dot_situation_r822_11_13_17 = False
-        elif match_arg_509.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_509.value
-            temp_accession_propriete_dot_situation_r822_11_13_17 = False
-        elif match_arg_509.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_12 = match_arg_509.value
-            temp_accession_propriete_dot_situation_r822_11_13_17 = proprietaire_12.situation_r822_11_13_17
-        elif match_arg_509.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_509.value
-            temp_accession_propriete_dot_situation_r822_11_13_17 = False
-        elif match_arg_509.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_13 = match_arg_509.value
-            temp_accession_propriete_dot_situation_r822_11_13_17 = proprietaire_13.situation_r822_11_13_17
-        temp_accession_propriete_dot_situation_r822_11_13_17_1 = temp_accession_propriete_dot_situation_r822_11_13_17
-    except EmptyError:
-        temp_accession_propriete_dot_situation_r822_11_13_17_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1594,
-                                             start_column=14, end_line=1594,
-                                             end_column=57,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_situation_r822_11_13_17 = temp_accession_propriete_dot_situation_r822_11_13_17_1
-    try:
-        temp_accession_propriete_dot_zone = zone_6
-    except EmptyError:
-        temp_accession_propriete_dot_zone = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1462,
-                                             start_column=14, end_line=1462,
-                                             end_column=38,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_zone = temp_accession_propriete_dot_zone
-    try:
-        match_arg_510 = mode_occupation_2
-        if match_arg_510.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_510.value
-            temp_accession_propriete_dot_type_pret = TypePret(TypePret_Code.D331_32,
-                Unit())
-        elif match_arg_510.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_510.value
-            temp_accession_propriete_dot_type_pret = TypePret(TypePret_Code.D331_32,
-                Unit())
-        elif match_arg_510.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_14 = match_arg_510.value
-            temp_accession_propriete_dot_type_pret = proprietaire_14.pret.type_pret
-        elif match_arg_510.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_510.value
-            temp_accession_propriete_dot_type_pret = TypePret(TypePret_Code.D331_32,
-                Unit())
-        elif match_arg_510.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_15 = match_arg_510.value
-            temp_accession_propriete_dot_type_pret = proprietaire_15.pret.type_pret
-        temp_accession_propriete_dot_type_pret_1 = temp_accession_propriete_dot_type_pret
-    except EmptyError:
-        temp_accession_propriete_dot_type_pret_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1603,
-                                             start_column=14, end_line=1603,
-                                             end_column=43,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_type_pret = temp_accession_propriete_dot_type_pret_1
-    try:
-        match_arg_511 = mode_occupation_2
-        if match_arg_511.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_511.value
-            temp_accession_propriete_dot_anciennete_logement = NeufOuAncien(NeufOuAncien_Code.Neuf,
-                Unit())
-        elif match_arg_511.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_511.value
-            temp_accession_propriete_dot_anciennete_logement = NeufOuAncien(NeufOuAncien_Code.Neuf,
-                Unit())
-        elif match_arg_511.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_16 = match_arg_511.value
-            temp_accession_propriete_dot_anciennete_logement = proprietaire_16.anciennete_logement
-        elif match_arg_511.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_511.value
-            temp_accession_propriete_dot_anciennete_logement = NeufOuAncien(NeufOuAncien_Code.Neuf,
-                Unit())
-        elif match_arg_511.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_17 = match_arg_511.value
-            temp_accession_propriete_dot_anciennete_logement = proprietaire_17.anciennete_logement
-        temp_accession_propriete_dot_anciennete_logement_1 = temp_accession_propriete_dot_anciennete_logement
-    except EmptyError:
-        temp_accession_propriete_dot_anciennete_logement_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1612,
-                                             start_column=14, end_line=1612,
-                                             end_column=53,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_anciennete_logement = temp_accession_propriete_dot_anciennete_logement_1
-    try:
-        temp_accession_propriete_dot_date_courante = date_courante_11
-    except EmptyError:
-        temp_accession_propriete_dot_date_courante = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1465,
-                                             start_column=14, end_line=1465,
-                                             end_column=47,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_date_courante = temp_accession_propriete_dot_date_courante
-    result_19 = calcul_aide_personnalisee_logement_accession_propriete(
-        CalculAidePersonnaliseeLogementAccessionProprieteIn(mensualite_principale_in = accession_propriete_dot_mensualite_principale,
-        ressources_menage_arrondies_in = accession_propriete_dot_ressources_menage_arrondies,
-        nombre_personnes_a_charge_in = accession_propriete_dot_nombre_personnes_a_charge,
-        situation_familiale_calcul_apl_in = accession_propriete_dot_situation_familiale_calcul_apl,
-        type_travaux_logement_in = accession_propriete_dot_type_travaux_logement,
-        date_signature_pret_in = accession_propriete_dot_date_signature_pret,
-        local_habite_premiere_fois_beneficiaire_in = accession_propriete_dot_local_habite_premiere_fois_beneficiaire,
-        date_entree_logement_in = accession_propriete_dot_date_entree_logement,
-        copropriete_in = accession_propriete_dot_copropriete,
-        situation_r822_11_13_17_in = accession_propriete_dot_situation_r822_11_13_17,
-        zone_in = accession_propriete_dot_zone,
-        type_pret_in = accession_propriete_dot_type_pret,
-        anciennete_logement_in = accession_propriete_dot_anciennete_logement,
-        date_courante_in = accession_propriete_dot_date_courante))
-    accession_propriete_dot_mensualite_eligible = result_19.mensualite_eligible
-    accession_propriete_dot_mensualite_minimale = result_19.mensualite_minimale
-    accession_propriete_dot_coefficient_prise_en_charge_d832_10_seuil = result_19.coefficient_prise_en_charge_d832_10
-    accession_propriete_dot_aide_finale_formule = result_19.aide_finale_formule
-    accession_propriete_dot_traitement_aide_finale_montant_minimal = result_19.traitement_aide_finale
-    try:
-        match_arg_512 = mode_occupation_2
-        if match_arg_512.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_512.value
-            temp_logement_foyer_dot_type_logement_foyer = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        elif match_arg_512.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer_ = match_arg_512.value
-            temp_logement_foyer_dot_type_logement_foyer = logement_foyer_.type
-        elif match_arg_512.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_512.value
-            temp_logement_foyer_dot_type_logement_foyer = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        elif match_arg_512.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_512.value
-            temp_logement_foyer_dot_type_logement_foyer = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        elif match_arg_512.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_512.value
-            temp_logement_foyer_dot_type_logement_foyer = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        temp_logement_foyer_dot_type_logement_foyer_1 = temp_logement_foyer_dot_type_logement_foyer
-    except EmptyError:
-        temp_logement_foyer_dot_type_logement_foyer_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1629,
-                                             start_column=14, end_line=1629,
-                                             end_column=48,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_type_logement_foyer = temp_logement_foyer_dot_type_logement_foyer_1
-    try:
-        match_arg_513 = mode_occupation_2
-        if match_arg_513.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_513.value
-            temp_logement_foyer_dot_date_conventionnement = date_of_numbers(1970,1,1)
-        elif match_arg_513.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer__1 = match_arg_513.value
-            temp_logement_foyer_dot_date_conventionnement = logement_foyer__1.date_conventionnement
-        elif match_arg_513.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_513.value
-            temp_logement_foyer_dot_date_conventionnement = date_of_numbers(1970,1,1)
-        elif match_arg_513.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_513.value
-            temp_logement_foyer_dot_date_conventionnement = date_of_numbers(1970,1,1)
-        elif match_arg_513.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_513.value
-            temp_logement_foyer_dot_date_conventionnement = date_of_numbers(1970,1,1)
-        temp_logement_foyer_dot_date_conventionnement_1 = temp_logement_foyer_dot_date_conventionnement
-    except EmptyError:
-        temp_logement_foyer_dot_date_conventionnement_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1638,
-                                             start_column=14, end_line=1638,
-                                             end_column=50,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_date_conventionnement = temp_logement_foyer_dot_date_conventionnement_1
-    try:
-        temp_logement_foyer_dot_ressources_menage_arrondies = ressources_menage_avec_arrondi
-    except EmptyError:
-        temp_logement_foyer_dot_ressources_menage_arrondies = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1450,
-                                             start_column=14, end_line=1450,
-                                             end_column=56,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_ressources_menage_arrondies = temp_logement_foyer_dot_ressources_menage_arrondies
-    try:
-        temp_logement_foyer_dot_nombre_personnes_a_charge = nombre_personnes_a_charge_8
-    except EmptyError:
-        temp_logement_foyer_dot_nombre_personnes_a_charge = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1456,
-                                             start_column=14, end_line=1456,
-                                             end_column=54,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_nombre_personnes_a_charge = temp_logement_foyer_dot_nombre_personnes_a_charge
-    try:
-        temp_logement_foyer_dot_situation_familiale_calcul_apl = situation_familiale_calcul_apl_8
-    except EmptyError:
-        temp_logement_foyer_dot_situation_familiale_calcul_apl = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1468,
-                                             start_column=14, end_line=1468,
-                                             end_column=59,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_situation_familiale_calcul_apl = temp_logement_foyer_dot_situation_familiale_calcul_apl
-    try:
-        temp_logement_foyer_dot_zone = zone_6
-    except EmptyError:
-        temp_logement_foyer_dot_zone = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1461,
-                                             start_column=14, end_line=1461,
-                                             end_column=33,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_zone = temp_logement_foyer_dot_zone
-    try:
-        temp_logement_foyer_dot_date_courante = date_courante_11
-    except EmptyError:
-        temp_logement_foyer_dot_date_courante = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1464,
-                                             start_column=14, end_line=1464,
-                                             end_column=42,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_date_courante = temp_logement_foyer_dot_date_courante
-    try:
-        match_arg_514 = mode_occupation_2
-        if match_arg_514.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_514.value
-            temp_logement_foyer_dot_redevance = money_of_cents_string("0")
-        elif match_arg_514.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer__2 = match_arg_514.value
-            temp_logement_foyer_dot_redevance = logement_foyer__2.redevance
-        elif match_arg_514.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_514.value
-            temp_logement_foyer_dot_redevance = money_of_cents_string("0")
-        elif match_arg_514.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_514.value
-            temp_logement_foyer_dot_redevance = money_of_cents_string("0")
-        elif match_arg_514.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_514.value
-            temp_logement_foyer_dot_redevance = money_of_cents_string("0")
-        temp_logement_foyer_dot_redevance_1 = temp_logement_foyer_dot_redevance
-    except EmptyError:
-        temp_logement_foyer_dot_redevance_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1622,
-                                             start_column=14, end_line=1622,
-                                             end_column=38,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_redevance = temp_logement_foyer_dot_redevance_1
-    def temp_logement_foyer_dot_condition_2_du_832_25(_:Unit):
-        temp_logement_foyer_dot_condition_2_du_832_25_1 = dead_value
-        raise EmptyError
-        return temp_logement_foyer_dot_condition_2_du_832_25_1
-    logement_foyer_dot_condition_2_du_832_25 = temp_logement_foyer_dot_condition_2_du_832_25
-    def temp_logement_foyer_dot_n_nombre_parts_d832_25(_:Unit):
-        temp_logement_foyer_dot_n_nombre_parts_d832_25_1 = dead_value
-        raise EmptyError
-        return temp_logement_foyer_dot_n_nombre_parts_d832_25_1
-    logement_foyer_dot_n_nombre_parts_d832_25 = temp_logement_foyer_dot_n_nombre_parts_d832_25
-    result_20 = calcul_aide_personnalisee_logement_foyer(CalculAidePersonnaliseeLogementFoyerIn(type_logement_foyer_in = logement_foyer_dot_type_logement_foyer,
-                                                         date_conventionnement_in = logement_foyer_dot_date_conventionnement,
-                                                         ressources_menage_arrondies_in = logement_foyer_dot_ressources_menage_arrondies,
-                                                         nombre_personnes_a_charge_in = logement_foyer_dot_nombre_personnes_a_charge,
-                                                         situation_familiale_calcul_apl_in = logement_foyer_dot_situation_familiale_calcul_apl,
-                                                         zone_in = logement_foyer_dot_zone,
-                                                         date_courante_in = logement_foyer_dot_date_courante,
-                                                         redevance_in = logement_foyer_dot_redevance,
-                                                         condition_2_du_832_25_in = logement_foyer_dot_condition_2_du_832_25,
-                                                         n_nombre_parts_d832_25_in = logement_foyer_dot_n_nombre_parts_d832_25))
-    logement_foyer_dot_coefficient_multiplicateur_d832_25 = result_20.coefficient_multiplicateur_d832_25
-    logement_foyer_dot_coefficient_r_d832_25 = result_20.coefficient_r_d832_25
-    logement_foyer_dot_n_nombre_parts_d832_25_1 = result_20.n_nombre_parts_d832_25
-    logement_foyer_dot_equivalence_loyer_eligible = result_20.equivalence_loyer_eligible
-    logement_foyer_dot_plafond_equivalence_loyer_eligible = result_20.plafond_equivalence_loyer_eligible
-    logement_foyer_dot_equivalence_loyer_minimale = result_20.equivalence_loyer_minimale
-    logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil = result_20.coefficient_prise_en_charge_d832_25
-    logement_foyer_dot_aide_finale_formule = result_20.aide_finale_formule
-    logement_foyer_dot_traitement_aide_finale_montant_minimal = result_20.traitement_aide_finale
-    try:
-        match_arg_515 = mode_occupation_2
-        if match_arg_515.code == ModeOccupation_Code.Locataire:
-            location = match_arg_515.value
-            temp_locatif_dot_loyer_principal_base = location.loyer_principal
-        elif match_arg_515.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_515.value
-            temp_locatif_dot_loyer_principal_base = money_of_cents_string("0")
-        elif match_arg_515.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_515.value
-            temp_locatif_dot_loyer_principal_base = money_of_cents_string("0")
-        elif match_arg_515.code == ModeOccupation_Code.SousLocataire:
-            location_1 = match_arg_515.value
-            temp_locatif_dot_loyer_principal_base = location_1.loyer_principal
-        elif match_arg_515.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_515.value
-            temp_locatif_dot_loyer_principal_base = money_of_cents_string("0")
-        temp_locatif_dot_loyer_principal_base_1 = temp_locatif_dot_loyer_principal_base
-    except EmptyError:
-        temp_locatif_dot_loyer_principal_base_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1473,
-                                             start_column=14, end_line=1473,
-                                             end_column=37,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_loyer_principal_base = temp_locatif_dot_loyer_principal_base_1
-    try:
-        temp_locatif_dot_ressources_menage_arrondies = ressources_menage_avec_arrondi
-    except EmptyError:
-        temp_locatif_dot_ressources_menage_arrondies = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1449,
-                                             start_column=14, end_line=1449,
-                                             end_column=49,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_ressources_menage_arrondies = temp_locatif_dot_ressources_menage_arrondies
-    try:
-        match_arg_516 = mode_occupation_2
-        if match_arg_516.code == ModeOccupation_Code.Locataire:
-            location_2 = match_arg_516.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = location_2.beneficiaire_aide_adulte_ou_enfant_handicapes
-        elif match_arg_516.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_516.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = False
-        elif match_arg_516.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_516.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = False
-        elif match_arg_516.code == ModeOccupation_Code.SousLocataire:
-            location_3 = match_arg_516.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = location_3.beneficiaire_aide_adulte_ou_enfant_handicapes
-        elif match_arg_516.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_516.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = False
-        temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_1 = temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes
-    except EmptyError:
-        temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1480,
-                                             start_column=14, end_line=1480,
-                                             end_column=67,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_1
-    try:
-        temp_locatif_dot_date_courante = date_courante_11
-    except EmptyError:
-        temp_locatif_dot_date_courante = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1463,
-                                             start_column=14, end_line=1463,
-                                             end_column=35,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_date_courante = temp_locatif_dot_date_courante
-    try:
-        temp_locatif_dot_nombre_personnes_a_charge = nombre_personnes_a_charge_8
-    except EmptyError:
-        temp_locatif_dot_nombre_personnes_a_charge = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1454,
-                                             start_column=14, end_line=1454,
-                                             end_column=47,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_nombre_personnes_a_charge = temp_locatif_dot_nombre_personnes_a_charge
-    try:
-        temp_locatif_dot_situation_familiale_calcul_apl = situation_familiale_calcul_apl_8
-    except EmptyError:
-        temp_locatif_dot_situation_familiale_calcul_apl = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1466,
-                                             start_column=14, end_line=1466,
-                                             end_column=52,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_situation_familiale_calcul_apl = temp_locatif_dot_situation_familiale_calcul_apl
-    try:
-        temp_locatif_dot_zone = zone_6
-    except EmptyError:
-        temp_locatif_dot_zone = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1460,
-                                             start_column=14, end_line=1460,
-                                             end_column=26,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_zone = temp_locatif_dot_zone
-    try:
-        match_arg_517 = mode_occupation_2
-        if match_arg_517.code == ModeOccupation_Code.Locataire:
-            location_4 = match_arg_517.value
-            temp_locatif_dot_logement_est_chambre = location_4.logement_est_chambre
-        elif match_arg_517.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_517.value
-            temp_locatif_dot_logement_est_chambre = False
-        elif match_arg_517.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_517.value
-            temp_locatif_dot_logement_est_chambre = False
-        elif match_arg_517.code == ModeOccupation_Code.SousLocataire:
-            location_5 = match_arg_517.value
-            temp_locatif_dot_logement_est_chambre = location_5.logement_est_chambre
-        elif match_arg_517.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_517.value
-            temp_locatif_dot_logement_est_chambre = False
-        temp_locatif_dot_logement_est_chambre_1 = temp_locatif_dot_logement_est_chambre
-    except EmptyError:
-        temp_locatif_dot_logement_est_chambre_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1489,
-                                             start_column=14, end_line=1489,
-                                             end_column=42,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_logement_est_chambre = temp_locatif_dot_logement_est_chambre_1
-    try:
-        match_arg_518 = mode_occupation_2
-        if match_arg_518.code == ModeOccupation_Code.Locataire:
-            location_6 = match_arg_518.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = location_6.agees_ou_handicap_adultes_hebergees_onereux_particuliers
-        elif match_arg_518.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_518.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = False
-        elif match_arg_518.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_518.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = False
-        elif match_arg_518.code == ModeOccupation_Code.SousLocataire:
-            location_7 = match_arg_518.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = location_7.agees_ou_handicap_adultes_hebergees_onereux_particuliers
-        elif match_arg_518.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_518.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = False
-        temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_1 = temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers
-    except EmptyError:
-        temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1504, start_column=5,
-                                             end_line=1504, end_column=69,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_1
-    try:
-        temp_locatif_dot_type_aide = type_aide_2
-    except EmptyError:
-        temp_locatif_dot_type_aide = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1514,
-                                             start_column=14, end_line=1514,
-                                             end_column=31,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_type_aide = temp_locatif_dot_type_aide
-    try:
-        match_arg_519 = mode_occupation_2
-        if match_arg_519.code == ModeOccupation_Code.Locataire:
-            location_8 = match_arg_519.value
-            temp_locatif_dot_colocation = location_8.colocation
-        elif match_arg_519.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_519.value
-            temp_locatif_dot_colocation = False
-        elif match_arg_519.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_519.value
-            temp_locatif_dot_colocation = False
-        elif match_arg_519.code == ModeOccupation_Code.SousLocataire:
-            location_9 = match_arg_519.value
-            temp_locatif_dot_colocation = location_9.colocation
-        elif match_arg_519.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_519.value
-            temp_locatif_dot_colocation = False
-        temp_locatif_dot_colocation_1 = temp_locatif_dot_colocation
-    except EmptyError:
-        temp_locatif_dot_colocation_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1496,
-                                             start_column=14, end_line=1496,
-                                             end_column=32,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_colocation = temp_locatif_dot_colocation_1
-    try:
-        match_arg_520 = mode_occupation_2
-        if match_arg_520.code == ModeOccupation_Code.Locataire:
-            location_10 = match_arg_520.value
-            match_arg_521 = location_10.bailleur
-            if match_arg_521.code == TypeBailleur_Code.BailleurSocial:
-                bailleur = match_arg_521.value
-                temp_locatif_dot_reduction_loyer_solidarite = bailleur.reduction_loyer_solidarite_percue
-            elif match_arg_521.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                _ = match_arg_521.value
-                temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-            elif match_arg_521.code == TypeBailleur_Code.BailleurPrive:
-                _ = match_arg_521.value
-                temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-        elif match_arg_520.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_520.value
-            temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-        elif match_arg_520.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_520.value
-            temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-        elif match_arg_520.code == ModeOccupation_Code.SousLocataire:
-            location_11 = match_arg_520.value
-            match_arg_522 = location_11.bailleur
-            if match_arg_522.code == TypeBailleur_Code.BailleurSocial:
-                bailleur_1 = match_arg_522.value
-                temp_locatif_dot_reduction_loyer_solidarite = bailleur_1.reduction_loyer_solidarite_percue
-            elif match_arg_522.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                _ = match_arg_522.value
-                temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-            elif match_arg_522.code == TypeBailleur_Code.BailleurPrive:
-                _ = match_arg_522.value
-                temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-        elif match_arg_520.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_520.value
-            temp_locatif_dot_reduction_loyer_solidarite = money_of_cents_string("0")
-        temp_locatif_dot_reduction_loyer_solidarite_1 = temp_locatif_dot_reduction_loyer_solidarite
-    except EmptyError:
-        temp_locatif_dot_reduction_loyer_solidarite_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1515,
-                                             start_column=14, end_line=1515,
-                                             end_column=48,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_reduction_loyer_solidarite = temp_locatif_dot_reduction_loyer_solidarite_1
-    try:
-        match_arg_523 = mode_occupation_2
-        if match_arg_523.code == ModeOccupation_Code.Locataire:
-            location_12 = match_arg_523.value
-            temp_locatif_dot_logement_meuble_d842_2 = location_12.logement_meuble_d842_2
-        elif match_arg_523.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_523.value
-            temp_locatif_dot_logement_meuble_d842_2 = False
-        elif match_arg_523.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_523.value
-            temp_locatif_dot_logement_meuble_d842_2 = False
-        elif match_arg_523.code == ModeOccupation_Code.SousLocataire:
-            location_13 = match_arg_523.value
-            temp_locatif_dot_logement_meuble_d842_2 = location_13.logement_meuble_d842_2
-        elif match_arg_523.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_523.value
-            temp_locatif_dot_logement_meuble_d842_2 = False
-        temp_locatif_dot_logement_meuble_d842_2_1 = temp_locatif_dot_logement_meuble_d842_2
-    except EmptyError:
-        temp_locatif_dot_logement_meuble_d842_2_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1530,
-                                             start_column=14, end_line=1530,
-                                             end_column=44,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_logement_meuble_d842_2 = temp_locatif_dot_logement_meuble_d842_2_1
-    result_21 = calcul_aide_personnalisee_logement_locatif(CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_base_in = locatif_dot_loyer_principal_base,
-                                                           ressources_menage_arrondies_in = locatif_dot_ressources_menage_arrondies,
-                                                           beneficiaire_aide_adulte_ou_enfant_handicapes_in = locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes,
-                                                           date_courante_in = locatif_dot_date_courante,
-                                                           nombre_personnes_a_charge_in = locatif_dot_nombre_personnes_a_charge,
-                                                           situation_familiale_calcul_apl_in = locatif_dot_situation_familiale_calcul_apl,
-                                                           zone_in = locatif_dot_zone,
-                                                           logement_est_chambre_in = locatif_dot_logement_est_chambre,
-                                                           agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers,
-                                                           type_aide_in = locatif_dot_type_aide,
-                                                           colocation_in = locatif_dot_colocation,
-                                                           reduction_loyer_solidarite_in = locatif_dot_reduction_loyer_solidarite,
-                                                           logement_meuble_d842_2_in = locatif_dot_logement_meuble_d842_2))
-    locatif_dot_montant_forfaitaire_charges_d823_16 = result_21.montant_forfaitaire_charges_d823_16
-    locatif_dot_plafond_loyer_d823_16_2 = result_21.plafond_loyer_d823_16_2
-    locatif_dot_participation_minimale = result_21.participation_minimale
-    locatif_dot_taux_composition_familiale = result_21.taux_composition_familiale
-    locatif_dot_participation_personnelle = result_21.participation_personnelle
-    locatif_dot_aide_finale_formule = result_21.aide_finale_formule
-    locatif_dot_traitement_aide_finale_montant_minimal = result_21.traitement_aide_finale
+        temp_sous_calcul_traitement_26 = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
+                                             start_line=743, start_column=11,
+                                             end_line=743, end_column=33,
+                                             law_headings=["Tous secteurs",
+                                             "Calcul du montant de l'aide personnalisée au logement",
+                                             "Déclarations des champs d'application",
+                                             "Prologue : aides au logement"]))
+    sous_calcul_traitement = temp_sous_calcul_traitement_26
     try:
         def temp_traitement_aide_finale_2(param_40:Money):
             try:
-                match_arg_524 = categorie_calcul_apl
-                if match_arg_524.code == CategorieCalculAPL_Code.Location:
-                    _ = match_arg_524.value
-                    return locatif_dot_traitement_aide_finale_montant_minimal(
-                        param_40)
-                elif match_arg_524.code == CategorieCalculAPL_Code.AccessionPropriete:
-                    _ = match_arg_524.value
-                    return accession_propriete_dot_traitement_aide_finale_montant_minimal(
-                        param_40)
-                elif match_arg_524.code == CategorieCalculAPL_Code.LogementFoyer:
-                    _ = match_arg_524.value
-                    return logement_foyer_dot_traitement_aide_finale_montant_minimal(
-                        param_40)
+                return sous_calcul_traitement.traitement_aide_finale(
+                    param_40)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=745,
+                                                     start_line=746,
                                                      start_column=10,
-                                                     end_line=745,
+                                                     end_line=746,
                                                      end_column=32,
                                                      law_headings=["Tous secteurs",
                                                      "Calcul du montant de l'aide personnalisée au logement",
@@ -17621,29 +17909,20 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
     except EmptyError:
         temp_traitement_aide_finale_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=745, start_column=10,
-                                             end_line=745, end_column=32,
+                                             start_line=746, start_column=10,
+                                             end_line=746, end_column=32,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_1 = temp_traitement_aide_finale_2
     try:
-        match_arg_525 = categorie_calcul_apl
-        if match_arg_525.code == CategorieCalculAPL_Code.Location:
-            _ = match_arg_525.value
-            temp_aide_finale_formule_7 = locatif_dot_aide_finale_formule
-        elif match_arg_525.code == CategorieCalculAPL_Code.AccessionPropriete:
-            _ = match_arg_525.value
-            temp_aide_finale_formule_7 = accession_propriete_dot_aide_finale_formule
-        elif match_arg_525.code == CategorieCalculAPL_Code.LogementFoyer:
-            _ = match_arg_525.value
-            temp_aide_finale_formule_7 = logement_foyer_dot_aide_finale_formule
+        temp_aide_finale_formule_7 = sous_calcul_traitement.aide_finale_formule
     except EmptyError:
         temp_aide_finale_formule_7 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=744, start_column=10,
-                                             end_line=744, end_column=29,
+                                             start_line=745, start_column=10,
+                                             end_line=745, end_column=29,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -17673,12 +17952,12 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
     try:
         try:
             def temp_condition_rang_enfant(acc_5:Integer, personne_a_charge_3:Any):
-                match_arg_526 = personne_a_charge_3
-                if match_arg_526.code == PersonneACharge_Code.EnfantACharge:
-                    _ = match_arg_526.value
+                match_arg_506 = personne_a_charge_3
+                if match_arg_506.code == PersonneACharge_Code.EnfantACharge:
+                    _ = match_arg_506.value
                     temp_condition_rang_enfant_1 = True
-                elif match_arg_526.code == PersonneACharge_Code.AutrePersonneACharge:
-                    _ = match_arg_526.value
+                elif match_arg_506.code == PersonneACharge_Code.AutrePersonneACharge:
+                    _ = match_arg_506.value
                     temp_condition_rang_enfant_1 = False
                 if temp_condition_rang_enfant_1:
                     return (acc_5 + integer_of_string("1"))
@@ -17715,8 +17994,8 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     base_mensuelle_allocations_familiales_dot_date_courante_1 = temp_base_mensuelle_allocations_familiales_dot_date_courante_1
-    result_22 = base_mensuelle_allocations_familiales(BaseMensuelleAllocationsFamilialesIn(date_courante_in = base_mensuelle_allocations_familiales_dot_date_courante_1))
-    base_mensuelle_allocations_familiales_dot_montant_1 = result_22.montant
+    result_19 = base_mensuelle_allocations_familiales(BaseMensuelleAllocationsFamilialesIn(date_courante_in = base_mensuelle_allocations_familiales_dot_date_courante_1))
+    base_mensuelle_allocations_familiales_dot_montant_1 = result_19.montant
     try:
         temp_eligibilite_apl_dot_menage = menage_1
     except EmptyError:
@@ -17760,36 +18039,36 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
         raise EmptyError
         return temp_eligibilite_apl_dot_condition_logement_surface_1
     eligibilite_apl_dot_condition_logement_surface = temp_eligibilite_apl_dot_condition_logement_surface
-    result_23 = eligibilite_aides_personnelle_logement(EligibiliteAidesPersonnelleLogementIn(menage_in = eligibilite_apl_dot_menage,
+    result_20 = eligibilite_aides_personnelle_logement(EligibiliteAidesPersonnelleLogementIn(menage_in = eligibilite_apl_dot_menage,
                                                        demandeur_in = eligibilite_apl_dot_demandeur,
                                                        date_courante_in = eligibilite_apl_dot_date_courante,
                                                        condition_logement_residence_principale_in = eligibilite_apl_dot_condition_logement_residence_principale,
                                                        condition_logement_surface_in = eligibilite_apl_dot_condition_logement_surface))
-    eligibilite_apl_dot_date_courante_1 = result_23.date_courante
-    eligibilite_apl_dot_eligibilite = result_23.eligibilite
-    eligibilite_apl_dot_nombre_personnes_a_charge_prises_en_compte = result_23.nombre_personnes_a_charge_prises_en_compte
-    eligibilite_apl_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_23.coefficents_enfants_garde_alternee_pris_en_compte
-    eligibilite_apl_dot_condition_2_r823_4 = result_23.condition_2_r823_4
+    eligibilite_apl_dot_date_courante_1 = result_20.date_courante
+    eligibilite_apl_dot_eligibilite = result_20.eligibilite
+    eligibilite_apl_dot_nombre_personnes_a_charge_prises_en_compte = result_20.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_apl_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_20.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_apl_dot_condition_2_r823_4 = result_20.condition_2_r823_4
     try:
         try:
-            match_arg_527 = informations.date_naissance_troisieme_enfant_ou_dernier_si_plus
-            if match_arg_527.code == DateNaissanceTroisiemeOuDernierPlusEnfant_Code.MoinsDeTroisEnfants:
-                _ = match_arg_527.value
+            match_arg_507 = informations.date_naissance_troisieme_enfant_ou_dernier_si_plus
+            if match_arg_507.code == DateNaissanceTroisiemeOuDernierPlusEnfant_Code.MoinsDeTroisEnfants:
+                _ = match_arg_507.value
                 temp_condition_periode_demenagement = False
-            elif match_arg_527.code == DateNaissanceTroisiemeOuDernierPlusEnfant_Code.PlusDeTroisEnfants:
-                date_naissance_ou_grossesse = match_arg_527.value
-                match_arg_528 = date_naissance_ou_grossesse
-                if match_arg_528.code == DateDeNaissanceOuMoisDeGrossesse_Code.DateDeNaissance:
-                    date_naissance = match_arg_528.value
+            elif match_arg_507.code == DateNaissanceTroisiemeOuDernierPlusEnfant_Code.PlusDeTroisEnfants:
+                date_naissance_ou_grossesse = match_arg_507.value
+                match_arg_508 = date_naissance_ou_grossesse
+                if match_arg_508.code == DateDeNaissanceOuMoisDeGrossesse_Code.DateDeNaissance:
+                    date_naissance = match_arg_508.value
                     temp_condition_periode_demenagement = (date_courante_12 <=
                         (first_day_of_month((date_naissance +
                         duration_of_numbers(2,0,0))) +
                         duration_of_numbers(0,0,-1)))
-                elif match_arg_528.code == DateDeNaissanceOuMoisDeGrossesse_Code.AvantPremierJourMoisCivilTroisiemeMoisDeGrossesse:
-                    _ = match_arg_528.value
+                elif match_arg_508.code == DateDeNaissanceOuMoisDeGrossesse_Code.AvantPremierJourMoisCivilTroisiemeMoisDeGrossesse:
+                    _ = match_arg_508.value
                     temp_condition_periode_demenagement = False
-                elif match_arg_528.code == DateDeNaissanceOuMoisDeGrossesse_Code.ApresPremierJourMoisCivilTroisiemeMoisDeGrossesse:
-                    _ = match_arg_528.value
+                elif match_arg_508.code == DateDeNaissanceOuMoisDeGrossesse_Code.ApresPremierJourMoisCivilTroisiemeMoisDeGrossesse:
+                    _ = match_arg_508.value
                     temp_condition_periode_demenagement = True
             if temp_condition_periode_demenagement:
                 temp_condition_periode_demenagement_1 = True
@@ -17809,12 +18088,12 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
     condition_periode_demenagement = temp_condition_periode_demenagement_1
     try:
         def temp_plafond_d823_22(acc_6:Integer, personne_a_charge_4:Any):
-            match_arg_529 = personne_a_charge_4
-            if match_arg_529.code == PersonneACharge_Code.EnfantACharge:
-                _ = match_arg_529.value
+            match_arg_509 = personne_a_charge_4
+            if match_arg_509.code == PersonneACharge_Code.EnfantACharge:
+                _ = match_arg_509.value
                 temp_plafond_d823_22_1 = True
-            elif match_arg_529.code == PersonneACharge_Code.AutrePersonneACharge:
-                _ = match_arg_529.value
+            elif match_arg_509.code == PersonneACharge_Code.AutrePersonneACharge:
+                _ = match_arg_509.value
                 temp_plafond_d823_22_1 = False
             if temp_plafond_d823_22_1:
                 return (acc_6 + integer_of_string("1"))
@@ -17824,12 +18103,12 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
                            menage_1.personnes_a_charge) >
             integer_of_string("3")):
             def temp_plafond_d823_22_2(acc_7:Integer, personne_a_charge_5:Any):
-                match_arg_530 = personne_a_charge_5
-                if match_arg_530.code == PersonneACharge_Code.EnfantACharge:
-                    _ = match_arg_530.value
+                match_arg_510 = personne_a_charge_5
+                if match_arg_510.code == PersonneACharge_Code.EnfantACharge:
+                    _ = match_arg_510.value
                     temp_plafond_d823_22_3 = True
-                elif match_arg_530.code == PersonneACharge_Code.AutrePersonneACharge:
-                    _ = match_arg_530.value
+                elif match_arg_510.code == PersonneACharge_Code.AutrePersonneACharge:
+                    _ = match_arg_510.value
                     temp_plafond_d823_22_3 = False
                 if temp_plafond_d823_22_3:
                     return (acc_7 + integer_of_string("1"))
@@ -17901,44 +18180,44 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
             try:
                 try:
                     try:
-                        match_arg_531 = param_41.type_pret
-                        if match_arg_531.code == TypePret_Code.D331_32:
-                            _ = match_arg_531.value
+                        match_arg_511 = param_41.type_pret
+                        if match_arg_511.code == TypePret_Code.D331_32:
+                            _ = match_arg_511.value
                             temp_caracteristiques_pret_l831_1_1_1 = False
-                        elif match_arg_531.code == TypePret_Code.D331_63_64:
-                            _ = match_arg_531.value
+                        elif match_arg_511.code == TypePret_Code.D331_63_64:
+                            _ = match_arg_511.value
                             temp_caracteristiques_pret_l831_1_1_1 = False
-                        elif match_arg_531.code == TypePret_Code.D331_59_8:
-                            _ = match_arg_531.value
+                        elif match_arg_511.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_511.value
                             temp_caracteristiques_pret_l831_1_1_1 = False
-                        elif match_arg_531.code == TypePret_Code.D331_76_1:
-                            _ = match_arg_531.value
+                        elif match_arg_511.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_511.value
                             temp_caracteristiques_pret_l831_1_1_1 = True
-                        elif match_arg_531.code == TypePret_Code.Autre:
-                            _ = match_arg_531.value
+                        elif match_arg_511.code == TypePret_Code.Autre:
+                            _ = match_arg_511.value
                             temp_caracteristiques_pret_l831_1_1_1 = False
-                        match_arg_532 = param_41.type_pret
-                        if match_arg_532.code == TypePret_Code.D331_32:
-                            _ = match_arg_532.value
+                        match_arg_512 = param_41.type_pret
+                        if match_arg_512.code == TypePret_Code.D331_32:
+                            _ = match_arg_512.value
                             temp_caracteristiques_pret_l831_1_1_2 = False
-                        elif match_arg_532.code == TypePret_Code.D331_63_64:
-                            _ = match_arg_532.value
+                        elif match_arg_512.code == TypePret_Code.D331_63_64:
+                            _ = match_arg_512.value
                             temp_caracteristiques_pret_l831_1_1_2 = False
-                        elif match_arg_532.code == TypePret_Code.D331_59_8:
-                            _ = match_arg_532.value
+                        elif match_arg_512.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_512.value
                             temp_caracteristiques_pret_l831_1_1_2 = True
-                        elif match_arg_532.code == TypePret_Code.D331_76_1:
-                            _ = match_arg_532.value
+                        elif match_arg_512.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_512.value
                             temp_caracteristiques_pret_l831_1_1_2 = False
-                        elif match_arg_532.code == TypePret_Code.Autre:
-                            _ = match_arg_532.value
+                        elif match_arg_512.code == TypePret_Code.Autre:
+                            _ = match_arg_512.value
                             temp_caracteristiques_pret_l831_1_1_2 = False
-                        match_arg_533 = param_41.titulaire_pret
-                        if match_arg_533.code == TitulairePret_Code.Demandeur:
-                            _ = match_arg_533.value
+                        match_arg_513 = param_41.titulaire_pret
+                        if match_arg_513.code == TitulairePret_Code.Demandeur:
+                            _ = match_arg_513.value
                             temp_caracteristiques_pret_l831_1_1_3 = False
-                        elif match_arg_533.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                            _ = match_arg_533.value
+                        elif match_arg_513.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                            _ = match_arg_513.value
                             temp_caracteristiques_pret_l831_1_1_3 = True
                         if (temp_caracteristiques_pret_l831_1_1_3 and
                             (temp_caracteristiques_pret_l831_1_1_2 or
@@ -17947,44 +18226,44 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                         else:
                             raise EmptyError
                     except EmptyError:
-                        match_arg_534 = param_41.type_pret
-                        if match_arg_534.code == TypePret_Code.D331_32:
-                            _ = match_arg_534.value
+                        match_arg_514 = param_41.type_pret
+                        if match_arg_514.code == TypePret_Code.D331_32:
+                            _ = match_arg_514.value
                             temp_caracteristiques_pret_l831_1_1_4 = False
-                        elif match_arg_534.code == TypePret_Code.D331_63_64:
-                            _ = match_arg_534.value
+                        elif match_arg_514.code == TypePret_Code.D331_63_64:
+                            _ = match_arg_514.value
                             temp_caracteristiques_pret_l831_1_1_4 = True
-                        elif match_arg_534.code == TypePret_Code.D331_59_8:
-                            _ = match_arg_534.value
+                        elif match_arg_514.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_514.value
                             temp_caracteristiques_pret_l831_1_1_4 = False
-                        elif match_arg_534.code == TypePret_Code.D331_76_1:
-                            _ = match_arg_534.value
+                        elif match_arg_514.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_514.value
                             temp_caracteristiques_pret_l831_1_1_4 = False
-                        elif match_arg_534.code == TypePret_Code.Autre:
-                            _ = match_arg_534.value
+                        elif match_arg_514.code == TypePret_Code.Autre:
+                            _ = match_arg_514.value
                             temp_caracteristiques_pret_l831_1_1_4 = False
-                        match_arg_535 = param_41.type_pret
-                        if match_arg_535.code == TypePret_Code.D331_32:
-                            _ = match_arg_535.value
+                        match_arg_515 = param_41.type_pret
+                        if match_arg_515.code == TypePret_Code.D331_32:
+                            _ = match_arg_515.value
                             temp_caracteristiques_pret_l831_1_1_5 = True
-                        elif match_arg_535.code == TypePret_Code.D331_63_64:
-                            _ = match_arg_535.value
+                        elif match_arg_515.code == TypePret_Code.D331_63_64:
+                            _ = match_arg_515.value
                             temp_caracteristiques_pret_l831_1_1_5 = False
-                        elif match_arg_535.code == TypePret_Code.D331_59_8:
-                            _ = match_arg_535.value
+                        elif match_arg_515.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_515.value
                             temp_caracteristiques_pret_l831_1_1_5 = False
-                        elif match_arg_535.code == TypePret_Code.D331_76_1:
-                            _ = match_arg_535.value
+                        elif match_arg_515.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_515.value
                             temp_caracteristiques_pret_l831_1_1_5 = False
-                        elif match_arg_535.code == TypePret_Code.Autre:
-                            _ = match_arg_535.value
+                        elif match_arg_515.code == TypePret_Code.Autre:
+                            _ = match_arg_515.value
                             temp_caracteristiques_pret_l831_1_1_5 = False
-                        match_arg_536 = param_41.titulaire_pret
-                        if match_arg_536.code == TitulairePret_Code.Demandeur:
-                            _ = match_arg_536.value
+                        match_arg_516 = param_41.titulaire_pret
+                        if match_arg_516.code == TitulairePret_Code.Demandeur:
+                            _ = match_arg_516.value
                             temp_caracteristiques_pret_l831_1_1_6 = True
-                        elif match_arg_536.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                            _ = match_arg_536.value
+                        elif match_arg_516.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                            _ = match_arg_516.value
                             temp_caracteristiques_pret_l831_1_1_6 = False
                         if (temp_caracteristiques_pret_l831_1_1_6 and
                             (temp_caracteristiques_pret_l831_1_1_5 or
@@ -18038,21 +18317,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
         try:
             try:
                 try:
-                    match_arg_537 = menage_2.logement.mode_occupation
-                    if match_arg_537.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_537.value
+                    match_arg_517 = menage_2.logement.mode_occupation
+                    if match_arg_517.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_517.value
                         temp_condition_logement_pret = False
-                    elif match_arg_537.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_537.value
+                    elif match_arg_517.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_517.value
                         temp_condition_logement_pret = False
-                    elif match_arg_537.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        propriete = match_arg_537.value
-                        match_arg_538 = propriete.anciennete_logement
-                        if match_arg_538.code == NeufOuAncien_Code.Neuf:
-                            _ = match_arg_538.value
+                    elif match_arg_517.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        propriete = match_arg_517.value
+                        match_arg_518 = propriete.anciennete_logement
+                        if match_arg_518.code == NeufOuAncien_Code.Neuf:
+                            _ = match_arg_518.value
                             temp_condition_logement_pret_1 = False
-                        elif match_arg_538.code == NeufOuAncien_Code.Ancien:
-                            _ = match_arg_538.value
+                        elif match_arg_518.code == NeufOuAncien_Code.Ancien:
+                            _ = match_arg_518.value
                             temp_condition_logement_pret_1 = True
                         temp_condition_logement_pret = ((propriete.pret.date_signature >=
                             date_of_numbers(2018,1,1)) and
@@ -18060,17 +18339,17 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                             date_of_numbers(2020,1,1)) and
                             (temp_condition_logement_pret_1 and
                             propriete.logement_situe_commune_desequilibre_l831_2)))
-                    elif match_arg_537.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_537.value
+                    elif match_arg_517.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_517.value
                         temp_condition_logement_pret = False
-                    elif match_arg_537.code == ModeOccupation_Code.LocationAccession:
-                        propriete_1 = match_arg_537.value
-                        match_arg_539 = propriete_1.anciennete_logement
-                        if match_arg_539.code == NeufOuAncien_Code.Neuf:
-                            _ = match_arg_539.value
+                    elif match_arg_517.code == ModeOccupation_Code.LocationAccession:
+                        propriete_1 = match_arg_517.value
+                        match_arg_519 = propriete_1.anciennete_logement
+                        if match_arg_519.code == NeufOuAncien_Code.Neuf:
+                            _ = match_arg_519.value
                             temp_condition_logement_pret_2 = False
-                        elif match_arg_539.code == NeufOuAncien_Code.Ancien:
-                            _ = match_arg_539.value
+                        elif match_arg_519.code == NeufOuAncien_Code.Ancien:
+                            _ = match_arg_519.value
                             temp_condition_logement_pret_2 = True
                         temp_condition_logement_pret = ((propriete_1.pret.date_signature >=
                             date_of_numbers(2018,1,1)) and
@@ -18084,22 +18363,22 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                         temp_condition_logement_pret_3 = dead_value
                         raise EmptyError
                 except EmptyError:
-                    match_arg_540 = menage_2.logement.mode_occupation
-                    if match_arg_540.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_540.value
+                    match_arg_520 = menage_2.logement.mode_occupation
+                    if match_arg_520.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_520.value
                         temp_condition_logement_pret_4 = False
-                    elif match_arg_540.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_540.value
+                    elif match_arg_520.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_520.value
                         temp_condition_logement_pret_4 = False
-                    elif match_arg_540.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        propriete_2 = match_arg_540.value
+                    elif match_arg_520.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        propriete_2 = match_arg_520.value
                         temp_condition_logement_pret_4 = (propriete_2.pret.date_signature >=
                             date_of_numbers(2017,12,31))
-                    elif match_arg_540.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_540.value
+                    elif match_arg_520.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_520.value
                         temp_condition_logement_pret_4 = False
-                    elif match_arg_540.code == ModeOccupation_Code.LocationAccession:
-                        propriete_3 = match_arg_540.value
+                    elif match_arg_520.code == ModeOccupation_Code.LocationAccession:
+                        propriete_3 = match_arg_520.value
                         temp_condition_logement_pret_4 = (propriete_3.pret.date_signature >=
                             date_of_numbers(2017,12,31))
                     if temp_condition_logement_pret_4:
@@ -18163,37 +18442,37 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
         raise EmptyError
         return temp_eligibilite_commune_dot_condition_logement_surface_1
     eligibilite_commune_dot_condition_logement_surface = temp_eligibilite_commune_dot_condition_logement_surface
-    result_24 = eligibilite_aides_personnelle_logement(EligibiliteAidesPersonnelleLogementIn(menage_in = eligibilite_commune_dot_menage,
+    result_21 = eligibilite_aides_personnelle_logement(EligibiliteAidesPersonnelleLogementIn(menage_in = eligibilite_commune_dot_menage,
                                                        demandeur_in = eligibilite_commune_dot_demandeur,
                                                        date_courante_in = eligibilite_commune_dot_date_courante,
                                                        condition_logement_residence_principale_in = eligibilite_commune_dot_condition_logement_residence_principale,
                                                        condition_logement_surface_in = eligibilite_commune_dot_condition_logement_surface))
-    eligibilite_commune_dot_date_courante_1 = result_24.date_courante
-    eligibilite_commune_dot_eligibilite = result_24.eligibilite
-    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte = result_24.nombre_personnes_a_charge_prises_en_compte
-    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_24.coefficents_enfants_garde_alternee_pris_en_compte
-    eligibilite_commune_dot_condition_2_r823_4 = result_24.condition_2_r823_4
+    eligibilite_commune_dot_date_courante_1 = result_21.date_courante
+    eligibilite_commune_dot_eligibilite = result_21.eligibilite
+    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte = result_21.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_21.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_commune_dot_condition_2_r823_4 = result_21.condition_2_r823_4
     try:
         try:
             try:
                 try:
                     try:
                         try:
-                            match_arg_541 = menage_2.logement.mode_occupation
-                            if match_arg_541.code == ModeOccupation_Code.Locataire:
-                                _ = match_arg_541.value
+                            match_arg_521 = menage_2.logement.mode_occupation
+                            if match_arg_521.code == ModeOccupation_Code.Locataire:
+                                _ = match_arg_521.value
                                 temp_condition_logement_bailleur = False
-                            elif match_arg_541.code == ModeOccupation_Code.ResidentLogementFoyer:
-                                logement_foyer = match_arg_541.value
+                            elif match_arg_521.code == ModeOccupation_Code.ResidentLogementFoyer:
+                                logement_foyer = match_arg_521.value
                                 temp_condition_logement_bailleur = logement_foyer.remplit_conditions_r832_21
-                            elif match_arg_541.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                                _ = match_arg_541.value
+                            elif match_arg_521.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                                _ = match_arg_521.value
                                 temp_condition_logement_bailleur = False
-                            elif match_arg_541.code == ModeOccupation_Code.SousLocataire:
-                                _ = match_arg_541.value
+                            elif match_arg_521.code == ModeOccupation_Code.SousLocataire:
+                                _ = match_arg_521.value
                                 temp_condition_logement_bailleur = False
-                            elif match_arg_541.code == ModeOccupation_Code.LocationAccession:
-                                _ = match_arg_541.value
+                            elif match_arg_521.code == ModeOccupation_Code.LocationAccession:
+                                _ = match_arg_521.value
                                 temp_condition_logement_bailleur = False
                             if temp_condition_logement_bailleur:
                                 temp_condition_logement_bailleur_1 = True
@@ -18201,21 +18480,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                 temp_condition_logement_bailleur_1 = dead_value
                                 raise EmptyError
                         except EmptyError:
-                            match_arg_542 = menage_2.logement.mode_occupation
-                            if match_arg_542.code == ModeOccupation_Code.Locataire:
-                                _ = match_arg_542.value
+                            match_arg_522 = menage_2.logement.mode_occupation
+                            if match_arg_522.code == ModeOccupation_Code.Locataire:
+                                _ = match_arg_522.value
                                 temp_condition_logement_bailleur_2 = False
-                            elif match_arg_542.code == ModeOccupation_Code.ResidentLogementFoyer:
-                                _ = match_arg_542.value
+                            elif match_arg_522.code == ModeOccupation_Code.ResidentLogementFoyer:
+                                _ = match_arg_522.value
                                 temp_condition_logement_bailleur_2 = False
-                            elif match_arg_542.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                                _ = match_arg_542.value
+                            elif match_arg_522.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                                _ = match_arg_522.value
                                 temp_condition_logement_bailleur_2 = False
-                            elif match_arg_542.code == ModeOccupation_Code.SousLocataire:
-                                _ = match_arg_542.value
+                            elif match_arg_522.code == ModeOccupation_Code.SousLocataire:
+                                _ = match_arg_522.value
                                 temp_condition_logement_bailleur_2 = False
-                            elif match_arg_542.code == ModeOccupation_Code.LocationAccession:
-                                propriete_4 = match_arg_542.value
+                            elif match_arg_522.code == ModeOccupation_Code.LocationAccession:
+                                propriete_4 = match_arg_522.value
                                 temp_condition_logement_bailleur_2 = caracteristiques_pret_l831_1_6(
                                     propriete_4.pret)
                             if temp_condition_logement_bailleur_2:
@@ -18224,21 +18503,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                 temp_condition_logement_bailleur_1 = dead_value
                                 raise EmptyError
                     except EmptyError:
-                        match_arg_543 = menage_2.logement.mode_occupation
-                        if match_arg_543.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_543.value
+                        match_arg_523 = menage_2.logement.mode_occupation
+                        if match_arg_523.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_523.value
                             temp_condition_logement_bailleur_3 = False
-                        elif match_arg_543.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            location_14 = match_arg_543.value
-                            temp_condition_logement_bailleur_3 = location_14.conventionne_livre_III_titre_V_chap_III
-                        elif match_arg_543.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_543.value
+                        elif match_arg_523.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            location_3 = match_arg_523.value
+                            temp_condition_logement_bailleur_3 = location_3.conventionne_livre_III_titre_V_chap_III
+                        elif match_arg_523.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_523.value
                             temp_condition_logement_bailleur_3 = False
-                        elif match_arg_543.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_543.value
+                        elif match_arg_523.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_523.value
                             temp_condition_logement_bailleur_3 = False
-                        elif match_arg_543.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_543.value
+                        elif match_arg_523.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_523.value
                             temp_condition_logement_bailleur_3 = False
                         if temp_condition_logement_bailleur_3:
                             temp_condition_logement_bailleur_1 = True
@@ -18246,30 +18525,30 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                             temp_condition_logement_bailleur_1 = dead_value
                             raise EmptyError
                 except EmptyError:
-                    match_arg_544 = menage_2.logement.mode_occupation
-                    if match_arg_544.code == ModeOccupation_Code.Locataire:
-                        location_15 = match_arg_544.value
-                        match_arg_545 = location_15.bailleur
-                        if match_arg_545.code == TypeBailleur_Code.BailleurSocial:
-                            convention = match_arg_545.value
+                    match_arg_524 = menage_2.logement.mode_occupation
+                    if match_arg_524.code == ModeOccupation_Code.Locataire:
+                        location_4 = match_arg_524.value
+                        match_arg_525 = location_4.bailleur
+                        if match_arg_525.code == TypeBailleur_Code.BailleurSocial:
+                            convention = match_arg_525.value
                             temp_condition_logement_bailleur_4 = convention.conventionne_livre_III_titre_V_chap_III
-                        elif match_arg_545.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                            convention_1 = match_arg_545.value
+                        elif match_arg_525.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                            convention_1 = match_arg_525.value
                             temp_condition_logement_bailleur_4 = convention_1.conventionne_livre_III_titre_II_chap_I_sec_3
-                        elif match_arg_545.code == TypeBailleur_Code.BailleurPrive:
-                            _ = match_arg_545.value
+                        elif match_arg_525.code == TypeBailleur_Code.BailleurPrive:
+                            _ = match_arg_525.value
                             temp_condition_logement_bailleur_4 = False
-                    elif match_arg_544.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_544.value
+                    elif match_arg_524.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_524.value
                         temp_condition_logement_bailleur_4 = False
-                    elif match_arg_544.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        _ = match_arg_544.value
+                    elif match_arg_524.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_524.value
                         temp_condition_logement_bailleur_4 = False
-                    elif match_arg_544.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_544.value
+                    elif match_arg_524.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_524.value
                         temp_condition_logement_bailleur_4 = False
-                    elif match_arg_544.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_544.value
+                    elif match_arg_524.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_524.value
                         temp_condition_logement_bailleur_4 = False
                     if temp_condition_logement_bailleur_4:
                         temp_condition_logement_bailleur_1 = True
@@ -18277,22 +18556,22 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                         temp_condition_logement_bailleur_1 = dead_value
                         raise EmptyError
             except EmptyError:
-                match_arg_546 = menage_2.logement.mode_occupation
-                if match_arg_546.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_546.value
+                match_arg_526 = menage_2.logement.mode_occupation
+                if match_arg_526.code == ModeOccupation_Code.Locataire:
+                    _ = match_arg_526.value
                     temp_condition_logement_bailleur_5 = False
-                elif match_arg_546.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    _ = match_arg_546.value
+                elif match_arg_526.code == ModeOccupation_Code.ResidentLogementFoyer:
+                    _ = match_arg_526.value
                     temp_condition_logement_bailleur_5 = False
-                elif match_arg_546.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    propriete_5 = match_arg_546.value
+                elif match_arg_526.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                    propriete_5 = match_arg_526.value
                     temp_condition_logement_bailleur_5 = caracteristiques_pret_l831_1_1(
                         propriete_5.pret)
-                elif match_arg_546.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_546.value
+                elif match_arg_526.code == ModeOccupation_Code.SousLocataire:
+                    _ = match_arg_526.value
                     temp_condition_logement_bailleur_5 = False
-                elif match_arg_546.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_546.value
+                elif match_arg_526.code == ModeOccupation_Code.LocationAccession:
+                    _ = match_arg_526.value
                     temp_condition_logement_bailleur_5 = False
                 if temp_condition_logement_bailleur_5:
                     temp_condition_logement_bailleur_1 = True
@@ -18407,54 +18686,54 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     prestations_familiales_dot_residence = temp_prestations_familiales_dot_residence
-    result_25 = eligibilite_prestations_familiales(EligibilitePrestationsFamilialesIn(date_courante_in = prestations_familiales_dot_date_courante,
+    result_22 = eligibilite_prestations_familiales(EligibilitePrestationsFamilialesIn(date_courante_in = prestations_familiales_dot_date_courante,
                                                    prestation_courante_in = prestations_familiales_dot_prestation_courante,
                                                    residence_in = prestations_familiales_dot_residence))
-    prestations_familiales_dot_droit_ouvert = result_25.droit_ouvert
-    prestations_familiales_dot_conditions_hors_age = result_25.conditions_hors_age
-    prestations_familiales_dot_age_l512_3_2 = result_25.age_l512_3_2
-    prestations_familiales_dot_regime_outre_mer_l751_1 = result_25.regime_outre_mer_l751_1
+    prestations_familiales_dot_droit_ouvert = result_22.droit_ouvert
+    prestations_familiales_dot_conditions_hors_age = result_22.conditions_hors_age
+    prestations_familiales_dot_age_l512_3_2 = result_22.age_l512_3_2
+    prestations_familiales_dot_regime_outre_mer_l751_1 = result_22.regime_outre_mer_l751_1
     try:
         try:
             try:
                 try:
                     try:
-                        match_arg_547 = menage_3.logement.mode_occupation
-                        if match_arg_547.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_547.value
+                        match_arg_527 = menage_3.logement.mode_occupation
+                        if match_arg_527.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_527.value
                             temp_condition_accession_propriete = False
-                        elif match_arg_547.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            _ = match_arg_547.value
+                        elif match_arg_527.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            _ = match_arg_527.value
                             temp_condition_accession_propriete = False
-                        elif match_arg_547.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            proprietaire_18 = match_arg_547.value
-                            match_arg_548 = proprietaire_18.type_travaux_logement_r842_5
-                            if match_arg_548.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
-                                _ = match_arg_548.value
+                        elif match_arg_527.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            proprietaire_3 = match_arg_527.value
+                            match_arg_528 = proprietaire_3.type_travaux_logement_r842_5
+                            if match_arg_528.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
+                                _ = match_arg_528.value
                                 temp_condition_accession_propriete_1 = False
-                            elif match_arg_548.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
-                                _ = match_arg_548.value
+                            elif match_arg_528.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
+                                _ = match_arg_528.value
                                 temp_condition_accession_propriete_1 = False
-                            elif match_arg_548.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
-                                _ = match_arg_548.value
+                            elif match_arg_528.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
+                                _ = match_arg_528.value
                                 temp_condition_accession_propriete_1 = True
-                            elif match_arg_548.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
-                                _ = match_arg_548.value
+                            elif match_arg_528.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
+                                _ = match_arg_528.value
                                 temp_condition_accession_propriete_1 = False
-                            match_arg_549 = proprietaire_18.pret.titulaire_pret
-                            if match_arg_549.code == TitulairePret_Code.Demandeur:
-                                _ = match_arg_549.value
+                            match_arg_529 = proprietaire_3.pret.titulaire_pret
+                            if match_arg_529.code == TitulairePret_Code.Demandeur:
+                                _ = match_arg_529.value
                                 temp_condition_accession_propriete_2 = True
-                            elif match_arg_549.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                                _ = match_arg_549.value
+                            elif match_arg_529.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                                _ = match_arg_529.value
                                 temp_condition_accession_propriete_2 = False
                             temp_condition_accession_propriete = (temp_condition_accession_propriete_2 and
                                 temp_condition_accession_propriete_1)
-                        elif match_arg_547.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_547.value
+                        elif match_arg_527.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_527.value
                             temp_condition_accession_propriete = False
-                        elif match_arg_547.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_547.value
+                        elif match_arg_527.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_527.value
                             temp_condition_accession_propriete = False
                         if temp_condition_accession_propriete:
                             temp_condition_accession_propriete_3 = True
@@ -18462,42 +18741,42 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                             temp_condition_accession_propriete_3 = dead_value
                             raise EmptyError
                     except EmptyError:
-                        match_arg_550 = menage_3.logement.mode_occupation
-                        if match_arg_550.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_550.value
+                        match_arg_530 = menage_3.logement.mode_occupation
+                        if match_arg_530.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_530.value
                             temp_condition_accession_propriete_4 = False
-                        elif match_arg_550.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            _ = match_arg_550.value
+                        elif match_arg_530.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            _ = match_arg_530.value
                             temp_condition_accession_propriete_4 = False
-                        elif match_arg_550.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            proprietaire_19 = match_arg_550.value
-                            match_arg_551 = proprietaire_19.type_travaux_logement_r842_5
-                            if match_arg_551.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
-                                _ = match_arg_551.value
+                        elif match_arg_530.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            proprietaire_4 = match_arg_530.value
+                            match_arg_531 = proprietaire_4.type_travaux_logement_r842_5
+                            if match_arg_531.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
+                                _ = match_arg_531.value
                                 temp_condition_accession_propriete_5 = False
-                            elif match_arg_551.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
-                                _ = match_arg_551.value
+                            elif match_arg_531.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
+                                _ = match_arg_531.value
                                 temp_condition_accession_propriete_5 = True
-                            elif match_arg_551.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
-                                _ = match_arg_551.value
+                            elif match_arg_531.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
+                                _ = match_arg_531.value
                                 temp_condition_accession_propriete_5 = False
-                            elif match_arg_551.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
-                                _ = match_arg_551.value
+                            elif match_arg_531.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
+                                _ = match_arg_531.value
                                 temp_condition_accession_propriete_5 = False
-                            match_arg_552 = proprietaire_19.pret.titulaire_pret
-                            if match_arg_552.code == TitulairePret_Code.Demandeur:
-                                _ = match_arg_552.value
+                            match_arg_532 = proprietaire_4.pret.titulaire_pret
+                            if match_arg_532.code == TitulairePret_Code.Demandeur:
+                                _ = match_arg_532.value
                                 temp_condition_accession_propriete_6 = True
-                            elif match_arg_552.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                                _ = match_arg_552.value
+                            elif match_arg_532.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                                _ = match_arg_532.value
                                 temp_condition_accession_propriete_6 = False
                             temp_condition_accession_propriete_4 = (temp_condition_accession_propriete_6 and
                                 temp_condition_accession_propriete_5)
-                        elif match_arg_550.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_550.value
+                        elif match_arg_530.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_530.value
                             temp_condition_accession_propriete_4 = False
-                        elif match_arg_550.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_550.value
+                        elif match_arg_530.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_530.value
                             temp_condition_accession_propriete_4 = False
                         if temp_condition_accession_propriete_4:
                             temp_condition_accession_propriete_3 = True
@@ -18505,56 +18784,56 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                             temp_condition_accession_propriete_3 = dead_value
                             raise EmptyError
                 except EmptyError:
-                    match_arg_553 = menage_3.logement.mode_occupation
-                    if match_arg_553.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_553.value
+                    match_arg_533 = menage_3.logement.mode_occupation
+                    if match_arg_533.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_533.value
                         temp_condition_accession_propriete_7 = False
-                    elif match_arg_553.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_553.value
+                    elif match_arg_533.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_533.value
                         temp_condition_accession_propriete_7 = False
-                    elif match_arg_553.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        proprietaire_20 = match_arg_553.value
-                        match_arg_554 = proprietaire_20.type_travaux_logement_r842_5
-                        if match_arg_554.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
-                            _ = match_arg_554.value
+                    elif match_arg_533.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        proprietaire_5 = match_arg_533.value
+                        match_arg_534 = proprietaire_5.type_travaux_logement_r842_5
+                        if match_arg_534.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
+                            _ = match_arg_534.value
                             temp_condition_accession_propriete_8 = True
-                        elif match_arg_554.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
-                            _ = match_arg_554.value
+                        elif match_arg_534.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
+                            _ = match_arg_534.value
                             temp_condition_accession_propriete_8 = False
-                        elif match_arg_554.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
-                            _ = match_arg_554.value
+                        elif match_arg_534.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
+                            _ = match_arg_534.value
                             temp_condition_accession_propriete_8 = False
-                        elif match_arg_554.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
-                            _ = match_arg_554.value
+                        elif match_arg_534.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
+                            _ = match_arg_534.value
                             temp_condition_accession_propriete_8 = False
-                        match_arg_555 = proprietaire_20.type_travaux_logement_r842_5
-                        if match_arg_555.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
-                            _ = match_arg_555.value
+                        match_arg_535 = proprietaire_5.type_travaux_logement_r842_5
+                        if match_arg_535.code == TypeTravauxLogementR8425_Code.ObjectifDecenceLogement:
+                            _ = match_arg_535.value
                             temp_condition_accession_propriete_9 = False
-                        elif match_arg_555.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
-                            _ = match_arg_555.value
+                        elif match_arg_535.code == TypeTravauxLogementR8425_Code.PrevuDansListeR321_15:
+                            _ = match_arg_535.value
                             temp_condition_accession_propriete_9 = False
-                        elif match_arg_555.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
-                            _ = match_arg_555.value
+                        elif match_arg_535.code == TypeTravauxLogementR8425_Code.AgrandirOuRendreHabitableD331_63:
+                            _ = match_arg_535.value
                             temp_condition_accession_propriete_9 = False
-                        elif match_arg_555.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
-                            _ = match_arg_555.value
+                        elif match_arg_535.code == TypeTravauxLogementR8425_Code.PasDeTravaux:
+                            _ = match_arg_535.value
                             temp_condition_accession_propriete_9 = True
-                        match_arg_556 = proprietaire_20.pret.titulaire_pret
-                        if match_arg_556.code == TitulairePret_Code.Demandeur:
-                            _ = match_arg_556.value
+                        match_arg_536 = proprietaire_5.pret.titulaire_pret
+                        if match_arg_536.code == TitulairePret_Code.Demandeur:
+                            _ = match_arg_536.value
                             temp_condition_accession_propriete_10 = True
-                        elif match_arg_556.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                            _ = match_arg_556.value
+                        elif match_arg_536.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                            _ = match_arg_536.value
                             temp_condition_accession_propriete_10 = False
                         temp_condition_accession_propriete_7 = (temp_condition_accession_propriete_10 and
                             (temp_condition_accession_propriete_9 or
                             temp_condition_accession_propriete_8))
-                    elif match_arg_553.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_553.value
+                    elif match_arg_533.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_533.value
                         temp_condition_accession_propriete_7 = False
-                    elif match_arg_553.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_553.value
+                    elif match_arg_533.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_533.value
                         temp_condition_accession_propriete_7 = False
                     if temp_condition_accession_propriete_7:
                         temp_condition_accession_propriete_3 = True
@@ -18562,21 +18841,21 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         temp_condition_accession_propriete_3 = dead_value
                         raise EmptyError
             except EmptyError:
-                match_arg_557 = menage_3.logement.mode_occupation
-                if match_arg_557.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_557.value
+                match_arg_537 = menage_3.logement.mode_occupation
+                if match_arg_537.code == ModeOccupation_Code.Locataire:
+                    _ = match_arg_537.value
                     temp_condition_accession_propriete_11 = True
-                elif match_arg_557.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    _ = match_arg_557.value
+                elif match_arg_537.code == ModeOccupation_Code.ResidentLogementFoyer:
+                    _ = match_arg_537.value
                     temp_condition_accession_propriete_11 = True
-                elif match_arg_557.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    _ = match_arg_557.value
+                elif match_arg_537.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                    _ = match_arg_537.value
                     temp_condition_accession_propriete_11 = False
-                elif match_arg_557.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_557.value
+                elif match_arg_537.code == ModeOccupation_Code.SousLocataire:
+                    _ = match_arg_537.value
                     temp_condition_accession_propriete_11 = True
-                elif match_arg_557.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_557.value
+                elif match_arg_537.code == ModeOccupation_Code.LocationAccession:
+                    _ = match_arg_537.value
                     temp_condition_accession_propriete_11 = True
                 if temp_condition_accession_propriete_11:
                     temp_condition_accession_propriete_3 = True
@@ -18628,21 +18907,21 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                              "Prologue : aides au logement"]))
     eligibilite_commune_dot_date_courante_2 = temp_eligibilite_commune_dot_date_courante_1
     def temp_eligibilite_commune_dot_condition_logement_residence_principale_2(_:Unit):
-        match_arg_558 = menage_3.logement.mode_occupation
-        if match_arg_558.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_558.value
+        match_arg_538 = menage_3.logement.mode_occupation
+        if match_arg_538.code == ModeOccupation_Code.Locataire:
+            _ = match_arg_538.value
             temp_eligibilite_commune_dot_condition_logement_residence_principale_3 = False
-        elif match_arg_558.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer_1 = match_arg_558.value
+        elif match_arg_538.code == ModeOccupation_Code.ResidentLogementFoyer:
+            logement_foyer_1 = match_arg_538.value
             temp_eligibilite_commune_dot_condition_logement_residence_principale_3 = logement_foyer_1.construit_application_loi_1957_12_III
-        elif match_arg_558.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_558.value
+        elif match_arg_538.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+            _ = match_arg_538.value
             temp_eligibilite_commune_dot_condition_logement_residence_principale_3 = False
-        elif match_arg_558.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_558.value
+        elif match_arg_538.code == ModeOccupation_Code.SousLocataire:
+            _ = match_arg_538.value
             temp_eligibilite_commune_dot_condition_logement_residence_principale_3 = False
-        elif match_arg_558.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_558.value
+        elif match_arg_538.code == ModeOccupation_Code.LocationAccession:
+            _ = match_arg_538.value
             temp_eligibilite_commune_dot_condition_logement_residence_principale_3 = False
         if temp_eligibilite_commune_dot_condition_logement_residence_principale_3:
             temp_eligibilite_commune_dot_condition_logement_residence_principale_4 = True
@@ -18652,21 +18931,21 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
         return temp_eligibilite_commune_dot_condition_logement_residence_principale_4
     eligibilite_commune_dot_condition_logement_residence_principale_1 = temp_eligibilite_commune_dot_condition_logement_residence_principale_2
     def temp_eligibilite_commune_dot_condition_logement_surface_2(_:Unit):
-        match_arg_559 = menage_3.logement.mode_occupation
-        if match_arg_559.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_559.value
+        match_arg_539 = menage_3.logement.mode_occupation
+        if match_arg_539.code == ModeOccupation_Code.Locataire:
+            _ = match_arg_539.value
             temp_eligibilite_commune_dot_condition_logement_surface_3 = False
-        elif match_arg_559.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer_2 = match_arg_559.value
+        elif match_arg_539.code == ModeOccupation_Code.ResidentLogementFoyer:
+            logement_foyer_2 = match_arg_539.value
             temp_eligibilite_commune_dot_condition_logement_surface_3 = logement_foyer_2.construit_application_loi_1957_12_III
-        elif match_arg_559.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_559.value
+        elif match_arg_539.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+            _ = match_arg_539.value
             temp_eligibilite_commune_dot_condition_logement_surface_3 = False
-        elif match_arg_559.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_559.value
+        elif match_arg_539.code == ModeOccupation_Code.SousLocataire:
+            _ = match_arg_539.value
             temp_eligibilite_commune_dot_condition_logement_surface_3 = False
-        elif match_arg_559.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_559.value
+        elif match_arg_539.code == ModeOccupation_Code.LocationAccession:
+            _ = match_arg_539.value
             temp_eligibilite_commune_dot_condition_logement_surface_3 = False
         if temp_eligibilite_commune_dot_condition_logement_surface_3:
             temp_eligibilite_commune_dot_condition_logement_surface_4 = True
@@ -18675,16 +18954,16 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
             raise EmptyError
         return temp_eligibilite_commune_dot_condition_logement_surface_4
     eligibilite_commune_dot_condition_logement_surface_1 = temp_eligibilite_commune_dot_condition_logement_surface_2
-    result_26 = eligibilite_aides_personnelle_logement(EligibiliteAidesPersonnelleLogementIn(menage_in = eligibilite_commune_dot_menage_1,
+    result_23 = eligibilite_aides_personnelle_logement(EligibiliteAidesPersonnelleLogementIn(menage_in = eligibilite_commune_dot_menage_1,
                                                        demandeur_in = eligibilite_commune_dot_demandeur_1,
                                                        date_courante_in = eligibilite_commune_dot_date_courante_2,
                                                        condition_logement_residence_principale_in = eligibilite_commune_dot_condition_logement_residence_principale_1,
                                                        condition_logement_surface_in = eligibilite_commune_dot_condition_logement_surface_1))
-    eligibilite_commune_dot_date_courante_3 = result_26.date_courante
-    eligibilite_commune_dot_eligibilite_1 = result_26.eligibilite
-    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_1 = result_26.nombre_personnes_a_charge_prises_en_compte
-    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1 = result_26.coefficents_enfants_garde_alternee_pris_en_compte
-    eligibilite_commune_dot_condition_2_r823_4_1 = result_26.condition_2_r823_4
+    eligibilite_commune_dot_date_courante_3 = result_23.date_courante
+    eligibilite_commune_dot_eligibilite_1 = result_23.eligibilite
+    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_1 = result_23.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1 = result_23.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_commune_dot_condition_2_r823_4_1 = result_23.condition_2_r823_4
     try:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_4 = eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1
     except EmptyError:
@@ -18730,26 +19009,26 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                 try:
                     try:
                         try:
-                            match_arg_560 = menage_3.situation_familiale
-                            if match_arg_560.code == SituationFamiliale_Code.Celibataire:
-                                _ = match_arg_560.value
+                            match_arg_540 = menage_3.situation_familiale
+                            if match_arg_540.code == SituationFamiliale_Code.Celibataire:
+                                _ = match_arg_540.value
                                 temp_eligibilite_allocation_logement_familiale = ((list_length(menage_3.personnes_a_charge) ==
                                     integer_of_string("0")) and
                                     menage_3.enfant_a_naitre_apres_quatrieme_mois_grossesse)
-                            elif match_arg_560.code == SituationFamiliale_Code.Maries:
-                                _ = match_arg_560.value
+                            elif match_arg_540.code == SituationFamiliale_Code.Maries:
+                                _ = match_arg_540.value
                                 temp_eligibilite_allocation_logement_familiale = False
-                            elif match_arg_560.code == SituationFamiliale_Code.Pacses:
-                                _ = match_arg_560.value
+                            elif match_arg_540.code == SituationFamiliale_Code.Pacses:
+                                _ = match_arg_540.value
                                 temp_eligibilite_allocation_logement_familiale = False
-                            elif match_arg_560.code == SituationFamiliale_Code.Concubins:
-                                _ = match_arg_560.value
+                            elif match_arg_540.code == SituationFamiliale_Code.Concubins:
+                                _ = match_arg_540.value
                                 temp_eligibilite_allocation_logement_familiale = False
-                            elif match_arg_560.code == SituationFamiliale_Code.CelibataireSepareDeFait:
-                                _ = match_arg_560.value
+                            elif match_arg_540.code == SituationFamiliale_Code.CelibataireSepareDeFait:
+                                _ = match_arg_540.value
                                 temp_eligibilite_allocation_logement_familiale = False
-                            elif match_arg_560.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
-                                _ = match_arg_560.value
+                            elif match_arg_540.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
+                                _ = match_arg_540.value
                                 temp_eligibilite_allocation_logement_familiale = False
                             if temp_eligibilite_allocation_logement_familiale:
                                 temp_eligibilite_allocation_logement_familiale_1 = True
@@ -18759,12 +19038,12 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         except EmptyError:
                             try:
                                 def temp_eligibilite_allocation_logement_familiale_2(acc_8:Integer, personne_a_charge_6:Any):
-                                    match_arg_561 = personne_a_charge_6
-                                    if match_arg_561.code == PersonneACharge_Code.EnfantACharge:
-                                        enfant_5 = match_arg_561.value
+                                    match_arg_541 = personne_a_charge_6
+                                    if match_arg_541.code == PersonneACharge_Code.EnfantACharge:
+                                        enfant_5 = match_arg_541.value
                                         temp_eligibilite_allocation_logement_familiale_3 = False
-                                    elif match_arg_561.code == PersonneACharge_Code.AutrePersonneACharge:
-                                        parent_3 = match_arg_561.value
+                                    elif match_arg_541.code == PersonneACharge_Code.AutrePersonneACharge:
+                                        parent_3 = match_arg_541.value
                                         temp_eligibilite_allocation_logement_familiale_3 = (parent_3.ascendant_descendant_collateral_deuxieme_troisieme_degre and
                                             parent_3.incapacite_80_pourcent_ou_restriction_emploi)
                                     if temp_eligibilite_allocation_logement_familiale_3:
@@ -18797,37 +19076,37 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                     temp_eligibilite_allocation_logement_familiale_1 = dead_value
                                     raise EmptyError
                     except EmptyError:
-                        match_arg_562 = menage_3.situation_familiale
-                        if match_arg_562.code == SituationFamiliale_Code.Celibataire:
-                            _ = match_arg_562.value
+                        match_arg_542 = menage_3.situation_familiale
+                        if match_arg_542.code == SituationFamiliale_Code.Celibataire:
+                            _ = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = False
-                        elif match_arg_562.code == SituationFamiliale_Code.Maries:
-                            date_mariage = match_arg_562.value
+                        elif match_arg_542.code == SituationFamiliale_Code.Maries:
+                            date_mariage = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = (date_courante_14 <=
                                 (date_mariage + duree_l841_1_3))
-                        elif match_arg_562.code == SituationFamiliale_Code.Pacses:
-                            _ = match_arg_562.value
+                        elif match_arg_542.code == SituationFamiliale_Code.Pacses:
+                            _ = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = False
-                        elif match_arg_562.code == SituationFamiliale_Code.Concubins:
-                            _ = match_arg_562.value
+                        elif match_arg_542.code == SituationFamiliale_Code.Concubins:
+                            _ = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = False
-                        elif match_arg_562.code == SituationFamiliale_Code.CelibataireSepareDeFait:
-                            _ = match_arg_562.value
+                        elif match_arg_542.code == SituationFamiliale_Code.CelibataireSepareDeFait:
+                            _ = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = False
-                        elif match_arg_562.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
-                            _ = match_arg_562.value
+                        elif match_arg_542.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
+                            _ = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = False
                         def temp_eligibilite_allocation_logement_familiale_6(acc_10:Integer, personne_a_charge_8:Any):
-                            match_arg_563 = personne_a_charge_8
-                            if match_arg_563.code == PersonneACharge_Code.EnfantACharge:
-                                enfant_6 = match_arg_563.value
-                                match_arg_564 = enfant_6.situation_garde_alternee
-                                if match_arg_564.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
-                                    _ = match_arg_564.value
+                            match_arg_543 = personne_a_charge_8
+                            if match_arg_543.code == PersonneACharge_Code.EnfantACharge:
+                                enfant_6 = match_arg_543.value
+                                match_arg_544 = enfant_6.situation_garde_alternee
+                                if match_arg_544.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
+                                    _ = match_arg_544.value
                                     temp_eligibilite_allocation_logement_familiale_7 = PriseEnChargeEnfant(PriseEnChargeEnfant_Code.EffectiveEtPermanente,
                                         Unit())
-                                elif match_arg_564.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
-                                    _ = match_arg_564.value
+                                elif match_arg_544.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
+                                    _ = match_arg_544.value
                                     temp_eligibilite_allocation_logement_familiale_7 = PriseEnChargeEnfant(PriseEnChargeEnfant_Code.GardeAlterneePartageAllocations,
                                         Unit())
                                 temp_eligibilite_allocation_logement_familiale_8 = not prestations_familiales_dot_droit_ouvert(
@@ -18838,8 +19117,8 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                     prise_en_charge = temp_eligibilite_allocation_logement_familiale_7,
                                     a_deja_ouvert_droit_aux_allocations_familiales = enfant_6.a_deja_ouvert_droit_aux_allocations_familiales,
                                     beneficie_titre_personnel_aide_personnelle_logement = enfant_6.beneficie_titre_personnel_aide_personnelle_logement))
-                            elif match_arg_563.code == PersonneACharge_Code.AutrePersonneACharge:
-                                _ = match_arg_563.value
+                            elif match_arg_543.code == PersonneACharge_Code.AutrePersonneACharge:
+                                _ = match_arg_543.value
                                 temp_eligibilite_allocation_logement_familiale_8 = False
                             if temp_eligibilite_allocation_logement_familiale_8:
                                 return (acc_10 + integer_of_string("1"))
@@ -18856,16 +19135,16 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                             raise EmptyError
                 except EmptyError:
                     def temp_eligibilite_allocation_logement_familiale_9(acc_11:Integer, personne_a_charge_9:Any):
-                        match_arg_565 = personne_a_charge_9
-                        if match_arg_565.code == PersonneACharge_Code.EnfantACharge:
-                            enfant_7 = match_arg_565.value
-                            match_arg_566 = enfant_7.situation_garde_alternee
-                            if match_arg_566.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
-                                _ = match_arg_566.value
+                        match_arg_545 = personne_a_charge_9
+                        if match_arg_545.code == PersonneACharge_Code.EnfantACharge:
+                            enfant_7 = match_arg_545.value
+                            match_arg_546 = enfant_7.situation_garde_alternee
+                            if match_arg_546.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
+                                _ = match_arg_546.value
                                 temp_eligibilite_allocation_logement_familiale_10 = PriseEnChargeEnfant(PriseEnChargeEnfant_Code.EffectiveEtPermanente,
                                     Unit())
-                            elif match_arg_566.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
-                                _ = match_arg_566.value
+                            elif match_arg_546.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
+                                _ = match_arg_546.value
                                 temp_eligibilite_allocation_logement_familiale_10 = PriseEnChargeEnfant(PriseEnChargeEnfant_Code.GardeAlterneePartageAllocations,
                                     Unit())
                             temp_eligibilite_allocation_logement_familiale_11 = prestations_familiales_dot_droit_ouvert(
@@ -18876,8 +19155,8 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                 prise_en_charge = temp_eligibilite_allocation_logement_familiale_10,
                                 a_deja_ouvert_droit_aux_allocations_familiales = enfant_7.a_deja_ouvert_droit_aux_allocations_familiales,
                                 beneficie_titre_personnel_aide_personnelle_logement = enfant_7.beneficie_titre_personnel_aide_personnelle_logement))
-                        elif match_arg_565.code == PersonneACharge_Code.AutrePersonneACharge:
-                            _ = match_arg_565.value
+                        elif match_arg_545.code == PersonneACharge_Code.AutrePersonneACharge:
+                            _ = match_arg_545.value
                             temp_eligibilite_allocation_logement_familiale_11 = False
                         if temp_eligibilite_allocation_logement_familiale_11:
                             return (acc_11 + integer_of_string("1"))
@@ -18926,22 +19205,22 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
             def temp_eligibilite_l841_2_1(_:Unit):
                 return False
             def temp_eligibilite_l841_2_2(_:Unit):
-                match_arg_567 = menage_3.logement.mode_occupation
-                if match_arg_567.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_567.value
+                match_arg_547 = menage_3.logement.mode_occupation
+                if match_arg_547.code == ModeOccupation_Code.Locataire:
+                    _ = match_arg_547.value
                     temp_eligibilite_l841_2_3 = False
-                elif match_arg_567.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    _ = match_arg_567.value
+                elif match_arg_547.code == ModeOccupation_Code.ResidentLogementFoyer:
+                    _ = match_arg_547.value
                     temp_eligibilite_l841_2_3 = False
-                elif match_arg_567.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    proprietaire_21 = match_arg_567.value
-                    temp_eligibilite_l841_2_3 = (proprietaire_21.pret.date_signature >
+                elif match_arg_547.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                    proprietaire_6 = match_arg_547.value
+                    temp_eligibilite_l841_2_3 = (proprietaire_6.pret.date_signature >
                         date_of_numbers(2017,12,31))
-                elif match_arg_567.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_567.value
+                elif match_arg_547.code == ModeOccupation_Code.SousLocataire:
+                    _ = match_arg_547.value
                     temp_eligibilite_l841_2_3 = False
-                elif match_arg_567.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_567.value
+                elif match_arg_547.code == ModeOccupation_Code.LocationAccession:
+                    _ = match_arg_547.value
                     temp_eligibilite_l841_2_3 = False
                 if temp_eligibilite_l841_2_3:
                     return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
@@ -19000,32 +19279,32 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     date_courante_15 = calcul_allocation_logement_in.date_courante_in
     type_aide_3 = calcul_allocation_logement_in.type_aide_in
     try:
-        match_arg_568 = mode_occupation_3
-        if match_arg_568.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_568.value
+        match_arg_548 = mode_occupation_3
+        if match_arg_548.code == ModeOccupation_Code.Locataire:
+            location_5 = match_arg_548.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.Location,
-                Unit())
-        elif match_arg_568.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_568.value
+                location_5)
+        elif match_arg_548.code == ModeOccupation_Code.ResidentLogementFoyer:
+            logementfoyer_1 = match_arg_548.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.LogementFoyer,
-                Unit())
-        elif match_arg_568.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_568.value
+                logementfoyer_1)
+        elif match_arg_548.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+            proprietaire_7 = match_arg_548.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.AccessionPropriete,
-                Unit())
-        elif match_arg_568.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_568.value
+                proprietaire_7)
+        elif match_arg_548.code == ModeOccupation_Code.SousLocataire:
+            location_6 = match_arg_548.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.Location,
-                Unit())
-        elif match_arg_568.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_568.value
+                location_6)
+        elif match_arg_548.code == ModeOccupation_Code.LocationAccession:
+            proprietaire_8 = match_arg_548.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.AccessionPropriete,
-                Unit())
+                proprietaire_8)
     except EmptyError:
         temp_categorie_calcul_apl_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=984, start_column=11,
-                                             end_line=984, end_column=31,
+                                             start_line=985, start_column=11,
+                                             end_line=985, end_column=31,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
@@ -19038,1042 +19317,2269 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     except EmptyError:
         temp_ressources_menage_avec_arrondi_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=977, start_column=10,
-                                             end_line=977, end_column=22,
+                                             start_line=978, start_column=10,
+                                             end_line=978, end_column=22,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     ressources_menage_avec_arrondi_1 = temp_ressources_menage_avec_arrondi_1
     try:
-        match_arg_569 = situation_familiale_2
-        if match_arg_569.code == SituationFamiliale_Code.Celibataire:
-            _ = match_arg_569.value
+        match_arg_549 = situation_familiale_2
+        if match_arg_549.code == SituationFamiliale_Code.Celibataire:
+            _ = match_arg_549.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.PersonneSeule,
                 Unit())
-        elif match_arg_569.code == SituationFamiliale_Code.Maries:
-            _ = match_arg_569.value
+        elif match_arg_549.code == SituationFamiliale_Code.Maries:
+            _ = match_arg_549.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
-        elif match_arg_569.code == SituationFamiliale_Code.Pacses:
-            _ = match_arg_569.value
+        elif match_arg_549.code == SituationFamiliale_Code.Pacses:
+            _ = match_arg_549.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
-        elif match_arg_569.code == SituationFamiliale_Code.Concubins:
-            _ = match_arg_569.value
+        elif match_arg_549.code == SituationFamiliale_Code.Concubins:
+            _ = match_arg_549.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
-        elif match_arg_569.code == SituationFamiliale_Code.CelibataireSepareDeFait:
-            _ = match_arg_569.value
+        elif match_arg_549.code == SituationFamiliale_Code.CelibataireSepareDeFait:
+            _ = match_arg_549.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.PersonneSeule,
                 Unit())
-        elif match_arg_569.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
-            _ = match_arg_569.value
+        elif match_arg_549.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
+            _ = match_arg_549.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
     except EmptyError:
         temp_situation_familiale_calcul_apl_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=985, start_column=11,
-                                             end_line=985, end_column=41,
+                                             start_line=986, start_column=11,
+                                             end_line=986, end_column=41,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     situation_familiale_calcul_apl_9 = temp_situation_familiale_calcul_apl_1
     try:
-        temp_accession_propriete_dot_ressources_menage_arrondies_base = ressources_menage_avec_arrondi_1
+        match_arg_550 = mode_occupation_3
+        if match_arg_550.code == ModeOccupation_Code.Locataire:
+            location_7 = match_arg_550.value
+            try:
+                temp_sous_calcul_traitement_75 = location_7.changement_logement_d842_4
+            except EmptyError:
+                temp_sous_calcul_traitement_75 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1506,
+                                                     start_column=42,
+                                                     end_line=1506,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_76 = location_7.logement_meuble_d842_2
+            except EmptyError:
+                temp_sous_calcul_traitement_76 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1505,
+                                                     start_column=38,
+                                                     end_line=1505,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                match_arg_551 = location_7.bailleur
+                if match_arg_551.code == TypeBailleur_Code.BailleurSocial:
+                    bailleur_2 = match_arg_551.value
+                    temp_sous_calcul_traitement_77 = bailleur_2.reduction_loyer_solidarite_percue
+                elif match_arg_551.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                    _ = match_arg_551.value
+                    temp_sous_calcul_traitement_77 = money_of_cents_string("0")
+                elif match_arg_551.code == TypeBailleur_Code.BailleurPrive:
+                    _ = match_arg_551.value
+                    temp_sous_calcul_traitement_77 = money_of_cents_string("0")
+            except EmptyError:
+                temp_sous_calcul_traitement_77 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1501,
+                                                     start_column=16,
+                                                     end_line=1504,
+                                                     end_column=39,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_78 = location_7.colocation
+            except EmptyError:
+                temp_sous_calcul_traitement_78 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1496,
+                                                     start_column=26,
+                                                     end_line=1496,
+                                                     end_column=45,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_79 = type_aide_3
+            except EmptyError:
+                temp_sous_calcul_traitement_79 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1499,
+                                                     start_column=25,
+                                                     end_line=1499,
+                                                     end_column=34,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_80 = location_7.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+            except EmptyError:
+                temp_sous_calcul_traitement_80 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1498,
+                                                     start_column=15,
+                                                     end_line=1498,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_81 = location_7.logement_est_chambre
+            except EmptyError:
+                temp_sous_calcul_traitement_81 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1495,
+                                                     start_column=36,
+                                                     end_line=1495,
+                                                     end_column=65,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_82 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_82 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1489,
+                                                     start_column=20,
+                                                     end_line=1489,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_83 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_83 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1491,
+                                                     start_column=46,
+                                                     end_line=1491,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_84 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_84 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1488,
+                                                     start_column=41,
+                                                     end_line=1488,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_85 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_85 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1490,
+                                                     start_column=29,
+                                                     end_line=1490,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_86 = location_7.beneficiaire_aide_adulte_ou_enfant_handicapes
+            except EmptyError:
+                temp_sous_calcul_traitement_86 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1494,
+                                                     start_column=15,
+                                                     end_line=1494,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_87 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_87 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1487,
+                                                     start_column=43,
+                                                     end_line=1487,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_88 = location_7.loyer_principal
+            except EmptyError:
+                temp_sous_calcul_traitement_88 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1492,
+                                                     start_column=31,
+                                                     end_line=1492,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_89 = location_7.changement_logement_d842_4
+            except EmptyError:
+                temp_sous_calcul_traitement_89 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1506,
+                                                     start_column=42,
+                                                     end_line=1506,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_90 = location_7.logement_meuble_d842_2
+            except EmptyError:
+                temp_sous_calcul_traitement_90 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1505,
+                                                     start_column=38,
+                                                     end_line=1505,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                match_arg_552 = location_7.bailleur
+                if match_arg_552.code == TypeBailleur_Code.BailleurSocial:
+                    bailleur_3 = match_arg_552.value
+                    temp_sous_calcul_traitement_91 = bailleur_3.reduction_loyer_solidarite_percue
+                elif match_arg_552.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                    _ = match_arg_552.value
+                    temp_sous_calcul_traitement_91 = money_of_cents_string("0")
+                elif match_arg_552.code == TypeBailleur_Code.BailleurPrive:
+                    _ = match_arg_552.value
+                    temp_sous_calcul_traitement_91 = money_of_cents_string("0")
+            except EmptyError:
+                temp_sous_calcul_traitement_91 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1501,
+                                                     start_column=16,
+                                                     end_line=1504,
+                                                     end_column=39,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_92 = location_7.colocation
+            except EmptyError:
+                temp_sous_calcul_traitement_92 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1496,
+                                                     start_column=26,
+                                                     end_line=1496,
+                                                     end_column=45,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_93 = type_aide_3
+            except EmptyError:
+                temp_sous_calcul_traitement_93 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1499,
+                                                     start_column=25,
+                                                     end_line=1499,
+                                                     end_column=34,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_94 = location_7.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+            except EmptyError:
+                temp_sous_calcul_traitement_94 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1498,
+                                                     start_column=15,
+                                                     end_line=1498,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_95 = location_7.logement_est_chambre
+            except EmptyError:
+                temp_sous_calcul_traitement_95 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1495,
+                                                     start_column=36,
+                                                     end_line=1495,
+                                                     end_column=65,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_96 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_96 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1489,
+                                                     start_column=20,
+                                                     end_line=1489,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_97 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_97 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1491,
+                                                     start_column=46,
+                                                     end_line=1491,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_98 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_98 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1488,
+                                                     start_column=41,
+                                                     end_line=1488,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_99 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_99 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1490,
+                                                     start_column=29,
+                                                     end_line=1490,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_100 = location_7.beneficiaire_aide_adulte_ou_enfant_handicapes
+            except EmptyError:
+                temp_sous_calcul_traitement_100 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1494,
+                                                     start_column=15,
+                                                     end_line=1494,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_101 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_101 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1487,
+                                                     start_column=43,
+                                                     end_line=1487,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_102 = location_7.loyer_principal
+            except EmptyError:
+                temp_sous_calcul_traitement_102 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1492,
+                                                     start_column=31,
+                                                     end_line=1492,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_103 = TraitementFormuleAideFinale(aide_finale_formule = calcul_allocation_logement_locatif(
+                CalculAllocationLogementLocatifIn(loyer_principal_in = temp_sous_calcul_traitement_88,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_87,
+                beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_86,
+                date_courante_in = temp_sous_calcul_traitement_85,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_84,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_83,
+                zone_in = temp_sous_calcul_traitement_82,
+                logement_est_chambre_in = temp_sous_calcul_traitement_81,
+                agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = temp_sous_calcul_traitement_80,
+                type_aide_in = temp_sous_calcul_traitement_79,
+                colocation_in = temp_sous_calcul_traitement_78,
+                reduction_loyer_solidarite_in = temp_sous_calcul_traitement_77,
+                logement_meuble_d842_2_in = temp_sous_calcul_traitement_76,
+                changement_logement_d842_4_in = temp_sous_calcul_traitement_75)).aide_finale_formule,
+                traitement_aide_finale = calcul_allocation_logement_locatif(
+                CalculAllocationLogementLocatifIn(loyer_principal_in = temp_sous_calcul_traitement_102,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_101,
+                beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_100,
+                date_courante_in = temp_sous_calcul_traitement_99,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_98,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_97,
+                zone_in = temp_sous_calcul_traitement_96,
+                logement_est_chambre_in = temp_sous_calcul_traitement_95,
+                agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = temp_sous_calcul_traitement_94,
+                type_aide_in = temp_sous_calcul_traitement_93,
+                colocation_in = temp_sous_calcul_traitement_92,
+                reduction_loyer_solidarite_in = temp_sous_calcul_traitement_91,
+                logement_meuble_d842_2_in = temp_sous_calcul_traitement_90,
+                changement_logement_d842_4_in = temp_sous_calcul_traitement_89)).traitement_aide_finale)
+        elif match_arg_550.code == ModeOccupation_Code.ResidentLogementFoyer:
+            logement_foyer__1 = match_arg_550.value
+            try:
+                temp_sous_calcul_traitement_104 = logement_foyer__1.categorie_equivalence_loyer_d842_16
+            except EmptyError:
+                temp_sous_calcul_traitement_104 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1549,
+                                                     start_column=51,
+                                                     end_line=1549,
+                                                     end_column=102,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_105 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_105 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1546,
+                                                     start_column=29,
+                                                     end_line=1546,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_106 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_106 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1545,
+                                                     start_column=20,
+                                                     end_line=1545,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_107 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_107 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1547,
+                                                     start_column=46,
+                                                     end_line=1547,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_108 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_108 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1544,
+                                                     start_column=41,
+                                                     end_line=1544,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_109 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_109 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1543,
+                                                     start_column=43,
+                                                     end_line=1543,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_110 = logement_foyer__1.redevance
+            except EmptyError:
+                temp_sous_calcul_traitement_110 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1548,
+                                                     start_column=25,
+                                                     end_line=1548,
+                                                     end_column=50,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_111 = logement_foyer__1.date_conventionnement
+            except EmptyError:
+                temp_sous_calcul_traitement_111 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1551,
+                                                     start_column=37,
+                                                     end_line=1551,
+                                                     end_column=74,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_112 = logement_foyer__1.type
+            except EmptyError:
+                temp_sous_calcul_traitement_112 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1550,
+                                                     start_column=35,
+                                                     end_line=1550,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_113 = logement_foyer__1.categorie_equivalence_loyer_d842_16
+            except EmptyError:
+                temp_sous_calcul_traitement_113 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1549,
+                                                     start_column=51,
+                                                     end_line=1549,
+                                                     end_column=102,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_114 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_114 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1546,
+                                                     start_column=29,
+                                                     end_line=1546,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_115 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_115 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1545,
+                                                     start_column=20,
+                                                     end_line=1545,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_116 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_116 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1547,
+                                                     start_column=46,
+                                                     end_line=1547,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_117 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_117 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1544,
+                                                     start_column=41,
+                                                     end_line=1544,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_118 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_118 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1543,
+                                                     start_column=43,
+                                                     end_line=1543,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_119 = logement_foyer__1.redevance
+            except EmptyError:
+                temp_sous_calcul_traitement_119 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1548,
+                                                     start_column=25,
+                                                     end_line=1548,
+                                                     end_column=50,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_120 = logement_foyer__1.date_conventionnement
+            except EmptyError:
+                temp_sous_calcul_traitement_120 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1551,
+                                                     start_column=37,
+                                                     end_line=1551,
+                                                     end_column=74,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_121 = logement_foyer__1.type
+            except EmptyError:
+                temp_sous_calcul_traitement_121 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1550,
+                                                     start_column=35,
+                                                     end_line=1550,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_103 = TraitementFormuleAideFinale(aide_finale_formule = calcul_allocation_logement_foyer(
+                CalculAllocationLogementFoyerIn(type_logement_foyer_in = temp_sous_calcul_traitement_112,
+                date_conventionnement_in = temp_sous_calcul_traitement_111,
+                redevance_in = temp_sous_calcul_traitement_110,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_109,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_108,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_107,
+                zone_in = temp_sous_calcul_traitement_106,
+                date_courante_in = temp_sous_calcul_traitement_105,
+                categorie_equivalence_loyer_d842_16_in = temp_sous_calcul_traitement_104)).aide_finale_formule,
+                traitement_aide_finale = calcul_allocation_logement_foyer(
+                CalculAllocationLogementFoyerIn(type_logement_foyer_in = temp_sous_calcul_traitement_121,
+                date_conventionnement_in = temp_sous_calcul_traitement_120,
+                redevance_in = temp_sous_calcul_traitement_119,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_118,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_117,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_116,
+                zone_in = temp_sous_calcul_traitement_115,
+                date_courante_in = temp_sous_calcul_traitement_114,
+                categorie_equivalence_loyer_d842_16_in = temp_sous_calcul_traitement_113)).traitement_aide_finale)
+        elif match_arg_550.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+            proprietaire_9 = match_arg_550.value
+            try:
+                temp_sous_calcul_traitement_122 = proprietaire_9.copropriete
+            except EmptyError:
+                temp_sous_calcul_traitement_122 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1571,
+                                                     start_column=28,
+                                                     end_line=1571,
+                                                     end_column=52,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_123 = proprietaire_9.charges_mensuelles_pret
+            except EmptyError:
+                temp_sous_calcul_traitement_123 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1566,
+                                                     start_column=40,
+                                                     end_line=1566,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_124 = proprietaire_9.date_entree_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_124 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1570,
+                                                     start_column=37,
+                                                     end_line=1570,
+                                                     end_column=70,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_125 = proprietaire_9.local_habite_premiere_fois_beneficiaire
+            except EmptyError:
+                temp_sous_calcul_traitement_125 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1569,
+                                                     start_column=56,
+                                                     end_line=1569,
+                                                     end_column=108,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_126 = proprietaire_9.type_travaux_logement_r842_5
+            except EmptyError:
+                temp_sous_calcul_traitement_126 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1567,
+                                                     start_column=38,
+                                                     end_line=1567,
+                                                     end_column=79,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_127 = proprietaire_9.pret.date_signature
+            except EmptyError:
+                temp_sous_calcul_traitement_127 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1568,
+                                                     start_column=36,
+                                                     end_line=1568,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_128 = proprietaire_9.situation_r822_11_13_17
+            except EmptyError:
+                temp_sous_calcul_traitement_128 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1572,
+                                                     start_column=40,
+                                                     end_line=1572,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_129 = proprietaire_9.mensualite_principale
+            except EmptyError:
+                temp_sous_calcul_traitement_129 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1565,
+                                                     start_column=38,
+                                                     end_line=1565,
+                                                     end_column=72,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_130 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_130 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1563,
+                                                     start_column=30,
+                                                     end_line=1563,
+                                                     end_column=43,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_131 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_131 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1562,
+                                                     start_column=21,
+                                                     end_line=1562,
+                                                     end_column=25,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_132 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_132 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1564,
+                                                     start_column=47,
+                                                     end_line=1564,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_133 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_133 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1561,
+                                                     start_column=42,
+                                                     end_line=1561,
+                                                     end_column=67,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_134 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_134 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1560,
+                                                     start_column=44,
+                                                     end_line=1560,
+                                                     end_column=61,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_135 = proprietaire_9.copropriete
+            except EmptyError:
+                temp_sous_calcul_traitement_135 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1571,
+                                                     start_column=28,
+                                                     end_line=1571,
+                                                     end_column=52,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_136 = proprietaire_9.charges_mensuelles_pret
+            except EmptyError:
+                temp_sous_calcul_traitement_136 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1566,
+                                                     start_column=40,
+                                                     end_line=1566,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_137 = proprietaire_9.date_entree_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_137 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1570,
+                                                     start_column=37,
+                                                     end_line=1570,
+                                                     end_column=70,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_138 = proprietaire_9.local_habite_premiere_fois_beneficiaire
+            except EmptyError:
+                temp_sous_calcul_traitement_138 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1569,
+                                                     start_column=56,
+                                                     end_line=1569,
+                                                     end_column=108,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_139 = proprietaire_9.type_travaux_logement_r842_5
+            except EmptyError:
+                temp_sous_calcul_traitement_139 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1567,
+                                                     start_column=38,
+                                                     end_line=1567,
+                                                     end_column=79,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_140 = proprietaire_9.pret.date_signature
+            except EmptyError:
+                temp_sous_calcul_traitement_140 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1568,
+                                                     start_column=36,
+                                                     end_line=1568,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_141 = proprietaire_9.situation_r822_11_13_17
+            except EmptyError:
+                temp_sous_calcul_traitement_141 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1572,
+                                                     start_column=40,
+                                                     end_line=1572,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_142 = proprietaire_9.mensualite_principale
+            except EmptyError:
+                temp_sous_calcul_traitement_142 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1565,
+                                                     start_column=38,
+                                                     end_line=1565,
+                                                     end_column=72,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_143 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_143 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1563,
+                                                     start_column=30,
+                                                     end_line=1563,
+                                                     end_column=43,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_144 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_144 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1562,
+                                                     start_column=21,
+                                                     end_line=1562,
+                                                     end_column=25,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_145 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_145 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1564,
+                                                     start_column=47,
+                                                     end_line=1564,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_146 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_146 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1561,
+                                                     start_column=42,
+                                                     end_line=1561,
+                                                     end_column=67,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_147 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_147 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1560,
+                                                     start_column=44,
+                                                     end_line=1560,
+                                                     end_column=61,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_103 = TraitementFormuleAideFinale(aide_finale_formule = calcul_allocation_logement_accession_propriete(
+                CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in = temp_sous_calcul_traitement_134,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_133,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_132,
+                zone_in = temp_sous_calcul_traitement_131,
+                date_courante_in = temp_sous_calcul_traitement_130,
+                mensualite_principale_in = temp_sous_calcul_traitement_129,
+                situation_r822_11_13_17_in = temp_sous_calcul_traitement_128,
+                date_signature_pret_in = temp_sous_calcul_traitement_127,
+                type_travaux_logement_in = temp_sous_calcul_traitement_126,
+                local_habite_premiere_fois_beneficiaire_in = temp_sous_calcul_traitement_125,
+                date_entree_logement_in = temp_sous_calcul_traitement_124,
+                charges_mensuelles_pret_in = temp_sous_calcul_traitement_123,
+                copropriete_in = temp_sous_calcul_traitement_122)).aide_finale_formule,
+                traitement_aide_finale = calcul_allocation_logement_accession_propriete(
+                CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in = temp_sous_calcul_traitement_147,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_146,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_145,
+                zone_in = temp_sous_calcul_traitement_144,
+                date_courante_in = temp_sous_calcul_traitement_143,
+                mensualite_principale_in = temp_sous_calcul_traitement_142,
+                situation_r822_11_13_17_in = temp_sous_calcul_traitement_141,
+                date_signature_pret_in = temp_sous_calcul_traitement_140,
+                type_travaux_logement_in = temp_sous_calcul_traitement_139,
+                local_habite_premiere_fois_beneficiaire_in = temp_sous_calcul_traitement_138,
+                date_entree_logement_in = temp_sous_calcul_traitement_137,
+                charges_mensuelles_pret_in = temp_sous_calcul_traitement_136,
+                copropriete_in = temp_sous_calcul_traitement_135)).traitement_aide_finale)
+        elif match_arg_550.code == ModeOccupation_Code.SousLocataire:
+            location_8 = match_arg_550.value
+            try:
+                temp_sous_calcul_traitement_148 = location_8.changement_logement_d842_4
+            except EmptyError:
+                temp_sous_calcul_traitement_148 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1534,
+                                                     start_column=42,
+                                                     end_line=1534,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_149 = location_8.logement_meuble_d842_2
+            except EmptyError:
+                temp_sous_calcul_traitement_149 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1533,
+                                                     start_column=38,
+                                                     end_line=1533,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                match_arg_553 = location_8.bailleur
+                if match_arg_553.code == TypeBailleur_Code.BailleurSocial:
+                    bailleur_4 = match_arg_553.value
+                    temp_sous_calcul_traitement_150 = bailleur_4.reduction_loyer_solidarite_percue
+                elif match_arg_553.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                    _ = match_arg_553.value
+                    temp_sous_calcul_traitement_150 = money_of_cents_string("0")
+                elif match_arg_553.code == TypeBailleur_Code.BailleurPrive:
+                    _ = match_arg_553.value
+                    temp_sous_calcul_traitement_150 = money_of_cents_string("0")
+            except EmptyError:
+                temp_sous_calcul_traitement_150 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1529,
+                                                     start_column=16,
+                                                     end_line=1532,
+                                                     end_column=39,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_151 = location_8.colocation
+            except EmptyError:
+                temp_sous_calcul_traitement_151 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1524,
+                                                     start_column=26,
+                                                     end_line=1524,
+                                                     end_column=45,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_152 = type_aide_3
+            except EmptyError:
+                temp_sous_calcul_traitement_152 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1527,
+                                                     start_column=25,
+                                                     end_line=1527,
+                                                     end_column=34,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_153 = location_8.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+            except EmptyError:
+                temp_sous_calcul_traitement_153 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1526,
+                                                     start_column=15,
+                                                     end_line=1526,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_154 = location_8.logement_est_chambre
+            except EmptyError:
+                temp_sous_calcul_traitement_154 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1523,
+                                                     start_column=36,
+                                                     end_line=1523,
+                                                     end_column=65,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_155 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_155 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1517,
+                                                     start_column=20,
+                                                     end_line=1517,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_156 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_156 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1519,
+                                                     start_column=46,
+                                                     end_line=1519,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_157 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_157 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1516,
+                                                     start_column=41,
+                                                     end_line=1516,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_158 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_158 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1518,
+                                                     start_column=29,
+                                                     end_line=1518,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_159 = location_8.beneficiaire_aide_adulte_ou_enfant_handicapes
+            except EmptyError:
+                temp_sous_calcul_traitement_159 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1522,
+                                                     start_column=15,
+                                                     end_line=1522,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_160 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_160 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1515,
+                                                     start_column=43,
+                                                     end_line=1515,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_161 = location_8.loyer_principal
+            except EmptyError:
+                temp_sous_calcul_traitement_161 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1520,
+                                                     start_column=31,
+                                                     end_line=1520,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_162 = location_8.changement_logement_d842_4
+            except EmptyError:
+                temp_sous_calcul_traitement_162 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1534,
+                                                     start_column=42,
+                                                     end_line=1534,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_163 = location_8.logement_meuble_d842_2
+            except EmptyError:
+                temp_sous_calcul_traitement_163 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1533,
+                                                     start_column=38,
+                                                     end_line=1533,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                match_arg_554 = location_8.bailleur
+                if match_arg_554.code == TypeBailleur_Code.BailleurSocial:
+                    bailleur_5 = match_arg_554.value
+                    temp_sous_calcul_traitement_164 = bailleur_5.reduction_loyer_solidarite_percue
+                elif match_arg_554.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                    _ = match_arg_554.value
+                    temp_sous_calcul_traitement_164 = money_of_cents_string("0")
+                elif match_arg_554.code == TypeBailleur_Code.BailleurPrive:
+                    _ = match_arg_554.value
+                    temp_sous_calcul_traitement_164 = money_of_cents_string("0")
+            except EmptyError:
+                temp_sous_calcul_traitement_164 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1529,
+                                                     start_column=16,
+                                                     end_line=1532,
+                                                     end_column=39,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_165 = location_8.colocation
+            except EmptyError:
+                temp_sous_calcul_traitement_165 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1524,
+                                                     start_column=26,
+                                                     end_line=1524,
+                                                     end_column=45,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_166 = type_aide_3
+            except EmptyError:
+                temp_sous_calcul_traitement_166 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1527,
+                                                     start_column=25,
+                                                     end_line=1527,
+                                                     end_column=34,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_167 = location_8.agees_ou_handicap_adultes_hebergees_onereux_particuliers
+            except EmptyError:
+                temp_sous_calcul_traitement_167 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1526,
+                                                     start_column=15,
+                                                     end_line=1526,
+                                                     end_column=80,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_168 = location_8.logement_est_chambre
+            except EmptyError:
+                temp_sous_calcul_traitement_168 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1523,
+                                                     start_column=36,
+                                                     end_line=1523,
+                                                     end_column=65,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_169 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_169 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1517,
+                                                     start_column=20,
+                                                     end_line=1517,
+                                                     end_column=24,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_170 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_170 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1519,
+                                                     start_column=46,
+                                                     end_line=1519,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_171 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_171 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1516,
+                                                     start_column=41,
+                                                     end_line=1516,
+                                                     end_column=66,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_172 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_172 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1518,
+                                                     start_column=29,
+                                                     end_line=1518,
+                                                     end_column=42,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_173 = location_8.beneficiaire_aide_adulte_ou_enfant_handicapes
+            except EmptyError:
+                temp_sous_calcul_traitement_173 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1522,
+                                                     start_column=15,
+                                                     end_line=1522,
+                                                     end_column=69,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_174 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_174 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1515,
+                                                     start_column=43,
+                                                     end_line=1515,
+                                                     end_column=60,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_175 = location_8.loyer_principal
+            except EmptyError:
+                temp_sous_calcul_traitement_175 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1520,
+                                                     start_column=31,
+                                                     end_line=1520,
+                                                     end_column=55,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_103 = TraitementFormuleAideFinale(aide_finale_formule = calcul_allocation_logement_locatif(
+                CalculAllocationLogementLocatifIn(loyer_principal_in = temp_sous_calcul_traitement_161,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_160,
+                beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_159,
+                date_courante_in = temp_sous_calcul_traitement_158,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_157,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_156,
+                zone_in = temp_sous_calcul_traitement_155,
+                logement_est_chambre_in = temp_sous_calcul_traitement_154,
+                agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = temp_sous_calcul_traitement_153,
+                type_aide_in = temp_sous_calcul_traitement_152,
+                colocation_in = temp_sous_calcul_traitement_151,
+                reduction_loyer_solidarite_in = temp_sous_calcul_traitement_150,
+                logement_meuble_d842_2_in = temp_sous_calcul_traitement_149,
+                changement_logement_d842_4_in = temp_sous_calcul_traitement_148)).aide_finale_formule,
+                traitement_aide_finale = calcul_allocation_logement_locatif(
+                CalculAllocationLogementLocatifIn(loyer_principal_in = temp_sous_calcul_traitement_175,
+                ressources_menage_arrondies_in = temp_sous_calcul_traitement_174,
+                beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_173,
+                date_courante_in = temp_sous_calcul_traitement_172,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_171,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_170,
+                zone_in = temp_sous_calcul_traitement_169,
+                logement_est_chambre_in = temp_sous_calcul_traitement_168,
+                agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = temp_sous_calcul_traitement_167,
+                type_aide_in = temp_sous_calcul_traitement_166,
+                colocation_in = temp_sous_calcul_traitement_165,
+                reduction_loyer_solidarite_in = temp_sous_calcul_traitement_164,
+                logement_meuble_d842_2_in = temp_sous_calcul_traitement_163,
+                changement_logement_d842_4_in = temp_sous_calcul_traitement_162)).traitement_aide_finale)
+        elif match_arg_550.code == ModeOccupation_Code.LocationAccession:
+            proprietaire_10 = match_arg_550.value
+            try:
+                temp_sous_calcul_traitement_176 = proprietaire_10.copropriete
+            except EmptyError:
+                temp_sous_calcul_traitement_176 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1592,
+                                                     start_column=28,
+                                                     end_line=1592,
+                                                     end_column=52,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_177 = proprietaire_10.charges_mensuelles_pret
+            except EmptyError:
+                temp_sous_calcul_traitement_177 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1587,
+                                                     start_column=40,
+                                                     end_line=1587,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_178 = proprietaire_10.date_entree_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_178 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1591,
+                                                     start_column=37,
+                                                     end_line=1591,
+                                                     end_column=70,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_179 = proprietaire_10.local_habite_premiere_fois_beneficiaire
+            except EmptyError:
+                temp_sous_calcul_traitement_179 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1590,
+                                                     start_column=56,
+                                                     end_line=1590,
+                                                     end_column=108,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_180 = proprietaire_10.type_travaux_logement_r842_5
+            except EmptyError:
+                temp_sous_calcul_traitement_180 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1588,
+                                                     start_column=38,
+                                                     end_line=1588,
+                                                     end_column=79,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_181 = proprietaire_10.pret.date_signature
+            except EmptyError:
+                temp_sous_calcul_traitement_181 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1589,
+                                                     start_column=36,
+                                                     end_line=1589,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_182 = proprietaire_10.situation_r822_11_13_17
+            except EmptyError:
+                temp_sous_calcul_traitement_182 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1593,
+                                                     start_column=40,
+                                                     end_line=1593,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_183 = proprietaire_10.mensualite_principale
+            except EmptyError:
+                temp_sous_calcul_traitement_183 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1586,
+                                                     start_column=38,
+                                                     end_line=1586,
+                                                     end_column=72,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_184 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_184 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1584,
+                                                     start_column=30,
+                                                     end_line=1584,
+                                                     end_column=43,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_185 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_185 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1583,
+                                                     start_column=21,
+                                                     end_line=1583,
+                                                     end_column=25,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_186 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_186 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1585,
+                                                     start_column=47,
+                                                     end_line=1585,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_187 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_187 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1582,
+                                                     start_column=42,
+                                                     end_line=1582,
+                                                     end_column=67,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_188 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_188 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1581,
+                                                     start_column=44,
+                                                     end_line=1581,
+                                                     end_column=61,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_189 = proprietaire_10.copropriete
+            except EmptyError:
+                temp_sous_calcul_traitement_189 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1592,
+                                                     start_column=28,
+                                                     end_line=1592,
+                                                     end_column=52,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_190 = proprietaire_10.charges_mensuelles_pret
+            except EmptyError:
+                temp_sous_calcul_traitement_190 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1587,
+                                                     start_column=40,
+                                                     end_line=1587,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_191 = proprietaire_10.date_entree_logement
+            except EmptyError:
+                temp_sous_calcul_traitement_191 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1591,
+                                                     start_column=37,
+                                                     end_line=1591,
+                                                     end_column=70,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_192 = proprietaire_10.local_habite_premiere_fois_beneficiaire
+            except EmptyError:
+                temp_sous_calcul_traitement_192 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1590,
+                                                     start_column=56,
+                                                     end_line=1590,
+                                                     end_column=108,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_193 = proprietaire_10.type_travaux_logement_r842_5
+            except EmptyError:
+                temp_sous_calcul_traitement_193 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1588,
+                                                     start_column=38,
+                                                     end_line=1588,
+                                                     end_column=79,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_194 = proprietaire_10.pret.date_signature
+            except EmptyError:
+                temp_sous_calcul_traitement_194 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1589,
+                                                     start_column=36,
+                                                     end_line=1589,
+                                                     end_column=68,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_195 = proprietaire_10.situation_r822_11_13_17
+            except EmptyError:
+                temp_sous_calcul_traitement_195 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1593,
+                                                     start_column=40,
+                                                     end_line=1593,
+                                                     end_column=76,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_196 = proprietaire_10.mensualite_principale
+            except EmptyError:
+                temp_sous_calcul_traitement_196 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1586,
+                                                     start_column=38,
+                                                     end_line=1586,
+                                                     end_column=72,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_197 = date_courante_15
+            except EmptyError:
+                temp_sous_calcul_traitement_197 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1584,
+                                                     start_column=30,
+                                                     end_line=1584,
+                                                     end_column=43,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_198 = zone_7
+            except EmptyError:
+                temp_sous_calcul_traitement_198 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1583,
+                                                     start_column=21,
+                                                     end_line=1583,
+                                                     end_column=25,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_199 = situation_familiale_calcul_apl_9
+            except EmptyError:
+                temp_sous_calcul_traitement_199 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1585,
+                                                     start_column=47,
+                                                     end_line=1585,
+                                                     end_column=77,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_200 = nombre_personnes_a_charge_9
+            except EmptyError:
+                temp_sous_calcul_traitement_200 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1582,
+                                                     start_column=42,
+                                                     end_line=1582,
+                                                     end_column=67,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            try:
+                temp_sous_calcul_traitement_201 = ressources_menage_avec_arrondi_1
+            except EmptyError:
+                temp_sous_calcul_traitement_201 = dead_value
+                raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
+                                                     start_line=1581,
+                                                     start_column=44,
+                                                     end_line=1581,
+                                                     end_column=61,
+                                                     law_headings=["Article D823-9",
+                                                     "Section 1 : Calcul, liquidation et versement des aides",
+                                                     "Chapitre III : Modalités de liquidation et de versement",
+                                                     "Titre II : Dispositions communes aux aides personnelles au logement",
+                                                     "Livre VIII : Aides personnelles au logement",
+                                                     "Partie réglementaire",
+                                                     "Code de la construction et de l'habitation"]))
+            temp_sous_calcul_traitement_103 = TraitementFormuleAideFinale(aide_finale_formule = calcul_allocation_logement_accession_propriete(
+                CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in = temp_sous_calcul_traitement_188,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_187,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_186,
+                zone_in = temp_sous_calcul_traitement_185,
+                date_courante_in = temp_sous_calcul_traitement_184,
+                mensualite_principale_in = temp_sous_calcul_traitement_183,
+                situation_r822_11_13_17_in = temp_sous_calcul_traitement_182,
+                date_signature_pret_in = temp_sous_calcul_traitement_181,
+                type_travaux_logement_in = temp_sous_calcul_traitement_180,
+                local_habite_premiere_fois_beneficiaire_in = temp_sous_calcul_traitement_179,
+                date_entree_logement_in = temp_sous_calcul_traitement_178,
+                charges_mensuelles_pret_in = temp_sous_calcul_traitement_177,
+                copropriete_in = temp_sous_calcul_traitement_176)).aide_finale_formule,
+                traitement_aide_finale = calcul_allocation_logement_accession_propriete(
+                CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in = temp_sous_calcul_traitement_201,
+                nombre_personnes_a_charge_in = temp_sous_calcul_traitement_200,
+                situation_familiale_calcul_apl_in = temp_sous_calcul_traitement_199,
+                zone_in = temp_sous_calcul_traitement_198,
+                date_courante_in = temp_sous_calcul_traitement_197,
+                mensualite_principale_in = temp_sous_calcul_traitement_196,
+                situation_r822_11_13_17_in = temp_sous_calcul_traitement_195,
+                date_signature_pret_in = temp_sous_calcul_traitement_194,
+                type_travaux_logement_in = temp_sous_calcul_traitement_193,
+                local_habite_premiere_fois_beneficiaire_in = temp_sous_calcul_traitement_192,
+                date_entree_logement_in = temp_sous_calcul_traitement_191,
+                charges_mensuelles_pret_in = temp_sous_calcul_traitement_190,
+                copropriete_in = temp_sous_calcul_traitement_189)).traitement_aide_finale)
     except EmptyError:
-        temp_accession_propriete_dot_ressources_menage_arrondies_base = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1651,
-                                             start_column=14, end_line=1651,
-                                             end_column=61,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_ressources_menage_arrondies_base = temp_accession_propriete_dot_ressources_menage_arrondies_base
-    try:
-        temp_accession_propriete_dot_nombre_personnes_a_charge_1 = nombre_personnes_a_charge_9
-    except EmptyError:
-        temp_accession_propriete_dot_nombre_personnes_a_charge_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1657,
-                                             start_column=14, end_line=1657,
-                                             end_column=59,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_nombre_personnes_a_charge_1 = temp_accession_propriete_dot_nombre_personnes_a_charge_1
-    try:
-        temp_accession_propriete_dot_situation_familiale_calcul_apl_1 = situation_familiale_calcul_apl_9
-    except EmptyError:
-        temp_accession_propriete_dot_situation_familiale_calcul_apl_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1669,
-                                             start_column=14, end_line=1669,
-                                             end_column=64,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_situation_familiale_calcul_apl_1 = temp_accession_propriete_dot_situation_familiale_calcul_apl_1
-    try:
-        temp_accession_propriete_dot_zone_1 = zone_7
-    except EmptyError:
-        temp_accession_propriete_dot_zone_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1661,
-                                             start_column=14, end_line=1661,
-                                             end_column=38,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_zone_1 = temp_accession_propriete_dot_zone_1
-    try:
-        temp_accession_propriete_dot_date_courante_1 = date_courante_15
-    except EmptyError:
-        temp_accession_propriete_dot_date_courante_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1664,
-                                             start_column=14, end_line=1664,
-                                             end_column=47,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_date_courante_1 = temp_accession_propriete_dot_date_courante_1
-    try:
-        match_arg_570 = mode_occupation_3
-        if match_arg_570.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_570.value
-            temp_accession_propriete_dot_mensualite_principale_2 = money_of_cents_string("0")
-        elif match_arg_570.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_570.value
-            temp_accession_propriete_dot_mensualite_principale_2 = money_of_cents_string("0")
-        elif match_arg_570.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_22 = match_arg_570.value
-            temp_accession_propriete_dot_mensualite_principale_2 = proprietaire_22.mensualite_principale
-        elif match_arg_570.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_570.value
-            temp_accession_propriete_dot_mensualite_principale_2 = money_of_cents_string("0")
-        elif match_arg_570.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_23 = match_arg_570.value
-            temp_accession_propriete_dot_mensualite_principale_2 = proprietaire_23.mensualite_principale
-        temp_accession_propriete_dot_mensualite_principale_3 = temp_accession_propriete_dot_mensualite_principale_2
-    except EmptyError:
-        temp_accession_propriete_dot_mensualite_principale_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1745,
-                                             start_column=14, end_line=1745,
-                                             end_column=55,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_mensualite_principale_1 = temp_accession_propriete_dot_mensualite_principale_3
-    try:
-        match_arg_571 = mode_occupation_3
-        if match_arg_571.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_571.value
-            temp_accession_propriete_dot_situation_r822_11_13_17_2 = False
-        elif match_arg_571.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_571.value
-            temp_accession_propriete_dot_situation_r822_11_13_17_2 = False
-        elif match_arg_571.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_24 = match_arg_571.value
-            temp_accession_propriete_dot_situation_r822_11_13_17_2 = proprietaire_24.situation_r822_11_13_17
-        elif match_arg_571.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_571.value
-            temp_accession_propriete_dot_situation_r822_11_13_17_2 = False
-        elif match_arg_571.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_25 = match_arg_571.value
-            temp_accession_propriete_dot_situation_r822_11_13_17_2 = proprietaire_25.situation_r822_11_13_17
-        temp_accession_propriete_dot_situation_r822_11_13_17_3 = temp_accession_propriete_dot_situation_r822_11_13_17_2
-    except EmptyError:
-        temp_accession_propriete_dot_situation_r822_11_13_17_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1809,
-                                             start_column=14, end_line=1809,
-                                             end_column=57,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_situation_r822_11_13_17_1 = temp_accession_propriete_dot_situation_r822_11_13_17_3
-    try:
-        match_arg_572 = mode_occupation_3
-        if match_arg_572.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_572.value
-            temp_accession_propriete_dot_date_signature_pret_2 = date_of_numbers(2010,1,1)
-        elif match_arg_572.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_572.value
-            temp_accession_propriete_dot_date_signature_pret_2 = date_of_numbers(2010,1,1)
-        elif match_arg_572.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_26 = match_arg_572.value
-            temp_accession_propriete_dot_date_signature_pret_2 = proprietaire_26.pret.date_signature
-        elif match_arg_572.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_572.value
-            temp_accession_propriete_dot_date_signature_pret_2 = date_of_numbers(2010,1,1)
-        elif match_arg_572.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_27 = match_arg_572.value
-            temp_accession_propriete_dot_date_signature_pret_2 = proprietaire_27.pret.date_signature
-        temp_accession_propriete_dot_date_signature_pret_3 = temp_accession_propriete_dot_date_signature_pret_2
-    except EmptyError:
-        temp_accession_propriete_dot_date_signature_pret_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1773,
-                                             start_column=14, end_line=1773,
-                                             end_column=53,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_date_signature_pret_1 = temp_accession_propriete_dot_date_signature_pret_3
-    try:
-        match_arg_573 = mode_occupation_3
-        if match_arg_573.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_573.value
-            temp_accession_propriete_dot_type_travaux_logement_2 = TypeTravauxLogementR8425(TypeTravauxLogementR8425_Code.PasDeTravaux,
-                Unit())
-        elif match_arg_573.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_573.value
-            temp_accession_propriete_dot_type_travaux_logement_2 = TypeTravauxLogementR8425(TypeTravauxLogementR8425_Code.PasDeTravaux,
-                Unit())
-        elif match_arg_573.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_28 = match_arg_573.value
-            temp_accession_propriete_dot_type_travaux_logement_2 = proprietaire_28.type_travaux_logement_r842_5
-        elif match_arg_573.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_573.value
-            temp_accession_propriete_dot_type_travaux_logement_2 = TypeTravauxLogementR8425(TypeTravauxLogementR8425_Code.PasDeTravaux,
-                Unit())
-        elif match_arg_573.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_29 = match_arg_573.value
-            temp_accession_propriete_dot_type_travaux_logement_2 = proprietaire_29.type_travaux_logement_r842_5
-        temp_accession_propriete_dot_type_travaux_logement_3 = temp_accession_propriete_dot_type_travaux_logement_2
-    except EmptyError:
-        temp_accession_propriete_dot_type_travaux_logement_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1763,
-                                             start_column=14, end_line=1763,
-                                             end_column=55,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_type_travaux_logement_1 = temp_accession_propriete_dot_type_travaux_logement_3
-    try:
-        match_arg_574 = mode_occupation_3
-        if match_arg_574.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_574.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_2 = False
-        elif match_arg_574.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_574.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_2 = False
-        elif match_arg_574.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_30 = match_arg_574.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_2 = proprietaire_30.local_habite_premiere_fois_beneficiaire
-        elif match_arg_574.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_574.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_2 = False
-        elif match_arg_574.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_31 = match_arg_574.value
-            temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_2 = proprietaire_31.local_habite_premiere_fois_beneficiaire
-        temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_3 = temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_2
-    except EmptyError:
-        temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1782,
-                                             start_column=14, end_line=1782,
-                                             end_column=73,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_local_habite_premiere_fois_beneficiaire_1 = temp_accession_propriete_dot_local_habite_premiere_fois_beneficiaire_3
-    try:
-        match_arg_575 = mode_occupation_3
-        if match_arg_575.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_575.value
-            temp_accession_propriete_dot_date_entree_logement_2 = date_of_numbers(2010,1,1)
-        elif match_arg_575.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_575.value
-            temp_accession_propriete_dot_date_entree_logement_2 = date_of_numbers(2010,1,1)
-        elif match_arg_575.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_32 = match_arg_575.value
-            temp_accession_propriete_dot_date_entree_logement_2 = proprietaire_32.date_entree_logement
-        elif match_arg_575.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_575.value
-            temp_accession_propriete_dot_date_entree_logement_2 = date_of_numbers(2010,1,1)
-        elif match_arg_575.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_33 = match_arg_575.value
-            temp_accession_propriete_dot_date_entree_logement_2 = proprietaire_33.date_entree_logement
-        temp_accession_propriete_dot_date_entree_logement_3 = temp_accession_propriete_dot_date_entree_logement_2
-    except EmptyError:
-        temp_accession_propriete_dot_date_entree_logement_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1791,
-                                             start_column=14, end_line=1791,
-                                             end_column=54,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_date_entree_logement_1 = temp_accession_propriete_dot_date_entree_logement_3
-    try:
-        match_arg_576 = mode_occupation_3
-        if match_arg_576.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_576.value
-            temp_accession_propriete_dot_charges_mensuelles_pret = money_of_cents_string("0")
-        elif match_arg_576.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_576.value
-            temp_accession_propriete_dot_charges_mensuelles_pret = money_of_cents_string("0")
-        elif match_arg_576.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_34 = match_arg_576.value
-            temp_accession_propriete_dot_charges_mensuelles_pret = proprietaire_34.charges_mensuelles_pret
-        elif match_arg_576.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_576.value
-            temp_accession_propriete_dot_charges_mensuelles_pret = money_of_cents_string("0")
-        elif match_arg_576.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_35 = match_arg_576.value
-            temp_accession_propriete_dot_charges_mensuelles_pret = proprietaire_35.charges_mensuelles_pret
-        temp_accession_propriete_dot_charges_mensuelles_pret_1 = temp_accession_propriete_dot_charges_mensuelles_pret
-    except EmptyError:
-        temp_accession_propriete_dot_charges_mensuelles_pret_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1754,
-                                             start_column=14, end_line=1754,
-                                             end_column=57,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_charges_mensuelles_pret = temp_accession_propriete_dot_charges_mensuelles_pret_1
-    try:
-        match_arg_577 = mode_occupation_3
-        if match_arg_577.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_577.value
-            temp_accession_propriete_dot_copropriete_2 = False
-        elif match_arg_577.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_577.value
-            temp_accession_propriete_dot_copropriete_2 = False
-        elif match_arg_577.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_36 = match_arg_577.value
-            temp_accession_propriete_dot_copropriete_2 = proprietaire_36.copropriete
-        elif match_arg_577.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_577.value
-            temp_accession_propriete_dot_copropriete_2 = False
-        elif match_arg_577.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_37 = match_arg_577.value
-            temp_accession_propriete_dot_copropriete_2 = proprietaire_37.copropriete
-        temp_accession_propriete_dot_copropriete_3 = temp_accession_propriete_dot_copropriete_2
-    except EmptyError:
-        temp_accession_propriete_dot_copropriete_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1800,
-                                             start_column=14, end_line=1800,
-                                             end_column=45,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    accession_propriete_dot_copropriete_1 = temp_accession_propriete_dot_copropriete_3
-    result_27 = calcul_allocation_logement_accession_propriete(CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in = accession_propriete_dot_ressources_menage_arrondies_base,
-                                                               nombre_personnes_a_charge_in = accession_propriete_dot_nombre_personnes_a_charge_1,
-                                                               situation_familiale_calcul_apl_in = accession_propriete_dot_situation_familiale_calcul_apl_1,
-                                                               zone_in = accession_propriete_dot_zone_1,
-                                                               date_courante_in = accession_propriete_dot_date_courante_1,
-                                                               mensualite_principale_in = accession_propriete_dot_mensualite_principale_1,
-                                                               situation_r822_11_13_17_in = accession_propriete_dot_situation_r822_11_13_17_1,
-                                                               date_signature_pret_in = accession_propriete_dot_date_signature_pret_1,
-                                                               type_travaux_logement_in = accession_propriete_dot_type_travaux_logement_1,
-                                                               local_habite_premiere_fois_beneficiaire_in = accession_propriete_dot_local_habite_premiere_fois_beneficiaire_1,
-                                                               date_entree_logement_in = accession_propriete_dot_date_entree_logement_1,
-                                                               charges_mensuelles_pret_in = accession_propriete_dot_charges_mensuelles_pret,
-                                                               copropriete_in = accession_propriete_dot_copropriete_1))
-    accession_propriete_dot_aide_finale_formule_1 = result_27.aide_finale_formule
-    accession_propriete_dot_traitement_aide_finale_montant_minimal_1 = result_27.traitement_aide_finale
-    try:
-        match_arg_578 = mode_occupation_3
-        if match_arg_578.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_578.value
-            temp_logement_foyer_dot_type_logement_foyer_2 = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        elif match_arg_578.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer__3 = match_arg_578.value
-            temp_logement_foyer_dot_type_logement_foyer_2 = logement_foyer__3.type
-        elif match_arg_578.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_578.value
-            temp_logement_foyer_dot_type_logement_foyer_2 = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        elif match_arg_578.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_578.value
-            temp_logement_foyer_dot_type_logement_foyer_2 = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        elif match_arg_578.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_578.value
-            temp_logement_foyer_dot_type_logement_foyer_2 = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
-                Unit())
-        temp_logement_foyer_dot_type_logement_foyer_3 = temp_logement_foyer_dot_type_logement_foyer_2
-    except EmptyError:
-        temp_logement_foyer_dot_type_logement_foyer_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1835,
-                                             start_column=14, end_line=1835,
-                                             end_column=48,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_type_logement_foyer_1 = temp_logement_foyer_dot_type_logement_foyer_3
-    try:
-        match_arg_579 = mode_occupation_3
-        if match_arg_579.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_579.value
-            temp_logement_foyer_dot_date_conventionnement_2 = date_of_numbers(1970,1,1)
-        elif match_arg_579.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer__4 = match_arg_579.value
-            temp_logement_foyer_dot_date_conventionnement_2 = logement_foyer__4.date_conventionnement
-        elif match_arg_579.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_579.value
-            temp_logement_foyer_dot_date_conventionnement_2 = date_of_numbers(1970,1,1)
-        elif match_arg_579.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_579.value
-            temp_logement_foyer_dot_date_conventionnement_2 = date_of_numbers(1970,1,1)
-        elif match_arg_579.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_579.value
-            temp_logement_foyer_dot_date_conventionnement_2 = date_of_numbers(1970,1,1)
-        temp_logement_foyer_dot_date_conventionnement_3 = temp_logement_foyer_dot_date_conventionnement_2
-    except EmptyError:
-        temp_logement_foyer_dot_date_conventionnement_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1844,
-                                             start_column=14, end_line=1844,
-                                             end_column=50,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_date_conventionnement_1 = temp_logement_foyer_dot_date_conventionnement_3
-    try:
-        match_arg_580 = mode_occupation_3
-        if match_arg_580.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_580.value
-            temp_logement_foyer_dot_redevance_2 = money_of_cents_string("0")
-        elif match_arg_580.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer__5 = match_arg_580.value
-            temp_logement_foyer_dot_redevance_2 = logement_foyer__5.redevance
-        elif match_arg_580.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_580.value
-            temp_logement_foyer_dot_redevance_2 = money_of_cents_string("0")
-        elif match_arg_580.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_580.value
-            temp_logement_foyer_dot_redevance_2 = money_of_cents_string("0")
-        elif match_arg_580.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_580.value
-            temp_logement_foyer_dot_redevance_2 = money_of_cents_string("0")
-        temp_logement_foyer_dot_redevance_3 = temp_logement_foyer_dot_redevance_2
-    except EmptyError:
-        temp_logement_foyer_dot_redevance_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1819,
-                                             start_column=14, end_line=1819,
-                                             end_column=38,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_redevance_1 = temp_logement_foyer_dot_redevance_3
-    try:
-        temp_logement_foyer_dot_ressources_menage_arrondies_1 = ressources_menage_avec_arrondi_1
-    except EmptyError:
-        temp_logement_foyer_dot_ressources_menage_arrondies_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1649,
-                                             start_column=14, end_line=1649,
-                                             end_column=56,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_ressources_menage_arrondies_1 = temp_logement_foyer_dot_ressources_menage_arrondies_1
-    try:
-        temp_logement_foyer_dot_nombre_personnes_a_charge_1 = nombre_personnes_a_charge_9
-    except EmptyError:
-        temp_logement_foyer_dot_nombre_personnes_a_charge_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1655,
-                                             start_column=14, end_line=1655,
-                                             end_column=54,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_nombre_personnes_a_charge_1 = temp_logement_foyer_dot_nombre_personnes_a_charge_1
-    try:
-        temp_logement_foyer_dot_situation_familiale_calcul_apl_1 = situation_familiale_calcul_apl_9
-    except EmptyError:
-        temp_logement_foyer_dot_situation_familiale_calcul_apl_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1667,
-                                             start_column=14, end_line=1667,
-                                             end_column=59,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_situation_familiale_calcul_apl_1 = temp_logement_foyer_dot_situation_familiale_calcul_apl_1
-    try:
-        temp_logement_foyer_dot_zone_1 = zone_7
-    except EmptyError:
-        temp_logement_foyer_dot_zone_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1660,
-                                             start_column=14, end_line=1660,
-                                             end_column=33,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_zone_1 = temp_logement_foyer_dot_zone_1
-    try:
-        temp_logement_foyer_dot_date_courante_1 = date_courante_15
-    except EmptyError:
-        temp_logement_foyer_dot_date_courante_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1663,
-                                             start_column=14, end_line=1663,
-                                             end_column=42,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_date_courante_1 = temp_logement_foyer_dot_date_courante_1
-    try:
-        match_arg_581 = mode_occupation_3
-        if match_arg_581.code == ModeOccupation_Code.Locataire:
-            _ = match_arg_581.value
-            temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16 = CategorieEquivalenceLoyerAllocationLogementFoyer(CategorieEquivalenceLoyerAllocationLogementFoyer_Code.AutresPersonnes,
-                Unit())
-        elif match_arg_581.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logement_foyer__6 = match_arg_581.value
-            temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16 = logement_foyer__6.categorie_equivalence_loyer_d842_16
-        elif match_arg_581.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_581.value
-            temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16 = CategorieEquivalenceLoyerAllocationLogementFoyer(CategorieEquivalenceLoyerAllocationLogementFoyer_Code.AutresPersonnes,
-                Unit())
-        elif match_arg_581.code == ModeOccupation_Code.SousLocataire:
-            _ = match_arg_581.value
-            temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16 = CategorieEquivalenceLoyerAllocationLogementFoyer(CategorieEquivalenceLoyerAllocationLogementFoyer_Code.AutresPersonnes,
-                Unit())
-        elif match_arg_581.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_581.value
-            temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16 = CategorieEquivalenceLoyerAllocationLogementFoyer(CategorieEquivalenceLoyerAllocationLogementFoyer_Code.AutresPersonnes,
-                Unit())
-        temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16_1 = temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16
-    except EmptyError:
-        temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1826,
-                                             start_column=14, end_line=1826,
-                                             end_column=64,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    logement_foyer_dot_categorie_equivalence_loyer_d842_16 = temp_logement_foyer_dot_categorie_equivalence_loyer_d842_16_1
-    result_28 = calcul_allocation_logement_foyer(CalculAllocationLogementFoyerIn(type_logement_foyer_in = logement_foyer_dot_type_logement_foyer_1,
-                                                 date_conventionnement_in = logement_foyer_dot_date_conventionnement_1,
-                                                 redevance_in = logement_foyer_dot_redevance_1,
-                                                 ressources_menage_arrondies_in = logement_foyer_dot_ressources_menage_arrondies_1,
-                                                 nombre_personnes_a_charge_in = logement_foyer_dot_nombre_personnes_a_charge_1,
-                                                 situation_familiale_calcul_apl_in = logement_foyer_dot_situation_familiale_calcul_apl_1,
-                                                 zone_in = logement_foyer_dot_zone_1,
-                                                 date_courante_in = logement_foyer_dot_date_courante_1,
-                                                 categorie_equivalence_loyer_d842_16_in = logement_foyer_dot_categorie_equivalence_loyer_d842_16))
-    logement_foyer_dot_coefficient_prise_en_charge = result_28.coefficient_prise_en_charge
-    logement_foyer_dot_equivalence_loyer = result_28.equivalence_loyer
-    logement_foyer_dot_montant_forfaitaire_charges = result_28.montant_forfaitaire_charges
-    logement_foyer_dot_loyer_minimal = result_28.loyer_minimal
-    logement_foyer_dot_aide_finale_formule_1 = result_28.aide_finale_formule
-    logement_foyer_dot_traitement_aide_finale_montant_minimal_1 = result_28.traitement_aide_finale
-    try:
-        match_arg_582 = mode_occupation_3
-        if match_arg_582.code == ModeOccupation_Code.Locataire:
-            location_16 = match_arg_582.value
-            temp_locatif_dot_loyer_principal = location_16.loyer_principal
-        elif match_arg_582.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_582.value
-            temp_locatif_dot_loyer_principal = money_of_cents_string("0")
-        elif match_arg_582.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_582.value
-            temp_locatif_dot_loyer_principal = money_of_cents_string("0")
-        elif match_arg_582.code == ModeOccupation_Code.SousLocataire:
-            location_17 = match_arg_582.value
-            temp_locatif_dot_loyer_principal = location_17.loyer_principal
-        elif match_arg_582.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_582.value
-            temp_locatif_dot_loyer_principal = money_of_cents_string("0")
-        temp_locatif_dot_loyer_principal_1 = temp_locatif_dot_loyer_principal
-    except EmptyError:
-        temp_locatif_dot_loyer_principal_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1672,
-                                             start_column=14, end_line=1672,
-                                             end_column=37,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_loyer_principal = temp_locatif_dot_loyer_principal_1
-    try:
-        temp_locatif_dot_ressources_menage_arrondies_1 = ressources_menage_avec_arrondi_1
-    except EmptyError:
-        temp_locatif_dot_ressources_menage_arrondies_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1648,
-                                             start_column=14, end_line=1648,
-                                             end_column=49,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_ressources_menage_arrondies_1 = temp_locatif_dot_ressources_menage_arrondies_1
-    try:
-        match_arg_583 = mode_occupation_3
-        if match_arg_583.code == ModeOccupation_Code.Locataire:
-            location_18 = match_arg_583.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_2 = location_18.beneficiaire_aide_adulte_ou_enfant_handicapes
-        elif match_arg_583.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_583.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_2 = False
-        elif match_arg_583.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_583.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_2 = False
-        elif match_arg_583.code == ModeOccupation_Code.SousLocataire:
-            location_19 = match_arg_583.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_2 = location_19.beneficiaire_aide_adulte_ou_enfant_handicapes
-        elif match_arg_583.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_583.value
-            temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_2 = False
-        temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_3 = temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_2
-    except EmptyError:
-        temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1679,
-                                             start_column=14, end_line=1679,
-                                             end_column=67,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_1 = temp_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_3
-    try:
-        temp_locatif_dot_date_courante_1 = date_courante_15
-    except EmptyError:
-        temp_locatif_dot_date_courante_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1662,
-                                             start_column=14, end_line=1662,
-                                             end_column=35,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_date_courante_1 = temp_locatif_dot_date_courante_1
-    try:
-        temp_locatif_dot_nombre_personnes_a_charge_1 = nombre_personnes_a_charge_9
-    except EmptyError:
-        temp_locatif_dot_nombre_personnes_a_charge_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1653,
-                                             start_column=14, end_line=1653,
-                                             end_column=47,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_nombre_personnes_a_charge_1 = temp_locatif_dot_nombre_personnes_a_charge_1
-    try:
-        temp_locatif_dot_situation_familiale_calcul_apl_1 = situation_familiale_calcul_apl_9
-    except EmptyError:
-        temp_locatif_dot_situation_familiale_calcul_apl_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1665,
-                                             start_column=14, end_line=1665,
-                                             end_column=52,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_situation_familiale_calcul_apl_1 = temp_locatif_dot_situation_familiale_calcul_apl_1
-    try:
-        temp_locatif_dot_zone_1 = zone_7
-    except EmptyError:
-        temp_locatif_dot_zone_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1659,
-                                             start_column=14, end_line=1659,
-                                             end_column=26,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_zone_1 = temp_locatif_dot_zone_1
-    try:
-        match_arg_584 = mode_occupation_3
-        if match_arg_584.code == ModeOccupation_Code.Locataire:
-            location_20 = match_arg_584.value
-            temp_locatif_dot_logement_est_chambre_2 = location_20.logement_est_chambre
-        elif match_arg_584.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_584.value
-            temp_locatif_dot_logement_est_chambre_2 = False
-        elif match_arg_584.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_584.value
-            temp_locatif_dot_logement_est_chambre_2 = False
-        elif match_arg_584.code == ModeOccupation_Code.SousLocataire:
-            location_21 = match_arg_584.value
-            temp_locatif_dot_logement_est_chambre_2 = location_21.logement_est_chambre
-        elif match_arg_584.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_584.value
-            temp_locatif_dot_logement_est_chambre_2 = False
-        temp_locatif_dot_logement_est_chambre_3 = temp_locatif_dot_logement_est_chambre_2
-    except EmptyError:
-        temp_locatif_dot_logement_est_chambre_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1688,
-                                             start_column=14, end_line=1688,
-                                             end_column=42,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_logement_est_chambre_1 = temp_locatif_dot_logement_est_chambre_3
-    try:
-        match_arg_585 = mode_occupation_3
-        if match_arg_585.code == ModeOccupation_Code.Locataire:
-            location_22 = match_arg_585.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_2 = location_22.agees_ou_handicap_adultes_hebergees_onereux_particuliers
-        elif match_arg_585.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_585.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_2 = False
-        elif match_arg_585.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_585.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_2 = False
-        elif match_arg_585.code == ModeOccupation_Code.SousLocataire:
-            location_23 = match_arg_585.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_2 = location_23.agees_ou_handicap_adultes_hebergees_onereux_particuliers
-        elif match_arg_585.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_585.value
-            temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_2 = False
-        temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_3 = temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_2
-    except EmptyError:
-        temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1703, start_column=5,
-                                             end_line=1703, end_column=69,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_1 = temp_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_3
-    try:
-        temp_locatif_dot_type_aide_1 = type_aide_3
-    except EmptyError:
-        temp_locatif_dot_type_aide_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1713,
-                                             start_column=14, end_line=1713,
-                                             end_column=31,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_type_aide_1 = temp_locatif_dot_type_aide_1
-    try:
-        match_arg_586 = mode_occupation_3
-        if match_arg_586.code == ModeOccupation_Code.Locataire:
-            location_24 = match_arg_586.value
-            temp_locatif_dot_colocation_2 = location_24.colocation
-        elif match_arg_586.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_586.value
-            temp_locatif_dot_colocation_2 = False
-        elif match_arg_586.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_586.value
-            temp_locatif_dot_colocation_2 = False
-        elif match_arg_586.code == ModeOccupation_Code.SousLocataire:
-            location_25 = match_arg_586.value
-            temp_locatif_dot_colocation_2 = location_25.colocation
-        elif match_arg_586.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_586.value
-            temp_locatif_dot_colocation_2 = False
-        temp_locatif_dot_colocation_3 = temp_locatif_dot_colocation_2
-    except EmptyError:
-        temp_locatif_dot_colocation_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1695,
-                                             start_column=14, end_line=1695,
-                                             end_column=32,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_colocation_1 = temp_locatif_dot_colocation_3
-    try:
-        match_arg_587 = mode_occupation_3
-        if match_arg_587.code == ModeOccupation_Code.Locataire:
-            location_26 = match_arg_587.value
-            match_arg_588 = location_26.bailleur
-            if match_arg_588.code == TypeBailleur_Code.BailleurSocial:
-                bailleur_2 = match_arg_588.value
-                temp_locatif_dot_reduction_loyer_solidarite_2 = bailleur_2.reduction_loyer_solidarite_percue
-            elif match_arg_588.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                _ = match_arg_588.value
-                temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-            elif match_arg_588.code == TypeBailleur_Code.BailleurPrive:
-                _ = match_arg_588.value
-                temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-        elif match_arg_587.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_587.value
-            temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-        elif match_arg_587.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_587.value
-            temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-        elif match_arg_587.code == ModeOccupation_Code.SousLocataire:
-            location_27 = match_arg_587.value
-            match_arg_589 = location_27.bailleur
-            if match_arg_589.code == TypeBailleur_Code.BailleurSocial:
-                bailleur_3 = match_arg_589.value
-                temp_locatif_dot_reduction_loyer_solidarite_2 = bailleur_3.reduction_loyer_solidarite_percue
-            elif match_arg_589.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                _ = match_arg_589.value
-                temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-            elif match_arg_589.code == TypeBailleur_Code.BailleurPrive:
-                _ = match_arg_589.value
-                temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-        elif match_arg_587.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_587.value
-            temp_locatif_dot_reduction_loyer_solidarite_2 = money_of_cents_string("0")
-        temp_locatif_dot_reduction_loyer_solidarite_3 = temp_locatif_dot_reduction_loyer_solidarite_2
-    except EmptyError:
-        temp_locatif_dot_reduction_loyer_solidarite_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1714,
-                                             start_column=14, end_line=1714,
-                                             end_column=48,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_reduction_loyer_solidarite_1 = temp_locatif_dot_reduction_loyer_solidarite_3
-    try:
-        match_arg_590 = mode_occupation_3
-        if match_arg_590.code == ModeOccupation_Code.Locataire:
-            location_28 = match_arg_590.value
-            temp_locatif_dot_logement_meuble_d842_2_2 = location_28.logement_meuble_d842_2
-        elif match_arg_590.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_590.value
-            temp_locatif_dot_logement_meuble_d842_2_2 = False
-        elif match_arg_590.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_590.value
-            temp_locatif_dot_logement_meuble_d842_2_2 = False
-        elif match_arg_590.code == ModeOccupation_Code.SousLocataire:
-            location_29 = match_arg_590.value
-            temp_locatif_dot_logement_meuble_d842_2_2 = location_29.logement_meuble_d842_2
-        elif match_arg_590.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_590.value
-            temp_locatif_dot_logement_meuble_d842_2_2 = False
-        temp_locatif_dot_logement_meuble_d842_2_3 = temp_locatif_dot_logement_meuble_d842_2_2
-    except EmptyError:
-        temp_locatif_dot_logement_meuble_d842_2_3 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1729,
-                                             start_column=14, end_line=1729,
-                                             end_column=44,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_logement_meuble_d842_2_1 = temp_locatif_dot_logement_meuble_d842_2_3
-    try:
-        match_arg_591 = mode_occupation_3
-        if match_arg_591.code == ModeOccupation_Code.Locataire:
-            location_30 = match_arg_591.value
-            temp_locatif_dot_changement_logement_d842_4 = location_30.changement_logement_d842_4
-        elif match_arg_591.code == ModeOccupation_Code.ResidentLogementFoyer:
-            _ = match_arg_591.value
-            temp_locatif_dot_changement_logement_d842_4 = ChangementLogementD8424(ChangementLogementD8424_Code.PasDeChangement,
-                Unit())
-        elif match_arg_591.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            _ = match_arg_591.value
-            temp_locatif_dot_changement_logement_d842_4 = ChangementLogementD8424(ChangementLogementD8424_Code.PasDeChangement,
-                Unit())
-        elif match_arg_591.code == ModeOccupation_Code.SousLocataire:
-            location_31 = match_arg_591.value
-            temp_locatif_dot_changement_logement_d842_4 = location_31.changement_logement_d842_4
-        elif match_arg_591.code == ModeOccupation_Code.LocationAccession:
-            _ = match_arg_591.value
-            temp_locatif_dot_changement_logement_d842_4 = ChangementLogementD8424(ChangementLogementD8424_Code.PasDeChangement,
-                Unit())
-        temp_locatif_dot_changement_logement_d842_4_1 = temp_locatif_dot_changement_logement_d842_4
-    except EmptyError:
-        temp_locatif_dot_changement_logement_d842_4_1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=1736,
-                                             start_column=14, end_line=1736,
-                                             end_column=48,
-                                             law_headings=["Article D823-9",
-                                             "Section 1 : Calcul, liquidation et versement des aides",
-                                             "Chapitre III : Modalités de liquidation et de versement",
-                                             "Titre II : Dispositions communes aux aides personnelles au logement",
-                                             "Livre VIII : Aides personnelles au logement",
-                                             "Partie réglementaire",
-                                             "Code de la construction et de l'habitation"]))
-    locatif_dot_changement_logement_d842_4 = temp_locatif_dot_changement_logement_d842_4_1
-    result_29 = calcul_allocation_logement_locatif(CalculAllocationLogementLocatifIn(loyer_principal_in = locatif_dot_loyer_principal,
-                                                   ressources_menage_arrondies_in = locatif_dot_ressources_menage_arrondies_1,
-                                                   beneficiaire_aide_adulte_ou_enfant_handicapes_in = locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_1,
-                                                   date_courante_in = locatif_dot_date_courante_1,
-                                                   nombre_personnes_a_charge_in = locatif_dot_nombre_personnes_a_charge_1,
-                                                   situation_familiale_calcul_apl_in = locatif_dot_situation_familiale_calcul_apl_1,
-                                                   zone_in = locatif_dot_zone_1,
-                                                   logement_est_chambre_in = locatif_dot_logement_est_chambre_1,
-                                                   agees_ou_handicap_adultes_hebergees_onereux_particuliers_in = locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_1,
-                                                   type_aide_in = locatif_dot_type_aide_1,
-                                                   colocation_in = locatif_dot_colocation_1,
-                                                   reduction_loyer_solidarite_in = locatif_dot_reduction_loyer_solidarite_1,
-                                                   logement_meuble_d842_2_in = locatif_dot_logement_meuble_d842_2_1,
-                                                   changement_logement_d842_4_in = locatif_dot_changement_logement_d842_4))
-    locatif_dot_aide_finale_formule_1 = result_29.aide_finale_formule
-    locatif_dot_traitement_aide_finale = result_29.traitement_aide_finale
+        temp_sous_calcul_traitement_103 = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
+                                             start_line=988, start_column=11,
+                                             end_line=988, end_column=33,
+                                             law_headings=["Tous secteurs",
+                                             "Secteur logement-foyer",
+                                             "Calcul du montant de l'allocation logement",
+                                             "Prologue : aides au logement"]))
+    sous_calcul_traitement_1 = temp_sous_calcul_traitement_103
     try:
         def temp_traitement_aide_finale_3(param_43:Money):
             try:
-                match_arg_592 = categorie_calcul_apl_1
-                if match_arg_592.code == CategorieCalculAPL_Code.Location:
-                    _ = match_arg_592.value
-                    return locatif_dot_traitement_aide_finale(param_43)
-                elif match_arg_592.code == CategorieCalculAPL_Code.AccessionPropriete:
-                    _ = match_arg_592.value
-                    return accession_propriete_dot_traitement_aide_finale_montant_minimal_1(
-                        param_43)
-                elif match_arg_592.code == CategorieCalculAPL_Code.LogementFoyer:
-                    _ = match_arg_592.value
-                    return logement_foyer_dot_traitement_aide_finale_montant_minimal_1(
-                        param_43)
+                return sous_calcul_traitement_1.traitement_aide_finale(
+                    param_43)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=993,
+                                                     start_line=991,
                                                      start_column=10,
-                                                     end_line=993,
+                                                     end_line=991,
                                                      end_column=32,
                                                      law_headings=["Tous secteurs",
                                                      "Secteur logement-foyer",
@@ -20082,29 +21588,20 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     except EmptyError:
         temp_traitement_aide_finale_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=993, start_column=10,
-                                             end_line=993, end_column=32,
+                                             start_line=991, start_column=10,
+                                             end_line=991, end_column=32,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_2 = temp_traitement_aide_finale_3
     try:
-        match_arg_593 = categorie_calcul_apl_1
-        if match_arg_593.code == CategorieCalculAPL_Code.Location:
-            _ = match_arg_593.value
-            temp_aide_finale_formule_8 = locatif_dot_aide_finale_formule_1
-        elif match_arg_593.code == CategorieCalculAPL_Code.AccessionPropriete:
-            _ = match_arg_593.value
-            temp_aide_finale_formule_8 = accession_propriete_dot_aide_finale_formule_1
-        elif match_arg_593.code == CategorieCalculAPL_Code.LogementFoyer:
-            _ = match_arg_593.value
-            temp_aide_finale_formule_8 = logement_foyer_dot_aide_finale_formule_1
+        temp_aide_finale_formule_8 = sous_calcul_traitement_1.aide_finale_formule
     except EmptyError:
         temp_aide_finale_formule_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=992, start_column=10,
-                                             end_line=992, end_column=29,
+                                             start_line=990, start_column=10,
+                                             end_line=990, end_column=29,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
@@ -20123,8 +21620,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_eligibilite_allocation_logement_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1071,
-                                             start_column=14, end_line=1071,
+                                             start_line=1069,
+                                             start_column=14, end_line=1069,
                                              end_column=59,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20134,8 +21631,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_eligibilite_allocation_logement_dot_menage = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1063,
-                                             start_column=14, end_line=1063,
+                                             start_line=1061,
+                                             start_column=14, end_line=1061,
                                              end_column=52,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20145,8 +21642,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_eligibilite_allocation_logement_dot_demandeur = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1067,
-                                             start_column=14, end_line=1067,
+                                             start_line=1065,
+                                             start_column=14, end_line=1065,
                                              end_column=55,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20165,20 +21662,20 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                              "Partie législative",
                                              "Code de la construction et de l'habitation"]))
     eligibilite_allocation_logement_dot_beneficie_aide_personnalisee_logement = temp_eligibilite_allocation_logement_dot_beneficie_aide_personnalisee_logement
-    result_30 = eligibilite_allocation_logement(EligibiliteAllocationLogementIn(date_courante_in = eligibilite_allocation_logement_dot_date_courante,
+    result_24 = eligibilite_allocation_logement(EligibiliteAllocationLogementIn(date_courante_in = eligibilite_allocation_logement_dot_date_courante,
                                                 menage_in = eligibilite_allocation_logement_dot_menage,
                                                 demandeur_in = eligibilite_allocation_logement_dot_demandeur,
                                                 beneficie_aide_personnalisee_logement_in = eligibilite_allocation_logement_dot_beneficie_aide_personnalisee_logement))
-    eligibilite_allocation_logement_dot_eligibilite_l841_2 = result_30.eligibilite
-    eligibilite_allocation_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_30.nombre_personnes_a_charge_prises_en_compte
-    eligibilite_allocation_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_30.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_allocation_logement_dot_eligibilite_l841_2 = result_24.eligibilite
+    eligibilite_allocation_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_24.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_allocation_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_24.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_eligibilite_aide_personnalisee_logement_dot_menage = menage_4
     except EmptyError:
         temp_eligibilite_aide_personnalisee_logement_dot_menage = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1061,
-                                             start_column=14, end_line=1061,
+                                             start_line=1059,
+                                             start_column=14, end_line=1059,
                                              end_column=60,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20188,8 +21685,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_eligibilite_aide_personnalisee_logement_dot_demandeur = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1065,
-                                             start_column=14, end_line=1065,
+                                             start_line=1063,
+                                             start_column=14, end_line=1063,
                                              end_column=63,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20199,26 +21696,26 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_eligibilite_aide_personnalisee_logement_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1069,
-                                             start_column=14, end_line=1069,
+                                             start_line=1067,
+                                             start_column=14, end_line=1067,
                                              end_column=67,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     eligibilite_aide_personnalisee_logement_dot_date_courante = temp_eligibilite_aide_personnalisee_logement_dot_date_courante
-    result_31 = eligibilite_aide_personnalisee_logement(EligibiliteAidePersonnaliseeLogementIn(menage_in = eligibilite_aide_personnalisee_logement_dot_menage,
+    result_25 = eligibilite_aide_personnalisee_logement(EligibiliteAidePersonnaliseeLogementIn(menage_in = eligibilite_aide_personnalisee_logement_dot_menage,
                                                         demandeur_in = eligibilite_aide_personnalisee_logement_dot_demandeur,
                                                         date_courante_in = eligibilite_aide_personnalisee_logement_dot_date_courante))
-    eligibilite_aide_personnalisee_logement_dot_date_courante_1 = result_31.date_courante
-    eligibilite_aide_personnalisee_logement_dot_eligibilite = result_31.eligibilite
-    eligibilite_aide_personnalisee_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_31.nombre_personnes_a_charge_prises_en_compte
-    eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_31.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_aide_personnalisee_logement_dot_date_courante_1 = result_25.date_courante
+    eligibilite_aide_personnalisee_logement_dot_eligibilite = result_25.eligibilite
+    eligibilite_aide_personnalisee_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_25.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_25.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_calcul_allocation_logement_dot_mode_occupation = menage_4.logement.mode_occupation
     except EmptyError:
         temp_calcul_allocation_logement_dot_mode_occupation = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1075,
-                                             start_column=14, end_line=1075,
+                                             start_line=1073,
+                                             start_column=14, end_line=1073,
                                              end_column=56,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20228,8 +21725,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_allocation_logement_dot_ressources_menage_sans_arrondi = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1079,
-                                             start_column=14, end_line=1079,
+                                             start_line=1077,
+                                             start_column=14, end_line=1077,
                                              end_column=58,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20239,8 +21736,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_allocation_logement_dot_situation_familiale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1083,
-                                             start_column=14, end_line=1083,
+                                             start_line=1081,
+                                             start_column=14, end_line=1081,
                                              end_column=60,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20250,8 +21747,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_allocation_logement_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1090,
-                                             start_column=14, end_line=1090,
+                                             start_line=1088,
+                                             start_column=14, end_line=1088,
                                              end_column=66,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20261,8 +21758,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_allocation_logement_dot_zone = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1094,
-                                             start_column=14, end_line=1094,
+                                             start_line=1092,
+                                             start_column=14, end_line=1092,
                                              end_column=45,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20272,24 +21769,24 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_allocation_logement_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1098,
-                                             start_column=14, end_line=1098,
+                                             start_line=1096,
+                                             start_column=14, end_line=1096,
                                              end_column=54,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     calcul_allocation_logement_dot_date_courante = temp_calcul_allocation_logement_dot_date_courante
     try:
-        match_arg_594 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-        if match_arg_594.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-            _ = match_arg_594.value
+        match_arg_555 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+        if match_arg_555.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+            _ = match_arg_555.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementSociale,
                 Unit())
-        elif match_arg_594.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-            _ = match_arg_594.value
+        elif match_arg_555.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+            _ = match_arg_555.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementFamiliale,
                 Unit())
-        elif match_arg_594.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-            _ = match_arg_594.value
+        elif match_arg_555.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+            _ = match_arg_555.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementSociale,
                 Unit())
         temp_calcul_allocation_logement_dot_type_aide_1 = temp_calcul_allocation_logement_dot_type_aide
@@ -20306,22 +21803,22 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                              "Partie législative",
                                              "Code de la construction et de l'habitation"]))
     calcul_allocation_logement_dot_type_aide = temp_calcul_allocation_logement_dot_type_aide_1
-    result_32 = calcul_allocation_logement(CalculAllocationLogementIn(mode_occupation_in = calcul_allocation_logement_dot_mode_occupation,
+    result_26 = calcul_allocation_logement(CalculAllocationLogementIn(mode_occupation_in = calcul_allocation_logement_dot_mode_occupation,
                                            ressources_menage_sans_arrondi_in = calcul_allocation_logement_dot_ressources_menage_sans_arrondi,
                                            situation_familiale_in = calcul_allocation_logement_dot_situation_familiale,
                                            nombre_personnes_a_charge_in = calcul_allocation_logement_dot_nombre_personnes_a_charge,
                                            zone_in = calcul_allocation_logement_dot_zone,
                                            date_courante_in = calcul_allocation_logement_dot_date_courante,
                                            type_aide_in = calcul_allocation_logement_dot_type_aide))
-    calcul_allocation_logement_dot_aide_finale_formule = result_32.aide_finale_formule
-    calcul_allocation_logement_dot_traitement_aide_finale = result_32.traitement_aide_finale
+    calcul_allocation_logement_dot_aide_finale_formule = result_26.aide_finale_formule
+    calcul_allocation_logement_dot_traitement_aide_finale = result_26.traitement_aide_finale
     try:
         temp_calcul_aide_personnalisee_logement_dot_mode_occupation = menage_4.logement.mode_occupation
     except EmptyError:
         temp_calcul_aide_personnalisee_logement_dot_mode_occupation = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1073,
-                                             start_column=14, end_line=1073,
+                                             start_line=1071,
+                                             start_column=14, end_line=1071,
                                              end_column=64,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20347,8 +21844,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_aide_personnalisee_logement_dot_ressources_menage_sans_arrondi = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1077,
-                                             start_column=14, end_line=1077,
+                                             start_line=1075,
+                                             start_column=14, end_line=1075,
                                              end_column=66,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20358,8 +21855,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_aide_personnalisee_logement_dot_situation_familiale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1081,
-                                             start_column=14, end_line=1081,
+                                             start_line=1079,
+                                             start_column=14, end_line=1079,
                                              end_column=68,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20369,8 +21866,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_aide_personnalisee_logement_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1086, start_column=5,
-                                             end_line=1086, end_column=65,
+                                             start_line=1084, start_column=5,
+                                             end_line=1084, end_column=65,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     calcul_aide_personnalisee_logement_dot_nombre_personnes_a_charge = temp_calcul_aide_personnalisee_logement_dot_nombre_personnes_a_charge
@@ -20379,8 +21876,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_aide_personnalisee_logement_dot_zone = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1092,
-                                             start_column=14, end_line=1092,
+                                             start_line=1090,
+                                             start_column=14, end_line=1090,
                                              end_column=53,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20390,50 +21887,50 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_calcul_aide_personnalisee_logement_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1096,
-                                             start_column=14, end_line=1096,
+                                             start_line=1094,
+                                             start_column=14, end_line=1094,
                                              end_column=62,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     calcul_aide_personnalisee_logement_dot_date_courante = temp_calcul_aide_personnalisee_logement_dot_date_courante
-    result_33 = calcul_aide_personnalisee_logement(CalculAidePersonnaliseeLogementIn(mode_occupation_in = calcul_aide_personnalisee_logement_dot_mode_occupation,
+    result_27 = calcul_aide_personnalisee_logement(CalculAidePersonnaliseeLogementIn(mode_occupation_in = calcul_aide_personnalisee_logement_dot_mode_occupation,
                                                    type_aide_in = calcul_aide_personnalisee_logement_dot_type_aide,
                                                    ressources_menage_sans_arrondi_in = calcul_aide_personnalisee_logement_dot_ressources_menage_sans_arrondi,
                                                    situation_familiale_in = calcul_aide_personnalisee_logement_dot_situation_familiale,
                                                    nombre_personnes_a_charge_in = calcul_aide_personnalisee_logement_dot_nombre_personnes_a_charge,
                                                    zone_in = calcul_aide_personnalisee_logement_dot_zone,
                                                    date_courante_in = calcul_aide_personnalisee_logement_dot_date_courante))
-    calcul_aide_personnalisee_logement_dot_aide_finale_formule = result_33.aide_finale_formule
-    calcul_aide_personnalisee_logement_dot_traitement_aide_finale = result_33.traitement_aide_finale
+    calcul_aide_personnalisee_logement_dot_aide_finale_formule = result_27.aide_finale_formule
+    calcul_aide_personnalisee_logement_dot_traitement_aide_finale = result_27.traitement_aide_finale
     try:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_5 = eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte
     except EmptyError:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1057,
-                                             start_column=10, end_line=1057,
+                                             start_line=1055,
+                                             start_column=10, end_line=1055,
                                              end_column=59,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     coefficents_enfants_garde_alternee_pris_en_compte_3 = temp_coefficents_enfants_garde_alternee_pris_en_compte_5
     try:
-        match_arg_595 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-        if match_arg_595.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-            _ = match_arg_595.value
+        match_arg_556 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+        if match_arg_556.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+            _ = match_arg_556.value
             temp_eligibilite_2 = False
-        elif match_arg_595.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-            _ = match_arg_595.value
+        elif match_arg_556.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+            _ = match_arg_556.value
             temp_eligibilite_2 = True
-        elif match_arg_595.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-            _ = match_arg_595.value
+        elif match_arg_556.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+            _ = match_arg_556.value
             temp_eligibilite_2 = True
         temp_eligibilite_3 = (eligibilite_aide_personnalisee_logement_dot_eligibilite or
             temp_eligibilite_2)
     except EmptyError:
         temp_eligibilite_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1054,
-                                             start_column=10, end_line=1054,
+                                             start_line=1052,
+                                             start_column=10, end_line=1052,
                                              end_column=21,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20444,15 +21941,15 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                 if not eligibilite_2:
                     return param_44
                 else:
-                    match_arg_596 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-                    if match_arg_596.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-                        _ = match_arg_596.value
+                    match_arg_557 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+                    if match_arg_557.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+                        _ = match_arg_557.value
                         temp_traitement_aide_finale_5 = True
-                    elif match_arg_596.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-                        _ = match_arg_596.value
+                    elif match_arg_557.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+                        _ = match_arg_557.value
                         temp_traitement_aide_finale_5 = False
-                    elif match_arg_596.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-                        _ = match_arg_596.value
+                    elif match_arg_557.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+                        _ = match_arg_557.value
                         temp_traitement_aide_finale_5 = False
                     if (eligibilite_aide_personnalisee_logement_dot_eligibilite and
                         not temp_traitement_aide_finale_5):
@@ -20474,17 +21971,17 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                 param_44)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                                     start_line=1056,
+                                                     start_line=1054,
                                                      start_column=10,
-                                                     end_line=1056,
+                                                     end_line=1054,
                                                      end_column=32,
                                                      law_headings=["Calculette globale",
                                                      "Prologue : aides au logement"]))
     except EmptyError:
         temp_traitement_aide_finale_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1056,
-                                             start_column=10, end_line=1056,
+                                             start_line=1054,
+                                             start_column=10, end_line=1054,
                                              end_column=32,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20493,15 +21990,15 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
         if not eligibilite_2:
             temp_aide_finale_formule_9 = money_of_cents_string("0")
         else:
-            match_arg_597 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-            if match_arg_597.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-                _ = match_arg_597.value
+            match_arg_558 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+            if match_arg_558.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+                _ = match_arg_558.value
                 temp_aide_finale_formule_10 = True
-            elif match_arg_597.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-                _ = match_arg_597.value
+            elif match_arg_558.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+                _ = match_arg_558.value
                 temp_aide_finale_formule_10 = False
-            elif match_arg_597.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-                _ = match_arg_597.value
+            elif match_arg_558.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+                _ = match_arg_558.value
                 temp_aide_finale_formule_10 = False
             if (eligibilite_aide_personnalisee_logement_dot_eligibilite and
                 not temp_aide_finale_formule_10):
@@ -20520,8 +22017,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     except EmptyError:
         temp_aide_finale_formule_9 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1055,
-                                             start_column=10, end_line=1055,
+                                             start_line=1053,
+                                             start_column=10, end_line=1053,
                                              end_column=29,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
@@ -20538,18 +22035,18 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     ressources_menage_prises_en_compte_1 = calculette_aides_au_logement_garde_alternee_in.ressources_menage_prises_en_compte_in
     try:
         def temp_menage_sans_enfants_garde_alternee(personne_a_charge_10:Any):
-            match_arg_598 = personne_a_charge_10
-            if match_arg_598.code == PersonneACharge_Code.EnfantACharge:
-                enfant_8 = match_arg_598.value
-                match_arg_599 = enfant_8.situation_garde_alternee
-                if match_arg_599.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
-                    _ = match_arg_599.value
+            match_arg_559 = personne_a_charge_10
+            if match_arg_559.code == PersonneACharge_Code.EnfantACharge:
+                enfant_8 = match_arg_559.value
+                match_arg_560 = enfant_8.situation_garde_alternee
+                if match_arg_560.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
+                    _ = match_arg_560.value
                     return True
-                elif match_arg_599.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
-                    _ = match_arg_599.value
+                elif match_arg_560.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
+                    _ = match_arg_560.value
                     return False
-            elif match_arg_598.code == PersonneACharge_Code.AutrePersonneACharge:
-                _ = match_arg_598.value
+            elif match_arg_559.code == PersonneACharge_Code.AutrePersonneACharge:
+                _ = match_arg_559.value
                 return True
         temp_menage_sans_enfants_garde_alternee_1 = Menage(prestations_recues = menage_5.prestations_recues,
             logement = menage_5.logement,
@@ -20562,8 +22059,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_menage_sans_enfants_garde_alternee_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1120,
-                                             start_column=11, end_line=1120,
+                                             start_line=1118,
+                                             start_column=11, end_line=1118,
                                              end_column=45,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20573,8 +22070,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_dot_menage = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1131,
-                                             start_column=14, end_line=1131,
+                                             start_line=1129,
+                                             start_column=14, end_line=1129,
                                              end_column=31,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20584,8 +22081,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_dot_demandeur = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1133,
-                                             start_column=14, end_line=1133,
+                                             start_line=1131,
+                                             start_column=14, end_line=1131,
                                              end_column=34,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20595,8 +22092,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1135,
-                                             start_column=14, end_line=1135,
+                                             start_line=1133,
+                                             start_column=14, end_line=1133,
                                              end_column=38,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20606,27 +22103,27 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_dot_ressources_menage_prises_en_compte = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1137,
-                                             start_column=14, end_line=1137,
+                                             start_line=1135,
+                                             start_column=14, end_line=1135,
                                              end_column=59,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
     calculette_dot_ressources_menage_prises_en_compte = temp_calculette_dot_ressources_menage_prises_en_compte
-    result_34 = calculette_aides_au_logement(CalculetteAidesAuLogementIn(menage_in = calculette_dot_menage,
+    result_28 = calculette_aides_au_logement(CalculetteAidesAuLogementIn(menage_in = calculette_dot_menage,
                                              demandeur_in = calculette_dot_demandeur,
                                              date_courante_in = calculette_dot_date_courante,
                                              ressources_menage_prises_en_compte_in = calculette_dot_ressources_menage_prises_en_compte))
-    calculette_dot_eligibilite = result_34.eligibilite
-    calculette_dot_aide_finale_formule = result_34.aide_finale_formule
-    calculette_dot_traitement_aide_finale = result_34.traitement_aide_finale
-    calculette_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_34.coefficents_enfants_garde_alternee_pris_en_compte
+    calculette_dot_eligibilite = result_28.eligibilite
+    calculette_dot_aide_finale_formule = result_28.aide_finale_formule
+    calculette_dot_traitement_aide_finale = result_28.traitement_aide_finale
+    calculette_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_28.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_calculette_sans_garde_alternee_dot_menage = menage_sans_enfants_garde_alternee
     except EmptyError:
         temp_calculette_sans_garde_alternee_dot_menage = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1139,
-                                             start_column=14, end_line=1139,
+                                             start_line=1137,
+                                             start_column=14, end_line=1137,
                                              end_column=51,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20636,8 +22133,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_sans_garde_alternee_dot_demandeur = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1141,
-                                             start_column=14, end_line=1141,
+                                             start_line=1139,
+                                             start_column=14, end_line=1139,
                                              end_column=54,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20647,8 +22144,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_sans_garde_alternee_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1143,
-                                             start_column=14, end_line=1143,
+                                             start_line=1141,
+                                             start_column=14, end_line=1141,
                                              end_column=58,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20658,26 +22155,26 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_calculette_sans_garde_alternee_dot_ressources_menage_prises_en_compte = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1146, start_column=5,
-                                             end_line=1146, end_column=70,
+                                             start_line=1144, start_column=5,
+                                             end_line=1144, end_column=70,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
     calculette_sans_garde_alternee_dot_ressources_menage_prises_en_compte = temp_calculette_sans_garde_alternee_dot_ressources_menage_prises_en_compte
-    result_35 = calculette_aides_au_logement(CalculetteAidesAuLogementIn(menage_in = calculette_sans_garde_alternee_dot_menage,
+    result_29 = calculette_aides_au_logement(CalculetteAidesAuLogementIn(menage_in = calculette_sans_garde_alternee_dot_menage,
                                              demandeur_in = calculette_sans_garde_alternee_dot_demandeur,
                                              date_courante_in = calculette_sans_garde_alternee_dot_date_courante,
                                              ressources_menage_prises_en_compte_in = calculette_sans_garde_alternee_dot_ressources_menage_prises_en_compte))
-    calculette_sans_garde_alternee_dot_eligibilite = result_35.eligibilite
-    calculette_sans_garde_alternee_dot_aide_finale_formule = result_35.aide_finale_formule
-    calculette_sans_garde_alternee_dot_traitement_aide_finale = result_35.traitement_aide_finale
-    calculette_sans_garde_alternee_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_35.coefficents_enfants_garde_alternee_pris_en_compte
+    calculette_sans_garde_alternee_dot_eligibilite = result_29.eligibilite
+    calculette_sans_garde_alternee_dot_aide_finale_formule = result_29.aide_finale_formule
+    calculette_sans_garde_alternee_dot_traitement_aide_finale = result_29.traitement_aide_finale
+    calculette_sans_garde_alternee_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_29.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_eligibilite_4 = calculette_dot_eligibilite
     except EmptyError:
         temp_eligibilite_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1127,
-                                             start_column=10, end_line=1127,
+                                             start_line=1125,
+                                             start_column=10, end_line=1125,
                                              end_column=21,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20687,8 +22184,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1121,
-                                             start_column=11, end_line=1121,
+                                             start_line=1119,
+                                             start_column=11, end_line=1119,
                                              end_column=60,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
@@ -20710,8 +22207,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     except EmptyError:
         temp_aide_finale_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=1128,
-                                             start_column=10, end_line=1128,
+                                             start_line=1126,
+                                             start_column=10, end_line=1126,
                                              end_column=21,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))

@@ -1383,472 +1383,219 @@ et D. 842-6 à D. 842-13 .
 champ d'application CalculAllocationLogement:
   définition catégorie_calcul_apl égal à
     selon mode_occupation sous forme
-    -- Locataire: Location
-    -- SousLocataire: Location
-    -- RésidentLogementFoyer: CatégorieCalculAPL.LogementFoyer
-    -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriété
-    -- LocationAccession: AccessionPropriété
+    -- Locataire de location: Location contenu location
+    -- SousLocataire de location: Location contenu location
+    -- RésidentLogementFoyer de logementfoyer: CatégorieCalculAPL.LogementFoyer contenu logementfoyer
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire: AccessionPropriété contenu propriétaire
+    -- LocationAccession de propriétaire: AccessionPropriété contenu propriétaire
 
-  définition aide_finale_formule égal à
-    selon catégorie_calcul_apl sous forme
-    -- Location: locatif.aide_finale_formule
-    -- LogementFoyer: logement_foyer.aide_finale_formule
-    -- AccessionPropriété : accession_propriété.aide_finale_formule
-  définition traitement_aide_finale de aide_finale égal à
-    selon catégorie_calcul_apl sous forme
-    -- Location: locatif.traitement_aide_finale de aide_finale
-    -- LogementFoyer: logement_foyer.traitement_aide_finale de aide_finale
-    -- AccessionPropriété : accession_propriété.traitement_aide_finale de
-      aide_finale
+  définition aide_finale_formule égal à sous_calcul_traitement.Traitement_formule_aide_finale.aide_finale_formule
+  définition traitement_aide_finale de arg égal à (sous_calcul_traitement.Traitement_formule_aide_finale.traitement_aide_finale de arg)
 
 champ d'application CalculAidePersonnaliséeLogement:
   définition catégorie_calcul_apl égal à
     selon mode_occupation sous forme
-    -- Locataire: Location
-    -- SousLocataire: Location
-    -- RésidentLogementFoyer: CatégorieCalculAPL.LogementFoyer
-    -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriété
-    -- LocationAccession: AccessionPropriété
+    -- Locataire de location: Location contenu location
+    -- SousLocataire de location: Location contenu location
+    -- RésidentLogementFoyer de logementfoyer: CatégorieCalculAPL.LogementFoyer contenu logementfoyer
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire: AccessionPropriété contenu propriétaire
+    -- LocationAccession de propriétaire: AccessionPropriété contenu propriétaire
 
-  définition aide_finale_formule égal à
-    selon catégorie_calcul_apl sous forme
-    -- Location: locatif.aide_finale_formule
-    -- LogementFoyer: logement_foyer.aide_finale_formule
-    -- AccessionPropriété : accession_propriété.aide_finale_formule
-  définition traitement_aide_finale de aide_finale égal à
-    selon catégorie_calcul_apl sous forme
-    -- Location: locatif.traitement_aide_finale de aide_finale
-    -- LogementFoyer: logement_foyer.traitement_aide_finale de aide_finale
-    -- AccessionPropriété : accession_propriété.traitement_aide_finale de
-      aide_finale
+  définition aide_finale_formule égal à sous_calcul_traitement.Traitement_formule_aide_finale.aide_finale_formule
+  définition traitement_aide_finale de arg égal à (sous_calcul_traitement.Traitement_formule_aide_finale.traitement_aide_finale de arg)
 ```
 
 ```catala-metadata
   # Maintenant que nous avons déterminé comment calculer l'aide finale
   # en fonction du mode d'occupation, il nous faut donner à chacun des modes
   # de calcul les paramètres qu'il attend.
-  # Cependant, nous nous heurtons ici à une limitation de Catala: normalement
-  # on ne voudrait appeler que le mode de calcul qui correspond au cas
-  # où l'on se trouve. Cependant, comme chacun des modes de calcul
-  # est implémenté sous la forme d'un champ d'application Catala, et qu'un
-  # champ d'application Catala est tout le temps appelé depuis son champ
-  # d'application parent, nous sommes obligés de faire à chaque fois le
-  # calcul pour les trois modes alors que seul un mode nous intéresse.
-  # À noter que ce problème augmente le temps de calcul dans le code compilé,
-  # et qu'il serait souhaitable d'y remédier. Cependant, ceci nous est bien
-  # utile car le calcul en mode accession propriété dépend de la valeur de
-  # l'équivalence de loyer en mode logement foyer (voir 2° du D832-15).
-  #
-  # En attendant, cette limitation nous oblige à donner à chaque fois
-  # des paramètres d'entrée pour les trois modes de calcul, alors que
-  # seul un des modes aura de "vrais" paramètres. Le code ci-dessous
-  # donne alors des valeurs par défaut pour les paramètres d'entrée des modes
-  # de calcul non utilisés, valeurs par défaut qui n'ont aucune influence
-  # sur le résultat puisque le mode de calcul n'est pas utilisé.
 champ d'application CalculAidePersonnaliséeLogement:
-  définition locatif.ressources_ménage_arrondies égal à ressources_ménage
-  définition logement_foyer.ressources_ménage_arrondies égal à
-    ressources_ménage
-  définition accession_propriété.ressources_ménage_arrondies égal à
-    ressources_ménage
-  définition locatif.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition logement_foyer.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition accession_propriété.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition locatif.zone égal à zone
-  définition logement_foyer.zone égal à zone
-  définition accession_propriété.zone égal à zone
-  définition locatif.date_courante égal à date_courante
-  définition logement_foyer.date_courante égal à date_courante
-  définition accession_propriété.date_courante égal à date_courante
-  définition locatif.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-  définition logement_foyer.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-  définition accession_propriété.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-
-  définition locatif.loyer_principal égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.loyer_principal
-    -- SousLocataire de location: location.loyer_principal
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
-    -- LocationAccession: 0 € # Valeur par défaut
-  définition locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
-      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
-    -- SousLocataire de location:
-      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.logement_est_chambre égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.logement_est_chambre
-    -- SousLocataire de location: location.logement_est_chambre
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.colocation égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.colocation
-    -- SousLocataire de location: location.colocation
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition
-    locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-  égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
-      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-    -- SousLocataire de location:
-      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.type_aide égal à type_aide
-  définition locatif.réduction_loyer_solidarité égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
-      (selon location.Location.bailleur sous forme
-      -- BailleurSocial de bailleur:
-        bailleur.réduction_loyer_solidarité_perçue
-      -- n'importe quel: 0€)
-    -- SousLocataire de location:
-      (selon location.Location.bailleur sous forme
-      -- BailleurSocial de bailleur:
-        bailleur.réduction_loyer_solidarité_perçue
-      -- n'importe quel: 0€)
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
-    -- LocationAccession: 0 € # Valeur par défaut
-  définition locatif.logement_meublé_d842_2 égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.logement_meublé_d842_2
-    -- SousLocataire de location: location.logement_meublé_d842_2
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-
-  définition accession_propriété.mensualité_principale égal à
-    selon mode_occupation sous forme
-    -- Locataire: 0 € # Valeur par défaut
-    -- SousLocataire: 0 € # Valeur par défaut
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.mensualité_principale
-    -- LocationAccession  de propriétaire:
-      propriétaire.mensualité_principale
-  définition accession_propriété.type_travaux_logement égal à
-    selon mode_occupation sous forme
-    -- Locataire: TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
-    -- SousLocataire:
-      TypeTravauxLogementD832_15.PasDeTravaux # Valeur par défaut
-    -- RésidentLogementFoyer: TypeTravauxLogementD832_15.PasDeTravaux
-      # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.type_travaux_logement_d832_15
-    -- LocationAccession  de propriétaire:
-      propriétaire.type_travaux_logement_d832_15
-  définition accession_propriété.date_signature_prêt égal à
-    selon mode_occupation sous forme
-    -- Locataire: |2010-01-01| # Valeur par défaut
-    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- SousLocataire: |2010-01-01| # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.prêt.date_signature
-    -- LocationAccession de propriétaire:
-      propriétaire.prêt.date_signature
-  définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
-    selon mode_occupation sous forme
-    -- Locataire: faux # Valeur par défaut
-    -- SousLocataire: faux # Valeur par défaut
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.local_habité_première_fois_bénéficiaire
-    -- LocationAccession  de propriétaire:
-      propriétaire.local_habité_première_fois_bénéficiaire
-  définition accession_propriété.date_entrée_logement égal à
-    selon mode_occupation sous forme
-    -- Locataire: |2010-01-01| # Valeur par défaut
-    -- SousLocataire: |2010-01-01| # Valeur par défaut
-    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.date_entrée_logement
-    -- LocationAccession  de propriétaire:
-      propriétaire.date_entrée_logement
-  définition accession_propriété.copropriété égal à
-    selon mode_occupation sous forme
-    -- Locataire: faux # Valeur par défaut
-    -- SousLocataire: faux # Valeur par défaut
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.copropriété
-    -- LocationAccession  de propriétaire:
-      propriétaire.copropriété
-  définition accession_propriété.situation_r822_11_13_17 égal à
-    selon mode_occupation sous forme
-    -- Locataire: faux # Valeur par défaut
-    -- SousLocataire: faux # Valeur par défaut
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.situation_r822_11_13_17
-    -- LocationAccession  de propriétaire:
-      propriétaire.situation_r822_11_13_17
-  définition accession_propriété.type_prêt égal à
-    selon mode_occupation sous forme
-    -- Locataire: D331_32 # Valeur par défaut
-    -- RésidentLogementFoyer: D331_32 # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.prêt.type_prêt
-    -- SousLocataire: D331_32 # Valeur par défaut
-    -- LocationAccession de propriétaire:
-      propriétaire.prêt.type_prêt
-  définition accession_propriété.ancienneté_logement égal à
-    selon mode_occupation sous forme
-    -- Locataire: Neuf # Valeur par défaut
-    -- SousLocataire: Neuf # Valeur par défaut
-    -- RésidentLogementFoyer: Neuf # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.ancienneté_logement
-    -- LocationAccession  de propriétaire:
-      propriétaire.ancienneté_logement
-
-  définition logement_foyer.redevance égal à
-    selon mode_occupation sous forme
-    -- Locataire: 0 € # Valeur par défaut
-    -- SousLocataire: 0 € # Valeur par défaut
-    -- RésidentLogementFoyer de logement_foyer_: logement_foyer_.redevance
-    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
-    -- LocationAccession: 0 € # Valeur par défaut
-  définition logement_foyer.type_logement_foyer égal à
-    selon mode_occupation sous forme
-    -- Locataire: TypeLogementFoyer.Autre # Valeur par défaut
-    -- SousLocataire: TypeLogementFoyer.Autre # Valeur par défaut
-    -- RésidentLogementFoyer de logement_foyer_:
-      logement_foyer_.type
-    -- AccessionPropriétéLocalUsageExclusifHabitation:
-      TypeLogementFoyer.Autre # Valeur par défaut
-    -- LocationAccession: TypeLogementFoyer.Autre # Valeur par défaut
-  définition logement_foyer.date_conventionnement égal à
-    selon mode_occupation sous forme
-    -- Locataire: |1970-01-01| # Valeur par défaut
-    -- SousLocataire: |1970-01-01| # Valeur par défaut
-    -- RésidentLogementFoyer de logement_foyer_:
-      logement_foyer_.date_conventionnement
-    -- AccessionPropriétéLocalUsageExclusifHabitation: |1970-01-01| # Valeur par défaut
-    -- LocationAccession: |1970-01-01| # Valeur par défaut
+  définition sous_calcul_traitement égal à
+    selon catégorie_calcul_apl sous forme
+    -- Location de location:
+      (soit traitement_formule égal à
+        CalculAidePersonnaliséeLogementLocatif de {
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          -- loyer_principal: location.loyer_principal
+          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
+              location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+          -- logement_est_chambre: location.logement_est_chambre
+          -- colocation: location.colocation
+          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers:
+              location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+          -- type_aide: type_aide
+          -- réduction_loyer_solidarité:
+              (selon location.Location.bailleur sous forme
+                 -- BailleurSocial de bailleur:
+                     bailleur.réduction_loyer_solidarité_perçue
+                 -- n'importe quel: 0€)
+          -- logement_meublé_d842_2: location.logement_meublé_d842_2
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAidePersonnaliséeLogementLocatif.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAidePersonnaliséeLogementLocatif.traitement_aide_finale
+      })
+    -- LogementFoyer de logement_foyer_:
+      (soit traitement_formule égal à
+        CalculAidePersonnaliséeLogementFoyer de {
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          -- redevance: logement_foyer_.redevance
+          -- type_logement_foyer: logement_foyer_.type
+          -- date_conventionnement: logement_foyer_.date_conventionnement
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAidePersonnaliséeLogementFoyer.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAidePersonnaliséeLogementFoyer.traitement_aide_finale
+      })
+    -- AccessionPropriété de propriétaire:
+      (soit traitement_formule égal à
+         CalculAidePersonnaliséeLogementAccessionPropriété de {
+           -- ressources_ménage_arrondies: ressources_ménage
+           -- nombre_personnes_à_charge: nombre_personnes_à_charge
+           -- zone: zone
+           -- date_courante: date_courante
+           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+           -- mensualité_principale: propriétaire.mensualité_principale
+           -- type_travaux_logement: propriétaire.type_travaux_logement_d832_15
+           -- date_signature_prêt: propriétaire.prêt.date_signature
+           -- local_habité_première_fois_bénéficiaire: propriétaire.local_habité_première_fois_bénéficiaire
+           -- date_entrée_logement: propriétaire.date_entrée_logement
+           -- copropriété: propriétaire.copropriété
+           -- situation_r822_11_13_17: propriétaire.situation_r822_11_13_17
+           -- type_prêt: propriétaire.prêt.type_prêt
+           -- ancienneté_logement: propriétaire.ancienneté_logement
+         }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAidePersonnaliséeLogementAccessionPropriété.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAidePersonnaliséeLogementAccessionPropriété.traitement_aide_finale
+      })
 
 champ d'application CalculAllocationLogement:
-  définition locatif.ressources_ménage_arrondies égal à ressources_ménage
-  définition logement_foyer.ressources_ménage_arrondies égal à
-    ressources_ménage
-  définition accession_propriété.ressources_ménage_arrondies égal à
-    ressources_ménage
-  définition locatif.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition logement_foyer.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition accession_propriété.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition locatif.zone égal à zone
-  définition logement_foyer.zone égal à zone
-  définition accession_propriété.zone égal à zone
-  définition locatif.date_courante égal à date_courante
-  définition logement_foyer.date_courante égal à date_courante
-  définition accession_propriété.date_courante égal à date_courante
-  définition locatif.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-  définition logement_foyer.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-  définition accession_propriété.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-
-  définition locatif.loyer_principal égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.loyer_principal
-    -- SousLocataire de location: location.loyer_principal
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
-    -- LocationAccession: 0 € # Valeur par défaut
-  définition locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à
+  définition sous_calcul_traitement égal à
     selon mode_occupation sous forme
     -- Locataire de location:
-      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
-    -- SousLocataire de location:
-      location.bénéficiaire_aide_adulte_ou_enfant_handicapés
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.logement_est_chambre égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.logement_est_chambre
-    -- SousLocataire de location: location.logement_est_chambre
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.colocation égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.colocation
-    -- SousLocataire de location: location.colocation
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition
-    locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-  égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
-      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-    -- SousLocataire de location:
-      location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.type_aide égal à type_aide
-  définition locatif.réduction_loyer_solidarité égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
-      (selon location.Location.bailleur sous forme
-      -- BailleurSocial de bailleur:
-        bailleur.réduction_loyer_solidarité_perçue
-      -- n'importe quel: 0€)
-    -- SousLocataire de location:
-      (selon location.Location.bailleur sous forme
-      -- BailleurSocial de bailleur:
-        bailleur.réduction_loyer_solidarité_perçue
-      -- n'importe quel: 0€)
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
-    -- LocationAccession: 0 € # Valeur par défaut
-  définition locatif.logement_meublé_d842_2 égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.logement_meublé_d842_2
-    -- SousLocataire de location: location.logement_meublé_d842_2
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation: faux # Valeur par défaut
-    -- LocationAccession: faux # Valeur par défaut
-  définition locatif.changement_logement_d842_4 égal à
-    selon mode_occupation sous forme
-    -- Locataire de location: location.changement_logement_d842_4
-    -- SousLocataire de location: location.changement_logement_d842_4
-    -- RésidentLogementFoyer: PasDeChangement # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation:
-      PasDeChangement # Valeur par défaut
-    -- LocationAccession: PasDeChangement # Valeur par défaut
-
-  définition accession_propriété.mensualité_principale égal à
-    selon mode_occupation sous forme
-    -- Locataire: 0 € # Valeur par défaut
-    -- SousLocataire: 0 € # Valeur par défaut
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.mensualité_principale
-    -- LocationAccession  de propriétaire:
-      propriétaire.mensualité_principale
-  définition accession_propriété.charges_mensuelles_prêt égal à
-    selon mode_occupation sous forme
-    -- Locataire: 0 € # Valeur par défaut
-    -- SousLocataire: 0 € # Valeur par défaut
-    -- RésidentLogementFoyer: 0 € # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.charges_mensuelles_prêt
-    -- LocationAccession  de propriétaire:
-      propriétaire.charges_mensuelles_prêt
-  définition accession_propriété.type_travaux_logement égal à
-    selon mode_occupation sous forme
-    -- Locataire: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
-    -- SousLocataire: TypeTravauxLogementR842_5.PasDeTravaux # Valeur par défaut
-    -- RésidentLogementFoyer: TypeTravauxLogementR842_5.PasDeTravaux
-      # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.type_travaux_logement_r842_5
-    -- LocationAccession  de propriétaire:
-      propriétaire.type_travaux_logement_r842_5
-  définition accession_propriété.date_signature_prêt égal à
-    selon mode_occupation sous forme
-    -- Locataire: |2010-01-01| # Valeur par défaut
-    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- SousLocataire: |2010-01-01| # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.prêt.date_signature
-    -- LocationAccession de propriétaire:
-      propriétaire.prêt.date_signature
-  définition accession_propriété.local_habité_première_fois_bénéficiaire égal à
-    selon mode_occupation sous forme
-    -- Locataire: faux # Valeur par défaut
-    -- SousLocataire: faux # Valeur par défaut
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.local_habité_première_fois_bénéficiaire
-    -- LocationAccession  de propriétaire:
-      propriétaire.local_habité_première_fois_bénéficiaire
-  définition accession_propriété.date_entrée_logement égal à
-    selon mode_occupation sous forme
-    -- Locataire: |2010-01-01| # Valeur par défaut
-    -- SousLocataire: |2010-01-01| # Valeur par défaut
-    -- RésidentLogementFoyer: |2010-01-01| # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.date_entrée_logement
-    -- LocationAccession  de propriétaire:
-      propriétaire.date_entrée_logement
-  définition accession_propriété.copropriété égal à
-    selon mode_occupation sous forme
-    -- Locataire: faux # Valeur par défaut
-    -- SousLocataire: faux # Valeur par défaut
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.copropriété
-    -- LocationAccession  de propriétaire:
-      propriétaire.copropriété
-  définition accession_propriété.situation_r822_11_13_17 égal à
-    selon mode_occupation sous forme
-    -- Locataire: faux # Valeur par défaut
-    -- SousLocataire: faux # Valeur par défaut
-    -- RésidentLogementFoyer: faux # Valeur par défaut
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.situation_r822_11_13_17
-    -- LocationAccession  de propriétaire:
-      propriétaire.situation_r822_11_13_17
-
-  définition logement_foyer.redevance égal à
-    selon mode_occupation sous forme
-    -- Locataire: 0 € # Valeur par défaut
-    -- SousLocataire: 0 € # Valeur par défaut
-    -- RésidentLogementFoyer de logement_foyer_: logement_foyer_.redevance
-    -- AccessionPropriétéLocalUsageExclusifHabitation: 0 € # Valeur par défaut
-    -- LocationAccession: 0 € # Valeur par défaut
-  définition logement_foyer.catégorie_équivalence_loyer_d842_16 égal à
-    selon mode_occupation sous forme
-    -- Locataire: AutresPersonnes # Valeur par défaut
-    -- SousLocataire: AutresPersonnes # Valeur par défaut
+      (soit traitement_formule égal à
+        CalculAllocationLogementLocatif de {
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          -- loyer_principal: location.loyer_principal
+          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
+              location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+          -- logement_est_chambre: location.logement_est_chambre
+          -- colocation: location.colocation
+          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers:
+              location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+          -- type_aide: type_aide
+          -- réduction_loyer_solidarité:
+              (selon location.Location.bailleur sous forme
+                 -- BailleurSocial de bailleur:
+                     bailleur.réduction_loyer_solidarité_perçue
+                 -- n'importe quel: 0€)
+          -- logement_meublé_d842_2: location.logement_meublé_d842_2
+          -- changement_logement_d842_4: location.changement_logement_d842_4
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAllocationLogementLocatif.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAllocationLogementLocatif.traitement_aide_finale
+      })
+    -- SousLocataire de location: # Identique à Locataire
+      (soit traitement_formule égal à
+        CalculAllocationLogementLocatif de {
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          -- loyer_principal: location.loyer_principal
+          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
+              location.bénéficiaire_aide_adulte_ou_enfant_handicapés
+          -- logement_est_chambre: location.logement_est_chambre
+          -- colocation: location.colocation
+          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers:
+              location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+          -- type_aide: type_aide
+          -- réduction_loyer_solidarité:
+              (selon location.Location.bailleur sous forme
+                 -- BailleurSocial de bailleur:
+                     bailleur.réduction_loyer_solidarité_perçue
+                 -- n'importe quel: 0€)
+          -- logement_meublé_d842_2: location.logement_meublé_d842_2
+          -- changement_logement_d842_4: location.changement_logement_d842_4
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAllocationLogementLocatif.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAllocationLogementLocatif.traitement_aide_finale
+      })
     -- RésidentLogementFoyer de logement_foyer_:
-      logement_foyer_.catégorie_équivalence_loyer_d842_16
-    -- AccessionPropriétéLocalUsageExclusifHabitation:
-      AutresPersonnes # Valeur par défaut
-    -- LocationAccession: AutresPersonnes # Valeur par défaut
-  définition logement_foyer.type_logement_foyer égal à
-    selon mode_occupation sous forme
-    -- Locataire: TypeLogementFoyer.Autre # Valeur par défaut
-    -- SousLocataire: TypeLogementFoyer.Autre # Valeur par défaut
-    -- RésidentLogementFoyer de logement_foyer_:
-      logement_foyer_.type
-    -- AccessionPropriétéLocalUsageExclusifHabitation:
-      TypeLogementFoyer.Autre # Valeur par défaut
-    -- LocationAccession: TypeLogementFoyer.Autre # Valeur par défaut
-  définition logement_foyer.date_conventionnement égal à
-    selon mode_occupation sous forme
-    -- Locataire: |1970-01-01| # Valeur par défaut
-    -- SousLocataire: |1970-01-01| # Valeur par défaut
-    -- RésidentLogementFoyer de logement_foyer_:
-      logement_foyer_.date_conventionnement
-    -- AccessionPropriétéLocalUsageExclusifHabitation: |1970-01-01| # Valeur par défaut
-    -- LocationAccession: |1970-01-01| # Valeur par défaut
+      (soit traitement_formule égal à
+        CalculAllocationLogementFoyer de {
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          -- redevance: logement_foyer_.redevance
+          -- catégorie_équivalence_loyer_d842_16: logement_foyer_.catégorie_équivalence_loyer_d842_16
+          -- type_logement_foyer: logement_foyer_.type
+          -- date_conventionnement: logement_foyer_.date_conventionnement
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAllocationLogementFoyer.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAllocationLogementFoyer.traitement_aide_finale
+      })
+    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+      (soit traitement_formule égal à
+         CalculAllocationLogementAccessionPropriété de {
+           -- ressources_ménage_arrondies: ressources_ménage
+           -- nombre_personnes_à_charge: nombre_personnes_à_charge
+           -- zone: zone
+           -- date_courante: date_courante
+           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+           -- mensualité_principale: propriétaire.mensualité_principale
+           -- charges_mensuelles_prêt: propriétaire.charges_mensuelles_prêt
+           -- type_travaux_logement: propriétaire.type_travaux_logement_r842_5
+           -- date_signature_prêt: propriétaire.prêt.date_signature
+           -- local_habité_première_fois_bénéficiaire: propriétaire.local_habité_première_fois_bénéficiaire
+           -- date_entrée_logement: propriétaire.date_entrée_logement
+           -- copropriété: propriétaire.copropriété
+           -- situation_r822_11_13_17: propriétaire.situation_r822_11_13_17
+         }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAllocationLogementAccessionPropriété.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAllocationLogementAccessionPropriété.traitement_aide_finale
+      })
+    -- LocationAccession de propriétaire: # Identique à AccessionPropriétéLocalUsageExclusifHabitation
+      (soit traitement_formule égal à
+         CalculAllocationLogementAccessionPropriété de {
+           -- ressources_ménage_arrondies: ressources_ménage
+           -- nombre_personnes_à_charge: nombre_personnes_à_charge
+           -- zone: zone
+           -- date_courante: date_courante
+           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+           -- mensualité_principale: propriétaire.mensualité_principale
+           -- charges_mensuelles_prêt: propriétaire.charges_mensuelles_prêt
+           -- type_travaux_logement: propriétaire.type_travaux_logement_r842_5
+           -- date_signature_prêt: propriétaire.prêt.date_signature
+           -- local_habité_première_fois_bénéficiaire: propriétaire.local_habité_première_fois_bénéficiaire
+           -- date_entrée_logement: propriétaire.date_entrée_logement
+           -- copropriété: propriétaire.copropriété
+           -- situation_r822_11_13_17: propriétaire.situation_r822_11_13_17
+         }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule: traitement_formule.CalculAllocationLogementAccessionPropriété.aide_finale_formule
+        -- traitement_aide_finale: traitement_formule.CalculAllocationLogementAccessionPropriété.traitement_aide_finale
+      })
 ```
 
 ####### Sous-section 1 : Ouverture et extinction des droits
