@@ -36,7 +36,7 @@ let _ =
                    interface_allocations_familiales_in
                    |> AF_web.interface_allocations_familiales
                  in
-                 result##.iMontantVerseOut))
+                 result##.iMontantVerse))
 
        method computeAidesAuLogement
            : (AL_web.calculette_aides_au_logement_garde_alternee_in -> float)
@@ -47,5 +47,5 @@ let _ =
                    calculette_aides_au_logement_garde_alternee_in
                    |> AL_web.calculette_aides_au_logement_garde_alternee
                  in
-                 result##.aideFinaleOut))
+                 result##.aideFinale))
     end)

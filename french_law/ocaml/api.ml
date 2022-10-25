@@ -45,4 +45,4 @@ let compute_allocations_familiales
           had_rights_open_before_2012;
       }
   in
-  money_to_float result.AF.InterfaceAllocationsFamilialesOut.i_montant_verse_out
+  money_to_float result.AF.InterfaceAllocationsFamiliales.i_montant_verse
