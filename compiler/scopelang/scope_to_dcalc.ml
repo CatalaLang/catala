@@ -257,7 +257,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
             Errors.raise_multispanned_error
               [
                 None, pos;
-                ( Some "Declaration of the Missing input variable",
+                ( Some "Declaration of the missing input variable",
                   Marked.get_mark (StructFieldName.get_info fld) );
               ]
               "Definition of input variable '%a' missing in this scope call"

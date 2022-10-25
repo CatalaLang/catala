@@ -323,13 +323,30 @@ let rec translate_expr
         (fun acc (fld_id, e) ->
           let var =
             match
-              Desugared.Ast.IdentMap.find (Marked.unmark fld_id)
+              Desugared.Ast.IdentMap.find_opt (Marked.unmark fld_id)
                 scope_def.var_idmap
             with
-            | ScopeVar v -> v
-            | SubScope _ -> assert false
+            | Some (ScopeVar v) -> v
+            | Some (SubScope _) | None ->
+              Errors.raise_multispanned_error
+                [
+                  None, Marked.get_mark fld_id;
+                  ( Some
+                      (Format.asprintf "Scope '%a' declared here"
+                         ScopeName.format_t called_scope),
+                    Marked.get_mark (ScopeName.get_info called_scope) );
+                ]
+                "Scope '%a' has no input variable '%s'" ScopeName.format_t
+                called_scope (Marked.unmark fld_id)
           in
-          ScopeVarMap.add var (rec_helper e) acc)
+          ScopeVarMap.update var
+            (function
+              | None -> Some (rec_helper e)
+              | Some _ ->
+                Errors.raise_spanned_error (Marked.get_mark fld_id)
+                  "Duplicate definition of scope input variable '%a'"
+                  ScopeVar.format_t var)
+            acc)
         ScopeVarMap.empty fields
     in
     Expr.escopecall called_scope in_struct emark

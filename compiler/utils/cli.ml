@@ -171,7 +171,13 @@ let plugins_dirs =
   let env = Cmd.Env.info "CATALA_PLUGINS" ~doc in
   let default =
     let ( / ) = Filename.concat in
-    [Sys.executable_name / ".." / "lib" / "catala" / "plugins"]
+    [
+      Sys.executable_name
+      / Filename.parent_dir_name
+      / "lib"
+      / "catala"
+      / "plugins";
+    ]
   in
   Arg.(value & opt_all dir default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc)
 
