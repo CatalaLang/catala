@@ -39,6 +39,7 @@ let driver source_file (options : Cli.options) : int =
         | exception Sys_error _ -> ())
       options.plugins_dirs;
     Cli.set_option_globals options;
+    if options.debug then Printexc.record_backtrace true;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with
