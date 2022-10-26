@@ -671,10 +671,16 @@ let get_def_key
   | [y; x] ->
     let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =
       match
-        Desugared.Ast.IdentMap.find (Marked.unmark y) scope_ctxt.var_idmap
+        Desugared.Ast.IdentMap.find_opt (Marked.unmark y) scope_ctxt.var_idmap
       with
-      | SubScope (v, u) -> v, u
-      | _ -> invalid_arg "subscope_real_uid"
+      | Some (SubScope (v, u)) -> v, u
+      | Some _ ->
+        Errors.raise_spanned_error pos
+          "Invalid access to input variable, '%s' is not a subscope"
+          (Marked.unmark y)
+      | None ->
+        Errors.raise_spanned_error pos "No definition found for subscope '%s'"
+          (Marked.unmark y)
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
     Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
