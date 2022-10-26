@@ -89,8 +89,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
            let v' =
              match ScopeVarMap.find v ctx.scope_var_mapping with
              | WholeVar v' -> v'
-             | States _ ->
-               assert false (* TODO: what about input var states ?? *)
+             | States ((_, v') :: _) -> v'
+             | States [] -> assert false
            in
            ScopeVarMap.add v' (translate_expr ctx e) fields')
          fields ScopeVarMap.empty)
