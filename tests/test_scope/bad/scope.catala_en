@@ -19,17 +19,19 @@ $ catala Interpret -s A
 [ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:
-  --> tests/test_scope/bad/scope.catala_en:13.56-60
-   |
-13 |   definition b under condition not c consequence equals 1337
-   |                                                         ^^^^
-   + Article
+┌─⯈ tests/test_scope/bad/scope.catala_en:13.56-60
+└──┐
+   │
+13 │   definition b under condition not c consequence equals 1337
+   │                                                         ‾‾‾‾
+   └─ Article
 
 This consequence has a valid justification:
-  --> tests/test_scope/bad/scope.catala_en:14.56-57
-   |
-14 |   definition b under condition not c consequence equals 0
-   |                                                         ^
-   + Article
+┌─⯈ tests/test_scope/bad/scope.catala_en:14.56-57
+└──┐
+   │
+14 │   definition b under condition not c consequence equals 0
+   │                                                         ‾
+   └─ Article
 #return code 255#
 ```

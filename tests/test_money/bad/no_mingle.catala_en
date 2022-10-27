@@ -19,24 +19,27 @@ $ catala Interpret -s A
 --> decimal
 
 Error coming from typechecking the following expression:
-  --> tests/test_money/bad/no_mingle.catala_en:12.28-29
-   |
-12 |   definition z equals (x *$ y)
-   |                             ^
-   + Article
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:12.28-29
+└──┐
+   │
+12 │   definition z equals (x *$ y)
+   │                             ‾
+   └─ Article
 
 Type money coming from expression:
- --> tests/test_money/bad/no_mingle.catala_en:6.20-25
-  |
-6 |   context y content money
-  |                     ^^^^^
-  + Article
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:6.20-25
+└─┐
+  │
+6 │   context y content money
+  │                     ‾‾‾‾‾
+  └─ Article
 
 Type decimal coming from expression:
-  --> tests/test_money/bad/no_mingle.catala_en:12.25-27
-   |
-12 |   definition z equals (x *$ y)
-   |                          ^^
-   + Article
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:12.25-27
+└──┐
+   │
+12 │   definition z equals (x *$ y)
+   │                          ‾‾
+   └─ Article
 #return code 255#
 ```

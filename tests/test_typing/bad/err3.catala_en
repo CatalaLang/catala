@@ -17,25 +17,28 @@ $ catala Typecheck
 --> decimal
 
 Error coming from typechecking the following expression:
-  --> tests/test_typing/bad/err3.catala_en:10.41-42
-   |
-10 |   definition a equals number of (z ++ z) / 2
-   |                                          ^
-   +
+┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42
+└──┐
+   │
+10 │   definition a equals number of (z ++ z) / 2
+   │                                          ‾
+
 
 Type integer coming from expression:
-  --> tests/test_typing/bad/err3.catala_en:10.41-42
-   |
-10 |   definition a equals number of (z ++ z) / 2
-   |                                          ^
-   +
+┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42
+└──┐
+   │
+10 │   definition a equals number of (z ++ z) / 2
+   │                                          ‾
+
 
 Type decimal coming from expression:
-  --> tests/test_typing/bad/common.catala_en:15.19-26
-   |
-15 |   output a content decimal
-   |                    ^^^^^^^
-   +
+┌─⯈ tests/test_typing/bad/common.catala_en:15.19-26
+└──┐
+   │
+15 │   output a content decimal
+   │                    ‾‾‾‾‾‾‾
+
 #return code 255#
 ```
 
@@ -48,24 +51,27 @@ $ catala ocaml
 --> decimal
 
 Error coming from typechecking the following expression:
-  --> tests/test_typing/bad/err3.catala_en:10.41-42
-   |
-10 |   definition a equals number of (z ++ z) / 2
-   |                                          ^
-   +
+┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42
+└──┐
+   │
+10 │   definition a equals number of (z ++ z) / 2
+   │                                          ‾
+
 
 Type integer coming from expression:
-  --> tests/test_typing/bad/err3.catala_en:10.41-42
-   |
-10 |   definition a equals number of (z ++ z) / 2
-   |                                          ^
-   +
+┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42
+└──┐
+   │
+10 │   definition a equals number of (z ++ z) / 2
+   │                                          ‾
+
 
 Type decimal coming from expression:
-  --> tests/test_typing/bad/common.catala_en:15.19-26
-   |
-15 |   output a content decimal
-   |                    ^^^^^^^
-   +
+┌─⯈ tests/test_typing/bad/common.catala_en:15.19-26
+└──┐
+   │
+15 │   output a content decimal
+   │                    ‾‾‾‾‾‾‾
+
 #return code 255#
 ```

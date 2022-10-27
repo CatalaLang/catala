@@ -94,6 +94,14 @@ let indent_number (s : string) : int =
     aux 0
   with Invalid_argument _ -> String.length s
 
+let string_repeat n s =
+  let slen = String.length s in
+  let buf = Bytes.create (n * slen) in
+  for i = 0 to n - 1 do
+    Bytes.blit_string s 0 buf (i * slen) slen
+  done;
+  Bytes.to_string buf
+
 let retrieve_loc_text (pos : t) : string =
   try
     let filename = get_file pos in
@@ -130,24 +138,26 @@ let retrieve_loc_text (pos : t) : string =
           "\n"
           ^
           if line_no = sline && line_no = eline then
-            Cli.with_style error_indicator_style "%*s"
-              (get_end_column pos - 1)
-              (String.make
+            Cli.with_style error_indicator_style "%*s%s"
+              (get_start_column pos - 1)
+              ""
+              (string_repeat
                  (max (get_end_column pos - get_start_column pos) 0)
-                 '^')
+                 "‾")
           else if line_no = sline && line_no <> eline then
-            Cli.with_style error_indicator_style "%*s"
-              (String.length line - 1)
-              (String.make
+            Cli.with_style error_indicator_style "%*s%s"
+              (get_start_column pos - 1)
+              ""
+              (string_repeat
                  (max (String.length line - get_start_column pos) 0)
-                 '^')
+                 "‾")
           else if line_no <> sline && line_no <> eline then
             Cli.with_style error_indicator_style "%*s%s" line_indent ""
-              (String.make (max (String.length line - line_indent) 0) '^')
+              (string_repeat (max (String.length line - line_indent) 0) "‾")
           else if line_no <> sline && line_no = eline then
             Cli.with_style error_indicator_style "%*s%*s" line_indent ""
               (get_end_column pos - 1 - line_indent)
-              (String.make (max (get_end_column pos - line_indent) 0) '^')
+              (string_repeat (max (get_end_column pos - line_indent) 0) "‾")
           else assert false (* should not happen *)
         else ""
       in
@@ -174,10 +184,17 @@ let retrieve_loc_text (pos : t) : string =
              pos.law_pos)
       in
       (match oc with None -> () | Some oc -> close_in oc);
-      Cli.with_style blue_style "%*s--> %s\n%s\n%s" spaces ""
-        (to_string_short pos)
+      let buf = Buffer.create 73 in
+      Buffer.add_string buf
+        (Cli.with_style blue_style "┌─⯈ %s" (to_string_short pos));
+      Buffer.add_char buf '\n';
+      (* should be outside of [Cli.with_style] *)
+      Buffer.add_string buf
+        (Cli.with_style blue_style "└%s┐" (string_repeat spaces "─"));
+      Buffer.add_char buf '\n';
+      Buffer.add_string buf
         (Cli.add_prefix_to_each_line
-           (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
+           (String.concat "\n" ("" :: pos_lines))
            (fun i ->
              let cur_line = sline - include_extra_count + i - 1 in
              if
@@ -185,28 +202,36 @@ let retrieve_loc_text (pos : t) : string =
                && cur_line <= sline + (2 * (eline - sline))
                && cur_line mod 2 = sline mod 2
              then
-               Cli.with_style blue_style "%*d |" spaces
+               Cli.with_style blue_style "%*d │" spaces
                  (sline + ((cur_line - sline) / 2))
              else if cur_line >= sline - include_extra_count && cur_line < sline
-             then Cli.with_style blue_style "%*d |" spaces (cur_line + 1)
+             then Cli.with_style blue_style "%*d │" spaces (cur_line + 1)
              else if
                cur_line
                <= sline + (2 * (eline - sline)) + 1 + include_extra_count
                && cur_line > sline + (2 * (eline - sline)) + 1
              then
-               Cli.with_style blue_style "%*d |" spaces
+               Cli.with_style blue_style "%*d │" spaces
                  (cur_line - (eline - sline + 1))
-             else Cli.with_style blue_style "%*s |" spaces ""))
-        (Cli.add_prefix_to_each_line
-           (Printf.sprintf "%s"
-              (String.concat "\n"
-                 (List.map
-                    (fun l -> Cli.with_style blue_style "%s" l)
-                    legal_pos_lines)))
-           (fun i ->
-             if i = 0 then
-               Cli.with_style blue_style "%*s +" (spaces + (2 * i)) ""
-             else Cli.with_style blue_style "%*s+-+" (spaces + (2 * i) - 1) ""))
+             else Cli.with_style blue_style "%*s │" spaces ""));
+      Buffer.add_char buf '\n';
+      let () =
+        match legal_pos_lines with
+        | [] -> ()
+        | _ ->
+          let last = List.length legal_pos_lines - 1 in
+          Buffer.add_string buf
+            (Cli.add_prefix_to_each_line
+               (String.concat "\n"
+                  (List.map
+                     (fun l -> Cli.with_style blue_style "%s" l)
+                     legal_pos_lines))
+               (fun i ->
+                 if i = last then
+                   Cli.with_style blue_style "%*s└─" (spaces + i + 1) ""
+                 else Cli.with_style blue_style "%*s└┬" (spaces + i + 1) ""))
+      in
+      Buffer.contents buf
   with Sys_error _ -> "Location:" ^ to_string pos
 
 let no_pos : t =

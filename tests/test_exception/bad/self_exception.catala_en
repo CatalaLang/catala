@@ -14,10 +14,11 @@ scope A:
 $ catala Interpret -s A
 [ERROR] Cannot define rule as an exception to itself
 
- --> tests/test_exception/bad/self_exception.catala_en:9.12-18
-  |
-9 |   exception base_y
-  |             ^^^^^^
-  + Test
+┌─⯈ tests/test_exception/bad/self_exception.catala_en:9.12-18
+└─┐
+  │
+9 │   exception base_y
+  │             ‾‾‾‾‾‾
+  └─ Test
 #return code 255#
 ```

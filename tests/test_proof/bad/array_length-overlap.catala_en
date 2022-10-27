@@ -14,10 +14,11 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] At least two exceptions overlap for this variable:
- --> tests/test_proof/bad/array_length-overlap.catala_en:6.10-11
-  |
-6 |   context y content boolean
-  |           ^
-  + Test
+┌─⯈ tests/test_proof/bad/array_length-overlap.catala_en:6.10-11
+└─┐
+  │
+6 │   context y content boolean
+  │           ‾
+  └─ Test
 Counterexample generation is disabled so none was generated.
 ```

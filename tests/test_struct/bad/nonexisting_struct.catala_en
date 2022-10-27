@@ -17,10 +17,11 @@ scope A:
 $ catala Interpret -s A
 [ERROR] No struct named Fo found
 
-  --> tests/test_struct/bad/nonexisting_struct.catala_en:13.24-26
-   |
-13 |   definition y equals x.Fo.f
-   |                         ^^
-   + Article
+┌─⯈ tests/test_struct/bad/nonexisting_struct.catala_en:13.24-26
+└──┐
+   │
+13 │   definition y equals x.Fo.f
+   │                         ‾‾
+   └─ Article
 #return code 255#
 ```

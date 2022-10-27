@@ -21,11 +21,12 @@ scope A:
 $ catala Interpret -s A
 [WARNING] Unreachable match case, all constructors of the enumeration E are already specified
 
-  --> tests/test_enum/bad/useless_wildcard.catala_en:17.7-20
-   |
-17 |     -- anything : 31
-   |        ^^^^^^^^^^^^^
-   + Useless wildcard
+┌─⯈ tests/test_enum/bad/useless_wildcard.catala_en:17.7-20
+└──┐
+   │
+17 │     -- anything : 31
+   │        ‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Useless wildcard
 [RESULT] Computation successful! Results:
 [RESULT] x = Case1 ()
 [RESULT] y = 42

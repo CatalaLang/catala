@@ -21,10 +21,11 @@ scope A:
 $ catala Interpret -s A
 [ERROR] Struct Foo does not contain field g
 
-  --> tests/test_struct/bad/wrong_qualified_field.catala_en:17.22-29
-   |
-17 |   definition y equals x.Foo.g
-   |                       ^^^^^^^
-   + Article
+┌─⯈ tests/test_struct/bad/wrong_qualified_field.catala_en:17.22-29
+└──┐
+   │
+17 │   definition y equals x.Foo.g
+   │                       ‾‾‾‾‾‾‾
+   └─ Article
 #return code 255#
 ```
