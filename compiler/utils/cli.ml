@@ -454,20 +454,15 @@ let concat_with_line_depending_prefix_and_suffix
     (suffix : int -> string)
     (ss : string list) =
   match ss with
-  | hd :: rest ->
-    let out, _ =
-      List.fold_left
-        (fun (acc, i) s ->
-          ( (acc
-            ^ prefix i
-            ^ s
-            ^ if i = List.length ss - 1 then "" else suffix i),
-            i + 1 ))
-        ((prefix 0 ^ hd ^ if 0 = List.length ss - 1 then "" else suffix 0), 1)
-        rest
-    in
-    out
   | [] -> prefix 0
+  | _ :: _ ->
+    let len = List.length ss in
+    let suffix i = if i < len - 1 then suffix i else "" in
+    String.concat ""
+    @@ List.concat
+    @@ List.mapi
+         (fun i s -> [prefix i; (if s = "" then "" else " "); s; suffix i])
+         ss
 
 (** The int argument of the prefix corresponds to the line number, starting at 0 *)
 let add_prefix_to_each_line (s : string) (prefix : int -> string) =

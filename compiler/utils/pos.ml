@@ -179,18 +179,18 @@ let retrieve_loc_text (pos : t) : string =
                && cur_line <= sline + (2 * (eline - sline))
                && cur_line mod 2 = sline mod 2
              then
-               Cli.with_style blue_style "%*d | " spaces
+               Cli.with_style blue_style "%*d |" spaces
                  (sline + ((cur_line - sline) / 2))
              else if cur_line >= sline - include_extra_count && cur_line < sline
-             then Cli.with_style blue_style "%*d | " spaces cur_line
+             then Cli.with_style blue_style "%*d |" spaces (cur_line + 1)
              else if
                cur_line
                <= sline + (2 * (eline - sline)) + 1 + include_extra_count
                && cur_line > sline + (2 * (eline - sline)) + 1
              then
-               Cli.with_style blue_style "%*d | " spaces
+               Cli.with_style blue_style "%*d |" spaces
                  (cur_line - (eline - sline + 1))
-             else Cli.with_style blue_style "%*s | " spaces ""))
+             else Cli.with_style blue_style "%*s |" spaces ""))
         (Cli.add_prefix_to_each_line
            (Printf.sprintf "%s"
               (String.concat "\n"
@@ -199,8 +199,8 @@ let retrieve_loc_text (pos : t) : string =
                     legal_pos_lines)))
            (fun i ->
              if i = 0 then
-               Cli.with_style blue_style "%*s + " (spaces + (2 * i)) ""
-             else Cli.with_style blue_style "%*s+-+ " (spaces + (2 * i) - 1) ""))
+               Cli.with_style blue_style "%*s +" (spaces + (2 * i)) ""
+             else Cli.with_style blue_style "%*s+-+" (spaces + (2 * i) - 1) ""))
   with Sys_error _ -> "Location:" ^ to_string pos
 
 let no_pos : t =
