@@ -72,16 +72,21 @@ let to_string (pos : t) : string =
   let s, e = pos.code_pos in
   Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname
     s.Lexing.pos_lnum
-    (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
+    (s.Lexing.pos_cnum - s.Lexing.pos_bol)
     e.Lexing.pos_lnum
-    (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+    (e.Lexing.pos_cnum - e.Lexing.pos_bol)
 
 let to_string_short (pos : t) : string =
   let s, e = pos.code_pos in
-  Printf.sprintf "%s;%d:%d--%d:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
-    (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
-    e.Lexing.pos_lnum
-    (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+  if e.Lexing.pos_lnum = s.Lexing.pos_lnum then
+    Printf.sprintf "%s:%d.%d-%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+      (s.Lexing.pos_cnum - s.Lexing.pos_bol)
+      (e.Lexing.pos_cnum - e.Lexing.pos_bol)
+  else
+    Printf.sprintf "%s:%d.%d-%d.%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+      (s.Lexing.pos_cnum - s.Lexing.pos_bol)
+      e.Lexing.pos_lnum
+      (e.Lexing.pos_cnum - e.Lexing.pos_bol)
 
 let indent_number (s : string) : int =
   try
@@ -169,7 +174,8 @@ let retrieve_loc_text (pos : t) : string =
              pos.law_pos)
       in
       (match oc with None -> () | Some oc -> close_in oc);
-      Cli.with_style blue_style "%*s--> %s\n%s\n%s" spaces "" filename
+      Cli.with_style blue_style "%*s--> %s\n%s\n%s" spaces ""
+        (to_string_short pos)
         (Cli.add_prefix_to_each_line
            (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
            (fun i ->

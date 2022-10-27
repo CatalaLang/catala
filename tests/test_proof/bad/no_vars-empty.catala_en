@@ -17,7 +17,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] This variable might return an empty error:
- --> tests/test_proof/bad/no_vars-empty.catala_en
+ --> tests/test_proof/bad/no_vars-empty.catala_en:7.10-11
   |
 7 |   context y content integer
   |           ^

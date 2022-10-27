@@ -24,7 +24,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.x] This variable might return an empty error:
-  --> tests/test_proof/bad/enums-empty.catala_en
+  --> tests/test_proof/bad/enums-empty.catala_en:15.10-11
    |
 15 |   context x content integer
    |           ^

@@ -15,21 +15,21 @@ $ catala Typecheck
 --> integer
 
 Error coming from typechecking the following expression:
- --> tests/test_bool/bad/test_xor_with_int.catala_en
+ --> tests/test_bool/bad/test_xor_with_int.catala_en:8.32-35
   |
 8 |   definition test_var equals 10 xor 20
   |                                 ^^^
   + 'xor' should be a boolean operator
 
 Type bool coming from expression:
- --> tests/test_bool/bad/test_xor_with_int.catala_en
+ --> tests/test_bool/bad/test_xor_with_int.catala_en:8.32-35
   |
 8 |   definition test_var equals 10 xor 20
   |                                 ^^^
   + 'xor' should be a boolean operator
 
 Type integer coming from expression:
- --> tests/test_bool/bad/test_xor_with_int.catala_en
+ --> tests/test_bool/bad/test_xor_with_int.catala_en:5.27-34
   |
 5 |   context test_var content integer
   |                            ^^^^^^^

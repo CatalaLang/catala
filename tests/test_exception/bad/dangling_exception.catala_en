@@ -17,7 +17,7 @@ scope A:
 $ catala Interpret -s A
 [ERROR] Unknown label for the scope variable x: "base_y"
 
-  --> tests/test_exception/bad/dangling_exception.catala_en
+  --> tests/test_exception/bad/dangling_exception.catala_en:12.12-18
    |
 12 |   exception base_y
    |             ^^^^^^

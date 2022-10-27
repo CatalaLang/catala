@@ -24,7 +24,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.x] At least two exceptions overlap for this variable:
-  --> tests/test_proof/bad/enums-overlap.catala_en
+  --> tests/test_proof/bad/enums-overlap.catala_en:15.10-11
    |
 15 |   context x content integer
    |           ^

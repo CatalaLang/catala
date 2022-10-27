@@ -17,21 +17,21 @@ $ catala Typecheck
 --> integer
 
 Error coming from typechecking the following expression:
- --> tests/test_typing/bad/err1.catala_en
+ --> tests/test_typing/bad/err1.catala_en:7.22-25
   |
 7 |     Structure { -- i: 4.1 -- e: y };
   |                       ^^^
   +
 
 Type decimal coming from expression:
- --> tests/test_typing/bad/err1.catala_en
+ --> tests/test_typing/bad/err1.catala_en:7.22-25
   |
 7 |     Structure { -- i: 4.1 -- e: y };
   |                       ^^^
   +
 
 Type integer coming from expression:
- --> tests/test_typing/bad/common.catala_en
+ --> tests/test_typing/bad/common.catala_en:8.17-24
   |
 8 |   data i content integer
   |                  ^^^^^^^

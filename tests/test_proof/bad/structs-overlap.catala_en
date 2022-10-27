@@ -22,7 +22,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.x] At least two exceptions overlap for this variable:
-  --> tests/test_proof/bad/structs-overlap.catala_en
+  --> tests/test_proof/bad/structs-overlap.catala_en:13.10-11
    |
 13 |   context x content integer
    |           ^

@@ -12,14 +12,14 @@ $ catala Typecheck
 [ERROR] It is impossible to give a definition to a scope variable tagged as input.
 
 Incriminated variable:
- --> tests/test_io/bad/redefining_input.catala_en
+ --> tests/test_io/bad/redefining_input.catala_en:5.8-9
   |
 5 |   input a content integer
   |         ^
   + Test
 
 Incriminated variable definition:
- --> tests/test_io/bad/redefining_input.catala_en
+ --> tests/test_io/bad/redefining_input.catala_en:8.2-23
   |
 8 |   definition a equals 0
   |   ^^^^^^^^^^^^^^^^^^^^^
