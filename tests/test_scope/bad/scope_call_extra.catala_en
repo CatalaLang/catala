@@ -16,7 +16,7 @@ scope Titi:
 
 ```catala-test-inline
 $ catala dcalc -s Titi
-[ERROR] Scope 'Toto' has no input variable 'biz'
+[ERROR] Scope Toto has no input variable biz
 
   --> tests/test_scope/bad/scope_call_extra.catala_en
    |
@@ -24,7 +24,7 @@ $ catala dcalc -s Titi
    |                                     ^^^
    +
 
-Scope 'Toto' declared here
+Scope Toto declared here
  --> tests/test_scope/bad/scope_call_extra.catala_en
   |
 2 | declaration scope Toto:

@@ -17,9 +17,9 @@ scope B:
 ```catala-test-inline
 $ catala Dcalc -s B
 let B =
-  λ (B_in: B_in{}) →
+  λ (B_in: B_in {}) →
     let a.x : bool = error_empty ⟨true ⊢ false⟩ in
-    let result : A{"y": integer} = A (A_in {"x_in"= a.x}) in
+    let result : A {"y": integer} = A (A_in {"x_in"= a.x}) in
     let a.y : integer = result."y" in
     let _ : unit = assert (error_empty a.y = 1) in
     B {}

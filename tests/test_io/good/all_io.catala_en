@@ -20,7 +20,7 @@ scope A:
 ```catala-test-inline
 $ catala Dcalc -s A
 let A =
-  λ (A_in: A_in{"c_in": integer; "d_in": integer; "e_in": unit → integer;
+  λ (A_in: A_in {"c_in": integer; "d_in": integer; "e_in": unit → integer;
               "f_in": unit → integer}) →
     let c : integer = A_in."c_in" in
     let d : integer = A_in."d_in" in

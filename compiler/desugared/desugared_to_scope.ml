@@ -89,7 +89,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
            let v' =
              match ScopeVarMap.find v ctx.scope_var_mapping with
              | WholeVar v' -> v'
-             | States ((_, v') :: _) -> v'
+             | States ((_, v') :: _) ->
+               (* When there are multiple states, the input is always the first
+                  one *)
+               v'
              | States [] -> assert false
            in
            ScopeVarMap.add v' (translate_expr ctx e) fields')

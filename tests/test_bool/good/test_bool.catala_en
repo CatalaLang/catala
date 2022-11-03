@@ -14,9 +14,9 @@ scope TestBool:
 ```catala-test-inline
 $ catala Dcalc 
 let TestBool :
-  TestBool_in{"foo_in": unit → bool; "bar_in": unit → integer} →
-    TestBool{"foo": bool; "bar": integer} =
-  λ (TestBool_in: TestBool_in{"foo_in": unit → bool; "bar_in":
+  TestBool_in {"foo_in": unit → bool; "bar_in": unit → integer} →
+    TestBool {"foo": bool; "bar": integer} =
+  λ (TestBool_in: TestBool_in {"foo_in": unit → bool; "bar_in":
                      unit → integer}) →
     let foo : unit → bool = TestBool_in."foo_in" in
     let bar : unit → integer = TestBool_in."bar_in" in

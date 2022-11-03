@@ -676,11 +676,11 @@ let get_def_key
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
         Errors.raise_spanned_error pos
-          "Invalid access to input variable, '%s' is not a subscope"
-          (Marked.unmark y)
+          "Invalid access to input variable, %a is not a subscope"
+          Print.lit_style (Marked.unmark y)
       | None ->
-        Errors.raise_spanned_error pos "No definition found for subscope '%s'"
-          (Marked.unmark y)
+        Errors.raise_spanned_error pos "No definition found for subscope %a"
+          Print.lit_style (Marked.unmark y)
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
     Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)

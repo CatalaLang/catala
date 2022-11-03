@@ -88,8 +88,8 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
     | Some ctx ->
-      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" StructName.format_t s punctuation
-        "{"
+      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
+        punctuation "{"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
            (fun fmt (field, mty) ->

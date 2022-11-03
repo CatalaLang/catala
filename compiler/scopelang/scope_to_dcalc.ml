@@ -33,8 +33,7 @@ type 'm scope_sig_ctx = {
   scope_sig_output_struct : StructName.t;  (** Scope output *)
   scope_sig_in_fields :
     (StructFieldName.t * Ast.io_input Marked.pos) ScopeVarMap.t;
-      (** Mapping between the input scope variables and the input struct fields.
-          The boolean is true for 'context' variables which need to be thunked. *)
+      (** Mapping between the input scope variables and the input struct fields. *)
 }
 
 type 'm scope_sigs_ctx = 'm scope_sig_ctx ScopeMap.t
@@ -147,6 +146,9 @@ let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) :
   excepts
 
 let thunk_scope_arg io_in e =
+  (* For "context" (or reentrant) variables, we thunk them as [(fun () -> e)] so
+     that we can put them in default terms at the initialisation of the function
+     body, allowing an empty error to recover the default value. *)
   let silent_var = Var.make "_" in
   let pos = Marked.get_mark io_in in
   match Marked.unmark io_in with

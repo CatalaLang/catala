@@ -55,15 +55,6 @@ let translate_binop (op : Ast.binop) : binop =
 let translate_unop (op : Ast.unop) : unop =
   match op with Not -> Not | Minus l -> Minus (translate_op_kind l)
 
-(** The two modules below help performing operations on map with the {!type:
-    Bindlib.box}. Indeed, Catala uses the {{:https://lepigre.fr/ocaml-bindlib/}
-    Bindlib} library to represent bound variables in the AST. In this
-    translation, bound variables are used to represent function parameters or
-    pattern macthing bindings. *)
-
-module LiftStructFieldMap = Bindlib.Lift (StructFieldMap)
-module LiftEnumConstructorMap = Bindlib.Lift (EnumConstructorMap)
-
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
     (constructor : (string Marked.pos option * string Marked.pos) list)
@@ -332,12 +323,12 @@ let rec translate_expr
                 [
                   None, Marked.get_mark fld_id;
                   ( Some
-                      (Format.asprintf "Scope '%a' declared here"
+                      (Format.asprintf "Scope %a declared here"
                          ScopeName.format_t called_scope),
                     Marked.get_mark (ScopeName.get_info called_scope) );
                 ]
-                "Scope '%a' has no input variable '%s'" ScopeName.format_t
-                called_scope (Marked.unmark fld_id)
+                "Scope %a has no input variable %a" ScopeName.format_t
+                called_scope Print.lit_style (Marked.unmark fld_id)
           in
           ScopeVarMap.update var
             (function
@@ -1150,7 +1141,11 @@ let attribute_to_io (attr : Ast.scope_decl_context_io) : Scopelang.Ast.io =
         attr.scope_decl_context_io_input;
   }
 
-let init_scope_defs ctxt scope_idmap =
+let init_scope_defs
+    (ctxt : Name_resolution.context)
+    (scope_idmap :
+      Name_resolution.scope_var_or_subscope Desugared.Ast.IdentMap.t) :
+    Desugared.Ast.scope_def Desugared.Ast.ScopeDefMap.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
   let add_def _ v scope_def_map =

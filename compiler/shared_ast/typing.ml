@@ -61,7 +61,8 @@ let rec typ_to_ast (ty : unionfind_typ) : A.typ =
     (* No polymorphism in Catala: type inference should return full types
        without wildcards, and this function is used to recover the types after
        typing. *)
-    assert false
+    Errors.raise_spanned_error pos
+      "Internal error: typing at this point could not be resolved"
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
