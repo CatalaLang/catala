@@ -39,7 +39,7 @@ $ catala Interpret -s TestBool
 
 ```catala-test-inline
 $ catala Scopelang 
-type TestBool = {
+struct TestBool = {
   foo: bool
   bar: integer
 }

@@ -23,7 +23,7 @@ let struc
     (fmt : Format.formatter)
     (name : StructName.t)
     (fields : (StructFieldName.t * typ) list) : unit =
-  Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "type"
+  Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
     StructName.format_t name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
@@ -37,7 +37,7 @@ let enum
     (fmt : Format.formatter)
     (name : EnumName.t)
     (cases : (EnumConstructor.t * typ) list) : unit =
-  Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "type"
+  Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
     EnumName.format_t name Print.punctuation "="
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
