@@ -564,6 +564,42 @@ scope Test4:
   assertion income_tax = $0
 ```
 
+### Direct scope calls
+
+In some cases, it is useful to apply the computation of a scope only under
+specific circumstances. For example, some social benefits may have different
+computation modes depending on the situation of the beneficiary. In this case,
+defining each of the different modes as subscopes is tedious for two reasons:
+first, some input values may not be relevant for the cases the beneficiary is
+not concerned with, and the language will still enforce that you leave nothing
+undefined ; second, unnecessary computation will take place.
+
+For these cases, it is possible to call a scope directly, specifying all its
+input variables at once, and getting back its output variables in a way similar
+to usual subscopes.
+
+```catala
+declaration scope Test5:
+  internal individual content Individual
+  internal normal_income_tax_computation_applies content boolean
+  output income_tax content money
+
+scope Test5:
+  definition individual equals Individual {
+    -- income: $7,000
+    -- number_of_children: 7
+  }
+  definition income_tax equals
+    if normal_income_tax_computation_applies then
+      (NewIncomeTaxComputationFixed of { -- individual: individual })
+      .NewIncomeTaxComputationFixed.income_tax
+    else $0 # Insert some other modes of computation here
+```
+
+Here the `NewIncomeTaxComputationFixed of` syntax triggers a call of the scope
+while setting its input variable `individual`; then the "dot" syntax is used to
+recover its `income_tax` output field.
+
 ## Context scope variables
 
 With its "input","output" and "internal" variables, Catala's scope are close
@@ -628,7 +664,7 @@ scope BasisForFineDetermination :
 
 ## One variable, multiple states
 
-When a quantity is mentioned it the law, it does not always maps exactly to
+When a quantity is mentioned in the law, it does not always maps exactly to
 a unique Catala variable. More precisely, it often happens that the law defines
 a unique quantity with multiple computation steps, each new one building on the
 previous one. Here is an example of such a setup and how to deal with it thanks

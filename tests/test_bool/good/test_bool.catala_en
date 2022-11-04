@@ -14,9 +14,9 @@ scope TestBool:
 ```catala-test-inline
 $ catala Dcalc 
 let TestBool :
-  TestBool_in{"foo_in": unit → bool; "bar_in": unit → integer} →
-    TestBool_out{"foo_out": bool; "bar_out": integer} =
-  λ (TestBool_in: TestBool_in{"foo_in": unit → bool; "bar_in":
+  TestBool_in {"foo_in": unit → bool; "bar_in": unit → integer} →
+    TestBool {"foo": bool; "bar": integer} =
+  λ (TestBool_in: TestBool_in {"foo_in": unit → bool; "bar_in":
                      unit → integer}) →
     let foo : unit → bool = TestBool_in."foo_in" in
     let bar : unit → integer = TestBool_in."bar_in" in
@@ -26,7 +26,7 @@ let TestBool :
       ⟨foo () | true ⊢
         ⟨⟨bar1 >= 0 ⊢ true⟩, ⟨bar1 < 0 ⊢ false⟩ | false ⊢
           ∅ ⟩⟩ in
-    TestBool_out {"foo_out"= foo1; "bar_out"= bar1} in
+    TestBool {"foo"= foo1; "bar"= bar1} in
 TestBool
 ```
 
@@ -39,6 +39,11 @@ $ catala Interpret -s TestBool
 
 ```catala-test-inline
 $ catala Scopelang 
+type TestBool = {
+  foo: bool
+  bar: integer
+}
+
 let scope TestBool (foo: bool|context|output) (bar: integer|context|output) =
   let bar : integer = reentrant or by default ⟨true ⊢ 1⟩;
   let foo : bool = reentrant or by default

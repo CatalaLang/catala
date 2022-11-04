@@ -83,11 +83,11 @@ champ d'application Exemple1 :
 
 déclaration champ d'application Exemple2 :
   éligibilité champ d'application ÉligibilitéAllocationLogement
-  sortie éligible contenu ÉligibilitéAllocationLogement
+  sortie éligible contenu TypeÉligibilitéAllocationLogement
 
 champ d'application Exemple2 :
   définition éligible égal à éligibilité.éligibilité
-  assertion éligible = ÉligibilitéAllocationLogement.AllocationLogementFamiliale
+  assertion éligible = TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
   définition éligibilité.date_courante égal à |2022-05-01|
   définition éligibilité.ménage égal à Ménage {
     -- prestations_reçues: [

@@ -160,6 +160,86 @@ class Collectivite:
     def __str__(self) -> str:
         return "{}({})".format(self.code, self.value)
 
+class AllocationFamilialesAvril2008:
+    def __init__(self, age_minimum_alinea_1_l521_3: Duration) -> None:
+        self.age_minimum_alinea_1_l521_3 = age_minimum_alinea_1_l521_3
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AllocationFamilialesAvril2008):
+            return (self.age_minimum_alinea_1_l521_3 == other.age_minimum_alinea_1_l521_3)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "AllocationFamilialesAvril2008(age_minimum_alinea_1_l521_3={})".format(self.age_minimum_alinea_1_l521_3)
+
+class AllocationsFamiliales:
+    def __init__(self, montant_verse: Money) -> None:
+        self.montant_verse = montant_verse
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AllocationsFamiliales):
+            return (self.montant_verse == other.montant_verse)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "AllocationsFamiliales(montant_verse={})".format(self.montant_verse)
+
+class Smic:
+    def __init__(self, brut_horaire: Money) -> None:
+        self.brut_horaire = brut_horaire
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Smic):
+            return (self.brut_horaire == other.brut_horaire)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "Smic(brut_horaire={})".format(self.brut_horaire)
+
+class BaseMensuelleAllocationsFamiliales:
+    def __init__(self, montant: Money) -> None:
+        self.montant = montant
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, BaseMensuelleAllocationsFamiliales):
+            return (self.montant == other.montant)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "BaseMensuelleAllocationsFamiliales(montant={})".format(self.montant)
+
+class InterfaceAllocationsFamiliales:
+    def __init__(self, i_montant_verse: Money) -> None:
+        self.i_montant_verse = i_montant_verse
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, InterfaceAllocationsFamiliales):
+            return (self.i_montant_verse == other.i_montant_verse)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "InterfaceAllocationsFamiliales(i_montant_verse={})".format(self.i_montant_verse)
+
 class EnfantEntree:
     def __init__(self, d_identifiant: Integer, d_remuneration_mensuelle: Money, d_date_de_naissance: Date, d_prise_en_charge: PriseEnCharge, d_a_deja_ouvert_droit_aux_allocations_familiales: bool, d_beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
         self.d_identifiant = d_identifiant
@@ -222,19 +302,13 @@ class Enfant:
             self.a_deja_ouvert_droit_aux_allocations_familiales,
             self.beneficie_titre_personnel_aide_personnelle_logement)
 
-class PrestationsFamilialesOut:
-    def __init__(self, droit_ouvert_out: Callable[[Enfant], bool], conditions_hors_age_out: Callable[[Enfant], bool], age_l512_3_2_out: Duration, regime_outre_mer_l751_1_out: bool) -> None:
-        self.droit_ouvert_out = droit_ouvert_out
-        self.conditions_hors_age_out = conditions_hors_age_out
-        self.age_l512_3_2_out = age_l512_3_2_out
-        self.regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_out
+class EnfantLePlusAge:
+    def __init__(self, le_plus_age: Enfant) -> None:
+        self.le_plus_age = le_plus_age
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, PrestationsFamilialesOut):
-            return (self.droit_ouvert_out == other.droit_ouvert_out and
-                   self.conditions_hors_age_out == other.conditions_hors_age_out and
-                   self.age_l512_3_2_out == other.age_l512_3_2_out and
-                   self.regime_outre_mer_l751_1_out == other.regime_outre_mer_l751_1_out)
+        if isinstance(other, EnfantLePlusAge):
+            return (self.le_plus_age == other.le_plus_age)
         else:
             return False
 
@@ -242,9 +316,31 @@ class PrestationsFamilialesOut:
         return not (self == other)
 
     def __str__(self) -> str:
-        return "PrestationsFamilialesOut(droit_ouvert_out={},conditions_hors_age_out={},age_l512_3_2_out={},regime_outre_mer_l751_1_out={})".format(self.droit_ouvert_out,
-            self.conditions_hors_age_out, self.age_l512_3_2_out,
-            self.regime_outre_mer_l751_1_out)
+        return "EnfantLePlusAge(le_plus_age={})".format(self.le_plus_age)
+
+class PrestationsFamiliales:
+    def __init__(self, droit_ouvert: Callable[[Enfant], bool], conditions_hors_age: Callable[[Enfant], bool], age_l512_3_2: Duration, regime_outre_mer_l751_1: bool) -> None:
+        self.droit_ouvert = droit_ouvert
+        self.conditions_hors_age = conditions_hors_age
+        self.age_l512_3_2 = age_l512_3_2
+        self.regime_outre_mer_l751_1 = regime_outre_mer_l751_1
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PrestationsFamiliales):
+            return (self.droit_ouvert == other.droit_ouvert and
+                   self.conditions_hors_age == other.conditions_hors_age and
+                   self.age_l512_3_2 == other.age_l512_3_2 and
+                   self.regime_outre_mer_l751_1 == other.regime_outre_mer_l751_1)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "PrestationsFamiliales(droit_ouvert={},conditions_hors_age={},age_l512_3_2={},regime_outre_mer_l751_1={})".format(self.droit_ouvert,
+            self.conditions_hors_age, self.age_l512_3_2,
+            self.regime_outre_mer_l751_1)
 
 class PrestationsFamilialesIn:
     def __init__(self, date_courante_in: Date, prestation_courante_in: ElementPrestationsFamiliales, residence_in: Collectivite) -> None:
@@ -267,22 +363,6 @@ class PrestationsFamilialesIn:
         return "PrestationsFamilialesIn(date_courante_in={},prestation_courante_in={},residence_in={})".format(self.date_courante_in,
             self.prestation_courante_in, self.residence_in)
 
-class AllocationFamilialesAvril2008Out:
-    def __init__(self, age_minimum_alinea_1_l521_3_out: Duration) -> None:
-        self.age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, AllocationFamilialesAvril2008Out):
-            return (self.age_minimum_alinea_1_l521_3_out == other.age_minimum_alinea_1_l521_3_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "AllocationFamilialesAvril2008Out(age_minimum_alinea_1_l521_3_out={})".format(self.age_minimum_alinea_1_l521_3_out)
-
 class AllocationFamilialesAvril2008In:
     def __init__(self, ) -> None:
         pass
@@ -299,22 +379,6 @@ class AllocationFamilialesAvril2008In:
     def __str__(self) -> str:
         return "AllocationFamilialesAvril2008In()".format()
 
-class EnfantLePlusAgeOut:
-    def __init__(self, le_plus_age_out: Enfant) -> None:
-        self.le_plus_age_out = le_plus_age_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EnfantLePlusAgeOut):
-            return (self.le_plus_age_out == other.le_plus_age_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "EnfantLePlusAgeOut(le_plus_age_out={})".format(self.le_plus_age_out)
-
 class EnfantLePlusAgeIn:
     def __init__(self, enfants_in: List[Enfant]) -> None:
         self.enfants_in = enfants_in
@@ -330,22 +394,6 @@ class EnfantLePlusAgeIn:
 
     def __str__(self) -> str:
         return "EnfantLePlusAgeIn(enfants_in={})".format(self.enfants_in)
-
-class AllocationsFamilialesOut:
-    def __init__(self, montant_verse_out: Money) -> None:
-        self.montant_verse_out = montant_verse_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, AllocationsFamilialesOut):
-            return (self.montant_verse_out == other.montant_verse_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "AllocationsFamilialesOut(montant_verse_out={})".format(self.montant_verse_out)
 
 class AllocationsFamilialesIn:
     def __init__(self, personne_charge_effective_permanente_est_parent_in: bool, personne_charge_effective_permanente_remplit_titre_I_in: bool, ressources_menage_in: Money, residence_in: Collectivite, date_courante_in: Date, enfants_a_charge_in: List[Enfant], avait_enfant_a_charge_avant_1er_janvier_2012_in: bool) -> None:
@@ -379,22 +427,6 @@ class AllocationsFamilialesIn:
             self.date_courante_in, self.enfants_a_charge_in,
             self.avait_enfant_a_charge_avant_1er_janvier_2012_in)
 
-class SmicOut:
-    def __init__(self, brut_horaire_out: Money) -> None:
-        self.brut_horaire_out = brut_horaire_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SmicOut):
-            return (self.brut_horaire_out == other.brut_horaire_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "SmicOut(brut_horaire_out={})".format(self.brut_horaire_out)
-
 class SmicIn:
     def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
         self.date_courante_in = date_courante_in
@@ -414,22 +446,6 @@ class SmicIn:
         return "SmicIn(date_courante_in={},residence_in={})".format(self.date_courante_in,
             self.residence_in)
 
-class BaseMensuelleAllocationsFamilialesOut:
-    def __init__(self, montant_out: Money) -> None:
-        self.montant_out = montant_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, BaseMensuelleAllocationsFamilialesOut):
-            return (self.montant_out == other.montant_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "BaseMensuelleAllocationsFamilialesOut(montant_out={})".format(self.montant_out)
-
 class BaseMensuelleAllocationsFamilialesIn:
     def __init__(self, date_courante_in: Date) -> None:
         self.date_courante_in = date_courante_in
@@ -445,22 +461,6 @@ class BaseMensuelleAllocationsFamilialesIn:
 
     def __str__(self) -> str:
         return "BaseMensuelleAllocationsFamilialesIn(date_courante_in={})".format(self.date_courante_in)
-
-class InterfaceAllocationsFamilialesOut:
-    def __init__(self, i_montant_verse_out: Money) -> None:
-        self.i_montant_verse_out = i_montant_verse_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, InterfaceAllocationsFamilialesOut):
-            return (self.i_montant_verse_out == other.i_montant_verse_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "InterfaceAllocationsFamilialesOut(i_montant_verse_out={})".format(self.i_montant_verse_out)
 
 class InterfaceAllocationsFamilialesIn:
     def __init__(self, i_date_courante_in: Date, i_enfants_in: List[EnfantEntree], i_ressources_menage_in: Money, i_residence_in: Collectivite, i_personne_charge_effective_permanente_est_parent_in: bool, i_personne_charge_effective_permanente_remplit_titre_I_in: bool, i_avait_enfant_a_charge_avant_1er_janvier_2012_in: bool) -> None:
@@ -509,7 +509,7 @@ def allocation_familiales_avril2008(allocation_familiales_avril2008_in:Allocatio
                                              "Champs d'applications",
                                              "Prologue"]))
     age_minimum_alinea_1_l521_3 = temp_age_minimum_alinea_1_l521_3
-    return AllocationFamilialesAvril2008Out(age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3)
+    return AllocationFamilialesAvril2008(age_minimum_alinea_1_l521_3 = age_minimum_alinea_1_l521_3)
 
 def enfant_le_plus_age(enfant_le_plus_age_in:EnfantLePlusAgeIn):
     enfants = enfant_le_plus_age_in.enfants_in
@@ -539,7 +539,7 @@ def enfant_le_plus_age(enfant_le_plus_age_in:EnfantLePlusAgeIn):
                                              "Champs d'applications",
                                              "Prologue"]))
     le_plus_age = temp_le_plus_age_1
-    return EnfantLePlusAgeOut(le_plus_age_out = le_plus_age)
+    return EnfantLePlusAge(le_plus_age = le_plus_age)
 
 def smic(smic_in:SmicIn):
     date_courante = smic_in.date_courante_in
@@ -708,7 +708,7 @@ def smic(smic_in:SmicIn):
                                              law_headings=["Prologue",
                                              "Montant du salaire minimum de croissance"]))
     brut_horaire = temp_brut_horaire_12
-    return SmicOut(brut_horaire_out = brut_horaire)
+    return Smic(brut_horaire = brut_horaire)
 
 def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_in:BaseMensuelleAllocationsFamilialesIn):
     date_courante_1 = base_mensuelle_allocations_familiales_in.date_courante_in
@@ -759,7 +759,7 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
                                              end_line=6, end_column=17,
                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     montant = temp_montant_6
-    return BaseMensuelleAllocationsFamilialesOut(montant_out = montant)
+    return BaseMensuelleAllocationsFamiliales(montant = montant)
 
 def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
     date_courante_2 = prestations_familiales_in.date_courante_in
@@ -800,7 +800,7 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
     smic_dot_residence = temp_smic_dot_residence
     result = smic(SmicIn(date_courante_in = smic_dot_date_courante,
                   residence_in = smic_dot_residence))
-    smic_dot_brut_horaire = result.brut_horaire_out
+    smic_dot_brut_horaire = result.brut_horaire
     try:
         try:
             if ((residence_1 == Collectivite(Collectivite_Code.Guadeloupe,
@@ -985,10 +985,10 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                                              "Champs d'applications",
                                              "Prologue"]))
     droit_ouvert = temp_droit_ouvert
-    return PrestationsFamilialesOut(droit_ouvert_out = droit_ouvert,
-        conditions_hors_age_out = conditions_hors_age,
-        age_l512_3_2_out = age_l512_3_2,
-        regime_outre_mer_l751_1_out = regime_outre_mer_l751_1)
+    return PrestationsFamiliales(droit_ouvert = droit_ouvert,
+        conditions_hors_age = conditions_hors_age,
+        age_l512_3_2 = age_l512_3_2,
+        regime_outre_mer_l751_1 = regime_outre_mer_l751_1)
 
 def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     personne_charge_effective_permanente_est_parent = allocations_familiales_in.personne_charge_effective_permanente_est_parent_in
@@ -1313,7 +1313,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     nombre_enfants_alinea_2_l521_3 = temp_nombre_enfants_alinea_2_l521_3
     result_1 = allocation_familiales_avril2008(AllocationFamilialesAvril2008In())
-    version_avril_2008_dot_age_minimum_alinea_1_l521_3 = result_1.age_minimum_alinea_1_l521_3_out
+    version_avril_2008_dot_age_minimum_alinea_1_l521_3 = result_1.age_minimum_alinea_1_l521_3
     try:
         temp_bmaf_dot_date_courante = date_courante_3
     except EmptyError:
@@ -1326,7 +1326,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     bmaf_dot_date_courante = temp_bmaf_dot_date_courante
     result_2 = base_mensuelle_allocations_familiales(BaseMensuelleAllocationsFamilialesIn(date_courante_in = bmaf_dot_date_courante))
-    bmaf_dot_montant = result_2.montant_out
+    bmaf_dot_montant = result_2.montant
     try:
         temp_prestations_familiales_dot_date_courante = date_courante_3
     except EmptyError:
@@ -1364,10 +1364,10 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     result_3 = prestations_familiales(PrestationsFamilialesIn(date_courante_in = prestations_familiales_dot_date_courante,
                                       prestation_courante_in = prestations_familiales_dot_prestation_courante,
                                       residence_in = prestations_familiales_dot_residence))
-    prestations_familiales_dot_droit_ouvert = result_3.droit_ouvert_out
-    prestations_familiales_dot_conditions_hors_age = result_3.conditions_hors_age_out
-    prestations_familiales_dot_age_l512_3_2 = result_3.age_l512_3_2_out
-    prestations_familiales_dot_regime_outre_mer_l751_1 = result_3.regime_outre_mer_l751_1_out
+    prestations_familiales_dot_droit_ouvert = result_3.droit_ouvert
+    prestations_familiales_dot_conditions_hors_age = result_3.conditions_hors_age
+    prestations_familiales_dot_age_l512_3_2 = result_3.age_l512_3_2
+    prestations_familiales_dot_regime_outre_mer_l751_1 = result_3.regime_outre_mer_l751_1
     try:
         temp_enfant_le_plus_age_dot_enfants = enfants_a_charge
     except EmptyError:
@@ -1379,7 +1379,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Épilogue"]))
     enfant_le_plus_age_dot_enfants = temp_enfant_le_plus_age_dot_enfants
     result_4 = enfant_le_plus_age(EnfantLePlusAgeIn(enfants_in = enfant_le_plus_age_dot_enfants))
-    enfant_le_plus_age_dot_le_plus_age = result_4.le_plus_age_out
+    enfant_le_plus_age_dot_le_plus_age = result_4.le_plus_age
     try:
         def temp_age_minimum_alinea_1_l521_3_1(param_4:Enfant):
             try:
@@ -2958,7 +2958,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                            "Partie législative",
                                                            "Code de la sécurité sociale"]))
-    return AllocationsFamilialesOut(montant_verse_out = montant_verse)
+    return AllocationsFamiliales(montant_verse = montant_verse)
 
 def interface_allocations_familiales(interface_allocations_familiales_in:InterfaceAllocationsFamilialesIn):
     i_date_courante = interface_allocations_familiales_in.i_date_courante_in
@@ -3101,7 +3101,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
                                       date_courante_in = allocations_familiales_dot_date_courante,
                                       enfants_a_charge_in = allocations_familiales_dot_enfants_a_charge,
                                       avait_enfant_a_charge_avant_1er_janvier_2012_in = allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012))
-    allocations_familiales_dot_montant_verse = result_5.montant_verse_out
+    allocations_familiales_dot_montant_verse = result_5.montant_verse
     try:
         temp_i_montant_verse = allocations_familiales_dot_montant_verse
     except EmptyError:
@@ -3112,4 +3112,4 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     i_montant_verse = temp_i_montant_verse
-    return InterfaceAllocationsFamilialesOut(i_montant_verse_out = i_montant_verse)
+    return InterfaceAllocationsFamiliales(i_montant_verse = i_montant_verse)

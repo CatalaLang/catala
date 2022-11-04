@@ -434,19 +434,19 @@ class ModeOccupationImpaye:
     def __str__(self) -> str:
         return "{}({})".format(self.code, self.value)
 
-class EligibiliteAllocationLogement_Code(Enum):
+class TypeEligibiliteAllocationLogement_Code(Enum):
     PasEligible = 0
     AllocationLogementFamiliale = 1
     AllocationLogementSociale = 2
 
-class EligibiliteAllocationLogement:
-    def __init__(self, code: EligibiliteAllocationLogement_Code, value: Any) -> None:
+class TypeEligibiliteAllocationLogement:
+    def __init__(self, code: TypeEligibiliteAllocationLogement_Code, value: Any) -> None:
         self.code = code
         self.value = value
 
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, EligibiliteAllocationLogement):
+        if isinstance(other, TypeEligibiliteAllocationLogement):
             return self.code == other.code and self.value == other.value
         else:
             return False
@@ -823,6 +823,242 @@ class PersonneVivantHabituellementAuFoyer:
         return "PersonneVivantHabituellementAuFoyer(duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois={},ressources={})".format(self.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois,
             self.ressources)
 
+class EligibiliteAidePersonnaliseeLogement:
+    def __init__(self, date_courante: Date, eligibilite: bool, nombre_personnes_a_charge_prises_en_compte: Integer, coefficents_enfants_garde_alternee_pris_en_compte: List[Decimal]) -> None:
+        self.date_courante = date_courante
+        self.eligibilite = eligibilite
+        self.nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte
+        self.coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAidePersonnaliseeLogement):
+            return (self.date_courante == other.date_courante and
+                   self.eligibilite == other.eligibilite and
+                   self.nombre_personnes_a_charge_prises_en_compte == other.nombre_personnes_a_charge_prises_en_compte and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte == other.coefficents_enfants_garde_alternee_pris_en_compte)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "EligibiliteAidePersonnaliseeLogement(date_courante={},eligibilite={},nombre_personnes_a_charge_prises_en_compte={},coefficents_enfants_garde_alternee_pris_en_compte={})".format(self.date_courante,
+            self.eligibilite,
+            self.nombre_personnes_a_charge_prises_en_compte,
+            self.coefficents_enfants_garde_alternee_pris_en_compte)
+
+class EligibilitePrimeDeDemenagement:
+    def __init__(self, montant_prime_demenagement: Money) -> None:
+        self.montant_prime_demenagement = montant_prime_demenagement
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibilitePrimeDeDemenagement):
+            return (self.montant_prime_demenagement == other.montant_prime_demenagement)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "EligibilitePrimeDeDemenagement(montant_prime_demenagement={})".format(self.montant_prime_demenagement)
+
+class RessourcesAidesPersonnelleLogement:
+    def __init__(self, ressources_prises_en_compte: Money) -> None:
+        self.ressources_prises_en_compte = ressources_prises_en_compte
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, RessourcesAidesPersonnelleLogement):
+            return (self.ressources_prises_en_compte == other.ressources_prises_en_compte)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "RessourcesAidesPersonnelleLogement(ressources_prises_en_compte={})".format(self.ressources_prises_en_compte)
+
+class ContributionsSocialesAidesPersonnelleLogement:
+    def __init__(self, montant: Callable[[Money], Money]) -> None:
+        self.montant = montant
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ContributionsSocialesAidesPersonnelleLogement):
+            return (self.montant == other.montant)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "ContributionsSocialesAidesPersonnelleLogement(montant={})".format(self.montant)
+
+class CalculAidePersonnaliseeLogementLocatif:
+    def __init__(self, montant_forfaitaire_charges_d823_16: Money, plafond_loyer_d823_16_2: Money, participation_minimale: Money, taux_composition_familiale: Decimal, participation_personnelle: Money, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.montant_forfaitaire_charges_d823_16 = montant_forfaitaire_charges_d823_16
+        self.plafond_loyer_d823_16_2 = plafond_loyer_d823_16_2
+        self.participation_minimale = participation_minimale
+        self.taux_composition_familiale = taux_composition_familiale
+        self.participation_personnelle = participation_personnelle
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementLocatif):
+            return (self.montant_forfaitaire_charges_d823_16 == other.montant_forfaitaire_charges_d823_16 and
+                   self.plafond_loyer_d823_16_2 == other.plafond_loyer_d823_16_2 and
+                   self.participation_minimale == other.participation_minimale and
+                   self.taux_composition_familiale == other.taux_composition_familiale and
+                   self.participation_personnelle == other.participation_personnelle and
+                   self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementLocatif(montant_forfaitaire_charges_d823_16={},plafond_loyer_d823_16_2={},participation_minimale={},taux_composition_familiale={},participation_personnelle={},aide_finale_formule={},traitement_aide_finale={})".format(self.montant_forfaitaire_charges_d823_16,
+            self.plafond_loyer_d823_16_2, self.participation_minimale,
+            self.taux_composition_familiale, self.participation_personnelle,
+            self.aide_finale_formule, self.traitement_aide_finale)
+
+class CalculEquivalenceLoyerMinimale:
+    def __init__(self, montant: Money) -> None:
+        self.montant = montant
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculEquivalenceLoyerMinimale):
+            return (self.montant == other.montant)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculEquivalenceLoyerMinimale(montant={})".format(self.montant)
+
+class CalculNombrePartLogementFoyer:
+    def __init__(self, n_nombre_parts_d832_25: Decimal) -> None:
+        self.n_nombre_parts_d832_25 = n_nombre_parts_d832_25
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculNombrePartLogementFoyer):
+            return (self.n_nombre_parts_d832_25 == other.n_nombre_parts_d832_25)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculNombrePartLogementFoyer(n_nombre_parts_d832_25={})".format(self.n_nombre_parts_d832_25)
+
+class CalculAidePersonnaliseeLogementFoyer:
+    def __init__(self, coefficient_multiplicateur_d832_25: Money, coefficient_r_d832_25: Money, n_nombre_parts_d832_25: Decimal, equivalence_loyer_eligible: Money, plafond_equivalence_loyer_eligible: Money, equivalence_loyer_minimale: Money, coefficient_prise_en_charge_d832_25: Decimal, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.coefficient_multiplicateur_d832_25 = coefficient_multiplicateur_d832_25
+        self.coefficient_r_d832_25 = coefficient_r_d832_25
+        self.n_nombre_parts_d832_25 = n_nombre_parts_d832_25
+        self.equivalence_loyer_eligible = equivalence_loyer_eligible
+        self.plafond_equivalence_loyer_eligible = plafond_equivalence_loyer_eligible
+        self.equivalence_loyer_minimale = equivalence_loyer_minimale
+        self.coefficient_prise_en_charge_d832_25 = coefficient_prise_en_charge_d832_25
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementFoyer):
+            return (self.coefficient_multiplicateur_d832_25 == other.coefficient_multiplicateur_d832_25 and
+                   self.coefficient_r_d832_25 == other.coefficient_r_d832_25 and
+                   self.n_nombre_parts_d832_25 == other.n_nombre_parts_d832_25 and
+                   self.equivalence_loyer_eligible == other.equivalence_loyer_eligible and
+                   self.plafond_equivalence_loyer_eligible == other.plafond_equivalence_loyer_eligible and
+                   self.equivalence_loyer_minimale == other.equivalence_loyer_minimale and
+                   self.coefficient_prise_en_charge_d832_25 == other.coefficient_prise_en_charge_d832_25 and
+                   self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementFoyer(coefficient_multiplicateur_d832_25={},coefficient_r_d832_25={},n_nombre_parts_d832_25={},equivalence_loyer_eligible={},plafond_equivalence_loyer_eligible={},equivalence_loyer_minimale={},coefficient_prise_en_charge_d832_25={},aide_finale_formule={},traitement_aide_finale={})".format(self.coefficient_multiplicateur_d832_25,
+            self.coefficient_r_d832_25, self.n_nombre_parts_d832_25,
+            self.equivalence_loyer_eligible,
+            self.plafond_equivalence_loyer_eligible,
+            self.equivalence_loyer_minimale,
+            self.coefficient_prise_en_charge_d832_25,
+            self.aide_finale_formule, self.traitement_aide_finale)
+
+class CalculNombrePartsAccessionPropriete:
+    def __init__(self, n_nombre_parts_d832_11: Decimal) -> None:
+        self.n_nombre_parts_d832_11 = n_nombre_parts_d832_11
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculNombrePartsAccessionPropriete):
+            return (self.n_nombre_parts_d832_11 == other.n_nombre_parts_d832_11)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculNombrePartsAccessionPropriete(n_nombre_parts_d832_11={})".format(self.n_nombre_parts_d832_11)
+
+class CalculAidePersonnaliseeLogementAccessionPropriete:
+    def __init__(self, mensualite_eligible: Money, mensualite_minimale: Money, coefficient_prise_en_charge_d832_10: Decimal, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.mensualite_eligible = mensualite_eligible
+        self.mensualite_minimale = mensualite_minimale
+        self.coefficient_prise_en_charge_d832_10 = coefficient_prise_en_charge_d832_10
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogementAccessionPropriete):
+            return (self.mensualite_eligible == other.mensualite_eligible and
+                   self.mensualite_minimale == other.mensualite_minimale and
+                   self.coefficient_prise_en_charge_d832_10 == other.coefficient_prise_en_charge_d832_10 and
+                   self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogementAccessionPropriete(mensualite_eligible={},mensualite_minimale={},coefficient_prise_en_charge_d832_10={},aide_finale_formule={},traitement_aide_finale={})".format(self.mensualite_eligible,
+            self.mensualite_minimale,
+            self.coefficient_prise_en_charge_d832_10,
+            self.aide_finale_formule, self.traitement_aide_finale)
+
+class CalculAidePersonnaliseeLogement:
+    def __init__(self, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAidePersonnaliseeLogement):
+            return (self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAidePersonnaliseeLogement(aide_finale_formule={},traitement_aide_finale={})".format(self.aide_finale_formule,
+            self.traitement_aide_finale)
+
 class InfosChangementLogementD8424:
     def __init__(self, ancien_loyer_principal: Money, ancienne_allocation_logement: Money) -> None:
         self.ancien_loyer_principal = ancien_loyer_principal
@@ -841,6 +1077,199 @@ class InfosChangementLogementD8424:
     def __str__(self) -> str:
         return "InfosChangementLogementD8424(ancien_loyer_principal={},ancienne_allocation_logement={})".format(self.ancien_loyer_principal,
             self.ancienne_allocation_logement)
+
+class CalculAllocationLogementLocatif:
+    def __init__(self, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementLocatif):
+            return (self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAllocationLogementLocatif(aide_finale_formule={},traitement_aide_finale={})".format(self.aide_finale_formule,
+            self.traitement_aide_finale)
+
+class CalculAllocationLogementAccessionPropriete:
+    def __init__(self, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementAccessionPropriete):
+            return (self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAllocationLogementAccessionPropriete(aide_finale_formule={},traitement_aide_finale={})".format(self.aide_finale_formule,
+            self.traitement_aide_finale)
+
+class CalculAllocationLogementFoyer:
+    def __init__(self, coefficient_prise_en_charge: Decimal, equivalence_loyer: Money, montant_forfaitaire_charges: Money, loyer_minimal: Money, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.coefficient_prise_en_charge = coefficient_prise_en_charge
+        self.equivalence_loyer = equivalence_loyer
+        self.montant_forfaitaire_charges = montant_forfaitaire_charges
+        self.loyer_minimal = loyer_minimal
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogementFoyer):
+            return (self.coefficient_prise_en_charge == other.coefficient_prise_en_charge and
+                   self.equivalence_loyer == other.equivalence_loyer and
+                   self.montant_forfaitaire_charges == other.montant_forfaitaire_charges and
+                   self.loyer_minimal == other.loyer_minimal and
+                   self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAllocationLogementFoyer(coefficient_prise_en_charge={},equivalence_loyer={},montant_forfaitaire_charges={},loyer_minimal={},aide_finale_formule={},traitement_aide_finale={})".format(self.coefficient_prise_en_charge,
+            self.equivalence_loyer, self.montant_forfaitaire_charges,
+            self.loyer_minimal, self.aide_finale_formule,
+            self.traitement_aide_finale)
+
+class CalculAllocationLogement:
+    def __init__(self, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money]) -> None:
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculAllocationLogement):
+            return (self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculAllocationLogement(aide_finale_formule={},traitement_aide_finale={})".format(self.aide_finale_formule,
+            self.traitement_aide_finale)
+
+class OuvertureDroitsRetraite:
+    def __init__(self, age_ouverture_droit: Duration) -> None:
+        self.age_ouverture_droit = age_ouverture_droit
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, OuvertureDroitsRetraite):
+            return (self.age_ouverture_droit == other.age_ouverture_droit)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "OuvertureDroitsRetraite(age_ouverture_droit={})".format(self.age_ouverture_droit)
+
+class ImpayeDepenseLogement:
+    def __init__(self, montant_impaye: Money) -> None:
+        self.montant_impaye = montant_impaye
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ImpayeDepenseLogement):
+            return (self.montant_impaye == other.montant_impaye)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "ImpayeDepenseLogement(montant_impaye={})".format(self.montant_impaye)
+
+class CalculetteAidesAuLogement:
+    def __init__(self, eligibilite: bool, aide_finale_formule: Money, traitement_aide_finale: Callable[[Money], Money], coefficents_enfants_garde_alternee_pris_en_compte: List[Decimal]) -> None:
+        self.eligibilite = eligibilite
+        self.aide_finale_formule = aide_finale_formule
+        self.traitement_aide_finale = traitement_aide_finale
+        self.coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculetteAidesAuLogement):
+            return (self.eligibilite == other.eligibilite and
+                   self.aide_finale_formule == other.aide_finale_formule and
+                   self.traitement_aide_finale == other.traitement_aide_finale and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte == other.coefficents_enfants_garde_alternee_pris_en_compte)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculetteAidesAuLogement(eligibilite={},aide_finale_formule={},traitement_aide_finale={},coefficents_enfants_garde_alternee_pris_en_compte={})".format(self.eligibilite,
+            self.aide_finale_formule, self.traitement_aide_finale,
+            self.coefficents_enfants_garde_alternee_pris_en_compte)
+
+class CalculetteAidesAuLogementGardeAlternee:
+    def __init__(self, eligibilite: bool, aide_finale: Money) -> None:
+        self.eligibilite = eligibilite
+        self.aide_finale = aide_finale
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CalculetteAidesAuLogementGardeAlternee):
+            return (self.eligibilite == other.eligibilite and
+                   self.aide_finale == other.aide_finale)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "CalculetteAidesAuLogementGardeAlternee(eligibilite={},aide_finale={})".format(self.eligibilite,
+            self.aide_finale)
+
+class BaseMensuelleAllocationsFamiliales:
+    def __init__(self, montant: Money) -> None:
+        self.montant = montant
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, BaseMensuelleAllocationsFamiliales):
+            return (self.montant == other.montant)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "BaseMensuelleAllocationsFamiliales(montant={})".format(self.montant)
+
+class Smic:
+    def __init__(self, brut_horaire: Money) -> None:
+        self.brut_horaire = brut_horaire
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Smic):
+            return (self.brut_horaire == other.brut_horaire)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "Smic(brut_horaire={})".format(self.brut_horaire)
 
 class Pret:
     def __init__(self, type_pret: TypePret, date_signature: Date, titulaire_pret: TitulairePret) -> None:
@@ -981,6 +1410,28 @@ class DateNaissanceTroisiemeOuDernierPlusEnfant:
 
     def __str__(self) -> str:
         return "{}({})".format(self.code, self.value)
+
+class EligibiliteAllocationLogement:
+    def __init__(self, eligibilite: TypeEligibiliteAllocationLogement, nombre_personnes_a_charge_prises_en_compte: Integer, coefficents_enfants_garde_alternee_pris_en_compte: List[Decimal]) -> None:
+        self.eligibilite = eligibilite
+        self.nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte
+        self.coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAllocationLogement):
+            return (self.eligibilite == other.eligibilite and
+                   self.nombre_personnes_a_charge_prises_en_compte == other.nombre_personnes_a_charge_prises_en_compte and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte == other.coefficents_enfants_garde_alternee_pris_en_compte)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "EligibiliteAllocationLogement(eligibilite={},nombre_personnes_a_charge_prises_en_compte={},coefficents_enfants_garde_alternee_pris_en_compte={})".format(self.eligibilite,
+            self.nombre_personnes_a_charge_prises_en_compte,
+            self.coefficents_enfants_garde_alternee_pris_en_compte)
 
 class LogementFoyer:
     def __init__(self, type: TypeLogementFoyer, remplit_conditions_r832_21: bool, conventionne_livre_III_titre_V_chap_III: bool, date_conventionnement: Date, construit_application_loi_1957_12_III: bool, redevance: Money, categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer) -> None:
@@ -1233,6 +1684,30 @@ class InformationsPrimeDeDemenagement:
         return "InformationsPrimeDeDemenagement(nombre_enfants_a_naitre_apres_troisieme_mois_grossesse={},date_naissance_troisieme_enfant_ou_dernier_si_plus={})".format(self.nombre_enfants_a_naitre_apres_troisieme_mois_grossesse,
             self.date_naissance_troisieme_enfant_ou_dernier_si_plus)
 
+class EligibilitePrestationsFamiliales:
+    def __init__(self, droit_ouvert: Callable[[EnfantPrestationsFamiliales], bool], conditions_hors_age: Callable[[EnfantPrestationsFamiliales], bool], age_l512_3_2: Duration, regime_outre_mer_l751_1: bool) -> None:
+        self.droit_ouvert = droit_ouvert
+        self.conditions_hors_age = conditions_hors_age
+        self.age_l512_3_2 = age_l512_3_2
+        self.regime_outre_mer_l751_1 = regime_outre_mer_l751_1
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibilitePrestationsFamiliales):
+            return (self.droit_ouvert == other.droit_ouvert and
+                   self.conditions_hors_age == other.conditions_hors_age and
+                   self.age_l512_3_2 == other.age_l512_3_2 and
+                   self.regime_outre_mer_l751_1 == other.regime_outre_mer_l751_1)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "EligibilitePrestationsFamiliales(droit_ouvert={},conditions_hors_age={},age_l512_3_2={},regime_outre_mer_l751_1={})".format(self.droit_ouvert,
+            self.conditions_hors_age, self.age_l512_3_2,
+            self.regime_outre_mer_l751_1)
+
 class PersonneACharge_Code(Enum):
     EnfantACharge = 0
     AutrePersonneACharge = 1
@@ -1314,6 +1789,34 @@ class Location:
             self.logement_est_chambre, self.colocation,
             self.agees_ou_handicap_adultes_hebergees_onereux_particuliers,
             self.logement_meuble_d842_2, self.changement_logement_d842_4)
+
+class EligibiliteAidesPersonnelleLogement:
+    def __init__(self, date_courante: Date, eligibilite: bool, nombre_personnes_a_charge_prises_en_compte: Integer, coefficents_enfants_garde_alternee_pris_en_compte: List[Decimal], condition_2_r823_4: Callable[[PersonneACharge], bool]) -> None:
+        self.date_courante = date_courante
+        self.eligibilite = eligibilite
+        self.nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte
+        self.coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte
+        self.condition_2_r823_4 = condition_2_r823_4
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EligibiliteAidesPersonnelleLogement):
+            return (self.date_courante == other.date_courante and
+                   self.eligibilite == other.eligibilite and
+                   self.nombre_personnes_a_charge_prises_en_compte == other.nombre_personnes_a_charge_prises_en_compte and
+                   self.coefficents_enfants_garde_alternee_pris_en_compte == other.coefficents_enfants_garde_alternee_pris_en_compte and
+                   self.condition_2_r823_4 == other.condition_2_r823_4)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "EligibiliteAidesPersonnelleLogement(date_courante={},eligibilite={},nombre_personnes_a_charge_prises_en_compte={},coefficents_enfants_garde_alternee_pris_en_compte={},condition_2_r823_4={})".format(self.date_courante,
+            self.eligibilite,
+            self.nombre_personnes_a_charge_prises_en_compte,
+            self.coefficents_enfants_garde_alternee_pris_en_compte,
+            self.condition_2_r823_4)
 
 class ModeOccupation_Code(Enum):
     Locataire = 0
@@ -1409,34 +1912,6 @@ class Menage:
             self.condition_rattache_foyer_fiscal_parent_ifi,
             self.enfant_a_naitre_apres_quatrieme_mois_grossesse)
 
-class EligibiliteAidesPersonnelleLogementOut:
-    def __init__(self, date_courante_out: Date, eligibilite_out: bool, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal], condition_2_r823_4_out: Callable[[PersonneACharge], bool]) -> None:
-        self.date_courante_out = date_courante_out
-        self.eligibilite_out = eligibilite_out
-        self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
-        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
-        self.condition_2_r823_4_out = condition_2_r823_4_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EligibiliteAidesPersonnelleLogementOut):
-            return (self.date_courante_out == other.date_courante_out and
-                   self.eligibilite_out == other.eligibilite_out and
-                   self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
-                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out and
-                   self.condition_2_r823_4_out == other.condition_2_r823_4_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "EligibiliteAidesPersonnelleLogementOut(date_courante_out={},eligibilite_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={},condition_2_r823_4_out={})".format(self.date_courante_out,
-            self.eligibilite_out,
-            self.nombre_personnes_a_charge_prises_en_compte_out,
-            self.coefficents_enfants_garde_alternee_pris_en_compte_out,
-            self.condition_2_r823_4_out)
-
 class EligibiliteAidesPersonnelleLogementIn:
     def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, condition_logement_residence_principale_in: Callable[[Unit], bool], condition_logement_surface_in: Callable[[Unit], bool]) -> None:
         self.menage_in = menage_in
@@ -1464,31 +1939,6 @@ class EligibiliteAidesPersonnelleLogementIn:
             self.condition_logement_residence_principale_in,
             self.condition_logement_surface_in)
 
-class EligibiliteAidePersonnaliseeLogementOut:
-    def __init__(self, date_courante_out: Date, eligibilite_out: bool, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
-        self.date_courante_out = date_courante_out
-        self.eligibilite_out = eligibilite_out
-        self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
-        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EligibiliteAidePersonnaliseeLogementOut):
-            return (self.date_courante_out == other.date_courante_out and
-                   self.eligibilite_out == other.eligibilite_out and
-                   self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
-                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "EligibiliteAidePersonnaliseeLogementOut(date_courante_out={},eligibilite_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.date_courante_out,
-            self.eligibilite_out,
-            self.nombre_personnes_a_charge_prises_en_compte_out,
-            self.coefficents_enfants_garde_alternee_pris_en_compte_out)
-
 class EligibiliteAidePersonnaliseeLogementIn:
     def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date) -> None:
         self.menage_in = menage_in
@@ -1509,28 +1959,6 @@ class EligibiliteAidePersonnaliseeLogementIn:
     def __str__(self) -> str:
         return "EligibiliteAidePersonnaliseeLogementIn(menage_in={},demandeur_in={},date_courante_in={})".format(self.menage_in,
             self.demandeur_in, self.date_courante_in)
-
-class EligibiliteAllocationLogementOut:
-    def __init__(self, eligibilite_l841_2_out: EligibiliteAllocationLogement, nombre_personnes_a_charge_prises_en_compte_out: Integer, coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
-        self.eligibilite_l841_2_out = eligibilite_l841_2_out
-        self.nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_out
-        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EligibiliteAllocationLogementOut):
-            return (self.eligibilite_l841_2_out == other.eligibilite_l841_2_out and
-                   self.nombre_personnes_a_charge_prises_en_compte_out == other.nombre_personnes_a_charge_prises_en_compte_out and
-                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "EligibiliteAllocationLogementOut(eligibilite_l841_2_out={},nombre_personnes_a_charge_prises_en_compte_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.eligibilite_l841_2_out,
-            self.nombre_personnes_a_charge_prises_en_compte_out,
-            self.coefficents_enfants_garde_alternee_pris_en_compte_out)
 
 class EligibiliteAllocationLogementIn:
     def __init__(self, date_courante_in: Date, menage_in: Menage, demandeur_in: Demandeur, beneficie_aide_personnalisee_logement_in: bool) -> None:
@@ -1555,22 +1983,6 @@ class EligibiliteAllocationLogementIn:
         return "EligibiliteAllocationLogementIn(date_courante_in={},menage_in={},demandeur_in={},beneficie_aide_personnalisee_logement_in={})".format(self.date_courante_in,
             self.menage_in, self.demandeur_in,
             self.beneficie_aide_personnalisee_logement_in)
-
-class EligibilitePrimeDeDemenagementOut:
-    def __init__(self, montant_prime_demenagement_out: Money) -> None:
-        self.montant_prime_demenagement_out = montant_prime_demenagement_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EligibilitePrimeDeDemenagementOut):
-            return (self.montant_prime_demenagement_out == other.montant_prime_demenagement_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "EligibilitePrimeDeDemenagementOut(montant_prime_demenagement_out={})".format(self.montant_prime_demenagement_out)
 
 class EligibilitePrimeDeDemenagementIn:
     def __init__(self, informations_in: InformationsPrimeDeDemenagement, date_emmenagement_in: Date, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, depenses_justifiees_reellement_engagees_in: Money) -> None:
@@ -1600,22 +2012,6 @@ class EligibilitePrimeDeDemenagementIn:
             self.date_emmenagement_in, self.menage_in, self.demandeur_in,
             self.date_courante_in,
             self.depenses_justifiees_reellement_engagees_in)
-
-class RessourcesAidesPersonnelleLogementOut:
-    def __init__(self, ressources_prises_en_compte_out: Money) -> None:
-        self.ressources_prises_en_compte_out = ressources_prises_en_compte_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, RessourcesAidesPersonnelleLogementOut):
-            return (self.ressources_prises_en_compte_out == other.ressources_prises_en_compte_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "RessourcesAidesPersonnelleLogementOut(ressources_prises_en_compte_out={})".format(self.ressources_prises_en_compte_out)
 
 class RessourcesAidesPersonnelleLogementIn:
     def __init__(self, ressources_demandeur_in: Money, ressources_conjoint_in: Money, personnes_vivant_habituellement_foyer_in: List[PersonneVivantHabituellementAuFoyer], demandeur_exerce_activite_remuneree_in: bool, conjoint_exerce_activite_remuneree_in: bool, personnes_a_charge_in: List[PersonneACharge], situation_familiale_in: SituationFamiliale, mode_occupation_in: ModeOccupation, condition_age_bourse_enseignement_superieur_in: bool, demandeur_poursuit_des_etudes_in: bool, date_demande_ou_reexamen_droit_in: Date, paiement_logement_distinct_professionnel_in: PaiementLogementDistinctProfessionnel, ressources_menage_arrondies_base_in: Money) -> None:
@@ -1668,22 +2064,6 @@ class RessourcesAidesPersonnelleLogementIn:
             self.paiement_logement_distinct_professionnel_in,
             self.ressources_menage_arrondies_base_in)
 
-class ContributionsSocialesAidesPersonnelleLogementOut:
-    def __init__(self, montant_out: Callable[[Money], Money]) -> None:
-        self.montant_out = montant_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, ContributionsSocialesAidesPersonnelleLogementOut):
-            return (self.montant_out == other.montant_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "ContributionsSocialesAidesPersonnelleLogementOut(montant_out={})".format(self.montant_out)
-
 class ContributionsSocialesAidesPersonnelleLogementIn:
     def __init__(self, date_courante_in: Date) -> None:
         self.date_courante_in = date_courante_in
@@ -1699,39 +2079,6 @@ class ContributionsSocialesAidesPersonnelleLogementIn:
 
     def __str__(self) -> str:
         return "ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in={})".format(self.date_courante_in)
-
-class CalculAidePersonnaliseeLogementLocatifOut:
-    def __init__(self, montant_forfaitaire_charges_d823_16_out: Money, plafond_loyer_d823_16_2_out: Money, participation_minimale_out: Money, taux_composition_familiale_out: Decimal, participation_personnelle_out: Money, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-        self.montant_forfaitaire_charges_d823_16_out = montant_forfaitaire_charges_d823_16_out
-        self.plafond_loyer_d823_16_2_out = plafond_loyer_d823_16_2_out
-        self.participation_minimale_out = participation_minimale_out
-        self.taux_composition_familiale_out = taux_composition_familiale_out
-        self.participation_personnelle_out = participation_personnelle_out
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAidePersonnaliseeLogementLocatifOut):
-            return (self.montant_forfaitaire_charges_d823_16_out == other.montant_forfaitaire_charges_d823_16_out and
-                   self.plafond_loyer_d823_16_2_out == other.plafond_loyer_d823_16_2_out and
-                   self.participation_minimale_out == other.participation_minimale_out and
-                   self.taux_composition_familiale_out == other.taux_composition_familiale_out and
-                   self.participation_personnelle_out == other.participation_personnelle_out and
-                   self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAidePersonnaliseeLogementLocatifOut(montant_forfaitaire_charges_d823_16_out={},plafond_loyer_d823_16_2_out={},participation_minimale_out={},taux_composition_familiale_out={},participation_personnelle_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.montant_forfaitaire_charges_d823_16_out,
-            self.plafond_loyer_d823_16_2_out,
-            self.participation_minimale_out,
-            self.taux_composition_familiale_out,
-            self.participation_personnelle_out, self.aide_finale_formule_out,
-            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAidePersonnaliseeLogementLocatifIn:
     def __init__(self, loyer_principal_base_in: Money, ressources_menage_arrondies_in: Money, beneficiaire_aide_adulte_ou_enfant_handicapes_in: bool, date_courante_in: Date, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, logement_est_chambre_in: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers_in: bool, type_aide_in: TypeAidesPersonnelleLogement, colocation_in: bool, reduction_loyer_solidarite_in: Money, logement_meuble_d842_2_in: bool) -> None:
@@ -1782,22 +2129,6 @@ class CalculAidePersonnaliseeLogementLocatifIn:
             self.reduction_loyer_solidarite_in,
             self.logement_meuble_d842_2_in)
 
-class CalculEquivalenceLoyerMinimaleOut:
-    def __init__(self, montant_out: Money) -> None:
-        self.montant_out = montant_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculEquivalenceLoyerMinimaleOut):
-            return (self.montant_out == other.montant_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculEquivalenceLoyerMinimaleOut(montant_out={})".format(self.montant_out)
-
 class CalculEquivalenceLoyerMinimaleIn:
     def __init__(self, ressources_menage_arrondies_in: Money, condition_2_du_832_25_in: bool, n_nombre_parts_d832_25_in: Decimal) -> None:
         self.ressources_menage_arrondies_in = ressources_menage_arrondies_in
@@ -1818,22 +2149,6 @@ class CalculEquivalenceLoyerMinimaleIn:
     def __str__(self) -> str:
         return "CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in={},condition_2_du_832_25_in={},n_nombre_parts_d832_25_in={})".format(self.ressources_menage_arrondies_in,
             self.condition_2_du_832_25_in, self.n_nombre_parts_d832_25_in)
-
-class CalculNombrePartLogementFoyerOut:
-    def __init__(self, n_nombre_parts_d832_25_out: Decimal) -> None:
-        self.n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculNombrePartLogementFoyerOut):
-            return (self.n_nombre_parts_d832_25_out == other.n_nombre_parts_d832_25_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculNombrePartLogementFoyerOut(n_nombre_parts_d832_25_out={})".format(self.n_nombre_parts_d832_25_out)
 
 class CalculNombrePartLogementFoyerIn:
     def __init__(self, condition_2_du_832_25_in: bool, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL) -> None:
@@ -1856,45 +2171,6 @@ class CalculNombrePartLogementFoyerIn:
         return "CalculNombrePartLogementFoyerIn(condition_2_du_832_25_in={},nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={})".format(self.condition_2_du_832_25_in,
             self.nombre_personnes_a_charge_in,
             self.situation_familiale_calcul_apl_in)
-
-class CalculAidePersonnaliseeLogementFoyerOut:
-    def __init__(self, coefficient_multiplicateur_d832_25_out: Money, coefficient_r_d832_25_out: Money, n_nombre_parts_d832_25_out: Decimal, equivalence_loyer_eligible_out: Money, plafond_equivalence_loyer_eligible_out: Money, equivalence_loyer_minimale_out: Money, coefficient_prise_en_charge_d832_25_seuil_out: Decimal, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-        self.coefficient_multiplicateur_d832_25_out = coefficient_multiplicateur_d832_25_out
-        self.coefficient_r_d832_25_out = coefficient_r_d832_25_out
-        self.n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_out
-        self.equivalence_loyer_eligible_out = equivalence_loyer_eligible_out
-        self.plafond_equivalence_loyer_eligible_out = plafond_equivalence_loyer_eligible_out
-        self.equivalence_loyer_minimale_out = equivalence_loyer_minimale_out
-        self.coefficient_prise_en_charge_d832_25_seuil_out = coefficient_prise_en_charge_d832_25_seuil_out
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAidePersonnaliseeLogementFoyerOut):
-            return (self.coefficient_multiplicateur_d832_25_out == other.coefficient_multiplicateur_d832_25_out and
-                   self.coefficient_r_d832_25_out == other.coefficient_r_d832_25_out and
-                   self.n_nombre_parts_d832_25_out == other.n_nombre_parts_d832_25_out and
-                   self.equivalence_loyer_eligible_out == other.equivalence_loyer_eligible_out and
-                   self.plafond_equivalence_loyer_eligible_out == other.plafond_equivalence_loyer_eligible_out and
-                   self.equivalence_loyer_minimale_out == other.equivalence_loyer_minimale_out and
-                   self.coefficient_prise_en_charge_d832_25_seuil_out == other.coefficient_prise_en_charge_d832_25_seuil_out and
-                   self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAidePersonnaliseeLogementFoyerOut(coefficient_multiplicateur_d832_25_out={},coefficient_r_d832_25_out={},n_nombre_parts_d832_25_out={},equivalence_loyer_eligible_out={},plafond_equivalence_loyer_eligible_out={},equivalence_loyer_minimale_out={},coefficient_prise_en_charge_d832_25_seuil_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.coefficient_multiplicateur_d832_25_out,
-            self.coefficient_r_d832_25_out, self.n_nombre_parts_d832_25_out,
-            self.equivalence_loyer_eligible_out,
-            self.plafond_equivalence_loyer_eligible_out,
-            self.equivalence_loyer_minimale_out,
-            self.coefficient_prise_en_charge_d832_25_seuil_out,
-            self.aide_finale_formule_out,
-            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAidePersonnaliseeLogementFoyerIn:
     def __init__(self, type_logement_foyer_in: TypeLogementFoyer, date_conventionnement_in: Date, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, redevance_in: Money, condition_2_du_832_25_in: Callable[[Unit], bool], n_nombre_parts_d832_25_in: Callable[[Unit], Decimal]) -> None:
@@ -1936,22 +2212,6 @@ class CalculAidePersonnaliseeLogementFoyerIn:
             self.date_courante_in, self.redevance_in,
             self.condition_2_du_832_25_in, self.n_nombre_parts_d832_25_in)
 
-class CalculNombrePartsAccessionProprieteOut:
-    def __init__(self, n_nombre_parts_d832_11_out: Decimal) -> None:
-        self.n_nombre_parts_d832_11_out = n_nombre_parts_d832_11_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculNombrePartsAccessionProprieteOut):
-            return (self.n_nombre_parts_d832_11_out == other.n_nombre_parts_d832_11_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculNombrePartsAccessionProprieteOut(n_nombre_parts_d832_11_out={})".format(self.n_nombre_parts_d832_11_out)
-
 class CalculNombrePartsAccessionProprieteIn:
     def __init__(self, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL) -> None:
         self.nombre_personnes_a_charge_in = nombre_personnes_a_charge_in
@@ -1970,34 +2230,6 @@ class CalculNombrePartsAccessionProprieteIn:
     def __str__(self) -> str:
         return "CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in={},situation_familiale_calcul_apl_in={})".format(self.nombre_personnes_a_charge_in,
             self.situation_familiale_calcul_apl_in)
-
-class CalculAidePersonnaliseeLogementAccessionProprieteOut:
-    def __init__(self, mensualite_eligible_out: Money, mensualite_minimale_out: Money, coefficient_prise_en_charge_d832_10_seuil_out: Decimal, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-        self.mensualite_eligible_out = mensualite_eligible_out
-        self.mensualite_minimale_out = mensualite_minimale_out
-        self.coefficient_prise_en_charge_d832_10_seuil_out = coefficient_prise_en_charge_d832_10_seuil_out
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAidePersonnaliseeLogementAccessionProprieteOut):
-            return (self.mensualite_eligible_out == other.mensualite_eligible_out and
-                   self.mensualite_minimale_out == other.mensualite_minimale_out and
-                   self.coefficient_prise_en_charge_d832_10_seuil_out == other.coefficient_prise_en_charge_d832_10_seuil_out and
-                   self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAidePersonnaliseeLogementAccessionProprieteOut(mensualite_eligible_out={},mensualite_minimale_out={},coefficient_prise_en_charge_d832_10_seuil_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.mensualite_eligible_out,
-            self.mensualite_minimale_out,
-            self.coefficient_prise_en_charge_d832_10_seuil_out,
-            self.aide_finale_formule_out,
-            self.traitement_aide_finale_montant_minimal_out)
 
 class CalculAidePersonnaliseeLogementAccessionProprieteIn:
     def __init__(self, mensualite_principale_in: Money, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, type_travaux_logement_in: TypeTravauxLogementD83215, date_signature_pret_in: Date, local_habite_premiere_fois_beneficiaire_in: bool, date_entree_logement_in: Date, copropriete_in: bool, situation_r822_11_13_17_in: bool, zone_in: ZoneDHabitation, type_pret_in: TypePret, anciennete_logement_in: NeufOuAncien, date_courante_in: Date) -> None:
@@ -2049,25 +2281,6 @@ class CalculAidePersonnaliseeLogementAccessionProprieteIn:
             self.situation_r822_11_13_17_in, self.zone_in, self.type_pret_in,
             self.anciennete_logement_in, self.date_courante_in)
 
-class CalculAidePersonnaliseeLogementOut:
-    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_out = traitement_aide_finale_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAidePersonnaliseeLogementOut):
-            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_out == other.traitement_aide_finale_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAidePersonnaliseeLogementOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
-            self.traitement_aide_finale_out)
-
 class CalculAidePersonnaliseeLogementIn:
     def __init__(self, mode_occupation_in: ModeOccupation, type_aide_in: TypeAidesPersonnelleLogement, ressources_menage_sans_arrondi_in: Money, situation_familiale_in: SituationFamiliale, nombre_personnes_a_charge_in: Integer, zone_in: ZoneDHabitation, date_courante_in: Date) -> None:
         self.mode_occupation_in = mode_occupation_in
@@ -2098,25 +2311,6 @@ class CalculAidePersonnaliseeLogementIn:
             self.type_aide_in, self.ressources_menage_sans_arrondi_in,
             self.situation_familiale_in, self.nombre_personnes_a_charge_in,
             self.zone_in, self.date_courante_in)
-
-class CalculAllocationLogementLocatifOut:
-    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_out = traitement_aide_finale_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAllocationLogementLocatifOut):
-            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_out == other.traitement_aide_finale_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAllocationLogementLocatifOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
-            self.traitement_aide_finale_out)
 
 class CalculAllocationLogementLocatifIn:
     def __init__(self, loyer_principal_in: Money, ressources_menage_arrondies_in: Money, beneficiaire_aide_adulte_ou_enfant_handicapes_in: bool, date_courante_in: Date, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, logement_est_chambre_in: bool, agees_ou_handicap_adultes_hebergees_onereux_particuliers_in: bool, type_aide_in: TypeAidesPersonnelleLogement, colocation_in: bool, reduction_loyer_solidarite_in: Money, logement_meuble_d842_2_in: bool, changement_logement_d842_4_in: ChangementLogementD8424) -> None:
@@ -2170,25 +2364,6 @@ class CalculAllocationLogementLocatifIn:
             self.logement_meuble_d842_2_in,
             self.changement_logement_d842_4_in)
 
-class CalculAllocationLogementAccessionProprieteOut:
-    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAllocationLogementAccessionProprieteOut):
-            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAllocationLogementAccessionProprieteOut(aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.aide_finale_formule_out,
-            self.traitement_aide_finale_montant_minimal_out)
-
 class CalculAllocationLogementAccessionProprieteIn:
     def __init__(self, ressources_menage_arrondies_base_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, mensualite_principale_in: Money, situation_r822_11_13_17_in: bool, date_signature_pret_in: Date, type_travaux_logement_in: TypeTravauxLogementR8425, local_habite_premiere_fois_beneficiaire_in: bool, date_entree_logement_in: Date, charges_mensuelles_pret_in: Money, copropriete_in: bool) -> None:
         self.ressources_menage_arrondies_base_in = ressources_menage_arrondies_base_in
@@ -2237,35 +2412,6 @@ class CalculAllocationLogementAccessionProprieteIn:
             self.date_entree_logement_in, self.charges_mensuelles_pret_in,
             self.copropriete_in)
 
-class CalculAllocationLogementFoyerOut:
-    def __init__(self, coefficient_prise_en_charge_out: Decimal, equivalence_loyer_out: Money, montant_forfaitaire_charges_out: Money, loyer_minimal_out: Money, aide_finale_formule_out: Money, traitement_aide_finale_montant_minimal_out: Callable[[Money], Money]) -> None:
-        self.coefficient_prise_en_charge_out = coefficient_prise_en_charge_out
-        self.equivalence_loyer_out = equivalence_loyer_out
-        self.montant_forfaitaire_charges_out = montant_forfaitaire_charges_out
-        self.loyer_minimal_out = loyer_minimal_out
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAllocationLogementFoyerOut):
-            return (self.coefficient_prise_en_charge_out == other.coefficient_prise_en_charge_out and
-                   self.equivalence_loyer_out == other.equivalence_loyer_out and
-                   self.montant_forfaitaire_charges_out == other.montant_forfaitaire_charges_out and
-                   self.loyer_minimal_out == other.loyer_minimal_out and
-                   self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_montant_minimal_out == other.traitement_aide_finale_montant_minimal_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAllocationLogementFoyerOut(coefficient_prise_en_charge_out={},equivalence_loyer_out={},montant_forfaitaire_charges_out={},loyer_minimal_out={},aide_finale_formule_out={},traitement_aide_finale_montant_minimal_out={})".format(self.coefficient_prise_en_charge_out,
-            self.equivalence_loyer_out, self.montant_forfaitaire_charges_out,
-            self.loyer_minimal_out, self.aide_finale_formule_out,
-            self.traitement_aide_finale_montant_minimal_out)
-
 class CalculAllocationLogementFoyerIn:
     def __init__(self, type_logement_foyer_in: TypeLogementFoyer, date_conventionnement_in: Date, redevance_in: Money, ressources_menage_arrondies_in: Money, nombre_personnes_a_charge_in: Integer, situation_familiale_calcul_apl_in: SituationFamilialeCalculAPL, zone_in: ZoneDHabitation, date_courante_in: Date, categorie_equivalence_loyer_d842_16_in: CategorieEquivalenceLoyerAllocationLogementFoyer) -> None:
         self.type_logement_foyer_in = type_logement_foyer_in
@@ -2304,25 +2450,6 @@ class CalculAllocationLogementFoyerIn:
             self.date_courante_in,
             self.categorie_equivalence_loyer_d842_16_in)
 
-class CalculAllocationLogementOut:
-    def __init__(self, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money]) -> None:
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_out = traitement_aide_finale_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculAllocationLogementOut):
-            return (self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_out == other.traitement_aide_finale_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculAllocationLogementOut(aide_finale_formule_out={},traitement_aide_finale_out={})".format(self.aide_finale_formule_out,
-            self.traitement_aide_finale_out)
-
 class CalculAllocationLogementIn:
     def __init__(self, mode_occupation_in: ModeOccupation, ressources_menage_sans_arrondi_in: Money, situation_familiale_in: SituationFamiliale, nombre_personnes_a_charge_in: Integer, zone_in: ZoneDHabitation, date_courante_in: Date, type_aide_in: TypeAidesPersonnelleLogement) -> None:
         self.mode_occupation_in = mode_occupation_in
@@ -2354,22 +2481,6 @@ class CalculAllocationLogementIn:
             self.situation_familiale_in, self.nombre_personnes_a_charge_in,
             self.zone_in, self.date_courante_in, self.type_aide_in)
 
-class OuvertureDroitsRetraiteOut:
-    def __init__(self, age_ouverture_droit_out: Duration) -> None:
-        self.age_ouverture_droit_out = age_ouverture_droit_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, OuvertureDroitsRetraiteOut):
-            return (self.age_ouverture_droit_out == other.age_ouverture_droit_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "OuvertureDroitsRetraiteOut(age_ouverture_droit_out={})".format(self.age_ouverture_droit_out)
-
 class OuvertureDroitsRetraiteIn:
     def __init__(self, date_naissance_assure_in: Date) -> None:
         self.date_naissance_assure_in = date_naissance_assure_in
@@ -2385,22 +2496,6 @@ class OuvertureDroitsRetraiteIn:
 
     def __str__(self) -> str:
         return "OuvertureDroitsRetraiteIn(date_naissance_assure_in={})".format(self.date_naissance_assure_in)
-
-class ImpayeDepenseLogementOut:
-    def __init__(self, montant_impaye_out: Money) -> None:
-        self.montant_impaye_out = montant_impaye_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, ImpayeDepenseLogementOut):
-            return (self.montant_impaye_out == other.montant_impaye_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "ImpayeDepenseLogementOut(montant_impaye_out={})".format(self.montant_impaye_out)
 
 class ImpayeDepenseLogementIn:
     def __init__(self, mode_occupation_in: ModeOccupation, aide_versee_in: VersementA, montant_apl_in: Money, montant_charges_in: Money, depense_logement_in: DepenseLogement, montant_dette_in: Money) -> None:
@@ -2431,30 +2526,6 @@ class ImpayeDepenseLogementIn:
             self.montant_charges_in, self.depense_logement_in,
             self.montant_dette_in)
 
-class CalculetteAidesAuLogementOut:
-    def __init__(self, eligibilite_out: bool, aide_finale_formule_out: Money, traitement_aide_finale_out: Callable[[Money], Money], coefficents_enfants_garde_alternee_pris_en_compte_out: List[Decimal]) -> None:
-        self.eligibilite_out = eligibilite_out
-        self.aide_finale_formule_out = aide_finale_formule_out
-        self.traitement_aide_finale_out = traitement_aide_finale_out
-        self.coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculetteAidesAuLogementOut):
-            return (self.eligibilite_out == other.eligibilite_out and
-                   self.aide_finale_formule_out == other.aide_finale_formule_out and
-                   self.traitement_aide_finale_out == other.traitement_aide_finale_out and
-                   self.coefficents_enfants_garde_alternee_pris_en_compte_out == other.coefficents_enfants_garde_alternee_pris_en_compte_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculetteAidesAuLogementOut(eligibilite_out={},aide_finale_formule_out={},traitement_aide_finale_out={},coefficents_enfants_garde_alternee_pris_en_compte_out={})".format(self.eligibilite_out,
-            self.aide_finale_formule_out, self.traitement_aide_finale_out,
-            self.coefficents_enfants_garde_alternee_pris_en_compte_out)
-
 class CalculetteAidesAuLogementIn:
     def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, ressources_menage_prises_en_compte_in: Money) -> None:
         self.menage_in = menage_in
@@ -2478,25 +2549,6 @@ class CalculetteAidesAuLogementIn:
         return "CalculetteAidesAuLogementIn(menage_in={},demandeur_in={},date_courante_in={},ressources_menage_prises_en_compte_in={})".format(self.menage_in,
             self.demandeur_in, self.date_courante_in,
             self.ressources_menage_prises_en_compte_in)
-
-class CalculetteAidesAuLogementGardeAlterneeOut:
-    def __init__(self, eligibilite_out: bool, aide_finale_out: Money) -> None:
-        self.eligibilite_out = eligibilite_out
-        self.aide_finale_out = aide_finale_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, CalculetteAidesAuLogementGardeAlterneeOut):
-            return (self.eligibilite_out == other.eligibilite_out and
-                   self.aide_finale_out == other.aide_finale_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "CalculetteAidesAuLogementGardeAlterneeOut(eligibilite_out={},aide_finale_out={})".format(self.eligibilite_out,
-            self.aide_finale_out)
 
 class CalculetteAidesAuLogementGardeAlterneeIn:
     def __init__(self, menage_in: Menage, demandeur_in: Demandeur, date_courante_in: Date, ressources_menage_prises_en_compte_in: Money) -> None:
@@ -2522,22 +2574,6 @@ class CalculetteAidesAuLogementGardeAlterneeIn:
             self.demandeur_in, self.date_courante_in,
             self.ressources_menage_prises_en_compte_in)
 
-class BaseMensuelleAllocationsFamilialesOut:
-    def __init__(self, montant_out: Money) -> None:
-        self.montant_out = montant_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, BaseMensuelleAllocationsFamilialesOut):
-            return (self.montant_out == other.montant_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "BaseMensuelleAllocationsFamilialesOut(montant_out={})".format(self.montant_out)
-
 class BaseMensuelleAllocationsFamilialesIn:
     def __init__(self, date_courante_in: Date) -> None:
         self.date_courante_in = date_courante_in
@@ -2553,22 +2589,6 @@ class BaseMensuelleAllocationsFamilialesIn:
 
     def __str__(self) -> str:
         return "BaseMensuelleAllocationsFamilialesIn(date_courante_in={})".format(self.date_courante_in)
-
-class SmicOut:
-    def __init__(self, brut_horaire_out: Money) -> None:
-        self.brut_horaire_out = brut_horaire_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SmicOut):
-            return (self.brut_horaire_out == other.brut_horaire_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "SmicOut(brut_horaire_out={})".format(self.brut_horaire_out)
 
 class SmicIn:
     def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
@@ -2588,30 +2608,6 @@ class SmicIn:
     def __str__(self) -> str:
         return "SmicIn(date_courante_in={},residence_in={})".format(self.date_courante_in,
             self.residence_in)
-
-class EligibilitePrestationsFamilialesOut:
-    def __init__(self, droit_ouvert_out: Callable[[EnfantPrestationsFamiliales], bool], conditions_hors_age_out: Callable[[EnfantPrestationsFamiliales], bool], age_l512_3_2_out: Duration, regime_outre_mer_l751_1_out: bool) -> None:
-        self.droit_ouvert_out = droit_ouvert_out
-        self.conditions_hors_age_out = conditions_hors_age_out
-        self.age_l512_3_2_out = age_l512_3_2_out
-        self.regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_out
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EligibilitePrestationsFamilialesOut):
-            return (self.droit_ouvert_out == other.droit_ouvert_out and
-                   self.conditions_hors_age_out == other.conditions_hors_age_out and
-                   self.age_l512_3_2_out == other.age_l512_3_2_out and
-                   self.regime_outre_mer_l751_1_out == other.regime_outre_mer_l751_1_out)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "EligibilitePrestationsFamilialesOut(droit_ouvert_out={},conditions_hors_age_out={},age_l512_3_2_out={},regime_outre_mer_l751_1_out={})".format(self.droit_ouvert_out,
-            self.conditions_hors_age_out, self.age_l512_3_2_out,
-            self.regime_outre_mer_l751_1_out)
 
 class EligibilitePrestationsFamilialesIn:
     def __init__(self, date_courante_in: Date, prestation_courante_in: ElementPrestationsFamiliales, residence_in: Collectivite) -> None:
@@ -2709,7 +2705,7 @@ def contributions_sociales_aides_personnelle_logement(contributions_sociales_aid
                                               law_headings=["Article 14",
                                                            "Chapitre II : Des contributions pour le remboursement de la dette sociale.",
                                                            "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]))
-    return ContributionsSocialesAidesPersonnelleLogementOut(montant_out = montant)
+    return ContributionsSocialesAidesPersonnelleLogement(montant = montant)
 
 def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:CalculEquivalenceLoyerMinimaleIn):
     ressources_menage_arrondies = calcul_equivalence_loyer_minimale_in.ressources_menage_arrondies_in
@@ -2883,7 +2879,7 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     montant_1 = temp_montant_3
-    return CalculEquivalenceLoyerMinimaleOut(montant_out = montant_1)
+    return CalculEquivalenceLoyerMinimale(montant = montant_1)
 
 def calcul_nombre_part_logement_foyer(calcul_nombre_part_logement_foyer_in:CalculNombrePartLogementFoyerIn):
     condition_2_du_832_25_1 = calcul_nombre_part_logement_foyer_in.condition_2_du_832_25_in
@@ -2966,7 +2962,7 @@ def calcul_nombre_part_logement_foyer(calcul_nombre_part_logement_foyer_in:Calcu
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     n_nombre_parts_d832_25_1 = temp_n_nombre_parts_d832_25
-    return CalculNombrePartLogementFoyerOut(n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_1)
+    return CalculNombrePartLogementFoyer(n_nombre_parts_d832_25 = n_nombre_parts_d832_25_1)
 
 def calcul_nombre_parts_accession_propriete(calcul_nombre_parts_accession_propriete_in:CalculNombrePartsAccessionProprieteIn):
     nombre_personnes_a_charge_1 = calcul_nombre_parts_accession_propriete_in.nombre_personnes_a_charge_in
@@ -3012,7 +3008,7 @@ def calcul_nombre_parts_accession_propriete(calcul_nombre_parts_accession_propri
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     n_nombre_parts_d832_11 = temp_n_nombre_parts_d832_11
-    return CalculNombrePartsAccessionProprieteOut(n_nombre_parts_d832_11_out = n_nombre_parts_d832_11)
+    return CalculNombrePartsAccessionPropriete(n_nombre_parts_d832_11 = n_nombre_parts_d832_11)
 
 def ouverture_droits_retraite(ouverture_droits_retraite_in:OuvertureDroitsRetraiteIn):
     date_naissance_assure = ouverture_droits_retraite_in.date_naissance_assure_in
@@ -3086,7 +3082,7 @@ def ouverture_droits_retraite(ouverture_droits_retraite_in:OuvertureDroitsRetrai
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     age_ouverture_droit = temp_age_ouverture_droit_8
-    return OuvertureDroitsRetraiteOut(age_ouverture_droit_out = age_ouverture_droit)
+    return OuvertureDroitsRetraite(age_ouverture_droit = age_ouverture_droit)
 
 def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
     mode_occupation = impaye_depense_logement_in.mode_occupation_in
@@ -3441,7 +3437,7 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     montant_impaye = temp_montant_impaye_1
-    return ImpayeDepenseLogementOut(montant_impaye_out = montant_impaye)
+    return ImpayeDepenseLogement(montant_impaye = montant_impaye)
 
 def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_in:BaseMensuelleAllocationsFamilialesIn):
     date_courante_1 = base_mensuelle_allocations_familiales_in.date_courante_in
@@ -3492,7 +3488,7 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
                                              end_line=6, end_column=17,
                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     montant_2 = temp_montant_12
-    return BaseMensuelleAllocationsFamilialesOut(montant_out = montant_2)
+    return BaseMensuelleAllocationsFamiliales(montant = montant_2)
 
 def smic(smic_in:SmicIn):
     date_courante_2 = smic_in.date_courante_in
@@ -3661,7 +3657,7 @@ def smic(smic_in:SmicIn):
                                              law_headings=["Prologue",
                                              "Montant du salaire minimum de croissance"]))
     brut_horaire = temp_brut_horaire_12
-    return SmicOut(brut_horaire_out = brut_horaire)
+    return Smic(brut_horaire = brut_horaire)
 
 def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logement_locatif_in:CalculAidePersonnaliseeLogementLocatifIn):
     loyer_principal_base = calcul_aide_personnalisee_logement_locatif_in.loyer_principal_base_in
@@ -3714,7 +3710,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Prologue : aides au logement"]))
     contributions_sociales_dot_date_courante = temp_contributions_sociales_dot_date_courante
     result = contributions_sociales_aides_personnelle_logement(ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in = contributions_sociales_dot_date_courante))
-    contributions_sociales_dot_montant = result.montant_out
+    contributions_sociales_dot_montant = result.montant
     try:
         try:
             try:
@@ -5493,13 +5489,13 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                            "Livre VIII : Aides personnelles au logement",
                                                            "Partie législative",
                                                            "Code de la construction et de l'habitation"]))
-    return CalculAidePersonnaliseeLogementLocatifOut(montant_forfaitaire_charges_d823_16_out = montant_forfaitaire_charges_d823_16,
-        plafond_loyer_d823_16_2_out = plafond_loyer_d823_16_2,
-        participation_minimale_out = participation_minimale,
-        taux_composition_familiale_out = taux_composition_familiale,
-        participation_personnelle_out = participation_personnelle,
-        aide_finale_formule_out = aide_finale_formule,
-        traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal)
+    return CalculAidePersonnaliseeLogementLocatif(montant_forfaitaire_charges_d823_16 = montant_forfaitaire_charges_d823_16,
+        plafond_loyer_d823_16_2 = plafond_loyer_d823_16_2,
+        participation_minimale = participation_minimale,
+        taux_composition_familiale = taux_composition_familiale,
+        participation_personnelle = participation_personnelle,
+        aide_finale_formule = aide_finale_formule,
+        traitement_aide_finale = traitement_aide_finale_montant_minimal)
 
 def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_foyer_in:CalculAidePersonnaliseeLogementFoyerIn):
     type_logement_foyer = calcul_aide_personnalisee_logement_foyer_in.type_logement_foyer_in
@@ -5590,7 +5586,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Prologue : aides au logement"]))
     contributions_sociales_dot_date_courante_1 = temp_contributions_sociales_dot_date_courante_1
     result_1 = contributions_sociales_aides_personnelle_logement(ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in = contributions_sociales_dot_date_courante_1))
-    contributions_sociales_dot_montant_1 = result_1.montant_out
+    contributions_sociales_dot_montant_1 = result_1.montant
     try:
         def temp_plafond_equivalence_loyer_eligible(_:Unit):
             raise EmptyError
@@ -5972,7 +5968,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     result_2 = calcul_nombre_part_logement_foyer(CalculNombrePartLogementFoyerIn(condition_2_du_832_25_in = calcul_nombre_parts_dot_condition_2_du_832_25,
                                                  nombre_personnes_a_charge_in = calcul_nombre_parts_dot_nombre_personnes_a_charge,
                                                  situation_familiale_calcul_apl_in = calcul_nombre_parts_dot_situation_familiale_calcul_apl))
-    calcul_nombre_parts_dot_n_nombre_parts_d832_25 = result_2.n_nombre_parts_d832_25_out
+    calcul_nombre_parts_dot_n_nombre_parts_d832_25 = result_2.n_nombre_parts_d832_25
     try:
         if condition_2_du_832_25_3:
             temp_montant_forfaitaire_d832_27 = money_of_cents_string("1500")
@@ -6112,7 +6108,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     result_3 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies,
                                                  condition_2_du_832_25_in = calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25,
                                                  n_nombre_parts_d832_25_in = calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25))
-    calcul_equivalence_loyer_minimale_dot_montant = result_3.montant_out
+    calcul_equivalence_loyer_minimale_dot_montant = result_3.montant
     try:
         try:
             if condition_2_du_832_25_3:
@@ -6359,15 +6355,15 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_montant_minimal_1 = temp_traitement_aide_finale_montant_minimal_1
-    return CalculAidePersonnaliseeLogementFoyerOut(coefficient_multiplicateur_d832_25_out = coefficient_multiplicateur_d832_25,
-        coefficient_r_d832_25_out = coefficient_r_d832_25,
-        n_nombre_parts_d832_25_out = n_nombre_parts_d832_25_3,
-        equivalence_loyer_eligible_out = equivalence_loyer_eligible,
-        plafond_equivalence_loyer_eligible_out = plafond_equivalence_loyer_eligible,
-        equivalence_loyer_minimale_out = equivalence_loyer_minimale,
-        coefficient_prise_en_charge_d832_25_seuil_out = coefficient_prise_en_charge_d832_25_seuil,
-        aide_finale_formule_out = aide_finale_formule_1,
-        traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_1)
+    return CalculAidePersonnaliseeLogementFoyer(coefficient_multiplicateur_d832_25 = coefficient_multiplicateur_d832_25,
+        coefficient_r_d832_25 = coefficient_r_d832_25,
+        n_nombre_parts_d832_25 = n_nombre_parts_d832_25_3,
+        equivalence_loyer_eligible = equivalence_loyer_eligible,
+        plafond_equivalence_loyer_eligible = plafond_equivalence_loyer_eligible,
+        equivalence_loyer_minimale = equivalence_loyer_minimale,
+        coefficient_prise_en_charge_d832_25 = coefficient_prise_en_charge_d832_25_seuil,
+        aide_finale_formule = aide_finale_formule_1,
+        traitement_aide_finale = traitement_aide_finale_montant_minimal_1)
 
 def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnalisee_logement_accession_propriete_in:CalculAidePersonnaliseeLogementAccessionProprieteIn):
     mensualite_principale = calcul_aide_personnalisee_logement_accession_propriete_in.mensualite_principale_in
@@ -6515,7 +6511,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     calcul_nombre_parts_dot_situation_familiale_calcul_apl_1 = temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_1
     result_4 = calcul_nombre_parts_accession_propriete(CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in = calcul_nombre_parts_dot_nombre_personnes_a_charge_1,
                                                        situation_familiale_calcul_apl_in = calcul_nombre_parts_dot_situation_familiale_calcul_apl_1))
-    calcul_nombre_parts_dot_n_nombre_parts_d832_11 = result_4.n_nombre_parts_d832_11_out
+    calcul_nombre_parts_dot_n_nombre_parts_d832_11 = result_4.n_nombre_parts_d832_11
     try:
         match_arg_91 = anciennete_logement
         if match_arg_91.code == NeufOuAncien_Code.Neuf:
@@ -6561,7 +6557,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Prologue : aides au logement"]))
     contributions_sociales_dot_date_courante_2 = temp_contributions_sociales_dot_date_courante_2
     result_5 = contributions_sociales_aides_personnelle_logement(ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in = contributions_sociales_dot_date_courante_2))
-    contributions_sociales_dot_montant_2 = result_5.montant_out
+    contributions_sociales_dot_montant_2 = result_5.montant
     try:
         try:
             def temp_montant_forfaitaire_charges_d832_10(_:Unit):
@@ -10325,7 +10321,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     result_6 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_1,
                                                  condition_2_du_832_25_in = calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_1,
                                                  n_nombre_parts_d832_25_in = calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_1))
-    calcul_equivalence_loyer_minimale_dot_montant_1 = result_6.montant_out
+    calcul_equivalence_loyer_minimale_dot_montant_1 = result_6.montant
     try:
         temp_coefficient_prise_en_charge_d832_10_formule = (decimal_of_string("0.95") -
             (ressources_menage_arrondies_3 /
@@ -10674,11 +10670,11 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_montant_minimal_2 = temp_traitement_aide_finale_montant_minimal_2
-    return CalculAidePersonnaliseeLogementAccessionProprieteOut(mensualite_eligible_out = mensualite_eligible,
-        mensualite_minimale_out = mensualite_minimale,
-        coefficient_prise_en_charge_d832_10_seuil_out = coefficient_prise_en_charge_d832_10_seuil,
-        aide_finale_formule_out = aide_finale_formule_2,
-        traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_2)
+    return CalculAidePersonnaliseeLogementAccessionPropriete(mensualite_eligible = mensualite_eligible,
+        mensualite_minimale = mensualite_minimale,
+        coefficient_prise_en_charge_d832_10 = coefficient_prise_en_charge_d832_10_seuil,
+        aide_finale_formule = aide_finale_formule_2,
+        traitement_aide_finale = traitement_aide_finale_montant_minimal_2)
 
 def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logement_in:EligibiliteAidesPersonnelleLogementIn):
     menage = eligibilite_aides_personnelle_logement_in.menage_in
@@ -10949,7 +10945,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                              "Code de la sécurité sociale"]))
     ouverture_droits_retraite_dot_date_naissance_assure = temp_ouverture_droits_retraite_dot_date_naissance_assure
     result_7 = ouverture_droits_retraite(OuvertureDroitsRetraiteIn(date_naissance_assure_in = ouverture_droits_retraite_dot_date_naissance_assure))
-    ouverture_droits_retraite_dot_age_ouverture_droit = result_7.age_ouverture_droit_out
+    ouverture_droits_retraite_dot_age_ouverture_droit = result_7.age_ouverture_droit
     try:
         temp_patrimoine_total_demandeur = (demandeur.patrimoine.produisant_revenu_periode_r822_3_3_r822_4 +
             demandeur.patrimoine.ne_produisant_pas_revenu_periode_r822_3_3_r822_4)
@@ -11535,11 +11531,11 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                                            "Livre VIII : Aides personnelles au logement",
                                                            "Partie législative",
                                                            "Code de la construction et de l'habitation"]))
-    return EligibiliteAidesPersonnelleLogementOut(date_courante_out = date_courante_6,
-        eligibilite_out = eligibilite,
-        nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte,
-        coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte,
-        condition_2_r823_4_out = condition_2_r823_4)
+    return EligibiliteAidesPersonnelleLogement(date_courante = date_courante_6,
+        eligibilite = eligibilite,
+        nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte,
+        coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte,
+        condition_2_r823_4 = condition_2_r823_4)
 
 def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_in:RessourcesAidesPersonnelleLogementIn):
     ressources_demandeur = ressources_aides_personnelle_logement_in.ressources_demandeur_in
@@ -11671,7 +11667,7 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
                                              "Code de la construction et de l'habitation"]))
     base_mensuelle_allocations_familiales_dot_date_courante = temp_base_mensuelle_allocations_familiales_dot_date_courante
     result_8 = base_mensuelle_allocations_familiales(BaseMensuelleAllocationsFamilialesIn(date_courante_in = base_mensuelle_allocations_familiales_dot_date_courante))
-    base_mensuelle_allocations_familiales_dot_montant = result_8.montant_out
+    base_mensuelle_allocations_familiales_dot_montant = result_8.montant
     try:
         match_arg_376 = paiement_logement_distinct_professionnel
         if match_arg_376.code == PaiementLogementDistinctProfessionnel_Code.OuiAvecLoyerOuCharges:
@@ -11794,7 +11790,7 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
                                                            "Livre VIII : Aides personnelles au logement",
                                                            "Partie réglementaire",
                                                            "Code de la construction et de l'habitation"]))
-    return RessourcesAidesPersonnelleLogementOut(ressources_prises_en_compte_out = ressources_prises_en_compte)
+    return RessourcesAidesPersonnelleLogement(ressources_prises_en_compte = ressources_prises_en_compte)
 
 def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:EligibilitePrestationsFamilialesIn):
     date_courante_7 = eligibilite_prestations_familiales_in.date_courante_in
@@ -11829,7 +11825,7 @@ def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:Eli
     smic_dot_residence = temp_smic_dot_residence
     result_9 = smic(SmicIn(date_courante_in = smic_dot_date_courante,
                     residence_in = smic_dot_residence))
-    smic_dot_brut_horaire = result_9.brut_horaire_out
+    smic_dot_brut_horaire = result_9.brut_horaire
     try:
         try:
             if ((residence_1 == Collectivite(Collectivite_Code.Guadeloupe,
@@ -11996,10 +11992,10 @@ def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:Eli
                                              end_line=40, end_column=22,
                                              law_headings=["Prologue : prestations familiales"]))
     droit_ouvert = temp_droit_ouvert
-    return EligibilitePrestationsFamilialesOut(droit_ouvert_out = droit_ouvert,
-        conditions_hors_age_out = conditions_hors_age,
-        age_l512_3_2_out = age_l512_3_2,
-        regime_outre_mer_l751_1_out = regime_outre_mer_l751_1)
+    return EligibilitePrestationsFamiliales(droit_ouvert = droit_ouvert,
+        conditions_hors_age = conditions_hors_age,
+        age_l512_3_2 = age_l512_3_2,
+        regime_outre_mer_l751_1 = regime_outre_mer_l751_1)
 
 def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:CalculAllocationLogementLocatifIn):
     loyer_principal = calcul_allocation_logement_locatif_in.loyer_principal_in
@@ -12172,13 +12168,13 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                                            colocation_in = calcul_apl_locatif_dot_colocation,
                                                            reduction_loyer_solidarite_in = calcul_apl_locatif_dot_reduction_loyer_solidarite,
                                                            logement_meuble_d842_2_in = calcul_apl_locatif_dot_logement_meuble_d842_2))
-    calcul_apl_locatif_dot_montant_forfaitaire_charges_d823_16 = result_10.montant_forfaitaire_charges_d823_16_out
-    calcul_apl_locatif_dot_plafond_loyer_d823_16_2 = result_10.plafond_loyer_d823_16_2_out
-    calcul_apl_locatif_dot_participation_minimale = result_10.participation_minimale_out
-    calcul_apl_locatif_dot_taux_composition_familiale = result_10.taux_composition_familiale_out
-    calcul_apl_locatif_dot_participation_personnelle = result_10.participation_personnelle_out
-    calcul_apl_locatif_dot_aide_finale_formule = result_10.aide_finale_formule_out
-    calcul_apl_locatif_dot_traitement_aide_finale_montant_minimal = result_10.traitement_aide_finale_montant_minimal_out
+    calcul_apl_locatif_dot_montant_forfaitaire_charges_d823_16 = result_10.montant_forfaitaire_charges_d823_16
+    calcul_apl_locatif_dot_plafond_loyer_d823_16_2 = result_10.plafond_loyer_d823_16_2
+    calcul_apl_locatif_dot_participation_minimale = result_10.participation_minimale
+    calcul_apl_locatif_dot_taux_composition_familiale = result_10.taux_composition_familiale
+    calcul_apl_locatif_dot_participation_personnelle = result_10.participation_personnelle
+    calcul_apl_locatif_dot_aide_finale_formule = result_10.aide_finale_formule
+    calcul_apl_locatif_dot_traitement_aide_finale_montant_minimal = result_10.traitement_aide_finale
     try:
         def temp_traitement_aide_finale(param_24:Money):
             try:
@@ -12250,8 +12246,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     aide_finale_formule_3 = temp_aide_finale_formule_4
-    return CalculAllocationLogementLocatifOut(aide_finale_formule_out = aide_finale_formule_3,
-        traitement_aide_finale_out = traitement_aide_finale)
+    return CalculAllocationLogementLocatif(aide_finale_formule = aide_finale_formule_3,
+        traitement_aide_finale = traitement_aide_finale)
 
 def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculAllocationLogementFoyerIn):
     type_logement_foyer_1 = calcul_allocation_logement_foyer_in.type_logement_foyer_in
@@ -12347,7 +12343,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     result_11 = calcul_nombre_part_logement_foyer(CalculNombrePartLogementFoyerIn(condition_2_du_832_25_in = calcul_nombre_parts_dot_condition_2_du_832_25_1,
                                                   nombre_personnes_a_charge_in = calcul_nombre_parts_dot_nombre_personnes_a_charge_2,
                                                   situation_familiale_calcul_apl_in = calcul_nombre_parts_dot_situation_familiale_calcul_apl_2))
-    calcul_nombre_parts_dot_n_nombre_parts_d832_25_1 = result_11.n_nombre_parts_d832_25_out
+    calcul_nombre_parts_dot_n_nombre_parts_d832_25_1 = result_11.n_nombre_parts_d832_25
     try:
         temp_contributions_sociales_dot_date_courante_3 = date_courante_9
     except EmptyError:
@@ -12360,7 +12356,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Prologue : aides au logement"]))
     contributions_sociales_dot_date_courante_3 = temp_contributions_sociales_dot_date_courante_3
     result_12 = contributions_sociales_aides_personnelle_logement(ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in = contributions_sociales_dot_date_courante_3))
-    contributions_sociales_dot_montant_3 = result_12.montant_out
+    contributions_sociales_dot_montant_3 = result_12.montant
     try:
         temp_calcul_apl_logement_foyer_dot_type_logement_foyer = type_logement_foyer_1
     except EmptyError:
@@ -12467,15 +12463,15 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                                          redevance_in = calcul_apl_logement_foyer_dot_redevance,
                                                          condition_2_du_832_25_in = calcul_apl_logement_foyer_dot_condition_2_du_832_25,
                                                          n_nombre_parts_d832_25_in = calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25))
-    calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25 = result_13.coefficient_multiplicateur_d832_25_out
-    calcul_apl_logement_foyer_dot_coefficient_r_d832_25 = result_13.coefficient_r_d832_25_out
-    calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_1 = result_13.n_nombre_parts_d832_25_out
-    calcul_apl_logement_foyer_dot_equivalence_loyer_eligible = result_13.equivalence_loyer_eligible_out
-    calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible = result_13.plafond_equivalence_loyer_eligible_out
-    calcul_apl_logement_foyer_dot_equivalence_loyer_minimale = result_13.equivalence_loyer_minimale_out
-    calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil = result_13.coefficient_prise_en_charge_d832_25_seuil_out
-    calcul_apl_logement_foyer_dot_aide_finale_formule = result_13.aide_finale_formule_out
-    calcul_apl_logement_foyer_dot_traitement_aide_finale_montant_minimal = result_13.traitement_aide_finale_montant_minimal_out
+    calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25 = result_13.coefficient_multiplicateur_d832_25
+    calcul_apl_logement_foyer_dot_coefficient_r_d832_25 = result_13.coefficient_r_d832_25
+    calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_1 = result_13.n_nombre_parts_d832_25
+    calcul_apl_logement_foyer_dot_equivalence_loyer_eligible = result_13.equivalence_loyer_eligible
+    calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible = result_13.plafond_equivalence_loyer_eligible
+    calcul_apl_logement_foyer_dot_equivalence_loyer_minimale = result_13.equivalence_loyer_minimale
+    calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil = result_13.coefficient_prise_en_charge_d832_25
+    calcul_apl_logement_foyer_dot_aide_finale_formule = result_13.aide_finale_formule
+    calcul_apl_logement_foyer_dot_traitement_aide_finale_montant_minimal = result_13.traitement_aide_finale
     try:
         def temp_montant_forfaitaire_charges(_:Unit):
             raise EmptyError
@@ -12836,7 +12832,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     result_14 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_2,
                                                   condition_2_du_832_25_in = calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_2,
                                                   n_nombre_parts_d832_25_in = calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_2))
-    calcul_equivalence_loyer_minimale_dot_montant_2 = result_14.montant_out
+    calcul_equivalence_loyer_minimale_dot_montant_2 = result_14.montant
     try:
         temp_coefficient_prise_en_charge = calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil
     except EmptyError:
@@ -13046,12 +13042,12 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_montant_minimal_3 = temp_traitement_aide_finale_montant_minimal_3
-    return CalculAllocationLogementFoyerOut(coefficient_prise_en_charge_out = coefficient_prise_en_charge,
-        equivalence_loyer_out = equivalence_loyer,
-        montant_forfaitaire_charges_out = montant_forfaitaire_charges,
-        loyer_minimal_out = loyer_minimal,
-        aide_finale_formule_out = aide_finale_formule_4,
-        traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_3)
+    return CalculAllocationLogementFoyer(coefficient_prise_en_charge = coefficient_prise_en_charge,
+        equivalence_loyer = equivalence_loyer,
+        montant_forfaitaire_charges = montant_forfaitaire_charges,
+        loyer_minimal = loyer_minimal,
+        aide_finale_formule = aide_finale_formule_4,
+        traitement_aide_finale = traitement_aide_finale_montant_minimal_3)
 
 def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_accession_propriete_in:CalculAllocationLogementAccessionProprieteIn):
     ressources_menage_arrondies_base_1 = calcul_allocation_logement_accession_propriete_in.ressources_menage_arrondies_base_in
@@ -13179,7 +13175,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     calcul_nombre_parts_dot_situation_familiale_calcul_apl_3 = temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_3
     result_15 = calcul_nombre_parts_accession_propriete(CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in = calcul_nombre_parts_dot_nombre_personnes_a_charge_3,
                                                         situation_familiale_calcul_apl_in = calcul_nombre_parts_dot_situation_familiale_calcul_apl_3))
-    calcul_nombre_parts_dot_n_nombre_parts_d832_11_1 = result_15.n_nombre_parts_d832_11_out
+    calcul_nombre_parts_dot_n_nombre_parts_d832_11_1 = result_15.n_nombre_parts_d832_11
     try:
         temp_contributions_sociales_dot_date_courante_4 = date_courante_10
     except EmptyError:
@@ -13192,7 +13188,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Prologue : aides au logement"]))
     contributions_sociales_dot_date_courante_4 = temp_contributions_sociales_dot_date_courante_4
     result_16 = contributions_sociales_aides_personnelle_logement(ContributionsSocialesAidesPersonnelleLogementIn(date_courante_in = contributions_sociales_dot_date_courante_4))
-    contributions_sociales_dot_montant_4 = result_16.montant_out
+    contributions_sociales_dot_montant_4 = result_16.montant
     try:
         def temp_montant_forfaitaire_charges_5(_:Unit):
             raise EmptyError
@@ -16190,7 +16186,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     result_17 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_3,
                                                   condition_2_du_832_25_in = calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_3,
                                                   n_nombre_parts_d832_25_in = calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_3))
-    calcul_equivalence_loyer_minimale_dot_montant_3 = result_17.montant_out
+    calcul_equivalence_loyer_minimale_dot_montant_3 = result_17.montant
     try:
         temp_calcul_apl_logement_foyer_dot_type_logement_foyer_1 = TypeLogementFoyer(TypeLogementFoyer_Code.Autre,
             Unit())
@@ -16296,15 +16292,15 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                                          redevance_in = calcul_apl_logement_foyer_dot_redevance_1,
                                                          condition_2_du_832_25_in = calcul_apl_logement_foyer_dot_condition_2_du_832_25_1,
                                                          n_nombre_parts_d832_25_in = calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_2))
-    calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25_1 = result_18.coefficient_multiplicateur_d832_25_out
-    calcul_apl_logement_foyer_dot_coefficient_r_d832_25_1 = result_18.coefficient_r_d832_25_out
-    calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_3 = result_18.n_nombre_parts_d832_25_out
-    calcul_apl_logement_foyer_dot_equivalence_loyer_eligible_1 = result_18.equivalence_loyer_eligible_out
-    calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible_1 = result_18.plafond_equivalence_loyer_eligible_out
-    calcul_apl_logement_foyer_dot_equivalence_loyer_minimale_1 = result_18.equivalence_loyer_minimale_out
-    calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_1 = result_18.coefficient_prise_en_charge_d832_25_seuil_out
-    calcul_apl_logement_foyer_dot_aide_finale_formule_1 = result_18.aide_finale_formule_out
-    calcul_apl_logement_foyer_dot_traitement_aide_finale_montant_minimal_1 = result_18.traitement_aide_finale_montant_minimal_out
+    calcul_apl_logement_foyer_dot_coefficient_multiplicateur_d832_25_1 = result_18.coefficient_multiplicateur_d832_25
+    calcul_apl_logement_foyer_dot_coefficient_r_d832_25_1 = result_18.coefficient_r_d832_25
+    calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_3 = result_18.n_nombre_parts_d832_25
+    calcul_apl_logement_foyer_dot_equivalence_loyer_eligible_1 = result_18.equivalence_loyer_eligible
+    calcul_apl_logement_foyer_dot_plafond_equivalence_loyer_eligible_1 = result_18.plafond_equivalence_loyer_eligible
+    calcul_apl_logement_foyer_dot_equivalence_loyer_minimale_1 = result_18.equivalence_loyer_minimale
+    calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_1 = result_18.coefficient_prise_en_charge_d832_25
+    calcul_apl_logement_foyer_dot_aide_finale_formule_1 = result_18.aide_finale_formule
+    calcul_apl_logement_foyer_dot_traitement_aide_finale_montant_minimal_1 = result_18.traitement_aide_finale
     try:
         try:
             match_arg_498 = type_travaux_logement_1
@@ -16540,8 +16536,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_montant_minimal_4 = temp_traitement_aide_finale_montant_minimal_4
-    return CalculAllocationLogementAccessionProprieteOut(aide_finale_formule_out = aide_finale_formule_5,
-        traitement_aide_finale_montant_minimal_out = traitement_aide_finale_montant_minimal_4)
+    return CalculAllocationLogementAccessionPropriete(aide_finale_formule = aide_finale_formule_5,
+        traitement_aide_finale = traitement_aide_finale_montant_minimal_4)
 
 def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:CalculAidePersonnaliseeLogementIn):
     mode_occupation_2 = calcul_aide_personnalisee_logement_in.mode_occupation_in
@@ -17025,11 +17021,11 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
         type_pret_in = accession_propriete_dot_type_pret,
         anciennete_logement_in = accession_propriete_dot_anciennete_logement,
         date_courante_in = accession_propriete_dot_date_courante))
-    accession_propriete_dot_mensualite_eligible = result_19.mensualite_eligible_out
-    accession_propriete_dot_mensualite_minimale = result_19.mensualite_minimale_out
-    accession_propriete_dot_coefficient_prise_en_charge_d832_10_seuil = result_19.coefficient_prise_en_charge_d832_10_seuil_out
-    accession_propriete_dot_aide_finale_formule = result_19.aide_finale_formule_out
-    accession_propriete_dot_traitement_aide_finale_montant_minimal = result_19.traitement_aide_finale_montant_minimal_out
+    accession_propriete_dot_mensualite_eligible = result_19.mensualite_eligible
+    accession_propriete_dot_mensualite_minimale = result_19.mensualite_minimale
+    accession_propriete_dot_coefficient_prise_en_charge_d832_10_seuil = result_19.coefficient_prise_en_charge_d832_10
+    accession_propriete_dot_aide_finale_formule = result_19.aide_finale_formule
+    accession_propriete_dot_traitement_aide_finale_montant_minimal = result_19.traitement_aide_finale
     try:
         match_arg_512 = mode_occupation_2
         if match_arg_512.code == ModeOccupation_Code.Locataire:
@@ -17230,15 +17226,15 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          redevance_in = logement_foyer_dot_redevance,
                                                          condition_2_du_832_25_in = logement_foyer_dot_condition_2_du_832_25,
                                                          n_nombre_parts_d832_25_in = logement_foyer_dot_n_nombre_parts_d832_25))
-    logement_foyer_dot_coefficient_multiplicateur_d832_25 = result_20.coefficient_multiplicateur_d832_25_out
-    logement_foyer_dot_coefficient_r_d832_25 = result_20.coefficient_r_d832_25_out
-    logement_foyer_dot_n_nombre_parts_d832_25_1 = result_20.n_nombre_parts_d832_25_out
-    logement_foyer_dot_equivalence_loyer_eligible = result_20.equivalence_loyer_eligible_out
-    logement_foyer_dot_plafond_equivalence_loyer_eligible = result_20.plafond_equivalence_loyer_eligible_out
-    logement_foyer_dot_equivalence_loyer_minimale = result_20.equivalence_loyer_minimale_out
-    logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil = result_20.coefficient_prise_en_charge_d832_25_seuil_out
-    logement_foyer_dot_aide_finale_formule = result_20.aide_finale_formule_out
-    logement_foyer_dot_traitement_aide_finale_montant_minimal = result_20.traitement_aide_finale_montant_minimal_out
+    logement_foyer_dot_coefficient_multiplicateur_d832_25 = result_20.coefficient_multiplicateur_d832_25
+    logement_foyer_dot_coefficient_r_d832_25 = result_20.coefficient_r_d832_25
+    logement_foyer_dot_n_nombre_parts_d832_25_1 = result_20.n_nombre_parts_d832_25
+    logement_foyer_dot_equivalence_loyer_eligible = result_20.equivalence_loyer_eligible
+    logement_foyer_dot_plafond_equivalence_loyer_eligible = result_20.plafond_equivalence_loyer_eligible
+    logement_foyer_dot_equivalence_loyer_minimale = result_20.equivalence_loyer_minimale
+    logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil = result_20.coefficient_prise_en_charge_d832_25
+    logement_foyer_dot_aide_finale_formule = result_20.aide_finale_formule
+    logement_foyer_dot_traitement_aide_finale_montant_minimal = result_20.traitement_aide_finale
     try:
         match_arg_515 = mode_occupation_2
         if match_arg_515.code == ModeOccupation_Code.Locataire:
@@ -17589,13 +17585,13 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                            colocation_in = locatif_dot_colocation,
                                                            reduction_loyer_solidarite_in = locatif_dot_reduction_loyer_solidarite,
                                                            logement_meuble_d842_2_in = locatif_dot_logement_meuble_d842_2))
-    locatif_dot_montant_forfaitaire_charges_d823_16 = result_21.montant_forfaitaire_charges_d823_16_out
-    locatif_dot_plafond_loyer_d823_16_2 = result_21.plafond_loyer_d823_16_2_out
-    locatif_dot_participation_minimale = result_21.participation_minimale_out
-    locatif_dot_taux_composition_familiale = result_21.taux_composition_familiale_out
-    locatif_dot_participation_personnelle = result_21.participation_personnelle_out
-    locatif_dot_aide_finale_formule = result_21.aide_finale_formule_out
-    locatif_dot_traitement_aide_finale_montant_minimal = result_21.traitement_aide_finale_montant_minimal_out
+    locatif_dot_montant_forfaitaire_charges_d823_16 = result_21.montant_forfaitaire_charges_d823_16
+    locatif_dot_plafond_loyer_d823_16_2 = result_21.plafond_loyer_d823_16_2
+    locatif_dot_participation_minimale = result_21.participation_minimale
+    locatif_dot_taux_composition_familiale = result_21.taux_composition_familiale
+    locatif_dot_participation_personnelle = result_21.participation_personnelle
+    locatif_dot_aide_finale_formule = result_21.aide_finale_formule
+    locatif_dot_traitement_aide_finale_montant_minimal = result_21.traitement_aide_finale
     try:
         def temp_traitement_aide_finale_2(param_40:Money):
             try:
@@ -17653,8 +17649,8 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     aide_finale_formule_6 = temp_aide_finale_formule_7
-    return CalculAidePersonnaliseeLogementOut(aide_finale_formule_out = aide_finale_formule_6,
-        traitement_aide_finale_out = traitement_aide_finale_1)
+    return CalculAidePersonnaliseeLogement(aide_finale_formule = aide_finale_formule_6,
+        traitement_aide_finale = traitement_aide_finale_1)
 
 def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:EligibilitePrimeDeDemenagementIn):
     informations = eligibilite_prime_de_demenagement_in.informations_in
@@ -17720,7 +17716,7 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
                                              "Prologue : aides au logement"]))
     base_mensuelle_allocations_familiales_dot_date_courante_1 = temp_base_mensuelle_allocations_familiales_dot_date_courante_1
     result_22 = base_mensuelle_allocations_familiales(BaseMensuelleAllocationsFamilialesIn(date_courante_in = base_mensuelle_allocations_familiales_dot_date_courante_1))
-    base_mensuelle_allocations_familiales_dot_montant_1 = result_22.montant_out
+    base_mensuelle_allocations_familiales_dot_montant_1 = result_22.montant
     try:
         temp_eligibilite_apl_dot_menage = menage_1
     except EmptyError:
@@ -17769,11 +17765,11 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
                                                        date_courante_in = eligibilite_apl_dot_date_courante,
                                                        condition_logement_residence_principale_in = eligibilite_apl_dot_condition_logement_residence_principale,
                                                        condition_logement_surface_in = eligibilite_apl_dot_condition_logement_surface))
-    eligibilite_apl_dot_date_courante_1 = result_23.date_courante_out
-    eligibilite_apl_dot_eligibilite = result_23.eligibilite_out
-    eligibilite_apl_dot_nombre_personnes_a_charge_prises_en_compte = result_23.nombre_personnes_a_charge_prises_en_compte_out
-    eligibilite_apl_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_23.coefficents_enfants_garde_alternee_pris_en_compte_out
-    eligibilite_apl_dot_condition_2_r823_4 = result_23.condition_2_r823_4_out
+    eligibilite_apl_dot_date_courante_1 = result_23.date_courante
+    eligibilite_apl_dot_eligibilite = result_23.eligibilite
+    eligibilite_apl_dot_nombre_personnes_a_charge_prises_en_compte = result_23.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_apl_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_23.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_apl_dot_condition_2_r823_4 = result_23.condition_2_r823_4
     try:
         try:
             match_arg_527 = informations.date_naissance_troisieme_enfant_ou_dernier_si_plus
@@ -17894,7 +17890,7 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     montant_prime_demenagement = temp_montant_prime_demenagement
-    return EligibilitePrimeDeDemenagementOut(montant_prime_demenagement_out = montant_prime_demenagement)
+    return EligibilitePrimeDeDemenagement(montant_prime_demenagement = montant_prime_demenagement)
 
 def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logement_in:EligibiliteAidePersonnaliseeLogementIn):
     menage_2 = eligibilite_aide_personnalisee_logement_in.menage_in
@@ -18172,11 +18168,11 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                                        date_courante_in = eligibilite_commune_dot_date_courante,
                                                        condition_logement_residence_principale_in = eligibilite_commune_dot_condition_logement_residence_principale,
                                                        condition_logement_surface_in = eligibilite_commune_dot_condition_logement_surface))
-    eligibilite_commune_dot_date_courante_1 = result_24.date_courante_out
-    eligibilite_commune_dot_eligibilite = result_24.eligibilite_out
-    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte = result_24.nombre_personnes_a_charge_prises_en_compte_out
-    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_24.coefficents_enfants_garde_alternee_pris_en_compte_out
-    eligibilite_commune_dot_condition_2_r823_4 = result_24.condition_2_r823_4_out
+    eligibilite_commune_dot_date_courante_1 = result_24.date_courante
+    eligibilite_commune_dot_eligibilite = result_24.eligibilite
+    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte = result_24.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_24.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_commune_dot_condition_2_r823_4 = result_24.condition_2_r823_4
     try:
         try:
             try:
@@ -18355,10 +18351,10 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     eligibilite_1 = temp_eligibilite_1
-    return EligibiliteAidePersonnaliseeLogementOut(date_courante_out = date_courante_13,
-        eligibilite_out = eligibilite_1,
-        nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_1,
-        coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_1)
+    return EligibiliteAidePersonnaliseeLogement(date_courante = date_courante_13,
+        eligibilite = eligibilite_1,
+        nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte_1,
+        coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte_1)
 
 def eligibilite_allocation_logement(eligibilite_allocation_logement_in:EligibiliteAllocationLogementIn):
     date_courante_14 = eligibilite_allocation_logement_in.date_courante_in
@@ -18414,10 +18410,10 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
     result_25 = eligibilite_prestations_familiales(EligibilitePrestationsFamilialesIn(date_courante_in = prestations_familiales_dot_date_courante,
                                                    prestation_courante_in = prestations_familiales_dot_prestation_courante,
                                                    residence_in = prestations_familiales_dot_residence))
-    prestations_familiales_dot_droit_ouvert = result_25.droit_ouvert_out
-    prestations_familiales_dot_conditions_hors_age = result_25.conditions_hors_age_out
-    prestations_familiales_dot_age_l512_3_2 = result_25.age_l512_3_2_out
-    prestations_familiales_dot_regime_outre_mer_l751_1 = result_25.regime_outre_mer_l751_1_out
+    prestations_familiales_dot_droit_ouvert = result_25.droit_ouvert
+    prestations_familiales_dot_conditions_hors_age = result_25.conditions_hors_age
+    prestations_familiales_dot_age_l512_3_2 = result_25.age_l512_3_2
+    prestations_familiales_dot_regime_outre_mer_l751_1 = result_25.regime_outre_mer_l751_1
     try:
         try:
             try:
@@ -18684,11 +18680,11 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                                        date_courante_in = eligibilite_commune_dot_date_courante_2,
                                                        condition_logement_residence_principale_in = eligibilite_commune_dot_condition_logement_residence_principale_1,
                                                        condition_logement_surface_in = eligibilite_commune_dot_condition_logement_surface_1))
-    eligibilite_commune_dot_date_courante_3 = result_26.date_courante_out
-    eligibilite_commune_dot_eligibilite_1 = result_26.eligibilite_out
-    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_1 = result_26.nombre_personnes_a_charge_prises_en_compte_out
-    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1 = result_26.coefficents_enfants_garde_alternee_pris_en_compte_out
-    eligibilite_commune_dot_condition_2_r823_4_1 = result_26.condition_2_r823_4_out
+    eligibilite_commune_dot_date_courante_3 = result_26.date_courante
+    eligibilite_commune_dot_eligibilite_1 = result_26.eligibilite
+    eligibilite_commune_dot_nombre_personnes_a_charge_prises_en_compte_1 = result_26.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1 = result_26.coefficents_enfants_garde_alternee_pris_en_compte
+    eligibilite_commune_dot_condition_2_r823_4_1 = result_26.condition_2_r823_4
     try:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_4 = eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1
     except EmptyError:
@@ -18714,10 +18710,10 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
     try:
         if (not eligibilite_commune_dot_eligibilite_1 or
             not condition_accession_propriete):
-            temp_eligibilite_dispositions_communes = EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.PasEligible,
+            temp_eligibilite_dispositions_communes = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                 Unit())
         else:
-            temp_eligibilite_dispositions_communes = EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.AllocationLogementSociale,
+            temp_eligibilite_dispositions_communes = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale,
                 Unit())
     except EmptyError:
         temp_eligibilite_dispositions_communes = dead_value
@@ -18948,13 +18944,13 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                     _ = match_arg_567.value
                     temp_eligibilite_l841_2_3 = False
                 if temp_eligibilite_l841_2_3:
-                    return EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.PasEligible,
+                    return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                         Unit())
                 else:
                     raise EmptyError
             def temp_eligibilite_l841_2_4(_:Unit):
                 if demandeur_3.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale:
-                    return EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.AllocationLogementSociale,
+                    return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale,
                         Unit())
                 else:
                     raise EmptyError
@@ -18970,17 +18966,17 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                                        temp_eligibilite_l841_2)
         except EmptyError:
             if ((eligibilite_dispositions_communes ==
-                EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.PasEligible,
+                TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                 Unit())) or
                 beneficie_aide_personnalisee_logement):
-                temp_eligibilite_l841_2_5 = EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.PasEligible,
+                temp_eligibilite_l841_2_5 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                     Unit())
             else:
                 if eligibilite_allocation_logement_familiale:
-                    temp_eligibilite_l841_2_5 = EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.AllocationLogementFamiliale,
+                    temp_eligibilite_l841_2_5 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale,
                         Unit())
                 else:
-                    temp_eligibilite_l841_2_5 = EligibiliteAllocationLogement(EligibiliteAllocationLogement_Code.AllocationLogementSociale,
+                    temp_eligibilite_l841_2_5 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale,
                         Unit())
     except EmptyError:
         temp_eligibilite_l841_2_5 = dead_value
@@ -18991,9 +18987,9 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
     eligibilite_l841_2 = temp_eligibilite_l841_2_5
-    return EligibiliteAllocationLogementOut(eligibilite_l841_2_out = eligibilite_l841_2,
-        nombre_personnes_a_charge_prises_en_compte_out = nombre_personnes_a_charge_prises_en_compte_2,
-        coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_2)
+    return EligibiliteAllocationLogement(eligibilite = eligibilite_l841_2,
+        nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte_2,
+        coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte_2)
 
 def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLogementIn):
     mode_occupation_3 = calcul_allocation_logement_in.mode_occupation_in
@@ -19437,8 +19433,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                date_entree_logement_in = accession_propriete_dot_date_entree_logement_1,
                                                                charges_mensuelles_pret_in = accession_propriete_dot_charges_mensuelles_pret,
                                                                copropriete_in = accession_propriete_dot_copropriete_1))
-    accession_propriete_dot_aide_finale_formule_1 = result_27.aide_finale_formule_out
-    accession_propriete_dot_traitement_aide_finale_montant_minimal_1 = result_27.traitement_aide_finale_montant_minimal_out
+    accession_propriete_dot_aide_finale_formule_1 = result_27.aide_finale_formule
+    accession_propriete_dot_traitement_aide_finale_montant_minimal_1 = result_27.traitement_aide_finale
     try:
         match_arg_578 = mode_occupation_3
         if match_arg_578.code == ModeOccupation_Code.Locataire:
@@ -19664,12 +19660,12 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                  zone_in = logement_foyer_dot_zone_1,
                                                  date_courante_in = logement_foyer_dot_date_courante_1,
                                                  categorie_equivalence_loyer_d842_16_in = logement_foyer_dot_categorie_equivalence_loyer_d842_16))
-    logement_foyer_dot_coefficient_prise_en_charge = result_28.coefficient_prise_en_charge_out
-    logement_foyer_dot_equivalence_loyer = result_28.equivalence_loyer_out
-    logement_foyer_dot_montant_forfaitaire_charges = result_28.montant_forfaitaire_charges_out
-    logement_foyer_dot_loyer_minimal = result_28.loyer_minimal_out
-    logement_foyer_dot_aide_finale_formule_1 = result_28.aide_finale_formule_out
-    logement_foyer_dot_traitement_aide_finale_montant_minimal_1 = result_28.traitement_aide_finale_montant_minimal_out
+    logement_foyer_dot_coefficient_prise_en_charge = result_28.coefficient_prise_en_charge
+    logement_foyer_dot_equivalence_loyer = result_28.equivalence_loyer
+    logement_foyer_dot_montant_forfaitaire_charges = result_28.montant_forfaitaire_charges
+    logement_foyer_dot_loyer_minimal = result_28.loyer_minimal
+    logement_foyer_dot_aide_finale_formule_1 = result_28.aide_finale_formule
+    logement_foyer_dot_traitement_aide_finale_montant_minimal_1 = result_28.traitement_aide_finale
     try:
         match_arg_582 = mode_occupation_3
         if match_arg_582.code == ModeOccupation_Code.Locataire:
@@ -20056,8 +20052,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                    reduction_loyer_solidarite_in = locatif_dot_reduction_loyer_solidarite_1,
                                                    logement_meuble_d842_2_in = locatif_dot_logement_meuble_d842_2_1,
                                                    changement_logement_d842_4_in = locatif_dot_changement_logement_d842_4))
-    locatif_dot_aide_finale_formule_1 = result_29.aide_finale_formule_out
-    locatif_dot_traitement_aide_finale = result_29.traitement_aide_finale_out
+    locatif_dot_aide_finale_formule_1 = result_29.aide_finale_formule
+    locatif_dot_traitement_aide_finale = result_29.traitement_aide_finale
     try:
         def temp_traitement_aide_finale_3(param_43:Money):
             try:
@@ -20114,8 +20110,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
     aide_finale_formule_7 = temp_aide_finale_formule_8
-    return CalculAllocationLogementOut(aide_finale_formule_out = aide_finale_formule_7,
-        traitement_aide_finale_out = traitement_aide_finale_2)
+    return CalculAllocationLogement(aide_finale_formule = aide_finale_formule_7,
+        traitement_aide_finale = traitement_aide_finale_2)
 
 def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAidesAuLogementIn):
     menage_4 = calculette_aides_au_logement_in.menage_in
@@ -20173,9 +20169,9 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                                 menage_in = eligibilite_allocation_logement_dot_menage,
                                                 demandeur_in = eligibilite_allocation_logement_dot_demandeur,
                                                 beneficie_aide_personnalisee_logement_in = eligibilite_allocation_logement_dot_beneficie_aide_personnalisee_logement))
-    eligibilite_allocation_logement_dot_eligibilite_l841_2 = result_30.eligibilite_l841_2_out
-    eligibilite_allocation_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_30.nombre_personnes_a_charge_prises_en_compte_out
-    eligibilite_allocation_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_30.coefficents_enfants_garde_alternee_pris_en_compte_out
+    eligibilite_allocation_logement_dot_eligibilite_l841_2 = result_30.eligibilite
+    eligibilite_allocation_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_30.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_allocation_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_30.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_eligibilite_aide_personnalisee_logement_dot_menage = menage_4
     except EmptyError:
@@ -20212,10 +20208,10 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     result_31 = eligibilite_aide_personnalisee_logement(EligibiliteAidePersonnaliseeLogementIn(menage_in = eligibilite_aide_personnalisee_logement_dot_menage,
                                                         demandeur_in = eligibilite_aide_personnalisee_logement_dot_demandeur,
                                                         date_courante_in = eligibilite_aide_personnalisee_logement_dot_date_courante))
-    eligibilite_aide_personnalisee_logement_dot_date_courante_1 = result_31.date_courante_out
-    eligibilite_aide_personnalisee_logement_dot_eligibilite = result_31.eligibilite_out
-    eligibilite_aide_personnalisee_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_31.nombre_personnes_a_charge_prises_en_compte_out
-    eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_31.coefficents_enfants_garde_alternee_pris_en_compte_out
+    eligibilite_aide_personnalisee_logement_dot_date_courante_1 = result_31.date_courante
+    eligibilite_aide_personnalisee_logement_dot_eligibilite = result_31.eligibilite
+    eligibilite_aide_personnalisee_logement_dot_nombre_personnes_a_charge_prises_en_compte = result_31.nombre_personnes_a_charge_prises_en_compte
+    eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_31.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_calcul_allocation_logement_dot_mode_occupation = menage_4.logement.mode_occupation
     except EmptyError:
@@ -20284,15 +20280,15 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     calcul_allocation_logement_dot_date_courante = temp_calcul_allocation_logement_dot_date_courante
     try:
         match_arg_594 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-        if match_arg_594.code == EligibiliteAllocationLogement_Code.PasEligible:
+        if match_arg_594.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
             _ = match_arg_594.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementSociale,
                 Unit())
-        elif match_arg_594.code == EligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+        elif match_arg_594.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
             _ = match_arg_594.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementFamiliale,
                 Unit())
-        elif match_arg_594.code == EligibiliteAllocationLogement_Code.AllocationLogementSociale:
+        elif match_arg_594.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
             _ = match_arg_594.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementSociale,
                 Unit())
@@ -20317,8 +20313,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                            zone_in = calcul_allocation_logement_dot_zone,
                                            date_courante_in = calcul_allocation_logement_dot_date_courante,
                                            type_aide_in = calcul_allocation_logement_dot_type_aide))
-    calcul_allocation_logement_dot_aide_finale_formule = result_32.aide_finale_formule_out
-    calcul_allocation_logement_dot_traitement_aide_finale = result_32.traitement_aide_finale_out
+    calcul_allocation_logement_dot_aide_finale_formule = result_32.aide_finale_formule
+    calcul_allocation_logement_dot_traitement_aide_finale = result_32.traitement_aide_finale
     try:
         temp_calcul_aide_personnalisee_logement_dot_mode_occupation = menage_4.logement.mode_occupation
     except EmptyError:
@@ -20407,8 +20403,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                                    nombre_personnes_a_charge_in = calcul_aide_personnalisee_logement_dot_nombre_personnes_a_charge,
                                                    zone_in = calcul_aide_personnalisee_logement_dot_zone,
                                                    date_courante_in = calcul_aide_personnalisee_logement_dot_date_courante))
-    calcul_aide_personnalisee_logement_dot_aide_finale_formule = result_33.aide_finale_formule_out
-    calcul_aide_personnalisee_logement_dot_traitement_aide_finale = result_33.traitement_aide_finale_out
+    calcul_aide_personnalisee_logement_dot_aide_finale_formule = result_33.aide_finale_formule
+    calcul_aide_personnalisee_logement_dot_traitement_aide_finale = result_33.traitement_aide_finale
     try:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_5 = eligibilite_aide_personnalisee_logement_dot_coefficents_enfants_garde_alternee_pris_en_compte
     except EmptyError:
@@ -20422,13 +20418,13 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
     coefficents_enfants_garde_alternee_pris_en_compte_3 = temp_coefficents_enfants_garde_alternee_pris_en_compte_5
     try:
         match_arg_595 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-        if match_arg_595.code == EligibiliteAllocationLogement_Code.PasEligible:
+        if match_arg_595.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
             _ = match_arg_595.value
             temp_eligibilite_2 = False
-        elif match_arg_595.code == EligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+        elif match_arg_595.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
             _ = match_arg_595.value
             temp_eligibilite_2 = True
-        elif match_arg_595.code == EligibiliteAllocationLogement_Code.AllocationLogementSociale:
+        elif match_arg_595.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
             _ = match_arg_595.value
             temp_eligibilite_2 = True
         temp_eligibilite_3 = (eligibilite_aide_personnalisee_logement_dot_eligibilite or
@@ -20449,13 +20445,13 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                     return param_44
                 else:
                     match_arg_596 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-                    if match_arg_596.code == EligibiliteAllocationLogement_Code.PasEligible:
+                    if match_arg_596.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
                         _ = match_arg_596.value
                         temp_traitement_aide_finale_5 = True
-                    elif match_arg_596.code == EligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+                    elif match_arg_596.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
                         _ = match_arg_596.value
                         temp_traitement_aide_finale_5 = False
-                    elif match_arg_596.code == EligibiliteAllocationLogement_Code.AllocationLogementSociale:
+                    elif match_arg_596.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
                         _ = match_arg_596.value
                         temp_traitement_aide_finale_5 = False
                     if (eligibilite_aide_personnalisee_logement_dot_eligibilite and
@@ -20498,13 +20494,13 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
             temp_aide_finale_formule_9 = money_of_cents_string("0")
         else:
             match_arg_597 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-            if match_arg_597.code == EligibiliteAllocationLogement_Code.PasEligible:
+            if match_arg_597.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
                 _ = match_arg_597.value
                 temp_aide_finale_formule_10 = True
-            elif match_arg_597.code == EligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+            elif match_arg_597.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
                 _ = match_arg_597.value
                 temp_aide_finale_formule_10 = False
-            elif match_arg_597.code == EligibiliteAllocationLogement_Code.AllocationLogementSociale:
+            elif match_arg_597.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
                 _ = match_arg_597.value
                 temp_aide_finale_formule_10 = False
             if (eligibilite_aide_personnalisee_logement_dot_eligibilite and
@@ -20530,10 +20526,10 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     aide_finale_formule_8 = temp_aide_finale_formule_9
-    return CalculetteAidesAuLogementOut(eligibilite_out = eligibilite_2,
-        aide_finale_formule_out = aide_finale_formule_8,
-        traitement_aide_finale_out = traitement_aide_finale_3,
-        coefficents_enfants_garde_alternee_pris_en_compte_out = coefficents_enfants_garde_alternee_pris_en_compte_3)
+    return CalculetteAidesAuLogement(eligibilite = eligibilite_2,
+        aide_finale_formule = aide_finale_formule_8,
+        traitement_aide_finale = traitement_aide_finale_3,
+        coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte_3)
 
 def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_garde_alternee_in:CalculetteAidesAuLogementGardeAlterneeIn):
     menage_5 = calculette_aides_au_logement_garde_alternee_in.menage_in
@@ -20620,10 +20616,10 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
                                              demandeur_in = calculette_dot_demandeur,
                                              date_courante_in = calculette_dot_date_courante,
                                              ressources_menage_prises_en_compte_in = calculette_dot_ressources_menage_prises_en_compte))
-    calculette_dot_eligibilite = result_34.eligibilite_out
-    calculette_dot_aide_finale_formule = result_34.aide_finale_formule_out
-    calculette_dot_traitement_aide_finale = result_34.traitement_aide_finale_out
-    calculette_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_34.coefficents_enfants_garde_alternee_pris_en_compte_out
+    calculette_dot_eligibilite = result_34.eligibilite
+    calculette_dot_aide_finale_formule = result_34.aide_finale_formule
+    calculette_dot_traitement_aide_finale = result_34.traitement_aide_finale
+    calculette_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_34.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_calculette_sans_garde_alternee_dot_menage = menage_sans_enfants_garde_alternee
     except EmptyError:
@@ -20671,10 +20667,10 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
                                              demandeur_in = calculette_sans_garde_alternee_dot_demandeur,
                                              date_courante_in = calculette_sans_garde_alternee_dot_date_courante,
                                              ressources_menage_prises_en_compte_in = calculette_sans_garde_alternee_dot_ressources_menage_prises_en_compte))
-    calculette_sans_garde_alternee_dot_eligibilite = result_35.eligibilite_out
-    calculette_sans_garde_alternee_dot_aide_finale_formule = result_35.aide_finale_formule_out
-    calculette_sans_garde_alternee_dot_traitement_aide_finale = result_35.traitement_aide_finale_out
-    calculette_sans_garde_alternee_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_35.coefficents_enfants_garde_alternee_pris_en_compte_out
+    calculette_sans_garde_alternee_dot_eligibilite = result_35.eligibilite
+    calculette_sans_garde_alternee_dot_aide_finale_formule = result_35.aide_finale_formule
+    calculette_sans_garde_alternee_dot_traitement_aide_finale = result_35.traitement_aide_finale
+    calculette_sans_garde_alternee_dot_coefficents_enfants_garde_alternee_pris_en_compte = result_35.coefficents_enfants_garde_alternee_pris_en_compte
     try:
         temp_eligibilite_4 = calculette_dot_eligibilite
     except EmptyError:
@@ -20720,5 +20716,5 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
     aide_finale = temp_aide_finale_2
-    return CalculetteAidesAuLogementGardeAlterneeOut(eligibilite_out = eligibilite_3,
-        aide_finale_out = aide_finale)
+    return CalculetteAidesAuLogementGardeAlternee(eligibilite = eligibilite_3,
+        aide_finale = aide_finale)

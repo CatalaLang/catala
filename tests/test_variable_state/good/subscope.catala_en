@@ -42,6 +42,6 @@ let scope A (foo_bar: integer|context) (foo_baz: integer|internal)
 ```catala-test-inline
 $ catala Interpret -s B
 [RESULT] Computation successful! Results:
-[RESULT] foofoo_baz = 4
+[RESULT] foofoo = 4
 [RESULT] foofoofoo = 6
 ```

@@ -54,7 +54,7 @@ def allocations_familiales(
         i_personne_charge_effective_permanente_remplit_titre_I_in=personne_charge_effective_permanente_remplit_titre_I,
         i_avait_enfant_a_charge_avant_1er_janvier_2012_in=avait_enfant_a_charge_avant_1er_janvier_2012
     ))
-    return money_to_float(out.i_montant_verse_out)
+    return money_to_float(out.i_montant_verse)
 
 # Aides au logement
 
@@ -361,4 +361,4 @@ def aides_logement(
         ressources_menage_prises_en_compte_in=money_of_units_int(
             ressources_menage_prises_en_compte),
     ))
-    return money_to_float(out.aide_finale_out)
+    return money_to_float(out.aide_finale)

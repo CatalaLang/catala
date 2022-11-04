@@ -15,7 +15,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] Struct Fo has not been defined before
+[ERROR] No struct named Fo found
 
   --> tests/test_struct/bad/nonexisting_struct.catala_en
    |

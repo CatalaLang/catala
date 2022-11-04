@@ -19,14 +19,7 @@
 
 open Utils
 open Shared_ast
-
-module SVertex = struct
-  type t = ScopeName.t
-
-  let hash x = ScopeName.hash x
-  let compare = ScopeName.compare
-  let equal x y = ScopeName.compare x y = 0
-end
+module SVertex = ScopeName
 
 (** On the edges, the label is the expression responsible for the use of the
     function *)
@@ -45,6 +38,29 @@ module STopologicalTraversal = Graph.Topological.Make (SDependencies)
 module SSCC = Graph.Components.Make (SDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
+let rec expr_used_scopes e =
+  let recurse_subterms e =
+    Expr.shallow_fold
+      (fun e -> ScopeMap.union (fun _ x _ -> Some x) (expr_used_scopes e))
+      e ScopeMap.empty
+  in
+  match e with
+  | (EScopeCall (scope, _), m) as e ->
+    ScopeMap.add scope (Expr.mark_pos m) (recurse_subterms e)
+  | EAbs (binder, _), _ ->
+    let _, body = Bindlib.unmbind binder in
+    expr_used_scopes body
+  | e -> recurse_subterms e
+
+let rule_used_scopes = function
+  | Ast.Assertion e | Ast.Definition (_, _, _, e) ->
+    (* TODO: maybe this info could be passed on from previous passes without
+       walking through all exprs again *)
+    expr_used_scopes e
+  | Ast.Call (subscope, subindex, _) ->
+    ScopeMap.singleton subscope
+      (Marked.get_mark (SubScopeName.get_info subindex))
+
 let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   let g = SDependencies.empty in
   let g =
@@ -54,30 +70,21 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   in
   ScopeMap.fold
     (fun scope_name scope g ->
-      let subscopes =
-        List.fold_left
-          (fun acc r ->
-            match r with
-            | Ast.Definition _ | Ast.Assertion _ -> acc
-            | Ast.Call (subscope, subindex, _) ->
-              if subscope = scope_name then
-                Errors.raise_spanned_error
-                  (Marked.get_mark
-                     (ScopeName.get_info scope.Ast.scope_decl_name))
-                  "The scope %a is calling into itself as a subscope, which is \
-                   forbidden since Catala does not provide recursion"
-                  ScopeName.format_t scope.Ast.scope_decl_name
-              else
-                ScopeMap.add subscope
-                  (Marked.get_mark (SubScopeName.get_info subindex))
-                  acc)
-          ScopeMap.empty scope.Ast.scope_decl_rules
-      in
-      ScopeMap.fold
-        (fun subscope pos g ->
-          let edge = SDependencies.E.create subscope pos scope_name in
-          SDependencies.add_edge_e g edge)
-        subscopes g)
+      List.fold_left
+        (fun g rule ->
+          let used_scopes = rule_used_scopes rule in
+          if ScopeMap.mem scope_name used_scopes then
+            Errors.raise_spanned_error
+              (Marked.get_mark (ScopeName.get_info scope.Ast.scope_decl_name))
+              "The scope %a is calling into itself as a subscope, which is \
+               forbidden since Catala does not provide recursion"
+              ScopeName.format_t scope.Ast.scope_decl_name;
+          ScopeMap.fold
+            (fun used_scope pos g ->
+              let edge = SDependencies.E.create used_scope pos scope_name in
+              SDependencies.add_edge_e g edge)
+            used_scopes g)
+        g scope.Ast.scope_decl_rules)
     prgm.program_scopes g
 
 let check_for_cycle_in_scope (g : SDependencies.t) : unit =

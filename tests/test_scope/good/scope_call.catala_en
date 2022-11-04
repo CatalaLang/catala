@@ -1,0 +1,31 @@
+```catala
+declaration structure Test:
+    data z2 content integer
+    data z3 content integer
+
+declaration scope SubFoo:
+  input x content integer
+  input y content integer
+  output z1 content integer
+  output z2 content integer
+
+declaration scope Foo:
+  output example content integer
+
+scope SubFoo:
+  definition z1 equals x + y
+  definition z2 equals x - y
+
+scope Foo:
+  definition example equals
+    if true or false then
+      let results_foo equals SubFoo of { -- x: 1 -- y: 2 } in
+      results_foo.z1 + 1 * (SubFoo of { -- x: 10 -- y: 20 }).SubFoo.z2
+    else 0
+```
+
+```catala-test-inline
+$ catala interpret -s Foo
+[RESULT] Computation successful! Results:
+[RESULT] example = -7
+```

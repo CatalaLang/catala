@@ -29,39 +29,15 @@ end)
 type 'm expr = (scopelang, 'm mark) gexpr
 
 let rec locations_used (e : 'm expr) : LocationSet.t =
-  match Marked.unmark e with
-  | ELocation l -> LocationSet.singleton (l, Expr.pos e)
-  | EVar _ | ELit _ | EOp _ -> LocationSet.empty
-  | EAbs (binder, _) ->
+  match e with
+  | ELocation l, pos -> LocationSet.singleton (l, Expr.mark_pos pos)
+  | EAbs (binder, _), _ ->
     let _, body = Bindlib.unmbind binder in
     locations_used body
-  | EStruct (_, es) ->
-    StructFieldMap.fold
-      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-      es LocationSet.empty
-  | EStructAccess (e1, _, _) -> locations_used e1
-  | EEnumInj (e1, _, _) -> locations_used e1
-  | EMatchS (e1, _, es) ->
-    EnumConstructorMap.fold
-      (fun _ e' acc -> LocationSet.union acc (locations_used e'))
-      es (locations_used e1)
-  | EApp (e1, args) ->
-    List.fold_left
-      (fun acc arg -> LocationSet.union (locations_used arg) acc)
-      (locations_used e1) args
-  | EIfThenElse (e1, e2, e3) ->
-    LocationSet.union (locations_used e1)
-      (LocationSet.union (locations_used e2) (locations_used e3))
-  | EDefault (excepts, just, cons) ->
-    List.fold_left
-      (fun acc except -> LocationSet.union (locations_used except) acc)
-      (LocationSet.union (locations_used just) (locations_used cons))
-      excepts
-  | EArray es ->
-    List.fold_left
-      (fun acc e' -> LocationSet.union acc (locations_used e'))
-      LocationSet.empty es
-  | ErrorOnEmpty e' -> locations_used e'
+  | e ->
+    Expr.shallow_fold
+      (fun e -> LocationSet.union (locations_used e))
+      e LocationSet.empty
 
 type io_input = NoInput | OnlyInput | Reentrant
 type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
@@ -99,8 +75,8 @@ let type_program (prg : 'm program) : typed program =
   let typing_env =
     ScopeMap.fold
       (fun scope_name scope_decl ->
-        Typing.Env.add_scope scope_name
-          (ScopeVarMap.map fst scope_decl.scope_sig))
+        let vars = ScopeVarMap.map fst scope_decl.scope_sig in
+        Typing.Env.add_scope scope_name ~vars)
       prg.program_scopes Typing.Env.empty
   in
   let program_scopes =

@@ -31,6 +31,9 @@ type 'm scope_sig_ctx = {
       (** Var representing the scope input inside the scope func *)
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
+  scope_sig_in_fields :
+    (StructFieldName.t * Ast.io_input Marked.pos) ScopeVarMap.t;
+      (** Mapping between the input scope variables and the input struct fields. *)
 }
 
 type 'm scope_sigs_ctx = 'm scope_sig_ctx ScopeMap.t
@@ -142,6 +145,17 @@ let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) :
   in
   excepts
 
+let thunk_scope_arg io_in e =
+  (* For "context" (or reentrant) variables, we thunk them as [(fun () -> e)] so
+     that we can put them in default terms at the initialisation of the function
+     body, allowing an empty error to recover the default value. *)
+  let silent_var = Var.make "_" in
+  let pos = Marked.get_mark io_in in
+  match Marked.unmark io_in with
+  | Ast.NoInput -> invalid_arg "thunk_scope_arg"
+  | Ast.OnlyInput -> Expr.eerroronempty e (Marked.get_mark e)
+  | Ast.Reentrant -> Expr.make_abs [| silent_var |] e [TLit TUnit, pos] pos
+
 let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
     'm Dcalc.Ast.expr boxed =
   let m = Marked.get_mark e in
@@ -225,6 +239,53 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
     else
       let e1 = translate_expr ctx e1 in
       Expr.ematch e1 d_cases enum_name m
+  | EScopeCall (sc_name, fields) ->
+    let pos = Expr.mark_pos m in
+    let sc_sig = ScopeMap.find sc_name ctx.scopes_parameters in
+    let in_var_map =
+      ScopeVarMap.merge
+        (fun var_name str_field expr ->
+          let expr =
+            match str_field, expr with
+            | Some (_, (Ast.Reentrant, _)), None ->
+              Some (Expr.unbox (Expr.elit LEmptyError (mark_tany m pos)))
+            | _ -> expr
+          in
+          match str_field, expr with
+          | None, None -> None
+          | Some (fld, io_in), Some e ->
+            Some (fld, thunk_scope_arg io_in (translate_expr ctx e))
+          | Some (fld, _), None ->
+            Errors.raise_multispanned_error
+              [
+                None, pos;
+                ( Some "Declaration of the missing input variable",
+                  Marked.get_mark (StructFieldName.get_info fld) );
+              ]
+              "Definition of input variable '%a' missing in this scope call"
+              ScopeVar.format_t var_name
+          | None, Some _ ->
+            Errors.raise_multispanned_error
+              [
+                None, pos;
+                ( Some "Declaration of scope '%a'",
+                  Marked.get_mark (ScopeName.get_info sc_name) );
+              ]
+              "Unknown input variable '%a' in scope call of '%a'"
+              ScopeVar.format_t var_name ScopeName.format_t sc_name)
+        sc_sig.scope_sig_in_fields fields
+    in
+    let field_map =
+      ScopeVarMap.fold
+        (fun _ (fld, e) acc -> StructFieldMap.add fld e acc)
+        in_var_map StructFieldMap.empty
+    in
+    let arg_struct =
+      Expr.make_struct field_map sc_sig.scope_sig_input_struct (mark_tany m pos)
+    in
+    Expr.eapp
+      (Expr.evar sc_sig.scope_sig_scope_var (mark_tany m pos))
+      [arg_struct] m
   | EApp (e1, args) ->
     (* We insert various log calls to record arguments and outputs of
        user-defined functions belonging to scopes *)
@@ -324,7 +385,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
           ( Some "Incriminated subscope declaration:",
             Marked.get_mark (SubScopeName.get_info (Marked.unmark s)) );
         ]
-        "The variable %a.%a cannot be used here, as it is not part subscope \
+        "The variable %a.%a cannot be used here, as it is not part of subscope \
          %a's results. Maybe you forgot to qualify it as an output?"
         SubScopeName.format_t (Marked.unmark s) ScopeVar.format_t
         (Marked.unmark a) SubScopeName.format_t (Marked.unmark s))
@@ -381,7 +442,7 @@ let translate_rule
                 scope_let_pos = Marked.get_mark a;
               })
           (Bindlib.bind_var a_var next)
-          (Expr.Box.inj merged_expr)),
+          (Expr.Box.lift merged_expr)),
       {
         ctx with
         scope_vars =
@@ -394,7 +455,6 @@ let translate_rule
         tau,
         a_io,
         e ) ->
-    let _pos_mark, pos_mark_as = pos_mark_mk e in
     let a_name =
       Marked.map_under_mark
         (fun str ->
@@ -407,16 +467,7 @@ let translate_rule
         (VarDef (Marked.unmark tau))
         [sigma_name, pos_sigma; a_name]
     in
-    let silent_var = Var.make "_" in
-    let thunked_or_nonempty_new_e =
-      match Marked.unmark a_io.io_input with
-      | NoInput -> failwith "should not happen"
-      | OnlyInput -> Expr.eerroronempty new_e (pos_mark_as subs_var)
-      | Reentrant ->
-        Expr.make_abs [| silent_var |] new_e
-          [TLit TUnit, var_def_pos]
-          var_def_pos
-    in
+    let thunked_or_nonempty_new_e = thunk_scope_arg a_io.Ast.io_input new_e in
     ( (fun next ->
         Bindlib.box_apply2
           (fun next thunked_or_nonempty_new_e ->
@@ -434,7 +485,7 @@ let translate_rule
                 scope_let_kind = SubScopeVarDefinition;
               })
           (Bindlib.bind_var a_var next)
-          (Expr.Box.inj thunked_or_nonempty_new_e)),
+          (Expr.Box.lift thunked_or_nonempty_new_e)),
       {
         ctx with
         subscope_vars =
@@ -496,6 +547,8 @@ let translate_rule
         all_subscope_input_vars
     in
     let subscope_struct_arg =
+      (* FIXME: this is very fragile: we assume that the ordering of the scope
+         variables is the same as the ordering of the struct fields. *)
       Expr.etuple subscope_args (Some called_scope_input_struct)
         (mark_tany m pos_call)
     in
@@ -545,7 +598,7 @@ let translate_rule
               scope_let_expr = call_expr;
             })
         (Bindlib.bind_var result_tuple_var next)
-        (Expr.Box.inj call_expr)
+        (Expr.Box.lift call_expr)
     in
     let result_bindings_lets next =
       List.fold_right
@@ -570,7 +623,7 @@ let translate_rule
                         mark_tany m pos_sigma );
                   })
               (Bindlib.bind_var v next)
-              (Expr.Box.inj
+              (Expr.Box.lift
                  (Expr.make_var result_tuple_var (mark_tany m pos_sigma))),
             i - 1 ))
         all_subscope_output_vars_dcalc
@@ -610,7 +663,7 @@ let translate_rule
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
-          (Expr.Box.inj new_e)),
+          (Expr.Box.lift new_e)),
       ctx )
 
 let translate_rules
@@ -647,7 +700,7 @@ let translate_rules
   ( scope_lets
       (Bindlib.box_apply
          (fun return_exp -> Result return_exp)
-         (Expr.Box.inj return_exp)),
+         (Expr.Box.lift return_exp)),
     new_ctx )
 
 let translate_scope_decl
@@ -708,11 +761,6 @@ let translate_scope_decl
         | _ -> true)
       scope_variables
   in
-  let scope_output_variables =
-    List.filter
-      (fun (var_ctx, _) -> Marked.unmark var_ctx.scope_var_io.io_output)
-      scope_variables
-  in
   let input_var_typ (var_ctx : scope_var_ctx) =
     match Marked.unmark var_ctx.scope_var_io.io_input with
     | OnlyInput -> var_ctx.scope_var_typ, pos_sigma
@@ -744,35 +792,22 @@ let translate_scope_decl
                          mark_tany sigma.scope_mark pos_sigma );
                    })
                (Bindlib.bind_var v next)
-               (Expr.Box.inj
+               (Expr.Box.lift
                   (Expr.make_var scope_input_var
                      (mark_tany sigma.scope_mark pos_sigma))),
              i - 1 ))
          scope_input_variables
          (next, List.length scope_input_variables - 1))
   in
-  let scope_return_struct_fields =
+  let field_map =
     List.map
-      (fun (var_ctx, dvar) ->
-        let struct_field_name =
-          StructFieldName.fresh (Bindlib.name_of dvar ^ "_out", pos_sigma)
-        in
-        struct_field_name, (var_ctx.scope_var_typ, pos_sigma))
-      scope_output_variables
-  in
-  let scope_input_struct_fields =
-    List.map
-      (fun (var_ctx, dvar) ->
-        let struct_field_name =
-          StructFieldName.fresh (Bindlib.name_of dvar ^ "_in", pos_sigma)
-        in
-        struct_field_name, input_var_typ var_ctx)
+      (fun (var_ctx, _) ->
+        let var = var_ctx.scope_var_name in
+        let field, _ = ScopeVarMap.find var scope_sig.scope_sig_in_fields in
+        field, input_var_typ var_ctx)
       scope_input_variables
   in
-  let new_struct_ctx =
-    StructMap.add scope_input_struct_name scope_input_struct_fields
-      (StructMap.singleton scope_return_struct_name scope_return_struct_fields)
-  in
+  let new_struct_ctx = StructMap.singleton scope_input_struct_name field_map in
   ( Bindlib.box_apply
       (fun scope_body_expr ->
         {
@@ -797,10 +832,7 @@ let translate_program (prgm : 'm Ast.program) : 'm Dcalc.Ast.program =
             (Marked.unmark (ScopeName.get_info scope.Ast.scope_decl_name))
         in
         let scope_return_struct_name =
-          StructName.fresh
-            (Marked.map_under_mark
-               (fun s -> s ^ "_out")
-               (ScopeName.get_info scope_name))
+          ScopeMap.find scope_name decl_ctx.ctx_scopes
         in
         let scope_input_var =
           Var.make (Marked.unmark (ScopeName.get_info scope_name) ^ "_in")
@@ -810,6 +842,19 @@ let translate_program (prgm : 'm Ast.program) : 'm Dcalc.Ast.program =
             (Marked.map_under_mark
                (fun s -> s ^ "_in")
                (ScopeName.get_info scope_name))
+        in
+        let scope_sig_in_fields =
+          ScopeVarMap.filter_map
+            (fun dvar (_, vis) ->
+              match Marked.unmark vis.Ast.io_input with
+              | NoInput -> None
+              | OnlyInput | Reentrant ->
+                let info = ScopeVar.get_info dvar in
+                let s = Marked.unmark info ^ "_in" in
+                Some
+                  ( StructFieldName.fresh (s, Marked.get_mark info),
+                    vis.Ast.io_input ))
+            scope.scope_sig
         in
         {
           scope_sig_local_vars =
@@ -825,38 +870,38 @@ let translate_program (prgm : 'm Ast.program) : 'm Dcalc.Ast.program =
           scope_sig_input_var = scope_input_var;
           scope_sig_input_struct = scope_input_struct_name;
           scope_sig_output_struct = scope_return_struct_name;
+          scope_sig_in_fields;
         })
       prgm.program_scopes
   in
   (* the resulting expression is the list of definitions of all the scopes,
-     ending with the top-level scope. *)
-  let (scopes, decl_ctx) : 'm Dcalc.Ast.expr scopes Bindlib.box * _ =
-    List.fold_right
-      (fun scope_name (scopes, decl_ctx) ->
-        let scope = ScopeMap.find scope_name prgm.program_scopes in
-        let scope_body, scope_out_struct =
-          translate_scope_decl decl_ctx.ctx_structs decl_ctx.ctx_enums sctx
-            scope_name scope
-        in
-        let dvar = (ScopeMap.find scope_name sctx).scope_sig_scope_var in
-        let decl_ctx =
-          {
-            decl_ctx with
-            ctx_structs =
-              StructMap.union
-                (fun _ _ -> assert false (* should not happen *))
-                decl_ctx.ctx_structs scope_out_struct;
-          }
-        in
-        let scope_next = Bindlib.bind_var dvar scopes in
-        let new_scopes =
-          Bindlib.box_apply2
-            (fun scope_body scope_next ->
-              ScopeDef { scope_name; scope_body; scope_next })
-            scope_body scope_next
-        in
-        new_scopes, decl_ctx)
-      scope_ordering
-      (Bindlib.box Nil, decl_ctx)
+     ending with the top-level scope. The decl_ctx is filled in left-to-right
+     order, then the chained scopes aggregated from the right. *)
+  let rec translate_scopes decl_ctx = function
+    | scope_name :: next_scopes ->
+      let scope = ScopeMap.find scope_name prgm.program_scopes in
+      let scope_body, scope_in_struct =
+        translate_scope_decl decl_ctx.ctx_structs decl_ctx.ctx_enums sctx
+          scope_name scope
+      in
+      let dvar = (ScopeMap.find scope_name sctx).scope_sig_scope_var in
+      let decl_ctx =
+        {
+          decl_ctx with
+          ctx_structs =
+            StructMap.union
+              (fun _ _ -> assert false (* should not happen *))
+              decl_ctx.ctx_structs scope_in_struct;
+        }
+      in
+      let scope_next, decl_ctx = translate_scopes decl_ctx next_scopes in
+      ( Bindlib.box_apply2
+          (fun scope_body scope_next ->
+            ScopeDef { scope_name; scope_body; scope_next })
+          scope_body
+          (Bindlib.bind_var dvar scope_next),
+        decl_ctx )
+    | [] -> Bindlib.box Nil, decl_ctx
   in
+  let scopes, decl_ctx = translate_scopes decl_ctx scope_ordering in
   { scopes = Bindlib.unbox scopes; decl_ctx }

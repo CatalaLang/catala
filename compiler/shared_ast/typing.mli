@@ -25,7 +25,7 @@ module Env : sig
   val empty : 'e t
   val add_var : 'e Var.t -> typ -> 'e t -> 'e t
   val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
-  val add_scope : ScopeName.t -> typ ScopeVarMap.t -> 'e t -> 'e t
+  val add_scope : ScopeName.t -> vars:typ ScopeVarMap.t -> 'e t -> 'e t
 end
 
 val expr :

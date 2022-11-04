@@ -1,0 +1,26 @@
+```catala
+declaration scope Toto:
+  context bar content integer
+  output foo content integer
+
+scope Toto:
+  definition bar equals 1
+  definition foo equals 1212 + bar
+
+declaration scope Titi:
+  output fizz content Toto
+  output fuzz content Toto
+  toto scope Toto
+
+scope Titi:
+  definition toto.bar equals 44
+  definition fizz equals Toto of {}
+  definition fuzz equals Toto of {--bar: 111}
+```
+
+```catala-test-inline
+$ catala Interpret -s Titi
+[RESULT] Computation successful! Results:
+[RESULT] fizz = Toto {"foo"= 1213}
+[RESULT] fuzz = Toto {"foo"= 1323}
+```

@@ -349,7 +349,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
   | Result e ->
     Bindlib.box_apply
       (fun e -> Result e)
-      (Expr.Box.inj (translate_expr ~append_esome:false ctx e))
+      (Expr.Box.lift (translate_expr ~append_esome:false ctx e))
   | ScopeLet
       {
         scope_let_kind = SubScopeVarDefinition;
@@ -379,7 +379,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (Expr.Box.inj (translate_expr ctx ~append_esome:false expr))
+      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
       (Bindlib.bind_var new_var new_next)
   | ScopeLet
       {
@@ -406,7 +406,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (Expr.Box.inj (translate_expr ctx ~append_esome:false expr))
+      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
       (Bindlib.bind_var new_var (translate_scope_let ctx' next))
   | ScopeLet
       {
@@ -457,7 +457,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
             scope_let_next = new_next;
             scope_let_pos = pos;
           })
-      (Expr.Box.inj (translate_expr ctx ~append_esome:false expr))
+      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
       (Bindlib.bind_var new_var (translate_scope_let ctx' next))
 
 let translate_scope_body

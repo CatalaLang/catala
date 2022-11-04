@@ -746,7 +746,7 @@ let mode_occupation_impaye_of_jsoo
         cons)
 
 
-class type eligibilite_allocation_logement =
+class type type_eligibilite_allocation_logement =
   object
     method kind :
       Js.js_string Js.t Js.readonly_prop
@@ -758,8 +758,8 @@ class type eligibilite_allocation_logement =
     method payload : Js.Unsafe.any Js.t Js.readonly_prop
   end
 
-let eligibilite_allocation_logement_to_jsoo
-  : EligibiliteAllocationLogement.t -> eligibilite_allocation_logement Js.t
+let type_eligibilite_allocation_logement_to_jsoo
+  : TypeEligibiliteAllocationLogement.t -> type_eligibilite_allocation_logement Js.t
   = function
   | PasEligible arg -> object%js
       val kind = Js.string "PasEligible"
@@ -774,19 +774,20 @@ let eligibilite_allocation_logement_to_jsoo
       val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
     end
 
-let eligibilite_allocation_logement_of_jsoo
-  (eligibilite_allocation_logement : eligibilite_allocation_logement Js.t)
-  : EligibiliteAllocationLogement.t =
-  match eligibilite_allocation_logement##.kind |> Js.to_string with
-  | "PasEligible" -> EligibiliteAllocationLogement.PasEligible ()
+let type_eligibilite_allocation_logement_of_jsoo
+  (type_eligibilite_allocation_logement
+    : type_eligibilite_allocation_logement Js.t)
+  : TypeEligibiliteAllocationLogement.t =
+  match type_eligibilite_allocation_logement##.kind |> Js.to_string with
+  | "PasEligible" -> TypeEligibiliteAllocationLogement.PasEligible ()
   | "AllocationLogementFamiliale" ->
-    EligibiliteAllocationLogement.AllocationLogementFamiliale ()
+    TypeEligibiliteAllocationLogement.AllocationLogementFamiliale ()
   | "AllocationLogementSociale" ->
-    EligibiliteAllocationLogement.AllocationLogementSociale ()
+    TypeEligibiliteAllocationLogement.AllocationLogementSociale ()
   | cons ->
     failwith
       (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'EligibiliteAllocationLogement.t'"
+        "Unexpected '%s' kind for the enumeration 'TypeEligibiliteAllocationLogement.t'"
         cons)
 
 
@@ -1473,6 +1474,387 @@ class type personne_vivant_habituellement_au_foyer =
           personne_vivant_habituellement_au_foyer##.ressources
     }
 
+class type eligibilite_aide_personnalisee_logement =
+  object
+    method dateCourante: Js.js_string Js.t Js.readonly_prop
+    method eligibilite: bool Js.t Js.readonly_prop
+    method nombrePersonnesAChargePrisesEnCompte: int Js.readonly_prop
+    method coefficentsEnfantsGardeAlterneePrisEnCompte:
+      Js.number Js.t Js.js_array Js.t Js.readonly_prop
+  end
+  let eligibilite_aide_personnalisee_logement_to_jsoo
+    (eligibilite_aide_personnalisee_logement
+    : EligibiliteAidePersonnaliseeLogement.t)
+    : eligibilite_aide_personnalisee_logement Js.t =
+    object%js
+      val dateCourante =
+        date_to_jsoo eligibilite_aide_personnalisee_logement.date_courante
+      val eligibilite =
+        Js.bool eligibilite_aide_personnalisee_logement.eligibilite
+      val nombrePersonnesAChargePrisesEnCompte =
+        integer_to_int eligibilite_aide_personnalisee_logement.nombre_personnes_a_charge_prises_en_compte
+      val coefficentsEnfantsGardeAlterneePrisEnCompte =
+        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) eligibilite_aide_personnalisee_logement.coefficents_enfants_garde_alternee_pris_en_compte
+      end
+  let eligibilite_aide_personnalisee_logement_of_jsoo
+    (eligibilite_aide_personnalisee_logement
+      : eligibilite_aide_personnalisee_logement Js.t) :
+    EligibiliteAidePersonnaliseeLogement.t =
+    {
+      date_courante =
+        date_of_jsoo eligibilite_aide_personnalisee_logement##.dateCourante;
+      eligibilite =
+        Js.to_bool eligibilite_aide_personnalisee_logement##.eligibilite;
+      nombre_personnes_a_charge_prises_en_compte =
+        integer_of_int
+          eligibilite_aide_personnalisee_logement
+          ##.nombrePersonnesAChargePrisesEnCompte;
+      coefficents_enfants_garde_alternee_pris_en_compte =
+        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
+          eligibilite_aide_personnalisee_logement
+          ##.coefficentsEnfantsGardeAlterneePrisEnCompte
+    }
+
+class type eligibilite_prime_de_demenagement =
+  object method montantPrimeDemenagement: Js.number Js.t Js.readonly_prop
+  end
+  let eligibilite_prime_de_demenagement_to_jsoo
+    (eligibilite_prime_de_demenagement : EligibilitePrimeDeDemenagement.t)
+    : eligibilite_prime_de_demenagement Js.t =
+    object%js
+      val montantPrimeDemenagement =
+        Js.number_of_float @@ money_to_float eligibilite_prime_de_demenagement.montant_prime_demenagement
+      end
+  let eligibilite_prime_de_demenagement_of_jsoo
+    (eligibilite_prime_de_demenagement
+      : eligibilite_prime_de_demenagement Js.t) :
+    EligibilitePrimeDeDemenagement.t =
+    {
+      montant_prime_demenagement =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          eligibilite_prime_de_demenagement##.montantPrimeDemenagement
+    }
+
+class type ressources_aides_personnelle_logement =
+  object method ressourcesPrisesEnCompte: Js.number Js.t Js.readonly_prop
+  end
+  let ressources_aides_personnelle_logement_to_jsoo
+    (ressources_aides_personnelle_logement
+    : RessourcesAidesPersonnelleLogement.t)
+    : ressources_aides_personnelle_logement Js.t =
+    object%js
+      val ressourcesPrisesEnCompte =
+        Js.number_of_float @@ money_to_float ressources_aides_personnelle_logement.ressources_prises_en_compte
+      end
+  let ressources_aides_personnelle_logement_of_jsoo
+    (ressources_aides_personnelle_logement
+      : ressources_aides_personnelle_logement Js.t) :
+    RessourcesAidesPersonnelleLogement.t =
+    {
+      ressources_prises_en_compte =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          ressources_aides_personnelle_logement##.ressourcesPrisesEnCompte
+    }
+
+class type contributions_sociales_aides_personnelle_logement =
+  object
+    method montant:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let contributions_sociales_aides_personnelle_logement_to_jsoo
+    (contributions_sociales_aides_personnelle_logement
+    : ContributionsSocialesAidesPersonnelleLogement.t)
+    : contributions_sociales_aides_personnelle_logement Js.t =
+    object%js
+      method montant = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (contributions_sociales_aides_personnelle_logement.montant (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let contributions_sociales_aides_personnelle_logement_of_jsoo
+    (contributions_sociales_aides_personnelle_logement
+      : contributions_sociales_aides_personnelle_logement Js.t) :
+    ContributionsSocialesAidesPersonnelleLogement.t =
+    {
+      montant = failwith "The function 'montant' translation isn't yet supported..."
+    }
+
+class type calcul_aide_personnalisee_logement_locatif =
+  object
+    method montantForfaitaireChargesD82316: Js.number Js.t Js.readonly_prop
+    method plafondLoyerD823162: Js.number Js.t Js.readonly_prop
+    method participationMinimale: Js.number Js.t Js.readonly_prop
+    method tauxCompositionFamiliale: Js.number Js.t Js.readonly_prop
+    method participationPersonnelle: Js.number Js.t Js.readonly_prop
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_aide_personnalisee_logement_locatif_to_jsoo
+    (calcul_aide_personnalisee_logement_locatif
+    : CalculAidePersonnaliseeLogementLocatif.t)
+    : calcul_aide_personnalisee_logement_locatif Js.t =
+    object%js
+      val montantForfaitaireChargesD82316 =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif.montant_forfaitaire_charges_d823_16
+      val plafondLoyerD823162 =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif.plafond_loyer_d823_16_2
+      val participationMinimale =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif.participation_minimale
+      val tauxCompositionFamiliale =
+        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_locatif.taux_composition_familiale
+      val participationPersonnelle =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif.participation_personnelle
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_locatif.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_aide_personnalisee_logement_locatif_of_jsoo
+    (calcul_aide_personnalisee_logement_locatif
+      : calcul_aide_personnalisee_logement_locatif Js.t) :
+    CalculAidePersonnaliseeLogementLocatif.t =
+    {
+      montant_forfaitaire_charges_d823_16 =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_locatif
+          ##.montantForfaitaireChargesD82316;
+      plafond_loyer_d823_16_2 =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_locatif##.plafondLoyerD823162;
+      participation_minimale =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_locatif##.participationMinimale;
+      taux_composition_familiale =
+        decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_locatif
+          ##.tauxCompositionFamiliale;
+      participation_personnelle =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_locatif
+          ##.participationPersonnelle;
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_locatif##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type calcul_equivalence_loyer_minimale =
+  object method montant: Js.number Js.t Js.readonly_prop
+  end
+  let calcul_equivalence_loyer_minimale_to_jsoo
+    (calcul_equivalence_loyer_minimale : CalculEquivalenceLoyerMinimale.t)
+    : calcul_equivalence_loyer_minimale Js.t =
+    object%js
+      val montant =
+        Js.number_of_float @@ money_to_float calcul_equivalence_loyer_minimale.montant
+      end
+  let calcul_equivalence_loyer_minimale_of_jsoo
+    (calcul_equivalence_loyer_minimale
+      : calcul_equivalence_loyer_minimale Js.t) :
+    CalculEquivalenceLoyerMinimale.t =
+    {
+      montant =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_equivalence_loyer_minimale##.montant
+    }
+
+class type calcul_nombre_part_logement_foyer =
+  object method nNombrePartsD83225: Js.number Js.t Js.readonly_prop
+  end
+  let calcul_nombre_part_logement_foyer_to_jsoo
+    (calcul_nombre_part_logement_foyer : CalculNombrePartLogementFoyer.t)
+    : calcul_nombre_part_logement_foyer Js.t =
+    object%js
+      val nNombrePartsD83225 =
+        Js.number_of_float @@ decimal_to_float calcul_nombre_part_logement_foyer.n_nombre_parts_d832_25
+      end
+  let calcul_nombre_part_logement_foyer_of_jsoo
+    (calcul_nombre_part_logement_foyer
+      : calcul_nombre_part_logement_foyer Js.t) :
+    CalculNombrePartLogementFoyer.t =
+    {
+      n_nombre_parts_d832_25 =
+        decimal_of_float @@ Js.float_of_number
+          calcul_nombre_part_logement_foyer##.nNombrePartsD83225
+    }
+
+class type calcul_aide_personnalisee_logement_foyer =
+  object
+    method coefficientMultiplicateurD83225: Js.number Js.t Js.readonly_prop
+    method coefficientRD83225: Js.number Js.t Js.readonly_prop
+    method nNombrePartsD83225: Js.number Js.t Js.readonly_prop
+    method equivalenceLoyerEligible: Js.number Js.t Js.readonly_prop
+    method plafondEquivalenceLoyerEligible: Js.number Js.t Js.readonly_prop
+    method equivalenceLoyerMinimale: Js.number Js.t Js.readonly_prop
+    method coefficientPriseEnChargeD83225: Js.number Js.t Js.readonly_prop
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_aide_personnalisee_logement_foyer_to_jsoo
+    (calcul_aide_personnalisee_logement_foyer
+    : CalculAidePersonnaliseeLogementFoyer.t)
+    : calcul_aide_personnalisee_logement_foyer Js.t =
+    object%js
+      val coefficientMultiplicateurD83225 =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer.coefficient_multiplicateur_d832_25
+      val coefficientRD83225 =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer.coefficient_r_d832_25
+      val nNombrePartsD83225 =
+        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_foyer.n_nombre_parts_d832_25
+      val equivalenceLoyerEligible =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer.equivalence_loyer_eligible
+      val plafondEquivalenceLoyerEligible =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer.plafond_equivalence_loyer_eligible
+      val equivalenceLoyerMinimale =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer.equivalence_loyer_minimale
+      val coefficientPriseEnChargeD83225 =
+        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_foyer.coefficient_prise_en_charge_d832_25
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_foyer.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_aide_personnalisee_logement_foyer_of_jsoo
+    (calcul_aide_personnalisee_logement_foyer
+      : calcul_aide_personnalisee_logement_foyer Js.t) :
+    CalculAidePersonnaliseeLogementFoyer.t =
+    {
+      coefficient_multiplicateur_d832_25 =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer
+          ##.coefficientMultiplicateurD83225;
+      coefficient_r_d832_25 =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer##.coefficientRD83225;
+      n_nombre_parts_d832_25 =
+        decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer##.nNombrePartsD83225;
+      equivalence_loyer_eligible =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer##.equivalenceLoyerEligible;
+      plafond_equivalence_loyer_eligible =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer
+          ##.plafondEquivalenceLoyerEligible;
+      equivalence_loyer_minimale =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer##.equivalenceLoyerMinimale;
+      coefficient_prise_en_charge_d832_25 =
+        decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer
+          ##.coefficientPriseEnChargeD83225;
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_foyer##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type calcul_nombre_parts_accession_propriete =
+  object method nNombrePartsD83211: Js.number Js.t Js.readonly_prop
+  end
+  let calcul_nombre_parts_accession_propriete_to_jsoo
+    (calcul_nombre_parts_accession_propriete
+    : CalculNombrePartsAccessionPropriete.t)
+    : calcul_nombre_parts_accession_propriete Js.t =
+    object%js
+      val nNombrePartsD83211 =
+        Js.number_of_float @@ decimal_to_float calcul_nombre_parts_accession_propriete.n_nombre_parts_d832_11
+      end
+  let calcul_nombre_parts_accession_propriete_of_jsoo
+    (calcul_nombre_parts_accession_propriete
+      : calcul_nombre_parts_accession_propriete Js.t) :
+    CalculNombrePartsAccessionPropriete.t =
+    {
+      n_nombre_parts_d832_11 =
+        decimal_of_float @@ Js.float_of_number
+          calcul_nombre_parts_accession_propriete##.nNombrePartsD83211
+    }
+
+class type calcul_aide_personnalisee_logement_accession_propriete =
+  object
+    method mensualiteEligible: Js.number Js.t Js.readonly_prop
+    method mensualiteMinimale: Js.number Js.t Js.readonly_prop
+    method coefficientPriseEnChargeD83210: Js.number Js.t Js.readonly_prop
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_aide_personnalisee_logement_accession_propriete_to_jsoo
+    (calcul_aide_personnalisee_logement_accession_propriete
+    : CalculAidePersonnaliseeLogementAccessionPropriete.t)
+    : calcul_aide_personnalisee_logement_accession_propriete Js.t =
+    object%js
+      val mensualiteEligible =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_accession_propriete.mensualite_eligible
+      val mensualiteMinimale =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_accession_propriete.mensualite_minimale
+      val coefficientPriseEnChargeD83210 =
+        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_accession_propriete.coefficient_prise_en_charge_d832_10
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_accession_propriete.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_accession_propriete.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_aide_personnalisee_logement_accession_propriete_of_jsoo
+    (calcul_aide_personnalisee_logement_accession_propriete
+      : calcul_aide_personnalisee_logement_accession_propriete Js.t) :
+    CalculAidePersonnaliseeLogementAccessionPropriete.t =
+    {
+      mensualite_eligible =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_accession_propriete
+          ##.mensualiteEligible;
+      mensualite_minimale =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_accession_propriete
+          ##.mensualiteMinimale;
+      coefficient_prise_en_charge_d832_10 =
+        decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_accession_propriete
+          ##.coefficientPriseEnChargeD83210;
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement_accession_propriete
+          ##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type calcul_aide_personnalisee_logement =
+  object
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_aide_personnalisee_logement_to_jsoo
+    (calcul_aide_personnalisee_logement : CalculAidePersonnaliseeLogement.t)
+    : calcul_aide_personnalisee_logement Js.t =
+    object%js
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_aide_personnalisee_logement_of_jsoo
+    (calcul_aide_personnalisee_logement
+      : calcul_aide_personnalisee_logement Js.t) :
+    CalculAidePersonnaliseeLogement.t =
+    {
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_aide_personnalisee_logement##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
 class type infos_changement_logement_d842_4 =
   object
     method ancienLoyerPrincipal: Js.number Js.t Js.readonly_prop
@@ -1498,6 +1880,278 @@ class type infos_changement_logement_d842_4 =
       ancienne_allocation_logement =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           infos_changement_logement_d842_4##.ancienneAllocationLogement
+    }
+
+class type calcul_allocation_logement_locatif =
+  object
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_allocation_logement_locatif_to_jsoo
+    (calcul_allocation_logement_locatif : CalculAllocationLogementLocatif.t)
+    : calcul_allocation_logement_locatif Js.t =
+    object%js
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_locatif.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_allocation_logement_locatif.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_allocation_logement_locatif_of_jsoo
+    (calcul_allocation_logement_locatif
+      : calcul_allocation_logement_locatif Js.t) :
+    CalculAllocationLogementLocatif.t =
+    {
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_locatif##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type calcul_allocation_logement_accession_propriete =
+  object
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_allocation_logement_accession_propriete_to_jsoo
+    (calcul_allocation_logement_accession_propriete
+    : CalculAllocationLogementAccessionPropriete.t)
+    : calcul_allocation_logement_accession_propriete Js.t =
+    object%js
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_accession_propriete.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_allocation_logement_accession_propriete.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_allocation_logement_accession_propriete_of_jsoo
+    (calcul_allocation_logement_accession_propriete
+      : calcul_allocation_logement_accession_propriete Js.t) :
+    CalculAllocationLogementAccessionPropriete.t =
+    {
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_accession_propriete##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type calcul_allocation_logement_foyer =
+  object
+    method coefficientPriseEnCharge: Js.number Js.t Js.readonly_prop
+    method equivalenceLoyer: Js.number Js.t Js.readonly_prop
+    method montantForfaitaireCharges: Js.number Js.t Js.readonly_prop
+    method loyerMinimal: Js.number Js.t Js.readonly_prop
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_allocation_logement_foyer_to_jsoo
+    (calcul_allocation_logement_foyer : CalculAllocationLogementFoyer.t)
+    : calcul_allocation_logement_foyer Js.t =
+    object%js
+      val coefficientPriseEnCharge =
+        Js.number_of_float @@ decimal_to_float calcul_allocation_logement_foyer.coefficient_prise_en_charge
+      val equivalenceLoyer =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer.equivalence_loyer
+      val montantForfaitaireCharges =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer.montant_forfaitaire_charges
+      val loyerMinimal =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer.loyer_minimal
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_allocation_logement_foyer.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_allocation_logement_foyer_of_jsoo
+    (calcul_allocation_logement_foyer
+      : calcul_allocation_logement_foyer Js.t) :
+    CalculAllocationLogementFoyer.t =
+    {
+      coefficient_prise_en_charge =
+        decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_foyer##.coefficientPriseEnCharge;
+      equivalence_loyer =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_foyer##.equivalenceLoyer;
+      montant_forfaitaire_charges =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_foyer##.montantForfaitaireCharges;
+      loyer_minimal =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_foyer##.loyerMinimal;
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_foyer##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type calcul_allocation_logement =
+  object
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let calcul_allocation_logement_to_jsoo (calcul_allocation_logement
+    : CalculAllocationLogement.t) : calcul_allocation_logement Js.t =
+    object%js
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calcul_allocation_logement.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let calcul_allocation_logement_of_jsoo
+    (calcul_allocation_logement : calcul_allocation_logement Js.t) :
+    CalculAllocationLogement.t =
+    {
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
+class type ouverture_droits_retraite =
+  object
+    method ageOuvertureDroit:
+      Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+  end
+  let ouverture_droits_retraite_to_jsoo (ouverture_droits_retraite
+    : OuvertureDroitsRetraite.t) : ouverture_droits_retraite Js.t =
+    object%js
+      val ageOuvertureDroit =
+        duration_to_jsoo ouverture_droits_retraite.age_ouverture_droit
+      end
+  let ouverture_droits_retraite_of_jsoo
+    (ouverture_droits_retraite : ouverture_droits_retraite Js.t) :
+    OuvertureDroitsRetraite.t =
+    {
+      age_ouverture_droit =
+        duration_of_jsoo ouverture_droits_retraite##.ageOuvertureDroit
+    }
+
+class type impaye_depense_logement =
+  object method montantImpaye: Js.number Js.t Js.readonly_prop
+  end
+  let impaye_depense_logement_to_jsoo (impaye_depense_logement
+    : ImpayeDepenseLogement.t) : impaye_depense_logement Js.t =
+    object%js
+      val montantImpaye =
+        Js.number_of_float @@ money_to_float impaye_depense_logement.montant_impaye
+      end
+  let impaye_depense_logement_of_jsoo
+    (impaye_depense_logement : impaye_depense_logement Js.t) :
+    ImpayeDepenseLogement.t =
+    {
+      montant_impaye =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          impaye_depense_logement##.montantImpaye
+    }
+
+class type calculette_aides_au_logement =
+  object
+    method eligibilite: bool Js.t Js.readonly_prop
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+    method coefficentsEnfantsGardeAlterneePrisEnCompte:
+      Js.number Js.t Js.js_array Js.t Js.readonly_prop
+  end
+  let calculette_aides_au_logement_to_jsoo (calculette_aides_au_logement
+    : CalculetteAidesAuLogement.t) : calculette_aides_au_logement Js.t =
+    object%js
+      val eligibilite = Js.bool calculette_aides_au_logement.eligibilite
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float calculette_aides_au_logement.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (calculette_aides_au_logement.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      val coefficentsEnfantsGardeAlterneePrisEnCompte =
+        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) calculette_aides_au_logement.coefficents_enfants_garde_alternee_pris_en_compte
+      end
+  let calculette_aides_au_logement_of_jsoo
+    (calculette_aides_au_logement : calculette_aides_au_logement Js.t) :
+    CalculetteAidesAuLogement.t =
+    {
+      eligibilite = Js.to_bool calculette_aides_au_logement##.eligibilite;
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calculette_aides_au_logement##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported...";
+      coefficents_enfants_garde_alternee_pris_en_compte =
+        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
+          calculette_aides_au_logement
+          ##.coefficentsEnfantsGardeAlterneePrisEnCompte
+    }
+
+class type calculette_aides_au_logement_garde_alternee =
+  object
+    method eligibilite: bool Js.t Js.readonly_prop
+    method aideFinale: Js.number Js.t Js.readonly_prop
+  end
+  let calculette_aides_au_logement_garde_alternee_to_jsoo
+    (calculette_aides_au_logement_garde_alternee
+    : CalculetteAidesAuLogementGardeAlternee.t)
+    : calculette_aides_au_logement_garde_alternee Js.t =
+    object%js
+      val eligibilite =
+        Js.bool calculette_aides_au_logement_garde_alternee.eligibilite
+      val aideFinale =
+        Js.number_of_float @@ money_to_float calculette_aides_au_logement_garde_alternee.aide_finale
+      end
+  let calculette_aides_au_logement_garde_alternee_of_jsoo
+    (calculette_aides_au_logement_garde_alternee
+      : calculette_aides_au_logement_garde_alternee Js.t) :
+    CalculetteAidesAuLogementGardeAlternee.t =
+    {
+      eligibilite =
+        Js.to_bool calculette_aides_au_logement_garde_alternee##.eligibilite;
+      aide_finale =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calculette_aides_au_logement_garde_alternee##.aideFinale
+    }
+
+class type base_mensuelle_allocations_familiales =
+  object method montant: Js.number Js.t Js.readonly_prop
+  end
+  let base_mensuelle_allocations_familiales_to_jsoo
+    (base_mensuelle_allocations_familiales
+    : BaseMensuelleAllocationsFamiliales.t)
+    : base_mensuelle_allocations_familiales Js.t =
+    object%js
+      val montant =
+        Js.number_of_float @@ money_to_float base_mensuelle_allocations_familiales.montant
+      end
+  let base_mensuelle_allocations_familiales_of_jsoo
+    (base_mensuelle_allocations_familiales
+      : base_mensuelle_allocations_familiales Js.t) :
+    BaseMensuelleAllocationsFamiliales.t =
+    {
+      montant =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          base_mensuelle_allocations_familiales##.montant
+    }
+
+class type smic =
+  object method brutHoraire: Js.number Js.t Js.readonly_prop
+  end
+  let smic_to_jsoo (smic : Smic.t) : smic Js.t =
+    object%js
+      val brutHoraire =
+        Js.number_of_float @@ money_to_float smic.brut_horaire
+      end
+  let smic_of_jsoo (smic : smic Js.t) : Smic.t =
+    {
+      brut_horaire =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          smic##.brutHoraire
     }
 
 class type pret =
@@ -1691,6 +2345,42 @@ let date_naissance_troisieme_ou_dernier_plus_enfant_of_jsoo
         "Unexpected '%s' kind for the enumeration 'DateNaissanceTroisiemeOuDernierPlusEnfant.t'"
         cons)
 
+
+class type eligibilite_allocation_logement =
+  object
+    method eligibilite:
+      type_eligibilite_allocation_logement Js.t Js.readonly_prop
+    method nombrePersonnesAChargePrisesEnCompte: int Js.readonly_prop
+    method coefficentsEnfantsGardeAlterneePrisEnCompte:
+      Js.number Js.t Js.js_array Js.t Js.readonly_prop
+  end
+  let eligibilite_allocation_logement_to_jsoo
+    (eligibilite_allocation_logement : EligibiliteAllocationLogement.t)
+    : eligibilite_allocation_logement Js.t =
+    object%js
+      val eligibilite =
+        type_eligibilite_allocation_logement_to_jsoo eligibilite_allocation_logement.eligibilite
+      val nombrePersonnesAChargePrisesEnCompte =
+        integer_to_int eligibilite_allocation_logement.nombre_personnes_a_charge_prises_en_compte
+      val coefficentsEnfantsGardeAlterneePrisEnCompte =
+        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) eligibilite_allocation_logement.coefficents_enfants_garde_alternee_pris_en_compte
+      end
+  let eligibilite_allocation_logement_of_jsoo
+    (eligibilite_allocation_logement : eligibilite_allocation_logement Js.t) :
+    EligibiliteAllocationLogement.t =
+    {
+      eligibilite =
+        type_eligibilite_allocation_logement_of_jsoo
+          eligibilite_allocation_logement##.eligibilite;
+      nombre_personnes_a_charge_prises_en_compte =
+        integer_of_int
+          eligibilite_allocation_logement
+          ##.nombrePersonnesAChargePrisesEnCompte;
+      coefficents_enfants_garde_alternee_pris_en_compte =
+        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
+          eligibilite_allocation_logement
+          ##.coefficentsEnfantsGardeAlterneePrisEnCompte
+    }
 
 class type logement_foyer =
   object
@@ -2092,6 +2782,45 @@ class type informations_prime_de_demenagement =
           ##.dateNaissanceTroisiemeEnfantOuDernierSiPlus
     }
 
+class type eligibilite_prestations_familiales =
+  object
+    method droitOuvert:
+      (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
+    method conditionsHorsAge:
+      (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
+    method ageL51232: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+    method regimeOutreMerL7511: bool Js.t Js.readonly_prop
+  end
+  let eligibilite_prestations_familiales_to_jsoo
+    (eligibilite_prestations_familiales : EligibilitePrestationsFamiliales.t)
+    : eligibilite_prestations_familiales Js.t =
+    object%js
+      method droitOuvert = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.bool (eligibilite_prestations_familiales.droit_ouvert (enfant_prestations_familiales_of_jsoo input)))
+      method conditionsHorsAge = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.bool (eligibilite_prestations_familiales.conditions_hors_age (enfant_prestations_familiales_of_jsoo input)))
+      val ageL51232 =
+        duration_to_jsoo eligibilite_prestations_familiales.age_l512_3_2
+      val regimeOutreMerL7511 =
+        Js.bool eligibilite_prestations_familiales.regime_outre_mer_l751_1
+      end
+  let eligibilite_prestations_familiales_of_jsoo
+    (eligibilite_prestations_familiales
+      : eligibilite_prestations_familiales Js.t) :
+    EligibilitePrestationsFamiliales.t =
+    {
+      droit_ouvert = failwith "The function 'droit_ouvert' translation isn't yet supported...";
+      conditions_hors_age = failwith "The function 'conditions_hors_age' translation isn't yet supported...";
+      age_l512_3_2 =
+        duration_of_jsoo eligibilite_prestations_familiales##.ageL51232;
+      regime_outre_mer_l751_1 =
+        Js.to_bool eligibilite_prestations_familiales##.regimeOutreMerL7511
+    }
+
 class type personne_a_charge =
   object
     method kind :
@@ -2198,6 +2927,54 @@ class type location =
       logement_meuble_d842_2 = Js.to_bool location##.logementMeubleD8422;
       changement_logement_d842_4 =
         changement_logement_d842_4_of_jsoo location##.changementLogementD8424
+    }
+
+class type eligibilite_aides_personnelle_logement =
+  object
+    method dateCourante: Js.js_string Js.t Js.readonly_prop
+    method eligibilite: bool Js.t Js.readonly_prop
+    method nombrePersonnesAChargePrisesEnCompte: int Js.readonly_prop
+    method coefficentsEnfantsGardeAlterneePrisEnCompte:
+      Js.number Js.t Js.js_array Js.t Js.readonly_prop
+    method condition2R8234:
+      (personne_a_charge Js.t,  bool Js.t) Js.meth_callback Js.meth
+  end
+  let eligibilite_aides_personnelle_logement_to_jsoo
+    (eligibilite_aides_personnelle_logement
+    : EligibiliteAidesPersonnelleLogement.t)
+    : eligibilite_aides_personnelle_logement Js.t =
+    object%js
+      val dateCourante =
+        date_to_jsoo eligibilite_aides_personnelle_logement.date_courante
+      val eligibilite =
+        Js.bool eligibilite_aides_personnelle_logement.eligibilite
+      val nombrePersonnesAChargePrisesEnCompte =
+        integer_to_int eligibilite_aides_personnelle_logement.nombre_personnes_a_charge_prises_en_compte
+      val coefficentsEnfantsGardeAlterneePrisEnCompte =
+        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) eligibilite_aides_personnelle_logement.coefficents_enfants_garde_alternee_pris_en_compte
+      method condition2R8234 = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.bool (eligibilite_aides_personnelle_logement.condition_2_r823_4 (personne_a_charge_of_jsoo input)))
+      end
+  let eligibilite_aides_personnelle_logement_of_jsoo
+    (eligibilite_aides_personnelle_logement
+      : eligibilite_aides_personnelle_logement Js.t) :
+    EligibiliteAidesPersonnelleLogement.t =
+    {
+      date_courante =
+        date_of_jsoo eligibilite_aides_personnelle_logement##.dateCourante;
+      eligibilite =
+        Js.to_bool eligibilite_aides_personnelle_logement##.eligibilite;
+      nombre_personnes_a_charge_prises_en_compte =
+        integer_of_int
+          eligibilite_aides_personnelle_logement
+          ##.nombrePersonnesAChargePrisesEnCompte;
+      coefficents_enfants_garde_alternee_pris_en_compte =
+        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
+          eligibilite_aides_personnelle_logement
+          ##.coefficentsEnfantsGardeAlterneePrisEnCompte;
+      condition_2_r823_4 = failwith "The function 'condition_2_r823_4' translation isn't yet supported..."
     }
 
 class type mode_occupation =
@@ -2347,56 +3124,6 @@ class type menage =
         Js.to_bool menage##.enfantANaitreApresQuatriemeMoisGrossesse
     }
 
-class type eligibilite_aides_personnelle_logement_out =
-  object
-    method dateCouranteOut: Js.js_string Js.t Js.readonly_prop
-    method eligibiliteOut: bool Js.t Js.readonly_prop
-    method nombrePersonnesAChargePrisesEnCompteOut: int Js.readonly_prop
-    method coefficentsEnfantsGardeAlterneePrisEnCompteOut:
-      Js.number Js.t Js.js_array Js.t Js.readonly_prop
-    method condition2R8234Out:
-      (personne_a_charge Js.t,  bool Js.t) Js.meth_callback Js.meth
-  end
-  let eligibilite_aides_personnelle_logement_out_to_jsoo
-    (eligibilite_aides_personnelle_logement_out
-    : EligibiliteAidesPersonnelleLogementOut.t)
-    : eligibilite_aides_personnelle_logement_out Js.t =
-    object%js
-      val dateCouranteOut =
-        date_to_jsoo eligibilite_aides_personnelle_logement_out.date_courante_out
-      val eligibiliteOut =
-        Js.bool eligibilite_aides_personnelle_logement_out.eligibilite_out
-      val nombrePersonnesAChargePrisesEnCompteOut =
-        integer_to_int eligibilite_aides_personnelle_logement_out.nombre_personnes_a_charge_prises_en_compte_out
-      val coefficentsEnfantsGardeAlterneePrisEnCompteOut =
-        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) eligibilite_aides_personnelle_logement_out.coefficents_enfants_garde_alternee_pris_en_compte_out
-      method condition2R8234Out = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.bool (eligibilite_aides_personnelle_logement_out.condition_2_r823_4_out (personne_a_charge_of_jsoo input)))
-      end
-  let eligibilite_aides_personnelle_logement_out_of_jsoo
-    (eligibilite_aides_personnelle_logement_out
-      : eligibilite_aides_personnelle_logement_out Js.t) :
-    EligibiliteAidesPersonnelleLogementOut.t =
-    {
-      date_courante_out =
-        date_of_jsoo
-          eligibilite_aides_personnelle_logement_out##.dateCouranteOut;
-      eligibilite_out =
-        Js.to_bool
-          eligibilite_aides_personnelle_logement_out##.eligibiliteOut;
-      nombre_personnes_a_charge_prises_en_compte_out =
-        integer_of_int
-          eligibilite_aides_personnelle_logement_out
-          ##.nombrePersonnesAChargePrisesEnCompteOut;
-      coefficents_enfants_garde_alternee_pris_en_compte_out =
-        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
-          eligibilite_aides_personnelle_logement_out
-          ##.coefficentsEnfantsGardeAlterneePrisEnCompteOut;
-      condition_2_r823_4_out = failwith "The function 'condition_2_r823_4_out' translation isn't yet supported..."
-    }
-
 class type eligibilite_aides_personnelle_logement_in =
   object
     method menageIn: menage Js.t Js.readonly_prop
@@ -2444,49 +3171,6 @@ class type eligibilite_aides_personnelle_logement_in =
       condition_logement_surface_in = failwith "The function 'condition_logement_surface_in' translation isn't yet supported..."
     }
 
-class type eligibilite_aide_personnalisee_logement_out =
-  object
-    method dateCouranteOut: Js.js_string Js.t Js.readonly_prop
-    method eligibiliteOut: bool Js.t Js.readonly_prop
-    method nombrePersonnesAChargePrisesEnCompteOut: int Js.readonly_prop
-    method coefficentsEnfantsGardeAlterneePrisEnCompteOut:
-      Js.number Js.t Js.js_array Js.t Js.readonly_prop
-  end
-  let eligibilite_aide_personnalisee_logement_out_to_jsoo
-    (eligibilite_aide_personnalisee_logement_out
-    : EligibiliteAidePersonnaliseeLogementOut.t)
-    : eligibilite_aide_personnalisee_logement_out Js.t =
-    object%js
-      val dateCouranteOut =
-        date_to_jsoo eligibilite_aide_personnalisee_logement_out.date_courante_out
-      val eligibiliteOut =
-        Js.bool eligibilite_aide_personnalisee_logement_out.eligibilite_out
-      val nombrePersonnesAChargePrisesEnCompteOut =
-        integer_to_int eligibilite_aide_personnalisee_logement_out.nombre_personnes_a_charge_prises_en_compte_out
-      val coefficentsEnfantsGardeAlterneePrisEnCompteOut =
-        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) eligibilite_aide_personnalisee_logement_out.coefficents_enfants_garde_alternee_pris_en_compte_out
-      end
-  let eligibilite_aide_personnalisee_logement_out_of_jsoo
-    (eligibilite_aide_personnalisee_logement_out
-      : eligibilite_aide_personnalisee_logement_out Js.t) :
-    EligibiliteAidePersonnaliseeLogementOut.t =
-    {
-      date_courante_out =
-        date_of_jsoo
-          eligibilite_aide_personnalisee_logement_out##.dateCouranteOut;
-      eligibilite_out =
-        Js.to_bool
-          eligibilite_aide_personnalisee_logement_out##.eligibiliteOut;
-      nombre_personnes_a_charge_prises_en_compte_out =
-        integer_of_int
-          eligibilite_aide_personnalisee_logement_out
-          ##.nombrePersonnesAChargePrisesEnCompteOut;
-      coefficents_enfants_garde_alternee_pris_en_compte_out =
-        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
-          eligibilite_aide_personnalisee_logement_out
-          ##.coefficentsEnfantsGardeAlterneePrisEnCompteOut
-    }
-
 class type eligibilite_aide_personnalisee_logement_in =
   object
     method menageIn: menage Js.t Js.readonly_prop
@@ -2518,44 +3202,6 @@ class type eligibilite_aide_personnalisee_logement_in =
       date_courante_in =
         date_of_jsoo
           eligibilite_aide_personnalisee_logement_in##.dateCouranteIn
-    }
-
-class type eligibilite_allocation_logement_out =
-  object
-    method eligibiliteL8412Out:
-      eligibilite_allocation_logement Js.t Js.readonly_prop
-    method nombrePersonnesAChargePrisesEnCompteOut: int Js.readonly_prop
-    method coefficentsEnfantsGardeAlterneePrisEnCompteOut:
-      Js.number Js.t Js.js_array Js.t Js.readonly_prop
-  end
-  let eligibilite_allocation_logement_out_to_jsoo
-    (eligibilite_allocation_logement_out
-    : EligibiliteAllocationLogementOut.t)
-    : eligibilite_allocation_logement_out Js.t =
-    object%js
-      val eligibiliteL8412Out =
-        eligibilite_allocation_logement_to_jsoo eligibilite_allocation_logement_out.eligibilite_l841_2_out
-      val nombrePersonnesAChargePrisesEnCompteOut =
-        integer_to_int eligibilite_allocation_logement_out.nombre_personnes_a_charge_prises_en_compte_out
-      val coefficentsEnfantsGardeAlterneePrisEnCompteOut =
-        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) eligibilite_allocation_logement_out.coefficents_enfants_garde_alternee_pris_en_compte_out
-      end
-  let eligibilite_allocation_logement_out_of_jsoo
-    (eligibilite_allocation_logement_out
-      : eligibilite_allocation_logement_out Js.t) :
-    EligibiliteAllocationLogementOut.t =
-    {
-      eligibilite_l841_2_out =
-        eligibilite_allocation_logement_of_jsoo
-          eligibilite_allocation_logement_out##.eligibiliteL8412Out;
-      nombre_personnes_a_charge_prises_en_compte_out =
-        integer_of_int
-          eligibilite_allocation_logement_out
-          ##.nombrePersonnesAChargePrisesEnCompteOut;
-      coefficents_enfants_garde_alternee_pris_en_compte_out =
-        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
-          eligibilite_allocation_logement_out
-          ##.coefficentsEnfantsGardeAlterneePrisEnCompteOut
     }
 
 class type eligibilite_allocation_logement_in =
@@ -2593,27 +3239,6 @@ class type eligibilite_allocation_logement_in =
         Js.to_bool
           eligibilite_allocation_logement_in
           ##.beneficieAidePersonnaliseeLogementIn
-    }
-
-class type eligibilite_prime_de_demenagement_out =
-  object method montantPrimeDemenagementOut: Js.number Js.t Js.readonly_prop
-  end
-  let eligibilite_prime_de_demenagement_out_to_jsoo
-    (eligibilite_prime_de_demenagement_out
-    : EligibilitePrimeDeDemenagementOut.t)
-    : eligibilite_prime_de_demenagement_out Js.t =
-    object%js
-      val montantPrimeDemenagementOut =
-        Js.number_of_float @@ money_to_float eligibilite_prime_de_demenagement_out.montant_prime_demenagement_out
-      end
-  let eligibilite_prime_de_demenagement_out_of_jsoo
-    (eligibilite_prime_de_demenagement_out
-      : eligibilite_prime_de_demenagement_out Js.t) :
-    EligibilitePrimeDeDemenagementOut.t =
-    {
-      montant_prime_demenagement_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          eligibilite_prime_de_demenagement_out##.montantPrimeDemenagementOut
     }
 
 class type eligibilite_prime_de_demenagement_in =
@@ -2666,28 +3291,6 @@ class type eligibilite_prime_de_demenagement_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           eligibilite_prime_de_demenagement_in
           ##.depensesJustifieesReellementEngageesIn
-    }
-
-class type ressources_aides_personnelle_logement_out =
-  object method ressourcesPrisesEnCompteOut: Js.number Js.t Js.readonly_prop
-  end
-  let ressources_aides_personnelle_logement_out_to_jsoo
-    (ressources_aides_personnelle_logement_out
-    : RessourcesAidesPersonnelleLogementOut.t)
-    : ressources_aides_personnelle_logement_out Js.t =
-    object%js
-      val ressourcesPrisesEnCompteOut =
-        Js.number_of_float @@ money_to_float ressources_aides_personnelle_logement_out.ressources_prises_en_compte_out
-      end
-  let ressources_aides_personnelle_logement_out_of_jsoo
-    (ressources_aides_personnelle_logement_out
-      : ressources_aides_personnelle_logement_out Js.t) :
-    RessourcesAidesPersonnelleLogementOut.t =
-    {
-      ressources_prises_en_compte_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          ressources_aides_personnelle_logement_out
-          ##.ressourcesPrisesEnCompteOut
     }
 
 class type ressources_aides_personnelle_logement_in =
@@ -2796,29 +3399,6 @@ class type ressources_aides_personnelle_logement_in =
           ##.ressourcesMenageArrondiesBaseIn
     }
 
-class type contributions_sociales_aides_personnelle_logement_out =
-  object
-    method montantOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let contributions_sociales_aides_personnelle_logement_out_to_jsoo
-    (contributions_sociales_aides_personnelle_logement_out
-    : ContributionsSocialesAidesPersonnelleLogementOut.t)
-    : contributions_sociales_aides_personnelle_logement_out Js.t =
-    object%js
-      method montantOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (contributions_sociales_aides_personnelle_logement_out.montant_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let contributions_sociales_aides_personnelle_logement_out_of_jsoo
-    (contributions_sociales_aides_personnelle_logement_out
-      : contributions_sociales_aides_personnelle_logement_out Js.t) :
-    ContributionsSocialesAidesPersonnelleLogementOut.t =
-    {
-      montant_out = failwith "The function 'montant_out' translation isn't yet supported..."
-    }
-
 class type contributions_sociales_aides_personnelle_logement_in =
   object method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
   end
@@ -2839,72 +3419,6 @@ class type contributions_sociales_aides_personnelle_logement_in =
         date_of_jsoo
           contributions_sociales_aides_personnelle_logement_in
           ##.dateCouranteIn
-    }
-
-class type calcul_aide_personnalisee_logement_locatif_out =
-  object
-    method montantForfaitaireChargesD82316Out:
-      Js.number Js.t Js.readonly_prop
-    method plafondLoyerD823162Out: Js.number Js.t Js.readonly_prop
-    method participationMinimaleOut: Js.number Js.t Js.readonly_prop
-    method tauxCompositionFamilialeOut: Js.number Js.t Js.readonly_prop
-    method participationPersonnelleOut: Js.number Js.t Js.readonly_prop
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleMontantMinimalOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_aide_personnalisee_logement_locatif_out_to_jsoo
-    (calcul_aide_personnalisee_logement_locatif_out
-    : CalculAidePersonnaliseeLogementLocatifOut.t)
-    : calcul_aide_personnalisee_logement_locatif_out Js.t =
-    object%js
-      val montantForfaitaireChargesD82316Out =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_out.montant_forfaitaire_charges_d823_16_out
-      val plafondLoyerD823162Out =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_out.plafond_loyer_d823_16_2_out
-      val participationMinimaleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_out.participation_minimale_out
-      val tauxCompositionFamilialeOut =
-        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_locatif_out.taux_composition_familiale_out
-      val participationPersonnelleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_out.participation_personnelle_out
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_out.aide_finale_formule_out
-      method traitementAideFinaleMontantMinimalOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_locatif_out.traitement_aide_finale_montant_minimal_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_aide_personnalisee_logement_locatif_out_of_jsoo
-    (calcul_aide_personnalisee_logement_locatif_out
-      : calcul_aide_personnalisee_logement_locatif_out Js.t) :
-    CalculAidePersonnaliseeLogementLocatifOut.t =
-    {
-      montant_forfaitaire_charges_d823_16_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_out
-          ##.montantForfaitaireChargesD82316Out;
-      plafond_loyer_d823_16_2_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_out
-          ##.plafondLoyerD823162Out;
-      participation_minimale_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_out
-          ##.participationMinimaleOut;
-      taux_composition_familiale_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_out
-          ##.tauxCompositionFamilialeOut;
-      participation_personnelle_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_out
-          ##.participationPersonnelleOut;
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_locatif_out
-          ##.aideFinaleFormuleOut;
-      traitement_aide_finale_montant_minimal_out = failwith "The function 'traitement_aide_finale_montant_minimal_out' translation isn't yet supported..."
     }
 
 class type calcul_aide_personnalisee_logement_locatif_in =
@@ -3013,27 +3527,6 @@ class type calcul_aide_personnalisee_logement_locatif_in =
           ##.logementMeubleD8422In
     }
 
-class type calcul_equivalence_loyer_minimale_out =
-  object method montantOut: Js.number Js.t Js.readonly_prop
-  end
-  let calcul_equivalence_loyer_minimale_out_to_jsoo
-    (calcul_equivalence_loyer_minimale_out
-    : CalculEquivalenceLoyerMinimaleOut.t)
-    : calcul_equivalence_loyer_minimale_out Js.t =
-    object%js
-      val montantOut =
-        Js.number_of_float @@ money_to_float calcul_equivalence_loyer_minimale_out.montant_out
-      end
-  let calcul_equivalence_loyer_minimale_out_of_jsoo
-    (calcul_equivalence_loyer_minimale_out
-      : calcul_equivalence_loyer_minimale_out Js.t) :
-    CalculEquivalenceLoyerMinimaleOut.t =
-    {
-      montant_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_equivalence_loyer_minimale_out##.montantOut
-    }
-
 class type calcul_equivalence_loyer_minimale_in =
   object
     method ressourcesMenageArrondiesIn: Js.number Js.t Js.readonly_prop
@@ -3065,27 +3558,6 @@ class type calcul_equivalence_loyer_minimale_in =
       n_nombre_parts_d832_25_in =
         decimal_of_float @@ Js.float_of_number
           calcul_equivalence_loyer_minimale_in##.nNombrePartsD83225In
-    }
-
-class type calcul_nombre_part_logement_foyer_out =
-  object method nNombrePartsD83225Out: Js.number Js.t Js.readonly_prop
-  end
-  let calcul_nombre_part_logement_foyer_out_to_jsoo
-    (calcul_nombre_part_logement_foyer_out
-    : CalculNombrePartLogementFoyerOut.t)
-    : calcul_nombre_part_logement_foyer_out Js.t =
-    object%js
-      val nNombrePartsD83225Out =
-        Js.number_of_float @@ decimal_to_float calcul_nombre_part_logement_foyer_out.n_nombre_parts_d832_25_out
-      end
-  let calcul_nombre_part_logement_foyer_out_of_jsoo
-    (calcul_nombre_part_logement_foyer_out
-      : calcul_nombre_part_logement_foyer_out Js.t) :
-    CalculNombrePartLogementFoyerOut.t =
-    {
-      n_nombre_parts_d832_25_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_nombre_part_logement_foyer_out##.nNombrePartsD83225Out
     }
 
 class type calcul_nombre_part_logement_foyer_in =
@@ -3121,87 +3593,6 @@ class type calcul_nombre_part_logement_foyer_in =
         situation_familiale_calcul_a_p_l_of_jsoo
           calcul_nombre_part_logement_foyer_in
           ##.situationFamilialeCalculAplIn
-    }
-
-class type calcul_aide_personnalisee_logement_foyer_out =
-  object
-    method coefficientMultiplicateurD83225Out:
-      Js.number Js.t Js.readonly_prop
-    method coefficientRD83225Out: Js.number Js.t Js.readonly_prop
-    method nNombrePartsD83225Out: Js.number Js.t Js.readonly_prop
-    method equivalenceLoyerEligibleOut: Js.number Js.t Js.readonly_prop
-    method plafondEquivalenceLoyerEligibleOut:
-      Js.number Js.t Js.readonly_prop
-    method equivalenceLoyerMinimaleOut: Js.number Js.t Js.readonly_prop
-    method coefficientPriseEnChargeD83225SeuilOut:
-      Js.number Js.t Js.readonly_prop
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleMontantMinimalOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_aide_personnalisee_logement_foyer_out_to_jsoo
-    (calcul_aide_personnalisee_logement_foyer_out
-    : CalculAidePersonnaliseeLogementFoyerOut.t)
-    : calcul_aide_personnalisee_logement_foyer_out Js.t =
-    object%js
-      val coefficientMultiplicateurD83225Out =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_out.coefficient_multiplicateur_d832_25_out
-      val coefficientRD83225Out =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_out.coefficient_r_d832_25_out
-      val nNombrePartsD83225Out =
-        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_foyer_out.n_nombre_parts_d832_25_out
-      val equivalenceLoyerEligibleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_out.equivalence_loyer_eligible_out
-      val plafondEquivalenceLoyerEligibleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_out.plafond_equivalence_loyer_eligible_out
-      val equivalenceLoyerMinimaleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_out.equivalence_loyer_minimale_out
-      val coefficientPriseEnChargeD83225SeuilOut =
-        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_foyer_out.coefficient_prise_en_charge_d832_25_seuil_out
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_out.aide_finale_formule_out
-      method traitementAideFinaleMontantMinimalOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_foyer_out.traitement_aide_finale_montant_minimal_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_aide_personnalisee_logement_foyer_out_of_jsoo
-    (calcul_aide_personnalisee_logement_foyer_out
-      : calcul_aide_personnalisee_logement_foyer_out Js.t) :
-    CalculAidePersonnaliseeLogementFoyerOut.t =
-    {
-      coefficient_multiplicateur_d832_25_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.coefficientMultiplicateurD83225Out;
-      coefficient_r_d832_25_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.coefficientRD83225Out;
-      n_nombre_parts_d832_25_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.nNombrePartsD83225Out;
-      equivalence_loyer_eligible_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.equivalenceLoyerEligibleOut;
-      plafond_equivalence_loyer_eligible_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.plafondEquivalenceLoyerEligibleOut;
-      equivalence_loyer_minimale_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.equivalenceLoyerMinimaleOut;
-      coefficient_prise_en_charge_d832_25_seuil_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out
-          ##.coefficientPriseEnChargeD83225SeuilOut;
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_foyer_out##.aideFinaleFormuleOut;
-      traitement_aide_finale_montant_minimal_out = failwith "The function 'traitement_aide_finale_montant_minimal_out' translation isn't yet supported..."
     }
 
 class type calcul_aide_personnalisee_logement_foyer_in =
@@ -3286,27 +3677,6 @@ class type calcul_aide_personnalisee_logement_foyer_in =
       n_nombre_parts_d832_25_in = failwith "The function 'n_nombre_parts_d832_25_in' translation isn't yet supported..."
     }
 
-class type calcul_nombre_parts_accession_propriete_out =
-  object method nNombrePartsD83211Out: Js.number Js.t Js.readonly_prop
-  end
-  let calcul_nombre_parts_accession_propriete_out_to_jsoo
-    (calcul_nombre_parts_accession_propriete_out
-    : CalculNombrePartsAccessionProprieteOut.t)
-    : calcul_nombre_parts_accession_propriete_out Js.t =
-    object%js
-      val nNombrePartsD83211Out =
-        Js.number_of_float @@ decimal_to_float calcul_nombre_parts_accession_propriete_out.n_nombre_parts_d832_11_out
-      end
-  let calcul_nombre_parts_accession_propriete_out_of_jsoo
-    (calcul_nombre_parts_accession_propriete_out
-      : calcul_nombre_parts_accession_propriete_out Js.t) :
-    CalculNombrePartsAccessionProprieteOut.t =
-    {
-      n_nombre_parts_d832_11_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_nombre_parts_accession_propriete_out##.nNombrePartsD83211Out
-    }
-
 class type calcul_nombre_parts_accession_propriete_in =
   object
     method nombrePersonnesAChargeIn: int Js.readonly_prop
@@ -3336,58 +3706,6 @@ class type calcul_nombre_parts_accession_propriete_in =
         situation_familiale_calcul_a_p_l_of_jsoo
           calcul_nombre_parts_accession_propriete_in
           ##.situationFamilialeCalculAplIn
-    }
-
-class type calcul_aide_personnalisee_logement_accession_propriete_out =
-  object
-    method mensualiteEligibleOut: Js.number Js.t Js.readonly_prop
-    method mensualiteMinimaleOut: Js.number Js.t Js.readonly_prop
-    method coefficientPriseEnChargeD83210SeuilOut:
-      Js.number Js.t Js.readonly_prop
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleMontantMinimalOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_aide_personnalisee_logement_accession_propriete_out_to_jsoo
-    (calcul_aide_personnalisee_logement_accession_propriete_out
-    : CalculAidePersonnaliseeLogementAccessionProprieteOut.t)
-    : calcul_aide_personnalisee_logement_accession_propriete_out Js.t =
-    object%js
-      val mensualiteEligibleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_accession_propriete_out.mensualite_eligible_out
-      val mensualiteMinimaleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_accession_propriete_out.mensualite_minimale_out
-      val coefficientPriseEnChargeD83210SeuilOut =
-        Js.number_of_float @@ decimal_to_float calcul_aide_personnalisee_logement_accession_propriete_out.coefficient_prise_en_charge_d832_10_seuil_out
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_accession_propriete_out.aide_finale_formule_out
-      method traitementAideFinaleMontantMinimalOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_accession_propriete_out.traitement_aide_finale_montant_minimal_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_aide_personnalisee_logement_accession_propriete_out_of_jsoo
-    (calcul_aide_personnalisee_logement_accession_propriete_out
-      : calcul_aide_personnalisee_logement_accession_propriete_out Js.t) :
-    CalculAidePersonnaliseeLogementAccessionProprieteOut.t =
-    {
-      mensualite_eligible_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_accession_propriete_out
-          ##.mensualiteEligibleOut;
-      mensualite_minimale_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_accession_propriete_out
-          ##.mensualiteMinimaleOut;
-      coefficient_prise_en_charge_d832_10_seuil_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_accession_propriete_out
-          ##.coefficientPriseEnChargeD83210SeuilOut;
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_accession_propriete_out
-          ##.aideFinaleFormuleOut;
-      traitement_aide_finale_montant_minimal_out = failwith "The function 'traitement_aide_finale_montant_minimal_out' translation isn't yet supported..."
     }
 
 class type calcul_aide_personnalisee_logement_accession_propriete_in =
@@ -3505,35 +3823,6 @@ class type calcul_aide_personnalisee_logement_accession_propriete_in =
           ##.dateCouranteIn
     }
 
-class type calcul_aide_personnalisee_logement_out =
-  object
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_aide_personnalisee_logement_out_to_jsoo
-    (calcul_aide_personnalisee_logement_out
-    : CalculAidePersonnaliseeLogementOut.t)
-    : calcul_aide_personnalisee_logement_out Js.t =
-    object%js
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_out.aide_finale_formule_out
-      method traitementAideFinaleOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_aide_personnalisee_logement_out.traitement_aide_finale_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_aide_personnalisee_logement_out_of_jsoo
-    (calcul_aide_personnalisee_logement_out
-      : calcul_aide_personnalisee_logement_out Js.t) :
-    CalculAidePersonnaliseeLogementOut.t =
-    {
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_aide_personnalisee_logement_out##.aideFinaleFormuleOut;
-      traitement_aide_finale_out = failwith "The function 'traitement_aide_finale_out' translation isn't yet supported..."
-    }
-
 class type calcul_aide_personnalisee_logement_in =
   object
     method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
@@ -3590,35 +3879,6 @@ class type calcul_aide_personnalisee_logement_in =
           calcul_aide_personnalisee_logement_in##.zoneIn;
       date_courante_in =
         date_of_jsoo calcul_aide_personnalisee_logement_in##.dateCouranteIn
-    }
-
-class type calcul_allocation_logement_locatif_out =
-  object
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_allocation_logement_locatif_out_to_jsoo
-    (calcul_allocation_logement_locatif_out
-    : CalculAllocationLogementLocatifOut.t)
-    : calcul_allocation_logement_locatif_out Js.t =
-    object%js
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_locatif_out.aide_finale_formule_out
-      method traitementAideFinaleOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_allocation_logement_locatif_out.traitement_aide_finale_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_allocation_logement_locatif_out_of_jsoo
-    (calcul_allocation_logement_locatif_out
-      : calcul_allocation_logement_locatif_out Js.t) :
-    CalculAllocationLogementLocatifOut.t =
-    {
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_locatif_out##.aideFinaleFormuleOut;
-      traitement_aide_finale_out = failwith "The function 'traitement_aide_finale_out' translation isn't yet supported..."
     }
 
 class type calcul_allocation_logement_locatif_in =
@@ -3724,36 +3984,6 @@ class type calcul_allocation_logement_locatif_in =
       changement_logement_d842_4_in =
         changement_logement_d842_4_of_jsoo
           calcul_allocation_logement_locatif_in##.changementLogementD8424In
-    }
-
-class type calcul_allocation_logement_accession_propriete_out =
-  object
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleMontantMinimalOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_allocation_logement_accession_propriete_out_to_jsoo
-    (calcul_allocation_logement_accession_propriete_out
-    : CalculAllocationLogementAccessionProprieteOut.t)
-    : calcul_allocation_logement_accession_propriete_out Js.t =
-    object%js
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_accession_propriete_out.aide_finale_formule_out
-      method traitementAideFinaleMontantMinimalOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_allocation_logement_accession_propriete_out.traitement_aide_finale_montant_minimal_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_allocation_logement_accession_propriete_out_of_jsoo
-    (calcul_allocation_logement_accession_propriete_out
-      : calcul_allocation_logement_accession_propriete_out Js.t) :
-    CalculAllocationLogementAccessionProprieteOut.t =
-    {
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_accession_propriete_out
-          ##.aideFinaleFormuleOut;
-      traitement_aide_finale_montant_minimal_out = failwith "The function 'traitement_aide_finale_montant_minimal_out' translation isn't yet supported..."
     }
 
 class type calcul_allocation_logement_accession_propriete_in =
@@ -3862,59 +4092,6 @@ class type calcul_allocation_logement_accession_propriete_in =
           calcul_allocation_logement_accession_propriete_in##.coproprieteIn
     }
 
-class type calcul_allocation_logement_foyer_out =
-  object
-    method coefficientPriseEnChargeOut: Js.number Js.t Js.readonly_prop
-    method equivalenceLoyerOut: Js.number Js.t Js.readonly_prop
-    method montantForfaitaireChargesOut: Js.number Js.t Js.readonly_prop
-    method loyerMinimalOut: Js.number Js.t Js.readonly_prop
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleMontantMinimalOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_allocation_logement_foyer_out_to_jsoo
-    (calcul_allocation_logement_foyer_out
-    : CalculAllocationLogementFoyerOut.t)
-    : calcul_allocation_logement_foyer_out Js.t =
-    object%js
-      val coefficientPriseEnChargeOut =
-        Js.number_of_float @@ decimal_to_float calcul_allocation_logement_foyer_out.coefficient_prise_en_charge_out
-      val equivalenceLoyerOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer_out.equivalence_loyer_out
-      val montantForfaitaireChargesOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer_out.montant_forfaitaire_charges_out
-      val loyerMinimalOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer_out.loyer_minimal_out
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_foyer_out.aide_finale_formule_out
-      method traitementAideFinaleMontantMinimalOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_allocation_logement_foyer_out.traitement_aide_finale_montant_minimal_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_allocation_logement_foyer_out_of_jsoo
-    (calcul_allocation_logement_foyer_out
-      : calcul_allocation_logement_foyer_out Js.t) :
-    CalculAllocationLogementFoyerOut.t =
-    {
-      coefficient_prise_en_charge_out =
-        decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_foyer_out##.coefficientPriseEnChargeOut;
-      equivalence_loyer_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_foyer_out##.equivalenceLoyerOut;
-      montant_forfaitaire_charges_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_foyer_out##.montantForfaitaireChargesOut;
-      loyer_minimal_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_foyer_out##.loyerMinimalOut;
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_foyer_out##.aideFinaleFormuleOut;
-      traitement_aide_finale_montant_minimal_out = failwith "The function 'traitement_aide_finale_montant_minimal_out' translation isn't yet supported..."
-    }
-
 class type calcul_allocation_logement_foyer_in =
   object
     method typeLogementFoyerIn: type_logement_foyer Js.t Js.readonly_prop
@@ -3986,32 +4163,6 @@ class type calcul_allocation_logement_foyer_in =
           ##.categorieEquivalenceLoyerD84216In
     }
 
-class type calcul_allocation_logement_out =
-  object
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-  end
-  let calcul_allocation_logement_out_to_jsoo (calcul_allocation_logement_out
-    : CalculAllocationLogementOut.t) : calcul_allocation_logement_out Js.t =
-    object%js
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calcul_allocation_logement_out.aide_finale_formule_out
-      method traitementAideFinaleOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calcul_allocation_logement_out.traitement_aide_finale_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      end
-  let calcul_allocation_logement_out_of_jsoo
-    (calcul_allocation_logement_out : calcul_allocation_logement_out Js.t) :
-    CalculAllocationLogementOut.t =
-    {
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calcul_allocation_logement_out##.aideFinaleFormuleOut;
-      traitement_aide_finale_out = failwith "The function 'traitement_aide_finale_out' translation isn't yet supported..."
-    }
-
 class type calcul_allocation_logement_in =
   object
     method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
@@ -4065,25 +4216,6 @@ class type calcul_allocation_logement_in =
           calcul_allocation_logement_in##.typeAideIn
     }
 
-class type ouverture_droits_retraite_out =
-  object
-    method ageOuvertureDroitOut:
-      Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
-  end
-  let ouverture_droits_retraite_out_to_jsoo (ouverture_droits_retraite_out
-    : OuvertureDroitsRetraiteOut.t) : ouverture_droits_retraite_out Js.t =
-    object%js
-      val ageOuvertureDroitOut =
-        duration_to_jsoo ouverture_droits_retraite_out.age_ouverture_droit_out
-      end
-  let ouverture_droits_retraite_out_of_jsoo
-    (ouverture_droits_retraite_out : ouverture_droits_retraite_out Js.t) :
-    OuvertureDroitsRetraiteOut.t =
-    {
-      age_ouverture_droit_out =
-        duration_of_jsoo ouverture_droits_retraite_out##.ageOuvertureDroitOut
-    }
-
 class type ouverture_droits_retraite_in =
   object method dateNaissanceAssureIn: Js.js_string Js.t Js.readonly_prop
   end
@@ -4099,24 +4231,6 @@ class type ouverture_droits_retraite_in =
     {
       date_naissance_assure_in =
         date_of_jsoo ouverture_droits_retraite_in##.dateNaissanceAssureIn
-    }
-
-class type impaye_depense_logement_out =
-  object method montantImpayeOut: Js.number Js.t Js.readonly_prop
-  end
-  let impaye_depense_logement_out_to_jsoo (impaye_depense_logement_out
-    : ImpayeDepenseLogementOut.t) : impaye_depense_logement_out Js.t =
-    object%js
-      val montantImpayeOut =
-        Js.number_of_float @@ money_to_float impaye_depense_logement_out.montant_impaye_out
-      end
-  let impaye_depense_logement_out_of_jsoo
-    (impaye_depense_logement_out : impaye_depense_logement_out Js.t) :
-    ImpayeDepenseLogementOut.t =
-    {
-      montant_impaye_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          impaye_depense_logement_out##.montantImpayeOut
     }
 
 class type impaye_depense_logement_in =
@@ -4166,47 +4280,6 @@ class type impaye_depense_logement_in =
           impaye_depense_logement_in##.montantDetteIn
     }
 
-class type calculette_aides_au_logement_out =
-  object
-    method eligibiliteOut: bool Js.t Js.readonly_prop
-    method aideFinaleFormuleOut: Js.number Js.t Js.readonly_prop
-    method traitementAideFinaleOut:
-      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
-    method coefficentsEnfantsGardeAlterneePrisEnCompteOut:
-      Js.number Js.t Js.js_array Js.t Js.readonly_prop
-  end
-  let calculette_aides_au_logement_out_to_jsoo
-    (calculette_aides_au_logement_out : CalculetteAidesAuLogementOut.t)
-    : calculette_aides_au_logement_out Js.t =
-    object%js
-      val eligibiliteOut =
-        Js.bool calculette_aides_au_logement_out.eligibilite_out
-      val aideFinaleFormuleOut =
-        Js.number_of_float @@ money_to_float calculette_aides_au_logement_out.aide_finale_formule_out
-      method traitementAideFinaleOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.number_of_float @@ money_to_float (calculette_aides_au_logement_out.traitement_aide_finale_out (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
-      val coefficentsEnfantsGardeAlterneePrisEnCompteOut =
-        Js.array @@ Array.map (fun x -> Js.number_of_float @@ decimal_to_float x) calculette_aides_au_logement_out.coefficents_enfants_garde_alternee_pris_en_compte_out
-      end
-  let calculette_aides_au_logement_out_of_jsoo
-    (calculette_aides_au_logement_out
-      : calculette_aides_au_logement_out Js.t) :
-    CalculetteAidesAuLogementOut.t =
-    {
-      eligibilite_out =
-        Js.to_bool calculette_aides_au_logement_out##.eligibiliteOut;
-      aide_finale_formule_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calculette_aides_au_logement_out##.aideFinaleFormuleOut;
-      traitement_aide_finale_out = failwith "The function 'traitement_aide_finale_out' translation isn't yet supported...";
-      coefficents_enfants_garde_alternee_pris_en_compte_out =
-        Array.map (fun x -> decimal_of_float @@ Js.float_of_number x) @@ Js.to_array
-          calculette_aides_au_logement_out
-          ##.coefficentsEnfantsGardeAlterneePrisEnCompteOut
-    }
-
 class type calculette_aides_au_logement_in =
   object
     method menageIn: menage Js.t Js.readonly_prop
@@ -4238,34 +4311,6 @@ class type calculette_aides_au_logement_in =
       ressources_menage_prises_en_compte_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calculette_aides_au_logement_in##.ressourcesMenagePrisesEnCompteIn
-    }
-
-class type calculette_aides_au_logement_garde_alternee_out =
-  object
-    method eligibiliteOut: bool Js.t Js.readonly_prop
-    method aideFinaleOut: Js.number Js.t Js.readonly_prop
-  end
-  let calculette_aides_au_logement_garde_alternee_out_to_jsoo
-    (calculette_aides_au_logement_garde_alternee_out
-    : CalculetteAidesAuLogementGardeAlterneeOut.t)
-    : calculette_aides_au_logement_garde_alternee_out Js.t =
-    object%js
-      val eligibiliteOut =
-        Js.bool calculette_aides_au_logement_garde_alternee_out.eligibilite_out
-      val aideFinaleOut =
-        Js.number_of_float @@ money_to_float calculette_aides_au_logement_garde_alternee_out.aide_finale_out
-      end
-  let calculette_aides_au_logement_garde_alternee_out_of_jsoo
-    (calculette_aides_au_logement_garde_alternee_out
-      : calculette_aides_au_logement_garde_alternee_out Js.t) :
-    CalculetteAidesAuLogementGardeAlterneeOut.t =
-    {
-      eligibilite_out =
-        Js.to_bool
-          calculette_aides_au_logement_garde_alternee_out##.eligibiliteOut;
-      aide_finale_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          calculette_aides_au_logement_garde_alternee_out##.aideFinaleOut
     }
 
 class type calculette_aides_au_logement_garde_alternee_in =
@@ -4309,27 +4354,6 @@ class type calculette_aides_au_logement_garde_alternee_in =
           ##.ressourcesMenagePrisesEnCompteIn
     }
 
-class type base_mensuelle_allocations_familiales_out =
-  object method montantOut: Js.number Js.t Js.readonly_prop
-  end
-  let base_mensuelle_allocations_familiales_out_to_jsoo
-    (base_mensuelle_allocations_familiales_out
-    : BaseMensuelleAllocationsFamilialesOut.t)
-    : base_mensuelle_allocations_familiales_out Js.t =
-    object%js
-      val montantOut =
-        Js.number_of_float @@ money_to_float base_mensuelle_allocations_familiales_out.montant_out
-      end
-  let base_mensuelle_allocations_familiales_out_of_jsoo
-    (base_mensuelle_allocations_familiales_out
-      : base_mensuelle_allocations_familiales_out Js.t) :
-    BaseMensuelleAllocationsFamilialesOut.t =
-    {
-      montant_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          base_mensuelle_allocations_familiales_out##.montantOut
-    }
-
 class type base_mensuelle_allocations_familiales_in =
   object method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
   end
@@ -4351,21 +4375,6 @@ class type base_mensuelle_allocations_familiales_in =
           base_mensuelle_allocations_familiales_in##.dateCouranteIn
     }
 
-class type smic_out =
-  object method brutHoraireOut: Js.number Js.t Js.readonly_prop
-  end
-  let smic_out_to_jsoo (smic_out : SmicOut.t) : smic_out Js.t =
-    object%js
-      val brutHoraireOut =
-        Js.number_of_float @@ money_to_float smic_out.brut_horaire_out
-      end
-  let smic_out_of_jsoo (smic_out : smic_out Js.t) : SmicOut.t =
-    {
-      brut_horaire_out =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          smic_out##.brutHoraireOut
-    }
-
 class type smic_in =
   object
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
@@ -4380,48 +4389,6 @@ class type smic_in =
     {
       date_courante_in = date_of_jsoo smic_in##.dateCouranteIn;
       residence_in = collectivite_of_jsoo smic_in##.residenceIn
-    }
-
-class type eligibilite_prestations_familiales_out =
-  object
-    method droitOuvertOut:
-      (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method conditionsHorsAgeOut:
-      (enfant_prestations_familiales Js.t,  bool Js.t) Js.meth_callback Js.meth
-    method ageL51232Out: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
-    method regimeOutreMerL7511Out: bool Js.t Js.readonly_prop
-  end
-  let eligibilite_prestations_familiales_out_to_jsoo
-    (eligibilite_prestations_familiales_out
-    : EligibilitePrestationsFamilialesOut.t)
-    : eligibilite_prestations_familiales_out Js.t =
-    object%js
-      method droitOuvertOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.bool (eligibilite_prestations_familiales_out.droit_ouvert_out (enfant_prestations_familiales_of_jsoo input)))
-      method conditionsHorsAgeOut = Js.wrap_meth_callback
-        (
-          fun input ->
-          Js.bool (eligibilite_prestations_familiales_out.conditions_hors_age_out (enfant_prestations_familiales_of_jsoo input)))
-      val ageL51232Out =
-        duration_to_jsoo eligibilite_prestations_familiales_out.age_l512_3_2_out
-      val regimeOutreMerL7511Out =
-        Js.bool eligibilite_prestations_familiales_out.regime_outre_mer_l751_1_out
-      end
-  let eligibilite_prestations_familiales_out_of_jsoo
-    (eligibilite_prestations_familiales_out
-      : eligibilite_prestations_familiales_out Js.t) :
-    EligibilitePrestationsFamilialesOut.t =
-    {
-      droit_ouvert_out = failwith "The function 'droit_ouvert_out' translation isn't yet supported...";
-      conditions_hors_age_out = failwith "The function 'conditions_hors_age_out' translation isn't yet supported...";
-      age_l512_3_2_out =
-        duration_of_jsoo
-          eligibilite_prestations_familiales_out##.ageL51232Out;
-      regime_outre_mer_l751_1_out =
-        Js.to_bool
-          eligibilite_prestations_familiales_out##.regimeOutreMerL7511Out
     }
 
 class type eligibilite_prestations_familiales_in =
@@ -4463,291 +4430,291 @@ class type eligibilite_prestations_familiales_in =
 
 let contributions_sociales_aides_personnelle_logement
   (contributions_sociales_aides_personnelle_logement_in : contributions_sociales_aides_personnelle_logement_in Js.t)
-  : contributions_sociales_aides_personnelle_logement_out Js.t =
+  : contributions_sociales_aides_personnelle_logement Js.t =
   contributions_sociales_aides_personnelle_logement_in
   |> contributions_sociales_aides_personnelle_logement_in_of_jsoo
   |> contributions_sociales_aides_personnelle_logement
-  |> contributions_sociales_aides_personnelle_logement_out_to_jsoo
+  |> contributions_sociales_aides_personnelle_logement_to_jsoo
 
 
 let calcul_equivalence_loyer_minimale
   (calcul_equivalence_loyer_minimale_in : calcul_equivalence_loyer_minimale_in Js.t)
-  : calcul_equivalence_loyer_minimale_out Js.t =
+  : calcul_equivalence_loyer_minimale Js.t =
   calcul_equivalence_loyer_minimale_in
   |> calcul_equivalence_loyer_minimale_in_of_jsoo
   |> calcul_equivalence_loyer_minimale
-  |> calcul_equivalence_loyer_minimale_out_to_jsoo
+  |> calcul_equivalence_loyer_minimale_to_jsoo
 
 
 let calcul_nombre_part_logement_foyer
   (calcul_nombre_part_logement_foyer_in : calcul_nombre_part_logement_foyer_in Js.t)
-  : calcul_nombre_part_logement_foyer_out Js.t =
+  : calcul_nombre_part_logement_foyer Js.t =
   calcul_nombre_part_logement_foyer_in
   |> calcul_nombre_part_logement_foyer_in_of_jsoo
   |> calcul_nombre_part_logement_foyer
-  |> calcul_nombre_part_logement_foyer_out_to_jsoo
+  |> calcul_nombre_part_logement_foyer_to_jsoo
 
 
 let calcul_nombre_parts_accession_propriete
   (calcul_nombre_parts_accession_propriete_in : calcul_nombre_parts_accession_propriete_in Js.t)
-  : calcul_nombre_parts_accession_propriete_out Js.t =
+  : calcul_nombre_parts_accession_propriete Js.t =
   calcul_nombre_parts_accession_propriete_in
   |> calcul_nombre_parts_accession_propriete_in_of_jsoo
   |> calcul_nombre_parts_accession_propriete
-  |> calcul_nombre_parts_accession_propriete_out_to_jsoo
+  |> calcul_nombre_parts_accession_propriete_to_jsoo
 
 
 let ouverture_droits_retraite
   (ouverture_droits_retraite_in : ouverture_droits_retraite_in Js.t)
-  : ouverture_droits_retraite_out Js.t =
+  : ouverture_droits_retraite Js.t =
   ouverture_droits_retraite_in
   |> ouverture_droits_retraite_in_of_jsoo
   |> ouverture_droits_retraite
-  |> ouverture_droits_retraite_out_to_jsoo
+  |> ouverture_droits_retraite_to_jsoo
 
 
 let impaye_depense_logement
   (impaye_depense_logement_in : impaye_depense_logement_in Js.t)
-  : impaye_depense_logement_out Js.t =
+  : impaye_depense_logement Js.t =
   impaye_depense_logement_in
   |> impaye_depense_logement_in_of_jsoo
   |> impaye_depense_logement
-  |> impaye_depense_logement_out_to_jsoo
+  |> impaye_depense_logement_to_jsoo
 
 
 let base_mensuelle_allocations_familiales
   (base_mensuelle_allocations_familiales_in : base_mensuelle_allocations_familiales_in Js.t)
-  : base_mensuelle_allocations_familiales_out Js.t =
+  : base_mensuelle_allocations_familiales Js.t =
   base_mensuelle_allocations_familiales_in
   |> base_mensuelle_allocations_familiales_in_of_jsoo
   |> base_mensuelle_allocations_familiales
-  |> base_mensuelle_allocations_familiales_out_to_jsoo
+  |> base_mensuelle_allocations_familiales_to_jsoo
 
 
 let smic (smic_in : smic_in Js.t)
-  : smic_out Js.t =
-  smic_in |> smic_in_of_jsoo |> smic |> smic_out_to_jsoo
+  : smic Js.t =
+  smic_in |> smic_in_of_jsoo |> smic |> smic_to_jsoo
 
 
 let calcul_aide_personnalisee_logement_locatif
   (calcul_aide_personnalisee_logement_locatif_in : calcul_aide_personnalisee_logement_locatif_in Js.t)
-  : calcul_aide_personnalisee_logement_locatif_out Js.t =
+  : calcul_aide_personnalisee_logement_locatif Js.t =
   calcul_aide_personnalisee_logement_locatif_in
   |> calcul_aide_personnalisee_logement_locatif_in_of_jsoo
   |> calcul_aide_personnalisee_logement_locatif
-  |> calcul_aide_personnalisee_logement_locatif_out_to_jsoo
+  |> calcul_aide_personnalisee_logement_locatif_to_jsoo
 
 
 let calcul_aide_personnalisee_logement_foyer
   (calcul_aide_personnalisee_logement_foyer_in : calcul_aide_personnalisee_logement_foyer_in Js.t)
-  : calcul_aide_personnalisee_logement_foyer_out Js.t =
+  : calcul_aide_personnalisee_logement_foyer Js.t =
   calcul_aide_personnalisee_logement_foyer_in
   |> calcul_aide_personnalisee_logement_foyer_in_of_jsoo
   |> calcul_aide_personnalisee_logement_foyer
-  |> calcul_aide_personnalisee_logement_foyer_out_to_jsoo
+  |> calcul_aide_personnalisee_logement_foyer_to_jsoo
 
 
 let calcul_aide_personnalisee_logement_accession_propriete
   (calcul_aide_personnalisee_logement_accession_propriete_in : calcul_aide_personnalisee_logement_accession_propriete_in Js.t)
-  : calcul_aide_personnalisee_logement_accession_propriete_out Js.t =
+  : calcul_aide_personnalisee_logement_accession_propriete Js.t =
   calcul_aide_personnalisee_logement_accession_propriete_in
   |> calcul_aide_personnalisee_logement_accession_propriete_in_of_jsoo
   |> calcul_aide_personnalisee_logement_accession_propriete
-  |> calcul_aide_personnalisee_logement_accession_propriete_out_to_jsoo
+  |> calcul_aide_personnalisee_logement_accession_propriete_to_jsoo
 
 
 let eligibilite_aides_personnelle_logement
   (eligibilite_aides_personnelle_logement_in : eligibilite_aides_personnelle_logement_in Js.t)
-  : eligibilite_aides_personnelle_logement_out Js.t =
+  : eligibilite_aides_personnelle_logement Js.t =
   eligibilite_aides_personnelle_logement_in
   |> eligibilite_aides_personnelle_logement_in_of_jsoo
   |> eligibilite_aides_personnelle_logement
-  |> eligibilite_aides_personnelle_logement_out_to_jsoo
+  |> eligibilite_aides_personnelle_logement_to_jsoo
 
 
 let ressources_aides_personnelle_logement
   (ressources_aides_personnelle_logement_in : ressources_aides_personnelle_logement_in Js.t)
-  : ressources_aides_personnelle_logement_out Js.t =
+  : ressources_aides_personnelle_logement Js.t =
   ressources_aides_personnelle_logement_in
   |> ressources_aides_personnelle_logement_in_of_jsoo
   |> ressources_aides_personnelle_logement
-  |> ressources_aides_personnelle_logement_out_to_jsoo
+  |> ressources_aides_personnelle_logement_to_jsoo
 
 
 let eligibilite_prestations_familiales
   (eligibilite_prestations_familiales_in : eligibilite_prestations_familiales_in Js.t)
-  : eligibilite_prestations_familiales_out Js.t =
+  : eligibilite_prestations_familiales Js.t =
   eligibilite_prestations_familiales_in
   |> eligibilite_prestations_familiales_in_of_jsoo
   |> eligibilite_prestations_familiales
-  |> eligibilite_prestations_familiales_out_to_jsoo
+  |> eligibilite_prestations_familiales_to_jsoo
 
 
 let calcul_allocation_logement_locatif
   (calcul_allocation_logement_locatif_in : calcul_allocation_logement_locatif_in Js.t)
-  : calcul_allocation_logement_locatif_out Js.t =
+  : calcul_allocation_logement_locatif Js.t =
   calcul_allocation_logement_locatif_in
   |> calcul_allocation_logement_locatif_in_of_jsoo
   |> calcul_allocation_logement_locatif
-  |> calcul_allocation_logement_locatif_out_to_jsoo
+  |> calcul_allocation_logement_locatif_to_jsoo
 
 
 let calcul_allocation_logement_foyer
   (calcul_allocation_logement_foyer_in : calcul_allocation_logement_foyer_in Js.t)
-  : calcul_allocation_logement_foyer_out Js.t =
+  : calcul_allocation_logement_foyer Js.t =
   calcul_allocation_logement_foyer_in
   |> calcul_allocation_logement_foyer_in_of_jsoo
   |> calcul_allocation_logement_foyer
-  |> calcul_allocation_logement_foyer_out_to_jsoo
+  |> calcul_allocation_logement_foyer_to_jsoo
 
 
 let calcul_allocation_logement_accession_propriete
   (calcul_allocation_logement_accession_propriete_in : calcul_allocation_logement_accession_propriete_in Js.t)
-  : calcul_allocation_logement_accession_propriete_out Js.t =
+  : calcul_allocation_logement_accession_propriete Js.t =
   calcul_allocation_logement_accession_propriete_in
   |> calcul_allocation_logement_accession_propriete_in_of_jsoo
   |> calcul_allocation_logement_accession_propriete
-  |> calcul_allocation_logement_accession_propriete_out_to_jsoo
+  |> calcul_allocation_logement_accession_propriete_to_jsoo
 
 
 let calcul_aide_personnalisee_logement
   (calcul_aide_personnalisee_logement_in : calcul_aide_personnalisee_logement_in Js.t)
-  : calcul_aide_personnalisee_logement_out Js.t =
+  : calcul_aide_personnalisee_logement Js.t =
   calcul_aide_personnalisee_logement_in
   |> calcul_aide_personnalisee_logement_in_of_jsoo
   |> calcul_aide_personnalisee_logement
-  |> calcul_aide_personnalisee_logement_out_to_jsoo
+  |> calcul_aide_personnalisee_logement_to_jsoo
 
 
 let eligibilite_prime_de_demenagement
   (eligibilite_prime_de_demenagement_in : eligibilite_prime_de_demenagement_in Js.t)
-  : eligibilite_prime_de_demenagement_out Js.t =
+  : eligibilite_prime_de_demenagement Js.t =
   eligibilite_prime_de_demenagement_in
   |> eligibilite_prime_de_demenagement_in_of_jsoo
   |> eligibilite_prime_de_demenagement
-  |> eligibilite_prime_de_demenagement_out_to_jsoo
+  |> eligibilite_prime_de_demenagement_to_jsoo
 
 
 let eligibilite_aide_personnalisee_logement
   (eligibilite_aide_personnalisee_logement_in : eligibilite_aide_personnalisee_logement_in Js.t)
-  : eligibilite_aide_personnalisee_logement_out Js.t =
+  : eligibilite_aide_personnalisee_logement Js.t =
   eligibilite_aide_personnalisee_logement_in
   |> eligibilite_aide_personnalisee_logement_in_of_jsoo
   |> eligibilite_aide_personnalisee_logement
-  |> eligibilite_aide_personnalisee_logement_out_to_jsoo
+  |> eligibilite_aide_personnalisee_logement_to_jsoo
 
 
 let eligibilite_allocation_logement
   (eligibilite_allocation_logement_in : eligibilite_allocation_logement_in Js.t)
-  : eligibilite_allocation_logement_out Js.t =
+  : eligibilite_allocation_logement Js.t =
   eligibilite_allocation_logement_in
   |> eligibilite_allocation_logement_in_of_jsoo
   |> eligibilite_allocation_logement
-  |> eligibilite_allocation_logement_out_to_jsoo
+  |> eligibilite_allocation_logement_to_jsoo
 
 
 let calcul_allocation_logement
   (calcul_allocation_logement_in : calcul_allocation_logement_in Js.t)
-  : calcul_allocation_logement_out Js.t =
+  : calcul_allocation_logement Js.t =
   calcul_allocation_logement_in
   |> calcul_allocation_logement_in_of_jsoo
   |> calcul_allocation_logement
-  |> calcul_allocation_logement_out_to_jsoo
+  |> calcul_allocation_logement_to_jsoo
 
 
 let calculette_aides_au_logement
   (calculette_aides_au_logement_in : calculette_aides_au_logement_in Js.t)
-  : calculette_aides_au_logement_out Js.t =
+  : calculette_aides_au_logement Js.t =
   calculette_aides_au_logement_in
   |> calculette_aides_au_logement_in_of_jsoo
   |> calculette_aides_au_logement
-  |> calculette_aides_au_logement_out_to_jsoo
+  |> calculette_aides_au_logement_to_jsoo
 
 
 let calculette_aides_au_logement_garde_alternee
   (calculette_aides_au_logement_garde_alternee_in : calculette_aides_au_logement_garde_alternee_in Js.t)
-  : calculette_aides_au_logement_garde_alternee_out Js.t =
+  : calculette_aides_au_logement_garde_alternee Js.t =
   calculette_aides_au_logement_garde_alternee_in
   |> calculette_aides_au_logement_garde_alternee_in_of_jsoo
   |> calculette_aides_au_logement_garde_alternee
-  |> calculette_aides_au_logement_garde_alternee_out_to_jsoo
+  |> calculette_aides_au_logement_garde_alternee_to_jsoo
 
 
 let _ =
    Js.export "AidesLogementLib"
     (object%js
       
-      method contributionsSocialesAidesPersonnelleLogement : (contributions_sociales_aides_personnelle_logement_in Js.t -> contributions_sociales_aides_personnelle_logement_out Js.t) Js.callback =
+      method contributionsSocialesAidesPersonnelleLogement : (contributions_sociales_aides_personnelle_logement_in Js.t -> contributions_sociales_aides_personnelle_logement Js.t) Js.callback =
         Js.wrap_callback contributions_sociales_aides_personnelle_logement
       
-      method calculEquivalenceLoyerMinimale : (calcul_equivalence_loyer_minimale_in Js.t -> calcul_equivalence_loyer_minimale_out Js.t) Js.callback =
+      method calculEquivalenceLoyerMinimale : (calcul_equivalence_loyer_minimale_in Js.t -> calcul_equivalence_loyer_minimale Js.t) Js.callback =
         Js.wrap_callback calcul_equivalence_loyer_minimale
       
-      method calculNombrePartLogementFoyer : (calcul_nombre_part_logement_foyer_in Js.t -> calcul_nombre_part_logement_foyer_out Js.t) Js.callback =
+      method calculNombrePartLogementFoyer : (calcul_nombre_part_logement_foyer_in Js.t -> calcul_nombre_part_logement_foyer Js.t) Js.callback =
         Js.wrap_callback calcul_nombre_part_logement_foyer
       
-      method calculNombrePartsAccessionPropriete : (calcul_nombre_parts_accession_propriete_in Js.t -> calcul_nombre_parts_accession_propriete_out Js.t) Js.callback =
+      method calculNombrePartsAccessionPropriete : (calcul_nombre_parts_accession_propriete_in Js.t -> calcul_nombre_parts_accession_propriete Js.t) Js.callback =
         Js.wrap_callback calcul_nombre_parts_accession_propriete
       
-      method ouvertureDroitsRetraite : (ouverture_droits_retraite_in Js.t -> ouverture_droits_retraite_out Js.t) Js.callback =
+      method ouvertureDroitsRetraite : (ouverture_droits_retraite_in Js.t -> ouverture_droits_retraite Js.t) Js.callback =
         Js.wrap_callback ouverture_droits_retraite
       
-      method impayeDepenseLogement : (impaye_depense_logement_in Js.t -> impaye_depense_logement_out Js.t) Js.callback =
+      method impayeDepenseLogement : (impaye_depense_logement_in Js.t -> impaye_depense_logement Js.t) Js.callback =
         Js.wrap_callback impaye_depense_logement
       
-      method baseMensuelleAllocationsFamiliales : (base_mensuelle_allocations_familiales_in Js.t -> base_mensuelle_allocations_familiales_out Js.t) Js.callback =
+      method baseMensuelleAllocationsFamiliales : (base_mensuelle_allocations_familiales_in Js.t -> base_mensuelle_allocations_familiales Js.t) Js.callback =
         Js.wrap_callback base_mensuelle_allocations_familiales
       
-      method smic : (smic_in Js.t -> smic_out Js.t) Js.callback =
+      method smic : (smic_in Js.t -> smic Js.t) Js.callback =
         Js.wrap_callback smic
       
-      method calculAidePersonnaliseeLogementLocatif : (calcul_aide_personnalisee_logement_locatif_in Js.t -> calcul_aide_personnalisee_logement_locatif_out Js.t) Js.callback =
+      method calculAidePersonnaliseeLogementLocatif : (calcul_aide_personnalisee_logement_locatif_in Js.t -> calcul_aide_personnalisee_logement_locatif Js.t) Js.callback =
         Js.wrap_callback calcul_aide_personnalisee_logement_locatif
       
-      method calculAidePersonnaliseeLogementFoyer : (calcul_aide_personnalisee_logement_foyer_in Js.t -> calcul_aide_personnalisee_logement_foyer_out Js.t) Js.callback =
+      method calculAidePersonnaliseeLogementFoyer : (calcul_aide_personnalisee_logement_foyer_in Js.t -> calcul_aide_personnalisee_logement_foyer Js.t) Js.callback =
         Js.wrap_callback calcul_aide_personnalisee_logement_foyer
       
-      method calculAidePersonnaliseeLogementAccessionPropriete : (calcul_aide_personnalisee_logement_accession_propriete_in Js.t -> calcul_aide_personnalisee_logement_accession_propriete_out Js.t) Js.callback =
+      method calculAidePersonnaliseeLogementAccessionPropriete : (calcul_aide_personnalisee_logement_accession_propriete_in Js.t -> calcul_aide_personnalisee_logement_accession_propriete Js.t) Js.callback =
         Js.wrap_callback
         calcul_aide_personnalisee_logement_accession_propriete
       
-      method eligibiliteAidesPersonnelleLogement : (eligibilite_aides_personnelle_logement_in Js.t -> eligibilite_aides_personnelle_logement_out Js.t) Js.callback =
+      method eligibiliteAidesPersonnelleLogement : (eligibilite_aides_personnelle_logement_in Js.t -> eligibilite_aides_personnelle_logement Js.t) Js.callback =
         Js.wrap_callback eligibilite_aides_personnelle_logement
       
-      method ressourcesAidesPersonnelleLogement : (ressources_aides_personnelle_logement_in Js.t -> ressources_aides_personnelle_logement_out Js.t) Js.callback =
+      method ressourcesAidesPersonnelleLogement : (ressources_aides_personnelle_logement_in Js.t -> ressources_aides_personnelle_logement Js.t) Js.callback =
         Js.wrap_callback ressources_aides_personnelle_logement
       
-      method eligibilitePrestationsFamiliales : (eligibilite_prestations_familiales_in Js.t -> eligibilite_prestations_familiales_out Js.t) Js.callback =
+      method eligibilitePrestationsFamiliales : (eligibilite_prestations_familiales_in Js.t -> eligibilite_prestations_familiales Js.t) Js.callback =
         Js.wrap_callback eligibilite_prestations_familiales
       
-      method calculAllocationLogementLocatif : (calcul_allocation_logement_locatif_in Js.t -> calcul_allocation_logement_locatif_out Js.t) Js.callback =
+      method calculAllocationLogementLocatif : (calcul_allocation_logement_locatif_in Js.t -> calcul_allocation_logement_locatif Js.t) Js.callback =
         Js.wrap_callback calcul_allocation_logement_locatif
       
-      method calculAllocationLogementFoyer : (calcul_allocation_logement_foyer_in Js.t -> calcul_allocation_logement_foyer_out Js.t) Js.callback =
+      method calculAllocationLogementFoyer : (calcul_allocation_logement_foyer_in Js.t -> calcul_allocation_logement_foyer Js.t) Js.callback =
         Js.wrap_callback calcul_allocation_logement_foyer
       
-      method calculAllocationLogementAccessionPropriete : (calcul_allocation_logement_accession_propriete_in Js.t -> calcul_allocation_logement_accession_propriete_out Js.t) Js.callback =
+      method calculAllocationLogementAccessionPropriete : (calcul_allocation_logement_accession_propriete_in Js.t -> calcul_allocation_logement_accession_propriete Js.t) Js.callback =
         Js.wrap_callback calcul_allocation_logement_accession_propriete
       
-      method calculAidePersonnaliseeLogement : (calcul_aide_personnalisee_logement_in Js.t -> calcul_aide_personnalisee_logement_out Js.t) Js.callback =
+      method calculAidePersonnaliseeLogement : (calcul_aide_personnalisee_logement_in Js.t -> calcul_aide_personnalisee_logement Js.t) Js.callback =
         Js.wrap_callback calcul_aide_personnalisee_logement
       
-      method eligibilitePrimeDeDemenagement : (eligibilite_prime_de_demenagement_in Js.t -> eligibilite_prime_de_demenagement_out Js.t) Js.callback =
+      method eligibilitePrimeDeDemenagement : (eligibilite_prime_de_demenagement_in Js.t -> eligibilite_prime_de_demenagement Js.t) Js.callback =
         Js.wrap_callback eligibilite_prime_de_demenagement
       
-      method eligibiliteAidePersonnaliseeLogement : (eligibilite_aide_personnalisee_logement_in Js.t -> eligibilite_aide_personnalisee_logement_out Js.t) Js.callback =
+      method eligibiliteAidePersonnaliseeLogement : (eligibilite_aide_personnalisee_logement_in Js.t -> eligibilite_aide_personnalisee_logement Js.t) Js.callback =
         Js.wrap_callback eligibilite_aide_personnalisee_logement
       
-      method eligibiliteAllocationLogement : (eligibilite_allocation_logement_in Js.t -> eligibilite_allocation_logement_out Js.t) Js.callback =
+      method eligibiliteAllocationLogement : (eligibilite_allocation_logement_in Js.t -> eligibilite_allocation_logement Js.t) Js.callback =
         Js.wrap_callback eligibilite_allocation_logement
       
-      method calculAllocationLogement : (calcul_allocation_logement_in Js.t -> calcul_allocation_logement_out Js.t) Js.callback =
+      method calculAllocationLogement : (calcul_allocation_logement_in Js.t -> calcul_allocation_logement Js.t) Js.callback =
         Js.wrap_callback calcul_allocation_logement
       
-      method calculetteAidesAuLogement : (calculette_aides_au_logement_in Js.t -> calculette_aides_au_logement_out Js.t) Js.callback =
+      method calculetteAidesAuLogement : (calculette_aides_au_logement_in Js.t -> calculette_aides_au_logement Js.t) Js.callback =
         Js.wrap_callback calculette_aides_au_logement
       
-      method calculetteAidesAuLogementGardeAlternee : (calculette_aides_au_logement_garde_alternee_in Js.t -> calculette_aides_au_logement_garde_alternee_out Js.t) Js.callback =
+      method calculetteAidesAuLogementGardeAlternee : (calculette_aides_au_logement_garde_alternee_in Js.t -> calculette_aides_au_logement_garde_alternee Js.t) Js.callback =
         Js.wrap_callback calculette_aides_au_logement_garde_alternee
       
     end)

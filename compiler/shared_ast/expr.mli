@@ -150,6 +150,12 @@ val ematchs :
   't ->
   ('a, 't) boxed_gexpr
 
+val escopecall :
+  ScopeName.t ->
+  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVarMap.t ->
+  't ->
+  ('a, 't) boxed_gexpr
+
 (** Manipulation of marks *)
 
 val no_mark : 'm mark -> 'm mark
@@ -221,6 +227,12 @@ val map_top_down :
 
 val map_marks : f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) boxed_gexpr
 
+val shallow_fold :
+  (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
+(** Applies a function on all sub-terms of the given expression. Does not
+    recurse, and doesn't open binders. Useful as helper for recursive calls
+    within traversal functions *)
+
 (** {2 Expression building helpers} *)
 
 val make_var : ('a, 't) gexpr Var.t -> 't -> ('a, 't) boxed_gexpr
@@ -284,6 +296,14 @@ val make_tuple :
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
 
+val make_struct :
+  (([< dcalc | lcalc ] as 'a), 'm mark) boxed_gexpr StructFieldMap.t ->
+  StructName.t ->
+  'm mark ->
+  ('a, 'm mark) boxed_gexpr
+(** Builds the tuple of values for the given struct with proper ordering,
+    assuming the structfieldmap contains the fields defined for structname *)
+
 (** {2 Transformations} *)
 
 val remove_logging_calls : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
@@ -329,9 +349,9 @@ module Box : sig
       the latter would force us to resolve the box every time we need to recover
       the annotation, which happens often. It's more efficient and convenient to
       add the annotation outside of the box, and delay its injection (using
-      [box_inj]) to when the parent term gets built. *)
+      [lift]) to when the parent term gets built. *)
 
-  val inj : ('a, 't) boxed_gexpr -> ('a, 't) gexpr Bindlib.box
+  val lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr Bindlib.box
   (** Inject the annotation within the box, to use e.g. when a [gexpr box] is
       required for building parent terms *)
 

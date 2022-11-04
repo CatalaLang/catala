@@ -53,12 +53,24 @@ module Box = struct
         xb0 xb1 (B.box_list xbl),
       mark )
 
-  let inj : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
+  let lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
    fun em ->
     B.box_apply (fun e -> Marked.mark (Marked.get_mark em) e) (Marked.unmark em)
+
+  module LiftStruct = Bindlib.Lift (StructFieldMap)
+
+  let lift_struct = LiftStruct.lift_box
+
+  module LiftEnum = Bindlib.Lift (EnumConstructorMap)
+
+  let lift_enum = LiftEnum.lift_box
+
+  module LiftScopeVars = Bindlib.Lift (ScopeVarMap)
+
+  let lift_scope_vars = LiftScopeVars.lift_box
 end
 
-let bind vars e = Bindlib.bind_mvar vars (Box.inj e)
+let bind vars e = Bindlib.bind_mvar vars (Box.lift e)
 
 let subst binder vars =
   Bindlib.msubst binder (Array.of_list (List.map Marked.unmark vars))
@@ -97,11 +109,10 @@ let ecatch e1 exn e2 = Box.app2 e1 e2 @@ fun e1 e2 -> ECatch (e1, exn, e2)
 let elocation loc = Box.app0 @@ ELocation loc
 
 let estruct name (fields : ('a, 't) boxed_gexpr StructFieldMap.t) mark =
-  let module Lift = Bindlib.Lift (StructFieldMap) in
   Marked.mark mark
   @@ Bindlib.box_apply
        (fun fields -> EStruct (name, fields))
-       (Lift.lift_box (StructFieldMap.map Box.inj fields))
+       (Box.lift_struct (StructFieldMap.map Box.lift fields))
 
 let estructaccess e1 field struc =
   Box.app1 e1 @@ fun e1 -> EStructAccess (e1, field, struc)
@@ -109,12 +120,17 @@ let estructaccess e1 field struc =
 let eenuminj e1 cons enum = Box.app1 e1 @@ fun e1 -> EEnumInj (e1, cons, enum)
 
 let ematchs e1 enum cases mark =
-  let module Lift = Bindlib.Lift (EnumConstructorMap) in
   Marked.mark mark
   @@ Bindlib.box_apply2
        (fun e1 cases -> EMatchS (e1, enum, cases))
-       (Box.inj e1)
-       (Lift.lift_box (EnumConstructorMap.map Box.inj cases))
+       (Box.lift e1)
+       (Box.lift_enum (EnumConstructorMap.map Box.lift cases))
+
+let escopecall scope_name fields mark =
+  Marked.mark mark
+  @@ Bindlib.box_apply
+       (fun fields -> EScopeCall (scope_name, fields))
+       (Box.lift_scope_vars (ScopeVarMap.map Box.lift fields))
 
 (* - Manipulation of marks - *)
 
@@ -225,11 +241,43 @@ let map
   | EMatchS (e1, enum, cases) ->
     let cases = EnumConstructorMap.map (f ctx) cases in
     ematchs (f ctx e1) enum cases m
+  | EScopeCall (scope_name, fields) ->
+    let fields = ScopeVarMap.map (f ctx) fields in
+    escopecall scope_name fields m
 
 let rec map_top_down ~f e = map () ~f:(fun () -> map_top_down ~f) (f e)
 
 let map_marks ~f e =
   map_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
+
+(* Folds the given function on the direct children of the given expression. Does
+   not open binders. *)
+let shallow_fold
+    (type a)
+    (f : (a, 'm) gexpr -> 'acc -> 'acc)
+    (e : (a, 'm) gexpr)
+    (acc : 'acc) : 'acc =
+  let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
+  match Marked.unmark e with
+  | ELit _ | EOp _ | EVar _ | ERaise _ | ELocation _ -> acc
+  | EApp (e1, args) -> acc |> f e1 |> lfold args
+  | EArray args -> acc |> lfold args
+  | EAbs _ -> acc
+  | EIfThenElse (e1, e2, e3) -> acc |> f e1 |> f e2 |> f e3
+  | ETuple (args, _) -> acc |> lfold args
+  | ETupleAccess (e1, _, _, _) -> acc |> f e1
+  | EInj (e1, _, _, _) -> acc |> f e1
+  | EMatch (arg, arms, _) -> acc |> f arg |> lfold arms
+  | EAssert e1 -> acc |> f e1
+  | EDefault (excepts, just, cons) -> acc |> lfold excepts |> f just |> f cons
+  | ErrorOnEmpty e1 -> acc |> f e1
+  | ECatch (e1, _, e2) -> acc |> f e1 |> f e2
+  | EStruct (_, fields) -> acc |> StructFieldMap.fold (fun _ -> f) fields
+  | EStructAccess (e1, _, _) -> acc |> f e1
+  | EEnumInj (e1, _, _) -> acc |> f e1
+  | EMatchS (e1, _, cases) ->
+    acc |> f e1 |> EnumConstructorMap.fold (fun _ -> f) cases
+  | EScopeCall (_, fields) -> acc |> ScopeVarMap.fold (fun _ -> f) fields
 
 (* - *)
 
@@ -557,10 +605,12 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     EnumName.equal n1 n2
     && equal e1 e2
     && EnumConstructorMap.equal equal cases1 cases2
+  | EScopeCall (s1, fields1), EScopeCall (s2, fields2) ->
+    ScopeName.equal s1 s2 && ScopeVarMap.equal equal fields1 fields2
   | ( ( EVar _ | ETuple _ | ETupleAccess _ | EInj _ | EMatch _ | EArray _
       | ELit _ | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _
       | EIfThenElse _ | ErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _
-      | EStruct _ | EStructAccess _ | EEnumInj _ | EMatchS _ ),
+      | EStruct _ | EStructAccess _ | EEnumInj _ | EMatchS _ | EScopeCall _ ),
       _ ) ->
     false
 
@@ -608,6 +658,9 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2 @@< fun () ->
     EnumName.compare name1 name2 @@< fun () ->
     EnumConstructorMap.compare compare emap1 emap2
+  | EScopeCall (name1, field_map1), EScopeCall (name2, field_map2) ->
+    ScopeName.compare name1 name2 @@< fun () ->
+    ScopeVarMap.compare compare field_map1 field_map2
   | ETuple (es1, s1), ETuple (es2, s2) ->
     Option.compare StructName.compare s1 s2 @@< fun () ->
     List.compare compare es1 es2
@@ -651,6 +704,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EStructAccess _, _ -> -1 | _, EStructAccess _ -> 1
   | EEnumInj _, _ -> -1 | _, EEnumInj _ -> 1
   | EMatchS _, _ -> -1 | _, EMatchS _ -> 1
+  | EScopeCall _, _ -> -1 | _, EScopeCall _ -> 1
   | ETuple _, _ -> -1 | _, ETuple _ -> 1
   | ETupleAccess _, _ -> -1 | _, ETupleAccess _ -> 1
   | EInj _, _ -> -1 | _, EInj _ -> 1
@@ -661,45 +715,12 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
 
-let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t =
- fun e ->
-  match Marked.unmark e with
-  | EOp _ | ELit _ | ERaise _ -> Var.Set.empty
-  | EVar v -> Var.Set.singleton v
-  | ETuple (es, _) ->
-    es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | EArray es ->
-    es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | ETupleAccess (e1, _, _, _) -> free_vars e1
-  | EAssert e1 -> free_vars e1
-  | EInj (e1, _, _, _) -> free_vars e1
-  | ErrorOnEmpty e1 -> free_vars e1
-  | ECatch (etry, _, ewith) -> Var.Set.union (free_vars etry) (free_vars ewith)
-  | EApp (e1, es) ->
-    e1 :: es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | EMatch (e1, es, _) ->
-    e1 :: es |> List.map free_vars |> List.fold_left Var.Set.union Var.Set.empty
-  | EDefault (es, ejust, econs) ->
-    ejust :: econs :: es
-    |> List.map free_vars
-    |> List.fold_left Var.Set.union Var.Set.empty
-  | EIfThenElse (e1, e2, e3) ->
-    [e1; e2; e3]
-    |> List.map free_vars
-    |> List.fold_left Var.Set.union Var.Set.empty
-  | EAbs (binder, _) ->
+let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t = function
+  | EVar v, _ -> Var.Set.singleton v
+  | EAbs (binder, _), _ ->
     let vs, body = Bindlib.unmbind binder in
     Array.fold_right Var.Set.remove vs (free_vars body)
-  | ELocation _ -> Var.Set.empty
-  | EStruct (_, fields) ->
-    StructFieldMap.fold
-      (fun _ e -> Var.Set.union (free_vars e))
-      fields Var.Set.empty
-  | EStructAccess (e1, _, _) -> free_vars e1
-  | EEnumInj (e1, _, _) -> free_vars e1
-  | EMatchS (e1, _, cases) ->
-    free_vars e1
-    |> EnumConstructorMap.fold (fun _ e -> Var.Set.union (free_vars e)) cases
+  | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
 
 let remove_logging_calls e =
   let rec f () e =
@@ -743,6 +764,8 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EEnumInj (e1, _, _) -> 1 + size e1
   | EMatchS (e1, _, cases) ->
     EnumConstructorMap.fold (fun _ e acc -> acc + 1 + size e) cases (size e1)
+  | EScopeCall (_, fields) ->
+    ScopeVarMap.fold (fun _ e acc -> acc + 1 + size e) fields 1
 
 (* - Expression building helpers - *)
 
@@ -828,7 +851,17 @@ let make_tuple el structname m0 =
     let m =
       fold_marks
         (fun posl -> List.hd posl)
-        (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
+        (fun ml ->
+          let pos = (List.hd ml).pos in
+          match structname with
+          | Some n -> TStruct n, pos
+          | None -> TTuple (List.map (fun t -> t.ty) ml), pos)
         (List.map (fun e -> Marked.get_mark e) el)
     in
     etuple el structname m
+
+let make_struct fieldmap structname m =
+  let fields =
+    List.rev (StructFieldMap.fold (fun _ e acc -> e :: acc) fieldmap [])
+  in
+  make_tuple fields (Some structname) m

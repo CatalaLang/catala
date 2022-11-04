@@ -18,7 +18,7 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] foo_fizz = 3
+[RESULT] foo = 3
 ```
 
 ```catala-test-inline
