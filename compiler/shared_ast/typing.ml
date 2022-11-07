@@ -522,7 +522,7 @@ and typecheck_expr_top_down :
       in
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-      Expr.eabs binder' t_args mark
+      Expr.eabs binder' (List.map typ_to_ast tau_args) mark
   | A.EApp (e1, args) ->
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
     let t_func =
