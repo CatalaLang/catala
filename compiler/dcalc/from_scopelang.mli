@@ -1,7 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Nicolas Chataing <nicolas.chataing@ens.fr> Denis Merigoux
-   <denis.merigoux@inria.fr>
+   Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -15,11 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Translation from {!module: Surface.Ast} to {!module: Desugared.Ast}.
+(** Scope language to default calculus translator *)
 
-    - Removes syntactic sugars
-    - Separate code from legislation *)
-
-val desugar_program :
-  Name_resolution.context -> Ast.program -> Desugared.Ast.program
-(** Main function of this module *)
+val translate_program : 'm Scopelang.Ast.program -> 'm Ast.program

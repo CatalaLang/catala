@@ -20,19 +20,18 @@ open Shared_ast
 type scope_var_ctx = {
   scope_var_name : ScopeVar.t;
   scope_var_typ : naked_typ;
-  scope_var_io : Ast.io;
+  scope_var_io : Desugared.Ast.io;
 }
 
 type 'm scope_sig_ctx = {
   scope_sig_local_vars : scope_var_ctx list;  (** List of scope variables *)
-  scope_sig_scope_var : 'm Dcalc.Ast.expr Var.t;
-      (** Var representing the scope *)
-  scope_sig_input_var : 'm Dcalc.Ast.expr Var.t;
+  scope_sig_scope_var : 'm Ast.expr Var.t;  (** Var representing the scope *)
+  scope_sig_input_var : 'm Ast.expr Var.t;
       (** Var representing the scope input inside the scope func *)
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
   scope_sig_in_fields :
-    (StructFieldName.t * Ast.io_input Marked.pos) ScopeVarMap.t;
+    (StructFieldName.t * Desugared.Ast.io_input Marked.pos) ScopeVarMap.t;
       (** Mapping between the input scope variables and the input struct fields. *)
   scope_sig_out_fields : StructFieldName.t ScopeVarMap.t;
       (** Mapping between the output scope variables and the output struct
@@ -47,10 +46,11 @@ type 'm ctx = {
   enums : enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : 'm scope_sigs_ctx;
-  scope_vars : ('m Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t;
+  scope_vars : ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVarMap.t;
   subscope_vars :
-    ('m Dcalc.Ast.expr Var.t * naked_typ * Ast.io) ScopeVarMap.t SubScopeMap.t;
-  local_vars : ('m Ast.expr, 'm Dcalc.Ast.expr Var.t) Var.Map.t;
+    ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVarMap.t
+    SubScopeMap.t;
+  local_vars : ('m Scopelang.Ast.expr, 'm Ast.expr Var.t) Var.Map.t;
 }
 
 let empty_ctx
@@ -99,9 +99,9 @@ let merge_defaults caller callee =
   body
 
 let tag_with_log_entry
-    (e : 'm Dcalc.Ast.expr boxed)
+    (e : 'm Ast.expr boxed)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) : 'm Dcalc.Ast.expr boxed =
+    (markings : Utils.Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
   Expr.eapp (Expr.eop (Unop (Log (l, markings))) m) [e] m
 
@@ -112,10 +112,10 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (type m) (excepts : m Ast.expr list) :
-    m Ast.expr list =
+let collapse_similar_outcomes (type m) (excepts : m Scopelang.Ast.expr list) :
+    m Scopelang.Ast.expr list =
   let module ExprMap = Map.Make (struct
-    type t = m Ast.expr
+    type t = m Scopelang.Ast.expr
 
     let compare = Expr.compare
   end) in
@@ -156,12 +156,13 @@ let thunk_scope_arg io_in e =
   let silent_var = Var.make "_" in
   let pos = Marked.get_mark io_in in
   match Marked.unmark io_in with
-  | Ast.NoInput -> invalid_arg "thunk_scope_arg"
-  | Ast.OnlyInput -> Expr.eerroronempty e (Marked.get_mark e)
-  | Ast.Reentrant -> Expr.make_abs [| silent_var |] e [TLit TUnit, pos] pos
+  | Desugared.Ast.NoInput -> invalid_arg "thunk_scope_arg"
+  | Desugared.Ast.OnlyInput -> Expr.eerroronempty e (Marked.get_mark e)
+  | Desugared.Ast.Reentrant ->
+    Expr.make_abs [| silent_var |] e [TLit TUnit, pos] pos
 
-let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
-    'm Dcalc.Ast.expr boxed =
+let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
+    'm Ast.expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | EVar v -> Expr.evar (Var.Map.find v ctx.local_vars) m
@@ -215,7 +216,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
         (fun var_name str_field expr ->
           let expr =
             match str_field, expr with
-            | Some (_, (Ast.Reentrant, _)), None ->
+            | Some (_, (Desugared.Ast.Reentrant, _)), None ->
               Some (Expr.unbox (Expr.elit LEmptyError (mark_tany m pos)))
             | _ -> expr
           in
@@ -372,10 +373,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Ast.expr) :
     come later in the chain of let-bindings. *)
 let translate_rule
     (ctx : 'm ctx)
-    (rule : 'm Ast.rule)
+    (rule : 'm Scopelang.Ast.rule)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
-    ('m Dcalc.Ast.expr scope_body_expr Bindlib.box ->
-    'm Dcalc.Ast.expr scope_body_expr Bindlib.box)
+    ('m Ast.expr scope_body_expr Bindlib.box ->
+    'm Ast.expr scope_body_expr Bindlib.box)
     * 'm ctx =
   match rule with
   | Definition ((ScopelangScopeVar a, var_def_pos), tau, a_io, e) ->
@@ -436,7 +437,9 @@ let translate_rule
         (VarDef (Marked.unmark tau))
         [sigma_name, pos_sigma; a_name]
     in
-    let thunked_or_nonempty_new_e = thunk_scope_arg a_io.Ast.io_input new_e in
+    let thunked_or_nonempty_new_e =
+      thunk_scope_arg a_io.Desugared.Ast.io_input new_e
+    in
     ( (fun next ->
         Bindlib.box_apply2
           (fun next thunked_or_nonempty_new_e ->
@@ -478,14 +481,15 @@ let translate_rule
     let all_subscope_input_vars =
       List.filter
         (fun var_ctx ->
-          match Marked.unmark var_ctx.scope_var_io.Ast.io_input with
+          match Marked.unmark var_ctx.scope_var_io.Desugared.Ast.io_input with
           | NoInput -> false
           | _ -> true)
         all_subscope_vars
     in
     let all_subscope_output_vars =
       List.filter
-        (fun var_ctx -> Marked.unmark var_ctx.scope_var_io.Ast.io_output)
+        (fun var_ctx ->
+          Marked.unmark var_ctx.scope_var_io.Desugared.Ast.io_output)
         all_subscope_vars
     in
     let scope_dcalc_var = subscope_sig.scope_sig_scope_var in
@@ -639,11 +643,11 @@ let translate_rule
 
 let translate_rules
     (ctx : 'm ctx)
-    (rules : 'm Ast.rule list)
+    (rules : 'm Scopelang.Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
     (mark : 'm mark)
     (scope_sig : 'm scope_sig_ctx) :
-    'm Dcalc.Ast.expr scope_body_expr Bindlib.box * 'm ctx =
+    'm Ast.expr scope_body_expr Bindlib.box * 'm ctx =
   let scope_lets, new_ctx =
     List.fold_left
       (fun (scope_lets, ctx) rule ->
@@ -658,7 +662,7 @@ let translate_rules
     Expr.estruct scope_sig.scope_sig_output_struct
       (ScopeVarMap.fold
          (fun var (dcalc_var, _, io) acc ->
-           if Marked.unmark io.Ast.io_output then
+           if Marked.unmark io.Desugared.Ast.io_output then
              let field = ScopeVarMap.find var scope_sig.scope_sig_out_fields in
              StructFieldMap.add field
                (Expr.make_var dcalc_var (mark_tany mark pos_sigma))
@@ -678,8 +682,8 @@ let translate_scope_decl
     (enum_ctx : enum_ctx)
     (sctx : 'm scope_sigs_ctx)
     (scope_name : ScopeName.t)
-    (sigma : 'm Ast.scope_decl) :
-    'm Dcalc.Ast.expr scope_body Bindlib.box * struct_ctx =
+    (sigma : 'm Scopelang.Ast.scope_decl) :
+    'm Ast.expr scope_body Bindlib.box * struct_ctx =
   let sigma_info = ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
@@ -786,17 +790,20 @@ let translate_scope_decl
          (input_destructurings rules_with_return_expr)),
     new_struct_ctx )
 
-let translate_program (prgm : 'm Ast.program) : 'm Dcalc.Ast.program =
-  let scope_dependencies = Dependency.build_program_dep_graph prgm in
-  Dependency.check_for_cycle_in_scope scope_dependencies;
-  let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
+let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
+  let scope_dependencies = Scopelang.Dependency.build_program_dep_graph prgm in
+  Scopelang.Dependency.check_for_cycle_in_scope scope_dependencies;
+  let scope_ordering =
+    Scopelang.Dependency.get_scope_ordering scope_dependencies
+  in
   let decl_ctx = prgm.program_ctx in
   let sctx : 'm scope_sigs_ctx =
     ScopeMap.mapi
       (fun scope_name scope ->
         let scope_dvar =
           Var.make
-            (Marked.unmark (ScopeName.get_info scope.Ast.scope_decl_name))
+            (Marked.unmark
+               (ScopeName.get_info scope.Scopelang.Ast.scope_decl_name))
         in
         let scope_return = ScopeMap.find scope_name decl_ctx.ctx_scopes in
         let scope_input_var =
@@ -811,14 +818,14 @@ let translate_program (prgm : 'm Ast.program) : 'm Dcalc.Ast.program =
         let scope_sig_in_fields =
           ScopeVarMap.filter_map
             (fun dvar (_, vis) ->
-              match Marked.unmark vis.Ast.io_input with
+              match Marked.unmark vis.Desugared.Ast.io_input with
               | NoInput -> None
               | OnlyInput | Reentrant ->
                 let info = ScopeVar.get_info dvar in
                 let s = Marked.unmark info ^ "_in" in
                 Some
                   ( StructFieldName.fresh (s, Marked.get_mark info),
-                    vis.Ast.io_input ))
+                    vis.Desugared.Ast.io_input ))
             scope.scope_sig
         in
         {

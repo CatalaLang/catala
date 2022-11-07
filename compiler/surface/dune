@@ -6,11 +6,10 @@
   menhirLib
   sedlex
   re
-  desugared
-  scopelang
   zarith
   zarith_stubs_js
-  dates_calc)
+  dates_calc
+  shared_ast)
  (preprocess
   (pps sedlex.ppx visitors.ppx)))
 

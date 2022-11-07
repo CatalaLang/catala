@@ -493,7 +493,7 @@ type rule = {
   rule_parameter : ident Marked.pos option;
   rule_condition : expression Marked.pos option;
   rule_name : qident Marked.pos;
-  rule_id : Desugared.Ast.RuleName.t; [@opaque]
+  rule_id : Shared_ast.RuleName.t; [@opaque]
   rule_consequence : (bool[@opaque]) Marked.pos;
   rule_state : ident Marked.pos option;
 }
@@ -517,7 +517,7 @@ type definition = {
   definition_name : qident Marked.pos;
   definition_parameter : ident Marked.pos option;
   definition_condition : expression Marked.pos option;
-  definition_id : Desugared.Ast.RuleName.t; [@opaque]
+  definition_id : Shared_ast.RuleName.t; [@opaque]
   definition_expr : expression Marked.pos;
   definition_state : ident Marked.pos option;
 }

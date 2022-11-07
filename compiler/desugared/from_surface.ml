@@ -16,7 +16,7 @@
    the License. *)
 
 open Utils
-module SurfacePrint = Print
+module SurfacePrint = Surface.Print
 open Shared_ast
 module Runtime = Runtime_ocaml.Runtime
 
@@ -27,7 +27,7 @@ module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Translating expressions} *)
 
-let translate_op_kind (k : Ast.op_kind) : op_kind =
+let translate_op_kind (k : Surface.Ast.op_kind) : op_kind =
   match k with
   | KInt -> KInt
   | KDec -> KRat
@@ -35,7 +35,7 @@ let translate_op_kind (k : Ast.op_kind) : op_kind =
   | KDate -> KDate
   | KDuration -> KDuration
 
-let translate_binop (op : Ast.binop) : binop =
+let translate_binop (op : Surface.Ast.binop) : binop =
   match op with
   | And -> And
   | Or -> Or
@@ -52,7 +52,7 @@ let translate_binop (op : Ast.binop) : binop =
   | Neq -> Neq
   | Concat -> Concat
 
-let translate_unop (op : Ast.unop) : unop =
+let translate_unop (op : Surface.Ast.unop) : unop =
   match op with Not -> Not | Minus l -> Minus (translate_op_kind l)
 
 let disambiguate_constructor
@@ -68,7 +68,7 @@ let disambiguate_constructor
   in
   let possible_c_uids =
     try
-      Desugared.Ast.IdentMap.find
+      Name_resolution.IdentMap.find
         (Marked.unmark constructor)
         ctxt.constructor_idmap
     with Not_found ->
@@ -111,16 +111,16 @@ let disambiguate_constructor
     disambiguate the scope and subscopes variables than occur in the expression *)
 let rec translate_expr
     (scope : ScopeName.t)
-    (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
+    (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    (expr : Ast.expression Marked.pos) : Desugared.Ast.expr boxed =
+    (expr : Surface.Ast.expression Marked.pos) : Ast.expr boxed =
   let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   let pos = Marked.get_mark expr in
   let emark = Untyped { pos } in
   match Marked.unmark expr with
   | Binop
-      ( (Ast.And, _pos_op),
+      ( (Surface.Ast.And, _pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
           _pos_e1 ),
         e2 ) ->
@@ -204,9 +204,9 @@ let rec translate_expr
   | Ident x -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables *)
-    match Desugared.Ast.IdentMap.find_opt x ctxt.local_var_idmap with
+    match Name_resolution.IdentMap.find_opt x ctxt.local_var_idmap with
     | None -> (
-      match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
+      match Name_resolution.IdentMap.find_opt x scope_ctxt.var_idmap with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
            desambiguate. In general, only the last state can be referenced.
@@ -258,7 +258,7 @@ let rec translate_expr
     | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
       (* In this case, y.x is a subscope variable *)
       let subscope_uid, subscope_real_uid =
-        match Desugared.Ast.IdentMap.find y scope_ctxt.var_idmap with
+        match Name_resolution.IdentMap.find y scope_ctxt.var_idmap with
         | SubScope (sub, sc) -> sub, sc
         | ScopeVar _ -> assert false
       in
@@ -273,7 +273,7 @@ let rec translate_expr
       (* In this case e.x is the struct field x access of expression e *)
       let e = translate_expr scope inside_definition_of ctxt e in
       let x_possible_structs =
-        try Desugared.Ast.IdentMap.find (Marked.unmark x) ctxt.field_idmap
+        try Name_resolution.IdentMap.find (Marked.unmark x) ctxt.field_idmap
         with Not_found ->
           Errors.raise_spanned_error (Marked.get_mark x)
             "Unknown subscope or struct field name"
@@ -314,7 +314,7 @@ let rec translate_expr
         (fun acc (fld_id, e) ->
           let var =
             match
-              Desugared.Ast.IdentMap.find_opt (Marked.unmark fld_id)
+              Name_resolution.IdentMap.find_opt (Marked.unmark fld_id)
                 scope_def.var_idmap
             with
             | Some (ScopeVar v) -> v
@@ -353,7 +353,7 @@ let rec translate_expr
   | StructLit (s_name, fields) ->
     let s_uid =
       match
-        Desugared.Ast.IdentMap.find_opt (Marked.unmark s_name) ctxt.typedefs
+        Name_resolution.IdentMap.find_opt (Marked.unmark s_name) ctxt.typedefs
       with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
       | _ ->
@@ -367,7 +367,7 @@ let rec translate_expr
           let f_uid =
             try
               StructMap.find s_uid
-                (Desugared.Ast.IdentMap.find (Marked.unmark f_name)
+                (Name_resolution.IdentMap.find (Marked.unmark f_name)
                    ctxt.field_idmap)
             with Not_found ->
               Errors.raise_spanned_error (Marked.get_mark f_name)
@@ -397,7 +397,7 @@ let rec translate_expr
     Expr.estruct s_uid s_fields emark
   | EnumInject (enum, (constructor, pos_constructor), payload) -> (
     let possible_c_uids =
-      try Desugared.Ast.IdentMap.find constructor ctxt.constructor_idmap
+      try Name_resolution.IdentMap.find constructor ctxt.constructor_idmap
       with Not_found ->
         Errors.raise_spanned_error pos_constructor
           "The name of this constructor has not been defined before, maybe it \
@@ -481,7 +481,7 @@ let rec translate_expr
       enum_uid cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
   | CollectionOp
-      ( (((Ast.Filter | Ast.Map) as op'), _pos_op'),
+      ( (((Surface.Ast.Filter | Surface.Ast.Map) as op'), _pos_op'),
         param',
         collection,
         predicate ) ->
@@ -498,13 +498,14 @@ let rec translate_expr
     Expr.eapp
       (Expr.eop
          (match op' with
-         | Ast.Map -> Binop Map
-         | Ast.Filter -> Binop Filter
+         | Surface.Ast.Map -> Binop Map
+         | Surface.Ast.Filter -> Binop Filter
          | _ -> assert false (* should not happen *))
          emark)
       [f_pred; collection] emark
   | CollectionOp
-      ( ( Ast.Aggregate (Ast.AggregateArgExtremum (max_or_min, pred_typ, init)),
+      ( ( Surface.Ast.Aggregate
+            (Surface.Ast.AggregateArgExtremum (max_or_min, pred_typ, init)),
           pos_op' ),
         param',
         collection,
@@ -516,11 +517,11 @@ let rec translate_expr
     in
     let op_kind =
       match pred_typ with
-      | Ast.Integer -> KInt
-      | Ast.Decimal -> KRat
-      | Ast.Money -> KMoney
-      | Ast.Duration -> KDuration
-      | Ast.Date -> KDate
+      | Surface.Ast.Integer -> KInt
+      | Surface.Ast.Decimal -> KRat
+      | Surface.Ast.Money -> KMoney
+      | Surface.Ast.Duration -> KDuration
+      | Surface.Ast.Date -> KDate
       | _ ->
         Errors.raise_spanned_error pos
           "It is impossible to compute the arg-%s of two values of type %a"
@@ -568,26 +569,28 @@ let rec translate_expr
     let mark = Untyped { pos = Marked.get_mark op' } in
     let init =
       match Marked.unmark op' with
-      | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
+      | Surface.Ast.Map | Surface.Ast.Filter
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Exists -> Expr.elit (LBool false) mark
-      | Ast.Forall -> Expr.elit (LBool true) mark
-      | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
+      | Surface.Ast.Exists -> Expr.elit (LBool false) mark
+      | Surface.Ast.Forall -> Expr.elit (LBool true) mark
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
         Expr.elit (LInt (Runtime.integer_of_int 0)) mark
-      | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
         Expr.elit (LRat (Runtime.decimal_of_string "0")) mark
-      | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
         Expr.elit
           (LMoney (Runtime.money_of_cents_integer (Runtime.integer_of_int 0)))
           mark
-      | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
         Expr.elit (LDuration (Runtime.duration_of_numbers 0 0 0)) mark
-      | Ast.Aggregate (Ast.AggregateSum t) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum t) ->
         Errors.raise_spanned_error pos
           "It is impossible to sum two values of type %a together"
           SurfacePrint.format_primitive_typ t
-      | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
-      | Ast.Aggregate Ast.AggregateCount ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (_, _, init)) ->
+        rec_helper init
+      | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
         Expr.elit (LInt (Runtime.integer_of_int 0)) mark
     in
     let acc_var = Var.make "acc" in
@@ -613,25 +616,30 @@ let rec translate_expr
           pos
       in
       match Marked.unmark op' with
-      | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
+      | Surface.Ast.Map | Surface.Ast.Filter
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Exists -> make_body Or
-      | Ast.Forall -> make_body And
-      | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_body (Add KInt)
-      | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_body (Add KRat)
-      | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_body (Add KMoney)
-      | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
+      | Surface.Ast.Exists -> make_body Or
+      | Surface.Ast.Forall -> make_body And
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
+        make_body (Add KInt)
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
+        make_body (Add KRat)
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
+        make_body (Add KMoney)
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
         make_body (Add KDuration)
-      | Ast.Aggregate (Ast.AggregateSum _) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum _) ->
         assert false (* should not happen *)
-      | Ast.Aggregate (Ast.AggregateExtremum (max_or_min, t, _)) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (max_or_min, t, _))
+        ->
         let op_kind, typ =
           match t with
-          | Ast.Integer -> KInt, (TLit TInt, pos)
-          | Ast.Decimal -> KRat, (TLit TRat, pos)
-          | Ast.Money -> KMoney, (TLit TMoney, pos)
-          | Ast.Duration -> KDuration, (TLit TDuration, pos)
-          | Ast.Date -> KDate, (TLit TDate, pos)
+          | Surface.Ast.Integer -> KInt, (TLit TInt, pos)
+          | Surface.Ast.Decimal -> KRat, (TLit TRat, pos)
+          | Surface.Ast.Money -> KMoney, (TLit TMoney, pos)
+          | Surface.Ast.Duration -> KDuration, (TLit TDuration, pos)
+          | Surface.Ast.Date -> KDate, (TLit TDate, pos)
           | _ ->
             Errors.raise_spanned_error pos
               "It is impossible to compute the %s of two values of type %a"
@@ -640,7 +648,7 @@ let rec translate_expr
         in
         let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
         make_extr_body cmp_op typ
-      | Ast.Aggregate Ast.AggregateCount ->
+      | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
         let predicate =
           translate_expr scope inside_definition_of ctxt predicate
         in
@@ -670,26 +678,31 @@ let rec translate_expr
           emark
       in
       match Marked.unmark op' with
-      | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
+      | Surface.Ast.Map | Surface.Ast.Filter
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Exists -> make_f TBool
-      | Ast.Forall -> make_f TBool
-      | Ast.Aggregate (Ast.AggregateSum Ast.Integer)
-      | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Integer, _)) ->
+      | Surface.Ast.Exists -> make_f TBool
+      | Surface.Ast.Forall -> make_f TBool
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer)
+      | Surface.Ast.Aggregate
+          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Integer, _)) ->
         make_f TInt
-      | Ast.Aggregate (Ast.AggregateSum Ast.Decimal)
-      | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Decimal, _)) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal)
+      | Surface.Ast.Aggregate
+          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Decimal, _)) ->
         make_f TRat
-      | Ast.Aggregate (Ast.AggregateSum Ast.Money)
-      | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Money, _)) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money)
+      | Surface.Ast.Aggregate
+          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Money, _)) ->
         make_f TMoney
-      | Ast.Aggregate (Ast.AggregateSum Ast.Duration)
-      | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Duration, _)) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration)
+      | Surface.Ast.Aggregate
+          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Duration, _)) ->
         make_f TDuration
-      | Ast.Aggregate (Ast.AggregateSum _)
-      | Ast.Aggregate (Ast.AggregateExtremum _) ->
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum _)
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum _) ->
         assert false (* should not happen *)
-      | Ast.Aggregate Ast.AggregateCount -> make_f TInt
+      | Surface.Ast.Aggregate Surface.Ast.AggregateCount -> make_f TInt
     in
     Expr.eapp (Expr.eop (Ternop Fold) emark) [f; init; collection] emark
   | MemCollection (member, collection) ->
@@ -727,10 +740,10 @@ let rec translate_expr
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)
-    (inside_definition_of : Desugared.Ast.ScopeDef.t Marked.pos option)
+    (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    (cases : Ast.match_case Marked.pos list) :
-    Desugared.Ast.expr boxed EnumConstructorMap.t * EnumName.t =
+    (cases : Surface.Ast.match_case Marked.pos list) :
+    Ast.expr boxed EnumConstructorMap.t * EnumName.t =
   let create_var = function
     | None -> ctxt, Var.make "_"
     | Some param ->
@@ -752,11 +765,13 @@ and disambiguate_match_and_build_expression
   in
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
     match case with
-    | Ast.MatchCase case ->
-      let constructor, binding = Marked.unmark case.Ast.match_case_pattern in
+    | Surface.Ast.MatchCase case ->
+      let constructor, binding =
+        Marked.unmark case.Surface.Ast.match_case_pattern
+      in
       let e_uid', c_uid =
         disambiguate_constructor ctxt constructor
-          (Marked.get_mark case.Ast.match_case_pattern)
+          (Marked.get_mark case.Surface.Ast.match_case_pattern)
       in
       let e_uid =
         match e_uid with
@@ -765,7 +780,7 @@ and disambiguate_match_and_build_expression
           if e_uid = e_uid' then e_uid
           else
             Errors.raise_spanned_error
-              (Marked.get_mark case.Ast.match_case_pattern)
+              (Marked.get_mark case.Surface.Ast.match_case_pattern)
               "This case matches a constructor of enumeration %a but previous \
                case were matching constructors of enumeration %a"
               EnumName.format_t e_uid EnumName.format_t e_uid'
@@ -779,12 +794,13 @@ and disambiguate_match_and_build_expression
           c_uid);
       let ctxt, param_var = create_var (Option.map Marked.unmark binding) in
       let case_body =
-        translate_expr scope inside_definition_of ctxt case.Ast.match_case_expr
+        translate_expr scope inside_definition_of ctxt
+          case.Surface.Ast.match_case_expr
       in
       let e_binder = Expr.bind [| param_var |] case_body in
       let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
       EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1
-    | Ast.WildCard match_case_expr -> (
+    | Surface.Ast.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
         Errors.raise_multispanned_error
@@ -858,9 +874,9 @@ and disambiguate_match_and_build_expression
     this precondition has to be appended to the justifications of each
     definition in the subscope use. This is what this function does. *)
 let merge_conditions
-    (precond : Desugared.Ast.expr boxed option)
-    (cond : Desugared.Ast.expr boxed option)
-    (default_pos : Pos.t) : Desugared.Ast.expr boxed =
+    (precond : Ast.expr boxed option)
+    (cond : Ast.expr boxed option)
+    (default_pos : Pos.t) : Ast.expr boxed =
   match precond, cond with
   | Some precond, Some cond ->
     let op_term = Expr.eop (Binop And) (Marked.get_mark cond) in
@@ -870,18 +886,18 @@ let merge_conditions
   | None, None -> Expr.elit (LBool true) (Untyped { pos = default_pos })
 
 (** Translates a surface definition into condition into a desugared {!type:
-    Desugared.Ast.rule} *)
+    Ast.rule} *)
 let process_default
     (ctxt : Name_resolution.context)
     (scope : ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t Marked.pos)
-    (rule_id : Desugared.Ast.RuleName.t)
-    (param_uid : Desugared.Ast.expr Var.t Marked.pos option)
-    (precond : Desugared.Ast.expr boxed option)
-    (exception_situation : Desugared.Ast.exception_situation)
-    (label_situation : Desugared.Ast.label_situation)
-    (just : Ast.expression Marked.pos option)
-    (cons : Ast.expression Marked.pos) : Desugared.Ast.rule =
+    (def_key : Ast.ScopeDef.t Marked.pos)
+    (rule_id : RuleName.t)
+    (param_uid : Ast.expr Var.t Marked.pos option)
+    (precond : Ast.expr boxed option)
+    (exception_situation : Ast.exception_situation)
+    (label_situation : Ast.label_situation)
+    (just : Surface.Ast.expression Marked.pos option)
+    (cons : Surface.Ast.expression Marked.pos) : Ast.rule =
   let just =
     match just with
     | Some just -> Some (translate_expr scope (Some def_key) ctxt just)
@@ -913,14 +929,12 @@ let process_default
 (** Wrapper around {!val: process_default} that performs some name
     disambiguation *)
 let process_def
-    (precond : Desugared.Ast.expr boxed option)
+    (precond : Ast.expr boxed option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (def : Ast.definition) : Desugared.Ast.program =
-  let scope : Desugared.Ast.scope =
-    ScopeMap.find scope_uid prgm.program_scopes
-  in
+    (prgm : Ast.program)
+    (def : Surface.Ast.definition) : Ast.program =
+  let scope : Ast.scope = ScopeMap.find scope_uid prgm.program_scopes in
   let scope_ctxt = ScopeMap.find scope_uid ctxt.scopes in
   let def_key =
     Name_resolution.get_def_key
@@ -929,7 +943,7 @@ let process_def
       (Marked.get_mark def.definition_name)
   in
   let scope_def_ctxt =
-    Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
+    Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
   in
   (* We add to the name resolution context the name of the parameter variable *)
   let param_uid, new_ctxt =
@@ -942,19 +956,19 @@ let process_def
       Some (Marked.same_mark_as param_var param), ctxt
   in
   let scope_updated =
-    let scope_def = Desugared.Ast.ScopeDefMap.find def_key scope.scope_defs in
+    let scope_def = Ast.ScopeDefMap.find def_key scope.scope_defs in
     let rule_name = def.definition_id in
     let label_situation =
       match def.definition_label with
       | Some (label_str, label_pos) ->
-        Desugared.Ast.ExplicitlyLabeled
-          ( Desugared.Ast.IdentMap.find label_str scope_def_ctxt.label_idmap,
+        Ast.ExplicitlyLabeled
+          ( Name_resolution.IdentMap.find label_str scope_def_ctxt.label_idmap,
             label_pos )
-      | None -> Desugared.Ast.Unlabeled
+      | None -> Ast.Unlabeled
     in
     let exception_situation =
-      match def.Ast.definition_exception_to with
-      | NotAnException -> Desugared.Ast.BaseCase
+      match def.Surface.Ast.definition_exception_to with
+      | NotAnException -> Ast.BaseCase
       | UnlabeledException -> (
         match scope_def_ctxt.default_exception_rulename with
         | None | Some (Name_resolution.Ambiguous _) ->
@@ -966,7 +980,7 @@ let process_def
       | ExceptionToLabel label_str -> (
         try
           let label_id =
-            Desugared.Ast.IdentMap.find (Marked.unmark label_str)
+            Name_resolution.IdentMap.find (Marked.unmark label_str)
               scope_def_ctxt.label_idmap
           in
           ExceptionToLabel (label_id, Marked.get_mark label_str)
@@ -974,13 +988,13 @@ let process_def
           Errors.raise_spanned_error
             (Marked.get_mark label_str)
             "Unknown label for the scope variable %a: \"%s\""
-            Desugared.Ast.ScopeDef.format_t def_key (Marked.unmark label_str))
+            Ast.ScopeDef.format_t def_key (Marked.unmark label_str))
     in
     let scope_def =
       {
         scope_def with
         scope_def_rules =
-          Desugared.Ast.RuleMap.add rule_name
+          RuleMap.add rule_name
             (process_default new_ctxt scope_uid
                (def_key, Marked.get_mark def.definition_name)
                rule_name param_uid precond exception_situation label_situation
@@ -990,8 +1004,7 @@ let process_def
     in
     {
       scope with
-      scope_defs =
-        Desugared.Ast.ScopeDefMap.add def_key scope_def scope.scope_defs;
+      scope_defs = Ast.ScopeDefMap.add def_key scope_def scope.scope_defs;
     }
   in
   {
@@ -1001,33 +1014,32 @@ let process_def
 
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
 let process_rule
-    (precond : Desugared.Ast.expr boxed option)
+    (precond : Ast.expr boxed option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (rule : Ast.rule) : Desugared.Ast.program =
-  let def = Ast.rule_to_def rule in
+    (prgm : Ast.program)
+    (rule : Surface.Ast.rule) : Ast.program =
+  let def = Surface.Ast.rule_to_def rule in
   process_def precond scope ctxt prgm def
 
 (** Translates assertions *)
 let process_assert
-    (precond : Desugared.Ast.expr boxed option)
+    (precond : Ast.expr boxed option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (ass : Ast.assertion) : Desugared.Ast.program =
-  let scope : Desugared.Ast.scope =
-    ScopeMap.find scope_uid prgm.program_scopes
-  in
+    (prgm : Ast.program)
+    (ass : Surface.Ast.assertion) : Ast.program =
+  let scope : Ast.scope = ScopeMap.find scope_uid prgm.program_scopes in
   let ass =
     translate_expr scope_uid None ctxt
-      (match ass.Ast.assertion_condition with
-      | None -> ass.Ast.assertion_content
+      (match ass.Surface.Ast.assertion_condition with
+      | None -> ass.Surface.Ast.assertion_content
       | Some cond ->
-        ( Ast.IfThenElse
+        ( Surface.Ast.IfThenElse
             ( cond,
-              ass.Ast.assertion_content,
-              Marked.same_mark_as (Ast.Literal (Ast.LBool true)) cond ),
+              ass.Surface.Ast.assertion_content,
+              Marked.same_mark_as (Surface.Ast.Literal (Surface.Ast.LBool true))
+                cond ),
           Marked.get_mark cond ))
   in
   let ass =
@@ -1048,16 +1060,16 @@ let process_assert
 
 (** Translates a surface definition, rule or assertion *)
 let process_scope_use_item
-    (precond : Ast.expression Marked.pos option)
+    (precond : Surface.Ast.expression Marked.pos option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (item : Ast.scope_use_item Marked.pos) : Desugared.Ast.program =
+    (prgm : Ast.program)
+    (item : Surface.Ast.scope_use_item Marked.pos) : Ast.program =
   let precond = Option.map (translate_expr scope None ctxt) precond in
   match Marked.unmark item with
-  | Ast.Rule rule -> process_rule precond scope ctxt prgm rule
-  | Ast.Definition def -> process_def precond scope ctxt prgm def
-  | Ast.Assertion ass -> process_assert precond scope ctxt prgm ass
+  | Surface.Ast.Rule rule -> process_rule precond scope ctxt prgm rule
+  | Surface.Ast.Definition def -> process_def precond scope ctxt prgm def
+  | Surface.Ast.Assertion ass -> process_assert precond scope ctxt prgm ass
   | _ -> prgm
 
 (** {1 Translating top-level items} *)
@@ -1067,19 +1079,19 @@ let process_scope_use_item
 let check_unlabeled_exception
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (item : Ast.scope_use_item Marked.pos) : unit =
+    (item : Surface.Ast.scope_use_item Marked.pos) : unit =
   let scope_ctxt = ScopeMap.find scope ctxt.scopes in
   match Marked.unmark item with
-  | Ast.Rule _ | Ast.Definition _ -> (
+  | Surface.Ast.Rule _ | Surface.Ast.Definition _ -> (
     let def_key, exception_to =
       match Marked.unmark item with
-      | Ast.Rule rule ->
+      | Surface.Ast.Rule rule ->
         ( Name_resolution.get_def_key
             (Marked.unmark rule.rule_name)
             rule.rule_state scope ctxt
             (Marked.get_mark rule.rule_name),
           rule.rule_exception_to )
-      | Ast.Definition def ->
+      | Surface.Ast.Definition def ->
         ( Name_resolution.get_def_key
             (Marked.unmark def.definition_name)
             def.definition_state scope ctxt
@@ -1089,13 +1101,13 @@ let check_unlabeled_exception
       (* should not happen *)
     in
     let scope_def_ctxt =
-      Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
+      Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
     in
     match exception_to with
-    | Ast.NotAnException | Ast.ExceptionToLabel _ -> ()
+    | Surface.Ast.NotAnException | Surface.Ast.ExceptionToLabel _ -> ()
     (* If this is an unlabeled exception, we check that it has a unique default
        definition *)
-    | Ast.UnlabeledException -> (
+    | Surface.Ast.UnlabeledException -> (
       match scope_def_ctxt.default_exception_rulename with
       | None ->
         Errors.raise_spanned_error (Marked.get_mark item)
@@ -1112,8 +1124,8 @@ let check_unlabeled_exception
 (** Translates a surface scope use, which is a bunch of definitions *)
 let process_scope_use
     (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (use : Ast.scope_use) : Desugared.Ast.program =
+    (prgm : Ast.program)
+    (use : Surface.Ast.scope_use) : Ast.program =
   let scope_uid = Name_resolution.get_scope ctxt use.scope_use_name in
   (* Make sure the scope exists *)
   let prgm =
@@ -1128,24 +1140,24 @@ let process_scope_use
     (process_scope_use_item precond scope_uid ctxt)
     prgm use.scope_use_items
 
-let attribute_to_io (attr : Ast.scope_decl_context_io) : Scopelang.Ast.io =
+let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
   {
-    Scopelang.Ast.io_output = attr.scope_decl_context_io_output;
-    Scopelang.Ast.io_input =
+    Ast.io_output = attr.scope_decl_context_io_output;
+    Ast.io_input =
       Marked.map_under_mark
         (fun io ->
           match io with
-          | Ast.Input -> Scopelang.Ast.OnlyInput
-          | Ast.Internal -> Scopelang.Ast.NoInput
-          | Ast.Context -> Scopelang.Ast.Reentrant)
+          | Surface.Ast.Input -> Ast.OnlyInput
+          | Surface.Ast.Internal -> Ast.NoInput
+          | Surface.Ast.Context -> Ast.Reentrant)
         attr.scope_decl_context_io_input;
   }
 
 let init_scope_defs
     (ctxt : Name_resolution.context)
     (scope_idmap :
-      Name_resolution.scope_var_or_subscope Desugared.Ast.IdentMap.t) :
-    Desugared.Ast.scope_def Desugared.Ast.ScopeDefMap.t =
+      Name_resolution.scope_var_or_subscope Name_resolution.IdentMap.t) :
+    Ast.scope_def Ast.ScopeDefMap.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
   let add_def _ v scope_def_map =
@@ -1154,27 +1166,26 @@ let init_scope_defs
       let v_sig = ScopeVarMap.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
-        let def_key = Desugared.Ast.ScopeDef.Var (v, None) in
-        Desugared.Ast.ScopeDefMap.add def_key
+        let def_key = Ast.ScopeDef.Var (v, None) in
+        Ast.ScopeDefMap.add def_key
           {
-            Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-            Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
-            Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-            Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
+            Ast.scope_def_rules = RuleMap.empty;
+            Ast.scope_def_typ = v_sig.var_sig_typ;
+            Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+            Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
           }
           scope_def_map
       | states ->
         let scope_def, _ =
           List.fold_left
             (fun (acc, i) state ->
-              let def_key = Desugared.Ast.ScopeDef.Var (v, Some state) in
+              let def_key = Ast.ScopeDef.Var (v, Some state) in
               let def =
                 {
-                  Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-                  Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
-                  Desugared.Ast.scope_def_is_condition =
-                    v_sig.var_sig_is_condition;
-                  Desugared.Ast.scope_def_io =
+                  Ast.scope_def_rules = RuleMap.empty;
+                  Ast.scope_def_typ = v_sig.var_sig_typ;
+                  Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                  Ast.scope_def_io =
                     (* The first state should have the input I/O of the original
                        variable, and the last state should have the output I/O
                        of the original variable. All intermediate states shall
@@ -1183,8 +1194,7 @@ let init_scope_defs
                      let io_input =
                        if i = 0 then original_io.io_input
                        else
-                         ( Scopelang.Ast.NoInput,
-                           Marked.get_mark (StateName.get_info state) )
+                         Ast.NoInput, Marked.get_mark (StateName.get_info state)
                      in
                      let io_output =
                        if i = List.length states - 1 then original_io.io_output
@@ -1193,7 +1203,7 @@ let init_scope_defs
                      { io_input; io_output });
                 }
               in
-              Desugared.Ast.ScopeDefMap.add def_key def acc, i + 1)
+              Ast.ScopeDefMap.add def_key def acc, i + 1)
             (scope_def_map, 0) states
         in
         scope_def)
@@ -1201,7 +1211,7 @@ let init_scope_defs
       let sub_scope_def =
         ScopeMap.find subscope_uid ctxt.Name_resolution.scopes
       in
-      Desugared.Ast.IdentMap.fold
+      Name_resolution.IdentMap.fold
         (fun _ v scope_def_map ->
           match v with
           | Name_resolution.SubScope _ -> scope_def_map
@@ -1210,45 +1220,43 @@ let init_scope_defs
                ? *)
             let v_sig = ScopeVarMap.find v ctxt.Name_resolution.var_typs in
             let def_key =
-              Desugared.Ast.ScopeDef.SubScopeVar
+              Ast.ScopeDef.SubScopeVar
                 (v0, v, Marked.get_mark (ScopeVar.get_info v))
             in
-            Desugared.Ast.ScopeDefMap.add def_key
+            Ast.ScopeDefMap.add def_key
               {
-                Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-                Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
-                Desugared.Ast.scope_def_is_condition =
-                  v_sig.var_sig_is_condition;
-                Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
+                Ast.scope_def_rules = RuleMap.empty;
+                Ast.scope_def_typ = v_sig.var_sig_typ;
+                Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
               }
               scope_def_map)
         sub_scope_def.Name_resolution.var_idmap scope_def_map
   in
-  Desugared.Ast.IdentMap.fold add_def scope_idmap
-    Desugared.Ast.ScopeDefMap.empty
+  Name_resolution.IdentMap.fold add_def scope_idmap Ast.ScopeDefMap.empty
 
 (** Main function of this module *)
-let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
-    Desugared.Ast.program =
+let translate_program
+    (ctxt : Name_resolution.context)
+    (prgm : Surface.Ast.program) : Ast.program =
   let empty_prgm =
     let program_scopes =
       ScopeMap.mapi
         (fun s_uid s_context ->
           let scope_vars =
-            Desugared.Ast.IdentMap.fold
+            Name_resolution.IdentMap.fold
               (fun _ v acc ->
                 match v with
                 | Name_resolution.SubScope _ -> acc
                 | Name_resolution.ScopeVar v -> (
                   let v_sig = ScopeVarMap.find v ctxt.var_typs in
                   match v_sig.var_sig_states_list with
-                  | [] -> ScopeVarMap.add v Desugared.Ast.WholeVar acc
-                  | states ->
-                    ScopeVarMap.add v (Desugared.Ast.States states) acc))
+                  | [] -> ScopeVarMap.add v Ast.WholeVar acc
+                  | states -> ScopeVarMap.add v (Ast.States states) acc))
               s_context.Name_resolution.var_idmap ScopeVarMap.empty
           in
           let scope_sub_scopes =
-            Desugared.Ast.IdentMap.fold
+            Name_resolution.IdentMap.fold
               (fun _ v acc ->
                 match v with
                 | Name_resolution.ScopeVar _ -> acc
@@ -1257,7 +1265,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
               s_context.Name_resolution.var_idmap SubScopeMap.empty
           in
           {
-            Desugared.Ast.scope_vars;
+            Ast.scope_vars;
             scope_sub_scopes;
             scope_defs = init_scope_defs ctxt s_context.var_idmap;
             scope_assertions = [];
@@ -1267,12 +1275,12 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
         ctxt.Name_resolution.scopes
     in
     {
-      Desugared.Ast.program_ctx =
+      Ast.program_ctx =
         {
           ctx_structs = ctxt.Name_resolution.structs;
           ctx_enums = ctxt.Name_resolution.enums;
           ctx_scopes =
-            Desugared.Ast.IdentMap.fold
+            Name_resolution.IdentMap.fold
               (fun _ def acc ->
                 match def with
                 | Name_resolution.TScope (scope, scope_out_struct) ->
@@ -1280,12 +1288,12 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
                 | _ -> acc)
               ctxt.Name_resolution.typedefs ScopeMap.empty;
         };
-      Desugared.Ast.program_scopes;
+      Ast.program_scopes;
     }
   in
   let rec processer_structure
-      (prgm : Desugared.Ast.program)
-      (item : Ast.law_structure) : Desugared.Ast.program =
+      (prgm : Ast.program)
+      (item : Surface.Ast.law_structure) : Ast.program =
     match item with
     | LawHeading (_, children) ->
       List.fold_left
@@ -1295,7 +1303,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
       List.fold_left
         (fun prgm item ->
           match Marked.unmark item with
-          | Ast.ScopeUse use -> process_scope_use ctxt prgm use
+          | Surface.Ast.ScopeUse use -> process_scope_use ctxt prgm use
           | _ -> prgm)
         prgm block
     | LawInclude _ | LawText _ -> prgm

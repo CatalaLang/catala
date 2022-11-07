@@ -19,16 +19,6 @@
 open Utils
 open Shared_ast
 
-(** {1 Names, Maps and Keys} *)
-
-module IdentMap : Map.S with type key = String.t
-module RuleName : Uid.Id with type info = Uid.MarkedString.info
-module RuleMap : Map.S with type key = RuleName.t
-module RuleSet : Set.S with type elt = RuleName.t
-module LabelName : Uid.Id with type info = Uid.MarkedString.info
-module LabelMap : Map.S with type key = LabelName.t
-module LabelSet : Set.S with type elt = LabelName.t
-
 (** Inside a scope, a definition can refer either to a scope def, or a subscope
     def *)
 module ScopeDef : sig
@@ -88,11 +78,32 @@ type meta_assertion =
   | FixedBy of reference_typ Marked.pos
   | VariesWith of unit * variation_typ Marked.pos option
 
+(** This type characterizes the three levels of visibility for a given scope
+    variable with regards to the scope's input and possible redefinitions inside
+    the scope.. *)
+type io_input =
+  | NoInput
+      (** For an internal variable defined only in the scope, and does not
+          appear in the input. *)
+  | OnlyInput
+      (** For variables that should not be redefined in the scope, because they
+          appear in the input. *)
+  | Reentrant
+      (** For variables defined in the scope that can also be redefined by the
+          caller as they appear in the input. *)
+
+type io = {
+  io_output : bool Marked.pos;
+      (** [true] is present in the output of the scope. *)
+  io_input : io_input Marked.pos;
+}
+(** Characterization of the input/output status of a scope variable. *)
+
 type scope_def = {
   scope_def_rules : rule RuleMap.t;
   scope_def_typ : typ;
   scope_def_is_condition : bool;
-  scope_def_io : Scopelang.Ast.io;
+  scope_def_io : io;
 }
 
 type var_or_states = WholeVar | States of StateName.t list

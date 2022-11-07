@@ -229,10 +229,10 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
 (** {2 Graph declaration} *)
 
 module ExceptionVertex = struct
-  include Ast.RuleSet
+  include RuleSet
 
   let hash (x : t) : int =
-    Ast.RuleSet.fold (fun r acc -> Int.logxor (Ast.RuleName.hash r) acc) x 0
+    RuleSet.fold (fun r acc -> Int.logxor (RuleName.hash r) acc) x 0
 
   let equal x y = compare x y = 0
 end
@@ -257,13 +257,13 @@ module ExceptionsSCC = Graph.Components.Make (ExceptionsDependencies)
 (** {2 Graph computations} *)
 
 type exception_edge = {
-  label_from : Ast.LabelName.t;
-  label_to : Ast.LabelName.t;
+  label_from : LabelName.t;
+  label_to : LabelName.t;
   edge_positions : Pos.t list;
 }
 
 let build_exceptions_graph
-    (def : Ast.rule Ast.RuleMap.t)
+    (def : Ast.rule RuleMap.t)
     (def_info : Ast.ScopeDef.t) : ExceptionsDependencies.t =
   (* First we partition the definitions into groups bearing the same label. To
      handle the rules that were not labeled by the user, we create implicit
@@ -271,63 +271,57 @@ let build_exceptions_graph
 
   (* All the rules of the form [definition x ...] are base case with no explicit
      label, so they should share this implicit label. *)
-  let base_case_implicit_label =
-    Ast.LabelName.fresh ("base_case", Pos.no_pos)
-  in
+  let base_case_implicit_label = LabelName.fresh ("base_case", Pos.no_pos) in
   (* When declaring [exception definition x ...], it means there is a unique
      rule [R] to which this can be an exception to. So we give a unique label to
      all the rules that are implicitly exceptions to rule [R]. *)
-  let exception_to_rule_implicit_labels : Ast.LabelName.t Ast.RuleMap.t =
-    Ast.RuleMap.fold
+  let exception_to_rule_implicit_labels : LabelName.t RuleMap.t =
+    RuleMap.fold
       (fun _ rule_from exception_to_rule_implicit_labels ->
         match rule_from.Ast.rule_exception with
         | Ast.ExceptionToRule (rule_to, _) -> (
-          match
-            Ast.RuleMap.find_opt rule_to exception_to_rule_implicit_labels
-          with
+          match RuleMap.find_opt rule_to exception_to_rule_implicit_labels with
           | Some _ ->
             (* we already created the label *) exception_to_rule_implicit_labels
           | None ->
-            Ast.RuleMap.add rule_to
-              (Ast.LabelName.fresh
-                 ( "exception_to_"
-                   ^ Marked.unmark (Ast.RuleName.get_info rule_to),
+            RuleMap.add rule_to
+              (LabelName.fresh
+                 ( "exception_to_" ^ Marked.unmark (RuleName.get_info rule_to),
                    Pos.no_pos ))
               exception_to_rule_implicit_labels)
         | _ -> exception_to_rule_implicit_labels)
-      def Ast.RuleMap.empty
+      def RuleMap.empty
   in
   (* When declaring [exception foo_l definition x ...], the rule is exception to
      all the rules sharing label [foo_l]. So we give a unique label to all the
      rules that are implicitly exceptions to rule [foo_l]. *)
-  let exception_to_label_implicit_labels : Ast.LabelName.t Ast.LabelMap.t =
-    Ast.RuleMap.fold
+  let exception_to_label_implicit_labels : LabelName.t LabelMap.t =
+    RuleMap.fold
       (fun _ rule_from
-           (exception_to_label_implicit_labels : Ast.LabelName.t Ast.LabelMap.t) ->
+           (exception_to_label_implicit_labels : LabelName.t LabelMap.t) ->
         match rule_from.Ast.rule_exception with
         | Ast.ExceptionToLabel (label_to, _) -> (
           match
-            Ast.LabelMap.find_opt label_to exception_to_label_implicit_labels
+            LabelMap.find_opt label_to exception_to_label_implicit_labels
           with
           | Some _ ->
             (* we already created the label *)
             exception_to_label_implicit_labels
           | None ->
-            Ast.LabelMap.add label_to
-              (Ast.LabelName.fresh
-                 ( "exception_to_"
-                   ^ Marked.unmark (Ast.LabelName.get_info label_to),
+            LabelMap.add label_to
+              (LabelName.fresh
+                 ( "exception_to_" ^ Marked.unmark (LabelName.get_info label_to),
                    Pos.no_pos ))
               exception_to_label_implicit_labels)
         | _ -> exception_to_label_implicit_labels)
-      def Ast.LabelMap.empty
+      def LabelMap.empty
   in
 
   (* Now we have all the labels necessary to partition our rules into sets, each
      one corresponding to a label relating to the structure of the exception
      DAG. *)
   let label_to_rule_sets =
-    Ast.RuleMap.fold
+    RuleMap.fold
       (fun rule_name rule rule_sets ->
         let label_of_rule =
           match rule.Ast.rule_label with
@@ -336,23 +330,23 @@ let build_exceptions_graph
             match rule.Ast.rule_exception with
             | BaseCase -> base_case_implicit_label
             | ExceptionToRule (r, _) ->
-              Ast.RuleMap.find r exception_to_rule_implicit_labels
+              RuleMap.find r exception_to_rule_implicit_labels
             | ExceptionToLabel (l', _) ->
-              Ast.LabelMap.find l' exception_to_label_implicit_labels)
+              LabelMap.find l' exception_to_label_implicit_labels)
         in
-        Ast.LabelMap.update label_of_rule
+        LabelMap.update label_of_rule
           (fun rule_set ->
             match rule_set with
-            | None -> Some (Ast.RuleSet.singleton rule_name)
-            | Some rule_set -> Some (Ast.RuleSet.add rule_name rule_set))
+            | None -> Some (RuleSet.singleton rule_name)
+            | Some rule_set -> Some (RuleSet.add rule_name rule_set))
           rule_sets)
-      def Ast.LabelMap.empty
+      def LabelMap.empty
   in
-  let find_label_of_rule (r : Ast.RuleName.t) : Ast.LabelName.t =
+  let find_label_of_rule (r : RuleName.t) : LabelName.t =
     fst
-      (Ast.LabelMap.choose
-         (Ast.LabelMap.filter
-            (fun _ rule_set -> Ast.RuleSet.mem r rule_set)
+      (LabelMap.choose
+         (LabelMap.filter
+            (fun _ rule_set -> RuleSet.mem r rule_set)
             label_to_rule_sets))
   in
   (* Next, we collect the exception edges between those groups of rules referred
@@ -360,7 +354,7 @@ let build_exceptions_graph
      edges as they are declared at each rule but should be the same for all the
      rules of the same group. *)
   let exception_edges : exception_edge list =
-    Ast.RuleMap.fold
+    RuleMap.fold
       (fun rule_name rule exception_edges ->
         let label_from = find_label_of_rule rule_name in
         let label_to_and_pos =
@@ -374,16 +368,16 @@ let build_exceptions_graph
         | Some (label_to, edge_pos) -> (
           let other_edges_originating_from_same_label =
             List.filter
-              (fun edge -> Ast.LabelName.compare edge.label_from label_from = 0)
+              (fun edge -> LabelName.compare edge.label_from label_from = 0)
               exception_edges
           in
           (* We check the consistency*)
-          if Ast.LabelName.compare label_from label_to = 0 then
+          if LabelName.compare label_from label_to = 0 then
             Errors.raise_spanned_error edge_pos
               "Cannot define rule as an exception to itself";
           List.iter
             (fun edge ->
-              if Ast.LabelName.compare edge.label_to label_to <> 0 then
+              if LabelName.compare edge.label_to label_to <> 0 then
                 Errors.raise_multispanned_error
                   (( Some
                        "This declaration contradicts another exception \
@@ -401,8 +395,8 @@ let build_exceptions_graph
           let existing_edge =
             List.find_opt
               (fun edge ->
-                Ast.LabelName.compare edge.label_from label_from = 0
-                && Ast.LabelName.compare edge.label_to label_to = 0)
+                LabelName.compare edge.label_from label_from = 0
+                && LabelName.compare edge.label_to label_to = 0)
               exception_edges
           in
           match existing_edge with
@@ -420,7 +414,7 @@ let build_exceptions_graph
   in
   (* We've got the vertices and the edges, let's build the graph! *)
   let g =
-    Ast.LabelMap.fold
+    LabelMap.fold
       (fun _label rule_set g -> ExceptionsDependencies.add_vertex g rule_set)
       label_to_rule_sets ExceptionsDependencies.empty
   in
@@ -429,11 +423,9 @@ let build_exceptions_graph
     List.fold_left
       (fun g edge ->
         let rule_group_from =
-          Ast.LabelMap.find edge.label_from label_to_rule_sets
+          LabelMap.find edge.label_from label_to_rule_sets
         in
-        let rule_group_to =
-          Ast.LabelMap.find edge.label_to label_to_rule_sets
-        in
+        let rule_group_to = LabelMap.find edge.label_to label_to_rule_sets in
         let edge =
           ExceptionsDependencies.E.create rule_group_from edge.edge_positions
             rule_group_to
@@ -453,11 +445,10 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
     let spans =
       List.flatten
         (List.map
-           (fun (vs : Ast.RuleSet.t) ->
-             let v = Ast.RuleSet.choose vs in
+           (fun (vs : RuleSet.t) ->
+             let v = RuleSet.choose vs in
              let var_str, var_info =
-               ( Format.asprintf "%a" Ast.RuleName.format_t v,
-                 Ast.RuleName.get_info v )
+               Format.asprintf "%a" RuleName.format_t v, RuleName.get_info v
              in
              let succs = ExceptionsDependencies.succ_e g vs in
              let _, edge_pos, _ =

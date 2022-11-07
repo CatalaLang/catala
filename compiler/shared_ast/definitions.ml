@@ -45,6 +45,20 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
+(** Only used by surface *)
+
+module RuleName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
+module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
+
+module LabelName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
+module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
+
 (** Only used by desugared/scopelang *)
 
 module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =

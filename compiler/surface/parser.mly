@@ -392,7 +392,7 @@ rule:
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
-      rule_id = Desugared.Ast.RuleName.fresh
+      rule_id = Shared_ast.RuleName.fresh
         (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
           Pos.from_lpos $sloc);
       rule_consequence = cons;
@@ -429,7 +429,7 @@ definition:
       definition_parameter = param;
       definition_condition = cond;
       definition_id =
-        Desugared.Ast.RuleName.fresh
+        Shared_ast.RuleName.fresh
           (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
             Pos.from_lpos $sloc);
       definition_expr = e;
