@@ -242,9 +242,9 @@ déclaration énumération ZoneDHabitation:
   -- Zone3
 
 déclaration énumération CatégorieCalculAPL:
-  -- Location
-  -- AccessionPropriété
-  -- LogementFoyer
+  -- Location contenu Location
+  -- AccessionPropriété contenu Propriétaire
+  -- LogementFoyer contenu LogementFoyer
 ```
 
 ### Informations concernant l'évaluation des ressources du ménage
@@ -722,6 +722,10 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 #### Tous secteurs
 
 ```catala-metadata
+déclaration structure Traitement_formule_aide_finale:
+  donnée aide_finale_formule contenu argent
+  donnée traitement_aide_finale contenu argent dépend de argent
+
 déclaration champ d'application CalculAidePersonnaliséeLogement:
   entrée mode_occupation contenu ModeOccupation
   entrée type_aide contenu TypeAidesPersonnelleLogement
@@ -736,10 +740,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
-  locatif champ d'application CalculAidePersonnaliséeLogementLocatif
-  logement_foyer champ d'application CalculAidePersonnaliséeLogementFoyer
-  accession_propriété champ d'application
-    CalculAidePersonnaliséeLogementAccessionPropriété
+  interne sous_calcul_traitement contenu Traitement_formule_aide_finale
 
   sortie aide_finale_formule contenu argent
   sortie traitement_aide_finale contenu argent dépend de argent
@@ -984,10 +985,7 @@ déclaration champ d'application CalculAllocationLogement:
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
-  locatif champ d'application CalculAllocationLogementLocatif
-  logement_foyer champ d'application CalculAllocationLogementFoyer
-  accession_propriété champ d'application
-    CalculAllocationLogementAccessionPropriété
+  interne sous_calcul_traitement contenu Traitement_formule_aide_finale
 
   sortie aide_finale_formule contenu argent
   sortie traitement_aide_finale contenu argent dépend de argent

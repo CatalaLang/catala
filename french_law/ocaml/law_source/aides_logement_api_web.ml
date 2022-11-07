@@ -550,48 +550,6 @@ let zone_d_habitation_of_jsoo (zone_d_habitation : zone_d_habitation Js.t)
         "Unexpected '%s' kind for the enumeration 'ZoneDHabitation.t'" cons)
 
 
-class type categorie_calcul_a_p_l =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "Location"
-        - "AccessionPropriete"
-        - "LogementFoyer" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let categorie_calcul_a_p_l_to_jsoo
-  : CategorieCalculAPL.t -> categorie_calcul_a_p_l Js.t
-  = function
-  | Location arg -> object%js
-      val kind = Js.string "Location"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AccessionPropriete arg -> object%js
-      val kind = Js.string "AccessionPropriete"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | LogementFoyer arg -> object%js
-      val kind = Js.string "LogementFoyer"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-
-let categorie_calcul_a_p_l_of_jsoo
-  (categorie_calcul_a_p_l : categorie_calcul_a_p_l Js.t)
-  : CategorieCalculAPL.t =
-  match categorie_calcul_a_p_l##.kind |> Js.to_string with
-  | "Location" -> CategorieCalculAPL.Location ()
-  | "AccessionPropriete" -> CategorieCalculAPL.AccessionPropriete ()
-  | "LogementFoyer" -> CategorieCalculAPL.LogementFoyer ()
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'CategorieCalculAPL.t'"
-        cons)
-
-
 class type paiement_logement_distinct_professionnel =
   object
     method kind :
@@ -1827,6 +1785,32 @@ class type calcul_aide_personnalisee_logement_accession_propriete =
       traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
     }
 
+class type traitement_formule_aide_finale =
+  object
+    method aideFinaleFormule: Js.number Js.t Js.readonly_prop
+    method traitementAideFinale:
+      (Js.number Js.t,  Js.number Js.t) Js.meth_callback Js.meth
+  end
+  let traitement_formule_aide_finale_to_jsoo (traitement_formule_aide_finale
+    : TraitementFormuleAideFinale.t) : traitement_formule_aide_finale Js.t =
+    object%js
+      val aideFinaleFormule =
+        Js.number_of_float @@ money_to_float traitement_formule_aide_finale.aide_finale_formule
+      method traitementAideFinale = Js.wrap_meth_callback
+        (
+          fun input ->
+          Js.number_of_float @@ money_to_float (traitement_formule_aide_finale.traitement_aide_finale (money_of_decimal @@ decimal_of_float @@ Js.float_of_number input)))
+      end
+  let traitement_formule_aide_finale_of_jsoo
+    (traitement_formule_aide_finale : traitement_formule_aide_finale Js.t) :
+    TraitementFormuleAideFinale.t =
+    {
+      aide_finale_formule =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          traitement_formule_aide_finale##.aideFinaleFormule;
+      traitement_aide_finale = failwith "The function 'traitement_aide_finale' translation isn't yet supported..."
+    }
+
 class type calcul_aide_personnalisee_logement =
   object
     method aideFinaleFormule: Js.number Js.t Js.readonly_prop
@@ -2976,6 +2960,51 @@ class type eligibilite_aides_personnelle_logement =
           ##.coefficentsEnfantsGardeAlterneePrisEnCompte;
       condition_2_r823_4 = failwith "The function 'condition_2_r823_4' translation isn't yet supported..."
     }
+
+class type categorie_calcul_a_p_l =
+  object
+    method kind :
+      Js.js_string Js.t Js.readonly_prop
+      (** Expects one of:
+        - "Location"
+        - "AccessionPropriete"
+        - "LogementFoyer" *)
+    
+    method payload : Js.Unsafe.any Js.t Js.readonly_prop
+  end
+
+let categorie_calcul_a_p_l_to_jsoo
+  : CategorieCalculAPL.t -> categorie_calcul_a_p_l Js.t
+  = function
+  | Location arg -> object%js
+      val kind = Js.string "Location"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (location_to_jsoo arg))
+    end
+  | AccessionPropriete arg -> object%js
+      val kind = Js.string "AccessionPropriete"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (proprietaire_to_jsoo arg))
+    end
+  | LogementFoyer arg -> object%js
+      val kind = Js.string "LogementFoyer"
+      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (logement_foyer_to_jsoo arg))
+    end
+
+let categorie_calcul_a_p_l_of_jsoo
+  (categorie_calcul_a_p_l : categorie_calcul_a_p_l Js.t)
+  : CategorieCalculAPL.t =
+  match categorie_calcul_a_p_l##.kind |> Js.to_string with
+  | "Location" ->
+  CategorieCalculAPL.Location (location_of_jsoo (Js.Unsafe.coerce categorie_calcul_a_p_l##.payload))
+  | "AccessionPropriete" ->
+  CategorieCalculAPL.AccessionPropriete (proprietaire_of_jsoo (Js.Unsafe.coerce categorie_calcul_a_p_l##.payload))
+  | "LogementFoyer" ->
+  CategorieCalculAPL.LogementFoyer (logement_foyer_of_jsoo (Js.Unsafe.coerce categorie_calcul_a_p_l##.payload))
+  | cons ->
+    failwith
+      (Printf.sprintf
+        "Unexpected '%s' kind for the enumeration 'CategorieCalculAPL.t'"
+        cons)
+
 
 class type mode_occupation =
   object
