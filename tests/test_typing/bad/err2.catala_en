@@ -17,24 +17,27 @@ $ catala Typecheck
 --> decimal
 
 Error coming from typechecking the following expression:
-  --> tests/test_typing/bad/err2.catala_en
-   |
-10 |   definition a equals number of (z ++ 1.1) / 2
-   |                                            ^
-   +
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.43-44
+└──┐
+   │
+10 │   definition a equals number of (z ++ 1.1) / 2
+   │                                            ‾
+
 
 Type integer coming from expression:
-  --> tests/test_typing/bad/err2.catala_en
-   |
-10 |   definition a equals number of (z ++ 1.1) / 2
-   |                                            ^
-   +
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.43-44
+└──┐
+   │
+10 │   definition a equals number of (z ++ 1.1) / 2
+   │                                            ‾
+
 
 Type decimal coming from expression:
-  --> tests/test_typing/bad/common.catala_en
-   |
-15 |   output a content decimal
-   |                    ^^^^^^^
-   +
+┌─⯈ tests/test_typing/bad/common.catala_en:15.19-26
+└──┐
+   │
+15 │   output a content decimal
+   │                    ‾‾‾‾‾‾‾
+
 #return code 255#
 ```

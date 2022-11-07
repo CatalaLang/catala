@@ -33,7 +33,7 @@ scope Foo:
 
 ```catala-test-inline
 $ catala Scopelang
-type Foo = {
+struct Foo = {
   x: integer
 }
 

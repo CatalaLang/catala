@@ -18,31 +18,35 @@ $ catala Interpret -s A
 [ERROR] Cyclic dependency detected between types!
 
 Cycle type S, declared:
- --> tests/test_struct/bad/nested2.catala_en
-  |
-4 | declaration structure S:
-  |                       ^
-  + Article
+┌─⯈ tests/test_struct/bad/nested2.catala_en:4.22-23
+└─┐
+  │
+4 │ declaration structure S:
+  │                       ‾
+  └─ Article
 
 Used here in the definition of another cycle type E:
-  --> tests/test_struct/bad/nested2.catala_en
-   |
-10 |   -- Case2 content S
-   |                    ^
-   + Article
+┌─⯈ tests/test_struct/bad/nested2.catala_en:10.19-20
+└──┐
+   │
+10 │   -- Case2 content S
+   │                    ‾
+   └─ Article
 
 Cycle type E, declared:
- --> tests/test_struct/bad/nested2.catala_en
-  |
-8 | declaration enumeration E:
-  |                         ^
-  + Article
+┌─⯈ tests/test_struct/bad/nested2.catala_en:8.24-25
+└─┐
+  │
+8 │ declaration enumeration E:
+  │                         ‾
+  └─ Article
 
 Used here in the definition of another cycle type S:
- --> tests/test_struct/bad/nested2.catala_en
-  |
-5 |   data x content E
-  |                  ^
-  + Article
+┌─⯈ tests/test_struct/bad/nested2.catala_en:5.17-18
+└─┐
+  │
+5 │   data x content E
+  │                  ‾
+  └─ Article
 #return code 255#
 ```

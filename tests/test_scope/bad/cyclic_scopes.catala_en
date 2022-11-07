@@ -21,31 +21,35 @@ $ catala Interpret -s A
 [ERROR] Cyclic dependency detected between scopes!
 
 Cycle variable B, declared:
- --> tests/test_scope/bad/cyclic_scopes.catala_en
-  |
-8 | declaration scope B:
-  |                   ^
-  + Article
+┌─⯈ tests/test_scope/bad/cyclic_scopes.catala_en:8.18-19
+└─┐
+  │
+8 │ declaration scope B:
+  │                   ‾
+  └─ Article
 
 Used here in the definition of another cycle variable A:
- --> tests/test_scope/bad/cyclic_scopes.catala_en
-  |
-5 |   b scope B
-  |   ^
-  + Article
+┌─⯈ tests/test_scope/bad/cyclic_scopes.catala_en:5.2-3
+└─┐
+  │
+5 │   b scope B
+  │   ‾
+  └─ Article
 
 Cycle variable A, declared:
- --> tests/test_scope/bad/cyclic_scopes.catala_en
-  |
-4 | declaration scope A:
-  |                   ^
-  + Article
+┌─⯈ tests/test_scope/bad/cyclic_scopes.catala_en:4.18-19
+└─┐
+  │
+4 │ declaration scope A:
+  │                   ‾
+  └─ Article
 
 Used here in the definition of another cycle variable B:
- --> tests/test_scope/bad/cyclic_scopes.catala_en
-  |
-9 |   a scope A
-  |   ^
-  + Article
+┌─⯈ tests/test_scope/bad/cyclic_scopes.catala_en:9.2-3
+└─┐
+  │
+9 │   a scope A
+  │   ‾
+  └─ Article
 #return code 255#
 ```

@@ -19,45 +19,51 @@ $ catala Interpret -s A
 [ERROR] Cyclic dependency detected between variables of scope A!
 
 Cycle variable z, declared:
- --> tests/test_scope/bad/cycle_in_scope.catala_en
-  |
-7 |   context z content integer
-  |           ^
-  + Article
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:7.10-11
+└─┐
+  │
+7 │   context z content integer
+  │           ‾
+  └─ Article
 
 Used here in the definition of another cycle variable x:
-  --> tests/test_scope/bad/cycle_in_scope.catala_en
-   |
-14 |   definition x equals z
-   |                       ^
-   + Article
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:14.22-23
+└──┐
+   │
+14 │   definition x equals z
+   │                       ‾
+   └─ Article
 
 Cycle variable y, declared:
- --> tests/test_scope/bad/cycle_in_scope.catala_en
-  |
-6 |   context y content integer
-  |           ^
-  + Article
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:6.10-11
+└─┐
+  │
+6 │   context y content integer
+  │           ‾
+  └─ Article
 
 Used here in the definition of another cycle variable z:
-  --> tests/test_scope/bad/cycle_in_scope.catala_en
-   |
-13 |   definition z under condition y < 1 consequence equals y
-   |                                ^
-   + Article
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:13.31-32
+└──┐
+   │
+13 │   definition z under condition y < 1 consequence equals y
+   │                                ‾
+   └─ Article
 
 Cycle variable x, declared:
- --> tests/test_scope/bad/cycle_in_scope.catala_en
-  |
-5 |   context x content integer
-  |           ^
-  + Article
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:5.10-11
+└─┐
+  │
+5 │   context x content integer
+  │           ‾
+  └─ Article
 
 Used here in the definition of another cycle variable y:
-  --> tests/test_scope/bad/cycle_in_scope.catala_en
-   |
-11 |   definition y under condition x >= 0 consequence equals x
-   |                                ^
-   + Article
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:11.31-32
+└──┐
+   │
+11 │   definition y under condition x >= 0 consequence equals x
+   │                                ‾
+   └─ Article
 #return code 255#
 ```

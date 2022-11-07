@@ -25,24 +25,27 @@ $ catala Interpret -s A
 --> F
 
 Error coming from typechecking the following expression:
-  --> tests/test_enum/bad/quick_pattern_3.catala_en
-   |
-18 | definition y equals x with pattern Case3
-   |                     ^
-   + Article
+┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:18.20-21
+└──┐
+   │
+18 │ definition y equals x with pattern Case3
+   │                     ‾
+   └─ Article
 
 Type E coming from expression:
-  --> tests/test_enum/bad/quick_pattern_3.catala_en
-   |
-13 | context x content E
-   |                   ^
-   + Article
+┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:13.18-19
+└──┐
+   │
+13 │ context x content E
+   │                   ‾
+   └─ Article
 
 Type F coming from expression:
-  --> tests/test_enum/bad/quick_pattern_3.catala_en
-   |
-18 | definition y equals x with pattern Case3
-   |                     ^^^^^^^^^^^^^^^^^^^^
-   + Article
+┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:18.20-40
+└──┐
+   │
+18 │ definition y equals x with pattern Case3
+   │                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Article
 #return code 255#
 ```

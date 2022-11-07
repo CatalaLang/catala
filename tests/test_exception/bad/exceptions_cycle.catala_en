@@ -23,57 +23,63 @@ $ catala Interpret -s A
 [ERROR] Cyclic dependency detected between exceptions!
 
 Cyclic exception for definition of variable "x", declared here:
-  --> tests/test_exception/bad/exceptions_cycle.catala_en
-   |
-16 |   label exception_exception_x
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
-17 |   exception exception_x
-   |   ^^^^^^^^^^^^^^^^^^^^^
-18 |   definition x equals 2
-   |   ^^^^^^^^^^^^^^^^^^^^^^
-   +
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:16.2-18.23
+└──┐
+   │
+16 │   label exception_exception_x
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+17 │   exception exception_x
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+18 │   definition x equals 2
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
 
 Used here in the definition of another cyclic exception for defining "x":
-  --> tests/test_exception/bad/exceptions_cycle.catala_en
-   |
-17 |   exception exception_x
-   |             ^^^^^^^^^^^
-   + Test
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:17.12-23
+└──┐
+   │
+17 │   exception exception_x
+   │             ‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
 
 Cyclic exception for definition of variable "x", declared here:
-  --> tests/test_exception/bad/exceptions_cycle.catala_en
-   |
-12 |   label exception_x
-   |   ^^^^^^^^^^^^^^^^
-13 |   exception base_x
-   |   ^^^^^^^^^^^^^^^^
-14 |   definition x equals 1
-   |   ^^^^^^^^^^^^^^^^^^^^^^
-   +
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:12.2-14.23
+└──┐
+   │
+12 │   label exception_x
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+13 │   exception base_x
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+14 │   definition x equals 1
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
 
 Used here in the definition of another cyclic exception for defining "x":
-  --> tests/test_exception/bad/exceptions_cycle.catala_en
-   |
-13 |   exception base_x
-   |             ^^^^^^
-   + Test
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:13.12-18
+└──┐
+   │
+13 │   exception base_x
+   │             ‾‾‾‾‾‾
+   └─ Test
 
 Cyclic exception for definition of variable "x", declared here:
-  --> tests/test_exception/bad/exceptions_cycle.catala_en
-   |
- 8 |   label base_x
-   |   ^^^^^^^^^^^
- 9 |   exception exception_exception_x
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-10 |   definition x equals 0
-   |   ^^^^^^^^^^^^^^^^^^^^^^
-   +
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:8.2-10.23
+└──┐
+   │
+ 8 │   label base_x
+   │   ‾‾‾‾‾‾‾‾‾‾‾
+ 9 │   exception exception_exception_x
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+10 │   definition x equals 0
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
 
 Used here in the definition of another cyclic exception for defining "x":
- --> tests/test_exception/bad/exceptions_cycle.catala_en
-  |
-9 |   exception exception_exception_x
-  |             ^^^^^^^^^^^^^^^^^^^^^
-  + Test
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:9.12-33
+└─┐
+  │
+9 │   exception exception_exception_x
+  │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Test
 #return code 255#
 ```
