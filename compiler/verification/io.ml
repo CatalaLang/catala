@@ -145,13 +145,17 @@ module MakeBackendIO (B : Backend) = struct
 
     Cli.debug_print "For this variable:\n%s\n"
       (Pos.retrieve_loc_text (Expr.pos vc.Conditions.vc_guard));
-    Cli.debug_format "This verification condition was generated for %a:@\n%a"
+    Cli.debug_format
+      "This verification condition was generated for %a:@\n\
+       %a@\n\
+       with assertions:@\n\
+       %a"
       (Cli.format_with_style [ANSITerminal.yellow])
       (match vc.vc_kind with
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
       | NoOverlappingExceptions -> "no two exceptions to ever overlap")
-      (Expr.format decl_ctx) vc.vc_guard;
+      (Expr.format decl_ctx) vc.vc_guard (Expr.format decl_ctx) vc.vc_asserts;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (

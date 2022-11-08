@@ -7,12 +7,12 @@ scope Foo:
    assertion current_date >=@ |2020-01-01| and current_date <@ |2022-12-31|
 
    definition x under condition
-      current_date >=@ |2020-01-01| and current_date <@ |2020-12-31|
+      current_date >=@ |2020-01-01| and current_date <=@ |2020-12-31|
    consequence equals
       1
 
    definition x under condition
-      current_date >=@ |2021-01-01| and current_date <@ |2021-12-31|
+      current_date >=@ |2021-01-01| and current_date <=@ |2021-12-31|
    consequence equals
       2
 
@@ -23,6 +23,6 @@ scope Foo:
 ```
 
 ```catala-test-inline
-$ catala Proof --disable_counterexamples
+$ catala Proof
 [RESULT] TODO
 ```
