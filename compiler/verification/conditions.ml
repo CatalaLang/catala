@@ -34,6 +34,13 @@ type ctx = {
   scope_variables_typs : (typed expr, typ) Var.Map.t;
 }
 
+let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
+    typed expr =
+  match exprs with
+  | [] -> ELit (LBool true), mark
+  | hd :: tl ->
+    EApp ((EOp (Binop And), mark), [hd; conjunction_exprs tl mark]), mark
+
 let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
     match args with
@@ -418,10 +425,15 @@ let rec generate_verification_conditions_scopes
                  destructured with a series of let bindings just after. )*);
           }
         in
-        let _, vcs, _ =
+        let _, vcs, asserts =
           generate_verification_conditions_scope_body_expr ctx scope_body_expr
         in
-        vcs
+        let combined_assert =
+          conjunction_exprs asserts
+            (Typed
+               { pos = Pos.no_pos; ty = Marked.mark Pos.no_pos (TLit TBool) })
+        in
+        List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
       else []
     in
     let _scope_var, next = Bindlib.unbind scope_def.scope_next in
