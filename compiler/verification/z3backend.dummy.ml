@@ -32,6 +32,7 @@ module Io = struct
   type vc_encoding = unit
 
   let translate_expr _ _ = dummy ()
+  let encode_asserts _ _ = dummy ()
 
   type model = unit
   type vc_encoding_result = Success of model * model | Fail of string

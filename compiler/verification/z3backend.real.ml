@@ -755,7 +755,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       failwith
         "[Z3 encoding] EApp node: Catala function calls should only include \
          operators or function names")
-  | EAssert _ -> failwith "[Z3 encoding] EAssert unsupported"
+  | EAssert e -> translate_expr ctx e
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EIfThenElse (e_if, e_then, e_else) ->
@@ -812,6 +812,10 @@ module Backend = struct
 
   let translate_expr (ctx : backend_context) (e : typed expr) =
     translate_expr ctx e
+
+  let encode_asserts (ctx : backend_context) (e : typed expr) =
+    let ctx, vc = translate_expr ctx e in
+    add_z3constraint vc ctx
 
   let init_backend () =
     Cli.debug_print "Running Z3 version %s" Version.to_string

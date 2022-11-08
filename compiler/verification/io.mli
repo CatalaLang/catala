@@ -40,6 +40,9 @@ module type Backend = sig
 
   val translate_expr :
     backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
+
+  val encode_asserts :
+    backend_context -> typed Dcalc.Ast.expr -> backend_context
 end
 
 module type BackendIO = sig
@@ -54,6 +57,9 @@ module type BackendIO = sig
 
   val translate_expr :
     backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
+
+  val encode_asserts :
+    backend_context -> typed Dcalc.Ast.expr -> backend_context
 
   type model
 
