@@ -300,17 +300,18 @@ let trivial_assert e = Marked.same_mark_as (ELit (LBool true)) e
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
     (scope_body_expr : 'm expr scope_body_expr) :
-    ctx * verification_condition list =
+    ctx * verification_condition list * typed expr list =
   match scope_body_expr with
-  | Result _ -> ctx, []
+  | Result _ -> ctx, [], []
   | ScopeLet scope_let ->
     let scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
-    let new_ctx, vc_list =
+    let new_ctx, vc_list, assert_list =
       match scope_let.scope_let_kind with
+      | Assertion -> ctx, [], [scope_let.scope_let_expr]
       | DestructuringInputStruct ->
-        { ctx with input_vars = scope_let_var :: ctx.input_vars }, []
+        { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. But for subscope variable definitions,
@@ -371,10 +372,10 @@ let rec generate_verification_conditions_scope_body_expr
             :: vc_list
           | _ -> vc_list
         in
-        ctx, vc_list
-      | _ -> ctx, []
+        ctx, vc_list, []
+      | _ -> ctx, [], []
     in
-    let new_ctx, new_vcs =
+    let new_ctx, new_vcs, new_asserts =
       generate_verification_conditions_scope_body_expr
         {
           new_ctx with
@@ -384,7 +385,7 @@ let rec generate_verification_conditions_scope_body_expr
         }
         scope_let_next
     in
-    new_ctx, vc_list @ new_vcs
+    new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)
@@ -417,7 +418,7 @@ let rec generate_verification_conditions_scopes
                  destructured with a series of let bindings just after. )*);
           }
         in
-        let _, vcs =
+        let _, vcs, _ =
           generate_verification_conditions_scope_body_expr ctx scope_body_expr
         in
         vcs
