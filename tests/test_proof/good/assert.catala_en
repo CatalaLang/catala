@@ -23,6 +23,6 @@ scope Foo:
 ```
 
 ```catala-test-inline
-$ catala Proof
-[RESULT] TODO
+$ catala Proof --disable_counterexamples
+[RESULT] No errors found during the proof mode run.
 ```
