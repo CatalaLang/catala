@@ -32,6 +32,9 @@ type verification_condition = {
   vc_guard : typed Dcalc.Ast.expr;
       (** This expression should have type [bool]*)
   vc_kind : verification_condition_kind;
+  vc_asserts : typed Dcalc.Ast.expr;
+      (** A conjunction of all assertions in scope of this VC. * This expression
+          should have type [bool] *)
   vc_scope : ScopeName.t;
   vc_variable : typed Dcalc.Ast.expr Var.t Marked.pos;
   vc_free_vars_typ : (typed Dcalc.Ast.expr, typ) Var.Map.t;

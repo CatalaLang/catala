@@ -1,7 +1,8 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>, Alain Delaët
-   <alain.delaet--tixeuil@inria.fr>
+   <alain.delaet--tixeuil@inria.fr>, Aymeric Fromherz
+   <aymeric.fromherz@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -286,10 +287,15 @@ type verification_condition = {
   vc_guard : typed expr;
   (* should have type bool *)
   vc_kind : verification_condition_kind;
+  (* All assertions defined at the top-level of the scope corresponding to this
+     assertion *)
+  vc_asserts : typed expr;
   vc_scope : ScopeName.t;
   vc_variable : typed expr Var.t Marked.pos;
   vc_free_vars_typ : (typed expr, typ) Var.Map.t;
 }
+
+let trivial_assert e = Marked.same_mark_as (ELit (LBool true)) e
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
@@ -328,6 +334,9 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Marked.same_mark_as (Marked.unmark vc_confl) e;
               vc_kind = NoOverlappingExceptions;
+              (* Placeholder until we add all assertions in scope once
+               * we finished traversing it *)
+              vc_asserts = trivial_assert e;
               vc_free_vars_typ =
                 Var.Map.union
                   (fun _ _ -> failwith "should not happen")
@@ -351,6 +360,7 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Marked.same_mark_as (Marked.unmark vc_empty) e;
               vc_kind = NoEmptyError;
+              vc_asserts = trivial_assert e;
               vc_free_vars_typ =
                 Var.Map.union
                   (fun _ _ -> failwith "should not happen")
