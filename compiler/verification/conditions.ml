@@ -316,7 +316,21 @@ let rec generate_verification_conditions_scope_body_expr
     in
     let new_ctx, vc_list, assert_list =
       match scope_let.scope_let_kind with
-      | Assertion -> ctx, [], [scope_let.scope_let_expr]
+      | Assertion -> (
+        let e =
+          Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
+        in
+        match Marked.unmark e with
+        | EAssert e ->
+          let e = match_and_ignore_outer_reentrant_default ctx e in
+          ctx, [], [e]
+        | _ ->
+          Errors.raise_spanned_error (Expr.pos e)
+            "Internal error: this assertion does not have the structure \
+             expected by the VC generator:\n\
+             %a"
+            (Expr.format ~debug:true ctx.decl)
+            e)
       | DestructuringInputStruct ->
         { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
       | ScopeVarDefinition | SubScopeVarDefinition ->
