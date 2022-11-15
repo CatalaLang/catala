@@ -1,4 +1,22 @@
 # 83. Property transferred in connection with performance of services
+
+```catala-metadata
+declaration enumeration Fair_market_value:
+  -- Unrestricted content money
+  -- Restricted content money
+
+declaration scope Transferred_property_83:
+  input fair_market_value_unrestricted content money
+  input fair_market_value_when_transfered content money
+  input amount_paid content money
+  input elects_to_include_in_year_of_transfer content boolean
+    # has to be explicitely selected within 30 days of transfer
+  input substantial_risk_of_forfeiture content boolean
+  input transferable content boolean
+  internal conditions_for_83a content boolean
+  output amount_to_include_in_gross_income content money
+```
+
 ## (a) General rule
 If, in connection with the performance of services, property is transferred to
 any person other than the person for whom such services are performed, the
@@ -20,6 +38,18 @@ shall not apply if such person sells or otherwise disposes of such property in
 an arm’s length transaction before his rights in such property become
 transferable or not subject to a substantial risk of forfeiture.
 
+```catala
+scope Transferred_property_83:
+  definition amount_to_include_in_gross_income equals
+# Note: should not apply if the property was already sold
+  definition conditions_for_83a equals (not substantial_risk_of_forfeiture or transferable)
+  if conditions_for_83a then
+    if fair_market_value_unrestricted >$ amount_paid
+    then fair_market_value_unrestricted -$ amount_paid
+    else $0
+  else $0
+```
+
 ## (b) Election to include in gross income in year of transfer
 ### (1) In general
 Any person who performs services in connection with which property is
@@ -34,11 +64,27 @@ If such election is made, subsection (a) shall not apply with respect to the
 transfer of such property, and if such property is subsequently forfeited, no
 deduction shall be allowed in respect of such forfeiture.
 
+```catala
+scope Transferred_property_83:
+  exception definition amount_to_include_in_gross_income
+    under condition elects_to_include_in_year_of_transfer
+    consequence equals
+      if fair_market_value_when_transfered >$ amount_paid
+      then fair_market_value_when_transfered -$ amount_paid
+      else $0
+
+# "if such property is subsequently forfeited, ..." applies to the future and not to the current computation, so we don't encode it here
+```
+
 ### (2) Election
 An election under paragraph (1) with respect to any transfer of property shall
 be made in such manner as the Secretary prescribes and shall be made not later
 than 30 days after the date of such transfer. Such election may not be revoked
 except with the consent of the Secretary.
+
+```catala
+# This section describes how the election should be made, it doesn't directly concern the computation
+```
 
 ## (c) Special rules
 For purposes of this section—
