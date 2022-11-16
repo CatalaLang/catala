@@ -28,9 +28,7 @@ let solve_vc
       (fun vc ->
         ( vc,
           try
-            let ctx =
-              Z3backend.Io.make_context decl_ctx
-            in
+            let ctx = Z3backend.Io.make_context decl_ctx in
             let ctx =
               Z3backend.Io.encode_asserts ctx vc.Conditions.vc_asserts
             in
