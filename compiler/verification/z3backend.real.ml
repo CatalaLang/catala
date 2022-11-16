@@ -28,9 +28,6 @@ type context = {
   ctx_decl : decl_ctx;
   (* The declaration context from the Catala program, containing information to
      precisely pretty print Catala expressions *)
-  ctx_var : (typed expr, typ) Var.Map.t;
-  (* A map from Catala variables to their types, needed to create Z3 expressions
-     of the right sort *)
   ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
   (* A map from Catala function names (represented as variables) to Z3 function
      declarations, used to only define once functions in Z3 queries *)
@@ -56,13 +53,14 @@ type context = {
          is an integer which always is greater than 0 *)
 }
 (** The context contains all the required information to encode a VC represented
-    as a Catala term to Z3. The fields [ctx_decl] and [ctx_var] are computed
-    before starting the translation to Z3, and are thus unmodified throughout
-    the translation. The [ctx_z3] context is an OCaml abstraction on top of an
-    underlying C++ imperative implementation, it is therefore only created once.
-    Unfortunately, the maps [ctx_funcdecl], [ctx_z3vars], and [ctx_z3datatypes]
-    are computed dynamically during the translation requiring us to pass the
-    context around in a functional way **)
+    as a Catala term to Z3. The field [ctx_decl] is computed before starting the
+    translation to Z3, and are thus unmodified throughout the translation. The
+    [ctx_z3] context is an OCaml abstraction on top of an underlying C++
+    imperative implementation, it is therefore only created once. Unfortunately,
+    the maps [ctx_funcdecl], [ctx_z3vars], [ctx_z3datatypes],
+    [ctx_z3matchsubsts], [ctx_z3structs], and [ctx_z3constraints] are computed
+    dynamically during the translation requiring us to pass the context around
+    in a functional way **)
 
 (** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3
     function declaration [fd] to the context **)
@@ -74,7 +72,8 @@ let add_funcdecl
 
 (** [add_z3var] adds the mapping between [name] and the Catala variable [v] and
     its typ [ty] to the context **)
-let add_z3var (name : string) (v : typed expr Var.t) (ty: typ) (ctx : context) : context =
+let add_z3var (name : string) (v : typed expr Var.t) (ty : typ) (ctx : context)
+    : context =
   { ctx with ctx_z3vars = StringMap.add name (v, ty) ctx.ctx_z3vars }
 
 (** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the
@@ -83,8 +82,8 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
     =
   { ctx with ctx_z3datatypes = EnumMap.add enum sort ctx.ctx_z3datatypes }
 
-(** [add_z3matchsubst] adds the mapping between temporary variable [v] and the Z3
-    expression [e] representing an accessor application to the context **)
+(** [add_z3matchsubst] adds the mapping between temporary variable [v] and the
+    Z3 expression [e] representing an accessor application to the context **)
 let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
     context =
   { ctx with ctx_z3matchsubsts = Var.Map.add v e ctx.ctx_z3matchsubsts }
@@ -241,7 +240,7 @@ let print_model (ctx : context) (model : Model.model) : string =
            (* Print "name : value\n" *)
            | Some f ->
              let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
-             let (v, _) = StringMap.find symbol_name ctx.ctx_z3vars in
+             let v, _ = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
                (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
@@ -386,10 +385,10 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
     Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 d
 
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration
-    corresponding to the variable [v] and its type [ty]. If no such function declaration exists
-    yet, we construct it and add it to the context, thus requiring to return a
-    new context *)
-let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty:typ) :
+    corresponding to the variable [v] and its type [ty]. If no such function
+    declaration exists yet, we construct it and add it to the context, thus
+    requiring to return a new context *)
+let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
     context * FuncDecl.func_decl =
   match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
@@ -827,7 +826,6 @@ module Backend = struct
     {
       ctx_z3 = z3_ctx;
       ctx_decl = decl_ctx;
-      ctx_var = free_vars_typ;
       ctx_funcdecl = Var.Map.empty;
       ctx_z3vars = StringMap.empty;
       ctx_z3datatypes = EnumMap.empty;
