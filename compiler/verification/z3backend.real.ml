@@ -72,8 +72,8 @@ let add_funcdecl
     (ctx : context) : context =
   { ctx with ctx_funcdecl = Var.Map.add v fd ctx.ctx_funcdecl }
 
-(** [add_z3var] adds the mapping between [name] and the Catala variable [v] to
-    the context **)
+(** [add_z3var] adds the mapping between [name] and the Catala variable [v] and
+    its typ [ty] to the context **)
 let add_z3var (name : string) (v : typed expr Var.t) (ty: typ) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name (v, ty) ctx.ctx_z3vars }
 
@@ -226,11 +226,11 @@ let print_model (ctx : context) (model : Model.model) : string =
              let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
              match StringMap.find_opt symbol_name ctx.ctx_z3vars with
              | None -> ()
-             | Some (v, _) ->
+             | Some (v, ty) ->
                Format.fprintf fmt "%s %s : %s\n"
                  (Cli.with_style [ANSITerminal.blue] "%s" "-->")
                  (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
-                 (print_z3model_expr ctx (Var.Map.find v ctx.ctx_var) e))
+                 (print_z3model_expr ctx ty e))
          else
            (* Declaration d is a function *)
            match Model.get_func_interp model d with
@@ -386,24 +386,22 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
     Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 d
 
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration
-    corresponding to the variable [v]. If no such function declaration exists
+    corresponding to the variable [v] and its type [ty]. If no such function declaration exists
     yet, we construct it and add it to the context, thus requiring to return a
     new context *)
-let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
+let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty:typ) :
     context * FuncDecl.func_decl =
   match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
   | None -> (
-    (* Retrieves the Catala type of the function [v] *)
-    let f_ty = Var.Map.find v ctx.ctx_var in
-    match Marked.unmark f_ty with
+    match Marked.unmark ty with
     | TArrow (t1, t2) ->
       let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
       let name = unique_name v in
       let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
       let ctx = add_funcdecl v fd ctx in
-      let ctx = add_z3var name v f_ty ctx in
+      let ctx = add_z3var name v ty ctx in
       ctx, fd
     | TAny ->
       failwith
@@ -740,7 +738,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     match Marked.unmark head with
     | EOp op -> translate_op ctx op args
     | EVar v ->
-      let ctx, fd = find_or_create_funcdecl ctx v in
+      let (Typed { ty = f_ty; _ }) = Marked.get_mark head in
+      let ctx, fd = find_or_create_funcdecl ctx v f_ty in
       (* Fold_right to preserve the order of the arguments: The head argument is
          appended at the head *)
       let ctx, z3_args =
