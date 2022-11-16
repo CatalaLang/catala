@@ -17,7 +17,6 @@
 
 open Utils
 open Shared_ast
-open Dcalc.Ast
 
 module type Backend = sig
   val init_backend : unit -> unit

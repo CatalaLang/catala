@@ -113,11 +113,11 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
     | EAssert e1
     | ErrorOnEmpty e1 ->
       (generate_vc_must_not_return_empty ctx) e1
-    | EAbs (binder, typs) ->
+    | EAbs (binder, _typs) ->
       (* Hot take: for a function never to return an empty error when called, it has to do
          so whatever its input. So we universally quantify over the variable of the function
          when inspecting the body, resulting in simply traversing through in the code here. *)
-      let vars, body = Bindlib.unmbind binder in
+      let _vars, body = Bindlib.unmbind binder in
       (generate_vc_must_not_return_empty ctx) body
     | EApp (f, args) ->
       (* We assume here that function calls never return empty error, which implies
@@ -194,8 +194,8 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
     | EAssert e1
     | ErrorOnEmpty e1 ->
       generate_vc_must_not_return_conflict ctx e1
-    | EAbs (binder, typs) ->
-      let vars, body = Bindlib.unmbind binder in
+    | EAbs (binder, _typs) ->
+      let _vars, body = Bindlib.unmbind binder in
       (generate_vc_must_not_return_conflict ctx) body
     | EApp (f, args) ->
       conjunction
