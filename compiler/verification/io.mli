@@ -24,8 +24,7 @@ module type Backend = sig
 
   type backend_context
 
-  val make_context :
-    decl_ctx -> (typed Dcalc.Ast.expr, typ) Var.Map.t -> backend_context
+  val make_context : decl_ctx -> backend_context
 
   type vc_encoding
 
@@ -47,8 +46,7 @@ module type BackendIO = sig
 
   type backend_context
 
-  val make_context :
-    decl_ctx -> (typed Dcalc.Ast.expr, typ) Var.Map.t -> backend_context
+  val make_context : decl_ctx -> backend_context
 
   type vc_encoding
 

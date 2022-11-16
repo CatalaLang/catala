@@ -30,8 +30,7 @@ let solve_vc
           try
             let ctx, z3_vc =
               Z3backend.Io.translate_expr
-                (Z3backend.Io.make_context decl_ctx
-                   vc.Conditions.vc_free_vars_typ)
+                (Z3backend.Io.make_context decl_ctx)
                 vc.Conditions.vc_guard
             in
             Z3backend.Io.Success (z3_vc, ctx)

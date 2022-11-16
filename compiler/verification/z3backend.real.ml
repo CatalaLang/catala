@@ -814,9 +814,7 @@ module Backend = struct
   let init_backend () =
     Cli.debug_print "Running Z3 version %s" Version.to_string
 
-  let make_context
-      (decl_ctx : decl_ctx)
-      (free_vars_typ : (typed expr, typ) Var.Map.t) : backend_context =
+  let make_context (decl_ctx : decl_ctx) : backend_context =
     let cfg =
       (if !Cli.disable_counterexamples then [] else ["model", "true"])
       @ ["proof", "false"]
