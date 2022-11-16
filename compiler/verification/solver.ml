@@ -29,7 +29,7 @@ let solve_vc
         ( vc,
           try
             let ctx =
-              Z3backend.Io.make_context decl_ctx vc.Conditions.vc_free_vars_typ
+              Z3backend.Io.make_context decl_ctx
             in
             let ctx =
               Z3backend.Io.encode_asserts ctx vc.Conditions.vc_asserts

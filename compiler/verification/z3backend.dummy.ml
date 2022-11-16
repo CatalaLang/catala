@@ -27,7 +27,7 @@ module Io = struct
 
   type backend_context = unit
 
-  let make_context _ _ = dummy ()
+  let make_context _ = dummy ()
 
   type vc_encoding = unit
 

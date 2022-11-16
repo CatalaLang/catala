@@ -37,10 +37,6 @@ type verification_condition = {
           should have type [bool] *)
   vc_scope : ScopeName.t;
   vc_variable : typed Dcalc.Ast.expr Var.t Marked.pos;
-  vc_free_vars_typ : (typed Dcalc.Ast.expr, typ) Var.Map.t;
-      (** Types of the locally free variables in [vc_guard]. The types of other
-          free variables linked to scope variables can be obtained with
-          [Dcalc.Ast.variable_types]. *)
 }
 
 val generate_verification_conditions :
