@@ -650,7 +650,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     match Var.Map.find_opt v ctx.ctx_z3matchsubsts with
     | None ->
       (* We are in the standard case, where this is a true Catala variable *)
-      let t = Var.Map.find v ctx.ctx_var in
+      let (Typed { ty = t; _ }) = Marked.get_mark vc in
       let name = unique_name v in
       let ctx = add_z3var name v ctx in
       let ctx, ty = translate_typ ctx (Marked.unmark t) in
