@@ -34,7 +34,7 @@ type context = {
   ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t;
   (* A map from Catala function names (represented as variables) to Z3 function
      declarations, used to only define once functions in Z3 queries *)
-  ctx_z3vars : typed expr Var.t StringMap.t;
+  ctx_z3vars : (typed expr Var.t * typ) StringMap.t;
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
@@ -74,8 +74,8 @@ let add_funcdecl
 
 (** [add_z3var] adds the mapping between [name] and the Catala variable [v] to
     the context **)
-let add_z3var (name : string) (v : typed expr Var.t) (ctx : context) : context =
-  { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
+let add_z3var (name : string) (v : typed expr Var.t) (ty: typ) (ctx : context) : context =
+  { ctx with ctx_z3vars = StringMap.add name (v, ty) ctx.ctx_z3vars }
 
 (** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the
     corresponding Z3 datatype [sort] to the context **)
@@ -83,7 +83,7 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
     =
   { ctx with ctx_z3datatypes = EnumMap.add enum sort ctx.ctx_z3datatypes }
 
-(** [add_z3var] adds the mapping between temporary variable [v] and the Z3
+(** [add_z3matchsubst] adds the mapping between temporary variable [v] and the Z3
     expression [e] representing an accessor application to the context **)
 let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
     context =
@@ -226,7 +226,7 @@ let print_model (ctx : context) (model : Model.model) : string =
              let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
              match StringMap.find_opt symbol_name ctx.ctx_z3vars with
              | None -> ()
-             | Some v ->
+             | Some (v, _) ->
                Format.fprintf fmt "%s %s : %s\n"
                  (Cli.with_style [ANSITerminal.blue] "%s" "-->")
                  (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
@@ -241,7 +241,7 @@ let print_model (ctx : context) (model : Model.model) : string =
            (* Print "name : value\n" *)
            | Some f ->
              let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
-             let v = StringMap.find symbol_name ctx.ctx_z3vars in
+             let (v, _) = StringMap.find symbol_name ctx.ctx_z3vars in
              Format.fprintf fmt "%s %s : %s"
                (Cli.with_style [ANSITerminal.blue] "%s" "-->")
                (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
@@ -403,7 +403,7 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) :
       let name = unique_name v in
       let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
       let ctx = add_funcdecl v fd ctx in
-      let ctx = add_z3var name v ctx in
+      let ctx = add_z3var name v f_ty ctx in
       ctx, fd
     | TAny ->
       failwith
@@ -652,7 +652,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       (* We are in the standard case, where this is a true Catala variable *)
       let (Typed { ty = t; _ }) = Marked.get_mark vc in
       let name = unique_name v in
-      let ctx = add_z3var name v ctx in
+      let ctx = add_z3var name v t ctx in
       let ctx, ty = translate_typ ctx (Marked.unmark t) in
       let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
       let ctx =
