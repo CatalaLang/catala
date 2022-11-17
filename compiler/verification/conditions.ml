@@ -22,9 +22,8 @@ open Ast
 
 (** {1 Helpers and type definitions}*)
 
-type vc_return = typed expr * (typed expr, typ) Var.Map.t
-(** The return type of VC generators is the VC expression plus the types of any
-    locally free variable inside that expression. *)
+type vc_return = typed expr
+(** The return type of VC generators is the VC expression *)
 
 type ctx = {
   current_scope_name : ScopeName.t;
@@ -35,31 +34,22 @@ type ctx = {
 
 let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
-    match args with
-    | hd :: tl -> hd, tl
-    | [] -> ((ELit (LBool true), mark), Var.Map.empty), []
+    match args with hd :: tl -> hd, tl | [] -> (ELit (LBool true), mark), []
   in
   List.fold_left
-    (fun (acc, acc_ty) (arg, arg_ty) ->
-      ( (EApp ((EOp (Binop And), mark), [arg; acc]), mark),
-        Var.Map.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty
-      ))
+    (fun acc arg -> EApp ((EOp (Binop And), mark), [arg; acc]), mark)
     acc list
 
-let negation ((arg, arg_ty) : vc_return) (mark : typed mark) : vc_return =
-  (EApp ((EOp (Unop Not), mark), [arg]), mark), arg_ty
+let negation (arg : vc_return) (mark : typed mark) : vc_return =
+  EApp ((EOp (Unop Not), mark), [arg]), mark
 
 let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
-    match args with
-    | hd :: tl -> hd, tl
-    | [] -> ((ELit (LBool false), mark), Var.Map.empty), []
+    match args with hd :: tl -> hd, tl | [] -> (ELit (LBool false), mark), []
   in
   List.fold_left
-    (fun ((acc, acc_ty) : vc_return) (arg, arg_ty) ->
-      ( (EApp ((EOp (Binop Or), mark), [arg; acc]), mark),
-        Var.Map.union (fun _ _ _ -> failwith "should not happen") acc_ty arg_ty
-      ))
+    (fun (acc : vc_return) arg ->
+      EApp ((EOp (Binop Or), mark), [arg; acc]), mark)
     acc list
 
 (** [half_product \[a1,...,an\] \[b1,...,bm\] returns \[(a1,b1),...(a1,bn),...(an,b1),...(an,bm)\]] *)
@@ -123,19 +113,12 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
     | EAssert e1
     | ErrorOnEmpty e1 ->
       (generate_vc_must_not_return_empty ctx) e1
-    | EAbs (binder, typs) ->
+    | EAbs (binder, _typs) ->
       (* Hot take: for a function never to return an empty error when called, it has to do
          so whatever its input. So we universally quantify over the variable of the function
          when inspecting the body, resulting in simply traversing through in the code here. *)
-      let vars, body = Bindlib.unmbind binder in
-      let vc_body_expr, vc_body_ty =
-        (generate_vc_must_not_return_empty ctx) body
-      in
-      ( vc_body_expr,
-        snd
-        @@ List.fold_left
-             (fun (i, acc) ty -> i + 1, Var.Map.add vars.(i) ty acc)
-             (0, vc_body_ty) typs )
+      let _vars, body = Bindlib.unmbind binder in
+      (generate_vc_must_not_return_empty ctx) body
     | EApp (f, args) ->
       (* We assume here that function calls never return empty error, which implies
          all functions have been checked never to return empty errors. *)
@@ -143,25 +126,18 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
         (List.map (generate_vc_must_not_return_empty ctx) (f :: args))
         (Marked.get_mark e)
     | EIfThenElse (e1, e2, e3) ->
-      let e1_vc, vc_typ1 = generate_vc_must_not_return_empty ctx e1 in
-      let e2_vc, vc_typ2 = generate_vc_must_not_return_empty ctx e2 in
-      let e3_vc, vc_typ3 = generate_vc_must_not_return_empty ctx e3 in
+      let e1_vc = generate_vc_must_not_return_empty ctx e1 in
+      let e2_vc = generate_vc_must_not_return_empty ctx e2 in
+      let e3_vc = generate_vc_must_not_return_empty ctx e3 in
       conjunction
-        [
-          e1_vc, vc_typ1;
-          ( (EIfThenElse (e1, e2_vc, e3_vc), Marked.get_mark e),
-            Var.Map.union
-              (fun _ _ _ -> failwith "should not happen")
-              vc_typ2 vc_typ3 );
-        ]
+        [e1_vc; EIfThenElse (e1, e2_vc, e3_vc), Marked.get_mark e]
         (Marked.get_mark e)
-    | ELit LEmptyError ->
-      Marked.same_mark_as (ELit (LBool false)) e, Var.Map.empty
+    | ELit LEmptyError -> Marked.same_mark_as (ELit (LBool false)) e
     | EVar _
     (* Per default calculus semantics, you cannot call a function with an argument
        that evaluates to the empty error. Thus, all variable evaluate to non-empty-error terms. *)
     | ELit _ | EOp _ ->
-      Marked.same_mark_as (ELit (LBool true)) e, Var.Map.empty
+      Marked.same_mark_as (ELit (LBool true)) e
     | EDefault (exceptions, just, cons) ->
       (* <e1 ... en | ejust :- econs > never returns empty if and only if:
          - first we look if e1 .. en ejust can return empty;
@@ -173,21 +149,20 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
             conjunction
               [
                 generate_vc_must_not_return_empty ctx just;
-                (let vc_just_expr, vc_just_ty =
+                (let vc_just_expr =
                    generate_vc_must_not_return_empty ctx cons
                  in
-                 ( ( EIfThenElse
-                       ( just,
-                         (* Comment from Alain: the justification is not checked for holding an default term.
-                            In such cases, we need to encode the logic of the default terms within
-                            the generation of the verification condition (Z3encoding.translate_expr).
-                            Answer from Denis: Normally, there is a structural invariant from the
-                            surface language to intermediate representation translation preventing
-                            any default terms to appear in justifications.*)
-                         vc_just_expr,
-                         (ELit (LBool false), Marked.get_mark e) ),
-                     Marked.get_mark e ),
-                   vc_just_ty ));
+                 ( EIfThenElse
+                     ( just,
+                       (* Comment from Alain: the justification is not checked for holding an default term.
+                          In such cases, we need to encode the logic of the default terms within
+                          the generation of the verification condition (Z3encoding.translate_expr).
+                          Answer from Denis: Normally, there is a structural invariant from the
+                          surface language to intermediate representation translation preventing
+                          any default terms to appear in justifications.*)
+                       vc_just_expr,
+                       (ELit (LBool false), Marked.get_mark e) ),
+                   Marked.get_mark e ));
               ]
               (Marked.get_mark e);
           ])
@@ -196,11 +171,11 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
   out
   [@@ocamlformat "wrap-comments=false"]
 
-(** [generate_vs_must_not_return_confict e] returns the dcalc boolean expression
-    [b] such that if [b] is true, then [e] will never return a conflict error.
-    It also returns a map of all the types of locally free variables inside the
-    expression. *)
-let rec generate_vs_must_not_return_confict (ctx : ctx) (e : typed expr) :
+(** [generate_vc_must_not_return_conflict e] returns the dcalc boolean
+    expression [b] such that if [b] is true, then [e] will never return a
+    conflict error. It also returns a map of all the types of locally free
+    variables inside the expression. *)
+let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
     vc_return =
   let out =
     (* See the code of [generate_vc_must_not_return_empty] for a list of invariants on which this
@@ -208,46 +183,32 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : typed expr) :
     match Marked.unmark e with
     | ETuple (args, _) | EArray args ->
       conjunction
-        (List.map (generate_vs_must_not_return_confict ctx) args)
+        (List.map (generate_vc_must_not_return_conflict ctx) args)
         (Marked.get_mark e)
     | EMatch (arg, arms, _) ->
       conjunction
-        (List.map (generate_vs_must_not_return_confict ctx) (arg :: arms))
+        (List.map (generate_vc_must_not_return_conflict ctx) (arg :: arms))
         (Marked.get_mark e)
     | ETupleAccess (e1, _, _, _)
     | EInj (e1, _, _, _)
     | EAssert e1
     | ErrorOnEmpty e1 ->
-      generate_vs_must_not_return_confict ctx e1
-    | EAbs (binder, typs) ->
-      let vars, body = Bindlib.unmbind binder in
-      let vc_body_expr, vc_body_ty =
-        (generate_vs_must_not_return_confict ctx) body
-      in
-      ( vc_body_expr,
-        List.fold_left
-          (fun acc (var, ty) -> Var.Map.add var ty acc)
-          vc_body_ty
-          (List.map2 (fun x y -> x, y) (Array.to_list vars) typs) )
+      generate_vc_must_not_return_conflict ctx e1
+    | EAbs (binder, _typs) ->
+      let _vars, body = Bindlib.unmbind binder in
+      (generate_vc_must_not_return_conflict ctx) body
     | EApp (f, args) ->
       conjunction
-        (List.map (generate_vs_must_not_return_confict ctx) (f :: args))
+        (List.map (generate_vc_must_not_return_conflict ctx) (f :: args))
         (Marked.get_mark e)
     | EIfThenElse (e1, e2, e3) ->
-      let e1_vc, vc_typ1 = generate_vs_must_not_return_confict ctx e1 in
-      let e2_vc, vc_typ2 = generate_vs_must_not_return_confict ctx e2 in
-      let e3_vc, vc_typ3 = generate_vs_must_not_return_confict ctx e3 in
+      let e1_vc = generate_vc_must_not_return_conflict ctx e1 in
+      let e2_vc = generate_vc_must_not_return_conflict ctx e2 in
+      let e3_vc = generate_vc_must_not_return_conflict ctx e3 in
       conjunction
-        [
-          e1_vc, vc_typ1;
-          ( (EIfThenElse (e1, e2_vc, e3_vc), Marked.get_mark e),
-            Var.Map.union
-              (fun _ _ _ -> failwith "should not happen")
-              vc_typ2 vc_typ3 );
-        ]
+        [e1_vc; EIfThenElse (e1, e2_vc, e3_vc), Marked.get_mark e]
         (Marked.get_mark e)
-    | EVar _ | ELit _ | EOp _ ->
-      Marked.same_mark_as (ELit (LBool true)) e, Var.Map.empty
+    | EVar _ | ELit _ | EOp _ -> Marked.same_mark_as (ELit (LBool true)) e
     | EDefault (exceptions, just, cons) ->
       (* <e1 ... en | ejust :- econs > never returns conflict if and only if:
          - neither e1 nor ... nor en nor ejust nor econs return conflict
@@ -269,7 +230,7 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : typed expr) :
       in
       let others =
         List.map
-          (generate_vs_must_not_return_confict ctx)
+          (generate_vc_must_not_return_conflict ctx)
           (just :: cons :: exceptions)
       in
       let out = conjunction (quadratic :: others) (Marked.get_mark e) in
@@ -288,7 +249,6 @@ type verification_condition = {
   vc_kind : verification_condition_kind;
   vc_scope : ScopeName.t;
   vc_variable : typed expr Var.t Marked.pos;
-  vc_free_vars_typ : (typed expr, typ) Var.Map.t;
 }
 
 let rec generate_verification_conditions_scope_body_expr
@@ -315,9 +275,7 @@ let rec generate_verification_conditions_scope_body_expr
           Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
         in
         let e = match_and_ignore_outer_reentrant_default ctx e in
-        let vc_confl, vc_confl_typs =
-          generate_vs_must_not_return_confict ctx e
-        in
+        let vc_confl = generate_vc_must_not_return_conflict ctx e in
         let vc_confl =
           if !Cli.optimize_flag then
             Bindlib.unbox (Optimizations.optimize_expr ctx.decl vc_confl)
@@ -328,10 +286,6 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Marked.same_mark_as (Marked.unmark vc_confl) e;
               vc_kind = NoOverlappingExceptions;
-              vc_free_vars_typ =
-                Var.Map.union
-                  (fun _ _ -> failwith "should not happen")
-                  ctx.scope_variables_typs vc_confl_typs;
               vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             };
@@ -340,9 +294,7 @@ let rec generate_verification_conditions_scope_body_expr
         let vc_list =
           match scope_let.scope_let_kind with
           | ScopeVarDefinition ->
-            let vc_empty, vc_empty_typs =
-              generate_vc_must_not_return_empty ctx e
-            in
+            let vc_empty = generate_vc_must_not_return_empty ctx e in
             let vc_empty =
               if !Cli.optimize_flag then
                 Bindlib.unbox (Optimizations.optimize_expr ctx.decl vc_empty)
@@ -351,10 +303,6 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Marked.same_mark_as (Marked.unmark vc_empty) e;
               vc_kind = NoEmptyError;
-              vc_free_vars_typ =
-                Var.Map.union
-                  (fun _ _ -> failwith "should not happen")
-                  ctx.scope_variables_typs vc_empty_typs;
               vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             }

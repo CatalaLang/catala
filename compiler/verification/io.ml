@@ -17,14 +17,13 @@
 
 open Utils
 open Shared_ast
-open Dcalc.Ast
 
 module type Backend = sig
   val init_backend : unit -> unit
 
   type backend_context
 
-  val make_context : decl_ctx -> (typed expr, typ) Var.Map.t -> backend_context
+  val make_context : decl_ctx -> backend_context
 
   type vc_encoding
 
@@ -46,7 +45,7 @@ module type BackendIO = sig
 
   type backend_context
 
-  val make_context : decl_ctx -> (typed expr, typ) Var.Map.t -> backend_context
+  val make_context : decl_ctx -> backend_context
 
   type vc_encoding
 
