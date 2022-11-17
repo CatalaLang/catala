@@ -31,7 +31,7 @@ type 'm expr = (scopelang, 'm mark) gexpr
 let rec locations_used (e : 'm expr) : LocationSet.t =
   match e with
   | ELocation l, pos -> LocationSet.singleton (l, Expr.mark_pos pos)
-  | EAbs (binder, _), _ ->
+  | EAbs { binder; _ }, _ ->
     let _, body = Bindlib.unmbind binder in
     locations_used body
   | e ->

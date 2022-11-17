@@ -20,8 +20,7 @@ open Ast
 open String_common
 module D = Dcalc.Ast
 
-let find_struct (s : StructName.t) (ctx : decl_ctx) :
-    (StructFieldName.t * typ) list =
+let find_struct (s : StructName.t) (ctx : decl_ctx) : typ StructFieldMap.t =
   try StructMap.find s ctx.ctx_structs
   with Not_found ->
     let s_name, pos = StructName.get_info s in
@@ -29,8 +28,7 @@ let find_struct (s : StructName.t) (ctx : decl_ctx) :
       "Internal Error: Structure %s was not found in the current environment."
       s_name
 
-let find_enum (en : EnumName.t) (ctx : decl_ctx) :
-    (EnumConstructor.t * typ) list =
+let find_enum (en : EnumName.t) (ctx : decl_ctx) : typ EnumConstructorMap.t =
   try EnumMap.find en ctx.ctx_enums
   with Not_found ->
     let en_name, pos = EnumName.get_info en in
@@ -243,7 +241,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
 
 let needs_parens (e : 'm expr) : bool =
   match Marked.unmark e with
-  | EApp ((EAbs (_, _), _), _)
+  | EApp { f = EAbs _, _; _ }
   | ELit (LBool _ | LUnit)
   | EVar _ | ETuple _ | EOp _ ->
     false
@@ -279,56 +277,51 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   in
   match Marked.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
-  | ETuple (es, None) ->
+  | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
       es
-  | ETuple (es, Some s) ->
-    if List.length es = 0 then Format.fprintf fmt "()"
+  | EStruct { name = s; fields = es } ->
+    if StructFieldMap.is_empty es then Format.fprintf fmt "()"
     else
       Format.fprintf fmt "{@[<hov 2>%a@]}"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun fmt (e, struct_field) ->
+           (fun fmt (struct_field, e) ->
              Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name
                (Some s, struct_field) format_with_parens e))
-        (List.combine es (List.map fst (find_struct s ctx)))
+        (StructFieldMap.bindings es)
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>[|%a|]@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
       es
-  | ETupleAccess (e1, n, s, ts) -> (
-    match s with
-    | None ->
-      Format.fprintf fmt "let@ %a@ = %a@ in@ x"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt i -> Format.fprintf fmt "%s" (if i = n then "x" else "_")))
-        (List.mapi (fun i _ -> i) ts)
-        format_with_parens e1
-    | Some s ->
-      Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-        (Some s, fst (List.nth (find_struct s ctx) n)))
-  | EInj (e, n, en, _ts) ->
-    Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name (`Ename en)
-      format_enum_cons_name
-      (fst (List.nth (find_enum en ctx) n))
-      format_with_parens e
-  | EMatch (e, es, e_name) ->
+  | ETupleAccess { e; index; size } ->
+    Format.fprintf fmt "let@ %a@ = %a@ in@ x"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt i -> Format.fprintf fmt "%s" (if i = index then "x" else "_")))
+      (List.init size Fun.id) format_with_parens e
+  | EStructAccess { e; field; name } ->
+    Format.fprintf fmt "%a.%a" format_with_parens e format_struct_field_name
+      (Some name, field)
+  | EInj { e; cons; name } ->
+    Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name
+      (`Ename name) format_enum_cons_name cons format_with_parens e
+  | EMatch { e; cases; name } ->
     Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@\n| %a@]"
       format_with_parens e
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
-         (fun fmt (e, c) ->
+         (fun fmt (c, e) ->
            Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
-             (`Ename e_name) format_enum_cons_name c
+             (`Ename name) format_enum_cons_name c
              (fun fmt e ->
                match Marked.unmark e with
-               | EAbs (binder, _) ->
+               | EAbs { binder; _ } ->
                  let xs, body = Bindlib.unmbind binder in
                  Format.fprintf fmt "%a ->@ %a"
                    (Format.pp_print_list
@@ -338,11 +331,11 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
                | _ -> assert false
                (* should not happen *))
              e))
-      (List.combine es (List.map fst (find_enum e_name ctx)))
+      (EnumConstructorMap.bindings cases)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (Expr.pos e) l)
-  | EApp ((EAbs (binder, taus), _), args) ->
+  | EApp { f = EAbs { binder; tys }, _; args } ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "(%a%a)"
       (Format.pp_print_list
@@ -351,30 +344,34 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
            Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n"
              format_var x format_typ tau format_with_parens arg))
       xs_tau_arg format_with_parens body
-  | EAbs (binder, taus) ->
+  | EAbs { binder; tys } ->
     let xs, body = Bindlib.unmbind binder in
-    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) taus in
+    let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (x, tau) ->
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
-  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
+  | EApp { f = EOp (Binop ((Map | Filter) as op)), _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos)
       format_with_parens arg1 format_with_parens arg2
-  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
+  | EApp { f = EOp (Binop op), _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       format_binop (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EApp ((EOp (Unop (Log (BeginCall, info))), _), [f]), _), [arg])
+  | EApp
+      {
+        f = EApp { f = EOp (Unop (Log (BeginCall, info))), _; args = [f] }, _;
+        args = [arg];
+      }
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EApp ((EOp (Unop (Log (VarDef tau, info))), _), [arg1]) when !Cli.trace_flag
-    ->
+  | EApp { f = EOp (Unop (Log (VarDef tau, info))), _; args = [arg1] }
+    when !Cli.trace_flag ->
     Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
-  | EApp ((EOp (Unop (Log (PosRecordIfTrueBool, _))), m), [arg1])
+  | EApp { f = EOp (Unop (Log (PosRecordIfTrueBool, _))), m; args = [arg1] }
     when !Cli.trace_flag ->
     let pos = Expr.mark_pos m in
     Format.fprintf fmt
@@ -383,15 +380,16 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EApp ((EOp (Unop (Log (EndCall, info))), _), [arg1]) when !Cli.trace_flag ->
+  | EApp { f = EOp (Unop (Log (EndCall, info))), _; args = [arg1] }
+    when !Cli.trace_flag ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
-  | EApp ((EOp (Unop (Log _)), _), [arg1]) ->
+  | EApp { f = EOp (Unop (Log _)), _; args = [arg1] } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp ((EOp (Unop op), _), [arg1]) ->
+  | EApp { f = EOp (Unop op), _; args = [arg1] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
       format_with_parens arg1
-  | EApp ((EVar x, pos), args)
+  | EApp { f = EVar x, pos; args }
     when Var.compare x (Var.translate Ast.handle_default) = 0
          || Var.compare x (Var.translate Ast.handle_default_opt) = 0 ->
     Format.fprintf fmt
@@ -409,16 +407,16 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EApp (f, args) ->
+  | EApp { f; args } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EIfThenElse (e1, e2, e3) ->
+  | EIfThenElse { cond; etrue; efalse } ->
     Format.fprintf fmt
       "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
-      format_with_parens e1 format_with_parens e2 format_with_parens e3
+      format_with_parens cond format_with_parens etrue format_with_parens efalse
   | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
@@ -437,18 +435,17 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_law_info (Expr.pos e'))
   | ERaise exc ->
     Format.fprintf fmt "raise@ %a" format_exception (exc, Expr.pos e)
-  | ECatch (e1, exc, e2) ->
+  | ECatch { body; exn; handler } ->
     Format.fprintf fmt
       "@,@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
-      format_with_parens e1 format_exception
-      (exc, Expr.pos e)
-      format_with_parens e2
+      format_with_parens body format_exception
+      (exn, Expr.pos e)
+      format_with_parens handler
 
 let format_struct_embedding
     (fmt : Format.formatter)
-    ((struct_name, struct_fields) :
-      StructName.t * (StructFieldName.t * typ) list) =
-  if List.length struct_fields = 0 then
+    ((struct_name, struct_fields) : StructName.t * typ StructFieldMap.t) =
+  if StructFieldMap.is_empty struct_fields then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_struct_name struct_name format_to_module_name (`Sname struct_name)
   else
@@ -465,12 +462,12 @@ let format_struct_embedding
              struct_field typ_embedding_name struct_field_type
              format_struct_field_name
              (Some struct_name, struct_field)))
-      struct_fields
+      (StructFieldMap.bindings struct_fields)
 
 let format_enum_embedding
     (fmt : Format.formatter)
-    ((enum_name, enum_cases) : EnumName.t * (EnumConstructor.t * typ) list) =
-  if List.length enum_cases = 0 then
+    ((enum_name, enum_cases) : EnumName.t * typ EnumConstructorMap.t) =
+  if EnumConstructorMap.is_empty enum_cases then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_to_module_name (`Ename enum_name) format_enum_name enum_name
   else
@@ -486,14 +483,14 @@ let format_enum_embedding
            Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
              format_enum_cons_name enum_cons EnumConstructor.format_t enum_cons
              typ_embedding_name enum_cons_type))
-      enum_cases
+      (EnumConstructorMap.bindings enum_cases)
 
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
     (fmt : Format.formatter)
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
-    if List.length struct_fields = 0 then
+    if StructFieldMap.is_empty struct_fields then
       Format.fprintf fmt
         "@[<v 2>module %a = struct@\n@[<hov 2>type t = unit@]@]@\nend@\n"
         format_to_module_name (`Sname struct_name)
@@ -508,7 +505,7 @@ let format_ctx
            (fun _fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
-        struct_fields;
+        (StructFieldMap.bindings struct_fields);
     if !Cli.trace_flag then
       format_struct_embedding fmt (struct_name, struct_fields)
   in
@@ -521,7 +518,7 @@ let format_ctx
          (fun _fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
-      enum_cons;
+      (EnumConstructorMap.bindings enum_cons);
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =

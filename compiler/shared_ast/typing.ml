@@ -371,68 +371,116 @@ and typecheck_expr_top_down :
           (Expr.format ctx) e
     in
     Expr.elocation loc (uf_mark (ast_to_typ ty))
-  | A.EStruct (s_name, fmap) ->
-    let mark = ty_mark (TStruct s_name) in
-    let str = A.StructMap.find s_name ctx.A.ctx_structs in
-    let fmap' =
-      (* This assumes that the fields in fmap and the struct type are already
-         ensured to be the same *)
+  | A.EStruct { name; fields } ->
+    let mark = ty_mark (TStruct name) in
+    let str = A.StructMap.find name ctx.A.ctx_structs in
+    let _check_fields : unit =
+      let missing_fields, extra_fields =
+        A.StructFieldMap.fold
+          (fun fld x (remaining, extra) ->
+            if A.StructFieldMap.mem fld remaining then
+              A.StructFieldMap.remove fld remaining, extra
+            else remaining, A.StructFieldMap.add fld x extra)
+          fields
+          (str, A.StructFieldMap.empty)
+      in
+      let errs =
+        List.map
+          (fun (f, ty) ->
+            ( Some
+                (Format.asprintf "Missing field %a" A.StructFieldName.format_t f),
+              Marked.get_mark ty ))
+          (A.StructFieldMap.bindings missing_fields)
+        @ List.map
+            (fun (f, ef) ->
+              let dup = A.StructFieldMap.mem f str in
+              ( Some
+                  (Format.asprintf "%s field %a"
+                     (if dup then "Duplicate" else "Unknown")
+                     A.StructFieldName.format_t f),
+                Expr.pos ef ))
+            (A.StructFieldMap.bindings extra_fields)
+      in
+      if errs <> [] then
+        Errors.raise_multispanned_error errs
+          "Mismatching field definitions for structure %a" A.StructName.format_t
+          name
+    in
+    let fields' =
       A.StructFieldMap.mapi
         (fun f_name f_e ->
-          let f_ty = List.assoc f_name str in
+          let f_ty = A.StructFieldMap.find f_name str in
           typecheck_expr_top_down ctx env (ast_to_typ f_ty) f_e)
-        fmap
+        fields
     in
-    Expr.estruct s_name fmap' mark
-  | A.EStructAccess (e_struct, f_name, s_name) ->
-    let mark =
-      uf_mark
-        (ast_to_typ
-           (List.assoc f_name (A.StructMap.find s_name ctx.A.ctx_structs)))
+    Expr.estruct name fields' mark
+  | A.EStructAccess { e = e_struct; name; field } ->
+    let fld_ty =
+      let str =
+        try A.StructMap.find name ctx.A.ctx_structs
+        with Not_found ->
+          Errors.raise_spanned_error pos_e "No structure %a found"
+            A.StructName.format_t name
+      in
+      try A.StructFieldMap.find field str
+      with Not_found ->
+        Errors.raise_multispanned_error
+          [
+            None, pos_e;
+            ( Some "Structure %a declared here",
+              Marked.get_mark (A.StructName.get_info name) );
+          ]
+          "Structure %a doesn't define a field %a" A.StructName.format_t name
+          A.StructFieldName.format_t field
     in
+    let mark = uf_mark (ast_to_typ fld_ty) in
     let e_struct' =
-      typecheck_expr_top_down ctx env (unionfind (TStruct s_name)) e_struct
+      typecheck_expr_top_down ctx env (unionfind (TStruct name)) e_struct
     in
-    Expr.estructaccess e_struct' f_name s_name mark
-  | A.EEnumInj (e_enum, c_name, e_name) ->
-    let mark = uf_mark (unionfind (TEnum e_name)) in
+    Expr.estructaccess e_struct' field name mark
+  | A.EInj { name; cons; e = e_enum } ->
+    let mark = uf_mark (unionfind (TEnum name)) in
     let e_enum' =
       typecheck_expr_top_down ctx env
-        (ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums)))
+        (ast_to_typ
+           (A.EnumConstructorMap.find cons
+              (A.EnumMap.find name ctx.A.ctx_enums)))
         e_enum
     in
-    Expr.eenuminj e_enum' c_name e_name mark
-  | A.EMatchS (e1, e_name, cases) ->
-    let cases_ty = A.EnumMap.find e_name ctx.A.ctx_enums in
+    Expr.einj e_enum' cons name mark
+  | A.EMatch { e = e1; name; cases } ->
+    let cases_ty = A.EnumMap.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
     let mark = uf_mark t_ret in
-    let e1' = typecheck_expr_top_down ctx env (unionfind (TEnum e_name)) e1 in
+    let e1' = typecheck_expr_top_down ctx env (unionfind (TEnum name)) e1 in
     let cases' =
       A.EnumConstructorMap.mapi
         (fun c_name e ->
-          let c_ty = List.assoc c_name cases_ty in
+          let c_ty = A.EnumConstructorMap.find c_name cases_ty in
           let e_ty = unionfind ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
           typecheck_expr_top_down ctx env e_ty e)
         cases
     in
-    Expr.ematchs e1' e_name cases' mark
-  | A.EScopeCall (scope_name, fields) ->
-    let scope_out_struct = A.ScopeMap.find scope_name ctx.ctx_scopes in
+    Expr.ematch e1' name cases' mark
+  | A.EScopeCall { scope; args } ->
+    let scope_out_struct =
+      (A.ScopeMap.find scope ctx.ctx_scopes).out_struct_name
+    in
     let mark = uf_mark (unionfind (TStruct scope_out_struct)) in
-    let vars = A.ScopeMap.find scope_name env.scopes in
-    let fields' =
+    let vars = A.ScopeMap.find scope env.scopes in
+    let args' =
       A.ScopeVarMap.mapi
         (fun name ->
           typecheck_expr_top_down ctx env
             (ast_to_typ (A.ScopeVarMap.find name vars)))
-        fields
+        args
     in
-    Expr.escopecall scope_name fields' mark
+    Expr.escopecall scope args' mark
   | A.ERaise ex -> Expr.eraise ex context_mark
-  | A.ECatch (e1, ex, e2) ->
-    let e1' = typecheck_expr_top_down ctx env tau e1 in
-    let e2' = typecheck_expr_top_down ctx env tau e2 in
-    Expr.ecatch e1' ex e2' context_mark
+  | A.ECatch { body; exn; handler } ->
+    let body' = typecheck_expr_top_down ctx env tau body in
+    let handler' = typecheck_expr_top_down ctx env tau handler in
+    Expr.ecatch body' exn handler' context_mark
   | A.EVar v ->
     let tau' =
       match Env.get env v with
@@ -443,62 +491,23 @@ and typecheck_expr_top_down :
     in
     Expr.evar (Var.translate v) (uf_mark tau')
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))
-  | A.ETuple (es, None) ->
+  | A.ETuple es ->
     let tys = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) es in
     let mark = uf_mark (unionfind (TTuple tys)) in
     let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
-    Expr.etuple es' None mark
-  | A.ETuple (es, Some s_name) ->
-    let tys =
-      List.map
-        (fun (_, ty) -> ast_to_typ ty)
-        (A.StructMap.find s_name ctx.A.ctx_structs)
+    Expr.etuple es' mark
+  | A.ETupleAccess { e = e1; index; size } ->
+    if index >= size then
+      Errors.raise_spanned_error (Expr.pos e)
+        "Tuple access out of bounds (%d/%d)" index size;
+    let tuple_ty =
+      TTuple
+        (List.init size (fun n ->
+             if n = index then tau else unionfind ~pos:e1 (TAny (Any.fresh ()))))
     in
-    let mark = uf_mark (unionfind (TStruct s_name)) in
-    let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
-    Expr.etuple es' (Some s_name) mark
-  | A.ETupleAccess (e1, n, s, typs) ->
-    let typs' = List.map ast_to_typ typs in
-    let tuple_ty = match s with None -> TTuple typs' | Some s -> TStruct s in
-    let t1n =
-      try List.nth typs' n
-      with Not_found ->
-        Errors.raise_spanned_error (Expr.pos e1)
-          "Expression should have a tuple type with at least %d elements but \
-           only has %d"
-          n (List.length typs)
-    in
-    let mark = uf_mark t1n in
-    let e1' = typecheck_expr_top_down ctx env (unionfind tuple_ty) e1 in
-    Expr.etupleaccess e1' n s typs mark
-  | A.EInj (e1, n, e_name, ts) ->
-    let ts' = List.map ast_to_typ ts in
-    let ts_n =
-      try List.nth ts' n
-      with Not_found ->
-        Errors.raise_spanned_error (Expr.pos e)
-          "Expression should have a sum type with at least %d cases but only \
-           has %d"
-          n (List.length ts)
-    in
-    let mark = uf_mark (unionfind (TEnum e_name)) in
-    let e1' = typecheck_expr_top_down ctx env ts_n e1 in
-    Expr.einj e1' n e_name ts mark
-  | A.EMatch (e1, es, e_name) ->
-    let es' =
-      List.map2
-        (fun es' (_, c_ty) ->
-          typecheck_expr_top_down ctx env
-            (unionfind ~pos:es' (TArrow (ast_to_typ c_ty, tau)))
-            es')
-        es
-        (A.EnumMap.find e_name ctx.ctx_enums)
-    in
-    let e1' =
-      typecheck_expr_top_down ctx env (unionfind ~pos:e1 (TEnum e_name)) e1
-    in
-    Expr.ematch e1' es' e_name context_mark
-  | A.EAbs (binder, t_args) ->
+    let e1' = typecheck_expr_top_down ctx env (unionfind ~pos:e1 tuple_ty) e1 in
+    Expr.etupleaccess e1' index size context_mark
+  | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Errors.raise_spanned_error (Expr.pos e)
         "function has %d variables but was supplied %d types"
@@ -523,7 +532,7 @@ and typecheck_expr_top_down :
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' (List.map typ_to_ast tau_args) mark
-  | A.EApp (e1, args) ->
+  | A.EApp { f = e1; args } ->
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
     let t_func =
       List.fold_right
@@ -534,14 +543,14 @@ and typecheck_expr_top_down :
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
     Expr.eapp e1' args' context_mark
   | A.EOp op -> Expr.eop op (uf_mark (op_type (Marked.mark pos_e op)))
-  | A.EDefault (excepts, just, cons) ->
+  | A.EDefault { excepts; just; cons } ->
     let cons' = typecheck_expr_top_down ctx env tau cons in
     let just' =
       typecheck_expr_top_down ctx env (unionfind ~pos:just (TLit TBool)) just
     in
     let excepts' = List.map (typecheck_expr_top_down ctx env tau) excepts in
     Expr.edefault excepts' just' cons' context_mark
-  | A.EIfThenElse (cond, et, ef) ->
+  | A.EIfThenElse { cond; etrue = et; efalse = ef } ->
     let et' = typecheck_expr_top_down ctx env tau et in
     let ef' = typecheck_expr_top_down ctx env tau ef in
     let cond' =
@@ -554,7 +563,7 @@ and typecheck_expr_top_down :
       typecheck_expr_top_down ctx env (unionfind ~pos:e1 (TLit TBool)) e1
     in
     Expr.eassert e1' mark
-  | A.ErrorOnEmpty e1 ->
+  | A.EErrorOnEmpty e1 ->
     let e1' = typecheck_expr_top_down ctx env tau e1 in
     Expr.eerroronempty e1' context_mark
   | A.EArray es ->

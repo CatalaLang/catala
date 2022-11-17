@@ -308,17 +308,7 @@ let driver source_file (options : Cli.options) : int =
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
                   (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
-                  ( scope_uid,
-                    Option.get
-                      (Shared_ast.Scope.fold_left ~init:None
-                         ~f:(fun acc scope_def _ ->
-                           if
-                             Shared_ast.ScopeName.compare scope_def.scope_name
-                               scope_uid
-                             = 0
-                           then Some scope_def.scope_body
-                           else acc)
-                         prgm.scopes) )
+                  (scope_uid, Shared_ast.Program.get_scope_body prgm scope_uid)
               else
                 let prgrm_lcalc_expr =
                   Shared_ast.Expr.unbox

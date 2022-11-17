@@ -21,6 +21,6 @@ scope Titi:
 ```catala-test-inline
 $ catala Interpret -s Titi
 [RESULT] Computation successful! Results:
-[RESULT] fizz = Toto {"foo"= 1213}
-[RESULT] fuzz = Toto {"foo"= 1323}
+[RESULT] fizz =  Toto { "foo"= 1213 }
+[RESULT] fuzz =  Toto { "foo"= 1323 }
 ```

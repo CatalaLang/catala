@@ -45,9 +45,9 @@ let rec expr_used_scopes e =
       e ScopeMap.empty
   in
   match e with
-  | (EScopeCall (scope, _), m) as e ->
+  | (EScopeCall { scope; _ }, m) as e ->
     ScopeMap.add scope (Expr.mark_pos m) (recurse_subterms e)
-  | EAbs (binder, _), _ ->
+  | EAbs { binder; _ }, _ ->
     let _, body = Bindlib.unmbind binder in
     expr_used_scopes body
   | e -> recurse_subterms e
@@ -192,8 +192,8 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
   let g =
     StructMap.fold
       (fun s fields g ->
-        List.fold_left
-          (fun g (_, typ) ->
+        StructFieldMap.fold
+          (fun _ typ g ->
             let def = TVertex.Struct s in
             let g = TDependencies.add_vertex g def in
             let used = get_structs_or_enums_in_type typ in
@@ -210,14 +210,14 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                   in
                   TDependencies.add_edge_e g edge)
               used g)
-          g fields)
+          fields g)
       structs g
   in
   let g =
     EnumMap.fold
       (fun e cases g ->
-        List.fold_left
-          (fun g (_, typ) ->
+        EnumConstructorMap.fold
+          (fun _ typ g ->
             let def = TVertex.Enum e in
             let g = TDependencies.add_vertex g def in
             let used = get_structs_or_enums_in_type typ in
@@ -234,7 +234,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                   in
                   TDependencies.add_edge_e g edge)
               used g)
-          g cases)
+          cases g)
       enums g
   in
   g

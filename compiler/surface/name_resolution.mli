@@ -67,7 +67,7 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TScope of ScopeName.t * StructName.t
+  | TScope of ScopeName.t * scope_out_struct
       (** Implicitly defined output struct *)
 
 type context = {

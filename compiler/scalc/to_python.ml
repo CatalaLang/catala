@@ -268,10 +268,11 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a(%a)" format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (e, struct_field) ->
+         (fun fmt (e, (struct_field, _)) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              (format_expression ctx) e))
-      (List.combine es (List.map fst (StructMap.find s ctx.ctx_structs)))
+      (List.combine es
+         (StructFieldMap.bindings (StructMap.find s ctx.ctx_structs)))
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
@@ -400,7 +401,7 @@ let rec format_statement
       List.map2
         (fun (x, y) (cons, _) -> x, y, cons)
         cases
-        (EnumMap.find e_name ctx.ctx_enums)
+        (EnumConstructorMap.bindings (EnumMap.find e_name ctx.ctx_enums))
     in
     let tmp_var = LocalName.fresh ("match_arg", Pos.no_pos) in
     Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" format_var tmp_var
@@ -442,6 +443,7 @@ let format_ctx
     (fmt : Format.formatter)
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
+    let fields = StructFieldMap.bindings struct_fields in
     Format.fprintf fmt
       "class %a:@\n\
       \    def __init__(self, %a) -> None:@\n\
@@ -461,40 +463,41 @@ let format_ctx
       struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-         (fun _fmt (struct_field, struct_field_type) ->
+         (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "%a: %a" format_struct_field_name struct_field
              format_typ struct_field_type))
-      struct_fields
-      (if List.length struct_fields = 0 then fun fmt _ ->
+      fields
+      (if StructFieldMap.is_empty struct_fields then fun fmt _ ->
        Format.fprintf fmt "        pass"
       else
         Format.pp_print_list
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-          (fun _fmt (struct_field, _) ->
+          (fun fmt (struct_field, _) ->
             Format.fprintf fmt "        self.%a = %a" format_struct_field_name
               struct_field format_struct_field_name struct_field))
-      struct_fields format_struct_name struct_name
-      (if List.length struct_fields > 0 then
+      fields format_struct_name struct_name
+      (if not (StructFieldMap.is_empty struct_fields) then
        Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
-         (fun _fmt (struct_field, _) ->
+         (fun fmt (struct_field, _) ->
            Format.fprintf fmt "self.%a == other.%a" format_struct_field_name
              struct_field format_struct_field_name struct_field)
       else fun fmt _ -> Format.fprintf fmt "True")
-      struct_fields format_struct_name struct_name
+      fields format_struct_name struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
-         (fun _fmt (struct_field, _) ->
+         (fun fmt (struct_field, _) ->
            Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
-      struct_fields
+      fields
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun _fmt (struct_field, _) ->
+         (fun fmt (struct_field, _) ->
            Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
-      struct_fields
+      fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    if List.length enum_cons = 0 then failwith "no constructors in the enum"
+    if EnumConstructorMap.is_empty enum_cons then
+      failwith "no constructors in the enum"
     else
       Format.fprintf fmt
         "@[<hov 4>class %a_Code(Enum):@\n\
@@ -522,9 +525,11 @@ let format_ctx
         format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _fmt (i, enum_cons, enum_cons_type) ->
+           (fun fmt (i, enum_cons, enum_cons_type) ->
              Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
-        (List.mapi (fun i (x, y) -> i, x, y) enum_cons)
+        (List.mapi
+           (fun i (x, y) -> i, x, y)
+           (EnumConstructorMap.bindings enum_cons))
         format_enum_name enum_name format_enum_name enum_name format_enum_name
         enum_name
   in

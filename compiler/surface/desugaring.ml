@@ -145,7 +145,7 @@ let rec translate_expr
             Expr.make_abs [| binding_var |] e2 [tau] pos)
         (EnumMap.find enum_uid ctxt.enums)
     in
-    Expr.ematchs
+    Expr.ematch
       (translate_expr scope inside_definition_of ctxt e1_sub)
       enum_uid cases emark
   | IfThenElse (e_if, e_then, e_else) ->
@@ -424,7 +424,7 @@ let rec translate_expr
         let payload =
           Option.map (translate_expr scope inside_definition_of ctxt) payload
         in
-        Expr.eenuminj
+        Expr.einj
           (match payload with
           | Some e' -> e'
           | None -> Expr.elit LUnit mark_constructor)
@@ -438,7 +438,7 @@ let rec translate_expr
           let payload =
             Option.map (translate_expr scope inside_definition_of ctxt) payload
           in
-          Expr.eenuminj
+          Expr.einj
             (match payload with
             | Some e' -> e'
             | None -> Expr.elit LUnit mark_constructor)
@@ -455,7 +455,7 @@ let rec translate_expr
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
         cases
     in
-    Expr.ematchs e1 e_uid cases_d emark
+    Expr.ematch e1 e_uid cases_d emark
   | TestMatchCase (e1, pattern) ->
     (match snd (Marked.unmark pattern) with
     | None -> ()
@@ -476,7 +476,7 @@ let rec translate_expr
             [tau] pos)
         (EnumMap.find enum_uid ctxt.enums)
     in
-    Expr.ematchs
+    Expr.ematch
       (translate_expr scope inside_definition_of ctxt e1)
       enum_uid cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
@@ -1269,16 +1269,14 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) :
     {
       Desugared.Ast.program_ctx =
         {
-          ctx_structs =
-            StructMap.map StructFieldMap.bindings ctxt.Name_resolution.structs;
-          ctx_enums =
-            EnumMap.map EnumConstructorMap.bindings ctxt.Name_resolution.enums;
+          ctx_structs = ctxt.Name_resolution.structs;
+          ctx_enums = ctxt.Name_resolution.enums;
           ctx_scopes =
             Desugared.Ast.IdentMap.fold
               (fun _ def acc ->
                 match def with
-                | Name_resolution.TScope (scope, struc) ->
-                  ScopeMap.add scope struc acc
+                | Name_resolution.TScope (scope, scope_out_struct) ->
+                  ScopeMap.add scope scope_out_struct acc
                 | _ -> acc)
               ctxt.Name_resolution.typedefs ScopeMap.empty;
         };

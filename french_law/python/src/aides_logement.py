@@ -2805,7 +2805,7 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
                                              "Prologue : aides au logement"]))
     tranches_revenus_d832_26 = temp_tranches_revenus_d832_26
     try:
-        def temp_tranches_revenus_d832_26_multipliees(tranche:Any):
+        def temp_tranches_revenus_d832_26_multipliees(tranche:TrancheRevenu):
             match_arg = tranche.haut
             if match_arg.code == LimiteTranche_Code.Revenu:
                 tranche_haut = match_arg.value
@@ -2834,7 +2834,7 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
     try:
         try:
             if condition_2_du_832_25:
-                def temp_montant_1(acc:Decimal, tranche_1:Any):
+                def temp_montant_1(acc:Decimal, tranche_1:TrancheRevenuDecimal):
                     if (decimal_of_money(ressources_menage_arrondies) <=
                         tranche_1.bas):
                         temp_montant_2 = decimal_of_string("0.")
@@ -2863,7 +2863,7 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
                 temp_montant_3 = dead_value
                 raise EmptyError
         except EmptyError:
-            def temp_montant_4(acc_1:Decimal, tranche_2:Any):
+            def temp_montant_4(acc_1:Decimal, tranche_2:TrancheRevenuDecimal):
                 if (decimal_of_money(ressources_menage_arrondies) <=
                     tranche_2.bas):
                     temp_montant_5 = decimal_of_string("0.")
@@ -11225,7 +11225,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                         temp_patrimoine_pris_en_compte = dead_value
                         raise EmptyError
                 except EmptyError:
-                    def temp_patrimoine_pris_en_compte_1(acc_2:bool, prestation:Any):
+                    def temp_patrimoine_pris_en_compte_1(acc_2:bool, prestation:PrestationRecue):
                         return (acc_2 or ((prestation ==
                             PrestationRecue(PrestationRecue_Code.AllocationSoutienEnfantHandicape,
                             Unit())) or (prestation ==
@@ -11436,7 +11436,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                              "Prologue : aides au logement"]))
     prise_en_compte_personne_a_charge = temp_prise_en_compte_personne_a_charge
     try:
-        def temp_personnes_a_charge_prises_en_compte(personne_a_charge:Any):
+        def temp_personnes_a_charge_prises_en_compte(personne_a_charge:PersonneACharge):
             return prise_en_compte_personne_a_charge(personne_a_charge)
         temp_personnes_a_charge_prises_en_compte_1 = list_filter(temp_personnes_a_charge_prises_en_compte,
             menage.personnes_a_charge)
@@ -11450,7 +11450,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                              "Prologue : aides au logement"]))
     personnes_a_charge_prises_en_compte = temp_personnes_a_charge_prises_en_compte_1
     try:
-        def temp_coefficents_enfants_garde_alternee_pris_en_compte(personne_a_charge_1:Any):
+        def temp_coefficents_enfants_garde_alternee_pris_en_compte(personne_a_charge_1:PersonneACharge):
             match_arg_371 = personne_a_charge_1
             if match_arg_371.code == PersonneACharge_Code.EnfantACharge:
                 enfant_3 = match_arg_371.value
@@ -11464,7 +11464,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
             elif match_arg_371.code == PersonneACharge_Code.AutrePersonneACharge:
                 _ = match_arg_371.value
                 return False
-        def temp_coefficents_enfants_garde_alternee_pris_en_compte_1(personne_a_charge_2:Any):
+        def temp_coefficents_enfants_garde_alternee_pris_en_compte_1(personne_a_charge_2:PersonneACharge):
             match_arg_373 = personne_a_charge_2
             if match_arg_373.code == PersonneACharge_Code.EnfantACharge:
                 enfant_4 = match_arg_373.value
@@ -11608,7 +11608,7 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
                                          "Prologue : aides au logement"]))
     ressources_forfaitaires_r822_20 = temp_ressources_forfaitaires_r822_20
     try:
-        def temp_ressources_personnes_vivant_habituellement_foyer(acc_3:Money, personne_1:Any):
+        def temp_ressources_personnes_vivant_habituellement_foyer(acc_3:Money, personne_1:PersonneVivantHabituellementAuFoyer):
             return (acc_3 + personne_1.ressources)
         temp_ressources_personnes_vivant_habituellement_foyer_1 = list_fold_left(
             temp_ressources_personnes_vivant_habituellement_foyer,
@@ -11777,7 +11777,7 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
                                              "Prologue : aides au logement"]))
     abattement_r_822_7 = temp_abattement_r_822_7
     try:
-        def temp___5(acc_4:bool, personne_2:Any):
+        def temp___5(acc_4:bool, personne_2:PersonneVivantHabituellementAuFoyer):
             return (acc_4 and
                 personne_2.duree_residence_durant_periode_r_822_3_1_superieure_a_6_mois)
         temp___6 = list_fold_left(temp___5, True,
@@ -17951,7 +17951,7 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
     delai_apres_emmenagement_l823_8_2 = temp_delai_apres_emmenagement_l823_8_2
     try:
         try:
-            def temp_condition_rang_enfant(acc_5:Integer, personne_a_charge_3:Any):
+            def temp_condition_rang_enfant(acc_5:Integer, personne_a_charge_3:PersonneACharge):
                 match_arg_506 = personne_a_charge_3
                 if match_arg_506.code == PersonneACharge_Code.EnfantACharge:
                     _ = match_arg_506.value
@@ -18087,7 +18087,7 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
                                              "Prologue : aides au logement"]))
     condition_periode_demenagement = temp_condition_periode_demenagement_1
     try:
-        def temp_plafond_d823_22(acc_6:Integer, personne_a_charge_4:Any):
+        def temp_plafond_d823_22(acc_6:Integer, personne_a_charge_4:PersonneACharge):
             match_arg_509 = personne_a_charge_4
             if match_arg_509.code == PersonneACharge_Code.EnfantACharge:
                 _ = match_arg_509.value
@@ -18102,7 +18102,7 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
         if (list_fold_left(temp_plafond_d823_22, integer_of_string("0"),
                            menage_1.personnes_a_charge) >
             integer_of_string("3")):
-            def temp_plafond_d823_22_2(acc_7:Integer, personne_a_charge_5:Any):
+            def temp_plafond_d823_22_2(acc_7:Integer, personne_a_charge_5:PersonneACharge):
                 match_arg_510 = personne_a_charge_5
                 if match_arg_510.code == PersonneACharge_Code.EnfantACharge:
                     _ = match_arg_510.value
@@ -19037,7 +19037,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                 raise EmptyError
                         except EmptyError:
                             try:
-                                def temp_eligibilite_allocation_logement_familiale_2(acc_8:Integer, personne_a_charge_6:Any):
+                                def temp_eligibilite_allocation_logement_familiale_2(acc_8:Integer, personne_a_charge_6:PersonneACharge):
                                     match_arg_541 = personne_a_charge_6
                                     if match_arg_541.code == PersonneACharge_Code.EnfantACharge:
                                         enfant_5 = match_arg_541.value
@@ -19060,7 +19060,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                     temp_eligibilite_allocation_logement_familiale_1 = dead_value
                                     raise EmptyError
                             except EmptyError:
-                                def temp_eligibilite_allocation_logement_familiale_4(acc_9:Integer, personne_a_charge_7:Any):
+                                def temp_eligibilite_allocation_logement_familiale_4(acc_9:Integer, personne_a_charge_7:PersonneACharge):
                                     if eligibilite_commune_dot_condition_2_r823_4_1(
                                         personne_a_charge_7):
                                         return (acc_9 +
@@ -19096,7 +19096,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         elif match_arg_542.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
                             _ = match_arg_542.value
                             temp_eligibilite_allocation_logement_familiale_5 = False
-                        def temp_eligibilite_allocation_logement_familiale_6(acc_10:Integer, personne_a_charge_8:Any):
+                        def temp_eligibilite_allocation_logement_familiale_6(acc_10:Integer, personne_a_charge_8:PersonneACharge):
                             match_arg_543 = personne_a_charge_8
                             if match_arg_543.code == PersonneACharge_Code.EnfantACharge:
                                 enfant_6 = match_arg_543.value
@@ -19134,7 +19134,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                             temp_eligibilite_allocation_logement_familiale_1 = dead_value
                             raise EmptyError
                 except EmptyError:
-                    def temp_eligibilite_allocation_logement_familiale_9(acc_11:Integer, personne_a_charge_9:Any):
+                    def temp_eligibilite_allocation_logement_familiale_9(acc_11:Integer, personne_a_charge_9:PersonneACharge):
                         match_arg_545 = personne_a_charge_9
                         if match_arg_545.code == PersonneACharge_Code.EnfantACharge:
                             enfant_7 = match_arg_545.value
@@ -19171,7 +19171,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         temp_eligibilite_allocation_logement_familiale_1 = dead_value
                         raise EmptyError
             except EmptyError:
-                def temp_eligibilite_allocation_logement_familiale_12(acc_12:bool, prestation_1:Any):
+                def temp_eligibilite_allocation_logement_familiale_12(acc_12:bool, prestation_1:PrestationRecue):
                     return (acc_12 or ((prestation_1 ==
                         PrestationRecue(PrestationRecue_Code.AllocationsFamiliales,
                         Unit())) or ((prestation_1 ==
@@ -22034,7 +22034,7 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     date_courante_17 = calculette_aides_au_logement_garde_alternee_in.date_courante_in
     ressources_menage_prises_en_compte_1 = calculette_aides_au_logement_garde_alternee_in.ressources_menage_prises_en_compte_in
     try:
-        def temp_menage_sans_enfants_garde_alternee(personne_a_charge_10:Any):
+        def temp_menage_sans_enfants_garde_alternee(personne_a_charge_10:PersonneACharge):
             match_arg_559 = personne_a_charge_10
             if match_arg_559.code == PersonneACharge_Code.EnfantACharge:
                 enfant_8 = match_arg_559.value
@@ -22195,7 +22195,7 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
             integer_of_string("0")):
             temp_aide_finale = money_of_cents_string("0")
         else:
-            def temp_aide_finale_1(acc_13:Decimal, coeff_1:Any):
+            def temp_aide_finale_1(acc_13:Decimal, coeff_1:Decimal):
                 return (acc_13 + coeff_1)
             temp_aide_finale = ((calculette_dot_aide_finale_formule -
                 calculette_sans_garde_alternee_dot_aide_finale_formule) *

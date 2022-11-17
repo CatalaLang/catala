@@ -72,20 +72,19 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
          | States states -> Marked.same_mark_as (List.assoc state states) s_var))
       m
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
-  | EStruct (s_name, fields) ->
-    Expr.estruct s_name (StructFieldMap.map (translate_expr ctx) fields) m
-  | EStructAccess (e1, f_name, s_name) ->
-    Expr.estructaccess (translate_expr ctx e1) f_name s_name m
-  | EEnumInj (e1, cons, e_name) ->
-    Expr.eenuminj (translate_expr ctx e1) cons e_name m
-  | EMatchS (e1, e_name, arms) ->
-    Expr.ematchs (translate_expr ctx e1) e_name
-      (EnumConstructorMap.map (translate_expr ctx) arms)
+  | EStruct { name; fields } ->
+    Expr.estruct name (StructFieldMap.map (translate_expr ctx) fields) m
+  | EStructAccess { e; field; name } ->
+    Expr.estructaccess (translate_expr ctx e) field name m
+  | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
+  | EMatch { e; name; cases } ->
+    Expr.ematch (translate_expr ctx e) name
+      (EnumConstructorMap.map (translate_expr ctx) cases)
       m
-  | EScopeCall (sc_name, fields) ->
-    Expr.escopecall sc_name
+  | EScopeCall { scope; args } ->
+    Expr.escopecall scope
       (ScopeVarMap.fold
-         (fun v e fields' ->
+         (fun v e args' ->
            let v' =
              match ScopeVarMap.find v ctx.scope_var_mapping with
              | WholeVar v' -> v'
@@ -95,14 +94,14 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
                v'
              | States [] -> assert false
            in
-           ScopeVarMap.add v' (translate_expr ctx e) fields')
-         fields ScopeVarMap.empty)
+           ScopeVarMap.add v' (translate_expr ctx e) args')
+         args ScopeVarMap.empty)
       m
   | ELit
       (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
        | LDuration _ ) as l) ->
     Expr.elit l m
-  | EAbs (binder, typs) ->
+  | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let new_vars = Array.map (fun var -> Var.make (Bindlib.name_of var)) vars in
     let ctx =
@@ -111,19 +110,20 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr) :
           { ctx with var_mapping = Var.Map.add var new_var ctx.var_mapping })
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
-    Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) typs m
-  | EApp (e1, args) ->
-    Expr.eapp (translate_expr ctx e1) (List.map (translate_expr ctx) args) m
+    Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) tys m
+  | EApp { f; args } ->
+    Expr.eapp (translate_expr ctx f) (List.map (translate_expr ctx) args) m
   | EOp op -> Expr.eop op m
-  | EDefault (excepts, just, cons) ->
+  | EDefault { excepts; just; cons } ->
     Expr.edefault
       (List.map (translate_expr ctx) excepts)
       (translate_expr ctx just) (translate_expr ctx cons) m
-  | EIfThenElse (e1, e2, e3) ->
-    Expr.eifthenelse (translate_expr ctx e1) (translate_expr ctx e2)
-      (translate_expr ctx e3) m
+  | EIfThenElse { cond; etrue; efalse } ->
+    Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
+      (translate_expr ctx efalse)
+      m
   | EArray args -> Expr.earray (List.map (translate_expr ctx) args) m
-  | ErrorOnEmpty e1 -> Expr.eerroronempty (translate_expr ctx e1) m
+  | EErrorOnEmpty e1 -> Expr.eerroronempty (translate_expr ctx e1) m
 
 (** {1 Rule tree construction} *)
 
@@ -626,6 +626,8 @@ let translate_program (pgrm : Ast.program) : untyped Scopelang.Ast.program =
      Scopelang. This involves creating a new Scopelang scope variable for every
      state of a Desugared variable. *)
   let ctx =
+    (* Todo: since we rename all scope vars at this point, it would be better to
+       have different types for Desugared.ScopeVar.t and Scopelang.ScopeVar.t *)
     ScopeMap.fold
       (fun _scope scope_decl ctx ->
         ScopeVarMap.fold
@@ -663,8 +665,25 @@ let translate_program (pgrm : Ast.program) : untyped Scopelang.Ast.program =
       pgrm.Ast.program_scopes
       { scope_var_mapping = ScopeVarMap.empty; var_mapping = Var.Map.empty }
   in
+  let ctx_scopes =
+    ScopeMap.map
+      (fun out_str ->
+        let out_struct_fields =
+          ScopeVarMap.fold
+            (fun var fld out_map ->
+              let var' =
+                match ScopeVarMap.find var ctx.scope_var_mapping with
+                | WholeVar v -> v
+                | States l -> snd (List.hd (List.rev l))
+              in
+              ScopeVarMap.add var' fld out_map)
+            out_str.out_struct_fields ScopeVarMap.empty
+        in
+        { out_str with out_struct_fields })
+      pgrm.Ast.program_ctx.ctx_scopes
+  in
   {
     Scopelang.Ast.program_scopes =
       ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
-    Scopelang.Ast.program_ctx = pgrm.program_ctx;
+    program_ctx = { pgrm.program_ctx with ctx_scopes };
   }

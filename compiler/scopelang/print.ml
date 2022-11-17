@@ -22,7 +22,7 @@ let struc
     ctx
     (fmt : Format.formatter)
     (name : StructName.t)
-    (fields : (StructFieldName.t * typ) list) : unit =
+    (fields : typ StructFieldMap.t) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
     StructName.format_t name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
@@ -30,13 +30,14 @@ let struc
        (fun fmt (field_name, typ) ->
          Format.fprintf fmt "%a%a %a" StructFieldName.format_t field_name
            Print.punctuation ":" (Print.typ ctx) typ))
-    fields Print.punctuation "}"
+    (StructFieldMap.bindings fields)
+    Print.punctuation "}"
 
 let enum
     ctx
     (fmt : Format.formatter)
     (name : EnumName.t)
-    (cases : (EnumConstructor.t * typ) list) : unit =
+    (cases : typ EnumConstructorMap.t) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
     EnumName.format_t name Print.punctuation "="
     (Format.pp_print_list
@@ -45,7 +46,7 @@ let enum
          Format.fprintf fmt "%a %a%a %a" Print.punctuation "|"
            EnumConstructor.format_t field_name Print.punctuation ":"
            (Print.typ ctx) typ))
-    cases
+    (EnumConstructorMap.bindings cases)
 
 let scope ?(debug = false) ctx fmt (name, decl) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"

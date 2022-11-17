@@ -514,7 +514,7 @@ def allocation_familiales_avril2008(allocation_familiales_avril2008_in:Allocatio
 def enfant_le_plus_age(enfant_le_plus_age_in:EnfantLePlusAgeIn):
     enfants = enfant_le_plus_age_in.enfants_in
     try:
-        def temp_le_plus_age(acc:Any, item:Any):
+        def temp_le_plus_age(acc:Enfant, item:Enfant):
             if (acc.date_de_naissance < item.date_de_naissance):
                 return acc
             else:
@@ -1411,7 +1411,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     age_minimum_alinea_1_l521_3_1 = temp_age_minimum_alinea_1_l521_3_1
     try:
-        def temp_enfants_a_charge_droit_ouvert_prestation_familiale(enfant:Any):
+        def temp_enfants_a_charge_droit_ouvert_prestation_familiale(enfant:Enfant):
             return prestations_familiales_dot_droit_ouvert(enfant)
         temp_enfants_a_charge_droit_ouvert_prestation_familiale_1 = list_filter(temp_enfants_a_charge_droit_ouvert_prestation_familiale,
             enfants_a_charge)
@@ -1846,7 +1846,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     nombre_total_enfants = temp_nombre_total_enfants
     try:
-        def temp_nombre_moyen_enfants(acc_1:Decimal, enfant_1:Any):
+        def temp_nombre_moyen_enfants(acc_1:Decimal, enfant_1:Enfant):
             match_arg_16 = prise_en_compte(enfant_1)
             if match_arg_16.code == PriseEnCompte_Code.Complete:
                 _ = match_arg_16.value
@@ -2637,7 +2637,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     montant_initial_metropole_majoration = temp_montant_initial_metropole_majoration
     try:
-        def temp_montant_verse_forfaitaire(acc_2:Integer, enfant_2:Any):
+        def temp_montant_verse_forfaitaire(acc_2:Integer, enfant_2:Enfant):
             if droit_ouvert_forfaitaire(enfant_2):
                 return (acc_2 + integer_of_string("1"))
             else:
@@ -2872,7 +2872,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     montant_verse_base = temp_montant_verse_base
     try:
         if droit_ouvert_base:
-            def temp_montant_verse_majoration(acc_3:Money, enfant_3:Any):
+            def temp_montant_verse_majoration(acc_3:Money, enfant_3:Enfant):
                 return (acc_3 +
                     montant_avec_garde_alternee_majoration(enfant_3))
             temp_montant_verse_majoration_1 = list_fold_left(temp_montant_verse_majoration,
@@ -2969,7 +2969,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     i_personne_charge_effective_permanente_remplit_titre__i = interface_allocations_familiales_in.i_personne_charge_effective_permanente_remplit_titre_I_in
     i_avait_enfant_a_charge_avant_1er_janvier_2012 = interface_allocations_familiales_in.i_avait_enfant_a_charge_avant_1er_janvier_2012_in
     try:
-        def temp_enfants_a_charge(enfant_4:Any):
+        def temp_enfants_a_charge(enfant_4:EnfantEntree):
             if ((enfant_4.d_date_de_naissance +
                 duration_of_numbers(3,0,0)) >=
                 i_date_courante):

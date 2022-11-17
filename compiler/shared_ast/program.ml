@@ -22,6 +22,18 @@ let map_exprs ~f ~varf { scopes; decl_ctx } =
     (fun scopes -> { scopes; decl_ctx })
     (Scope.map_exprs ~f ~varf scopes)
 
+let get_scope_body { scopes; _ } scope =
+  match
+    Scope.fold_left ~init:None
+      ~f:(fun acc scope_def _ ->
+        if ScopeName.equal scope_def.scope_name scope then
+          Some scope_def.scope_body
+        else acc)
+      scopes
+  with
+  | None -> raise Not_found
+  | Some body -> body
+
 let untype : 'm. ('a, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
     =
  fun prg -> Bindlib.unbox (map_exprs ~f:Expr.untype ~varf:Var.translate prg)

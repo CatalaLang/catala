@@ -211,7 +211,7 @@ type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
 let rec locations_used e : LocationSet.t =
   match e with
   | ELocation l, m -> LocationSet.singleton (l, Expr.mark_pos m)
-  | EAbs (binder, _), _ ->
+  | EAbs { binder; _ }, _ ->
     let _, body = Bindlib.unmbind binder in
     locations_used body
   | e ->

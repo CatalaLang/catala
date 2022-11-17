@@ -42,6 +42,7 @@ val log_entry : Format.formatter -> log_entry -> unit
 val unop : Format.formatter -> unop -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
+val var_debug : Format.formatter -> 'e Var.t -> unit
 
 val expr :
   ?debug:bool (** [true] for debug printing *) ->
