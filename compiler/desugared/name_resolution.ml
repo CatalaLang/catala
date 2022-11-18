@@ -732,6 +732,73 @@ let get_def_key
        subscope variable. In particular, it is not possible to define struct \
        fields individually in Catala."
 
+let update_def_key_ctx
+    (d : Surface.Ast.definition)
+    (def_key_ctx : scope_def_context) : scope_def_context =
+  (* First, we update the def key context with information about the
+     definition's label*)
+  let def_key_ctx =
+    match d.Surface.Ast.definition_label with
+    | None -> def_key_ctx
+    | Some label ->
+      let new_label_idmap =
+        IdentMap.update (Marked.unmark label)
+          (fun existing_label ->
+            match existing_label with
+            | Some existing_label -> Some existing_label
+            | None -> Some (LabelName.fresh label))
+          def_key_ctx.label_idmap
+      in
+      { def_key_ctx with label_idmap = new_label_idmap }
+  in
+  (* And second, we update the map of default rulenames for unlabeled
+     exceptions *)
+  match d.Surface.Ast.definition_exception_to with
+  (* If this definition is an exception, it cannot be a default definition *)
+  | UnlabeledException | ExceptionToLabel _ -> def_key_ctx
+  (* If it is not an exception, we need to distinguish between several cases *)
+  | NotAnException -> (
+    match def_key_ctx.default_exception_rulename with
+    (* There was already a default definition for this key. If we need it, it is
+       ambiguous *)
+    | Some old ->
+      {
+        def_key_ctx with
+        default_exception_rulename =
+          Some
+            (Ambiguous
+               ([Marked.get_mark d.definition_name]
+               @
+               match old with Ambiguous old -> old | Unique (_, pos) -> [pos]));
+      }
+    (* No definition has been set yet for this key *)
+    | None -> (
+      match d.Surface.Ast.definition_label with
+      (* This default definition has a label. This is not allowed for unlabeled
+         exceptions *)
+      | Some _ ->
+        {
+          def_key_ctx with
+          default_exception_rulename =
+            Some (Ambiguous [Marked.get_mark d.definition_name]);
+        }
+      (* This is a possible default definition for this key. We create and store
+         a fresh rulename *)
+      | None ->
+        {
+          def_key_ctx with
+          default_exception_rulename =
+            Some (Unique (d.definition_id, Marked.get_mark d.definition_name));
+        }))
+
+let empty_def_key_ctx =
+  {
+    (* Here, this is the first time we encounter a definition for this
+       definition key *)
+    default_exception_rulename = None;
+    label_idmap = IdentMap.empty;
+  }
+
 let process_definition
     (ctxt : context)
     (s_name : ScopeName.t)
@@ -757,85 +824,9 @@ let process_definition
                 scope_defs_contexts =
                   Ast.ScopeDefMap.update def_key
                     (fun def_key_ctx ->
-                      let def_key_ctx : scope_def_context =
-                        Option.fold
-                          ~none:
-                            {
-                              (* Here, this is the first time we encounter a
-                                 definition for this definition key *)
-                              default_exception_rulename = None;
-                              label_idmap = IdentMap.empty;
-                            }
-                          ~some:(fun x -> x)
-                          def_key_ctx
-                      in
-                      (* First, we update the def key context with information
-                         about the definition's label*)
-                      let def_key_ctx =
-                        match d.Surface.Ast.definition_label with
-                        | None -> def_key_ctx
-                        | Some label ->
-                          let new_label_idmap =
-                            IdentMap.update (Marked.unmark label)
-                              (fun existing_label ->
-                                match existing_label with
-                                | Some existing_label -> Some existing_label
-                                | None -> Some (LabelName.fresh label))
-                              def_key_ctx.label_idmap
-                          in
-                          { def_key_ctx with label_idmap = new_label_idmap }
-                      in
-                      (* And second, we update the map of default rulenames for
-                         unlabeled exceptions *)
-                      let def_key_ctx =
-                        match d.Surface.Ast.definition_exception_to with
-                        (* If this definition is an exception, it cannot be a
-                           default definition *)
-                        | UnlabeledException | ExceptionToLabel _ -> def_key_ctx
-                        (* If it is not an exception, we need to distinguish
-                           between several cases *)
-                        | NotAnException -> (
-                          match def_key_ctx.default_exception_rulename with
-                          (* There was already a default definition for this
-                             key. If we need it, it is ambiguous *)
-                          | Some old ->
-                            {
-                              def_key_ctx with
-                              default_exception_rulename =
-                                Some
-                                  (Ambiguous
-                                     ([Marked.get_mark d.definition_name]
-                                     @
-                                     match old with
-                                     | Ambiguous old -> old
-                                     | Unique (_, pos) -> [pos]));
-                            }
-                          (* No definition has been set yet for this key *)
-                          | None -> (
-                            match d.Surface.Ast.definition_label with
-                            (* This default definition has a label. This is not
-                               allowed for unlabeled exceptions *)
-                            | Some _ ->
-                              {
-                                def_key_ctx with
-                                default_exception_rulename =
-                                  Some
-                                    (Ambiguous
-                                       [Marked.get_mark d.definition_name]);
-                              }
-                            (* This is a possible default definition for this
-                               key. We create and store a fresh rulename *)
-                            | None ->
-                              {
-                                def_key_ctx with
-                                default_exception_rulename =
-                                  Some
-                                    (Unique
-                                       ( d.definition_id,
-                                         Marked.get_mark d.definition_name ));
-                              }))
-                      in
-                      Some def_key_ctx)
+                      Some
+                        (update_def_key_ctx d
+                           (Option.value ~default:empty_def_key_ctx def_key_ctx)))
                     s_ctxt.scope_defs_contexts;
               })
         ctxt.scopes;
