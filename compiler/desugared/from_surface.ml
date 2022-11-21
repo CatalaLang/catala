@@ -79,7 +79,7 @@ let disambiguate_constructor
   in
   match enum with
   | None ->
-    if EnumMap.cardinal possible_c_uids > 1 then
+    if EnumName.Map.cardinal possible_c_uids > 1 then
       Errors.raise_spanned_error
         (Marked.get_mark constructor)
         "This constructor name is ambiguous, it can belong to %a. Disambiguate \
@@ -88,14 +88,14 @@ let disambiguate_constructor
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
            (fun fmt (s_name, _) ->
              Format.fprintf fmt "%a" EnumName.format_t s_name))
-        (EnumMap.bindings possible_c_uids);
-    EnumMap.choose possible_c_uids
+        (EnumName.Map.bindings possible_c_uids);
+    EnumName.Map.choose possible_c_uids
   | Some enum -> (
     try
       (* The path is fully qualified *)
       let e_uid = Name_resolution.get_enum ctxt enum in
       try
-        let c_uid = EnumMap.find e_uid possible_c_uids in
+        let c_uid = EnumName.Map.find e_uid possible_c_uids in
         e_uid, c_uid
       with Not_found ->
         Errors.raise_spanned_error pos "Enum %s does not contain case %s"
@@ -114,7 +114,7 @@ let rec translate_expr
     (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (expr : Surface.Ast.expression Marked.pos) : Ast.expr boxed =
-  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   let pos = Marked.get_mark expr in
   let emark = Untyped { pos } in
@@ -130,7 +130,7 @@ let rec translate_expr
       disambiguate_constructor ctxt constructors pos_pattern
     in
     let cases =
-      EnumConstructorMap.mapi
+      EnumConstructor.Map.mapi
         (fun c_uid' tau ->
           if EnumConstructor.compare c_uid c_uid' <> 0 then
             let nop_var = Var.make "_" in
@@ -143,7 +143,7 @@ let rec translate_expr
             in
             let e2 = translate_expr scope inside_definition_of ctxt e2 in
             Expr.make_abs [| binding_var |] e2 [tau] pos)
-        (EnumMap.find enum_uid ctxt.enums)
+        (EnumName.Map.find enum_uid ctxt.enums)
     in
     Expr.ematch
       (translate_expr scope inside_definition_of ctxt e1_sub)
@@ -212,7 +212,7 @@ let rec translate_expr
            desambiguate. In general, only the last state can be referenced.
            Except if defining a state of the same variable, then it references
            the previous state in the chain. *)
-        let x_sig = ScopeVarMap.find uid ctxt.var_typs in
+        let x_sig = ScopeVar.Map.find uid ctxt.var_typs in
         let x_state =
           match x_sig.var_sig_states_list with
           | [] -> None
@@ -281,7 +281,7 @@ let rec translate_expr
       match c with
       | None ->
         (* No constructor name was specified *)
-        if StructMap.cardinal x_possible_structs > 1 then
+        if StructName.Map.cardinal x_possible_structs > 1 then
           Errors.raise_spanned_error (Marked.get_mark x)
             "This struct field name is ambiguous, it can belong to %a. \
              Disambiguate it by prefixing it with the struct name."
@@ -289,15 +289,15 @@ let rec translate_expr
                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
                (fun fmt (s_name, _) ->
                  Format.fprintf fmt "%a" StructName.format_t s_name))
-            (StructMap.bindings x_possible_structs)
+            (StructName.Map.bindings x_possible_structs)
         else
-          let s_uid, f_uid = StructMap.choose x_possible_structs in
+          let s_uid, f_uid = StructName.Map.choose x_possible_structs in
           Expr.estructaccess e f_uid s_uid emark
       | Some c_name -> (
         try
           let c_uid = Name_resolution.get_struct ctxt c_name in
           try
-            let f_uid = StructMap.find c_uid x_possible_structs in
+            let f_uid = StructName.Map.find c_uid x_possible_structs in
             Expr.estructaccess e f_uid c_uid emark
           with Not_found ->
             Errors.raise_spanned_error pos "Struct %s does not contain field %s"
@@ -308,7 +308,7 @@ let rec translate_expr
   | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
   | ScopeCall (sc_name, fields) ->
     let called_scope = Name_resolution.get_scope ctxt sc_name in
-    let scope_def = ScopeMap.find called_scope ctxt.scopes in
+    let scope_def = ScopeName.Map.find called_scope ctxt.scopes in
     let in_struct =
       List.fold_left
         (fun acc (fld_id, e) ->
@@ -330,7 +330,7 @@ let rec translate_expr
                 "Scope %a has no input variable %a" ScopeName.format_t
                 called_scope Print.lit_style (Marked.unmark fld_id)
           in
-          ScopeVarMap.update var
+          ScopeVar.Map.update var
             (function
               | None -> Some (rec_helper e)
               | Some _ ->
@@ -338,7 +338,7 @@ let rec translate_expr
                   "Duplicate definition of scope input variable '%a'"
                   ScopeVar.format_t var)
             acc)
-        ScopeVarMap.empty fields
+        ScopeVar.Map.empty fields
     in
     Expr.escopecall called_scope in_struct emark
   | LetIn (x, e1, e2) ->
@@ -366,7 +366,7 @@ let rec translate_expr
         (fun s_fields (f_name, f_e) ->
           let f_uid =
             try
-              StructMap.find s_uid
+              StructName.Map.find s_uid
                 (Name_resolution.IdentMap.find (Marked.unmark f_name)
                    ctxt.field_idmap)
             with Not_found ->
@@ -374,24 +374,23 @@ let rec translate_expr
                 "This identifier should refer to a field of struct %s"
                 (Marked.unmark s_name)
           in
-          (match StructFieldMap.find_opt f_uid s_fields with
+          (match StructField.Map.find_opt f_uid s_fields with
           | None -> ()
           | Some e_field ->
             Errors.raise_multispanned_error
               [None, Marked.get_mark f_e; None, Expr.pos e_field]
-              "The field %a has been defined twice:" StructFieldName.format_t
-              f_uid);
+              "The field %a has been defined twice:" StructField.format_t f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
-          StructFieldMap.add f_uid f_e s_fields)
-        StructFieldMap.empty fields
+          StructField.Map.add f_uid f_e s_fields)
+        StructField.Map.empty fields
     in
-    let expected_s_fields = StructMap.find s_uid ctxt.structs in
-    StructFieldMap.iter
+    let expected_s_fields = StructName.Map.find s_uid ctxt.structs in
+    StructField.Map.iter
       (fun expected_f _ ->
-        if not (StructFieldMap.mem expected_f s_fields) then
+        if not (StructField.Map.mem expected_f s_fields) then
           Errors.raise_spanned_error pos
             "Missing field for structure %a: \"%a\"" StructName.format_t s_uid
-            StructFieldName.format_t expected_f)
+            StructField.format_t expected_f)
       expected_s_fields;
 
     Expr.estruct s_uid s_fields emark
@@ -409,7 +408,7 @@ let rec translate_expr
     | None ->
       if
         (* No constructor name was specified *)
-        EnumMap.cardinal possible_c_uids > 1
+        EnumName.Map.cardinal possible_c_uids > 1
       then
         Errors.raise_spanned_error pos_constructor
           "This constructor name is ambiguous, it can belong to %a. \
@@ -418,9 +417,9 @@ let rec translate_expr
              ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
              (fun fmt (s_name, _) ->
                Format.fprintf fmt "%a" EnumName.format_t s_name))
-          (EnumMap.bindings possible_c_uids)
+          (EnumName.Map.bindings possible_c_uids)
       else
-        let e_uid, c_uid = EnumMap.choose possible_c_uids in
+        let e_uid, c_uid = EnumName.Map.choose possible_c_uids in
         let payload =
           Option.map (translate_expr scope inside_definition_of ctxt) payload
         in
@@ -434,7 +433,7 @@ let rec translate_expr
         (* The path has been fully qualified *)
         let e_uid = Name_resolution.get_enum ctxt enum in
         try
-          let c_uid = EnumMap.find e_uid possible_c_uids in
+          let c_uid = EnumName.Map.find e_uid possible_c_uids in
           let payload =
             Option.map (translate_expr scope inside_definition_of ctxt) payload
           in
@@ -468,13 +467,13 @@ let rec translate_expr
         (Marked.get_mark pattern)
     in
     let cases =
-      EnumConstructorMap.mapi
+      EnumConstructor.Map.mapi
         (fun c_uid' tau ->
           let nop_var = Var.make "_" in
           Expr.make_abs [| nop_var |]
             (Expr.elit (LBool (EnumConstructor.compare c_uid c_uid' = 0)) emark)
             [tau] pos)
-        (EnumMap.find enum_uid ctxt.enums)
+        (EnumName.Map.find enum_uid ctxt.enums)
     in
     Expr.ematch
       (translate_expr scope inside_definition_of ctxt e1)
@@ -743,7 +742,7 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Surface.Ast.match_case Marked.pos list) :
-    Ast.expr boxed EnumConstructorMap.t * EnumName.t =
+    Ast.expr boxed EnumConstructor.Map.t * EnumName.t =
   let create_var = function
     | None -> ctxt, Var.make "_"
     | Some param ->
@@ -758,8 +757,8 @@ and disambiguate_match_and_build_expression
       e_binder =
     Expr.eabs e_binder
       [
-        EnumConstructorMap.find c_uid
-          (EnumMap.find e_uid ctxt.Name_resolution.enums);
+        EnumConstructor.Map.find c_uid
+          (EnumName.Map.find e_uid ctxt.Name_resolution.enums);
       ]
       (Marked.get_mark case_body)
   in
@@ -785,7 +784,7 @@ and disambiguate_match_and_build_expression
                case were matching constructors of enumeration %a"
               EnumName.format_t e_uid EnumName.format_t e_uid'
       in
-      (match EnumConstructorMap.find_opt c_uid cases_d with
+      (match EnumConstructor.Map.find_opt c_uid cases_d with
       | None -> ()
       | Some e_case ->
         Errors.raise_multispanned_error
@@ -799,7 +798,9 @@ and disambiguate_match_and_build_expression
       in
       let e_binder = Expr.bind [| param_var |] case_body in
       let case_expr = bind_case_body c_uid e_uid ctxt case_body e_binder in
-      EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1
+      ( EnumConstructor.Map.add c_uid case_expr cases_d,
+        Some e_uid,
+        curr_index + 1 )
     | Surface.Ast.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
@@ -821,13 +822,13 @@ and disambiguate_match_and_build_expression
       | Some e_uid ->
         if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
         let missing_constructors =
-          EnumMap.find e_uid ctxt.Name_resolution.enums
-          |> EnumConstructorMap.filter_map (fun c_uid _ ->
-                 match EnumConstructorMap.find_opt c_uid cases_d with
+          EnumName.Map.find e_uid ctxt.Name_resolution.enums
+          |> EnumConstructor.Map.filter_map (fun c_uid _ ->
+                 match EnumConstructor.Map.find_opt c_uid cases_d with
                  | Some _ -> None
                  | None -> Some c_uid)
         in
-        if EnumConstructorMap.is_empty missing_constructors then
+        if EnumConstructor.Map.is_empty missing_constructors then
           Errors.format_spanned_warning case_pos
             "Unreachable match case, all constructors of the enumeration %a \
              are already specified"
@@ -851,19 +852,19 @@ and disambiguate_match_and_build_expression
         let e_binder = Expr.bind [| payload_var |] case_body in
 
         (* For each missing cases, binds the wildcard payload. *)
-        EnumConstructorMap.fold
+        EnumConstructor.Map.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
             let case_expr =
               bind_case_body c_uid e_uid ctxt case_body e_binder
             in
-            ( EnumConstructorMap.add c_uid case_expr cases_d,
+            ( EnumConstructor.Map.add c_uid case_expr cases_d,
               e_uid_opt,
               curr_index + 1 ))
           missing_constructors
           (cases_d, Some e_uid, curr_index))
   in
   let naked_expr, e_name, _ =
-    List.fold_left bind_match_cases (EnumConstructorMap.empty, None, 0) cases
+    List.fold_left bind_match_cases (EnumConstructor.Map.empty, None, 0) cases
   in
   naked_expr, Option.get e_name
   [@@ocamlformat "wrap-comments=false"]
@@ -934,8 +935,8 @@ let process_def
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (def : Surface.Ast.definition) : Ast.program =
-  let scope : Ast.scope = ScopeMap.find scope_uid prgm.program_scopes in
-  let scope_ctxt = ScopeMap.find scope_uid ctxt.scopes in
+  let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
+  let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   let def_key =
     Name_resolution.get_def_key
       (Marked.unmark def.definition_name)
@@ -994,7 +995,7 @@ let process_def
       {
         scope_def with
         scope_def_rules =
-          RuleMap.add rule_name
+          RuleName.Map.add rule_name
             (process_default new_ctxt scope_uid
                (def_key, Marked.get_mark def.definition_name)
                rule_name param_uid precond exception_situation label_situation
@@ -1009,7 +1010,8 @@ let process_def
   in
   {
     prgm with
-    program_scopes = ScopeMap.add scope_uid scope_updated prgm.program_scopes;
+    program_scopes =
+      ScopeName.Map.add scope_uid scope_updated prgm.program_scopes;
   }
 
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
@@ -1029,7 +1031,7 @@ let process_assert
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (ass : Surface.Ast.assertion) : Ast.program =
-  let scope : Ast.scope = ScopeMap.find scope_uid prgm.program_scopes in
+  let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
   let ass =
     translate_expr scope_uid None ctxt
       (match ass.Surface.Ast.assertion_condition with
@@ -1055,7 +1057,7 @@ let process_assert
   in
   {
     prgm with
-    program_scopes = ScopeMap.add scope_uid new_scope prgm.program_scopes;
+    program_scopes = ScopeName.Map.add scope_uid new_scope prgm.program_scopes;
   }
 
 (** Translates a surface definition, rule or assertion *)
@@ -1080,7 +1082,7 @@ let check_unlabeled_exception
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
     (item : Surface.Ast.scope_use_item Marked.pos) : unit =
-  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
   match Marked.unmark item with
   | Surface.Ast.Rule _ | Surface.Ast.Definition _ -> (
     let def_key, exception_to =
@@ -1129,7 +1131,7 @@ let process_scope_use
   let scope_uid = Name_resolution.get_scope ctxt use.scope_use_name in
   (* Make sure the scope exists *)
   let prgm =
-    match ScopeMap.find_opt scope_uid prgm.program_scopes with
+    match ScopeName.Map.find_opt scope_uid prgm.program_scopes with
     | Some _ -> prgm
     | None -> assert false
     (* should not happen *)
@@ -1163,13 +1165,13 @@ let init_scope_defs
   let add_def _ v scope_def_map =
     match v with
     | Name_resolution.ScopeVar v -> (
-      let v_sig = ScopeVarMap.find v ctxt.Name_resolution.var_typs in
+      let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
         let def_key = Ast.ScopeDef.Var (v, None) in
         Ast.ScopeDefMap.add def_key
           {
-            Ast.scope_def_rules = RuleMap.empty;
+            Ast.scope_def_rules = RuleName.Map.empty;
             Ast.scope_def_typ = v_sig.var_sig_typ;
             Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
             Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
@@ -1182,7 +1184,7 @@ let init_scope_defs
               let def_key = Ast.ScopeDef.Var (v, Some state) in
               let def =
                 {
-                  Ast.scope_def_rules = RuleMap.empty;
+                  Ast.scope_def_rules = RuleName.Map.empty;
                   Ast.scope_def_typ = v_sig.var_sig_typ;
                   Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
                   Ast.scope_def_io =
@@ -1209,7 +1211,7 @@ let init_scope_defs
         scope_def)
     | Name_resolution.SubScope (v0, subscope_uid) ->
       let sub_scope_def =
-        ScopeMap.find subscope_uid ctxt.Name_resolution.scopes
+        ScopeName.Map.find subscope_uid ctxt.Name_resolution.scopes
       in
       Name_resolution.IdentMap.fold
         (fun _ v scope_def_map ->
@@ -1218,14 +1220,14 @@ let init_scope_defs
           | Name_resolution.ScopeVar v ->
             (* TODO: shouldn't we ignore internal variables too at this point
                ? *)
-            let v_sig = ScopeVarMap.find v ctxt.Name_resolution.var_typs in
+            let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
             let def_key =
               Ast.ScopeDef.SubScopeVar
                 (v0, v, Marked.get_mark (ScopeVar.get_info v))
             in
             Ast.ScopeDefMap.add def_key
               {
-                Ast.scope_def_rules = RuleMap.empty;
+                Ast.scope_def_rules = RuleName.Map.empty;
                 Ast.scope_def_typ = v_sig.var_sig_typ;
                 Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
                 Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
@@ -1241,7 +1243,7 @@ let translate_program
     (prgm : Surface.Ast.program) : Ast.program =
   let empty_prgm =
     let program_scopes =
-      ScopeMap.mapi
+      ScopeName.Map.mapi
         (fun s_uid s_context ->
           let scope_vars =
             Name_resolution.IdentMap.fold
@@ -1249,11 +1251,11 @@ let translate_program
                 match v with
                 | Name_resolution.SubScope _ -> acc
                 | Name_resolution.ScopeVar v -> (
-                  let v_sig = ScopeVarMap.find v ctxt.var_typs in
+                  let v_sig = ScopeVar.Map.find v ctxt.var_typs in
                   match v_sig.var_sig_states_list with
-                  | [] -> ScopeVarMap.add v Ast.WholeVar acc
-                  | states -> ScopeVarMap.add v (Ast.States states) acc))
-              s_context.Name_resolution.var_idmap ScopeVarMap.empty
+                  | [] -> ScopeVar.Map.add v Ast.WholeVar acc
+                  | states -> ScopeVar.Map.add v (Ast.States states) acc))
+              s_context.Name_resolution.var_idmap ScopeVar.Map.empty
           in
           let scope_sub_scopes =
             Name_resolution.IdentMap.fold
@@ -1261,8 +1263,8 @@ let translate_program
                 match v with
                 | Name_resolution.ScopeVar _ -> acc
                 | Name_resolution.SubScope (sub_var, sub_scope) ->
-                  SubScopeMap.add sub_var sub_scope acc)
-              s_context.Name_resolution.var_idmap SubScopeMap.empty
+                  SubScopeName.Map.add sub_var sub_scope acc)
+              s_context.Name_resolution.var_idmap SubScopeName.Map.empty
           in
           {
             Ast.scope_vars;
@@ -1284,9 +1286,9 @@ let translate_program
               (fun _ def acc ->
                 match def with
                 | Name_resolution.TScope (scope, scope_out_struct) ->
-                  ScopeMap.add scope scope_out_struct acc
+                  ScopeName.Map.add scope scope_out_struct acc
                 | _ -> acc)
-              ctxt.Name_resolution.typedefs ScopeMap.empty;
+              ctxt.Name_resolution.typedefs ScopeName.Map.empty;
         };
       Ast.program_scopes;
     }

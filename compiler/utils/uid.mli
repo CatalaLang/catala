@@ -49,8 +49,8 @@ module type Id = sig
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
 
-  module Set: Set.S with type elt = t
-  module Map: Map.S with type key = t
+  module Set : Set.S with type elt = t
+  module Map : Map.S with type key = t
 end
 
 (** This is the generative functor that ensures that two modules resulting from
@@ -58,5 +58,5 @@ end
     OCaml typechecker. Prevents mixing up different sorts of identifiers. *)
 module Make (X : Info) () : Id with type info = X.info
 
-(** Shortcut for creating a kind of uids over marked strings *)
 module Gen () : Id with type info = MarkedString.info
+(** Shortcut for creating a kind of uids over marked strings *)

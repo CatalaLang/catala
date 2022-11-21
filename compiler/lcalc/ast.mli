@@ -32,7 +32,7 @@ type 'm program = 'm expr Shared_ast.program
 val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
-val option_enum_config : typ EnumConstructorMap.t
+val option_enum_config : typ EnumConstructor.Map.t
 val make_none : 'm mark -> 'm expr boxed
 val make_some : 'm expr boxed -> 'm expr boxed
 

@@ -94,9 +94,9 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
            (fun fmt (field, mty) ->
              Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-               StructFieldName.format_t field punctuation "\"" punctuation ":"
-               typ mty))
-        (StructFieldMap.bindings (StructMap.find s ctx.ctx_structs))
+               StructField.format_t field punctuation "\"" punctuation ":" typ
+               mty))
+        (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
         punctuation "}")
   | TEnum e -> (
     match ctx with
@@ -109,7 +109,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
            (fun fmt (case, mty) ->
              Format.fprintf fmt "%a%a@ %a" enum_constructor case punctuation ":"
                typ mty))
-        (EnumConstructorMap.bindings (EnumMap.find e ctx.ctx_enums))
+        (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
         punctuation "]")
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
   | TArrow (t1, t2) ->
@@ -330,13 +330,13 @@ let rec expr_aux :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
          (fun fmt (field_name, field_expr) ->
            Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-             StructFieldName.format_t field_name punctuation "\"" punctuation
-             "=" expr field_expr))
-      (StructFieldMap.bindings fields)
+             StructField.format_t field_name punctuation "\"" punctuation "="
+             expr field_expr))
+      (StructField.Map.bindings fields)
       punctuation "}"
   | EStructAccess { e; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" expr e punctuation "." punctuation "\""
-      StructFieldName.format_t field punctuation "\""
+      StructField.format_t field punctuation "\""
   | EInj { e; cons; _ } ->
     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons expr e
   | EMatch { e; cases; _ } ->
@@ -347,7 +347,7 @@ let rec expr_aux :
          (fun fmt (cons_name, case_expr) ->
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
              enum_constructor cons_name punctuation "→" expr case_expr))
-      (EnumConstructorMap.bindings cases)
+      (EnumConstructor.Map.bindings cases)
   | EScopeCall { scope; args } ->
     Format.pp_open_hovbox fmt 2;
     ScopeName.format_t fmt scope;
@@ -362,7 +362,7 @@ let rec expr_aux :
         Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\"" ScopeVar.format_t
           field_name punctuation "\"" punctuation "=" expr field_expr)
       fmt
-      (ScopeVarMap.bindings args);
+      (ScopeVar.Map.bindings args);
     Format.pp_close_box fmt ();
     punctuation fmt "}";
     Format.pp_close_box fmt ()

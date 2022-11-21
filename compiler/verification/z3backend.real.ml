@@ -35,13 +35,13 @@ type context = {
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
-  ctx_z3datatypes : Sort.sort EnumMap.t;
+  ctx_z3datatypes : Sort.sort EnumName.Map.t;
   (* A map from Catala enumeration names to the corresponding Z3 sort, from
      which we can retrieve constructors and accessors *)
   ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t;
   (* A map from Catala temporary variables, generated when translating a match,
      to the corresponding enum accessor call as a Z3 expression *)
-  ctx_z3structs : Sort.sort StructMap.t;
+  ctx_z3structs : Sort.sort StructName.Map.t;
   (* A map from Catala struct names to the corresponding Z3 sort, from which we
      can retrieve the constructor and the accessors *)
   ctx_z3unit : Sort.sort * Expr.expr;
@@ -80,7 +80,7 @@ let add_z3var (name : string) (v : typed expr Var.t) (ty : typ) (ctx : context)
     corresponding Z3 datatype [sort] to the context **)
 let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
     =
-  { ctx with ctx_z3datatypes = EnumMap.add enum sort ctx.ctx_z3datatypes }
+  { ctx with ctx_z3datatypes = EnumName.Map.add enum sort ctx.ctx_z3datatypes }
 
 (** [add_z3matchsubst] adds the mapping between temporary variable [v] and the
     Z3 expression [e] representing an accessor application to the context **)
@@ -92,7 +92,7 @@ let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
     corresponding Z3 datatype [sort] to the context **)
 let add_z3struct (s : StructName.t) (sort : Sort.sort) (ctx : context) : context
     =
-  { ctx with ctx_z3structs = StructMap.add s sort ctx.ctx_z3structs }
+  { ctx with ctx_z3structs = StructName.Map.add s sort ctx.ctx_z3structs }
 
 let add_z3constraint (e : Expr.expr) (ctx : context) : context =
   { ctx with ctx_z3constraints = e :: ctx.ctx_z3constraints }
@@ -161,16 +161,16 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   match Marked.unmark ty with
   | TLit ty -> print_lit ty
   | TStruct name ->
-    let s = StructMap.find name ctx.ctx_decl.ctx_structs in
-    let get_fieldname (fn : StructFieldName.t) : string =
-      Marked.unmark (StructFieldName.get_info fn)
+    let s = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+    let get_fieldname (fn : StructField.t) : string =
+      Marked.unmark (StructField.get_info fn)
     in
     let fields =
       List.map2
         (fun (fn, ty) e ->
           Format.asprintf "-- %s : %s" (get_fieldname fn)
             (print_z3model_expr ctx ty e))
-        (StructFieldMap.bindings s)
+        (StructField.Map.bindings s)
         (Expr.get_args e)
     in
 
@@ -187,13 +187,13 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     let fd = Expr.get_func_decl e in
     let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
 
-    let enum_ctrs = EnumMap.find name ctx.ctx_decl.ctx_enums in
+    let enum_ctrs = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
     let case =
       List.find
         (fun (ctr, _) ->
           (* FIXME: don't match on strings *)
           String.equal fd_name (Marked.unmark (EnumConstructor.get_info ctr)))
-        (EnumConstructorMap.bindings enum_ctrs)
+        (EnumConstructor.Map.bindings enum_ctrs)
     in
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
@@ -310,12 +310,12 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
         [Sort.get_id arg_z3_ty] )
   in
 
-  match EnumMap.find_opt enum ctx.ctx_z3datatypes with
+  match EnumName.Map.find_opt enum ctx.ctx_z3datatypes with
   | Some e -> ctx, e
   | None ->
-    let ctrs = EnumMap.find enum ctx.ctx_decl.ctx_enums in
+    let ctrs = EnumName.Map.find enum ctx.ctx_decl.ctx_enums in
     let ctx, z3_ctrs =
-      EnumConstructorMap.fold
+      EnumConstructor.Map.fold
         (fun ctr ty (ctx, ctrs) ->
           let ctx, ctr = create_constructor ctr ty ctx in
           ctx, ctr :: ctrs)
@@ -334,20 +334,20 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context *)
 and find_or_create_struct (ctx : context) (s : StructName.t) :
     context * Sort.sort =
-  match StructMap.find_opt s ctx.ctx_z3structs with
+  match StructName.Map.find_opt s ctx.ctx_z3structs with
   | Some s -> ctx, s
   | None ->
     let s_name = Marked.unmark (StructName.get_info s) in
-    let fields = StructMap.find s ctx.ctx_decl.ctx_structs in
+    let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
     let z3_fieldnames =
       List.map
         (fun f ->
-          Marked.unmark (StructFieldName.get_info (fst f))
+          Marked.unmark (StructField.get_info (fst f))
           |> Symbol.mk_string ctx.ctx_z3)
-        (StructFieldMap.bindings fields)
+        (StructField.Map.bindings fields)
     in
     let ctx, z3_fieldtypes_rev =
-      StructFieldMap.fold
+      StructField.Map.fold
         (fun _ ty (ctx, ftypes) ->
           let ctx, ftype = translate_typ ctx (Marked.unmark ty) in
           ctx, ftype :: ftypes)
@@ -709,14 +709,12 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let idx_mappings =
       List.combine
         (List.map fst
-           (StructFieldMap.bindings
-              (StructMap.find name ctx.ctx_decl.ctx_structs)))
+           (StructField.Map.bindings
+              (StructName.Map.find name ctx.ctx_decl.ctx_structs)))
         accessors
     in
     let _, accessor =
-      List.find
-        (fun (field1, _) -> StructFieldName.equal field field1)
-        idx_mappings
+      List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
     in
     let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
@@ -730,8 +728,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let idx_mappings =
       List.combine
         (List.map fst
-           (EnumConstructorMap.bindings
-              (EnumMap.find name ctx.ctx_decl.ctx_enums)))
+           (EnumConstructor.Map.bindings
+              (EnumName.Map.find name ctx.ctx_decl.ctx_enums)))
         ctrs
     in
     let _, ctr =
@@ -760,7 +758,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         (translate_match_arm z3_arg)
         ctx
         (List.combine
-           (List.map snd (EnumConstructorMap.bindings cases))
+           (List.map snd (EnumConstructor.Map.bindings cases))
            (Datatype.get_accessors z3_enum))
     in
     let z3_arms =
@@ -873,9 +871,9 @@ module Backend = struct
       ctx_decl = decl_ctx;
       ctx_funcdecl = Var.Map.empty;
       ctx_z3vars = StringMap.empty;
-      ctx_z3datatypes = EnumMap.empty;
+      ctx_z3datatypes = EnumName.Map.empty;
       ctx_z3matchsubsts = Var.Map.empty;
-      ctx_z3structs = StructMap.empty;
+      ctx_z3structs = StructName.Map.empty;
       ctx_z3unit = z3unit;
       ctx_z3constraints = [];
     }

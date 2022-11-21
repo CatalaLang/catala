@@ -45,15 +45,15 @@ type scope_context = {
       (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
-  sub_scopes : ScopeSet.t;
+  sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ StructFieldMap.t
+type struct_context = typ StructField.Map.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ EnumConstructorMap.t
+type enum_context = typ EnumConstructor.Map.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
@@ -78,16 +78,17 @@ type context = {
           arguments or pattern matching *)
   typedefs : typedef IdentMap.t;
       (** Gathers the names of the scopes, structs and enums *)
-  field_idmap : StructFieldName.t StructMap.t IdentMap.t;
+  field_idmap : StructField.t StructName.Map.t IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  constructor_idmap : EnumConstructor.t EnumMap.t IdentMap.t;
+  constructor_idmap : EnumConstructor.t EnumName.Map.t IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
-  scopes : scope_context ScopeMap.t;  (** For each scope, its context *)
-  structs : struct_context StructMap.t;  (** For each struct, its context *)
-  enums : enum_context EnumMap.t;  (** For each enum, its context *)
-  var_typs : var_sig ScopeVarMap.t;
+  scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
+  structs : struct_context StructName.Map.t;
+      (** For each struct, its context *)
+  enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
+  var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)

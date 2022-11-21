@@ -178,7 +178,7 @@ type meta_assertion =
   | VariesWith of unit * variation_typ Marked.pos option
 
 type scope_def = {
-  scope_def_rules : rule RuleMap.t;
+  scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
   scope_def_is_condition : bool;
   scope_def_io : io;
@@ -187,15 +187,18 @@ type scope_def = {
 type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
-  scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : ScopeName.t SubScopeMap.t;
+  scope_vars : var_or_states ScopeVar.Map.t;
+  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
+type program = {
+  program_scopes : scope ScopeName.Map.t;
+  program_ctx : decl_ctx;
+}
 
 let rec locations_used e : LocationSet.t =
   match e with
@@ -208,7 +211,7 @@ let rec locations_used e : LocationSet.t =
       (fun e -> LocationSet.union (locations_used e))
       e LocationSet.empty
 
-let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
+let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
   let add_locs (acc : Pos.t ScopeDefMap.t) (locs : LocationSet.t) :
       Pos.t ScopeDefMap.t =
     LocationSet.fold
@@ -224,7 +227,7 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
           loc_pos acc)
       locs acc
   in
-  RuleMap.fold
+  RuleName.Map.fold
     (fun _ rule acc ->
       let locs =
         LocationSet.union

@@ -127,11 +127,10 @@ let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
     (avoid_keywords
        (to_camel_case (to_ascii (Format.asprintf "%a" StructName.format_t v))))
 
-let format_struct_field_name (fmt : Format.formatter) (v : StructFieldName.t) :
-    unit =
+let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
+    =
   Format.fprintf fmt "%s"
-    (avoid_keywords
-       (to_ascii (Format.asprintf "%a" StructFieldName.format_t v)))
+    (avoid_keywords (to_ascii (Format.asprintf "%a" StructField.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
@@ -272,7 +271,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              (format_expression ctx) e))
       (List.combine es
-         (StructFieldMap.bindings (StructMap.find s ctx.ctx_structs)))
+         (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs)))
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
@@ -401,7 +400,7 @@ let rec format_statement
       List.map2
         (fun (x, y) (cons, _) -> x, y, cons)
         cases
-        (EnumConstructorMap.bindings (EnumMap.find e_name ctx.ctx_enums))
+        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     let tmp_var = LocalName.fresh ("match_arg", Pos.no_pos) in
     Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" format_var tmp_var
@@ -443,7 +442,7 @@ let format_ctx
     (fmt : Format.formatter)
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
-    let fields = StructFieldMap.bindings struct_fields in
+    let fields = StructField.Map.bindings struct_fields in
     Format.fprintf fmt
       "class %a:@\n\
       \    def __init__(self, %a) -> None:@\n\
@@ -467,7 +466,7 @@ let format_ctx
            Format.fprintf fmt "%a: %a" format_struct_field_name struct_field
              format_typ struct_field_type))
       fields
-      (if StructFieldMap.is_empty struct_fields then fun fmt _ ->
+      (if StructField.Map.is_empty struct_fields then fun fmt _ ->
        Format.fprintf fmt "        pass"
       else
         Format.pp_print_list
@@ -476,7 +475,7 @@ let format_ctx
             Format.fprintf fmt "        self.%a = %a" format_struct_field_name
               struct_field format_struct_field_name struct_field))
       fields format_struct_name struct_name
-      (if not (StructFieldMap.is_empty struct_fields) then
+      (if not (StructField.Map.is_empty struct_fields) then
        Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
          (fun fmt (struct_field, _) ->
@@ -496,7 +495,7 @@ let format_ctx
       fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    if EnumConstructorMap.is_empty enum_cons then
+    if EnumConstructor.Map.is_empty enum_cons then
       failwith "no constructors in the enum"
     else
       Format.fprintf fmt
@@ -529,7 +528,7 @@ let format_ctx
              Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
         (List.mapi
            (fun i (x, y) -> i, x, y)
-           (EnumConstructorMap.bindings enum_cons))
+           (EnumConstructor.Map.bindings enum_cons))
         format_enum_name enum_name format_enum_name enum_name format_enum_name
         enum_name
   in
@@ -545,8 +544,8 @@ let format_ctx
   let scope_structs =
     List.map
       (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
-      (StructMap.bindings
-         (StructMap.filter
+      (StructName.Map.bindings
+         (StructName.Map.filter
             (fun s _ -> not (is_in_type_ordering s))
             ctx.ctx_structs))
   in
@@ -555,10 +554,10 @@ let format_ctx
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
         Format.fprintf fmt "%a@\n@\n" format_struct_decl
-          (s, StructMap.find s ctx.ctx_structs)
+          (s, StructName.Map.find s ctx.ctx_structs)
       | Scopelang.Dependency.TVertex.Enum e ->
         Format.fprintf fmt "%a@\n@\n" format_enum_decl
-          (e, EnumMap.find e ctx.ctx_enums))
+          (e, EnumName.Map.find e ctx.ctx_enums))
     (type_ordering @ scope_structs)
 
 let format_program

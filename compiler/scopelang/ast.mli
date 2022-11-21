@@ -38,13 +38,13 @@ type 'm rule =
 
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ * Desugared.Ast.io) ScopeVarMap.t;
+  scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
 }
 
 type 'm program = {
-  program_scopes : 'm scope_decl ScopeMap.t;
+  program_scopes : 'm scope_decl ScopeName.Map.t;
   program_ctx : decl_ctx;
 }
 

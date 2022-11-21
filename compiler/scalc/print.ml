@@ -46,10 +46,10 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, (struct_field, _)) ->
            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
-             StructFieldName.format_t struct_field Print.punctuation "\""
+             StructField.format_t struct_field Print.punctuation "\""
              Print.punctuation ":" format_expr e))
       (List.combine es
-         (StructFieldMap.bindings (StructMap.find s decl_ctx.ctx_structs)))
+         (StructField.Map.bindings (StructName.Map.find s decl_ctx.ctx_structs)))
       Print.punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "["
@@ -59,8 +59,7 @@ let rec format_expr
       es Print.punctuation "]"
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
-      Print.punctuation "\"" StructFieldName.format_t field Print.punctuation
-      "\""
+      Print.punctuation "\"" StructField.format_t field Print.punctuation "\""
   | EInj (e, cons, _) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor cons
       format_expr e
@@ -153,7 +152,8 @@ let rec format_statement
              (format_block decl_ctx ~debug)
              arm_block))
       (List.combine
-         (EnumConstructorMap.bindings (EnumMap.find enum decl_ctx.ctx_enums))
+         (EnumConstructor.Map.bindings
+            (EnumName.Map.find enum decl_ctx.ctx_enums))
          arms)
 
 and format_block

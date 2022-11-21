@@ -44,7 +44,7 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
       (* We do not close the clotures inside the arms of the match expression,
          since they get a special treatment at compilation to Scalc. *)
       let free_vars, new_cases =
-        EnumConstructorMap.fold
+        EnumConstructor.Map.fold
           (fun cons e1 (free_vars, new_cases) ->
             match Marked.unmark e1 with
             | EAbs { binder; tys } ->
@@ -52,12 +52,12 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
               let new_free_vars, new_body = aux body in
               let new_binder = Expr.bind vars new_body in
               ( Var.Set.union free_vars new_free_vars,
-                EnumConstructorMap.add cons
+                EnumConstructor.Map.add cons
                   (Expr.eabs new_binder tys (Marked.get_mark e1))
                   new_cases )
             | _ -> failwith "should not happen")
           cases
-          (free_vars, EnumConstructorMap.empty)
+          (free_vars, EnumConstructor.Map.empty)
       in
       free_vars, Expr.ematch new_e name new_cases m
     | EApp { f = EAbs { binder; tys }, e1_pos; args } ->

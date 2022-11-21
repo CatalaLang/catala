@@ -31,25 +31,26 @@ type 'm scope_sig_ctx = {
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
   scope_sig_in_fields :
-    (StructFieldName.t * Desugared.Ast.io_input Marked.pos) ScopeVarMap.t;
+    (StructField.t * Desugared.Ast.io_input Marked.pos) ScopeVar.Map.t;
       (** Mapping between the input scope variables and the input struct fields. *)
-  scope_sig_out_fields : StructFieldName.t ScopeVarMap.t;
+  scope_sig_out_fields : StructField.t ScopeVar.Map.t;
       (** Mapping between the output scope variables and the output struct
           fields. TODO: could likely be removed now that we have it in the
           program ctx *)
 }
 
-type 'm scope_sigs_ctx = 'm scope_sig_ctx ScopeMap.t
+type 'm scope_sigs_ctx = 'm scope_sig_ctx ScopeName.Map.t
 
 type 'm ctx = {
   structs : struct_ctx;
   enums : enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : 'm scope_sigs_ctx;
-  scope_vars : ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVarMap.t;
+  scope_vars :
+    ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t;
   subscope_vars :
-    ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVarMap.t
-    SubScopeMap.t;
+    ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t
+    SubScopeName.Map.t;
   local_vars : ('m Scopelang.Ast.expr, 'm Ast.expr Var.t) Var.Map.t;
 }
 
@@ -63,8 +64,8 @@ let empty_ctx
     enums = enum_ctx;
     scope_name;
     scopes_parameters = scopes_ctx;
-    scope_vars = ScopeVarMap.empty;
-    subscope_vars = SubScopeMap.empty;
+    scope_vars = ScopeVar.Map.empty;
+    subscope_vars = SubScopeName.Map.empty;
     local_vars = Var.Map.empty;
   }
 
@@ -171,7 +172,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        | LDuration _ ) as l) ->
     Expr.elit l m
   | EStruct { name; fields } ->
-    let fields = StructFieldMap.map (translate_expr ctx) fields in
+    let fields = StructField.Map.map (translate_expr ctx) fields in
     Expr.estruct name fields m
   | EStructAccess { e; field; name } ->
     Expr.estructaccess (translate_expr ctx e) field name m
@@ -179,13 +180,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     let e' = translate_expr ctx e in
     Expr.einj e' cons name m
   | EMatch { e = e1; name; cases = e_cases } ->
-    let enum_sig = EnumMap.find name ctx.enums in
+    let enum_sig = EnumName.Map.find name ctx.enums in
     let d_cases, remaining_e_cases =
       (* FIXME: these checks should probably be moved to a better place *)
-      EnumConstructorMap.fold
+      EnumConstructor.Map.fold
         (fun constructor _ (d_cases, e_cases) ->
           let case_e =
-            try EnumConstructorMap.find constructor e_cases
+            try EnumConstructor.Map.find constructor e_cases
             with Not_found ->
               Errors.raise_spanned_error (Expr.pos e)
                 "The constructor %a of enum %a is missing from this pattern \
@@ -193,26 +194,26 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                 EnumConstructor.format_t constructor EnumName.format_t name
           in
           let case_d = translate_expr ctx case_e in
-          ( EnumConstructorMap.add constructor case_d d_cases,
-            EnumConstructorMap.remove constructor e_cases ))
+          ( EnumConstructor.Map.add constructor case_d d_cases,
+            EnumConstructor.Map.remove constructor e_cases ))
         enum_sig
-        (EnumConstructorMap.empty, e_cases)
+        (EnumConstructor.Map.empty, e_cases)
     in
-    if not (EnumConstructorMap.is_empty remaining_e_cases) then
+    if not (EnumConstructor.Map.is_empty remaining_e_cases) then
       Errors.raise_spanned_error (Expr.pos e)
         "Pattern matching is incomplete for enum %a: missing cases %a"
         EnumName.format_t name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun fmt (case_name, _) -> EnumConstructor.format_t fmt case_name))
-        (EnumConstructorMap.bindings remaining_e_cases);
+        (EnumConstructor.Map.bindings remaining_e_cases);
     let e1 = translate_expr ctx e1 in
     Expr.ematch e1 name d_cases m
   | EScopeCall { scope; args } ->
     let pos = Expr.mark_pos m in
-    let sc_sig = ScopeMap.find scope ctx.scopes_parameters in
+    let sc_sig = ScopeName.Map.find scope ctx.scopes_parameters in
     let in_var_map =
-      ScopeVarMap.merge
+      ScopeVar.Map.merge
         (fun var_name str_field expr ->
           let expr =
             match str_field, expr with
@@ -229,7 +230,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
               [
                 None, pos;
                 ( Some "Declaration of the missing input variable",
-                  Marked.get_mark (StructFieldName.get_info fld) );
+                  Marked.get_mark (StructField.get_info fld) );
               ]
               "Definition of input variable '%a' missing in this scope call"
               ScopeVar.format_t var_name
@@ -245,9 +246,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         sc_sig.scope_sig_in_fields args
     in
     let field_map =
-      ScopeVarMap.fold
-        (fun _ (fld, e) acc -> StructFieldMap.add fld e acc)
-        in_var_map StructFieldMap.empty
+      ScopeVar.Map.fold
+        (fun _ (fld, e) acc -> StructField.Map.add fld e acc)
+        in_var_map StructField.Map.empty
     in
     let arg_struct =
       Expr.estruct sc_sig.scope_sig_input_struct field_map (mark_tany m pos)
@@ -278,7 +279,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
          -- for more information see
          https://github.com/CatalaLang/catala/pull/280#discussion_r898851693. *)
       let retrieve_in_and_out_typ_or_any var vars =
-        let _, typ, _ = ScopeVarMap.find (Marked.unmark var) vars in
+        let _, typ, _ = ScopeVar.Map.find (Marked.unmark var) vars in
         match typ with
         | TArrow (marked_input_typ, marked_output_typ) ->
           Marked.unmark marked_input_typ, Marked.unmark marked_output_typ
@@ -289,7 +290,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         retrieve_in_and_out_typ_or_any var ctx.scope_vars
       | ELocation (SubScopeVar (_, sname, var)) ->
         ctx.subscope_vars
-        |> SubScopeMap.find (Marked.unmark sname)
+        |> SubScopeName.Map.find (Marked.unmark sname)
         |> retrieve_in_and_out_typ_or_any var
       | _ -> TAny, TAny
     in
@@ -336,13 +337,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       (List.map (translate_expr ctx) excepts)
       (translate_expr ctx just) (translate_expr ctx cons) m
   | ELocation (ScopelangScopeVar a) ->
-    let v, _, _ = ScopeVarMap.find (Marked.unmark a) ctx.scope_vars in
+    let v, _, _ = ScopeVar.Map.find (Marked.unmark a) ctx.scope_vars in
     Expr.evar v m
   | ELocation (SubScopeVar (_, s, a)) -> (
     try
       let v, _, _ =
-        ScopeVarMap.find (Marked.unmark a)
-          (SubScopeMap.find (Marked.unmark s) ctx.subscope_vars)
+        ScopeVar.Map.find (Marked.unmark a)
+          (SubScopeName.Map.find (Marked.unmark s) ctx.subscope_vars)
       in
       Expr.evar v m
     with Not_found ->
@@ -416,7 +417,7 @@ let translate_rule
       {
         ctx with
         scope_vars =
-          ScopeVarMap.add (Marked.unmark a)
+          ScopeVar.Map.add (Marked.unmark a)
             (a_var, Marked.unmark tau, a_io)
             ctx.scope_vars;
       } )
@@ -461,22 +462,22 @@ let translate_rule
       {
         ctx with
         subscope_vars =
-          SubScopeMap.update (Marked.unmark subs_index)
+          SubScopeName.Map.update (Marked.unmark subs_index)
             (fun map ->
               match map with
               | Some map ->
                 Some
-                  (ScopeVarMap.add (Marked.unmark subs_var)
+                  (ScopeVar.Map.add (Marked.unmark subs_var)
                      (a_var, Marked.unmark tau, a_io)
                      map)
               | None ->
                 Some
-                  (ScopeVarMap.singleton (Marked.unmark subs_var)
+                  (ScopeVar.Map.singleton (Marked.unmark subs_var)
                      (a_var, Marked.unmark tau, a_io)))
             ctx.subscope_vars;
       } )
   | Call (subname, subindex, m) ->
-    let subscope_sig = ScopeMap.find subname ctx.scopes_parameters in
+    let subscope_sig = ScopeName.Map.find subname ctx.scopes_parameters in
     let all_subscope_vars = subscope_sig.scope_sig_local_vars in
     let all_subscope_input_vars =
       List.filter
@@ -496,11 +497,11 @@ let translate_rule
     let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
     let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let subscope_vars_defined =
-      try SubScopeMap.find subindex ctx.subscope_vars
-      with Not_found -> ScopeVarMap.empty
+      try SubScopeName.Map.find subindex ctx.subscope_vars
+      with Not_found -> ScopeVar.Map.empty
     in
     let subscope_var_not_yet_defined subvar =
-      not (ScopeVarMap.mem subvar subscope_vars_defined)
+      not (ScopeVar.Map.mem subvar subscope_vars_defined)
     in
     let pos_call = Marked.get_mark (SubScopeName.get_info subindex) in
     let subscope_args =
@@ -515,17 +516,17 @@ let translate_rule
               Expr.empty_thunked_term m
             else
               let a_var, _, _ =
-                ScopeVarMap.find subvar.scope_var_name subscope_vars_defined
+                ScopeVar.Map.find subvar.scope_var_name subscope_vars_defined
               in
               Expr.make_var a_var (mark_tany m pos_call)
           in
           let field =
             Marked.unmark
-              (ScopeVarMap.find subvar.scope_var_name
+              (ScopeVar.Map.find subvar.scope_var_name
                  subscope_sig.scope_sig_in_fields)
           in
-          StructFieldMap.add field e acc)
-        StructFieldMap.empty all_subscope_input_vars
+          StructField.Map.add field e acc)
+        StructField.Map.empty all_subscope_input_vars
     in
     let subscope_struct_arg =
       Expr.estruct called_scope_input_struct subscope_args
@@ -583,7 +584,7 @@ let translate_rule
       List.fold_right
         (fun (var_ctx, v) next ->
           let field =
-            ScopeVarMap.find var_ctx.scope_var_name
+            ScopeVar.Map.find var_ctx.scope_var_name
               subscope_sig.scope_sig_out_fields
           in
           Bindlib.box_apply2
@@ -608,13 +609,13 @@ let translate_rule
       {
         ctx with
         subscope_vars =
-          SubScopeMap.add subindex
+          SubScopeName.Map.add subindex
             (List.fold_left
                (fun acc (var_ctx, dvar) ->
-                 ScopeVarMap.add var_ctx.scope_var_name
+                 ScopeVar.Map.add var_ctx.scope_var_name
                    (dvar, var_ctx.scope_var_typ, var_ctx.scope_var_io)
                    acc)
-               ScopeVarMap.empty all_subscope_output_vars_dcalc)
+               ScopeVar.Map.empty all_subscope_output_vars_dcalc)
             ctx.subscope_vars;
       } )
   | Assertion e ->
@@ -660,15 +661,15 @@ let translate_rules
   in
   let return_exp =
     Expr.estruct scope_sig.scope_sig_output_struct
-      (ScopeVarMap.fold
+      (ScopeVar.Map.fold
          (fun var (dcalc_var, _, io) acc ->
            if Marked.unmark io.Desugared.Ast.io_output then
-             let field = ScopeVarMap.find var scope_sig.scope_sig_out_fields in
-             StructFieldMap.add field
+             let field = ScopeVar.Map.find var scope_sig.scope_sig_out_fields in
+             StructField.Map.add field
                (Expr.make_var dcalc_var (mark_tany mark pos_sigma))
                acc
            else acc)
-         new_ctx.scope_vars StructFieldMap.empty)
+         new_ctx.scope_vars StructField.Map.empty)
       (mark_tany mark pos_sigma)
   in
   ( scope_lets
@@ -685,7 +686,7 @@ let translate_scope_decl
     (sigma : 'm Scopelang.Ast.scope_decl) :
     'm Ast.expr scope_body Bindlib.box * struct_ctx =
   let sigma_info = ScopeName.get_info sigma.scope_decl_name in
-  let scope_sig = ScopeMap.find sigma.scope_decl_name sctx in
+  let scope_sig = ScopeName.Map.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
   let ctx =
     (* the context must be initialized for fresh variables for all only-input
@@ -699,7 +700,7 @@ let translate_scope_decl
           {
             ctx with
             scope_vars =
-              ScopeVarMap.add scope_var.scope_var_name
+              ScopeVar.Map.add scope_var.scope_var_name
                 ( scope_var_dcalc,
                   scope_var.scope_var_typ,
                   scope_var.scope_var_io )
@@ -721,7 +722,7 @@ let translate_scope_decl
     List.map
       (fun var_ctx ->
         let dcalc_x, _, _ =
-          ScopeVarMap.find var_ctx.scope_var_name ctx.scope_vars
+          ScopeVar.Map.find var_ctx.scope_var_name ctx.scope_vars
         in
         var_ctx, dcalc_x)
       scope_variables
@@ -748,7 +749,7 @@ let translate_scope_decl
       (fun (var_ctx, v) next ->
         let field =
           Marked.unmark
-            (ScopeVarMap.find var_ctx.scope_var_name
+            (ScopeVar.Map.find var_ctx.scope_var_name
                scope_sig.scope_sig_in_fields)
         in
         Bindlib.box_apply2
@@ -774,11 +775,13 @@ let translate_scope_decl
     List.fold_left
       (fun acc (var_ctx, _) ->
         let var = var_ctx.scope_var_name in
-        let field, _ = ScopeVarMap.find var scope_sig.scope_sig_in_fields in
-        StructFieldMap.add field (input_var_typ var_ctx) acc)
-      StructFieldMap.empty scope_input_variables
+        let field, _ = ScopeVar.Map.find var scope_sig.scope_sig_in_fields in
+        StructField.Map.add field (input_var_typ var_ctx) acc)
+      StructField.Map.empty scope_input_variables
   in
-  let new_struct_ctx = StructMap.singleton scope_input_struct_name field_map in
+  let new_struct_ctx =
+    StructName.Map.singleton scope_input_struct_name field_map
+  in
   ( Bindlib.box_apply
       (fun scope_body_expr ->
         {
@@ -798,14 +801,14 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
   in
   let decl_ctx = prgm.program_ctx in
   let sctx : 'm scope_sigs_ctx =
-    ScopeMap.mapi
+    ScopeName.Map.mapi
       (fun scope_name scope ->
         let scope_dvar =
           Var.make
             (Marked.unmark
                (ScopeName.get_info scope.Scopelang.Ast.scope_decl_name))
         in
-        let scope_return = ScopeMap.find scope_name decl_ctx.ctx_scopes in
+        let scope_return = ScopeName.Map.find scope_name decl_ctx.ctx_scopes in
         let scope_input_var =
           Var.make (Marked.unmark (ScopeName.get_info scope_name) ^ "_in")
         in
@@ -816,7 +819,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
                (ScopeName.get_info scope_name))
         in
         let scope_sig_in_fields =
-          ScopeVarMap.filter_map
+          ScopeVar.Map.filter_map
             (fun dvar (_, vis) ->
               match Marked.unmark vis.Desugared.Ast.io_input with
               | NoInput -> None
@@ -824,7 +827,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
                 let info = ScopeVar.get_info dvar in
                 let s = Marked.unmark info ^ "_in" in
                 Some
-                  ( StructFieldName.fresh (s, Marked.get_mark info),
+                  ( StructField.fresh (s, Marked.get_mark info),
                     vis.Desugared.Ast.io_input ))
             scope.scope_sig
         in
@@ -837,7 +840,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
                   scope_var_typ = Marked.unmark tau;
                   scope_var_io = vis;
                 })
-              (ScopeVarMap.bindings scope.scope_sig);
+              (ScopeVar.Map.bindings scope.scope_sig);
           scope_sig_scope_var = scope_dvar;
           scope_sig_input_var = scope_input_var;
           scope_sig_input_struct = scope_input_struct_name;
@@ -852,17 +855,17 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
      order, then the chained scopes aggregated from the right. *)
   let rec translate_scopes decl_ctx = function
     | scope_name :: next_scopes ->
-      let scope = ScopeMap.find scope_name prgm.program_scopes in
+      let scope = ScopeName.Map.find scope_name prgm.program_scopes in
       let scope_body, scope_in_struct =
         translate_scope_decl decl_ctx.ctx_structs decl_ctx.ctx_enums sctx
           scope_name scope
       in
-      let dvar = (ScopeMap.find scope_name sctx).scope_sig_scope_var in
+      let dvar = (ScopeName.Map.find scope_name sctx).scope_sig_scope_var in
       let decl_ctx =
         {
           decl_ctx with
           ctx_structs =
-            StructMap.union
+            StructName.Map.union
               (fun _ _ -> assert false (* should not happen *))
               decl_ctx.ctx_structs scope_in_struct;
         }

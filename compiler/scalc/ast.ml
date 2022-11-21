@@ -31,7 +31,7 @@ and naked_expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t
   | EStruct of expr list * StructName.t
-  | EStructFieldAccess of expr * StructFieldName.t * StructName.t
+  | EStructFieldAccess of expr * StructField.t * StructName.t
   | EInj of expr * EnumConstructor.t * EnumName.t
   | EArray of expr list
   | ELit of L.lit

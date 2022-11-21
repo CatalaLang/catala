@@ -26,7 +26,7 @@ type target_scope_vars =
   | States of (StateName.t * ScopeVar.t) list
 
 type ctx = {
-  scope_var_mapping : target_scope_vars ScopeVarMap.t;
+  scope_var_mapping : target_scope_vars ScopeVar.Map.t;
   var_mapping : (Desugared.Ast.expr, untyped Ast.expr Var.t) Var.Map.t;
 }
 
@@ -46,7 +46,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
     let new_s_var =
-      match ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping with
+      match ScopeVar.Map.find (Marked.unmark s_var) ctx.scope_var_mapping with
       | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
       | States states ->
         Marked.same_mark_as (snd (List.hd (List.rev states))) s_var
@@ -56,7 +56,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     Expr.elocation
       (ScopelangScopeVar
          (match
-            ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
+            ScopeVar.Map.find (Marked.unmark s_var) ctx.scope_var_mapping
           with
          | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
          | States _ -> failwith "should not happen"))
@@ -65,27 +65,27 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     Expr.elocation
       (ScopelangScopeVar
          (match
-            ScopeVarMap.find (Marked.unmark s_var) ctx.scope_var_mapping
+            ScopeVar.Map.find (Marked.unmark s_var) ctx.scope_var_mapping
           with
          | WholeVar _ -> failwith "should not happen"
          | States states -> Marked.same_mark_as (List.assoc state states) s_var))
       m
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct { name; fields } ->
-    Expr.estruct name (StructFieldMap.map (translate_expr ctx) fields) m
+    Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
   | EStructAccess { e; field; name } ->
     Expr.estructaccess (translate_expr ctx e) field name m
   | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { e; name; cases } ->
     Expr.ematch (translate_expr ctx e) name
-      (EnumConstructorMap.map (translate_expr ctx) cases)
+      (EnumConstructor.Map.map (translate_expr ctx) cases)
       m
   | EScopeCall { scope; args } ->
     Expr.escopecall scope
-      (ScopeVarMap.fold
+      (ScopeVar.Map.fold
          (fun v e args' ->
            let v' =
-             match ScopeVarMap.find v ctx.scope_var_mapping with
+             match ScopeVar.Map.find v ctx.scope_var_mapping with
              | WholeVar v' -> v'
              | States ((_, v') :: _) ->
                (* When there are multiple states, the input is always the first
@@ -93,8 +93,8 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
                v'
              | States [] -> assert false
            in
-           ScopeVarMap.add v' (translate_expr ctx e) args')
-         args ScopeVarMap.empty)
+           ScopeVar.Map.add v' (translate_expr ctx e) args')
+         args ScopeVar.Map.empty)
       m
   | ELit
       (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
@@ -139,7 +139,7 @@ type rule_tree =
     priorities declared between rules *)
 let def_map_to_tree
     (def_info : Desugared.Ast.ScopeDef.t)
-    (def : Desugared.Ast.rule RuleMap.t) : rule_tree list =
+    (def : Desugared.Ast.rule RuleName.Map.t) : rule_tree list =
   let exc_graph = Desugared.Dependency.build_exceptions_graph def def_info in
   Desugared.Dependency.check_for_exception_cycle exc_graph;
   (* we start by the base cases: they are the vertices which have no
@@ -153,12 +153,14 @@ let def_map_to_tree
         else base_cases)
       exc_graph []
   in
-  let rec build_tree (base_cases : RuleSet.t) : rule_tree =
+  let rec build_tree (base_cases : RuleName.Set.t) : rule_tree =
     let exceptions =
       Desugared.Dependency.ExceptionsDependencies.pred exc_graph base_cases
     in
     let base_case_as_rule_list =
-      List.map (fun r -> RuleMap.find r def) (RuleSet.elements base_cases)
+      List.map
+        (fun r -> RuleName.Map.find r def)
+        (RuleName.Set.elements base_cases)
     in
     match exceptions with
     | [] -> Leaf base_case_as_rule_list
@@ -278,7 +280,7 @@ let rec rule_tree_to_expr
 let translate_def
     (ctx : ctx)
     (def_info : Desugared.Ast.ScopeDef.t)
-    (def : Desugared.Ast.rule RuleMap.t)
+    (def : Desugared.Ast.rule RuleName.Map.t)
     (typ : typ)
     (io : Desugared.Ast.io)
     ~(is_cond : bool)
@@ -290,9 +292,9 @@ let translate_def
   let is_rule_func _ (r : Desugared.Ast.rule) : bool =
     Option.is_some r.Desugared.Ast.rule_parameter
   in
-  let all_rules_func = RuleMap.for_all is_rule_func def in
+  let all_rules_func = RuleName.Map.for_all is_rule_func def in
   let all_rules_not_func =
-    RuleMap.for_all (fun n r -> not (is_rule_func n r)) def
+    RuleName.Map.for_all (fun n r -> not (is_rule_func n r)) def
   in
   let is_def_func_param_typ : typ option =
     if is_def_func && all_rules_func then
@@ -310,13 +312,13 @@ let translate_def
           (fun (_, r) ->
             ( Some "This definition is a function:",
               Expr.pos r.Desugared.Ast.rule_cons ))
-          (RuleMap.bindings (RuleMap.filter is_rule_func def))
+          (RuleName.Map.bindings (RuleName.Map.filter is_rule_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
                 Expr.pos r.Desugared.Ast.rule_cons ))
-            (RuleMap.bindings
-               (RuleMap.filter (fun n r -> not (is_rule_func n r)) def))
+            (RuleName.Map.bindings
+               (RuleName.Map.filter (fun n r -> not (is_rule_func n r)) def))
       in
       Errors.raise_multispanned_error spans
         "some definitions of the same variable are functions while others \
@@ -340,7 +342,7 @@ let translate_def
     else None
   in
   if
-    RuleMap.cardinal def = 0
+    RuleName.Map.cardinal def = 0
     && is_subscope_var
     (* Here we have a special case for the empty definitions. Indeed, we could
        use the code for the regular case below that would create a convoluted
@@ -421,7 +423,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
              match
                Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input
              with
-             | OnlyInput when not (RuleMap.is_empty var_def) ->
+             | OnlyInput when not (RuleName.Map.is_empty var_def) ->
                (* If the variable is tagged as input, then it shall not be
                   redefined. *)
                Errors.raise_multispanned_error
@@ -431,7 +433,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                       (fun (rule, _) ->
                         ( Some "Incriminated variable definition:",
                           Marked.get_mark (RuleName.get_info rule) ))
-                      (RuleMap.bindings var_def))
+                      (RuleName.Map.bindings var_def))
                  "It is impossible to give a definition to a scope variable \
                   tagged as input."
              | OnlyInput ->
@@ -445,7 +447,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                    ~is_subscope_var:false
                in
                let scope_var =
-                 match ScopeVarMap.find var ctx.scope_var_mapping, state with
+                 match ScopeVar.Map.find var ctx.scope_var_mapping, state with
                  | WholeVar v, None -> v
                  | States states, Some state -> List.assoc state states
                  | _ -> failwith "should not happen"
@@ -464,7 +466,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
              (* Before calling the sub_scope, we need to include all the
                 re-definitions of subscope parameters*)
              let sub_scope =
-               SubScopeMap.find sub_scope_index scope.scope_sub_scopes
+               SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
              in
              let sub_scope_vars_redefs_candidates =
                Desugared.Ast.ScopeDefMap.filter
@@ -483,7 +485,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                             with
                            | Desugared.Ast.NoInput -> true
                            | _ -> false)
-                          && RuleMap.is_empty scope_def.scope_def_rules))
+                          && RuleName.Map.is_empty scope_def.scope_def_rules))
                  scope.scope_defs
              in
              let sub_scope_vars_redefs =
@@ -517,10 +519,11 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                                 ( Some
                                     "Incriminated subscope variable definition:",
                                   Marked.get_mark (RuleName.get_info rule) ))
-                              (RuleMap.bindings def))
+                              (RuleName.Map.bindings def))
                          "It is impossible to give a definition to a subscope \
                           variable not tagged as input or context."
-                     | OnlyInput when RuleMap.is_empty def && not is_cond ->
+                     | OnlyInput when RuleName.Map.is_empty def && not is_cond
+                       ->
                        (* If the subscope variable is tagged as input, then it
                           shall be defined. *)
                        Errors.raise_multispanned_error
@@ -540,7 +543,8 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                          ~is_subscope_var:true
                      in
                      let subscop_real_name =
-                       SubScopeMap.find sub_scope_index scope.scope_sub_scopes
+                       SubScopeName.Map.find sub_scope_index
+                         scope.scope_sub_scopes
                      in
                      let var_pos =
                        Desugared.Ast.ScopeDef.get_position def_key
@@ -550,7 +554,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                              ( subscop_real_name,
                                (sub_scope_index, var_pos),
                                match
-                                 ScopeVarMap.find sub_scope_var
+                                 ScopeVar.Map.find sub_scope_var
                                    ctx.scope_var_mapping
                                with
                                | WholeVar v -> v, var_pos
@@ -595,7 +599,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
         scope.Desugared.Ast.scope_assertions
   in
   let scope_sig =
-    ScopeVarMap.fold
+    ScopeVar.Map.fold
       (fun var (states : Desugared.Ast.var_or_states) acc ->
         match states with
         | WholeVar ->
@@ -605,8 +609,8 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
               scope.scope_defs
           in
           let typ = scope_def.scope_def_typ in
-          ScopeVarMap.add
-            (match ScopeVarMap.find var ctx.scope_var_mapping with
+          ScopeVar.Map.add
+            (match ScopeVar.Map.find var ctx.scope_var_mapping with
             | WholeVar v -> v
             | States _ -> failwith "should not happen")
             (typ, scope_def.scope_def_io)
@@ -622,14 +626,14 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
                   (Desugared.Ast.ScopeDef.Var (var, Some state))
                   scope.scope_defs
               in
-              ScopeVarMap.add
-                (match ScopeVarMap.find var ctx.scope_var_mapping with
+              ScopeVar.Map.add
+                (match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar _ -> failwith "should not happen"
                 | States states' -> List.assoc state states')
                 (scope_def.scope_def_typ, scope_def.scope_def_io)
                 acc)
             acc states)
-      scope.scope_vars ScopeVarMap.empty
+      scope.scope_vars ScopeVar.Map.empty
   in
   let pos = Marked.get_mark (ScopeName.get_info scope.scope_uid) in
   {
@@ -648,16 +652,16 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
   let ctx =
     (* Todo: since we rename all scope vars at this point, it would be better to
        have different types for Desugared.ScopeVar.t and Scopelang.ScopeVar.t *)
-    ScopeMap.fold
+    ScopeName.Map.fold
       (fun _scope scope_decl ctx ->
-        ScopeVarMap.fold
+        ScopeVar.Map.fold
           (fun scope_var (states : Desugared.Ast.var_or_states) ctx ->
             match states with
             | Desugared.Ast.WholeVar ->
               {
                 ctx with
                 scope_var_mapping =
-                  ScopeVarMap.add scope_var
+                  ScopeVar.Map.add scope_var
                     (WholeVar (ScopeVar.fresh (ScopeVar.get_info scope_var)))
                     ctx.scope_var_mapping;
               }
@@ -665,7 +669,7 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
               {
                 ctx with
                 scope_var_mapping =
-                  ScopeVarMap.add scope_var
+                  ScopeVar.Map.add scope_var
                     (States
                        (List.map
                           (fun state ->
@@ -683,26 +687,27 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
               })
           scope_decl.Desugared.Ast.scope_vars ctx)
       pgrm.Desugared.Ast.program_scopes
-      { scope_var_mapping = ScopeVarMap.empty; var_mapping = Var.Map.empty }
+      { scope_var_mapping = ScopeVar.Map.empty; var_mapping = Var.Map.empty }
   in
   let ctx_scopes =
-    ScopeMap.map
+    ScopeName.Map.map
       (fun out_str ->
         let out_struct_fields =
-          ScopeVarMap.fold
+          ScopeVar.Map.fold
             (fun var fld out_map ->
               let var' =
-                match ScopeVarMap.find var ctx.scope_var_mapping with
+                match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar v -> v
                 | States l -> snd (List.hd (List.rev l))
               in
-              ScopeVarMap.add var' fld out_map)
-            out_str.out_struct_fields ScopeVarMap.empty
+              ScopeVar.Map.add var' fld out_map)
+            out_str.out_struct_fields ScopeVar.Map.empty
         in
         { out_str with out_struct_fields })
       pgrm.Desugared.Ast.program_ctx.ctx_scopes
   in
   {
-    Ast.program_scopes = ScopeMap.map (translate_scope ctx) pgrm.program_scopes;
+    Ast.program_scopes =
+      ScopeName.Map.map (translate_scope ctx) pgrm.program_scopes;
     program_ctx = { pgrm.program_ctx with ctx_scopes };
   }

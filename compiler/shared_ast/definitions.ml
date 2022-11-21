@@ -22,29 +22,21 @@
 
 open Utils
 module Runtime = Runtime_ocaml.Runtime
-
 module ScopeName = Uid.Gen ()
-
 module StructName = Uid.Gen ()
-
 module StructField = Uid.Gen ()
-
 module EnumName = Uid.Gen ()
-
 module EnumConstructor = Uid.Gen ()
 
 (** Only used by surface *)
 
 module RuleName = Uid.Gen ()
-
 module LabelName = Uid.Gen ()
 
 (** Only used by desugared/scopelang *)
 
 module ScopeVar = Uid.Gen ()
-
 module SubScopeName = Uid.Gen ()
-
 module StateName = Uid.Gen ()
 
 (** {1 Abstract syntax tree} *)
@@ -194,13 +186,13 @@ and ('a, 't) naked_gexpr =
       -> ('a any, 't) naked_gexpr
   | EStruct : {
       name : StructName.t;
-      fields : ('a, 't) gexpr StructFieldMap.t;
+      fields : ('a, 't) gexpr StructField.Map.t;
     }
       -> ('a any, 't) naked_gexpr
   | EStructAccess : {
       name : StructName.t;
       e : ('a, 't) gexpr;
-      field : StructFieldName.t;
+      field : StructField.t;
     }
       -> ('a any, 't) naked_gexpr
   | EInj : {
@@ -212,7 +204,7 @@ and ('a, 't) naked_gexpr =
   | EMatch : {
       name : EnumName.t;
       e : ('a, 't) gexpr;
-      cases : ('a, 't) gexpr EnumConstructorMap.t;
+      cases : ('a, 't) gexpr EnumConstructor.Map.t;
     }
       -> ('a any, 't) naked_gexpr
   (* Early stages *)
@@ -221,7 +213,7 @@ and ('a, 't) naked_gexpr =
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
   | EScopeCall : {
       scope : ScopeName.t;
-      args : ('a, 't) gexpr ScopeVarMap.t;
+      args : ('a, 't) gexpr ScopeVar.Map.t;
     }
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
   (* Lambda-like *)
@@ -348,18 +340,18 @@ and 'e scopes =
   | ScopeDef of 'e scope_def
   constraint 'e = (_ any, _ mark) gexpr
 
-type struct_ctx = typ StructFieldMap.t StructMap.t
-type enum_ctx = typ EnumConstructorMap.t EnumMap.t
+type struct_ctx = typ StructField.Map.t StructName.Map.t
+type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
 
 type scope_out_struct = {
   out_struct_name : StructName.t;
-  out_struct_fields : StructFieldName.t ScopeVarMap.t;
+  out_struct_fields : StructField.t ScopeVar.Map.t;
 }
 
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
-  ctx_scopes : scope_out_struct ScopeMap.t;
+  ctx_scopes : scope_out_struct ScopeName.Map.t;
 }
 
 type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

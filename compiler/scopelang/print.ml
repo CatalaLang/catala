@@ -22,22 +22,22 @@ let struc
     ctx
     (fmt : Format.formatter)
     (name : StructName.t)
-    (fields : typ StructFieldMap.t) : unit =
+    (fields : typ StructField.Map.t) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
     StructName.format_t name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
-         Format.fprintf fmt "%a%a %a" StructFieldName.format_t field_name
+         Format.fprintf fmt "%a%a %a" StructField.format_t field_name
            Print.punctuation ":" (Print.typ ctx) typ))
-    (StructFieldMap.bindings fields)
+    (StructField.Map.bindings fields)
     Print.punctuation "}"
 
 let enum
     ctx
     (fmt : Format.formatter)
     (name : EnumName.t)
-    (cases : typ EnumConstructorMap.t) : unit =
+    (cases : typ EnumConstructor.Map.t) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
     EnumName.format_t name Print.punctuation "="
     (Format.pp_print_list
@@ -46,7 +46,7 @@ let enum
          Format.fprintf fmt "%a %a%a %a" Print.punctuation "|"
            EnumConstructor.format_t field_name Print.punctuation ":"
            (Print.typ ctx) typ))
-    (EnumConstructorMap.bindings cases)
+    (EnumConstructor.Map.bindings cases)
 
 let scope ?(debug = false) ctx fmt (name, decl) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
@@ -65,7 +65,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
               "output"
            else fun fmt () -> Format.fprintf fmt "@<0>")
            () Print.punctuation ")"))
-    (ScopeVarMap.bindings decl.scope_sig)
+    (ScopeVar.Map.bindings decl.scope_sig)
     Print.punctuation "="
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
@@ -81,7 +81,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
                | ScopelangScopeVar v -> (
                  match
                    Marked.unmark
-                     (snd (ScopeVarMap.find (Marked.unmark v) decl.scope_sig))
+                     (snd (ScopeVar.Map.find (Marked.unmark v) decl.scope_sig))
                        .io_input
                  with
                  | Reentrant ->
@@ -106,16 +106,16 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     Format.pp_print_cut fmt ()
   in
   Format.pp_open_vbox fmt 0;
-  StructMap.iter
+  StructName.Map.iter
     (fun n s ->
       struc ctx fmt n s;
       pp_sep fmt ())
     ctx.ctx_structs;
-  EnumMap.iter
+  EnumName.Map.iter
     (fun n e ->
       enum ctx fmt n e;
       pp_sep fmt ())
     ctx.ctx_enums;
   Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
-    (ScopeMap.bindings p.program_scopes);
+    (ScopeName.Map.bindings p.program_scopes);
   Format.pp_close_box fmt ()

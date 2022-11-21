@@ -40,9 +40,9 @@ module To_jsoo = struct
 
   let format_struct_field_name_camel_case
       (fmt : Format.formatter)
-      (v : StructFieldName.t) : unit =
+      (v : StructField.t) : unit =
     let s =
-      Format.asprintf "%a" StructFieldName.format_t v
+      Format.asprintf "%a" StructField.format_t v
       |> to_ascii
       |> to_snake_case
       |> avoid_keywords
@@ -166,7 +166,7 @@ module To_jsoo = struct
                    format_struct_field_name_camel_case struct_field
                    format_typ_to_jsoo struct_field_type fmt_struct_name ()
                    format_struct_field_name (None, struct_field)))
-          (StructFieldMap.bindings struct_fields)
+          (StructField.Map.bindings struct_fields)
       in
       let fmt_of_jsoo fmt _ =
         Format.fprintf fmt "%a"
@@ -186,7 +186,7 @@ module To_jsoo = struct
                    format_struct_field_name (None, struct_field)
                    format_typ_of_jsoo struct_field_type fmt_struct_name ()
                    format_struct_field_name_camel_case struct_field))
-          (StructFieldMap.bindings struct_fields)
+          (StructField.Map.bindings struct_fields)
       in
       let fmt_conv_funs fmt _ =
         Format.fprintf fmt
@@ -203,7 +203,7 @@ module To_jsoo = struct
           () fmt_struct_name () fmt_module_struct_name () fmt_of_jsoo ()
       in
 
-      if StructFieldMap.is_empty struct_fields then
+      if StructField.Map.is_empty struct_fields then
         Format.fprintf fmt
           "class type %a =@ object end@\n\
            let %a_to_jsoo (_ : %a.t) : %a Js.t = object%%js end@\n\
@@ -220,10 +220,10 @@ module To_jsoo = struct
                Format.fprintf fmt "@[<hov 2>method %a:@ %a %a@]"
                  format_struct_field_name_camel_case struct_field format_typ
                  struct_field_type format_prop_or_meth struct_field_type))
-          (StructFieldMap.bindings struct_fields)
+          (StructField.Map.bindings struct_fields)
           fmt_conv_funs ()
     in
-    let format_enum_decl fmt (enum_name, (enum_cons : typ EnumConstructorMap.t))
+    let format_enum_decl fmt (enum_name, (enum_cons : typ EnumConstructor.Map.t))
         =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt _ =
@@ -247,7 +247,7 @@ module To_jsoo = struct
                     end@]"
                    format_enum_cons_name cname format_enum_cons_name cname
                    format_typ_to_jsoo typ))
-          (EnumConstructorMap.bindings enum_cons)
+          (EnumConstructor.Map.bindings enum_cons)
       in
       let fmt_of_jsoo fmt _ =
         Format.fprintf fmt
@@ -273,7 +273,7 @@ module To_jsoo = struct
                    format_enum_cons_name cname fmt_module_enum_name ()
                    format_enum_cons_name cname format_typ_of_jsoo typ
                    fmt_enum_name ()))
-          (EnumConstructorMap.bindings enum_cons)
+          (EnumConstructor.Map.bindings enum_cons)
           fmt_module_enum_name ()
       in
 
@@ -302,7 +302,7 @@ module To_jsoo = struct
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun fmt (enum_cons, _) ->
              Format.fprintf fmt "- \"%a\"" format_enum_cons_name enum_cons))
-        (EnumConstructorMap.bindings enum_cons)
+        (EnumConstructor.Map.bindings enum_cons)
         fmt_conv_funs ()
     in
     let is_in_type_ordering s =
@@ -316,8 +316,8 @@ module To_jsoo = struct
     let scope_structs =
       List.map
         (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
-        (StructMap.bindings
-           (StructMap.filter
+        (StructName.Map.bindings
+           (StructName.Map.filter
               (fun s _ -> not (is_in_type_ordering s))
               ctx.ctx_structs))
     in

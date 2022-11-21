@@ -101,13 +101,13 @@ val elocation :
 
 val estruct :
   StructName.t ->
-  ('a any, 't) boxed_gexpr StructFieldMap.t ->
+  ('a any, 't) boxed_gexpr StructField.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
 val estructaccess :
   ('a any, 't) boxed_gexpr ->
-  StructFieldName.t ->
+  StructField.t ->
   StructName.t ->
   't ->
   ('a, 't) boxed_gexpr
@@ -122,13 +122,13 @@ val einj :
 val ematch :
   ('a any, 't) boxed_gexpr ->
   EnumName.t ->
-  ('a, 't) boxed_gexpr EnumConstructorMap.t ->
+  ('a, 't) boxed_gexpr EnumConstructor.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
 val escopecall :
   ScopeName.t ->
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVarMap.t ->
+  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVar.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 

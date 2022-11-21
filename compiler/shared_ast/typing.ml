@@ -284,32 +284,32 @@ let op_type (op : A.operator Marked.pos) : unionfind_typ =
 module Env = struct
   type 'e t = {
     vars : ('e, unionfind_typ) Var.Map.t;
-    scope_vars : A.typ A.ScopeVarMap.t;
-    scopes : A.typ A.ScopeVarMap.t A.ScopeMap.t;
+    scope_vars : A.typ A.ScopeVar.Map.t;
+    scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
   }
 
   let empty =
     {
       vars = Var.Map.empty;
-      scope_vars = A.ScopeVarMap.empty;
-      scopes = A.ScopeMap.empty;
+      scope_vars = A.ScopeVar.Map.empty;
+      scopes = A.ScopeName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
-  let get_scope_var t sv = A.ScopeVarMap.find_opt sv t.scope_vars
+  let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
 
   let get_subscope_out_var t scope var =
-    Option.bind (A.ScopeMap.find_opt scope t.scopes) (fun vmap ->
-        A.ScopeVarMap.find_opt var vmap)
+    Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
+        A.ScopeVar.Map.find_opt var vmap)
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
 
   let add_scope_var v typ t =
-    { t with scope_vars = A.ScopeVarMap.add v typ t.scope_vars }
+    { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
   let add_scope scope_name ~vars t =
-    { t with scopes = A.ScopeMap.add scope_name vars t.scopes }
+    { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
 end
 
 let add_pos e ty = Marked.mark (Expr.pos e) ty
@@ -373,33 +373,32 @@ and typecheck_expr_top_down :
     Expr.elocation loc (uf_mark (ast_to_typ ty))
   | A.EStruct { name; fields } ->
     let mark = ty_mark (TStruct name) in
-    let str = A.StructMap.find name ctx.A.ctx_structs in
+    let str = A.StructName.Map.find name ctx.A.ctx_structs in
     let _check_fields : unit =
       let missing_fields, extra_fields =
-        A.StructFieldMap.fold
+        A.StructField.Map.fold
           (fun fld x (remaining, extra) ->
-            if A.StructFieldMap.mem fld remaining then
-              A.StructFieldMap.remove fld remaining, extra
-            else remaining, A.StructFieldMap.add fld x extra)
+            if A.StructField.Map.mem fld remaining then
+              A.StructField.Map.remove fld remaining, extra
+            else remaining, A.StructField.Map.add fld x extra)
           fields
-          (str, A.StructFieldMap.empty)
+          (str, A.StructField.Map.empty)
       in
       let errs =
         List.map
           (fun (f, ty) ->
-            ( Some
-                (Format.asprintf "Missing field %a" A.StructFieldName.format_t f),
+            ( Some (Format.asprintf "Missing field %a" A.StructField.format_t f),
               Marked.get_mark ty ))
-          (A.StructFieldMap.bindings missing_fields)
+          (A.StructField.Map.bindings missing_fields)
         @ List.map
             (fun (f, ef) ->
-              let dup = A.StructFieldMap.mem f str in
+              let dup = A.StructField.Map.mem f str in
               ( Some
                   (Format.asprintf "%s field %a"
                      (if dup then "Duplicate" else "Unknown")
-                     A.StructFieldName.format_t f),
+                     A.StructField.format_t f),
                 Expr.pos ef ))
-            (A.StructFieldMap.bindings extra_fields)
+            (A.StructField.Map.bindings extra_fields)
       in
       if errs <> [] then
         Errors.raise_multispanned_error errs
@@ -407,9 +406,9 @@ and typecheck_expr_top_down :
           name
     in
     let fields' =
-      A.StructFieldMap.mapi
+      A.StructField.Map.mapi
         (fun f_name f_e ->
-          let f_ty = A.StructFieldMap.find f_name str in
+          let f_ty = A.StructField.Map.find f_name str in
           typecheck_expr_top_down ctx env (ast_to_typ f_ty) f_e)
         fields
     in
@@ -417,12 +416,12 @@ and typecheck_expr_top_down :
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
-        try A.StructMap.find name ctx.A.ctx_structs
+        try A.StructName.Map.find name ctx.A.ctx_structs
         with Not_found ->
           Errors.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format_t name
       in
-      try A.StructFieldMap.find field str
+      try A.StructField.Map.find field str
       with Not_found ->
         Errors.raise_multispanned_error
           [
@@ -431,7 +430,7 @@ and typecheck_expr_top_down :
               Marked.get_mark (A.StructName.get_info name) );
           ]
           "Structure %a doesn't define a field %a" A.StructName.format_t name
-          A.StructFieldName.format_t field
+          A.StructField.format_t field
     in
     let mark = uf_mark (ast_to_typ fld_ty) in
     let e_struct' =
@@ -443,20 +442,20 @@ and typecheck_expr_top_down :
     let e_enum' =
       typecheck_expr_top_down ctx env
         (ast_to_typ
-           (A.EnumConstructorMap.find cons
-              (A.EnumMap.find name ctx.A.ctx_enums)))
+           (A.EnumConstructor.Map.find cons
+              (A.EnumName.Map.find name ctx.A.ctx_enums)))
         e_enum
     in
     Expr.einj e_enum' cons name mark
   | A.EMatch { e = e1; name; cases } ->
-    let cases_ty = A.EnumMap.find name ctx.A.ctx_enums in
+    let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
     let mark = uf_mark t_ret in
     let e1' = typecheck_expr_top_down ctx env (unionfind (TEnum name)) e1 in
     let cases' =
-      A.EnumConstructorMap.mapi
+      A.EnumConstructor.Map.mapi
         (fun c_name e ->
-          let c_ty = A.EnumConstructorMap.find c_name cases_ty in
+          let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
           let e_ty = unionfind ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
           typecheck_expr_top_down ctx env e_ty e)
         cases
@@ -464,15 +463,15 @@ and typecheck_expr_top_down :
     Expr.ematch e1' name cases' mark
   | A.EScopeCall { scope; args } ->
     let scope_out_struct =
-      (A.ScopeMap.find scope ctx.ctx_scopes).out_struct_name
+      (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
     let mark = uf_mark (unionfind (TStruct scope_out_struct)) in
-    let vars = A.ScopeMap.find scope env.scopes in
+    let vars = A.ScopeName.Map.find scope env.scopes in
     let args' =
-      A.ScopeVarMap.mapi
+      A.ScopeVar.Map.mapi
         (fun name ->
           typecheck_expr_top_down ctx env
-            (ast_to_typ (A.ScopeVarMap.find name vars)))
+            (ast_to_typ (A.ScopeVar.Map.find name vars)))
         args
     in
     Expr.escopecall scope args' mark

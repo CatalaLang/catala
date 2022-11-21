@@ -20,16 +20,16 @@ open Ast
 open String_common
 module D = Dcalc.Ast
 
-let find_struct (s : StructName.t) (ctx : decl_ctx) : typ StructFieldMap.t =
-  try StructMap.find s ctx.ctx_structs
+let find_struct (s : StructName.t) (ctx : decl_ctx) : typ StructField.Map.t =
+  try StructName.Map.find s ctx.ctx_structs
   with Not_found ->
     let s_name, pos = StructName.get_info s in
     Errors.raise_spanned_error pos
       "Internal Error: Structure %s was not found in the current environment."
       s_name
 
-let find_enum (en : EnumName.t) (ctx : decl_ctx) : typ EnumConstructorMap.t =
-  try EnumMap.find en ctx.ctx_enums
+let find_enum (en : EnumName.t) (ctx : decl_ctx) : typ EnumConstructor.Map.t =
+  try EnumName.Map.find en ctx.ctx_enums
   with Not_found ->
     let en_name, pos = EnumName.get_info en in
     Errors.raise_spanned_error pos
@@ -162,13 +162,12 @@ let format_to_module_name
 
 let format_struct_field_name
     (fmt : Format.formatter)
-    ((sname_opt, v) : StructName.t option * StructFieldName.t) : unit =
+    ((sname_opt, v) : StructName.t option * StructField.t) : unit =
   (match sname_opt with
   | Some sname ->
     Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
   | None -> Format.fprintf fmt "%s")
-    (avoid_keywords
-       (to_ascii (Format.asprintf "%a" StructFieldName.format_t v)))
+    (avoid_keywords (to_ascii (Format.asprintf "%a" StructField.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
@@ -284,7 +283,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
       es
   | EStruct { name = s; fields = es } ->
-    if StructFieldMap.is_empty es then Format.fprintf fmt "()"
+    if StructField.Map.is_empty es then Format.fprintf fmt "()"
     else
       Format.fprintf fmt "{@[<hov 2>%a@]}"
         (Format.pp_print_list
@@ -292,7 +291,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
            (fun fmt (struct_field, e) ->
              Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name
                (Some s, struct_field) format_with_parens e))
-        (StructFieldMap.bindings es)
+        (StructField.Map.bindings es)
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>[|%a|]@]"
       (Format.pp_print_list
@@ -331,7 +330,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
                | _ -> assert false
                (* should not happen *))
              e))
-      (EnumConstructorMap.bindings cases)
+      (EnumConstructor.Map.bindings cases)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (Expr.pos e) l)
   | EApp { f = EAbs { binder; tys }, _; args } ->
     let xs, body = Bindlib.unmbind binder in
@@ -444,8 +443,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
 
 let format_struct_embedding
     (fmt : Format.formatter)
-    ((struct_name, struct_fields) : StructName.t * typ StructFieldMap.t) =
-  if StructFieldMap.is_empty struct_fields then
+    ((struct_name, struct_fields) : StructName.t * typ StructField.Map.t) =
+  if StructField.Map.is_empty struct_fields then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_struct_name struct_name format_to_module_name (`Sname struct_name)
   else
@@ -458,16 +457,16 @@ let format_struct_embedding
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
          (fun _fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructFieldName.format_t
+           Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructField.format_t
              struct_field typ_embedding_name struct_field_type
              format_struct_field_name
              (Some struct_name, struct_field)))
-      (StructFieldMap.bindings struct_fields)
+      (StructField.Map.bindings struct_fields)
 
 let format_enum_embedding
     (fmt : Format.formatter)
-    ((enum_name, enum_cases) : EnumName.t * typ EnumConstructorMap.t) =
-  if EnumConstructorMap.is_empty enum_cases then
+    ((enum_name, enum_cases) : EnumName.t * typ EnumConstructor.Map.t) =
+  if EnumConstructor.Map.is_empty enum_cases then
     Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
       format_to_module_name (`Ename enum_name) format_enum_name enum_name
   else
@@ -483,14 +482,14 @@ let format_enum_embedding
            Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
              format_enum_cons_name enum_cons EnumConstructor.format_t enum_cons
              typ_embedding_name enum_cons_type))
-      (EnumConstructorMap.bindings enum_cases)
+      (EnumConstructor.Map.bindings enum_cases)
 
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
     (fmt : Format.formatter)
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
-    if StructFieldMap.is_empty struct_fields then
+    if StructField.Map.is_empty struct_fields then
       Format.fprintf fmt
         "@[<v 2>module %a = struct@\n@[<hov 2>type t = unit@]@]@\nend@\n"
         format_to_module_name (`Sname struct_name)
@@ -505,7 +504,7 @@ let format_ctx
            (fun _fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
-        (StructFieldMap.bindings struct_fields);
+        (StructField.Map.bindings struct_fields);
     if !Cli.trace_flag then
       format_struct_embedding fmt (struct_name, struct_fields)
   in
@@ -518,7 +517,7 @@ let format_ctx
          (fun _fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
-      (EnumConstructorMap.bindings enum_cons);
+      (EnumConstructor.Map.bindings enum_cons);
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
@@ -532,8 +531,8 @@ let format_ctx
   let scope_structs =
     List.map
       (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
-      (StructMap.bindings
-         (StructMap.filter
+      (StructName.Map.bindings
+         (StructName.Map.filter
             (fun s _ -> not (is_in_type_ordering s))
             ctx.ctx_structs))
   in

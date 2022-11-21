@@ -45,15 +45,15 @@ type scope_context = {
       (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
-  sub_scopes : ScopeSet.t;
+  sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
-type struct_context = typ StructFieldMap.t
+type struct_context = typ StructField.Map.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ EnumConstructorMap.t
+type enum_context = typ EnumConstructor.Map.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
@@ -78,16 +78,17 @@ type context = {
           arguments or pattern matching *)
   typedefs : typedef IdentMap.t;
       (** Gathers the names of the scopes, structs and enums *)
-  field_idmap : StructFieldName.t StructMap.t IdentMap.t;
+  field_idmap : StructField.t StructName.Map.t IdentMap.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  constructor_idmap : EnumConstructor.t EnumMap.t IdentMap.t;
+  constructor_idmap : EnumConstructor.t EnumName.Map.t IdentMap.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
-  scopes : scope_context ScopeMap.t;  (** For each scope, its context *)
-  structs : struct_context StructMap.t;  (** For each struct, its context *)
-  enums : enum_context EnumMap.t;  (** For each enum, its context *)
-  var_typs : var_sig ScopeVarMap.t;
+  scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
+  structs : struct_context StructName.Map.t;
+      (** For each struct, its context *)
+  enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
+  var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
@@ -109,21 +110,21 @@ let raise_unknown_identifier (msg : string) (ident : ident Marked.pos) =
 
 (** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : ScopeVar.t) : typ =
-  (ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
+  (ScopeVar.Map.find uid ctxt.var_typs).var_sig_typ
 
 let is_var_cond (ctxt : context) (uid : ScopeVar.t) : bool =
-  (ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
+  (ScopeVar.Map.find uid ctxt.var_typs).var_sig_is_condition
 
 let get_var_io (ctxt : context) (uid : ScopeVar.t) :
     Surface.Ast.scope_decl_context_io =
-  (ScopeVarMap.find uid ctxt.var_typs).var_sig_io
+  (ScopeVar.Map.find uid ctxt.var_typs).var_sig_io
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
     ((x, pos) : ident Marked.pos) : ScopeVar.t =
-  let scope = ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
   match IdentMap.find_opt x scope.var_idmap with
   | Some (ScopeVar uid) -> uid
   | _ ->
@@ -136,7 +137,7 @@ let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
     ((y, pos) : ident Marked.pos) : SubScopeName.t =
-  let scope = ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
   match IdentMap.find_opt y scope.var_idmap with
   | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
   | _ -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
@@ -145,7 +146,7 @@ let get_subscope_uid
     subscopes of [scope_uid]. *)
 let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : ident) :
     bool =
-  let scope = ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
   match IdentMap.find_opt y scope.var_idmap with
   | Some (SubScope _) -> true
   | _ -> false
@@ -153,7 +154,7 @@ let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : ident) :
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     bool =
-  let scope = ScopeMap.find scope_uid ctxt.scopes in
+  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
   IdentMap.exists
     (fun _ -> function
       | ScopeVar var_uid -> ScopeVar.equal uid var_uid
@@ -242,7 +243,7 @@ let process_subscope_decl
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
-  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
   match IdentMap.find_opt subscope scope_ctxt.var_idmap with
   | Some use ->
     let info =
@@ -267,10 +268,11 @@ let process_subscope_decl
           IdentMap.add name
             (SubScope (sub_scope_uid, original_subscope_uid))
             scope_ctxt.var_idmap;
-        sub_scopes = ScopeSet.add original_subscope_uid scope_ctxt.sub_scopes;
+        sub_scopes =
+          ScopeName.Set.add original_subscope_uid scope_ctxt.sub_scopes;
       }
     in
-    { ctxt with scopes = ScopeMap.add scope scope_ctxt ctxt.scopes }
+    { ctxt with scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes }
 
 let is_type_cond ((typ, _) : Surface.Ast.typ) =
   match typ with
@@ -329,7 +331,7 @@ let process_data_decl
   let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
   let is_cond = is_type_cond decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
-  let scope_ctxt = ScopeMap.find scope ctxt.scopes in
+  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
   match IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
     let info =
@@ -360,9 +362,9 @@ let process_data_decl
     in
     {
       ctxt with
-      scopes = ScopeMap.add scope scope_ctxt ctxt.scopes;
+      scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes;
       var_typs =
-        ScopeVarMap.add uid
+        ScopeVar.Map.add uid
           {
             var_sig_typ = data_typ;
             var_sig_is_condition = is_cond;
@@ -397,9 +399,7 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
       (Marked.unmark sdecl.struct_decl_name);
   List.fold_left
     (fun ctxt (fdecl, _) ->
-      let f_uid =
-        StructFieldName.fresh fdecl.Surface.Ast.struct_decl_field_name
-      in
+      let f_uid = StructField.fresh fdecl.Surface.Ast.struct_decl_field_name in
       let ctxt =
         {
           ctxt with
@@ -408,24 +408,24 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
               (Marked.unmark fdecl.Surface.Ast.struct_decl_field_name)
               (fun uids ->
                 match uids with
-                | None -> Some (StructMap.singleton s_uid f_uid)
-                | Some uids -> Some (StructMap.add s_uid f_uid uids))
+                | None -> Some (StructName.Map.singleton s_uid f_uid)
+                | Some uids -> Some (StructName.Map.add s_uid f_uid uids))
               ctxt.field_idmap;
         }
       in
       {
         ctxt with
         structs =
-          StructMap.update s_uid
+          StructName.Map.update s_uid
             (fun fields ->
               match fields with
               | None ->
                 Some
-                  (StructFieldMap.singleton f_uid
+                  (StructField.Map.singleton f_uid
                      (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ))
               | Some fields ->
                 Some
-                  (StructFieldMap.add f_uid
+                  (StructField.Map.add f_uid
                      (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ)
                      fields))
             ctxt.structs;
@@ -453,15 +453,15 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
               (Marked.unmark cdecl.Surface.Ast.enum_decl_case_name)
               (fun uids ->
                 match uids with
-                | None -> Some (EnumMap.singleton e_uid c_uid)
-                | Some uids -> Some (EnumMap.add e_uid c_uid uids))
+                | None -> Some (EnumName.Map.singleton e_uid c_uid)
+                | Some uids -> Some (EnumName.Map.add e_uid c_uid uids))
               ctxt.constructor_idmap;
         }
       in
       {
         ctxt with
         enums =
-          EnumMap.update e_uid
+          EnumName.Map.update e_uid
             (fun cases ->
               let typ =
                 match cdecl.Surface.Ast.enum_decl_case_typ with
@@ -469,8 +469,8 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
                 | Some typ -> process_type ctxt typ
               in
               match cases with
-              | None -> Some (EnumConstructorMap.singleton c_uid typ)
-              | Some fields -> Some (EnumConstructorMap.add c_uid typ fields))
+              | None -> Some (EnumConstructor.Map.singleton c_uid typ)
+              | Some fields -> Some (EnumConstructor.Map.add c_uid typ fields))
             ctxt.enums;
       })
     ctxt edecl.enum_decl_cases
@@ -522,9 +522,9 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
     {
       ctxt with
       structs =
-        StructMap.add
+        StructName.Map.add
           (get_struct ctxt decl.scope_decl_name)
-          StructFieldMap.empty ctxt.structs;
+          StructField.Map.empty ctxt.structs;
     }
   else
     let ctxt =
@@ -535,7 +535,7 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
         }
     in
     let out_struct_fields =
-      let sco = ScopeMap.find scope_uid ctxt.scopes in
+      let sco = ScopeName.Map.find scope_uid ctxt.scopes in
       let str = get_struct ctxt decl.scope_decl_name in
       IdentMap.fold
         (fun id var svmap ->
@@ -544,11 +544,11 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
           | ScopeVar v -> (
             try
               let field =
-                StructMap.find str (IdentMap.find id ctxt.field_idmap)
+                StructName.Map.find str (IdentMap.find id ctxt.field_idmap)
               in
-              ScopeVarMap.add v field svmap
+              ScopeVar.Map.add v field svmap
             with Not_found -> svmap))
-        sco.var_idmap ScopeVarMap.empty
+        sco.var_idmap ScopeVar.Map.empty
     in
     let typedefs =
       IdentMap.update
@@ -597,15 +597,15 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
              ( scope_uid,
                {
                  out_struct_name = out_struct_uid;
-                 out_struct_fields = ScopeVarMap.empty;
+                 out_struct_fields = ScopeVar.Map.empty;
                } ))
           ctxt.typedefs;
       scopes =
-        ScopeMap.add scope_uid
+        ScopeName.Map.add scope_uid
           {
             var_idmap = IdentMap.empty;
             scope_defs_contexts = Ast.ScopeDefMap.empty;
-            sub_scopes = ScopeSet.empty;
+            sub_scopes = ScopeName.Set.empty;
           }
           ctxt.scopes;
     }
@@ -679,11 +679,11 @@ let get_def_key
     (scope_uid : ScopeName.t)
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
-  let scope_ctxt = ScopeMap.find scope_uid ctxt.scopes in
+  let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   match name with
   | [x] ->
     let x_uid = get_var_uid scope_uid ctxt x in
-    let var_sig = ScopeVarMap.find x_uid ctxt.var_typs in
+    let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
     Ast.ScopeDef.Var
       ( x_uid,
         match state with
@@ -807,7 +807,7 @@ let process_definition
   {
     ctxt with
     scopes =
-      ScopeMap.update s_name
+      ScopeName.Map.update s_name
         (fun (s_ctxt : scope_context option) ->
           let def_key =
             get_def_key
@@ -875,11 +875,11 @@ let form_context (prgm : Surface.Ast.program) : context =
     {
       local_var_idmap = IdentMap.empty;
       typedefs = IdentMap.empty;
-      scopes = ScopeMap.empty;
-      var_typs = ScopeVarMap.empty;
-      structs = StructMap.empty;
+      scopes = ScopeName.Map.empty;
+      var_typs = ScopeVar.Map.empty;
+      structs = StructName.Map.empty;
       field_idmap = IdentMap.empty;
-      enums = EnumMap.empty;
+      enums = EnumName.Map.empty;
       constructor_idmap = IdentMap.empty;
     }
   in
