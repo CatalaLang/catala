@@ -18,7 +18,7 @@
   *)
 
 %{
-  open Utils
+  open Catala_utils
 %}
 
 %parameter<Localisation: sig

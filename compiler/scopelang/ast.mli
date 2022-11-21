@@ -16,7 +16,7 @@
 
 (** Abstract syntax tree of the scope language *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Identifiers} *)

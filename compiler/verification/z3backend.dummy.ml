@@ -18,7 +18,7 @@
     without the expected backend. All functions print an error message and exit *)
 
 let dummy () =
-  Utils.Cli.error_print
+  Cli.error_print
     "This instance of Catala was compiled without Z3 support.";
   exit 124
 

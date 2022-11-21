@@ -17,6 +17,7 @@
 (** Command line arguments specification of [legifrance_catala] *)
 
 open Cmdliner
+open Catala_utils
 
 let file =
   Arg.(
@@ -96,4 +97,4 @@ let info =
     ]
   in
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error" 1] in
-  Cmd.info "legifrance_catala" ~version:Utils.Cli.version ~doc ~exits ~man
+  Cmd.info "legifrance_catala" ~version:Cli.version ~doc ~exits ~man

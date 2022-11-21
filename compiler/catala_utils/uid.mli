@@ -14,15 +14,30 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Global identifiers factories using a generative functor *)
+
+(** The information carried in global identifiers *)
 module type Info = sig
   type info
 
   val to_string : info -> string
-  val format_info : Format.formatter -> info -> unit
+  val format : Format.formatter -> info -> unit
+
   val equal : info -> info -> bool
+  (** Equality disregards position *)
+
   val compare : info -> info -> int
+  (** Comparison disregards position *)
 end
 
+module MarkedString : Info with type info = string Marked.pos
+(** The only kind of information carried in Catala identifiers is the original
+    string of the identifier annotated with the position where it is declared or
+    used. *)
+
+(** Identifiers have abstract types, but are comparable so they can be used as
+    keys in maps or sets. Their underlying information can be retrieved at any
+    time. *)
 module type Id = sig
   type t
   type info
@@ -38,42 +53,10 @@ module type Id = sig
   module Map : Map.S with type key = t
 end
 
-module Make (X : Info) () : Id with type info = X.info = struct
-  module Ordering = struct
-    type t = { id : int; info : X.info }
+(** This is the generative functor that ensures that two modules resulting from
+    two different calls to [Make] will be viewed as different types [t] by the
+    OCaml typechecker. Prevents mixing up different sorts of identifiers. *)
+module Make (X : Info) () : Id with type info = X.info
 
-    let compare (x : t) (y : t) : int = compare x.id y.id
-    let equal x y = Int.equal x.id y.id
-  end
-
-  include Ordering
-
-  type info = X.info
-
-  let counter = ref 0
-
-  let fresh (info : X.info) : t =
-    incr counter;
-    { id = !counter; info }
-
-  let get_info (uid : t) : X.info = uid.info
-
-  let format_t (fmt : Format.formatter) (x : t) : unit =
-    X.format_info fmt x.info
-
-  let hash (x : t) : int = x.id
-
-  module Set = Set.Make (Ordering)
-  module Map = Map.Make (Ordering)
-end
-
-module MarkedString = struct
-  type info = string Marked.pos
-
-  let to_string (s, _) = s
-  let format_info fmt i = Format.pp_print_string fmt (to_string i)
-  let equal i1 i2 = String.equal (Marked.unmark i1) (Marked.unmark i2)
-  let compare i1 i2 = String.compare (Marked.unmark i1) (Marked.unmark i2)
-end
-
-module Gen () = Make (MarkedString) ()
+module Gen () : Id with type info = MarkedString.info
+(** Shortcut for creating a kind of uids over marked strings *)

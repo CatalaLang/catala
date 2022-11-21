@@ -15,7 +15,7 @@
    the License. *)
 [@@@warning "-32-27"]
 
-open Utils
+open Catala_utils
 open Shared_ast
 open Ast
 open String_common
@@ -77,7 +77,7 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
        (fun fmt info ->
-         Format.fprintf fmt "\"%a\"" Utils.Uid.MarkedString.format_info info))
+         Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
     uids
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =

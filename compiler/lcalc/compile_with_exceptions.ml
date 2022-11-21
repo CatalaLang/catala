@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
@@ -43,7 +43,7 @@ let rec translate_default
     Expr.make_app
       (Expr.make_var
          (Var.translate A.handle_default)
-         (Expr.with_ty mark_default (Utils.Marked.mark pos TAny)))
+         (Expr.with_ty mark_default (Marked.mark pos TAny)))
       [
         Expr.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just);

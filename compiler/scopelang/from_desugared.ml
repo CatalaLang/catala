@@ -16,7 +16,7 @@
 
 (** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Expression translation}*)
@@ -33,7 +33,7 @@ type ctx = {
 let tag_with_log_entry
     (e : untyped Ast.expr boxed)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) : untyped Ast.expr boxed =
+    (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   Expr.eapp
     (Expr.eop (Unop (Log (l, markings))) (Marked.get_mark e))
     [e] (Marked.get_mark e)

@@ -18,7 +18,7 @@
 (** Builds a context that allows for mapping each name to a precise uid, taking
     lexical scopes into account *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Name resolution context} *)
@@ -105,7 +105,7 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
 let raise_unknown_identifier (msg : string) (ident : ident Marked.pos) =
   Errors.raise_spanned_error (Marked.get_mark ident)
     "\"%s\": unknown identifier %s"
-    (Utils.Cli.with_style [ANSITerminal.yellow] "%s" (Marked.unmark ident))
+    (Cli.with_style [ANSITerminal.yellow] "%s" (Marked.unmark ident))
     msg
 
 (** Gets the type associated to an uid *)
@@ -254,7 +254,7 @@ let process_subscope_decl
     Errors.raise_multispanned_error
       [Some "first use", Marked.get_mark info; Some "second use", s_pos]
       "Subscope name \"%a\" already used"
-      (Utils.Cli.format_with_style [ANSITerminal.yellow])
+      (Cli.format_with_style [ANSITerminal.yellow])
       subscope
   | None ->
     let sub_scope_uid = SubScopeName.fresh (name, name_pos) in
@@ -310,7 +310,7 @@ let rec process_base_typ
       | None ->
         Errors.raise_spanned_error typ_pos
           "Unknown type \"%a\", not a struct or enum previously declared"
-          (Utils.Cli.format_with_style [ANSITerminal.yellow])
+          (Cli.format_with_style [ANSITerminal.yellow])
           ident))
 
 (** Process a type (function or not) *)
@@ -342,7 +342,7 @@ let process_data_decl
     Errors.raise_multispanned_error
       [Some "First use:", Marked.get_mark info; Some "Second use:", pos]
       "Variable name \"%a\" already used"
-      (Utils.Cli.format_with_style [ANSITerminal.yellow])
+      (Cli.format_with_style [ANSITerminal.yellow])
       name
   | None ->
     let uid = ScopeVar.fresh (name, pos) in
@@ -576,7 +576,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
         Some "Second definition:", pos;
       ]
       "%s name \"%a\" already defined" msg
-      (Utils.Cli.format_with_style [ANSITerminal.yellow])
+      (Cli.format_with_style [ANSITerminal.yellow])
       name
   in
   match Marked.unmark item with
@@ -854,7 +854,7 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
       Errors.raise_spanned_error
         (Marked.get_mark suse.Surface.Ast.scope_use_name)
         "\"%a\": this scope has not been declared anywhere, is it a typo?"
-        (Utils.Cli.format_with_style [ANSITerminal.yellow])
+        (Cli.format_with_style [ANSITerminal.yellow])
         (Marked.unmark suse.Surface.Ast.scope_use_name)
   in
   List.fold_left

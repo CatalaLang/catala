@@ -17,7 +17,7 @@
 (** Scope dependencies computations using {{:http://ocamlgraph.lri.fr/}
     OCamlgraph} *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Scope variables dependency graph} *)

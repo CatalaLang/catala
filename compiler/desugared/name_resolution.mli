@@ -18,7 +18,7 @@
 (** Builds a context that allows for mapping each name to a precise uid, taking
     lexical scopes into account *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Name resolution context} *)

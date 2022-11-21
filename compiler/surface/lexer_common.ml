@@ -17,7 +17,7 @@
 
 open Tokens
 open Sedlexing
-open Utils
+open Catala_utils
 module R = Re.Pcre
 
 (* Calculates the precedence according a {!val: matched_regex} of the form :

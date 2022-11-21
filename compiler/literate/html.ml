@@ -18,7 +18,7 @@
 (** This modules weaves the source code and the legislative text together into a
     document that law professionals can understand. *)
 
-open Utils
+open Catala_utils
 open Literate_common
 module A = Surface.Ast
 module P = Printf
@@ -91,7 +91,7 @@ let wrap_html
      </ul>\n"
     css_as_string (literal_title language)
     (literal_generated_by language)
-    Utils.Cli.version
+    Cli.version
     (pre_html (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat "\n"

@@ -15,6 +15,7 @@
    the License. *)
 
 open Lwt
+open Catala_utils
 
 type access_token = string
 
@@ -54,11 +55,11 @@ let get_token (client_id : string) (client_secret : string) : string =
       |> Yojson.Basic.Util.member "access_token"
       |> Yojson.Basic.Util.to_string
     in
-    Utils.Cli.debug_format "The LegiFrance API access token is %s" token;
+    Cli.debug_format "The LegiFrance API access token is %s" token;
     token
   end
   else begin
-    Utils.Cli.debug_format
+    Cli.debug_format
       "The API access token request went wrong ; status is %s and the body is\n\
        %s"
       resp body;
@@ -109,7 +110,7 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     if resp = "200 OK" then
       try body |> Yojson.Basic.from_string with
       | Yojson.Basic.Util.Type_error (msg, obj) ->
-        Utils.Cli.error_print
+        Cli.error_print
           "Error while parsing JSON answer from API: %s\n\
            Specific JSON:\n\
            %s\n\
@@ -128,10 +129,10 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     with Failure _ ->
       if n > 0 then (
         Unix.sleep 2;
-        Utils.Cli.debug_format "Retrying request...";
+        Cli.debug_format "Retrying request...";
         try_n_times (n - 1))
       else (
-        Utils.Cli.error_print
+        Cli.error_print
           "The API request went wrong ; status is %s and the body is\n%s" resp
           body;
         exit (-1))
@@ -153,7 +154,7 @@ let parse_id (id : string) : article_id =
     else if Re.execp ceta_tex id then CETATEXT
     else if Re.execp jorf_rex id then JORFARTI
     else
-      Utils.Errors.raise_error
+      Errors.raise_error
         "LégiFrance ID \"%s\" does not correspond to an ID format recognized \
          by the LégiFrance API"
         id
@@ -161,7 +162,7 @@ let parse_id (id : string) : article_id =
   { id; typ }
 
 let retrieve_article (access_token : string) (obj : article_id) : article =
-  Utils.Cli.debug_format "Accessing article %s" obj.id;
+  Cli.debug_format "Accessing article %s" obj.id;
   {
     content =
       run_request
@@ -179,7 +180,7 @@ let raise_article_parsing_error
     (json : Yojson.Basic.t)
     (msg : string)
     (obj : Yojson.Basic.t) =
-  Utils.Cli.error_print
+  Cli.error_print
     "Error while manipulating JSON answer from API: %s\n\
      Specific JSON:\n\
      %s\n\

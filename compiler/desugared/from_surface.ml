@@ -15,7 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 module SurfacePrint = Surface.Print
 open Shared_ast
 module Runtime = Runtime_ocaml.Runtime

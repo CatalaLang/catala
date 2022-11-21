@@ -19,7 +19,7 @@
 
 [@@@ocaml.warning "-7"]
 
-open Utils
+open Catala_utils
 (** {1 Visitor classes for programs} *)
 
 (** To allow for quick traversal and/or modification of this AST structure, we

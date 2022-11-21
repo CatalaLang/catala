@@ -20,7 +20,7 @@
 
 (* Doesn't define values, so OK to have without an mli *)
 
-open Utils
+open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
 module ScopeName = Uid.Gen ()
 module StructName = Uid.Gen ()

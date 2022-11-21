@@ -16,7 +16,7 @@
 
 (** Printing functions for the default calculus AST *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 (** {1 Common syntax highlighting helpers}*)

@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 type scope_var_ctx = {
@@ -102,7 +102,7 @@ let merge_defaults caller callee =
 let tag_with_log_entry
     (e : 'm Ast.expr boxed)
     (l : log_entry)
-    (markings : Utils.Uid.MarkedString.info list) : 'm Ast.expr boxed =
+    (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
   Expr.eapp (Expr.eop (Unop (Log (l, markings))) m) [e] m
 
@@ -375,7 +375,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
 let translate_rule
     (ctx : 'm ctx)
     (rule : 'm Scopelang.Ast.rule)
-    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
+    ((sigma_name, pos_sigma) : Uid.MarkedString.info) :
     ('m Ast.expr scope_body_expr Bindlib.box ->
     'm Ast.expr scope_body_expr Bindlib.box)
     * 'm ctx =
@@ -645,7 +645,7 @@ let translate_rule
 let translate_rules
     (ctx : 'm ctx)
     (rules : 'm Scopelang.Ast.rule list)
-    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
+    ((sigma_name, pos_sigma) : Uid.MarkedString.info)
     (mark : 'm mark)
     (scope_sig : 'm scope_sig_ctx) :
     'm Ast.expr scope_body_expr Bindlib.box * 'm ctx =

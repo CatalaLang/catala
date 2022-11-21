@@ -20,7 +20,7 @@
 let name = "json_schema"
 let extension = "_schema.json"
 
-open Utils
+open Catala_utils
 open String_common
 open Shared_ast
 open Lcalc.Ast

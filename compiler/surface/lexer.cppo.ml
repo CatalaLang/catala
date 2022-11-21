@@ -14,7 +14,7 @@
 
 open Tokens
 open Sedlexing
-open Utils
+open Catala_utils
 module L = Lexer_common
 module R = Re.Pcre
 

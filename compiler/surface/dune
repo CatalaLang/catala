@@ -2,7 +2,7 @@
  (name surface)
  (public_name catala.surface)
  (libraries
-  utils
+  catala_utils
   menhirLib
   sedlex
   re

@@ -16,7 +16,7 @@
 
 (** Abstract syntax tree of the desugared representation *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** Inside a scope, a definition can refer either to a scope def, or a subscope

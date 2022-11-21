@@ -19,7 +19,7 @@
     Parser_driver.parse_source_file} API. *)
 
 open Sedlexing
-open Utils
+open Catala_utils
 
 (** {1 Internal functions} *)
 

@@ -1,8 +1,8 @@
 (library
- (name utils)
- (public_name catala.utils)
+ (name catala_utils)
+ (public_name catala.catala_utils)
  (libraries cmdliner ubase ANSITerminal re bindlib catala.runtime_ocaml))
 
 (documentation
  (package catala)
- (mld_files utils))
+ (mld_files catala_utils))

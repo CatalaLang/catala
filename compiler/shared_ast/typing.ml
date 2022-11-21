@@ -17,16 +17,16 @@
 (** Typing for the default calculus. Because of the error terms, we perform type
     inference using the classical W algorithm with union-find unification. *)
 
-open Utils
+open Catala_utils
 module A = Definitions
 
 module Any =
-  Utils.Uid.Make
+  Uid.Make
     (struct
       type info = unit
 
       let to_string _ = "any"
-      let format_info fmt () = Format.fprintf fmt "any"
+      let format fmt () = Format.fprintf fmt "any"
       let equal _ _ = true
       let compare _ _ = 0
     end)

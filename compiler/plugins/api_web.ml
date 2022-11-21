@@ -18,7 +18,7 @@
 (** Catala plugin for generating web APIs. It generates OCaml code before the
     the associated [js_of_ocaml] wrapper. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 open String_common
 open Lcalc

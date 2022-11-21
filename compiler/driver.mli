@@ -15,9 +15,11 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 module Plugin = Plugin.PluginAPI
 
-val driver : Utils.Pos.input_file -> Utils.Cli.options -> int
+val driver : Pos.input_file -> Cli.options -> int
 (** Entry function for the executable. Returns a negative number in case of
     error. *)
 

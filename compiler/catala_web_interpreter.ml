@@ -1,3 +1,5 @@
+open Catala_utils
+
 open Driver
 open Js_of_ocaml
 
@@ -12,7 +14,7 @@ let _ =
          driver
            (Contents (Js.to_string contents))
            {
-             Utils.Cli.debug = false;
+             Cli.debug = false;
              color = Never;
              wrap_weaved_output = false;
              avoid_exceptions = false;

@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open String_common
 open Definitions
 
@@ -26,27 +26,27 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
     (fun fmt info ->
-      Utils.Cli.format_with_style
+      Cli.format_with_style
         (if begins_with_uppercase (Marked.unmark info) then [ANSITerminal.red]
         else [])
         fmt
-        (Utils.Uid.MarkedString.to_string info))
+        (Uid.MarkedString.to_string info))
     fmt infos
 
 let keyword (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.red] fmt s
+  Cli.format_with_style [ANSITerminal.red] fmt s
 
 let base_type (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.yellow] fmt s
+  Cli.format_with_style [ANSITerminal.yellow] fmt s
 
 let punctuation (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.cyan] fmt s
+  Cli.format_with_style [ANSITerminal.cyan] fmt s
 
 let operator (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.green] fmt s
+  Cli.format_with_style [ANSITerminal.green] fmt s
 
 let lit_style (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.yellow] fmt s
+  Cli.format_with_style [ANSITerminal.yellow] fmt s
 
 let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   base_type fmt
@@ -68,7 +68,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
       ScopeVar.format_t (Marked.unmark subvar)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.magenta] fmt
+  Cli.format_with_style [ANSITerminal.magenta] fmt
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
 let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
@@ -127,9 +127,9 @@ let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
+      (Runtime.decimal_to_string ~max_prec_digits:!Cli.max_prec_digits i)
   | LMoney e -> (
-    match !Utils.Cli.locale_lang with
+    match !Cli.locale_lang with
     | En -> lit_style fmt (Format.asprintf "$%s" (Runtime.money_to_string e))
     | Fr -> lit_style fmt (Format.asprintf "%s €" (Runtime.money_to_string e))
     | Pl -> lit_style fmt (Format.asprintf "%s PLN" (Runtime.money_to_string e))
@@ -172,11 +172,11 @@ let ternop (fmt : Format.formatter) (op : ternop) : unit =
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "@<2>%a"
     (fun fmt -> function
-      | VarDef _ -> Utils.Cli.format_with_style [ANSITerminal.blue] fmt "≔ "
-      | BeginCall -> Utils.Cli.format_with_style [ANSITerminal.yellow] fmt "→ "
-      | EndCall -> Utils.Cli.format_with_style [ANSITerminal.yellow] fmt "← "
+      | VarDef _ -> Cli.format_with_style [ANSITerminal.blue] fmt "≔ "
+      | BeginCall -> Cli.format_with_style [ANSITerminal.yellow] fmt "→ "
+      | EndCall -> Cli.format_with_style [ANSITerminal.yellow] fmt "← "
       | PosRecordIfTrueBool ->
-        Utils.Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
+        Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
     entry
 
 let unop (fmt : Format.formatter) (op : unop) : unit =
@@ -187,7 +187,7 @@ let unop (fmt : Format.formatter) (op : unop) : unit =
     Format.fprintf fmt "log@[<hov 2>[%a|%a]@]" log_entry entry
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-         (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+         (fun fmt info -> Uid.MarkedString.format fmt info))
       infos
   | Length -> Format.pp_print_string fmt "length"
   | IntToRat -> Format.pp_print_string fmt "int_to_rat"

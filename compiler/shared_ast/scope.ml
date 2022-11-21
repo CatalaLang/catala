@@ -15,7 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 let rec fold_left_lets ~f ~init scope_body_expr =
@@ -106,7 +106,7 @@ let rec get_body_expr_mark = function
     get_body_expr_mark e
   | Result e ->
     let m = Marked.get_mark e in
-    Expr.with_ty m (Utils.Marked.mark (Expr.mark_pos m) TAny)
+    Expr.with_ty m (Marked.mark (Expr.mark_pos m) TAny)
 
 let get_body_mark scope_body =
   let _, e = Bindlib.unbind scope_body.scope_body_expr in

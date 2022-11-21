@@ -15,10 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-module Cli = Utils.Cli
-module File = Utils.File
-module Errors = Utils.Errors
-module Pos = Utils.Pos
+open Catala_utils
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]

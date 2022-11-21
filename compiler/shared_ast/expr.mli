@@ -17,7 +17,7 @@
 
 (** Functions handling the expressions of [shared_ast] *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 (** {2 Boxed constructors} *)
