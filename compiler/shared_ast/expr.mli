@@ -204,7 +204,18 @@ val shallow_fold :
   (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
 (** Applies a function on all sub-terms of the given expression. Does not
     recurse, and doesn't open binders. Useful as helper for recursive calls
-    within traversal functions *)
+    within traversal functions. This can be used to compute free variables with
+    e.g.:
+
+    {[
+      let rec free_vars = function
+        | EVar v, _ -> Var.Set.singleton v
+        | EAbs { binder; _ }, _ ->
+          let vs, body = Bindlib.unmbind binder in
+          Array.fold_right Var.Set.remove vs (free_vars body)
+        | e ->
+          shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
+    ]} *)
 
 val map_gather :
   acc:'acc ->
@@ -215,7 +226,20 @@ val map_gather :
 (** Shallow mapping similar to [map], but additionally allows to gather an
     accumulator bottom-up. [acc] is the accumulator value returned on terminal
     nodes, and [join] is used to merge accumulators from the different sub-terms
-    of an expression. [acc] is assumed to be a neutral element for [join] *)
+    of an expression. [acc] is assumed to be a neutral element for [join].
+    Typically used with a set of variables used in the rewrite:
+
+    {[
+      let rec rewrite e =
+        match Marked.unmark e with
+        | Specific_case ->
+          Var.Set.singleton x, some_rewrite_fun e
+        | _ ->
+          Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
+    }]
+
+
+    See [Lcalc.closure_conversion] for a real-world example. *)
 
 (** {2 Expression building helpers} *)
 
