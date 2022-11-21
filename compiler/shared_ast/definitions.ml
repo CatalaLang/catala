@@ -23,67 +23,29 @@
 open Utils
 module Runtime = Runtime_ocaml.Runtime
 
-module ScopeName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module ScopeName = Uid.Gen ()
 
-module ScopeSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
-module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
+module StructName = Uid.Gen ()
 
-module StructName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module StructField = Uid.Gen ()
 
-module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module EnumName = Uid.Gen ()
 
-module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
-
-module EnumName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
+module EnumConstructor = Uid.Gen ()
 
 (** Only used by surface *)
 
-module RuleName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module RuleName = Uid.Gen ()
 
-module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
-module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
-
-module LabelName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
-module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
+module LabelName = Uid.Gen ()
 
 (** Only used by desugared/scopelang *)
 
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module ScopeVar = Uid.Gen ()
 
-module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
-module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
+module SubScopeName = Uid.Gen ()
 
-module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module SubScopeNameSet : Set.S with type elt = SubScopeName.t =
-  Set.Make (SubScopeName)
-
-module SubScopeMap : Map.S with type key = SubScopeName.t =
-  Map.Make (SubScopeName)
-
-module StructFieldMap : Map.S with type key = StructFieldName.t =
-  Map.Make (StructFieldName)
-
-module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
-  Map.Make (EnumConstructor)
-
-module StateName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module StateName = Uid.Gen ()
 
 (** {1 Abstract syntax tree} *)
 

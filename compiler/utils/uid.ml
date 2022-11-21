@@ -73,3 +73,5 @@ module MarkedString = struct
   let equal i1 i2 = String.equal (Marked.unmark i1) (Marked.unmark i2)
   let compare i1 i2 = String.compare (Marked.unmark i1) (Marked.unmark i2)
 end
+
+module Gen () = Make (MarkedString) ()

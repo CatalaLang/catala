@@ -57,3 +57,6 @@ end
     two different calls to [Make] will be viewed as different types [t] by the
     OCaml typechecker. Prevents mixing up different sorts of identifiers. *)
 module Make (X : Info) () : Id with type info = X.info
+
+(** Shortcut for creating a kind of uids over marked strings *)
+module Gen () : Id with type info = MarkedString.info
