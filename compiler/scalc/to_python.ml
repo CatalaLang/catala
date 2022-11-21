@@ -18,7 +18,6 @@
 open Catala_utils
 open Shared_ast
 open Ast
-open String_common
 module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
@@ -125,23 +124,23 @@ let avoid_keywords (s : string) : string =
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_camel_case (to_ascii (Format.asprintf "%a" StructName.format_t v))))
+       (String.to_camel_case (String.to_ascii (Format.asprintf "%a" StructName.format_t v))))
 
 let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
     =
   Format.fprintf fmt "%s"
-    (avoid_keywords (to_ascii (Format.asprintf "%a" StructField.format_t v)))
+    (avoid_keywords (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_camel_case (to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+       (String.to_camel_case (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
+       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
 let typ_needs_parens (e : typ) : bool =
   match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
@@ -179,10 +178,10 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   s
-  |> to_ascii
-  |> to_snake_case
+  |> String.to_ascii
+  |> String.to_snake_case
   |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
-  |> to_ascii
+  |> String.to_ascii
   |> avoid_keywords
   |> Format.fprintf fmt "%s"
 

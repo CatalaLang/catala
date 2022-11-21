@@ -20,7 +20,6 @@
 
 open Catala_utils
 open Shared_ast
-open String_common
 open Lcalc
 open Lcalc.Ast
 open Lcalc.To_ocaml
@@ -43,8 +42,8 @@ module To_jsoo = struct
       (v : StructField.t) : unit =
     let s =
       Format.asprintf "%a" StructField.format_t v
-      |> to_ascii
-      |> to_snake_case
+      |> String.to_ascii
+      |> String.to_snake_case
       |> avoid_keywords
       |> to_camel_case
     in
@@ -118,17 +117,17 @@ module To_jsoo = struct
   let format_var_camel_case (fmt : Format.formatter) (v : 'm Var.t) : unit =
     let lowercase_name =
       Bindlib.name_of v
-      |> to_ascii
-      |> to_snake_case
+      |> String.to_ascii
+      |> String.to_snake_case
       |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ ->
              "_dot_")
-      |> to_ascii
+      |> String.to_ascii
       |> avoid_keywords
       |> to_camel_case
     in
     if
       List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-      || begins_with_uppercase (Bindlib.name_of v)
+      || String.begins_with_uppercase (Bindlib.name_of v)
     then Format.fprintf fmt "%s" lowercase_name
     else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
     else Format.fprintf fmt "%s_" lowercase_name

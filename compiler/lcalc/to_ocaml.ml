@@ -17,7 +17,6 @@
 open Catala_utils
 open Shared_ast
 open Ast
-open String_common
 module D = Dcalc.Ast
 
 let find_struct (s : StructName.t) (ctx : decl_ctx) : typ StructField.Map.t =
@@ -141,8 +140,8 @@ let avoid_keywords (s : string) : string =
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.asprintf "%a" StructName.format_t v
-  |> to_ascii
-  |> to_snake_case
+  |> String.to_ascii
+  |> String.to_snake_case
   |> avoid_keywords
   |> Format.fprintf fmt "%s"
 
@@ -152,8 +151,8 @@ let format_to_module_name
   (match name with
   | `Ename v -> Format.asprintf "%a" EnumName.format_t v
   | `Sname v -> Format.asprintf "%a" StructName.format_t v)
-  |> to_ascii
-  |> to_snake_case
+  |> String.to_ascii
+  |> String.to_snake_case
   |> avoid_keywords
   |> String.split_on_char '_'
   |> List.map String.capitalize_ascii
@@ -167,18 +166,18 @@ let format_struct_field_name
   | Some sname ->
     Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
   | None -> Format.fprintf fmt "%s")
-    (avoid_keywords (to_ascii (Format.asprintf "%a" StructField.format_t v)))
+    (avoid_keywords (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_snake_case (to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+       (String.to_snake_case (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
+       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
 let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
   match Marked.unmark ty with
@@ -222,16 +221,16 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
-  let lowercase_name = to_snake_case (to_ascii (Bindlib.name_of v)) in
+  let lowercase_name = String.to_snake_case (String.to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
       ~subst:(fun _ -> "_dot_")
       lowercase_name
   in
-  let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
+  let lowercase_name = avoid_keywords (String.to_ascii lowercase_name) in
   if
     List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-    || begins_with_uppercase (Bindlib.name_of v)
+    || String.begins_with_uppercase (Bindlib.name_of v)
   then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else (

@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+include module type of Stdlib.String
+
 (** Helper functions used for string manipulation. *)
 
 val to_ascii : string -> string

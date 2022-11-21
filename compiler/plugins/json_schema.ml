@@ -21,7 +21,6 @@ let name = "json_schema"
 let extension = "_schema.json"
 
 open Catala_utils
-open String_common
 open Shared_ast
 open Lcalc.Ast
 open Lcalc.To_ocaml
@@ -41,8 +40,8 @@ module To_json = struct
       (v : StructField.t) : unit =
     let s =
       Format.asprintf "%a" StructField.format_t v
-      |> to_ascii
-      |> to_snake_case
+      |> String.to_ascii
+      |> String.to_snake_case
       |> avoid_keywords
       |> to_camel_case
     in

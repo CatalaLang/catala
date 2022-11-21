@@ -15,7 +15,6 @@
    the License. *)
 
 open Catala_utils
-open String_common
 open Definitions
 
 let typ_needs_parens (ty : typ) : bool =
@@ -27,7 +26,7 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
     ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
     (fun fmt info ->
       Cli.format_with_style
-        (if begins_with_uppercase (Marked.unmark info) then [ANSITerminal.red]
+        (if String.begins_with_uppercase (Marked.unmark info) then [ANSITerminal.red]
         else [])
         fmt
         (Uid.MarkedString.to_string info))
