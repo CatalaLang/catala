@@ -324,7 +324,7 @@ let rec expr_aux :
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
   | ELocation loc -> location fmt loc
   | EStruct { name; fields } ->
-    Format.fprintf fmt " @[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
       punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
