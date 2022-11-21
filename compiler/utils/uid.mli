@@ -48,6 +48,9 @@ module type Id = sig
   val equal : t -> t -> bool
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
+
+  module Set: Set.S with type elt = t
+  module Map: Map.S with type key = t
 end
 
 (** This is the generative functor that ensures that two modules resulting from

@@ -33,10 +33,19 @@ module type Id = sig
   val equal : t -> t -> bool
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
+
+  module Set: Set.S with type elt = t
+  module Map: Map.S with type key = t
 end
 
 module Make (X : Info) () : Id with type info = X.info = struct
-  type t = { id : int; info : X.info }
+  module Ordering = struct
+    type t = { id : int; info : X.info }
+    let compare (x : t) (y : t) : int = compare x.id y.id
+    let equal x y = Int.equal x.id y.id
+  end
+  include Ordering
+
   type info = X.info
 
   let counter = ref 0
@@ -46,13 +55,14 @@ module Make (X : Info) () : Id with type info = X.info = struct
     { id = !counter; info }
 
   let get_info (uid : t) : X.info = uid.info
-  let compare (x : t) (y : t) : int = compare x.id y.id
-  let equal x y = Int.equal x.id y.id
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     X.format_info fmt x.info
 
   let hash (x : t) : int = x.id
+
+  module Set = Set.Make (Ordering)
+  module Map = Map.Make (Ordering)
 end
 
 module MarkedString = struct
