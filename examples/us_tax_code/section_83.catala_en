@@ -21,7 +21,7 @@ declaration scope Transferred_property_83:
 declaration enumeration TransferredReturn:
   -- DoesNotApply
   -- NotThisYear
-  -- AmountToInclude content money
+  -- IncludeInGrossIncome content money
 ```
 
 ## (a) General rule
@@ -47,16 +47,15 @@ transferable or not subject to a substantial risk of forfeiture.
 
 ```catala
 scope Transferred_property_83:
-  definition amount_to_include_in_gross_income equals NotThisYear
-
-scope Transferred_property_83:
-  exception section_83a definition amount_to_include_in_gross_income
+  label section_83a
+  exception section_83_default
+  definition amount_to_include_in_gross_income
     under condition (not is_restricted)
     consequence equals
 # Note: should not apply if the property was already sold
       if fair_market_value_unrestricted >$ amount_paid
-      then AmountToInclude content (fair_market_value_unrestricted -$ amount_paid)
-      else AmountToInclude content $0
+      then IncludeInGrossIncome content (fair_market_value_unrestricted -$ amount_paid)
+      else IncludeInGrossIncome content $0
 ```
 
 ## (b) Election to include in gross income in year of transfer
@@ -75,14 +74,21 @@ deduction shall be allowed in respect of such forfeiture.
 
 ```catala
 scope Transferred_property_83:
-  exception section_83b definition amount_to_include_in_gross_income
+  label section_83b
+  exception section_83a
+  definition amount_to_include_in_gross_income
     under condition elects_to_include_in_year_of_transfer
     consequence equals
       if fair_market_value_when_transfered >$ amount_paid
-      then AmountToInclude content (fair_market_value_when_transfered -$ amount_paid)
-      else AmountToInclude content $0
+      then IncludeInGrossIncome content (fair_market_value_when_transfered -$ amount_paid)
+      else IncludeInGrossIncome content $0
 
-# "if such property is subsequently forfeited, ..." applies to the future and not to the current computation, so we don't encode it here
+  label section_83_default
+  definition amount_to_include_in_gross_income equals NotThisYear
+  # Default case
+
+# "if such property is subsequently forfeited, ..." applies to the future and
+# not to the current computation, so we don't encode it here
 ```
 
 ### (2) Election
@@ -92,7 +98,8 @@ than 30 days after the date of such transfer. Such election may not be revoked
 except with the consent of the Secretary.
 
 ```catala
-# This section describes how the election should be made, it doesn't directly concern the computation
+# This section describes how the election should be made, it doesn't directly
+# concern the computation
 ```
 
 ## (c) Special rules
@@ -130,7 +137,8 @@ This section shall not apply to—
 
 ```catala
 scope Transferred_property_83:
-  exception definition amount_to_include_in_gross_income
+  exception section_83b
+  definition amount_to_include_in_gross_income
     under condition
       section_421_applies or
       transfer_401a_or_404a2 or
@@ -154,9 +162,7 @@ who performed such services.
 
 ```catala
 declaration scope Deduction_by_employer:
-  
+  output deduction_under_section_162 content money
 
-scope Deduction_by_employer:
-  
 
 ```
