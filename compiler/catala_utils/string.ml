@@ -47,3 +47,8 @@ let to_camel_case (s : string) : string =
            else c_string;
          last_was_underscore := is_underscore);
   !out
+
+let format_t = Format.pp_print_string
+
+module Set = Set.Make (Stdlib.String)
+module Map = Map.Make (Stdlib.String)

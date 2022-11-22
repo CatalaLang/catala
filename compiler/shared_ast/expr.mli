@@ -66,7 +66,7 @@ val eapp :
 val eassert :
   (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr -> 't -> ('a, 't) boxed_gexpr
 
-val eop : operator -> 't -> (_ any, 't) boxed_gexpr
+val eop : 'a any operator -> 't -> ('a, 't) boxed_gexpr
 
 val edefault :
   (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr list ->
@@ -105,8 +105,15 @@ val estruct :
   't ->
   ('a, 't) boxed_gexpr
 
+val edstructaccess :
+  (desugared, 't) boxed_gexpr ->
+  IdentName.t ->
+  StructName.t option ->
+  't ->
+  (desugared, 't) boxed_gexpr
+
 val estructaccess :
-  ('a any, 't) boxed_gexpr ->
+  (([< scopelang | dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
   StructField.t ->
   StructName.t ->
   't ->
@@ -302,6 +309,11 @@ val make_tuple :
     when building 0-uples *)
 
 (** {2 Transformations} *)
+
+val translate_op :
+  [< desugared | scopelang | dcalc | lcalc ] operator -> 'b any operator
+(** Operators are actually all the same after initial desambiguation, so this
+    function allows converting their types ; otherwise, this is the identity *)
 
 val remove_logging_calls : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by

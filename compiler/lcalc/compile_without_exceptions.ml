@@ -289,7 +289,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
 
     Expr.earray es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | EOp op -> Expr.eop op mark, Var.Map.empty
+  | EOp op -> Expr.eop (Expr.translate_op op) mark, Var.Map.empty
 
 and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
     'm A.expr boxed =

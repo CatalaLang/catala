@@ -54,7 +54,7 @@ let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
     let years, months, days = Runtime.duration_to_years_months_days d in
     Format.fprintf fmt "duration_of_numbers (%d) (%d) (%d)" years months days
 
-let format_op_kind (fmt : Format.formatter) (k : op_kind) =
+let format_op_kind (fmt : Format.formatter) (k : 'a op_kind) =
   Format.fprintf fmt "%s"
     (match k with
     | KInt -> "!"
@@ -63,7 +63,7 @@ let format_op_kind (fmt : Format.formatter) (k : op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let format_binop (fmt : Format.formatter) (op : binop Marked.pos) : unit =
+let format_binop (fmt : Format.formatter) (op : 'a binop Marked.pos) : unit =
   match Marked.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
   | Sub k -> Format.fprintf fmt "-%a" format_op_kind k
@@ -103,7 +103,7 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let format_unop (fmt : Format.formatter) (op : unop Marked.pos) : unit =
+let format_unop (fmt : Format.formatter) (op : lcalc unop Marked.pos) : unit =
   match Marked.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"

@@ -73,8 +73,10 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct { name; fields } ->
     Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
-  | EStructAccess { e; field; name } ->
-    Expr.estructaccess (translate_expr ctx e) field name m
+  | EDStructAccess { e; field; name_opt } ->
+    assert false
+    (* TODO: resolve!! *)
+    (* Expr.estructaccess (translate_expr ctx e) field name_opt m *)
   | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { e; name; cases } ->
     Expr.ematch (translate_expr ctx e) name
@@ -112,7 +114,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) tys m
   | EApp { f; args } ->
     Expr.eapp (translate_expr ctx f) (List.map (translate_expr ctx) args) m
-  | EOp op -> Expr.eop op m
+  | EOp op -> Expr.eop (Expr.translate_op op) m
   | EDefault { excepts; just; cons } ->
     Expr.edefault
       (List.map (translate_expr ctx) excepts)

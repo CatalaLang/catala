@@ -114,6 +114,9 @@ let estruct name (fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
        (fun fields -> EStruct { name; fields })
        (Box.lift_struct (StructField.Map.map Box.lift fields))
 
+let edstructaccess e field name_opt =
+  Box.app1 e @@ fun e -> EDStructAccess { name_opt; e; field }
+
 let estructaccess e field name =
   Box.app1 e @@ fun e -> EStructAccess { name; e; field }
 
@@ -232,6 +235,8 @@ let map
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
     estruct name fields m
+  | EDStructAccess { e; field; name_opt } ->
+    edstructaccess (f e) field name_opt m
   | EStructAccess { e; field; name } -> estructaccess (f e) field name m
   | EMatch { e; name; cases } ->
     let cases = EnumConstructor.Map.map f cases in
@@ -267,6 +272,7 @@ let shallow_fold
   | EErrorOnEmpty e -> acc |> f e
   | ECatch { body; handler; _ } -> acc |> f body |> f handler
   | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
+  | EDStructAccess { e; _ } -> acc |> f e
   | EStructAccess { e; _ } -> acc |> f e
   | EMatch { e; cases; _ } ->
     acc |> f e |> EnumConstructor.Map.fold (fun _ -> f) cases
@@ -347,6 +353,9 @@ let map_gather
         (acc, StructField.Map.empty)
     in
     acc, estruct name fields m
+  | EDStructAccess { e; field; name_opt } ->
+    let acc, e = f e in
+    acc, edstructaccess e field name_opt m
   | EStructAccess { e; field; name } ->
     let acc, e = f e in
     acc, estructaccess e field name m
@@ -689,6 +698,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EStruct { name = s1; fields = fields1 },
       EStruct { name = s2; fields = fields2 } ) ->
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
+  | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
+      EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
+    Option.equal StructName.equal s1 s2 && IdentName.equal f1 f2 && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
@@ -705,8 +717,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
   | ( ( EVar _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _ | EAbs _ | EApp _
       | EAssert _ | EOp _ | EDefault _ | EIfThenElse _ | EErrorOnEmpty _
-      | ERaise _ | ECatch _ | ELocation _ | EStruct _ | EStructAccess _ | EInj _
-      | EMatch _ | EScopeCall _ ),
+      | ERaise _ | ECatch _ | ELocation _ | EStruct _ | EDStructAccess _
+      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ ),
       _ ) ->
     false
 
@@ -719,7 +731,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   match[@ocamlformat "disable"] Marked.unmark e1, Marked.unmark e2 with
   | ELit l1, ELit l2 ->
     compare_lit l1 l2
-  | EApp {f=f1; args= args1}, EApp {f=f2; args= args2} ->
+  | EApp {f=f1; args=args1}, EApp {f=f2; args=args2} ->
     compare f1 f2 @@< fun () ->
     List.compare compare args1 args2
   | EOp op1, EOp op2 ->
@@ -728,44 +740,57 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     List.compare compare a1 a2
   | EVar v1, EVar v2 ->
     Bindlib.compare_vars v1 v2
-  | EAbs {binder=binder1; tys= typs1}, EAbs {binder=binder2; tys= typs2} ->
+  | EAbs {binder=binder1; tys=typs1},
+    EAbs {binder=binder2; tys=typs2} ->
     List.compare compare_typ typs1 typs2 @@< fun () ->
     let _, e1, e2 = Bindlib.unmbind2 binder1 binder2 in
     compare e1 e2
-  | EIfThenElse {cond=i1; etrue= t1; efalse= e1}, EIfThenElse {cond=i2; etrue= t2; efalse= e2} ->
+  | EIfThenElse {cond=i1; etrue=t1; efalse=e1},
+    EIfThenElse {cond=i2; etrue=t2; efalse=e2} ->
     compare i1 i2 @@< fun () ->
     compare t1 t2 @@< fun () ->
     compare e1 e2
   | ELocation l1, ELocation l2 ->
     compare_location (Marked.mark Pos.no_pos l1) (Marked.mark Pos.no_pos l2)
-  | EStruct {name=name1; fields= field_map1}, EStruct {name=name2; fields= field_map2} ->
+  | EStruct {name=name1; fields=field_map1},
+    EStruct {name=name2; fields=field_map2} ->
     StructName.compare name1 name2 @@< fun () ->
     StructField.Map.compare compare field_map1 field_map2
-  | EStructAccess {e=e1; field= field_name1; name= struct_name1},
-    EStructAccess {e=e2; field= field_name2; name= struct_name2} ->
+  | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
+    EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
+    compare e1 e2 @@< fun () ->
+    IdentName.compare field_name1 field_name2 @@< fun () ->
+    Option.compare StructName.compare struct_name1 struct_name2
+  | EStructAccess {e=e1; field=field_name1; name=struct_name1},
+    EStructAccess {e=e2; field=field_name2; name=struct_name2} ->
     compare e1 e2 @@< fun () ->
     StructField.compare field_name1 field_name2 @@< fun () ->
     StructName.compare struct_name1 struct_name2
-  | EMatch {e=e1; name= name1;cases= emap1}, EMatch {e=e2; name= name2;cases= emap2} ->
+  | EMatch {e=e1; name=name1; cases=emap1},
+    EMatch {e=e2; name=name2; cases=emap2} ->
     EnumName.compare name1 name2 @@< fun () ->
     compare e1 e2 @@< fun () ->
     EnumConstructor.Map.compare compare emap1 emap2
-  | EScopeCall {scope=name1; args= field_map1}, EScopeCall {scope=name2; args= field_map2} ->
+  | EScopeCall {scope=name1; args=field_map1},
+    EScopeCall {scope=name2; args=field_map2} ->
     ScopeName.compare name1 name2 @@< fun () ->
     ScopeVar.Map.compare compare field_map1 field_map2
   | ETuple es1, ETuple es2 ->
     List.compare compare es1 es2
-  | ETupleAccess {e=e1; index= n1; size=s1}, ETupleAccess {e=e2; index= n2; size=s2} ->
+  | ETupleAccess {e=e1; index=n1; size=s1},
+    ETupleAccess {e=e2; index=n2; size=s2} ->
     Int.compare s1 s2 @@< fun () ->
     Int.compare n1 n2 @@< fun () ->
     compare e1 e2
-  | EInj {e=e1; name= name1; cons= cons1}, EInj {e=e2; name= name2; cons= cons2} ->
+  | EInj {e=e1; name=name1; cons=cons1},
+    EInj {e=e2; name=name2; cons=cons2} ->
     EnumName.compare name1 name2 @@< fun () ->
     EnumConstructor.compare cons1 cons2 @@< fun () ->
     compare e1 e2
   | EAssert e1, EAssert e2 ->
     compare e1 e2
-  | EDefault {excepts=exs1; just= just1; cons=cons1}, EDefault {excepts=exs2; just= just2; cons=cons2} ->
+  | EDefault {excepts=exs1; just=just1; cons=cons1},
+    EDefault {excepts=exs2; just=just2; cons=cons2} ->
     compare just1 just2 @@< fun () ->
     compare cons1 cons2 @@< fun () ->
     List.compare compare exs1 exs2
@@ -773,7 +798,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2
   | ERaise ex1, ERaise ex2 ->
     compare_except ex1 ex2
-  | ECatch {body=etry1; exn= ex1; handler=ewith1}, ECatch {body=etry2; exn= ex2; handler=ewith2} ->
+  | ECatch {body=etry1; exn=ex1; handler=ewith1},
+    ECatch {body=etry2; exn=ex2; handler=ewith2} ->
     compare_except ex1 ex2 @@< fun () ->
     compare etry1 etry2 @@< fun () ->
     compare ewith1 ewith2
@@ -786,6 +812,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EIfThenElse _, _ -> -1 | _, EIfThenElse _ -> 1
   | ELocation _, _ -> -1 | _, ELocation _ -> 1
   | EStruct _, _ -> -1 | _, EStruct _ -> 1
+  | EDStructAccess _, _ -> -1 | _, EDStructAccess _ -> 1
   | EStructAccess _, _ -> -1 | _, EStructAccess _ -> 1
   | EMatch _, _ -> -1 | _, EMatch _ -> 1
   | EScopeCall _, _ -> -1 | _, EScopeCall _ -> 1
@@ -842,6 +869,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | ELocation _ -> 1
   | EStruct { fields; _ } ->
     StructField.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
+  | EDStructAccess { e; _ } -> 1 + size e
   | EStructAccess { e; _ } -> 1 + size e
   | EMatch { e; cases; _ } ->
     EnumConstructor.Map.fold (fun _ e acc -> acc + 1 + size e) cases (size e)
@@ -931,3 +959,33 @@ let make_tuple el m0 =
         (List.map (fun e -> Marked.get_mark e) el)
     in
     etuple el m
+
+let translate_op_kind : type a. a op_kind -> 'b op_kind = function
+  | KInt -> KInt
+  | KRat -> KRat
+  | KMoney -> KMoney
+  | KDate -> KDate
+  | KDuration -> KDuration
+
+let translate_op : type a. a operator -> 'b operator = function
+  | Ternop o -> Ternop o
+  | Binop o ->
+    Binop
+      (match o with
+      | Add k -> Add (translate_op_kind k)
+      | Sub k -> Sub (translate_op_kind k)
+      | Mult k -> Mult (translate_op_kind k)
+      | Div k -> Div (translate_op_kind k)
+      | Lt k -> Lt (translate_op_kind k)
+      | Lte k -> Lte (translate_op_kind k)
+      | Gt k -> Gt (translate_op_kind k)
+      | Gte k -> Gte (translate_op_kind k)
+      | (And | Or | Xor | Eq | Neq | Map | Concat | Filter) as o -> o)
+  | Unop o ->
+    Unop
+      (match o with
+      | Minus k -> Minus (translate_op_kind k)
+      | ( Not | Log _ | Length | IntToRat | MoneyToRat | RatToMoney | GetDay
+        | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | RoundMoney
+        | RoundDecimal ) as o ->
+        o)

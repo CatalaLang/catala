@@ -27,15 +27,15 @@ module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Translating expressions} *)
 
-let translate_op_kind (k : Surface.Ast.op_kind) : op_kind =
+let translate_op_kind (k : Surface.Ast.op_kind) : desugared op_kind =
   match k with
-  | KInt -> KInt
-  | KDec -> KRat
-  | KMoney -> KMoney
-  | KDate -> KDate
-  | KDuration -> KDuration
+  | Surface.Ast.KInt -> KInt
+  | Surface.Ast.KDec -> KRat
+  | Surface.Ast.KMoney -> KMoney
+  | Surface.Ast.KDate -> KDate
+  | Surface.Ast.KDuration -> KDuration
 
-let translate_binop (op : Surface.Ast.binop) : binop =
+let translate_binop (op : Surface.Ast.binop) : desugared binop =
   match op with
   | And -> And
   | Or -> Or
@@ -52,7 +52,7 @@ let translate_binop (op : Surface.Ast.binop) : binop =
   | Neq -> Neq
   | Concat -> Concat
 
-let translate_unop (op : Surface.Ast.unop) : unop =
+let translate_unop (op : Surface.Ast.unop) : desugared unop =
   match op with Not -> Not | Minus l -> Minus (translate_op_kind l)
 
 let disambiguate_constructor
@@ -67,10 +67,7 @@ let disambiguate_constructor
         "The deep pattern matching syntactic sugar is not yet supported"
   in
   let possible_c_uids =
-    try
-      Name_resolution.IdentMap.find
-        (Marked.unmark constructor)
-        ctxt.constructor_idmap
+    try IdentName.Map.find (Marked.unmark constructor) ctxt.constructor_idmap
     with Not_found ->
       Errors.raise_spanned_error
         (Marked.get_mark constructor)
@@ -204,9 +201,9 @@ let rec translate_expr
   | Ident x -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables *)
-    match Name_resolution.IdentMap.find_opt x ctxt.local_var_idmap with
+    match IdentName.Map.find_opt x ctxt.local_var_idmap with
     | None -> (
-      match Name_resolution.IdentMap.find_opt x scope_ctxt.var_idmap with
+      match IdentName.Map.find_opt x scope_ctxt.var_idmap with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
            desambiguate. In general, only the last state can be referenced.
@@ -258,7 +255,7 @@ let rec translate_expr
     | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
       (* In this case, y.x is a subscope variable *)
       let subscope_uid, subscope_real_uid =
-        match Name_resolution.IdentMap.find y scope_ctxt.var_idmap with
+        match IdentName.Map.find y scope_ctxt.var_idmap with
         | SubScope (sub, sc) -> sub, sc
         | ScopeVar _ -> assert false
       in
@@ -269,42 +266,19 @@ let rec translate_expr
         (SubScopeVar
            (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos)))
         emark
-    | _ -> (
+    | _ ->
       (* In this case e.x is the struct field x access of expression e *)
       let e = translate_expr scope inside_definition_of ctxt e in
-      let x_possible_structs =
-        try Name_resolution.IdentMap.find (Marked.unmark x) ctxt.field_idmap
-        with Not_found ->
-          Errors.raise_spanned_error (Marked.get_mark x)
-            "Unknown subscope or struct field name"
+      let str =
+        Option.map
+          (fun c ->
+            try Name_resolution.get_struct ctxt c
+            with Not_found ->
+              Errors.raise_spanned_error (Marked.get_mark c)
+                "Struct %s has not been defined before" (Marked.unmark c))
+          c
       in
-      match c with
-      | None ->
-        (* No constructor name was specified *)
-        if StructName.Map.cardinal x_possible_structs > 1 then
-          Errors.raise_spanned_error (Marked.get_mark x)
-            "This struct field name is ambiguous, it can belong to %a. \
-             Disambiguate it by prefixing it with the struct name."
-            (Format.pp_print_list
-               ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-               (fun fmt (s_name, _) ->
-                 Format.fprintf fmt "%a" StructName.format_t s_name))
-            (StructName.Map.bindings x_possible_structs)
-        else
-          let s_uid, f_uid = StructName.Map.choose x_possible_structs in
-          Expr.estructaccess e f_uid s_uid emark
-      | Some c_name -> (
-        try
-          let c_uid = Name_resolution.get_struct ctxt c_name in
-          try
-            let f_uid = StructName.Map.find c_uid x_possible_structs in
-            Expr.estructaccess e f_uid c_uid emark
-          with Not_found ->
-            Errors.raise_spanned_error pos "Struct %s does not contain field %s"
-              (Marked.unmark c_name) (Marked.unmark x)
-        with Not_found ->
-          Errors.raise_spanned_error (Marked.get_mark c_name)
-            "Struct %s has not been defined before" (Marked.unmark c_name))))
+      Expr.edstructaccess e (Marked.unmark x) str emark)
   | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
   | ScopeCall (sc_name, fields) ->
     let called_scope = Name_resolution.get_scope ctxt sc_name in
@@ -314,8 +288,7 @@ let rec translate_expr
         (fun acc (fld_id, e) ->
           let var =
             match
-              Name_resolution.IdentMap.find_opt (Marked.unmark fld_id)
-                scope_def.var_idmap
+              IdentName.Map.find_opt (Marked.unmark fld_id) scope_def.var_idmap
             with
             | Some (ScopeVar v) -> v
             | Some (SubScope _) | None ->
@@ -352,9 +325,7 @@ let rec translate_expr
     Expr.eapp fn [rec_helper e1] emark
   | StructLit (s_name, fields) ->
     let s_uid =
-      match
-        Name_resolution.IdentMap.find_opt (Marked.unmark s_name) ctxt.typedefs
-      with
+      match IdentName.Map.find_opt (Marked.unmark s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
       | _ ->
         Errors.raise_spanned_error (Marked.get_mark s_name)
@@ -367,8 +338,7 @@ let rec translate_expr
           let f_uid =
             try
               StructName.Map.find s_uid
-                (Name_resolution.IdentMap.find (Marked.unmark f_name)
-                   ctxt.field_idmap)
+                (IdentName.Map.find (Marked.unmark f_name) ctxt.field_idmap)
             with Not_found ->
               Errors.raise_spanned_error (Marked.get_mark f_name)
                 "This identifier should refer to a field of struct %s"
@@ -396,7 +366,7 @@ let rec translate_expr
     Expr.estruct s_uid s_fields emark
   | EnumInject (enum, (constructor, pos_constructor), payload) -> (
     let possible_c_uids =
-      try Name_resolution.IdentMap.find constructor ctxt.constructor_idmap
+      try IdentName.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
         Errors.raise_spanned_error pos_constructor
           "The name of this constructor has not been defined before, maybe it \
@@ -597,12 +567,12 @@ let rec translate_expr
       Expr.make_var acc_var (Untyped { pos = Marked.get_mark param' })
     in
     let f_body =
-      let make_body (op : binop) =
+      let make_body (op : desugared binop) =
         Expr.eapp (Expr.eop (Binop op) mark)
           [acc; translate_expr scope inside_definition_of ctxt predicate]
           emark
       in
-      let make_extr_body (cmp_op : binop) (t : typ) =
+      let make_extr_body (cmp_op : desugared binop) (t : typ) =
         let tmp_var = Var.make "tmp" in
         let tmp =
           Expr.make_var tmp_var (Untyped { pos = Marked.get_mark param' })
@@ -963,8 +933,7 @@ let process_def
       match def.definition_label with
       | Some (label_str, label_pos) ->
         Ast.ExplicitlyLabeled
-          ( Name_resolution.IdentMap.find label_str scope_def_ctxt.label_idmap,
-            label_pos )
+          (IdentName.Map.find label_str scope_def_ctxt.label_idmap, label_pos)
       | None -> Ast.Unlabeled
     in
     let exception_situation =
@@ -981,7 +950,7 @@ let process_def
       | ExceptionToLabel label_str -> (
         try
           let label_id =
-            Name_resolution.IdentMap.find (Marked.unmark label_str)
+            IdentName.Map.find (Marked.unmark label_str)
               scope_def_ctxt.label_idmap
           in
           ExceptionToLabel (label_id, Marked.get_mark label_str)
@@ -1157,8 +1126,7 @@ let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
 
 let init_scope_defs
     (ctxt : Name_resolution.context)
-    (scope_idmap :
-      Name_resolution.scope_var_or_subscope Name_resolution.IdentMap.t) :
+    (scope_idmap : Name_resolution.scope_var_or_subscope IdentName.Map.t) :
     Ast.scope_def Ast.ScopeDefMap.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
@@ -1213,7 +1181,7 @@ let init_scope_defs
       let sub_scope_def =
         ScopeName.Map.find subscope_uid ctxt.Name_resolution.scopes
       in
-      Name_resolution.IdentMap.fold
+      IdentName.Map.fold
         (fun _ v scope_def_map ->
           match v with
           | Name_resolution.SubScope _ -> scope_def_map
@@ -1235,7 +1203,7 @@ let init_scope_defs
               scope_def_map)
         sub_scope_def.Name_resolution.var_idmap scope_def_map
   in
-  Name_resolution.IdentMap.fold add_def scope_idmap Ast.ScopeDefMap.empty
+  IdentName.Map.fold add_def scope_idmap Ast.ScopeDefMap.empty
 
 (** Main function of this module *)
 let translate_program
@@ -1246,7 +1214,7 @@ let translate_program
       ScopeName.Map.mapi
         (fun s_uid s_context ->
           let scope_vars =
-            Name_resolution.IdentMap.fold
+            IdentName.Map.fold
               (fun _ v acc ->
                 match v with
                 | Name_resolution.SubScope _ -> acc
@@ -1258,7 +1226,7 @@ let translate_program
               s_context.Name_resolution.var_idmap ScopeVar.Map.empty
           in
           let scope_sub_scopes =
-            Name_resolution.IdentMap.fold
+            IdentName.Map.fold
               (fun _ v acc ->
                 match v with
                 | Name_resolution.ScopeVar _ -> acc
@@ -1282,7 +1250,7 @@ let translate_program
           ctx_structs = ctxt.Name_resolution.structs;
           ctx_enums = ctxt.Name_resolution.enums;
           ctx_scopes =
-            Name_resolution.IdentMap.fold
+            IdentName.Map.fold
               (fun _ def acc ->
                 match def with
                 | Name_resolution.TScope (scope, scope_out_struct) ->

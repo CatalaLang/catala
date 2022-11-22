@@ -49,7 +49,7 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   | EndCall -> Format.fprintf fmt "%s" "← "
   | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
 
-let format_binop (fmt : Format.formatter) (op : binop Marked.pos) : unit =
+let format_binop (fmt : Format.formatter) (op : lcalc binop Marked.pos) : unit =
   match Marked.unmark op with
   | Add _ | Concat -> Format.fprintf fmt "+"
   | Sub _ -> Format.fprintf fmt "-"
@@ -89,7 +89,7 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let format_unop (fmt : Format.formatter) (op : unop Marked.pos) : unit =
+let format_unop (fmt : Format.formatter) (op : lcalc unop Marked.pos) : unit =
   match Marked.unmark op with
   | Minus _ -> Format.fprintf fmt "-"
   | Not -> Format.fprintf fmt "not"

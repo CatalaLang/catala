@@ -31,7 +31,7 @@ let log_indent = ref 0
 
 let rec evaluate_operator
     (ctx : decl_ctx)
-    (op : operator)
+    (op : dcalc operator)
     (pos : Pos.t)
     (args : 'm Ast.expr list) : 'm Ast.naked_expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use

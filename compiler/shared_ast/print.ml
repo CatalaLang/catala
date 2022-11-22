@@ -137,7 +137,7 @@ let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
   | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
 
-let op_kind (fmt : Format.formatter) (k : op_kind) =
+let op_kind (fmt : Format.formatter) (k : 'a op_kind) =
   Format.fprintf fmt "%s"
     (match k with
     | KInt -> ""
@@ -146,7 +146,7 @@ let op_kind (fmt : Format.formatter) (k : op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let binop (fmt : Format.formatter) (op : binop) : unit =
+let binop (fmt : Format.formatter) (op : 'a binop) : unit =
   operator fmt
     (match op with
     | Add k -> Format.asprintf "+%a" op_kind k
@@ -179,7 +179,7 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
         Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
     entry
 
-let unop (fmt : Format.formatter) (op : unop) : unit =
+let unop (fmt : Format.formatter) (op : 'a unop) : unit =
   match op with
   | Minus _ -> Format.pp_print_string fmt "-"
   | Not -> Format.pp_print_string fmt "~"
@@ -323,6 +323,9 @@ let rec expr_aux :
   | ERaise exn ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
   | ELocation loc -> location fmt loc
+  | EDStructAccess { e; field; _ } ->
+    Format.fprintf fmt "%a%a%a%a%a" expr e punctuation "." punctuation "\""
+      IdentName.format_t field punctuation "\""
   | EStruct { name; fields } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
       punctuation "{"

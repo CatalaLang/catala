@@ -36,7 +36,7 @@ and naked_expr =
   | EArray of expr list
   | ELit of L.lit
   | EApp of expr * expr list
-  | EOp of operator
+  | EOp of lcalc operator
 
 type stmt =
   | SInnerFuncDef of LocalName.t Marked.pos * func

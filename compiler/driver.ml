@@ -148,20 +148,18 @@ let driver source_file (options : Cli.options) : int =
         | None, _ ->
           let _, scope =
             try
-              Desugared.Name_resolution.IdentMap.filter_map
+              Shared_ast.IdentName.Map.filter_map
                 (fun _ -> function
                   | Desugared.Name_resolution.TScope (uid, _) -> Some uid
                   | _ -> None)
                 ctxt.typedefs
-              |> Desugared.Name_resolution.IdentMap.choose
+              |> Shared_ast.IdentName.Map.choose
             with Not_found ->
               Errors.raise_error "There isn't any scope inside the program."
           in
           scope
         | Some name, _ -> (
-          match
-            Desugared.Name_resolution.IdentMap.find_opt name ctxt.typedefs
-          with
+          match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
           | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
           | _ ->
             Errors.raise_error "There is no scope \"%s\" inside the program."

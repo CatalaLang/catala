@@ -363,7 +363,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)
       m
-  | EOp op -> Expr.eop op m
+  | EOp op -> Expr.eop (Expr.translate_op op) m
   | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 

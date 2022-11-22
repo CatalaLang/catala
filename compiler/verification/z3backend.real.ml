@@ -426,8 +426,8 @@ let is_leap_year = Runtime.is_leap_year
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
-let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
-    context * Expr.expr =
+let rec translate_op (ctx : context) (op : dcalc operator) (args : 'm expr list)
+    : context * Expr.expr =
   match op with
   | Ternop _top ->
     let _e1, _e2, _e3 =

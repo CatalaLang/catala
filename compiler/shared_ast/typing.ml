@@ -215,7 +215,7 @@ let lit_type (type a) (lit : a A.glit) : naked_typ =
     This allows us to have a simpler type system, while we argue the syntactic
     burden of operator annotations helps the programmer visualize the type flow
     in the code. *)
-let op_type (op : A.operator Marked.pos) : unionfind_typ =
+let op_type (op : 'a A.operator Marked.pos) : unionfind_typ =
   let pos = Marked.get_mark op in
   let bt = UnionFind.make (TLit TBool, pos) in
   let it = UnionFind.make (TLit TInt, pos) in
@@ -413,6 +413,7 @@ and typecheck_expr_top_down :
         fields
     in
     Expr.estruct name fields' mark
+  | A.EDStructAccess { e = e_struct; name_opt; field } -> assert false
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
