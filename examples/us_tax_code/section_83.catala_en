@@ -1,10 +1,6 @@
 # 83. Property transferred in connection with performance of services
 
 ```catala-metadata
-declaration enumeration Fair_market_value:
-  -- Unrestricted content money
-  -- Restricted content money
-
 declaration scope Transferred_property_83:
   input fair_market_value_unrestricted content money
   input fair_market_value_when_transfered content money
@@ -13,8 +9,19 @@ declaration scope Transferred_property_83:
     # has to be explicitely selected within 30 days of transfer
   input substantial_risk_of_forfeiture content boolean
   input transferable content boolean
-  internal conditions_for_83a content boolean
-  output amount_to_include_in_gross_income content money
+  input section_421_applies content boolean
+  input transfer_401a_or_404a2 content boolean
+  input option_without_ascertainable_fair_market_value content boolean
+  input exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant content boolean
+  input group_term_life_insurance_79 content boolean
+
+  internal is_restricted content boolean
+  output amount_to_include_in_gross_income content TransferredReturn
+
+declaration enumeration TransferredReturn:
+  -- DoesNotApply
+  -- NotThisYear
+  -- AmountToInclude content money
 ```
 
 ## (a) General rule
@@ -40,14 +47,16 @@ transferable or not subject to a substantial risk of forfeiture.
 
 ```catala
 scope Transferred_property_83:
-  definition amount_to_include_in_gross_income equals
+  definition amount_to_include_in_gross_income equals NotThisYear
+
+scope Transferred_property_83:
+  exception section_83a definition amount_to_include_in_gross_income
+    under condition (not is_restricted)
+    consequence equals
 # Note: should not apply if the property was already sold
-  definition conditions_for_83a equals (not substantial_risk_of_forfeiture or transferable)
-  if conditions_for_83a then
-    if fair_market_value_unrestricted >$ amount_paid
-    then fair_market_value_unrestricted -$ amount_paid
-    else $0
-  else $0
+      if fair_market_value_unrestricted >$ amount_paid
+      then AmountToInclude content (fair_market_value_unrestricted -$ amount_paid)
+      else AmountToInclude content $0
 ```
 
 ## (b) Election to include in gross income in year of transfer
@@ -66,12 +75,12 @@ deduction shall be allowed in respect of such forfeiture.
 
 ```catala
 scope Transferred_property_83:
-  exception definition amount_to_include_in_gross_income
+  exception section_83b definition amount_to_include_in_gross_income
     under condition elects_to_include_in_year_of_transfer
     consequence equals
       if fair_market_value_when_transfered >$ amount_paid
-      then fair_market_value_when_transfered -$ amount_paid
-      else $0
+      then AmountToInclude content (fair_market_value_when_transfered -$ amount_paid)
+      else AmountToInclude content $0
 
 # "if such property is subsequently forfeited, ..." applies to the future and not to the current computation, so we don't encode it here
 ```
@@ -102,9 +111,12 @@ section 16(b) of the Securities Exchange Act of 1934, such person’s rights in
 such property are—
 - (A) subject to a substantial risk of forfeiture, and
 - (B) not transferable.
-### (4) For purposes of determining an individual’s basis in property transferred in
-connection with the performance of services, rules similar to the rules of
-section 72(w) shall apply.
+### (4) For purposes of determining an individual’s basis in property transferred in connection with the performance of services, rules similar to the rules of section 72(w) shall apply.
+
+```catala
+scope Transferred_property_83:
+  definition is_restricted equals substantial_risk_of_forfeiture or not transferable
+```
 
 ## (e) Applicability of section
 This section shall not apply to—
@@ -116,6 +128,19 @@ This section shall not apply to—
   readily ascertainable fair market value at the date of grant, or
 - (5) group-term life insurance to which section 79 applies.
 
+```catala
+scope Transferred_property_83:
+  exception definition amount_to_include_in_gross_income
+    under condition
+      section_421_applies or
+      transfer_401a_or_404a2 or
+      option_without_ascertainable_fair_market_value or
+      exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant or
+      group_term_life_insurance_79
+    consequence equals
+      DoesNotApply
+```
+
 ## (h) Deduction by employer
 In the case of a transfer of property to which this section applies or a
 cancellation of a restriction described in subsection (d), there shall be
@@ -126,3 +151,12 @@ income of the person who performed such services. Such deduction shall be
 allowed for the taxable year of such person in which or with which ends the
 taxable year in which such amount is included in the gross income of the person
 who performed such services.
+
+```catala
+declaration scope Deduction_by_employer:
+  
+
+scope Deduction_by_employer:
+  
+
+```
