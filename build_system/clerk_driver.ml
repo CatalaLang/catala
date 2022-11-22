@@ -524,7 +524,7 @@ let collect_all_ninja_build
     (tested_file : string)
     (reset_test_outputs : bool) : (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
-  if List.length expected_outputs = 0 then (
+  if expected_outputs = [] then (
     Cli.debug_print "No expected outputs were found for test file %s"
       tested_file;
     None)

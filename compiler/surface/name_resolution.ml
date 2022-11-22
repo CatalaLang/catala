@@ -67,7 +67,7 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TScope of ScopeName.t * StructName.t
+  | TScope of ScopeName.t * scope_out_struct
       (** Implicitly defined output struct *)
 
 type context = {
@@ -197,7 +197,7 @@ let get_enum ctxt id =
 
 let get_struct ctxt id =
   match Desugared.Ast.IdentMap.find (Marked.unmark id) ctxt.typedefs with
-  | TStruct id | TScope (_, id) -> id
+  | TStruct id | TScope (_, { out_struct_name = id; _ }) -> id
   | TEnum eid ->
     Errors.raise_multispanned_error
       [
@@ -299,7 +299,8 @@ let rec process_base_typ
       match Desugared.Ast.IdentMap.find_opt ident ctxt.typedefs with
       | Some (TStruct s_uid) -> TStruct s_uid, typ_pos
       | Some (TEnum e_uid) -> TEnum e_uid, typ_pos
-      | Some (TScope (_, s_uid)) -> TStruct s_uid, typ_pos
+      | Some (TScope (_, scope_str)) ->
+        TStruct scope_str.out_struct_name, typ_pos
       | None ->
         Errors.raise_spanned_error typ_pos
           "Unknown type \"%a\", not a struct or enum previously declared"
@@ -517,11 +518,40 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
           StructFieldMap.empty ctxt.structs;
     }
   else
-    process_struct_decl ctxt
-      {
-        struct_decl_name = decl.scope_decl_name;
-        struct_decl_fields = output_fields;
-      }
+    let ctxt =
+      process_struct_decl ctxt
+        {
+          struct_decl_name = decl.scope_decl_name;
+          struct_decl_fields = output_fields;
+        }
+    in
+    let out_struct_fields =
+      let sco = ScopeMap.find scope_uid ctxt.scopes in
+      let str = get_struct ctxt decl.scope_decl_name in
+      Desugared.Ast.IdentMap.fold
+        (fun id var svmap ->
+          match var with
+          | SubScope _ -> svmap
+          | ScopeVar v -> (
+            try
+              let field =
+                StructMap.find str
+                  (Desugared.Ast.IdentMap.find id ctxt.field_idmap)
+              in
+              ScopeVarMap.add v field svmap
+            with Not_found -> svmap))
+        sco.var_idmap ScopeVarMap.empty
+    in
+    let typedefs =
+      Desugared.Ast.IdentMap.update
+        (Marked.unmark decl.scope_decl_name)
+        (function
+          | Some (TScope (scope, { out_struct_name; _ })) ->
+            Some (TScope (scope, { out_struct_name; out_struct_fields }))
+          | _ -> assert false)
+        ctxt.typedefs
+    in
+    { ctxt with typedefs }
 
 let typedef_info = function
   | TStruct t -> StructName.get_info t
@@ -555,7 +585,12 @@ let process_name_item (ctxt : context) (item : Ast.code_item Marked.pos) :
       ctxt with
       typedefs =
         Desugared.Ast.IdentMap.add name
-          (TScope (scope_uid, out_struct_uid))
+          (TScope
+             ( scope_uid,
+               {
+                 out_struct_name = out_struct_uid;
+                 out_struct_fields = ScopeVarMap.empty;
+               } ))
           ctxt.typedefs;
       scopes =
         ScopeMap.add scope_uid

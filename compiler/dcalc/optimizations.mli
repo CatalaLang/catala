@@ -20,5 +20,5 @@
 open Shared_ast
 open Ast
 
-val optimize_expr : decl_ctx -> 'm expr -> 'm expr Bindlib.box
+val optimize_expr : decl_ctx -> 'm expr -> (dcalc, 'm mark) boxed_gexpr
 val optimize_program : 'm program -> 'm program

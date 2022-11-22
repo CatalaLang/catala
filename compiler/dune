@@ -50,3 +50,7 @@
 (documentation
  (package catala)
  (mld_files index))
+
+(alias
+ (name catala)
+ (deps catala.exe))

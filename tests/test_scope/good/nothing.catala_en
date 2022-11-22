@@ -7,11 +7,11 @@ declaration scope Foo2:
 
 ```catala-test-inline
 $ catala Scalc -s Foo2 -O -t
-let Foo2 (Foo2_in : Foo2_in {}) =
-  decl temp_bar : any;
-  temp_bar = dead_value_1;
+let Foo2 (Foo2_in_2 : Foo2_in {}) =
+  decl temp_bar_4 : any;
+  temp_bar_4 = dead_value_1;
   raise NoValueProvided;
-  decl bar : integer;
-  bar = temp_bar_4;
+  decl bar_3 : integer;
+  bar_3 = temp_bar_4;
   return Foo2 {"bar": bar_3}
 ```

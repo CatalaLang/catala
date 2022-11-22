@@ -28,8 +28,8 @@ scope S:
 ```catala-test-inline
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
-[RESULT] a = A {"x"= -2.; "y"= B {"y"= false; "z"= -1.}}
-[RESULT] b = B {"y"= true; "z"= 42.}
+[RESULT] a = A { "x"= -2.; "y"= B { "y"= false; "z"= -1. } }
+[RESULT] b = B { "y"= true; "z"= 42. }
 ```
 
 ## Check scope of let-in vs scope variable

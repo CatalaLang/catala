@@ -197,60 +197,83 @@ type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 and ('a, 't) naked_gexpr =
   (* Constructors common to all ASTs *)
   | ELit : 'a glit -> ('a any, 't) naked_gexpr
-  | EApp : ('a, 't) gexpr * ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
+  | EApp : {
+      f : ('a, 't) gexpr;
+      args : ('a, 't) gexpr list;
+    }
+      -> ('a any, 't) naked_gexpr
   | EOp : operator -> ('a any, 't) naked_gexpr
   | EArray : ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
   | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a any, 't) naked_gexpr
-  | EAbs :
-      (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder * typ list
+  | EAbs : {
+      binder : (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder;
+      tys : typ list;
+    }
       -> ('a any, 't) naked_gexpr
-  | EIfThenElse :
-      ('a, 't) gexpr * ('a, 't) gexpr * ('a, 't) gexpr
+  | EIfThenElse : {
+      cond : ('a, 't) gexpr;
+      etrue : ('a, 't) gexpr;
+      efalse : ('a, 't) gexpr;
+    }
+      -> ('a any, 't) naked_gexpr
+  | EStruct : {
+      name : StructName.t;
+      fields : ('a, 't) gexpr StructFieldMap.t;
+    }
+      -> ('a any, 't) naked_gexpr
+  | EStructAccess : {
+      name : StructName.t;
+      e : ('a, 't) gexpr;
+      field : StructFieldName.t;
+    }
+      -> ('a any, 't) naked_gexpr
+  | EInj : {
+      name : EnumName.t;
+      e : ('a, 't) gexpr;
+      cons : EnumConstructor.t;
+    }
+      -> ('a any, 't) naked_gexpr
+  | EMatch : {
+      name : EnumName.t;
+      e : ('a, 't) gexpr;
+      cases : ('a, 't) gexpr EnumConstructorMap.t;
+    }
       -> ('a any, 't) naked_gexpr
   (* Early stages *)
   | ELocation :
       'a glocation
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  | EStruct :
-      StructName.t * ('a, 't) gexpr StructFieldMap.t
-      -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  | EStructAccess :
-      ('a, 't) gexpr * StructFieldName.t * StructName.t
-      -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  | EEnumInj :
-      ('a, 't) gexpr * EnumConstructor.t * EnumName.t
-      -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  | EMatchS :
-      ('a, 't) gexpr * EnumName.t * ('a, 't) gexpr EnumConstructorMap.t
-      -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  | EScopeCall :
-      ScopeName.t * ('a, 't) gexpr ScopeVarMap.t
+  | EScopeCall : {
+      scope : ScopeName.t;
+      args : ('a, 't) gexpr ScopeVarMap.t;
+    }
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
   (* Lambda-like *)
-  | ETuple :
-      ('a, 't) gexpr list * StructName.t option
-      -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
-  | ETupleAccess :
-      ('a, 't) gexpr * int * StructName.t option * typ list
-      -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
-  | EInj :
-      ('a, 't) gexpr * int * EnumName.t * typ list
-      -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
-  | EMatch :
-      ('a, 't) gexpr * ('a, 't) gexpr list * EnumName.t
-      -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   | EAssert : ('a, 't) gexpr -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   (* Default terms *)
-  | EDefault :
-      ('a, 't) gexpr list * ('a, 't) gexpr * ('a, 't) gexpr
+  | EDefault : {
+      excepts : ('a, 't) gexpr list;
+      just : ('a, 't) gexpr;
+      cons : ('a, 't) gexpr;
+    }
       -> (([< desugared | scopelang | dcalc ] as 'a), 't) naked_gexpr
-  | ErrorOnEmpty :
+  | EErrorOnEmpty :
       ('a, 't) gexpr
       -> (([< desugared | scopelang | dcalc ] as 'a), 't) naked_gexpr
   (* Lambda calculus with exceptions *)
+  | ETuple : ('a, 't) gexpr list -> ((lcalc as 'a), 't) naked_gexpr
+  | ETupleAccess : {
+      e : ('a, 't) gexpr;
+      index : int;
+      size : int;
+    }
+      -> ((lcalc as 'a), 't) naked_gexpr
   | ERaise : except -> ((lcalc as 'a), 't) naked_gexpr
-  | ECatch :
-      ('a, 't) gexpr * except * ('a, 't) gexpr
+  | ECatch : {
+      body : ('a, 't) gexpr;
+      exn : except;
+      handler : ('a, 't) gexpr;
+    }
       -> ((lcalc as 'a), 't) naked_gexpr
 
 type ('a, 't) boxed_gexpr = (('a, 't) naked_gexpr Bindlib.box, 't) Marked.t
@@ -276,9 +299,9 @@ type typed = { pos : Pos.t; ty : typ }
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
-    appropriate. Expected to fill the ['t] parameter of [naked_gexpr] and
-    [gexpr] (a ['t] annotation different from this type is used in the middle of
-    the typing processing, but all visible ASTs should otherwise use this. *)
+    appropriate. Expected to fill the ['t] parameter of [gexpr] and [gexpr] (a
+    ['t] annotation different from this type is used in the middle of the typing
+    processing, but all visible ASTs should otherwise use this. *)
 type _ mark = Untyped : untyped -> untyped mark | Typed : typed -> typed mark
 
 (** Useful for errors and printing, for example *)
@@ -287,11 +310,10 @@ type any_expr = AnyExpr : (_, _ mark) gexpr -> any_expr
 (** {2 Higher-level program structure} *)
 
 (** Constructs scopes and programs on top of expressions. The ['e] type
-    parameter throughout is expected to match instances of the [naked_gexpr]
-    type defined above. Markings are constrained to the [mark] GADT defined
-    above. Note that this structure is at the moment only relevant for [dcalc]
-    and [lcalc], as [scopelang] has its own scope structure, as the name
-    implies. *)
+    parameter throughout is expected to match instances of the [gexpr] type
+    defined above. Markings are constrained to the [mark] GADT defined above.
+    Note that this structure is at the moment only relevant for [dcalc] and
+    [lcalc], as [scopelang] has its own scope structure, as the name implies. *)
 
 (** This kind annotation signals that the let-binding respects a structural
     invariant. These invariants concern the shape of the expression in the
@@ -350,14 +372,18 @@ and 'e scopes =
   | ScopeDef of 'e scope_def
   constraint 'e = (_ any, _ mark) gexpr
 
-type struct_ctx = (StructFieldName.t * typ) list StructMap.t
-type enum_ctx = (EnumConstructor.t * typ) list EnumMap.t
+type struct_ctx = typ StructFieldMap.t StructMap.t
+type enum_ctx = typ EnumConstructorMap.t EnumMap.t
+
+type scope_out_struct = {
+  out_struct_name : StructName.t;
+  out_struct_fields : StructFieldName.t ScopeVarMap.t;
+}
 
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
-  ctx_scopes : StructName.t ScopeMap.t;
-      (** The output structure type of every scope *)
+  ctx_scopes : scope_out_struct ScopeMap.t;
 }
 
 type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

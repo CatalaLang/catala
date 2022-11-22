@@ -44,11 +44,12 @@ let rec format_expr
       Print.punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (e, struct_field) ->
+         (fun fmt (e, (struct_field, _)) ->
            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
              StructFieldName.format_t struct_field Print.punctuation "\""
              Print.punctuation ":" format_expr e))
-      (List.combine es (List.map fst (StructMap.find s decl_ctx.ctx_structs)))
+      (List.combine es
+         (StructFieldMap.bindings (StructMap.find s decl_ctx.ctx_structs)))
       Print.punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "["
@@ -56,20 +57,12 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
       es Print.punctuation "]"
-  | EStructFieldAccess (e1, field, s) ->
+  | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
-      Print.punctuation "\"" StructFieldName.format_t
-      (fst
-         (List.find
-            (fun (field', _) -> StructFieldName.compare field' field = 0)
-            (StructMap.find s decl_ctx.ctx_structs)))
-      Print.punctuation "\""
-  | EInj (e, case, enum) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor
-      (fst
-         (List.find
-            (fun (case', _) -> EnumConstructor.compare case' case = 0)
-            (EnumMap.find enum decl_ctx.ctx_enums)))
+      Print.punctuation "\"" StructFieldName.format_t field Print.punctuation
+      "\""
+  | EInj (e, cons, _) ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor cons
       format_expr e
   | ELit l -> Print.lit fmt l
   | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
@@ -101,22 +94,22 @@ let rec format_statement
   match Marked.unmark stmt with
   | SInnerFuncDef (name, func) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
-      "let" LocalName.format_t (Marked.unmark name)
+      "let" format_local_name (Marked.unmark name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
            Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-             LocalName.format_t name Print.punctuation ":" (Print.typ decl_ctx)
+             format_local_name name Print.punctuation ":" (Print.typ decl_ctx)
              typ Print.punctuation ")"))
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
   | SLocalDecl (name, typ) ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
-      LocalName.format_t (Marked.unmark name) Print.punctuation ":"
+      format_local_name (Marked.unmark name) Print.punctuation ":"
       (Print.typ decl_ctx) typ
   | SLocalDef (name, naked_expr) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" LocalName.format_t
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_local_name
       (Marked.unmark name) Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
@@ -156,10 +149,12 @@ let rec format_statement
          (fun fmt ((case, _), (arm_block, payload_name)) ->
            Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
              "|" Print.enum_constructor case Print.punctuation ":"
-             LocalName.format_t payload_name Print.punctuation "→"
+             format_local_name payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
-      (List.combine (EnumMap.find enum decl_ctx.ctx_enums) arms)
+      (List.combine
+         (EnumConstructorMap.bindings (EnumMap.find enum decl_ctx.ctx_enums))
+         arms)
 
 and format_block
     (decl_ctx : decl_ctx)
@@ -183,8 +178,8 @@ let format_scope
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
        (fun fmt ((name, _), typ) ->
          Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-           LocalName.format_t name Print.punctuation ":" (Print.typ decl_ctx)
-           typ Print.punctuation ")"))
+           format_local_name name Print.punctuation ":" (Print.typ decl_ctx) typ
+           Print.punctuation ")"))
     body.scope_body_func.func_params Print.punctuation "="
     (format_block decl_ctx ~debug)
     body.scope_body_func.func_body

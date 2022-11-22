@@ -170,7 +170,8 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
         (fun (fn, ty) e ->
           Format.asprintf "-- %s : %s" (get_fieldname fn)
             (print_z3model_expr ctx ty e))
-        s (Expr.get_args e)
+        (StructFieldMap.bindings s)
+        (Expr.get_args e)
     in
 
     let fields_str = String.concat " " fields in
@@ -190,8 +191,9 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     let case =
       List.find
         (fun (ctr, _) ->
+          (* FIXME: don't match on strings *)
           String.equal fd_name (Marked.unmark (EnumConstructor.get_info ctr)))
-        enum_ctrs
+        (EnumConstructorMap.bindings enum_ctrs)
     in
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
@@ -284,9 +286,8 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
 and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
-  let create_constructor (ctx : context) (c : EnumConstructor.t * typ) :
+  let create_constructor (name : EnumConstructor.t) (ty : typ) (ctx : context) :
       context * Datatype.Constructor.constructor =
-    let name, ty = c in
     let name = Marked.unmark (EnumConstructor.get_info name) in
     let ctx, arg_z3_ty = translate_typ ctx (Marked.unmark ty) in
 
@@ -313,11 +314,17 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   | Some e -> ctx, e
   | None ->
     let ctrs = EnumMap.find enum ctx.ctx_decl.ctx_enums in
-    let ctx, z3_ctrs = List.fold_left_map create_constructor ctx ctrs in
+    let ctx, z3_ctrs =
+      EnumConstructorMap.fold
+        (fun ctr ty (ctx, ctrs) ->
+          let ctx, ctr = create_constructor ctr ty ctx in
+          ctx, ctr :: ctrs)
+        ctrs (ctx, [])
+    in
     let z3_enum =
       Datatype.mk_sort_s ctx.ctx_z3
         (Marked.unmark (EnumName.get_info enum))
-        z3_ctrs
+        (List.rev z3_ctrs)
     in
     add_z3enum enum z3_enum ctx, z3_enum
 
@@ -337,13 +344,16 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
         (fun f ->
           Marked.unmark (StructFieldName.get_info (fst f))
           |> Symbol.mk_string ctx.ctx_z3)
-        fields
+        (StructFieldMap.bindings fields)
     in
-    let ctx, z3_fieldtypes =
-      List.fold_left_map
-        (fun ctx f -> Marked.unmark (snd f) |> translate_typ ctx)
-        ctx fields
+    let ctx, z3_fieldtypes_rev =
+      StructFieldMap.fold
+        (fun _ ty (ctx, ftypes) ->
+          let ctx, ftype = translate_typ ctx (Marked.unmark ty) in
+          ctx, ftype :: ftypes)
+        fields (ctx, [])
     in
+    let z3_fieldtypes = List.rev z3_fieldtypes_rev in
     let z3_sortrefs = List.map Sort.get_id z3_fieldtypes in
     let mk_struct_s = "mk!" ^ s_name in
     let z3_mk_struct =
@@ -437,8 +447,11 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
   | Binop bop -> (
     (* Special case for GetYear comparisons *)
     match bop, args with
-    | Lt KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
+    | ( Lt KInt,
+        [
+          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
+          (ELit (LInt n), _);
+        ] ) ->
       let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
       let e2 =
@@ -449,8 +462,11 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
          be directly translated as < in the Z3 encoding using the number of
          days *)
       ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
-    | Lte KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
+    | ( Lte KInt,
+        [
+          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
+          (ELit (LInt n), _);
+        ] ) ->
       let ctx, e1 = translate_expr ctx e1 in
       let nb_days = if is_leap_year n then 365 else 364 in
       let n = Runtime.integer_to_int n in
@@ -463,8 +479,11 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
           (date_to_int (date_of_year n) + nb_days)
       in
       ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
-    | Gt KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
+    | ( Gt KInt,
+        [
+          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
+          (ELit (LInt n), _);
+        ] ) ->
       let ctx, e1 = translate_expr ctx e1 in
       let nb_days = if is_leap_year n then 365 else 364 in
       let n = Runtime.integer_to_int n in
@@ -477,8 +496,11 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
           (date_to_int (date_of_year n) + nb_days)
       in
       ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
-    | Gte KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
+    | ( Gte KInt,
+        [
+          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
+          (ELit (LInt n), _);
+        ] ) ->
       let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
       let e2 =
@@ -489,7 +511,11 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
          thus be directly translated as >= in the Z3 encoding using the number
          of days *)
       ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-    | Eq, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)] ->
+    | ( Eq,
+        [
+          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
+          (ELit (LInt n), _);
+        ] ) ->
       let n = Runtime.integer_to_int n in
       let ctx, e1 = translate_expr ctx e1 in
       let min_date =
@@ -562,7 +588,10 @@ let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
   | Unop uop -> (
     let ctx, e1 =
       match args with
-      | [e1] -> translate_expr ctx e1
+      | [e1] -> (
+        try translate_expr ctx e1
+        with Z3.Error s ->
+          Errors.raise_spanned_error (Shared_ast.Expr.pos e1) "%s" s)
       | _ ->
         Format.kasprintf failwith
           "[Z3 encoding] Ill-formed unary operator application: %a"
@@ -624,7 +653,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       (e : 'm expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Marked.unmark e with
-    | EAbs (e, _) ->
+    | EAbs { binder; _ } ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
       let fresh_v = Var.make "arm!tmp" in
       let fresh_e = EVar fresh_v in
@@ -636,7 +665,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
          in the body, we add this to the context *)
       let ctx = add_z3matchsubst fresh_v proj ctx in
 
-      let body = Bindlib.msubst e [| fresh_e |] in
+      let body = Bindlib.msubst binder [| fresh_e |] in
       translate_expr ctx body
     (* Invariant: Catala match arms are always lambda*)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
@@ -670,32 +699,48 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
          of a match. It actually corresponds to applying an accessor to an enum,
          the corresponding Z3 expression was previously stored in the context *)
       ctx, e)
-  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
-  | ETupleAccess (s, idx, oname, _tys) ->
-    let name =
-      match oname with
-      | None ->
-        failwith "[Z3 encoding]: ETupleAccess of unnamed struct unsupported"
-      | Some n -> n
-    in
+  | EStruct _ -> failwith "[Z3 encoding] EStruct unsupported"
+  | EStructAccess { e; field; name } ->
     let ctx, z3_struct = find_or_create_struct ctx name in
     (* This datatype should have only one constructor, corresponding to
        mk_struct. The accessors of this constructor correspond to the field
        accesses *)
     let accessors = List.hd (Datatype.get_accessors z3_struct) in
-    let accessor = List.nth accessors idx in
-    let ctx, s = translate_expr ctx s in
+    let idx_mappings =
+      List.combine
+        (List.map fst
+           (StructFieldMap.bindings
+              (StructMap.find name ctx.ctx_decl.ctx_structs)))
+        accessors
+    in
+    let _, accessor =
+      List.find
+        (fun (field1, _) -> StructFieldName.equal field field1)
+        idx_mappings
+    in
+    let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
-  | EInj (e, idx, en, _tys) ->
+  | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)
-    let ctx, z3_enum = find_or_create_enum ctx en in
+    let ctx, z3_enum = find_or_create_enum ctx name in
     let ctx, z3_arg = translate_expr ctx e in
     let ctrs = Datatype.get_constructors z3_enum in
     (* This should always succeed if the expression is well-typed in dcalc *)
-    let ctr = List.nth ctrs idx in
+    let idx_mappings =
+      List.combine
+        (List.map fst
+           (EnumConstructorMap.bindings
+              (EnumMap.find name ctx.ctx_decl.ctx_enums)))
+        ctrs
+    in
+    let _, ctr =
+      List.find
+        (fun (cons1, _) -> EnumConstructor.equal cons cons1)
+        idx_mappings
+    in
     ctx, Expr.mk_app ctx.ctx_z3 ctr [z3_arg]
-  | EMatch (arg, arms, enum) ->
+  | EMatch { e; cases; name = enum } ->
     (* We will encode a match as a new variable, tmp_v, and add to the
        hypotheses that this variable is equal to the conjunction of all `A? arg
        ==> tmp_v == body`, where `A? arg ==> body` is an arm of the match *)
@@ -709,12 +754,14 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let z3_var = Expr.mk_const_s ctx.ctx_z3 name z3_ty in
 
     let ctx, z3_enum = find_or_create_enum ctx enum in
-    let ctx, z3_arg = translate_expr ctx arg in
+    let ctx, z3_arg = translate_expr ctx e in
     let _ctx, z3_arms =
       List.fold_left_map
         (translate_match_arm z3_arg)
         ctx
-        (List.combine arms (Datatype.get_accessors z3_enum))
+        (List.combine
+           (List.map snd (EnumConstructorMap.bindings cases))
+           (Datatype.get_accessors z3_enum))
     in
     let z3_arms =
       List.map2
@@ -733,7 +780,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
-  | EApp (head, args) -> (
+  | EApp { f = head; args } -> (
     match Marked.unmark head with
     | EOp op -> translate_op ctx op args
     | EVar v ->
@@ -756,7 +803,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EAssert _ -> failwith "[Z3 encoding] EAssert unsupported"
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
-  | EIfThenElse (e_if, e_then, e_else) ->
+  | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
     (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
     let ctx, z3_if = translate_expr ctx e_if in
     let ctx, z3_then = translate_expr ctx e_then in
@@ -769,7 +816,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
             (Boolean.mk_not ctx.ctx_z3 z3_if)
             z3_else;
         ] )
-  | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
+  | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
     type and value respectively. Concretely, we represent unit as a tuple with 0
@@ -806,7 +853,7 @@ module Backend = struct
   let print_model (ctx : backend_context) (m : model) : string =
     print_model ctx m
 
-  let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
+  let is_model_empty (m : model) : bool = Z3.Model.get_decls m = []
 
   let translate_expr (ctx : backend_context) (e : typed expr) =
     translate_expr ctx e

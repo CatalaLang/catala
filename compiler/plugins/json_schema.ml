@@ -97,7 +97,7 @@ module To_json = struct
          (fun fmt (field_name, field_type) ->
            Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
              format_struct_field_name_camel_case field_name fmt_type field_type))
-      (find_struct sname ctx)
+      (StructFieldMap.bindings (find_struct sname ctx))
 
   let fmt_definitions
       (ctx : decl_ctx)
@@ -118,11 +118,13 @@ module To_json = struct
           (t :: acc) @ collect_required_type_defs_from_scope_input s
         | TEnum e ->
           List.fold_left collect (t :: acc)
-            (List.map snd (EnumMap.find e ctx.ctx_enums))
+            (List.map snd
+               (EnumConstructorMap.bindings (EnumMap.find e ctx.ctx_enums)))
         | TArray t -> collect acc t
         | _ -> acc
       in
       find_struct input_struct ctx
+      |> StructFieldMap.bindings
       |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
       |> List.sort_uniq (fun t t' -> String.compare (get_name t) (get_name t'))
     in
@@ -146,7 +148,7 @@ module To_json = struct
              Format.fprintf fmt
                "@[<hov 2>{@\n\"type\": \"string\",@\n\"enum\": [\"%a\"]@]@\n}"
                format_enum_cons_name enum_cons))
-        enum_def
+        (EnumConstructorMap.bindings enum_def)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
            (fun fmt (enum_cons, payload_type) ->
@@ -168,7 +170,7 @@ module To_json = struct
                 }@]@\n\
                 }"
                format_enum_cons_name enum_cons fmt_type payload_type))
-        enum_def
+        (EnumConstructorMap.bindings enum_def)
     in
 
     Format.fprintf fmt "@\n%a"

@@ -21,6 +21,6 @@ scope S:
 ```catala-test-inline
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
-[RESULT] a = A {"x"= 0; "y"= B {"y"= true; "z"= 0.}}
-[RESULT] b = B {"y"= true; "z"= 0.}
+[RESULT] a = A { "x"= 0; "y"= B { "y"= true; "z"= 0. } }
+[RESULT] b = B { "y"= true; "z"= 0. }
 ```

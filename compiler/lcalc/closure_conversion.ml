@@ -31,74 +31,56 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
   let rec aux e =
     let m = Marked.get_mark e in
     match Marked.unmark e with
+    | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
+    | EArray _ | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _
+    | ECatch _ ->
+      Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:aux e
     | EVar v ->
-      ( (Bindlib.box_var v, m),
-        if Var.Set.mem v ctx.globally_bound_vars then Var.Set.empty
-        else Var.Set.singleton v )
-    | ETuple (args, s) ->
-      let new_args, free_vars =
-        List.fold_left
-          (fun (new_args, free_vars) arg ->
-            let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, Var.Set.union new_free_vars free_vars)
-          ([], Var.Set.empty) args
-      in
-      Expr.etuple (List.rev new_args) s m, free_vars
-    | ETupleAccess (e1, n, s, typs) ->
-      let new_e1, free_vars = aux e1 in
-      Expr.etupleaccess new_e1 n s typs m, free_vars
-    | EInj (e1, n, e_name, typs) ->
-      let new_e1, free_vars = aux e1 in
-      Expr.einj new_e1 n e_name typs m, free_vars
-    | EMatch (e1, arms, e_name) ->
-      let new_e1, free_vars = aux e1 in
+      ( (if Var.Set.mem v ctx.globally_bound_vars then Var.Set.empty
+        else Var.Set.singleton v),
+        (Bindlib.box_var v, m) )
+    | EMatch { e; cases; name } ->
+      let free_vars, new_e = aux e in
       (* We do not close the clotures inside the arms of the match expression,
          since they get a special treatment at compilation to Scalc. *)
-      let new_arms, free_vars =
-        List.fold_right
-          (fun arm (new_arms, free_vars) ->
-            match Marked.unmark arm with
-            | EAbs (binder, typs) ->
+      let free_vars, new_cases =
+        EnumConstructorMap.fold
+          (fun cons e1 (free_vars, new_cases) ->
+            match Marked.unmark e1 with
+            | EAbs { binder; tys } ->
               let vars, body = Bindlib.unmbind binder in
-              let new_body, new_free_vars = aux body in
+              let new_free_vars, new_body = aux body in
               let new_binder = Expr.bind vars new_body in
-              ( Expr.eabs new_binder typs (Marked.get_mark arm) :: new_arms,
-                Var.Set.union free_vars new_free_vars )
+              ( Var.Set.union free_vars new_free_vars,
+                EnumConstructorMap.add cons
+                  (Expr.eabs new_binder tys (Marked.get_mark e1))
+                  new_cases )
             | _ -> failwith "should not happen")
-          arms ([], free_vars)
+          cases
+          (free_vars, EnumConstructorMap.empty)
       in
-      Expr.ematch new_e1 new_arms e_name m, free_vars
-    | EArray args ->
-      let new_args, free_vars =
-        List.fold_right
-          (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
-          args ([], Var.Set.empty)
-      in
-      Expr.earray new_args m, free_vars
-    | ELit l -> Expr.elit l m, Var.Set.empty
-    | EApp ((EAbs (binder, typs_abs), e1_pos), args) ->
+      free_vars, Expr.ematch new_e name new_cases m
+    | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
       (* let-binding, we should not close these *)
       let vars, body = Bindlib.unmbind binder in
-      let new_body, free_vars = aux body in
+      let free_vars, new_body = aux body in
       let new_binder = Expr.bind vars new_body in
-      let new_args, free_vars =
+      let free_vars, new_args =
         List.fold_right
-          (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
-          args ([], free_vars)
+          (fun arg (free_vars, new_args) ->
+            let new_free_vars, new_arg = aux arg in
+            Var.Set.union free_vars new_free_vars, new_arg :: new_args)
+          args (free_vars, [])
       in
-      Expr.eapp (Expr.eabs new_binder typs_abs e1_pos) new_args m, free_vars
-    | EAbs (binder, typs) ->
+      free_vars, Expr.eapp (Expr.eabs new_binder tys e1_pos) new_args m
+    | EAbs { binder; tys } ->
       (* λ x.t *)
       let binder_mark = m in
       let binder_pos = Expr.mark_pos binder_mark in
       (* Converting the closure. *)
       let vars, body = Bindlib.unmbind binder in
       (* t *)
-      let new_body, body_vars = aux body in
+      let body_vars, new_body = aux body in
       (* [[t]] *)
       let extra_vars =
         Var.Set.diff body_vars (Var.Set.of_list (Array.to_list vars))
@@ -117,8 +99,8 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
              (fun i _ ->
                Expr.etupleaccess
                  (Expr.evar inner_c_var binder_mark)
-                 (i + 1) None
-                 (List.map (fun _ -> any_ty) extra_vars_list)
+                 (i + 1)
+                 (List.length extra_vars_list)
                  binder_mark)
              extra_vars_list)
           new_body
@@ -128,10 +110,11 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
         Expr.make_abs
           (Array.concat [Array.make 1 inner_c_var; vars])
           new_closure_body
-          ((TAny, binder_pos) :: typs)
+          ((TAny, binder_pos) :: tys)
           (Expr.pos e)
       in
-      ( Expr.make_let_in code_var
+      ( extra_vars,
+        Expr.make_let_in code_var
           (TAny, Expr.pos e)
           new_closure
           (Expr.etuple
@@ -139,40 +122,25 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
              :: List.map
                   (fun extra_var -> Bindlib.box_var extra_var, binder_mark)
                   extra_vars_list)
-             None m)
-          (Expr.pos e),
-        extra_vars )
-    | EApp ((EOp op, pos_op), args) ->
+             m)
+          (Expr.pos e) )
+    | EApp { f = EOp _, _; _ } ->
       (* This corresponds to an operator call, which we don't want to
          transform*)
-      let new_args, free_vars =
-        List.fold_right
-          (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
-          args ([], Var.Set.empty)
-      in
-      Expr.eapp (Expr.eop op pos_op) new_args m, free_vars
-    | EApp ((EVar v, v_pos), args) when Var.Set.mem v ctx.globally_bound_vars ->
+      Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:aux e
+    | EApp { f = EVar v, _; _ } when Var.Set.mem v ctx.globally_bound_vars ->
       (* This corresponds to a scope call, which we don't want to transform*)
-      let new_args, free_vars =
-        List.fold_right
-          (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
-          args ([], Var.Set.empty)
-      in
-      Expr.eapp (Bindlib.box_var v, v_pos) new_args m, free_vars
-    | EApp (e1, args) ->
-      let new_e1, free_vars = aux e1 in
+      Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:aux e
+    | EApp { f = e1; args } ->
+      let free_vars, new_e1 = aux e1 in
       let env_var = Var.make "env" in
       let code_var = Var.make "code" in
-      let new_args, free_vars =
+      let free_vars, new_args =
         List.fold_right
-          (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = aux arg in
-            new_arg :: new_args, Var.Set.union free_vars new_free_vars)
-          args ([], free_vars)
+          (fun arg (free_vars, new_args) ->
+            let new_free_vars, new_arg = aux arg in
+            Var.Set.union free_vars new_free_vars, new_arg :: new_args)
+          args (free_vars, [])
       in
       let call_expr =
         let m1 = Marked.get_mark e1 in
@@ -180,7 +148,8 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
           (TAny, Expr.pos e)
           (Expr.etupleaccess
              (Bindlib.box_var env_var, m1)
-             0 None [ (*TODO: fill?*) ]
+             0
+             (List.length new_args + 1)
              m)
           (Expr.eapp
              (Bindlib.box_var code_var, m1)
@@ -188,25 +157,12 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
              m)
           (Expr.pos e)
       in
-      ( Expr.make_let_in env_var (TAny, Expr.pos e) new_e1 call_expr (Expr.pos e),
-        free_vars )
-    | EAssert e1 ->
-      let new_e1, free_vars = aux e1 in
-      Expr.eassert new_e1 m, free_vars
-    | EOp op -> Expr.eop op m, Var.Set.empty
-    | EIfThenElse (e1, e2, e3) ->
-      let new_e1, free_vars1 = aux e1 in
-      let new_e2, free_vars2 = aux e2 in
-      let new_e3, free_vars3 = aux e3 in
-      ( Expr.eifthenelse new_e1 new_e2 new_e3 m,
-        Var.Set.union (Var.Set.union free_vars1 free_vars2) free_vars3 )
-    | ERaise except -> Expr.eraise except m, Var.Set.empty
-    | ECatch (e1, except, e2) ->
-      let new_e1, free_vars1 = aux e1 in
-      let new_e2, free_vars2 = aux e2 in
-      Expr.ecatch new_e1 except new_e2 m, Var.Set.union free_vars1 free_vars2
+      ( free_vars,
+        Expr.make_let_in env_var
+          (TAny, Expr.pos e)
+          new_e1 call_expr (Expr.pos e) )
   in
-  let e', _vars = aux e in
+  let _vars, e' = aux e in
   e'
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
