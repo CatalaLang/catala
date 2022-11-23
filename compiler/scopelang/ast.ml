@@ -39,17 +39,14 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
       (fun e -> LocationSet.union (locations_used e))
       e LocationSet.empty
 
-type io_input = NoInput | OnlyInput | Reentrant
-type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
-
 type 'm rule =
-  | Definition of location Marked.pos * typ * io * 'm expr
+  | Definition of location Marked.pos * typ * Desugared.Ast.io * 'm expr
   | Assertion of 'm expr
   | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ * io) ScopeVarMap.t;
+  scope_sig : (typ * Desugared.Ast.io) ScopeVarMap.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
 }

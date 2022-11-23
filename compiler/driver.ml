@@ -143,7 +143,7 @@ let driver source_file (options : Cli.options) : int =
     | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
       | `Scopelang | `Proof | `Plugin _ ) as backend -> (
       Cli.debug_print "Name resolution...";
-      let ctxt = Surface.Name_resolution.form_context prgm in
+      let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid =
         match options.ex_scope, backend with
         | None, `Interpret ->
@@ -151,27 +151,29 @@ let driver source_file (options : Cli.options) : int =
         | None, _ ->
           let _, scope =
             try
-              Desugared.Ast.IdentMap.filter_map
+              Desugared.Name_resolution.IdentMap.filter_map
                 (fun _ -> function
-                  | Surface.Name_resolution.TScope (uid, _) -> Some uid
+                  | Desugared.Name_resolution.TScope (uid, _) -> Some uid
                   | _ -> None)
                 ctxt.typedefs
-              |> Desugared.Ast.IdentMap.choose
+              |> Desugared.Name_resolution.IdentMap.choose
             with Not_found ->
               Errors.raise_error "There isn't any scope inside the program."
           in
           scope
         | Some name, _ -> (
-          match Desugared.Ast.IdentMap.find_opt name ctxt.typedefs with
-          | Some (Surface.Name_resolution.TScope (uid, _)) -> uid
+          match
+            Desugared.Name_resolution.IdentMap.find_opt name ctxt.typedefs
+          with
+          | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
           | _ ->
             Errors.raise_error "There is no scope \"%s\" inside the program."
               name)
       in
       Cli.debug_print "Desugaring...";
-      let prgm = Surface.Desugaring.desugar_program ctxt prgm in
+      let prgm = Desugared.From_surface.translate_program ctxt prgm in
       Cli.debug_print "Collecting rules...";
-      let prgm = Desugared.Desugared_to_scope.translate_program prgm in
+      let prgm = Scopelang.From_desugared.translate_program prgm in
       match backend with
       | `Scopelang ->
         let _output_file, with_output = get_output_format () in
@@ -194,7 +196,7 @@ let driver source_file (options : Cli.options) : int =
         in
         let prgm = Scopelang.Ast.type_program prgm in
         Cli.debug_print "Translating to default calculus...";
-        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm in
+        let prgm = Dcalc.From_scopelang.translate_program prgm in
         let prgm =
           if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";

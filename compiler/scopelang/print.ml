@@ -56,11 +56,11 @@ let scope ?(debug = false) ctx fmt (name, decl) =
          Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
            ScopeVar.format_t scope_var Print.punctuation ":" (Print.typ ctx) typ
            Print.punctuation "|" Print.keyword
-           (match Marked.unmark vis.io_input with
+           (match Marked.unmark vis.Desugared.Ast.io_input with
            | NoInput -> "internal"
            | OnlyInput -> "input"
            | Reentrant -> "context")
-           (if Marked.unmark vis.io_output then fun fmt () ->
+           (if Marked.unmark vis.Desugared.Ast.io_output then fun fmt () ->
             Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
               "output"
            else fun fmt () -> Format.fprintf fmt "@<0>")

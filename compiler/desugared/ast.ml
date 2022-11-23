@@ -21,20 +21,6 @@ open Shared_ast
 
 (** {1 Names, Maps and Keys} *)
 
-module IdentMap : Map.S with type key = String.t = Map.Make (String)
-
-module RuleName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
-module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
-
-module LabelName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
-module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
-
 (** Inside a scope, a definition can refer either to a scope def, or a subscope
     def *)
 module ScopeDef = struct
@@ -102,6 +88,9 @@ module ExprMap = Map.Make (struct
 
   let compare = Expr.compare
 end)
+
+type io_input = NoInput | OnlyInput | Reentrant
+type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
 
 type exception_situation =
   | BaseCase
@@ -192,7 +181,7 @@ type scope_def = {
   scope_def_rules : rule RuleMap.t;
   scope_def_typ : typ;
   scope_def_is_condition : bool;
-  scope_def_io : Scopelang.Ast.io;
+  scope_def_io : io;
 }
 
 type var_or_states = WholeVar | States of StateName.t list
