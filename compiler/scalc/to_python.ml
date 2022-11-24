@@ -124,17 +124,20 @@ let avoid_keywords (s : string) : string =
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (String.to_camel_case (String.to_ascii (Format.asprintf "%a" StructName.format_t v))))
+       (String.to_camel_case
+          (String.to_ascii (Format.asprintf "%a" StructName.format_t v))))
 
 let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
     =
   Format.fprintf fmt "%s"
-    (avoid_keywords (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
+    (avoid_keywords
+       (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (String.to_camel_case (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+       (String.to_camel_case
+          (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =

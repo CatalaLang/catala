@@ -79,11 +79,11 @@ let to_string (pos : t) : string =
 let to_string_short (pos : t) : string =
   let s, e = pos.code_pos in
   if e.Lexing.pos_lnum = s.Lexing.pos_lnum then
-    Printf.sprintf "%s:%d.%d-%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+    Printf.sprintf "%s:%d.%d-%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
       (s.Lexing.pos_cnum - s.Lexing.pos_bol)
       (e.Lexing.pos_cnum - e.Lexing.pos_bol)
   else
-    Printf.sprintf "%s:%d.%d-%d.%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+    Printf.sprintf "%s:%d.%d-%d.%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
       (s.Lexing.pos_cnum - s.Lexing.pos_bol)
       e.Lexing.pos_lnum
       (e.Lexing.pos_cnum - e.Lexing.pos_bol)
@@ -193,10 +193,8 @@ let retrieve_loc_text (pos : t) : string =
         (Cli.with_style blue_style "└%s┐" (string_repeat spaces "─"));
       Buffer.add_char buf '\n';
       Buffer.add_string buf
-        (Cli.add_prefix_to_each_line
-           (String.concat "\n" ("" :: pos_lines))
-           (fun i ->
-             let cur_line = sline - include_extra_count + i - 1 in
+        (Cli.add_prefix_to_each_line (String.concat "\n" pos_lines) (fun i ->
+             let cur_line = sline - include_extra_count + i in
              if
                cur_line >= sline
                && cur_line <= sline + (2 * (eline - sline))

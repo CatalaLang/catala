@@ -16,7 +16,6 @@
    the License. *)
 
 open Catala_utils
-
 module Plugin = Plugin.PluginAPI
 
 val driver : Pos.input_file -> Cli.options -> int

@@ -166,12 +166,14 @@ let format_struct_field_name
   | Some sname ->
     Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
   | None -> Format.fprintf fmt "%s")
-    (avoid_keywords (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
+    (avoid_keywords
+       (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (String.to_snake_case (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+       (String.to_snake_case
+          (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
@@ -221,7 +223,9 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
-  let lowercase_name = String.to_snake_case (String.to_ascii (Bindlib.name_of v)) in
+  let lowercase_name =
+    String.to_snake_case (String.to_ascii (Bindlib.name_of v))
+  in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
       ~subst:(fun _ -> "_dot_")

@@ -57,10 +57,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
     { id = !counter; info }
 
   let get_info (uid : t) : X.info = uid.info
-
-  let format_t (fmt : Format.formatter) (x : t) : unit =
-    X.format fmt x.info
-
+  let format_t (fmt : Format.formatter) (x : t) : unit = X.format fmt x.info
   let hash (x : t) : int = x.id
 
   module Set = Set.Make (Ordering)

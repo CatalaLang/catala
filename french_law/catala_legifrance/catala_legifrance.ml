@@ -186,8 +186,8 @@ let include_legislative_text
   let include_line = Pos.get_end_line pos in
   let ic = open_in file in
   let new_file = file ^ ".new" in
-  Cli.warning_print
-    "LégiFrance inclusion detected, writing new contents to %s" new_file;
+  Cli.warning_print "LégiFrance inclusion detected, writing new contents to %s"
+    new_file;
   let oc = open_out new_file in
   (* Pos.t lines start at 1 *)
   let counter = ref 1 in

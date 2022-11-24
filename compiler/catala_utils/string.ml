@@ -17,8 +17,7 @@
 include Stdlib.String
 
 let to_ascii : string -> string = Ubase.from_utf8
-
-let is_uppercase_ascii = function 'A'..'Z' -> true | _ -> false
+let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
 
 let begins_with_uppercase (s : string) : bool =
   "" <> s && is_uppercase_ascii (get (to_ascii s) 0)
@@ -44,8 +43,7 @@ let to_camel_case (s : string) : string =
            !out
            ^
            if is_underscore then ""
-           else if !last_was_underscore || 0 = i then
-             uppercase_ascii c_string
+           else if !last_was_underscore || 0 = i then uppercase_ascii c_string
            else c_string;
          last_was_underscore := is_underscore);
   !out
