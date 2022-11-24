@@ -243,7 +243,7 @@ let rec law_structure_to_latex
       | En -> "Metadata"
       | Pl -> "Metadane"
     in
-    let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
+    let start_line = Pos.get_start_line (Marked.get_mark c) + 1 in
     let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
@@ -252,7 +252,7 @@ let rec law_structure_to_latex
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
        break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
-       \\begin{minted}[numbersep=9mm, firstnumber=%d, breaklines, \
+       \\begin{minted}[numbersep=9mm, firstnumber=%d, \
        label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
        ```catala\n\
        %s```\n\
