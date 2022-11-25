@@ -27,7 +27,7 @@ Ambiguous exception
 12 │   exception
    │   ‾‾‾‾‾‾‾‾‾
 13 │   definition x equals 2
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
 
 Candidate definition

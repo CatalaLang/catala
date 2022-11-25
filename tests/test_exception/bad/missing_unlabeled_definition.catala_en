@@ -20,7 +20,7 @@ $ catala Interpret -s A
 8 │   exception
   │   ‾‾‾‾‾‾‾‾‾
 9 │   definition x equals 1
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Test
 #return code 255#
 ```

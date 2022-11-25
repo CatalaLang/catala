@@ -33,7 +33,7 @@ Ambiguous exception
 18 │   exception
    │   ‾‾‾‾‾‾‾‾‾
 19 │   definition y equals 3
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
 
 Candidate definition
