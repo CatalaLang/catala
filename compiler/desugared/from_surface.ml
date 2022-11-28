@@ -504,10 +504,6 @@ let rec translate_expr
         [TAny, pos]
         pos
     in
-    let f_pred_var = Var.make "predicate" in
-    let f_pred_var_e =
-      Expr.make_var f_pred_var (Untyped { pos = Marked.get_mark predicate })
-    in
     let acc_var = Var.make "acc" in
     let acc_var_e = Expr.make_var acc_var emark in
     let item_var = Var.make "item" in
@@ -517,8 +513,8 @@ let rec translate_expr
         (Expr.eapp
            (Expr.eop (Binop cmp_op) (Untyped { pos = pos_op' }))
            [
-             Expr.eapp f_pred_var_e [acc_var_e] emark;
-             Expr.eapp f_pred_var_e [item_var_e] emark;
+             Expr.eapp f_pred [acc_var_e] emark;
+             Expr.eapp f_pred [item_var_e] emark;
            ]
            emark)
         acc_var_e item_var_e emark
@@ -526,10 +522,7 @@ let rec translate_expr
     let fold_f =
       Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
     in
-    let fold =
-      Expr.eapp (Expr.eop (Ternop Fold) emark) [fold_f; init; collection] emark
-    in
-    Expr.make_let_in f_pred_var (TAny, pos) f_pred fold pos
+    Expr.eapp (Expr.eop (Ternop Fold) emark) [fold_f; init; collection] emark
   | CollectionOp (op', param', collection, predicate) ->
     let ctxt, param =
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
