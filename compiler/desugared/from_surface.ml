@@ -317,6 +317,7 @@ let rec translate_expr
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
     let tau = TAny, Marked.get_mark x in
+    (* This type will be resolved in Scopelang.Desambiguation *)
     let fn =
       Expr.make_abs [| v |]
         (translate_expr scope inside_definition_of ctxt e2)
@@ -1250,6 +1251,7 @@ let translate_program
                   ScopeName.Map.add scope scope_out_struct acc
                 | _ -> acc)
               ctxt.Name_resolution.typedefs ScopeName.Map.empty;
+          ctx_struct_fields = ctxt.Name_resolution.field_idmap;
         };
       Ast.program_scopes;
     }

@@ -17,10 +17,10 @@ $ catala Interpret -s A
 --> money
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.52-56:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:10.61-62:
 └──┐
 10 │   definition list_high_count equals number for m in list of (m >=$ $7)
-   │                                                     ‾‾‾‾
+   │                                                              ‾
    └─ Article
 
 Type integer coming from expression:

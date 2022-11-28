@@ -374,6 +374,8 @@ type scope_out_struct = {
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
+  ctx_struct_fields : StructField.t StructName.Map.t IdentName.Map.t;
+      (** needed for disambiguation (desugared -> scope) *)
   ctx_scopes : scope_out_struct ScopeName.Map.t;
 }
 

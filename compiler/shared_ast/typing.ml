@@ -47,7 +47,8 @@ and naked_typ =
   | TArray of unionfind_typ
   | TAny of Any.t
 
-let rec typ_to_ast (ty : unionfind_typ) : A.typ =
+let rec typ_to_ast ?(unsafe = false) (ty : unionfind_typ) : A.typ =
+  let typ_to_ast = typ_to_ast ~unsafe in
   let ty, pos = UnionFind.get (UnionFind.find ty) in
   match ty with
   | TLit l -> A.TLit l, pos
@@ -58,11 +59,22 @@ let rec typ_to_ast (ty : unionfind_typ) : A.typ =
   | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
   | TAny _ ->
-    (* No polymorphism in Catala: type inference should return full types
-       without wildcards, and this function is used to recover the types after
-       typing. *)
-    Errors.raise_spanned_error pos
-      "Internal error: typing at this point could not be resolved"
+    if unsafe then A.TAny, pos
+    else
+      (* No polymorphism in Catala: type inference should return full types
+         without wildcards, and this function is used to recover the types after
+         typing. *)
+      Errors.raise_spanned_error pos
+        "Internal error: typing at this point could not be resolved"
+
+(* Checks that there are no type variables remaining *)
+let rec all_resolved ty =
+  match Marked.unmark (UnionFind.get (UnionFind.find ty)) with
+  | TAny _ -> false
+  | TLit _ | TStruct _ | TEnum _ -> true
+  | TOption t1 | TArray t1 -> all_resolved t1
+  | TArrow (t1, t2) -> all_resolved t1 && all_resolved t2
+  | TTuple ts -> List.for_all all_resolved ts
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -111,9 +123,11 @@ let rec format_typ
       format_typ t2
   | TArray t1 -> (
     match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ -> Format.pp_print_string fmt "collection"
+    | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
     | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
-  | TAny _ -> Format.pp_print_string fmt "<any>"
+  | TAny v ->
+    if !Cli.debug_flag then Format.fprintf fmt "<a%d>" (Any.hash v)
+    else Format.pp_print_string fmt "<any>"
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
@@ -310,6 +324,15 @@ module Env = struct
 
   let add_scope scope_name ~vars t =
     { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
+
+  let open_scope scope_name t =
+    let scope_vars =
+      A.ScopeVar.Map.union
+        (fun _ _ -> assert false)
+        t.scope_vars
+        (A.ScopeName.Map.find scope_name t.scopes)
+    in
+    { t with scope_vars }
 end
 
 let add_pos e ty = Marked.mark (Expr.pos e) ty
@@ -413,7 +436,46 @@ and typecheck_expr_top_down :
         fields
     in
     Expr.estruct name fields' mark
-  | A.EDStructAccess { e = e_struct; name_opt; field } -> assert false
+  | A.EDStructAccess { e = e_struct; name_opt; field } ->
+    let t_struct =
+      match name_opt with
+      | Some name -> TStruct name
+      | None -> TAny (Any.fresh ())
+    in
+    let e_struct' =
+      typecheck_expr_top_down ctx env (unionfind t_struct) e_struct
+    in
+    let name =
+      match UnionFind.get (ty e_struct') with
+      | TStruct name, _ -> name
+      | TAny _, _ ->
+        Printf.ksprintf failwith
+          "Disambiguation failed before reaching field %s" field
+      | _ ->
+        Errors.raise_spanned_error (Expr.pos e)
+          "This is not a structure, cannot access field %s (%a)" field
+          (format_typ ctx) (ty e_struct')
+    in
+    let fld_ty =
+      let str =
+        try A.StructName.Map.find name ctx.A.ctx_structs
+        with Not_found ->
+          Errors.raise_spanned_error pos_e "No structure %a found"
+            A.StructName.format_t name
+      in
+      let field =
+        try
+          A.StructName.Map.find name
+            (A.IdentName.Map.find field ctx.ctx_struct_fields)
+        with Not_found ->
+          Errors.raise_spanned_error context_mark.pos
+            "Field %s does not belong to structure %a" field
+            A.StructName.format_t name
+      in
+      A.StructField.Map.find field str
+    in
+    let mark = uf_mark (ast_to_typ fld_ty) in
+    Expr.edstructaccess e_struct' field (Some name) mark
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
@@ -522,6 +584,7 @@ and typecheck_expr_top_down :
           tau_args t_ret
       in
       let mark = uf_mark t_func in
+      assert (List.for_all all_resolved tau_args);
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
       let env =
@@ -532,7 +595,13 @@ and typecheck_expr_top_down :
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' (List.map typ_to_ast tau_args) mark
-  | A.EApp { f = e1; args } ->
+  | A.EApp { f = (EOp _, _) as e1; args } ->
+    (* Same as EApp, but the typing order is different to help with
+       disambiguation: - type of the operator is extracted first (to figure
+       linked type vars between arguments) - arguments are typed right-to-left,
+       because our operators with function args always have the functions first,
+       and the argument types of those functions can always be inferred from the
+       later operator arguments *)
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
     let t_func =
       List.fold_right
@@ -540,7 +609,24 @@ and typecheck_expr_top_down :
         t_args tau
     in
     let e1' = typecheck_expr_top_down ctx env t_func e1 in
+    let args' =
+      List.rev_map2
+        (typecheck_expr_top_down ctx env)
+        (List.rev t_args) (List.rev args)
+    in
+    Expr.eapp e1' args' context_mark
+  | A.EApp { f = e1; args } ->
+    (* Here we type the arguments first (in order), to ensure we know the types
+       of the arguments if [f] is [EAbs] before disambiguation. This is also the
+       right order for the [let-in] form. *)
+    let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
+    let t_func =
+      List.fold_right
+        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
+        t_args tau
+    in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+    let e1' = typecheck_expr_top_down ctx env t_func e1 in
     Expr.eapp e1' args' context_mark
   | A.EOp op -> Expr.eop op (uf_mark (op_type (Marked.mark pos_e op)))
   | A.EDefault { excepts; just; cons } ->
@@ -588,19 +674,27 @@ let wrap_expr ctx f e =
 
 let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 
-(* Infer the type of an expression *)
-let expr
+let expr_raw
     (type a)
     (ctx : A.decl_ctx)
     ?(env = Env.empty)
     ?(typ : A.typ option)
-    (e : (a, 'm) A.gexpr) : (a, A.typed A.mark) A.boxed_gexpr =
+    (e : (a, 'm) A.gexpr) : (a, mark) A.gexpr =
   let fty =
     match typ with
     | None -> typecheck_expr_bottom_up ctx env
     | Some typ -> typecheck_expr_top_down ctx env (ast_to_typ typ)
   in
-  Expr.map_marks ~f:get_ty_mark (wrap_expr ctx fty e)
+  wrap_expr ctx fty e
+
+let check_expr ctx ?env ?typ e =
+  Expr.map_marks
+    ~f:(fun { pos; _ } -> A.Untyped { pos })
+    (expr_raw ctx ?env ?typ e)
+
+(* Infer the type of an expression *)
+let expr ctx ?env ?typ e =
+  Expr.map_marks ~f:get_ty_mark (expr_raw ctx ?env ?typ e)
 
 let rec scope_body_expr ctx env ty_out body_expr =
   match body_expr with

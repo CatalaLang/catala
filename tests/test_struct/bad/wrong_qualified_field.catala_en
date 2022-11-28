@@ -19,7 +19,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] Struct Foo does not contain field g
+[ERROR] Field g does not belong to structure Foo
 
 ┌─⯈ tests/test_struct/bad/wrong_qualified_field.catala_en:17.22-29:
 └──┐

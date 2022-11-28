@@ -26,6 +26,7 @@ type target_scope_vars =
   | States of (StateName.t * ScopeVar.t) list
 
 type ctx = {
+  decl_ctx : decl_ctx;
   scope_var_mapping : target_scope_vars ScopeVar.Map.t;
   var_mapping : (Desugared.Ast.expr, untyped Ast.expr Var.t) Var.Map.t;
 }
@@ -73,10 +74,25 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct { name; fields } ->
     Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
-  | EDStructAccess { e; field; name_opt } ->
-    assert false
-    (* TODO: resolve!! *)
-    (* Expr.estructaccess (translate_expr ctx e) field name_opt m *)
+  | EDStructAccess { name_opt = None; _ } ->
+    (* Note: this could only happen if disambiguation was disabled. If we want
+       to support it, we should still allow this case when the field has only
+       one possible matching structure *)
+    Errors.raise_spanned_error (Expr.mark_pos m)
+      "Ambiguous structure field access"
+  | EDStructAccess { e; field; name_opt = Some name } ->
+    let e' = translate_expr ctx e in
+    let field =
+      try
+        StructName.Map.find name
+          (IdentName.Map.find field ctx.decl_ctx.ctx_struct_fields)
+      with Not_found ->
+        (* Should not happen after disambiguation *)
+        Errors.raise_spanned_error (Expr.mark_pos m)
+          "Field %s does not belong to structure %a" field StructName.format_t
+          name
+    in
+    Expr.estructaccess e' field name m
   | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { e; name; cases } ->
     Expr.ematch (translate_expr ctx e) name
@@ -653,7 +669,11 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
             })
           scope_decl.Desugared.Ast.scope_vars ctx)
       pgrm.Desugared.Ast.program_scopes
-      { scope_var_mapping = ScopeVar.Map.empty; var_mapping = Var.Map.empty }
+      {
+        scope_var_mapping = ScopeVar.Map.empty;
+        var_mapping = Var.Map.empty;
+        decl_ctx = pgrm.program_ctx;
+      }
   in
   let ctx_scopes =
     ScopeName.Map.map

@@ -372,10 +372,10 @@ module Box : sig
       a separate argument. *)
 
   val app1 :
-    ('a, 't) boxed_gexpr ->
-    (('a, 't) gexpr -> ('a, 't) naked_gexpr) ->
-    't ->
-    ('a, 't) boxed_gexpr
+    ('a, 't1) boxed_gexpr ->
+    (('a, 't1) gexpr -> ('a, 't2) naked_gexpr) ->
+    't2 ->
+    ('a, 't2) boxed_gexpr
 
   val app2 :
     ('a, 't) boxed_gexpr ->

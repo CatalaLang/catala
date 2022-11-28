@@ -403,27 +403,28 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
               start_line=12; start_column=14; end_line=12; end_column=25;
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
-            (let predicate_ : Enfant.t -> date =
-               (fun (potentiel_plus_age_: Enfant.t) ->
-                  potentiel_plus_age_.Enfant.date_de_naissance)
-            in
-            (Array.fold_left
-               (fun (acc_: Enfant.t) (item_: Enfant.t) ->
-                   if ((predicate_ acc_) <@ (predicate_ item_)) then 
-                    acc_ else item_)
-               ({Enfant.identifiant = (integer_of_string "-1");
-                   Enfant.obligation_scolaire =
-                     (SituationObligationScolaire.Pendant ());
-                   Enfant.remuneration_mensuelle = (money_of_cents_string
-                     "0");
-                   Enfant.date_de_naissance =
-                     (date_of_numbers (2999) (12) (31));
-                   Enfant.prise_en_charge =
-                     (PriseEnCharge.EffectiveEtPermanente ());
-                   Enfant.a_deja_ouvert_droit_aux_allocations_familiales =
-                     false;
-                   Enfant.beneficie_titre_personnel_aide_personnelle_logement =
-                     false}) enfants_))))
+            Array.fold_left
+              (fun (acc_: Enfant.t) (item_: Enfant.t) ->
+                  if
+                   ((let potentiel_plus_age_ : Enfant.t = acc_
+                      in
+                      (potentiel_plus_age_.Enfant.date_de_naissance)) <@
+                      (let potentiel_plus_age_ : Enfant.t = item_
+                      in
+                      (potentiel_plus_age_.Enfant.date_de_naissance))) then
+                   acc_ else item_)
+              ({Enfant.identifiant = (integer_of_string "-1");
+                  Enfant.obligation_scolaire =
+                    (SituationObligationScolaire.Pendant ());
+                  Enfant.remuneration_mensuelle = (money_of_cents_string "0");
+                  Enfant.date_de_naissance =
+                    (date_of_numbers (2999) (12) (31));
+                  Enfant.prise_en_charge =
+                    (PriseEnCharge.EffectiveEtPermanente ());
+                  Enfant.a_deja_ouvert_droit_aux_allocations_familiales =
+                    false;
+                  Enfant.beneficie_titre_personnel_aide_personnelle_logement =
+                    false}) enfants_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";

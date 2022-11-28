@@ -167,6 +167,8 @@ let driver source_file (options : Cli.options) : int =
       in
       Cli.debug_print "Desugaring...";
       let prgm = Desugared.From_surface.translate_program ctxt prgm in
+      Cli.debug_print "Disambiguating...";
+      let prgm = Desugared.Disambiguate.program prgm in
       Cli.debug_print "Collecting rules...";
       let prgm = Scopelang.From_desugared.translate_program prgm in
       match backend with
