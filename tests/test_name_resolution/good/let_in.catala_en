@@ -17,7 +17,7 @@ scope S:
    definition b equals let b equals 42 in B { -- y: true -- z: integer_to_decimal of b}
    definition a equals
      let b equals
-       if b.B.y
+       if b.y
        then B { -- y: false -- z: -1. }
        else B { -- y: true  -- z: -2. }
      in

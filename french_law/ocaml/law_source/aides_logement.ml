@@ -15604,7 +15604,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/../prestations_familiales/sécurité_sociale_L.catala_fr";
                                    start_line=56; start_column=5;
-                                   end_line=57; end_column=78;
+                                   end_line=57; end_column=50;
                                    law_headings=["Article L512-3";
                                                   "Chapitre 2 : Champ d'application";
                                                   "Titre 1 : Champ d'application - Généralités";
@@ -24071,7 +24071,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
                                            start_line=3010; start_column=5;
-                                           end_line=3013; end_column=46;
+                                           end_line=3013; end_column=41;
                                            law_headings=["Article R832-7";
                                                           "Section 2 : Accession à la propriété";
                                                           "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
@@ -24107,7 +24107,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
                                    start_line=2975; start_column=5;
-                                   end_line=2977; end_column=47;
+                                   end_line=2977; end_column=42;
                                    law_headings=["Article R832-5";
                                                   "Section 2 : Accession à la propriété";
                                                   "Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement";
