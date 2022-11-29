@@ -403,12 +403,12 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
               start_line=12; start_column=14; end_line=12; end_column=25;
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
-            Array.fold_left
+            o_fold
               (fun (acc_: Enfant.t) (item_: Enfant.t) ->
                   if
-                   ((let potentiel_plus_age_ : Enfant.t = acc_
+                   (o_lt_dat_dat (let potentiel_plus_age_ : Enfant.t = acc_
                       in
-                      (potentiel_plus_age_.Enfant.date_de_naissance)) <@
+                      (potentiel_plus_age_.Enfant.date_de_naissance))
                       (let potentiel_plus_age_ : Enfant.t = item_
                       in
                       (potentiel_plus_age_.Enfant.date_de_naissance))) then
@@ -459,23 +459,32 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2019) (1) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2019) (12) (31))) &&
-                          ((residence_ = (Collectivite.Metropole ())) ||
-                             ((residence_ = (Collectivite.Guadeloupe ())) ||
-                                ((residence_ = (Collectivite.Guyane ())) ||
-                                   ((residence_ =
-                                       (Collectivite.Martinique ())) ||
-                                      ((residence_ =
-                                          (Collectivite.LaReunion ())) ||
-                                         ((residence_ =
-                                             (Collectivite.SaintBarthelemy ()))
-                                            ||
-                                            ((residence_ =
-                                                (Collectivite.SaintMartin ()))
-                                               ||
-                                               (residence_ =
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2019) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2019) (12) (31)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
                                                   (Collectivite.SaintPierreEtMiquelon
                                                      ())))))))))))))
                  (fun (_: unit) -> money_of_cents_string "1003"));
@@ -494,10 +503,13 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2019) (1) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2019) (12) (31))) &&
-                          (residence_ = (Collectivite.Mayotte ()))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2019) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2019) (12) (31)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
                  (fun (_: unit) -> money_of_cents_string "757"));
             (fun (_: unit) ->
                handle_default
@@ -514,23 +526,32 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2020) (1) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2020) (12) (31))) &&
-                          ((residence_ = (Collectivite.Metropole ())) ||
-                             ((residence_ = (Collectivite.Guadeloupe ())) ||
-                                ((residence_ = (Collectivite.Guyane ())) ||
-                                   ((residence_ =
-                                       (Collectivite.Martinique ())) ||
-                                      ((residence_ =
-                                          (Collectivite.LaReunion ())) ||
-                                         ((residence_ =
-                                             (Collectivite.SaintBarthelemy ()))
-                                            ||
-                                            ((residence_ =
-                                                (Collectivite.SaintMartin ()))
-                                               ||
-                                               (residence_ =
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2020) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2020) (12) (31)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
                                                   (Collectivite.SaintPierreEtMiquelon
                                                      ())))))))))))))
                  (fun (_: unit) -> money_of_cents_string "1015"));
@@ -549,10 +570,13 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2020) (1) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2020) (12) (31))) &&
-                          (residence_ = (Collectivite.Mayotte ()))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2020) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2020) (12) (31)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
                  (fun (_: unit) -> money_of_cents_string "766"));
             (fun (_: unit) ->
                handle_default
@@ -569,23 +593,32 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2021) (1) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2021) (12) (31))) &&
-                          ((residence_ = (Collectivite.Metropole ())) ||
-                             ((residence_ = (Collectivite.Guadeloupe ())) ||
-                                ((residence_ = (Collectivite.Guyane ())) ||
-                                   ((residence_ =
-                                       (Collectivite.Martinique ())) ||
-                                      ((residence_ =
-                                          (Collectivite.LaReunion ())) ||
-                                         ((residence_ =
-                                             (Collectivite.SaintBarthelemy ()))
-                                            ||
-                                            ((residence_ =
-                                                (Collectivite.SaintMartin ()))
-                                               ||
-                                               (residence_ =
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2021) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2021) (12) (31)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
                                                   (Collectivite.SaintPierreEtMiquelon
                                                      ())))))))))))))
                  (fun (_: unit) -> money_of_cents_string "1025"));
@@ -604,10 +637,13 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2021) (1) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2021) (12) (31))) &&
-                          (residence_ = (Collectivite.Mayotte ()))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2021) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2021) (12) (31)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
                  (fun (_: unit) -> money_of_cents_string "774"));
             (fun (_: unit) ->
                handle_default
@@ -624,23 +660,32 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2021-1741 du 22 décembre 2021 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2022) (1) (1))) &&
-                       ((date_courante_ <=@ (date_of_numbers (2022) (4) (30)))
-                          &&
-                          ((residence_ = (Collectivite.Metropole ())) ||
-                             ((residence_ = (Collectivite.Guadeloupe ())) ||
-                                ((residence_ = (Collectivite.Guyane ())) ||
-                                   ((residence_ =
-                                       (Collectivite.Martinique ())) ||
-                                      ((residence_ =
-                                          (Collectivite.LaReunion ())) ||
-                                         ((residence_ =
-                                             (Collectivite.SaintBarthelemy ()))
-                                            ||
-                                            ((residence_ =
-                                                (Collectivite.SaintMartin ()))
-                                               ||
-                                               (residence_ =
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2022) (4) (30)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
                                                   (Collectivite.SaintPierreEtMiquelon
                                                      ())))))))))))))
                  (fun (_: unit) -> money_of_cents_string "1057"));
@@ -659,9 +704,13 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 1";
                                      "Décret n° 2021-1741 du 22 décembre 2021 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2022) (1) (1))) &&
-                       ((date_courante_ <=@ (date_of_numbers (2022) (4) (30)))
-                          && (residence_ = (Collectivite.Mayotte ()))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2022) (4) (30)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
                  (fun (_: unit) -> money_of_cents_string "798"));
             (fun (_: unit) ->
                handle_default
@@ -678,23 +727,32 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 2";
                                      "Arrêté du 19 avril 2022 relatif au relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2022) (5) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2022) (12) (31))) &&
-                          ((residence_ = (Collectivite.Metropole ())) ||
-                             ((residence_ = (Collectivite.Guadeloupe ())) ||
-                                ((residence_ = (Collectivite.Guyane ())) ||
-                                   ((residence_ =
-                                       (Collectivite.Martinique ())) ||
-                                      ((residence_ =
-                                          (Collectivite.LaReunion ())) ||
-                                         ((residence_ =
-                                             (Collectivite.SaintBarthelemy ()))
-                                            ||
-                                            ((residence_ =
-                                                (Collectivite.SaintMartin ()))
-                                               ||
-                                               (residence_ =
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (5) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2022) (12) (31)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
                                                   (Collectivite.SaintPierreEtMiquelon
                                                      ())))))))))))))
                  (fun (_: unit) -> money_of_cents_string "1085"));
@@ -713,10 +771,13 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                       law_headings=["Article 2";
                                      "Arrêté du 19 avril 2022 relatif au relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
-                    ((date_courante_ >=@ (date_of_numbers (2022) (5) (1))) &&
-                       ((date_courante_ <=@
-                           (date_of_numbers (2022) (12) (31))) &&
-                          (residence_ = (Collectivite.Mayotte ()))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (5) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2022) (12) (31)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
                  (fun (_: unit) -> money_of_cents_string "819"))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
@@ -747,8 +808,11 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                       end_line=29; end_column=34;
                       law_headings=["Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole";
                                      "Montant de la base mensuelle des allocations familiales"]}
-                    ((date_courante_ >=@ (date_of_numbers (2019) (4) (1))) &&
-                       (date_courante_ <@ (date_of_numbers (2020) (4) (1))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2019) (4) (1)))
+                       (o_lt_dat_dat date_courante_
+                          (date_of_numbers (2020) (4) (1))))))
                  (fun (_: unit) -> money_of_cents_string "41316"));
             (fun (_: unit) ->
                handle_default
@@ -762,8 +826,11 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                       end_line=49; end_column=34;
                       law_headings=["Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
-                    ((date_courante_ >=@ (date_of_numbers (2020) (4) (1))) &&
-                       (date_courante_ <@ (date_of_numbers (2021) (4) (1))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2020) (4) (1)))
+                       (o_lt_dat_dat date_courante_
+                          (date_of_numbers (2021) (4) (1))))))
                  (fun (_: unit) -> money_of_cents_string "41440"));
             (fun (_: unit) ->
                handle_default
@@ -777,8 +844,11 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                       end_line=65; end_column=34;
                       law_headings=["Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
-                    ((date_courante_ >=@ (date_of_numbers (2021) (4) (1))) &&
-                       (date_courante_ <@ (date_of_numbers (2022) (4) (1))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2021) (4) (1)))
+                       (o_lt_dat_dat date_courante_
+                          (date_of_numbers (2022) (4) (1))))))
                  (fun (_: unit) -> money_of_cents_string "41481"));
             (fun (_: unit) ->
                handle_default
@@ -792,8 +862,11 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                       end_line=83; end_column=34;
                       law_headings=["Instruction interministérielle n°DSS/2B/2022/82 du 28 mars 2022 relative à la revalorisation au 1er avril 2022 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
-                    ((date_courante_ >=@ (date_of_numbers (2022) (4) (1))) &&
-                       (date_courante_ <@ (date_of_numbers (2023) (4) (1))))))
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (4) (1)))
+                       (o_lt_dat_dat date_courante_
+                          (date_of_numbers (2023) (4) (1))))))
                  (fun (_: unit) -> money_of_cents_string "42228"))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
@@ -903,13 +976,16 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                      "Livre 7 : Régimes divers - Dispositions diverses";
                                      "Partie législative";
                                      "Code de la sécurité sociale"]}
-                    ((residence_ = (Collectivite.Guadeloupe ())) ||
-                       ((residence_ = (Collectivite.Guyane ())) ||
-                          ((residence_ = (Collectivite.Martinique ())) ||
-                             ((residence_ = (Collectivite.LaReunion ())) ||
-                                ((residence_ =
-                                    (Collectivite.SaintBarthelemy ())) ||
-                                   (residence_ =
+                    (o_or (o_eq residence_ (Collectivite.Guadeloupe ()))
+                       (o_or (o_eq residence_ (Collectivite.Guyane ()))
+                          (o_or
+                             (o_eq residence_ (Collectivite.Martinique ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.LaReunion ()))
+                                (o_or
+                                   (o_eq residence_
+                                      (Collectivite.SaintBarthelemy ()))
+                                   (o_eq residence_
                                       (Collectivite.SaintMartin ())))))))))
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
@@ -952,7 +1028,9 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                      "Code de la sécurité sociale"]}
                     regime_outre_mer_l751_1_))
                  (fun (_: unit) ->
-                    (smic_dot_brut_horaire_ *$ (decimal_of_string "0.55")) *$
+                    o_mult_mon_rat
+                      (o_mult_mon_rat smic_dot_brut_horaire_
+                         (decimal_of_string "0.55"))
                       (decimal_of_string "169.")))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
@@ -964,8 +1042,9 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                              "Partie réglementaire - Décrets en Conseil d'Etat";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            (smic_dot_brut_horaire_ *$ (decimal_of_string "0.55")) *$
-              (decimal_of_string "169.")))
+            o_mult_mon_rat
+              (o_mult_mon_rat smic_dot_brut_horaire_
+                 (decimal_of_string "0.55")) (decimal_of_string "169.")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1000,28 +1079,34 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie législative";
                                           "Code de la sécurité sociale"]}
-                         (((match (param_.Enfant.obligation_scolaire)
-                            with
-                            | SituationObligationScolaire.Avant _ -> true
-                            | SituationObligationScolaire.Pendant _ -> false
-                            | SituationObligationScolaire.Apres _ -> false)
-                             ||
-                             ((match (param_.Enfant.obligation_scolaire)
-                               with
-                               | SituationObligationScolaire.Avant _ -> false
-                               | SituationObligationScolaire.Pendant _ ->
-                                   true
-                               | SituationObligationScolaire.Apres _ -> false)
-                                ||
-                                (match (param_.Enfant.obligation_scolaire)
-                                 with
-                                 | SituationObligationScolaire.Avant _ ->
-                                     false
-                                 | SituationObligationScolaire.Pendant _ ->
-                                     false
-                                 | SituationObligationScolaire.Apres _ ->
-                                     true))) &&
-                            ((param_.Enfant.remuneration_mensuelle) <=$
+                         (o_and
+                            (o_or
+                               (match (param_.Enfant.obligation_scolaire)
+                                with
+                                | SituationObligationScolaire.Avant _ -> true
+                                | SituationObligationScolaire.Pendant _ ->
+                                    false
+                                | SituationObligationScolaire.Apres _ ->
+                                    false)
+                               (o_or
+                                  (match (param_.Enfant.obligation_scolaire)
+                                   with
+                                   | SituationObligationScolaire.Avant _ ->
+                                       false
+                                   | SituationObligationScolaire.Pendant _ ->
+                                       true
+                                   | SituationObligationScolaire.Apres _ ->
+                                       false)
+                                  (match (param_.Enfant.obligation_scolaire)
+                                   with
+                                   | SituationObligationScolaire.Avant _ ->
+                                       false
+                                   | SituationObligationScolaire.Pendant _ ->
+                                       false
+                                   | SituationObligationScolaire.Apres _ ->
+                                       true)))
+                            (o_lte_mon_mon
+                               (param_.Enfant.remuneration_mensuelle)
                                plafond_l512_3_2_)))) (fun (_: unit) -> true))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1119,20 +1204,24 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                                                "Livre 5 : Prestations familiales et prestations assimilées";
                                                                "Partie législative";
                                                                "Code de la sécurité sociale"]}
-                                              ((match
-                                                  (param_.Enfant.obligation_scolaire)
-                                                with
-                                                | SituationObligationScolaire.Avant _ ->
-                                                    false
-                                                | SituationObligationScolaire.Pendant _ ->
-                                                    false
-                                                | SituationObligationScolaire.Apres _ ->
-                                                    true) &&
-                                                 (((param_.Enfant.remuneration_mensuelle)
-                                                     <=$ plafond_l512_3_2_)
-                                                    &&
-                                                    (((param_.Enfant.date_de_naissance)
-                                                        +@ age_l512_3_2_) >@
+                                              (o_and
+                                                 (match
+                                                    (param_.Enfant.obligation_scolaire)
+                                                  with
+                                                  | SituationObligationScolaire.Avant _ ->
+                                                      false
+                                                  | SituationObligationScolaire.Pendant _ ->
+                                                      false
+                                                  | SituationObligationScolaire.Apres _ ->
+                                                      true)
+                                                 (o_and
+                                                    (o_lte_mon_mon
+                                                       (param_.Enfant.remuneration_mensuelle)
+                                                       plafond_l512_3_2_)
+                                                    (o_gt_dat_dat
+                                                       (o_add_dat_dur
+                                                          (param_.Enfant.date_de_naissance)
+                                                          age_l512_3_2_)
                                                        date_courante_)))))
                                            (fun (_: unit) -> true))|])
                                    (fun (_: unit) -> (log_decision_taken
@@ -1145,15 +1234,16 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                                        "Livre 5 : Prestations familiales et prestations assimilées";
                                                        "Partie législative";
                                                        "Code de la sécurité sociale"]}
-                                      ((match
-                                          (param_.Enfant.obligation_scolaire)
-                                        with
-                                        | SituationObligationScolaire.Avant _ ->
-                                            true
-                                        | SituationObligationScolaire.Pendant _ ->
-                                            false
-                                        | SituationObligationScolaire.Apres _ ->
-                                            false) ||
+                                      (o_or
+                                         (match
+                                            (param_.Enfant.obligation_scolaire)
+                                          with
+                                          | SituationObligationScolaire.Avant _ ->
+                                              true
+                                          | SituationObligationScolaire.Pendant _ ->
+                                              false
+                                          | SituationObligationScolaire.Apres _ ->
+                                              false)
                                          (match
                                             (param_.Enfant.obligation_scolaire)
                                           with
@@ -1779,8 +1869,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets en Conseil d'Etat";
                                           "Code de la sécurité sociale"]}
-                         (((param_.Enfant.date_de_naissance) +@
-                             (duration_of_numbers (11) (0) (0))) <=@
+                         (o_lte_dat_dat
+                            (o_add_dat_dur (param_.Enfant.date_de_naissance)
+                               (duration_of_numbers (11) (0) (0)))
                             (date_of_numbers (2008) (4) (30)))))
                       (fun (_: unit) ->
                          version_avril_2008_dot_age_minimum_alinea_1_l521_3_))|])
@@ -1827,7 +1918,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie législative";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            array_filter
+            o_filter
               (fun (enfant_: Enfant.t) -> (log_end_call
                  ["PrestationsFamiliales"; "droit_ouvert"]
                  ((log_variable_definition
@@ -1860,7 +1951,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                    start_line=33; start_column=14;
                    end_line=33; end_column=36;
                    law_headings=["Règles diverses"; "Épilogue"]} true))
-              (fun (_: unit) -> enfant_le_plus_age_dot_le_plus_age_ = param_))
+              (fun (_: unit) ->
+                 o_eq enfant_le_plus_age_dot_le_plus_age_ param_))
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1902,15 +1994,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               end_line=30; end_column=69;
                               law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2018) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2018) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2018) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "7877000") +$
-                              ((money_of_cents_string "562800") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "7877000")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "562800")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))));
                     (fun (_: unit) ->
                        handle_default
@@ -1926,15 +2020,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               end_line=63; end_column=69;
                               law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2019) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2019) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2019) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "7955800") +$
-                              ((money_of_cents_string "568400") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "7955800")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "568400")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))));
                     (fun (_: unit) ->
                        handle_default
@@ -1950,15 +2046,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               end_line=96; end_column=69;
                               law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2020) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2020) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2020) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "8083100") +$
-                              ((money_of_cents_string "577500") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "8083100")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "577500")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))));
                     (fun (_: unit) ->
                        handle_default
@@ -1975,15 +2073,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Article 1";
                                              "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2021) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2021) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2021) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "8155800") +$
-                              ((money_of_cents_string "582700") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "8155800")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "582700")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))))|])
                  (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))|])
          (fun (_: unit) -> (log_decision_taken
@@ -1996,10 +2096,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets simples";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            (money_of_cents_string "7830000") +$
-              ((money_of_cents_string "559500") *$
-                 (decimal_of_integer
-                    (array_length
+            o_add_mon_mon (money_of_cents_string "7830000")
+              (o_mult_mon_rat (money_of_cents_string "559500")
+                 (o_intToRat
+                    (o_length
                        enfants_a_charge_droit_ouvert_prestation_familiale_)))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -2036,15 +2136,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               end_line=23; end_column=69;
                               law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2018) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2018) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2018) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "5628600") +$
-                              ((money_of_cents_string "562800") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "5628600")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "562800")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))));
                     (fun (_: unit) ->
                        handle_default
@@ -2060,15 +2162,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               end_line=56; end_column=69;
                               law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2019) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2019) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2019) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "5684900") +$
-                              ((money_of_cents_string "568400") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "5684900")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "568400")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))));
                     (fun (_: unit) ->
                        handle_default
@@ -2084,15 +2188,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               end_line=89; end_column=69;
                               law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2020) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2020) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2020) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "5775900") +$
-                              ((money_of_cents_string "577500") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "5775900")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "577500")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))));
                     (fun (_: unit) ->
                        handle_default
@@ -2109,15 +2215,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Article 1";
                                              "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations";
                                              "Montant des plafonds de ressources"]}
-                            ((date_courante_ >=@
-                                (date_of_numbers (2021) (1) (1))) &&
-                               (date_courante_ <=@
+                            (o_and
+                               (o_gte_dat_dat date_courante_
+                                  (date_of_numbers (2021) (1) (1)))
+                               (o_lte_dat_dat date_courante_
                                   (date_of_numbers (2021) (12) (31))))))
                          (fun (_: unit) ->
-                            (money_of_cents_string "5827900") +$
-                              ((money_of_cents_string "582700") *$
-                                 (decimal_of_integer
-                                    (array_length
+                            o_add_mon_mon (money_of_cents_string "5827900")
+                              (o_mult_mon_rat (money_of_cents_string
+                                 "582700")
+                                 (o_intToRat
+                                    (o_length
                                        enfants_a_charge_droit_ouvert_prestation_familiale_)))))|])
                  (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))|])
          (fun (_: unit) -> (log_decision_taken
@@ -2130,10 +2238,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets simples";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            (money_of_cents_string "5595000") +$
-              ((money_of_cents_string "559500") *$
-                 (decimal_of_integer
-                    (array_length
+            o_add_mon_mon (money_of_cents_string "5595000")
+              (o_mult_mon_rat (money_of_cents_string "559500")
+                 (o_intToRat
+                    (o_length
                        enfants_a_charge_droit_ouvert_prestation_familiale_)))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -2174,11 +2282,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              "Livre 7 : Régimes divers - Dispositions diverses";
                                              "Partie législative";
                                              "Code de la sécurité sociale"]}
-                            (prestations_familiales_dot_regime_outre_mer_l751_1_
-                               &&
-                               ((array_length
-                                   enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                  = (integer_of_string "1")))))
+                            (o_and
+                               prestations_familiales_dot_regime_outre_mer_l751_1_
+                               (o_eq
+                                  (o_length
+                                     enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                  (integer_of_string "1")))))
                          (fun (_: unit) -> false))|])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -2233,11 +2342,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                   "Livre 7 : Régimes divers - Dispositions diverses";
                                                   "Partie législative";
                                                   "Code de la sécurité sociale"]}
-                                 (prestations_familiales_dot_regime_outre_mer_l751_1_
-                                    &&
-                                    ((array_length
-                                        enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                       = (integer_of_string "1")))))
+                                 (o_and
+                                    prestations_familiales_dot_regime_outre_mer_l751_1_
+                                    (o_eq
+                                       (o_length
+                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                       (integer_of_string "1")))))
                               (fun (_: unit) -> false))|])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
@@ -2249,14 +2359,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie législative";
                                           "Code de la sécurité sociale"]}
-                         (((array_length enfants_a_charge_) >=!
-                             nombre_enfants_alinea_2_l521_3_) &&
-                            (((((param_.Enfant.date_de_naissance) +@
-                                  prestations_familiales_dot_age_l512_3_2_)
-                                 -@ date_courante_) <^
-                                (duration_of_numbers (0) (0) (365))) &&
-                               ((param_.Enfant.a_deja_ouvert_droit_aux_allocations_familiales)
-                                  && ((log_end_call
+                         (o_and
+                            (o_gte_int_int (o_length enfants_a_charge_)
+                               nombre_enfants_alinea_2_l521_3_)
+                            (o_and
+                               (o_lt_dur_dur
+                                  (o_sub_dat_dat
+                                     (o_add_dat_dur
+                                        (param_.Enfant.date_de_naissance)
+                                        prestations_familiales_dot_age_l512_3_2_)
+                                     date_courante_)
+                                  (duration_of_numbers (0) (0) (365)))
+                               (o_and
+                                  (param_.Enfant.a_deja_ouvert_droit_aux_allocations_familiales)
+                                  ((log_end_call
                                   ["PrestationsFamiliales";
                                     "conditions_hors_âge"]
                                   ((log_variable_definition
@@ -2309,14 +2425,18 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
             true))
          (fun (_: unit) ->
              if
-              ((array_length
-                  enfants_a_charge_droit_ouvert_prestation_familiale_) >!
+              (o_gt_int_int
+                 (o_length
+                    enfants_a_charge_droit_ouvert_prestation_familiale_)
                  (integer_of_string "3")) then
-              ((bmaf_dot_montant_ *$ (decimal_of_string "0.0463")) *$
-                 (decimal_of_integer
-                    ((array_length
-                        enfants_a_charge_droit_ouvert_prestation_familiale_)
-                       -! (integer_of_string "3")))) else
+              (o_mult_mon_rat
+                 (o_mult_mon_rat bmaf_dot_montant_
+                    (decimal_of_string "0.0463"))
+                 (o_intToRat
+                    (o_sub_int_int
+                       (o_length
+                          enfants_a_charge_droit_ouvert_prestation_familiale_)
+                       (integer_of_string "3")))) else
               (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
@@ -2355,17 +2475,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2011) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2011) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2011) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.0463")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2383,17 +2506,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2012) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2012) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2012) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.0539")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2411,17 +2537,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2013) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2013) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2013) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.0615")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2439,17 +2568,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2014) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2014) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2014) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.069")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2467,17 +2599,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2015) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2015) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2015) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.0766")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2495,17 +2630,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2016) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2016) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2016) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.0842")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2523,17 +2661,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2017) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2017) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2017) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.0918")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2551,17 +2692,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2018) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2018) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2018) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.1089")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2579,17 +2723,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2019) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2019) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2019) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.1259")) else
                               (money_of_cents_string "0")));
                     (fun (_: unit) ->
@@ -2607,17 +2754,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            ((residence_ = (Collectivite.Mayotte ())) &&
-                               ((date_courante_ >=@
-                                   (date_of_numbers (2020) (1) (1))) &&
-                                  (date_courante_ <=@
+                            (o_and
+                               (o_eq residence_ (Collectivite.Mayotte ()))
+                               (o_and
+                                  (o_gte_dat_dat date_courante_
+                                     (date_of_numbers (2020) (1) (1)))
+                                  (o_lte_dat_dat date_courante_
                                      (date_of_numbers (2020) (12) (31)))))))
                          (fun (_: unit) ->
                              if
-                              ((array_length
-                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                 >! (integer_of_string "2")) then
-                              (bmaf_dot_montant_ *$
+                              (o_gt_int_int
+                                 (o_length
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                 (integer_of_string "2")) then
+                              (o_mult_mon_rat bmaf_dot_montant_
                                  (decimal_of_string "0.143")) else
                               (money_of_cents_string "0")))|])
                  (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))|])
@@ -2630,11 +2780,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
             true))
          (fun (_: unit) ->
              if
-              ((array_length
-                  enfants_a_charge_droit_ouvert_prestation_familiale_) >!
+              (o_gt_int_int
+                 (o_length
+                    enfants_a_charge_droit_ouvert_prestation_familiale_)
                  (integer_of_string "2")) then
-              (bmaf_dot_montant_ *$ (decimal_of_string "0.16")) else
-              (money_of_cents_string "0")))
+              (o_mult_mon_rat bmaf_dot_montant_ (decimal_of_string "0.16"))
+              else (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2659,9 +2810,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets en Conseil d'Etat";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            decimal_of_integer
-              (array_length
-                 enfants_a_charge_droit_ouvert_prestation_familiale_)))
+            o_intToRat
+              (o_length enfants_a_charge_droit_ouvert_prestation_familiale_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2686,9 +2836,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets en Conseil d'Etat";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            Array.fold_left
+            o_fold
               (fun (acc_: decimal) (enfant_: Enfant.t) ->
-                 acc_ +&
+                 o_add_rat_rat acc_
                    (match ((log_end_call
                       ["AllocationsFamiliales"; "prise_en_compte"]
                       ((log_variable_definition
@@ -2749,22 +2899,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2011) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2011) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2011) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2011) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.145")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2782,22 +2934,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2012) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2012) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2012) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2012) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.1393")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2815,22 +2969,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2013) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2013) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2013) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2013) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.1335")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2848,22 +3004,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2014) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2014) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2014) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2014) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.1278")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2881,22 +3039,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2015) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2015) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2015) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2015) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.122")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2914,22 +3074,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2016) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2016) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2016) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2016) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.1163")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2947,22 +3109,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2017) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2017) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2017) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2017) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.1105")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -2980,22 +3144,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2018) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2018) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2018) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2018) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.0976")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3013,22 +3179,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2019) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2019) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2019) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2019) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.0847")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3046,22 +3214,24 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2020) (1) (1)))
-                                          &&
-                                          ((date_courante_ <=@
-                                              (date_of_numbers (2020) (12) (31)))
-                                             &&
-                                             (not
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2020) (1) (1)))
+                                          (o_and
+                                             (o_lte_dat_dat date_courante_
+                                                (date_of_numbers (2020) (12) (31)))
+                                             (o_not
                                                 avait_enfant_a_charge_avant_1er_janvier_2012_))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.0717")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3079,14 +3249,16 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
                                        avait_enfant_a_charge_avant_1er_janvier_2012_)))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "0")) then
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "0")) then
                                       (money_of_cents_string "5728") else
                                       (money_of_cents_string "0")))|])
                          (fun (_: unit) -> false)
@@ -3098,14 +3270,16 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                       law_headings=["Article 7";
                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                      "Dispositions spéciales relatives à Mayotte"]}
-                    (residence_ = (Collectivite.Mayotte ()))))
+                    (o_eq residence_ (Collectivite.Mayotte ()))))
                  (fun (_: unit) ->
                      if
-                      ((array_length
-                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                         >! (integer_of_string "0")) then
-                      (bmaf_dot_montant_ *$ (decimal_of_string "0.0588"))
-                      else (money_of_cents_string "0")));
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "0")) then
+                      (o_mult_mon_rat bmaf_dot_montant_
+                         (decimal_of_string "0.0588")) else
+                      (money_of_cents_string "0")));
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3124,12 +3298,15 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 7 : Régimes divers - Dispositions diverses";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    (prestations_familiales_dot_regime_outre_mer_l751_1_ &&
-                       ((array_length
-                           enfants_a_charge_droit_ouvert_prestation_familiale_)
-                          = (integer_of_string "1")))))
+                    (o_and
+                       prestations_familiales_dot_regime_outre_mer_l751_1_
+                       (o_eq
+                          (o_length
+                             enfants_a_charge_droit_ouvert_prestation_familiale_)
+                          (integer_of_string "1")))))
                  (fun (_: unit) ->
-                    bmaf_dot_montant_ *$ (decimal_of_string "0.0588")))|])
+                    o_mult_mon_rat bmaf_dot_montant_
+                      (decimal_of_string "0.0588")))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
               start_line=361; start_column=29; end_line=361; end_column=64;
@@ -3194,11 +3371,13 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                               law_headings=["Article 7";
                                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                              "Dispositions spéciales relatives à Mayotte"]}
-                                            ((residence_ =
-                                                (Collectivite.Mayotte ())) &&
-                                               ((array_length
-                                                   enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                                  >=! (integer_of_string "1")))))
+                                            (o_and
+                                               (o_eq residence_
+                                                  (Collectivite.Mayotte ()))
+                                               (o_gte_int_int
+                                                  (o_length
+                                                     enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                                  (integer_of_string "1")))))
                                          (fun (_: unit) -> true))|])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
@@ -3210,11 +3389,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                      "Livre 7 : Régimes divers - Dispositions diverses";
                                                      "Partie législative";
                                                      "Code de la sécurité sociale"]}
-                                    (prestations_familiales_dot_regime_outre_mer_l751_1_
-                                       &&
-                                       ((array_length
-                                           enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                          >=! (integer_of_string "1")))))
+                                    (o_and
+                                       prestations_familiales_dot_regime_outre_mer_l751_1_
+                                       (o_gte_int_int
+                                          (o_length
+                                             enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                          (integer_of_string "1")))))
                                  (fun (_: unit) -> true))|])
                          (fun (_: unit) -> false)
                          (fun (_: unit) -> raise EmptyError))|])
@@ -3228,9 +3408,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie législative";
                                      "Code de la sécurité sociale"]}
-                    ((array_length
-                        enfants_a_charge_droit_ouvert_prestation_familiale_)
-                       >=! (integer_of_string "2")))) (fun (_: unit) -> true))|])
+                    (o_gte_int_int
+                       (o_length
+                          enfants_a_charge_droit_ouvert_prestation_familiale_)
+                       (integer_of_string "2")))) (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/prologue.catala_fr";
               start_line=103; start_column=11; end_line=103; end_column=28;
@@ -3278,26 +3459,30 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                   "Livre 5 : Prestations familiales et prestations assimilées";
                                                   "Partie législative";
                                                   "Code de la sécurité sociale"]}
-                                 (((array_length
-                                      enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                     >=! nombre_enfants_alinea_2_l521_3_) &&
-                                    (((param_.Enfant.date_de_naissance) +@
-                                        ((log_end_call
-                                        ["AllocationsFamiliales";
-                                          "âge_minimum_alinéa_1_l521_3"]
-                                        ((log_variable_definition
-                                        ["AllocationsFamiliales";
-                                          "âge_minimum_alinéa_1_l521_3";
-                                          "output"] (embed_duration)
-                                        ((log_begin_call
-                                        ["AllocationsFamiliales";
-                                          "âge_minimum_alinéa_1_l521_3"]
-                                        age_minimum_alinea_1_l521_3_)
-                                        ((log_variable_definition
-                                        ["AllocationsFamiliales";
-                                          "âge_minimum_alinéa_1_l521_3";
-                                          "input"] (embed_enfant)
-                                        param_)))))))) <=@ date_courante_))))
+                                 (o_and
+                                    (o_gte_int_int
+                                       (o_length
+                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                       nombre_enfants_alinea_2_l521_3_)
+                                    (o_lte_dat_dat
+                                       (o_add_dat_dur
+                                          (param_.Enfant.date_de_naissance)
+                                          ((log_end_call
+                                          ["AllocationsFamiliales";
+                                            "âge_minimum_alinéa_1_l521_3"]
+                                          ((log_variable_definition
+                                          ["AllocationsFamiliales";
+                                            "âge_minimum_alinéa_1_l521_3";
+                                            "output"] (embed_duration)
+                                          ((log_begin_call
+                                          ["AllocationsFamiliales";
+                                            "âge_minimum_alinéa_1_l521_3"]
+                                          age_minimum_alinea_1_l521_3_)
+                                          ((log_variable_definition
+                                          ["AllocationsFamiliales";
+                                            "âge_minimum_alinéa_1_l521_3";
+                                            "input"] (embed_enfant)
+                                          param_)))))))) date_courante_))))
                               (fun (_: unit) -> true))|])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
@@ -3309,35 +3494,39 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie législative";
                                           "Code de la sécurité sociale"]}
-                         ((not ((log_end_call
-                             ["AllocationsFamiliales";
-                               "est_enfant_le_plus_âgé"]
-                             ((log_variable_definition
-                             ["AllocationsFamiliales";
-                               "est_enfant_le_plus_âgé"; "output"]
-                             (embed_bool) ((log_begin_call
-                             ["AllocationsFamiliales";
-                               "est_enfant_le_plus_âgé"]
-                             est_enfant_le_plus_age_)
-                             ((log_variable_definition
-                             ["AllocationsFamiliales";
-                               "est_enfant_le_plus_âgé"; "input"]
-                             (embed_enfant) param_)))))))) &&
-                            (((param_.Enfant.date_de_naissance) +@
-                                ((log_end_call
-                                ["AllocationsFamiliales";
-                                  "âge_minimum_alinéa_1_l521_3"]
-                                ((log_variable_definition
-                                ["AllocationsFamiliales";
-                                  "âge_minimum_alinéa_1_l521_3"; "output"]
-                                (embed_duration) ((log_begin_call
-                                ["AllocationsFamiliales";
-                                  "âge_minimum_alinéa_1_l521_3"]
-                                age_minimum_alinea_1_l521_3_)
-                                ((log_variable_definition
-                                ["AllocationsFamiliales";
-                                  "âge_minimum_alinéa_1_l521_3"; "input"]
-                                (embed_enfant) param_)))))))) <=@
+                         (o_and
+                            (o_not ((log_end_call
+                               ["AllocationsFamiliales";
+                                 "est_enfant_le_plus_âgé"]
+                               ((log_variable_definition
+                               ["AllocationsFamiliales";
+                                 "est_enfant_le_plus_âgé"; "output"]
+                               (embed_bool) ((log_begin_call
+                               ["AllocationsFamiliales";
+                                 "est_enfant_le_plus_âgé"]
+                               est_enfant_le_plus_age_)
+                               ((log_variable_definition
+                               ["AllocationsFamiliales";
+                                 "est_enfant_le_plus_âgé"; "input"]
+                               (embed_enfant) param_))))))))
+                            (o_lte_dat_dat
+                               (o_add_dat_dur
+                                  (param_.Enfant.date_de_naissance)
+                                  ((log_end_call
+                                  ["AllocationsFamiliales";
+                                    "âge_minimum_alinéa_1_l521_3"]
+                                  ((log_variable_definition
+                                  ["AllocationsFamiliales";
+                                    "âge_minimum_alinéa_1_l521_3";
+                                    "output"] (embed_duration)
+                                  ((log_begin_call
+                                  ["AllocationsFamiliales";
+                                    "âge_minimum_alinéa_1_l521_3"]
+                                  age_minimum_alinea_1_l521_3_)
+                                  ((log_variable_definition
+                                  ["AllocationsFamiliales";
+                                    "âge_minimum_alinéa_1_l521_3"; "input"]
+                                  (embed_enfant) param_))))))))
                                date_courante_)))) (fun (_: unit) -> true))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3393,17 +3582,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                   "Livre 5 : Prestations familiales et prestations assimilées";
                                                   "Partie réglementaire - Décrets simples";
                                                   "Code de la sécurité sociale"]}
-                                 ((ressources_menage_ >$ plafond__i_d521_3_)
-                                    &&
-                                    (ressources_menage_ <=$
-                                       (plafond__i_d521_3_ +$
-                                          (param_ *$
+                                 (o_and
+                                    (o_gt_mon_mon ressources_menage_
+                                       plafond__i_d521_3_)
+                                    (o_lte_mon_mon ressources_menage_
+                                       (o_add_mon_mon plafond__i_d521_3_
+                                          (o_mult_mon_rat param_
                                              (decimal_of_string "12.")))))))
                               (fun (_: unit) ->
-                                 ((plafond__i_d521_3_ +$
-                                     (param_ *$ (decimal_of_string "12.")))
-                                    -$ ressources_menage_) *$
-                                   ((decimal_of_string "1.") /&
+                                 o_mult_mon_rat
+                                   (o_sub_mon_mon
+                                      (o_add_mon_mon plafond__i_d521_3_
+                                         (o_mult_mon_rat param_
+                                            (decimal_of_string "12.")))
+                                      ressources_menage_)
+                                   (o_div_rat_rat (decimal_of_string "1.")
                                       (decimal_of_string "12."))));
                          (fun (_: unit) ->
                             handle_default
@@ -3423,17 +3616,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                   "Livre 5 : Prestations familiales et prestations assimilées";
                                                   "Partie réglementaire - Décrets simples";
                                                   "Code de la sécurité sociale"]}
-                                 ((ressources_menage_ >$ plafond__i_i_d521_3_)
-                                    &&
-                                    (ressources_menage_ <=$
-                                       (plafond__i_i_d521_3_ +$
-                                          (param_ *$
+                                 (o_and
+                                    (o_gt_mon_mon ressources_menage_
+                                       plafond__i_i_d521_3_)
+                                    (o_lte_mon_mon ressources_menage_
+                                       (o_add_mon_mon plafond__i_i_d521_3_
+                                          (o_mult_mon_rat param_
                                              (decimal_of_string "12.")))))))
                               (fun (_: unit) ->
-                                 ((plafond__i_i_d521_3_ +$
-                                     (param_ *$ (decimal_of_string "12.")))
-                                    -$ ressources_menage_) *$
-                                   ((decimal_of_string "1.") /&
+                                 o_mult_mon_rat
+                                   (o_sub_mon_mon
+                                      (o_add_mon_mon plafond__i_i_d521_3_
+                                         (o_mult_mon_rat param_
+                                            (decimal_of_string "12.")))
+                                      ressources_menage_)
+                                   (o_div_rat_rat (decimal_of_string "1.")
                                       (decimal_of_string "12."))))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError))|])
@@ -3487,9 +3684,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    (ressources_menage_ <=$ plafond__i_d521_3_)))
+                    (o_lte_mon_mon ressources_menage_ plafond__i_d521_3_)))
                  (fun (_: unit) ->
-                    bmaf_dot_montant_ *$ (decimal_of_string "0.20234")));
+                    o_mult_mon_rat bmaf_dot_montant_
+                      (decimal_of_string "0.20234")));
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3508,10 +3706,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    ((ressources_menage_ >$ plafond__i_d521_3_) &&
-                       (ressources_menage_ <=$ plafond__i_i_d521_3_))))
+                    (o_and
+                       (o_gt_mon_mon ressources_menage_ plafond__i_d521_3_)
+                       (o_lte_mon_mon ressources_menage_ plafond__i_i_d521_3_))))
                  (fun (_: unit) ->
-                    bmaf_dot_montant_ *$ (decimal_of_string "0.10117")));
+                    o_mult_mon_rat bmaf_dot_montant_
+                      (decimal_of_string "0.10117")));
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3530,9 +3730,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    (ressources_menage_ >$ plafond__i_i_d521_3_)))
+                    (o_gt_mon_mon ressources_menage_ plafond__i_i_d521_3_)))
                  (fun (_: unit) ->
-                    bmaf_dot_montant_ *$ (decimal_of_string "0.05059")))|])
+                    o_mult_mon_rat bmaf_dot_montant_
+                      (decimal_of_string "0.05059")))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
     EmptyError -> (raise (NoValueProvided
@@ -3567,17 +3768,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    (ressources_menage_ <=$ plafond__i_d521_3_)))
+                    (o_lte_mon_mon ressources_menage_ plafond__i_d521_3_)))
                  (fun (_: unit) ->
                      if
-                      ((array_length
-                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                         >! (integer_of_string "2")) then
-                      ((bmaf_dot_montant_ *$ (decimal_of_string "0.41")) *$
-                         (decimal_of_integer
-                            ((array_length
-                                enfants_a_charge_droit_ouvert_prestation_familiale_)
-                               -! (integer_of_string "2")))) else
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "2")) then
+                      (o_mult_mon_rat
+                         (o_mult_mon_rat bmaf_dot_montant_
+                            (decimal_of_string "0.41"))
+                         (o_intToRat
+                            (o_sub_int_int
+                               (o_length
+                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
+                               (integer_of_string "2")))) else
                       (money_of_cents_string "0")));
             (fun (_: unit) ->
                handle_default
@@ -3597,18 +3802,23 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    ((ressources_menage_ >$ plafond__i_d521_3_) &&
-                       (ressources_menage_ <=$ plafond__i_i_d521_3_))))
+                    (o_and
+                       (o_gt_mon_mon ressources_menage_ plafond__i_d521_3_)
+                       (o_lte_mon_mon ressources_menage_ plafond__i_i_d521_3_))))
                  (fun (_: unit) ->
                      if
-                      ((array_length
-                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                         >! (integer_of_string "2")) then
-                      ((bmaf_dot_montant_ *$ (decimal_of_string "0.205")) *$
-                         (decimal_of_integer
-                            ((array_length
-                                enfants_a_charge_droit_ouvert_prestation_familiale_)
-                               -! (integer_of_string "2")))) else
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "2")) then
+                      (o_mult_mon_rat
+                         (o_mult_mon_rat bmaf_dot_montant_
+                            (decimal_of_string "0.205"))
+                         (o_intToRat
+                            (o_sub_int_int
+                               (o_length
+                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
+                               (integer_of_string "2")))) else
                       (money_of_cents_string "0")));
             (fun (_: unit) ->
                handle_default
@@ -3628,17 +3838,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                      "Livre 5 : Prestations familiales et prestations assimilées";
                                      "Partie réglementaire - Décrets simples";
                                      "Code de la sécurité sociale"]}
-                    (ressources_menage_ >$ plafond__i_i_d521_3_)))
+                    (o_gt_mon_mon ressources_menage_ plafond__i_i_d521_3_)))
                  (fun (_: unit) ->
                      if
-                      ((array_length
-                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                         >! (integer_of_string "2")) then
-                      ((bmaf_dot_montant_ *$ (decimal_of_string "0.1025")) *$
-                         (decimal_of_integer
-                            ((array_length
-                                enfants_a_charge_droit_ouvert_prestation_familiale_)
-                               -! (integer_of_string "2")))) else
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "2")) then
+                      (o_mult_mon_rat
+                         (o_mult_mon_rat bmaf_dot_montant_
+                            (decimal_of_string "0.1025"))
+                         (o_intToRat
+                            (o_sub_int_int
+                               (o_length
+                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
+                               (integer_of_string "2")))) else
                       (money_of_cents_string "0")))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
@@ -3686,19 +3900,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2011) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2011) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2011) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.232")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3716,19 +3932,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2012) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2012) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2012) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2379")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3746,19 +3964,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2013) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2013) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2013) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2437")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3776,19 +3996,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2014) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2014) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2014) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2496")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3806,19 +4028,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2015) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2015) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2015) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2555")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3836,19 +4060,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2016) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2016) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2016) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2613")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3866,19 +4092,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2017) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2017) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2017) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2672")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3896,19 +4124,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2018) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2018) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2018) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2804")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3926,19 +4156,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2019) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2019) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2019) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.2936")) else
                                       (money_of_cents_string "0")));
                             (fun (_: unit) ->
@@ -3956,19 +4188,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
-                                    ((residence_ = (Collectivite.Mayotte ()))
-                                       &&
-                                       ((date_courante_ >=@
-                                           (date_of_numbers (2020) (1) (1)))
-                                          &&
-                                          (date_courante_ <=@
+                                    (o_and
+                                       (o_eq residence_
+                                          (Collectivite.Mayotte ()))
+                                       (o_and
+                                          (o_gte_dat_dat date_courante_
+                                             (date_of_numbers (2020) (1) (1)))
+                                          (o_lte_dat_dat date_courante_
                                              (date_of_numbers (2020) (12) (31)))))))
                                  (fun (_: unit) ->
                                      if
-                                      ((array_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                         >! (integer_of_string "1")) then
-                                      (bmaf_dot_montant_ *$
+                                      (o_gt_int_int
+                                         (o_length
+                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                         (integer_of_string "1")) then
+                                      (o_mult_mon_rat bmaf_dot_montant_
                                          (decimal_of_string "0.3068")) else
                                       (money_of_cents_string "0")))|])
                          (fun (_: unit) -> false)
@@ -3980,13 +4214,15 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                       law_headings=["Article 7";
                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                      "Dispositions spéciales relatives à Mayotte"]}
-                    (residence_ = (Collectivite.Mayotte ()))))
+                    (o_eq residence_ (Collectivite.Mayotte ()))))
                  (fun (_: unit) ->
                      if
-                      ((array_length
-                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                         >! (integer_of_string "1")) then
-                      (bmaf_dot_montant_ *$ (decimal_of_string "0.32")) else
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "1")) then
+                      (o_mult_mon_rat bmaf_dot_montant_
+                         (decimal_of_string "0.32")) else
                       (money_of_cents_string "0")))|])
          (fun (_: unit) -> true)
          (fun (_: unit) ->
@@ -4013,14 +4249,16 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets simples";
                                           "Code de la sécurité sociale"]}
-                         (ressources_menage_ <=$ plafond__i_d521_3_)))
+                         (o_lte_mon_mon ressources_menage_ plafond__i_d521_3_)))
                       (fun (_: unit) ->
                           if
-                           ((array_length
-                               enfants_a_charge_droit_ouvert_prestation_familiale_)
-                              >! (integer_of_string "1")) then
-                           (bmaf_dot_montant_ *$ (decimal_of_string "0.32"))
-                           else (money_of_cents_string "0")));
+                           (o_gt_int_int
+                              (o_length
+                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
+                              (integer_of_string "1")) then
+                           (o_mult_mon_rat bmaf_dot_montant_
+                              (decimal_of_string "0.32")) else
+                           (money_of_cents_string "0")));
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4039,15 +4277,20 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets simples";
                                           "Code de la sécurité sociale"]}
-                         ((ressources_menage_ >$ plafond__i_d521_3_) &&
-                            (ressources_menage_ <=$ plafond__i_i_d521_3_))))
+                         (o_and
+                            (o_gt_mon_mon ressources_menage_
+                               plafond__i_d521_3_)
+                            (o_lte_mon_mon ressources_menage_
+                               plafond__i_i_d521_3_))))
                       (fun (_: unit) ->
                           if
-                           ((array_length
-                               enfants_a_charge_droit_ouvert_prestation_familiale_)
-                              >! (integer_of_string "1")) then
-                           (bmaf_dot_montant_ *$ (decimal_of_string "0.16"))
-                           else (money_of_cents_string "0")));
+                           (o_gt_int_int
+                              (o_length
+                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
+                              (integer_of_string "1")) then
+                           (o_mult_mon_rat bmaf_dot_montant_
+                              (decimal_of_string "0.16")) else
+                           (money_of_cents_string "0")));
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4066,14 +4309,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets simples";
                                           "Code de la sécurité sociale"]}
-                         (ressources_menage_ >$ plafond__i_i_d521_3_)))
+                         (o_gt_mon_mon ressources_menage_
+                            plafond__i_i_d521_3_)))
                       (fun (_: unit) ->
                           if
-                           ((array_length
-                               enfants_a_charge_droit_ouvert_prestation_familiale_)
-                              >! (integer_of_string "1")) then
-                           (bmaf_dot_montant_ *$ (decimal_of_string "0.08"))
-                           else (money_of_cents_string "0")))|])
+                           (o_gt_int_int
+                              (o_length
+                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
+                              (integer_of_string "1")) then
+                           (o_mult_mon_rat bmaf_dot_montant_
+                              (decimal_of_string "0.08")) else
+                           (money_of_cents_string "0")))|])
               (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
     with
     EmptyError -> (raise (NoValueProvided
@@ -4100,9 +4346,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets en Conseil d'Etat";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-             if (nombre_total_enfants_ = (decimal_of_string "0.")) then
+             if (o_eq nombre_total_enfants_ (decimal_of_string "0.")) then
               (decimal_of_string "0.") else
-              (nombre_moyen_enfants_ /& nombre_total_enfants_)))
+              (o_div_rat_rat nombre_moyen_enfants_ nombre_total_enfants_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4138,8 +4384,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets simples";
                                           "Code de la sécurité sociale"]}
-                         ((ressources_menage_ <=$ plafond__i_d521_3_) &&
-                            ((log_end_call
+                         (o_and
+                            (o_lte_mon_mon ressources_menage_
+                               plafond__i_d521_3_) ((log_end_call
                             ["AllocationsFamiliales";
                               "droit_ouvert_majoration"]
                             ((log_variable_definition
@@ -4154,7 +4401,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               "droit_ouvert_majoration"; "input"]
                             (embed_enfant) param_))))))))))
                       (fun (_: unit) ->
-                         bmaf_dot_montant_ *$ (decimal_of_string "0.16")));
+                         o_mult_mon_rat bmaf_dot_montant_
+                           (decimal_of_string "0.16")));
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4173,9 +4421,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets simples";
                                           "Code de la sécurité sociale"]}
-                         (((ressources_menage_ >$ plafond__i_d521_3_) &&
-                             (ressources_menage_ <=$ plafond__i_i_d521_3_))
-                            && ((log_end_call
+                         (o_and
+                            (o_and
+                               (o_gt_mon_mon ressources_menage_
+                                  plafond__i_d521_3_)
+                               (o_lte_mon_mon ressources_menage_
+                                  plafond__i_i_d521_3_)) ((log_end_call
                             ["AllocationsFamiliales";
                               "droit_ouvert_majoration"]
                             ((log_variable_definition
@@ -4190,7 +4441,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               "droit_ouvert_majoration"; "input"]
                             (embed_enfant) param_))))))))))
                       (fun (_: unit) ->
-                         bmaf_dot_montant_ *$ (decimal_of_string "0.08")));
+                         o_mult_mon_rat bmaf_dot_montant_
+                           (decimal_of_string "0.08")));
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4209,8 +4461,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Livre 5 : Prestations familiales et prestations assimilées";
                                           "Partie réglementaire - Décrets simples";
                                           "Code de la sécurité sociale"]}
-                         ((ressources_menage_ >$ plafond__i_i_d521_3_) &&
-                            ((log_end_call
+                         (o_and
+                            (o_gt_mon_mon ressources_menage_
+                               plafond__i_i_d521_3_) ((log_end_call
                             ["AllocationsFamiliales";
                               "droit_ouvert_majoration"]
                             ((log_variable_definition
@@ -4225,7 +4478,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               "droit_ouvert_majoration"; "input"]
                             (embed_enfant) param_))))))))))
                       (fun (_: unit) ->
-                         bmaf_dot_montant_ *$ (decimal_of_string "0.04")));
+                         o_mult_mon_rat bmaf_dot_montant_
+                           (decimal_of_string "0.04")));
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4239,7 +4493,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                            start_line=27; start_column=5;
                            end_line=27; end_column=44;
                            law_headings=["Règles diverses"; "Épilogue"]}
-                         (not ((log_end_call
+                         (o_not ((log_end_call
                             ["AllocationsFamiliales";
                               "droit_ouvert_majoration"]
                             ((log_variable_definition
@@ -4285,9 +4539,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets simples";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            montant_verse_forfaitaire_par_enfant_ *$
-              (decimal_of_integer
-                 (Array.fold_left
+            o_mult_mon_rat montant_verse_forfaitaire_par_enfant_
+              (o_intToRat
+                 (o_fold
                     (fun (acc_: integer) (enfant_: Enfant.t) ->
                         if
                          ((log_end_call
@@ -4304,8 +4558,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                            ["AllocationsFamiliales";
                              "droit_ouvert_forfaitaire"; "input"]
                            (embed_enfant) enfant_))))))) then
-                         (acc_ +! (integer_of_string "1")) else acc_)
-                    (integer_of_string "0") enfants_a_charge_))))
+                         (o_add_int_int acc_ (integer_of_string "1")) else
+                         acc_) (integer_of_string "0") enfants_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4345,11 +4599,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              "Livre 7 : Régimes divers - Dispositions diverses";
                                              "Partie réglementaire - Décrets simples";
                                              "Code de la sécurité sociale"]}
-                            (prestations_familiales_dot_regime_outre_mer_l751_1_
-                               &&
-                               ((array_length
-                                   enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                  = (integer_of_string "1")))))
+                            (o_and
+                               prestations_familiales_dot_regime_outre_mer_l751_1_
+                               (o_eq
+                                  (o_length
+                                     enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                  (integer_of_string "1")))))
                          (fun (_: unit) ->
                             montant_initial_base_premier_enfant_));
                     (fun (_: unit) ->
@@ -4367,12 +4622,14 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               law_headings=["Article 7";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
-                            (residence_ = (Collectivite.Mayotte ()))))
+                            (o_eq residence_ (Collectivite.Mayotte ()))))
                          (fun (_: unit) ->
-                            ((montant_initial_base_premier_enfant_ +$
-                                montant_initial_base_deuxieme_enfant_) +$
-                               montant_initial_base_troisieme_enfant_mayotte_)
-                              +$
+                            o_add_mon_mon
+                              (o_add_mon_mon
+                                 (o_add_mon_mon
+                                    montant_initial_base_premier_enfant_
+                                    montant_initial_base_deuxieme_enfant_)
+                                 montant_initial_base_troisieme_enfant_mayotte_)
                               montant_initial_base_quatrieme_enfant_et_plus_mayotte_))|])
                  (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))|])
          (fun (_: unit) -> (log_decision_taken
@@ -4385,7 +4642,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets simples";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            montant_initial_base_deuxieme_enfant_ +$
+            o_add_mon_mon montant_initial_base_deuxieme_enfant_
               montant_initial_base_troisieme_enfant_et_plus_))
     with
     EmptyError -> (raise (NoValueProvided
@@ -4428,7 +4685,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                   "Livre 7 : Régimes divers - Dispositions diverses";
                                                   "Partie réglementaire - Décrets simples";
                                                   "Code de la sécurité sociale"]}
-                                 (((log_end_call
+                                 (o_and ((log_end_call
                                     ["AllocationsFamiliales";
                                       "droit_ouvert_majoration"]
                                     ((log_variable_definition
@@ -4441,22 +4698,27 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                     ((log_variable_definition
                                     ["AllocationsFamiliales";
                                       "droit_ouvert_majoration"; "input"]
-                                    (embed_enfant) param_))))))) &&
-                                    (prestations_familiales_dot_regime_outre_mer_l751_1_
-                                       &&
-                                       (((array_length
-                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                           = (integer_of_string "1")) &&
-                                          ((((param_.Enfant.date_de_naissance)
-                                               +@
-                                               (duration_of_numbers (11) (0) (0)))
-                                              <=@ date_courante_) &&
-                                             (((param_.Enfant.date_de_naissance)
-                                                 +@
-                                                 (duration_of_numbers (16) (0) (0)))
-                                                >@ date_courante_)))))))
+                                    (embed_enfant) param_)))))))
+                                    (o_and
+                                       prestations_familiales_dot_regime_outre_mer_l751_1_
+                                       (o_and
+                                          (o_eq
+                                             (o_length
+                                                enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                             (integer_of_string "1"))
+                                          (o_and
+                                             (o_lte_dat_dat
+                                                (o_add_dat_dur
+                                                   (param_.Enfant.date_de_naissance)
+                                                   (duration_of_numbers (11) (0) (0)))
+                                                date_courante_)
+                                             (o_gt_dat_dat
+                                                (o_add_dat_dur
+                                                   (param_.Enfant.date_de_naissance)
+                                                   (duration_of_numbers (16) (0) (0)))
+                                                date_courante_)))))))
                               (fun (_: unit) ->
-                                 bmaf_dot_montant_ *$
+                                 o_mult_mon_rat bmaf_dot_montant_
                                    (decimal_of_string "0.0369")));
                          (fun (_: unit) ->
                             handle_default
@@ -4476,7 +4738,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                   "Livre 7 : Régimes divers - Dispositions diverses";
                                                   "Partie réglementaire - Décrets simples";
                                                   "Code de la sécurité sociale"]}
-                                 (((log_end_call
+                                 (o_and ((log_end_call
                                     ["AllocationsFamiliales";
                                       "droit_ouvert_majoration"]
                                     ((log_variable_definition
@@ -4489,18 +4751,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                     ((log_variable_definition
                                     ["AllocationsFamiliales";
                                       "droit_ouvert_majoration"; "input"]
-                                    (embed_enfant) param_))))))) &&
-                                    (prestations_familiales_dot_regime_outre_mer_l751_1_
-                                       &&
-                                       (((array_length
-                                            enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                           = (integer_of_string "1")) &&
-                                          (((param_.Enfant.date_de_naissance)
-                                              +@
-                                              (duration_of_numbers (16) (0) (0)))
-                                             <=@ date_courante_))))))
+                                    (embed_enfant) param_)))))))
+                                    (o_and
+                                       prestations_familiales_dot_regime_outre_mer_l751_1_
+                                       (o_and
+                                          (o_eq
+                                             (o_length
+                                                enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                             (integer_of_string "1"))
+                                          (o_lte_dat_dat
+                                             (o_add_dat_dur
+                                                (param_.Enfant.date_de_naissance)
+                                                (duration_of_numbers (16) (0) (0)))
+                                             date_courante_))))))
                               (fun (_: unit) ->
-                                 bmaf_dot_montant_ *$
+                                 o_mult_mon_rat bmaf_dot_montant_
                                    (decimal_of_string "0.0567")))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError))|])
@@ -4574,17 +4839,23 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              "Livre 5 : Prestations familiales et prestations assimilées";
                                              "Partie réglementaire - Décrets simples";
                                              "Code de la sécurité sociale"]}
-                            ((ressources_menage_ >$ plafond__i_d521_3_) &&
-                               (ressources_menage_ <=$
-                                  (plafond__i_d521_3_ +$
-                                     (montant_verse_forfaitaire_ *$
+                            (o_and
+                               (o_gt_mon_mon ressources_menage_
+                                  plafond__i_d521_3_)
+                               (o_lte_mon_mon ressources_menage_
+                                  (o_add_mon_mon plafond__i_d521_3_
+                                     (o_mult_mon_rat
+                                        montant_verse_forfaitaire_
                                         (decimal_of_string "12.")))))))
                          (fun (_: unit) ->
-                            ((plafond__i_d521_3_ +$
-                                (montant_verse_forfaitaire_ *$
-                                   (decimal_of_string "12."))) -$
-                               ressources_menage_) *$
-                              ((decimal_of_string "1.") /&
+                            o_mult_mon_rat
+                              (o_sub_mon_mon
+                                 (o_add_mon_mon plafond__i_d521_3_
+                                    (o_mult_mon_rat
+                                       montant_verse_forfaitaire_
+                                       (decimal_of_string "12.")))
+                                 ressources_menage_)
+                              (o_div_rat_rat (decimal_of_string "1.")
                                  (decimal_of_string "12."))));
                     (fun (_: unit) ->
                        handle_default
@@ -4604,17 +4875,23 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              "Livre 5 : Prestations familiales et prestations assimilées";
                                              "Partie réglementaire - Décrets simples";
                                              "Code de la sécurité sociale"]}
-                            ((ressources_menage_ >$ plafond__i_i_d521_3_) &&
-                               (ressources_menage_ <=$
-                                  (plafond__i_i_d521_3_ +$
-                                     (montant_verse_forfaitaire_ *$
+                            (o_and
+                               (o_gt_mon_mon ressources_menage_
+                                  plafond__i_i_d521_3_)
+                               (o_lte_mon_mon ressources_menage_
+                                  (o_add_mon_mon plafond__i_i_d521_3_
+                                     (o_mult_mon_rat
+                                        montant_verse_forfaitaire_
                                         (decimal_of_string "12.")))))))
                          (fun (_: unit) ->
-                            ((plafond__i_i_d521_3_ +$
-                                (montant_verse_forfaitaire_ *$
-                                   (decimal_of_string "12."))) -$
-                               ressources_menage_) *$
-                              ((decimal_of_string "1.") /&
+                            o_mult_mon_rat
+                              (o_sub_mon_mon
+                                 (o_add_mon_mon plafond__i_i_d521_3_
+                                    (o_mult_mon_rat
+                                       montant_verse_forfaitaire_
+                                       (decimal_of_string "12.")))
+                                 ressources_menage_)
+                              (o_div_rat_rat (decimal_of_string "1.")
                                  (decimal_of_string "12."))))|])
                  (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))|])
          (fun (_: unit) -> (log_decision_taken
@@ -4652,7 +4929,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Partie réglementaire - Décrets en Conseil d'Etat";
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            montant_initial_base_ *$ rapport_enfants_total_moyen_))
+            o_mult_mon_rat montant_initial_base_ rapport_enfants_total_moyen_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4682,7 +4959,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                   "Partie réglementaire - Décrets en Conseil d'Etat";
                                   "Code de la sécurité sociale"]} true))
               (fun (_: unit) ->
-                 ((log_end_call
+                 o_mult_mon_rat ((log_end_call
                    ["AllocationsFamiliales"; "montant_initial_majoration"]
                    ((log_variable_definition
                    ["AllocationsFamiliales"; "montant_initial_majoration";
@@ -4690,7 +4967,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                    ["AllocationsFamiliales"; "montant_initial_majoration"]
                    montant_initial_majoration_) ((log_variable_definition
                    ["AllocationsFamiliales"; "montant_initial_majoration";
-                     "input"] (embed_enfant) param_))))))) *$
+                     "input"] (embed_enfant) param_)))))))
                    (match ((log_end_call
                       ["AllocationsFamiliales"; "prise_en_compte"]
                       ((log_variable_definition
@@ -4751,9 +5028,9 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
              if droit_ouvert_base_ then
-              (Array.fold_left
+              (o_fold
                  (fun (acc_: money) (enfant_: Enfant.t) ->
-                    acc_ +$ ((log_end_call
+                    o_add_mon_mon acc_ ((log_end_call
                       ["AllocationsFamiliales";
                         "montant_avec_garde_alternée_majoration"]
                       ((log_variable_definition
@@ -4792,7 +5069,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Livre 5 : Prestations familiales et prestations assimilées";
                              "Partie réglementaire - Décrets simples";
                              "Code de la sécurité sociale"]} true))
-         (fun (_: unit) -> montant_verse_base_ +$ montant_verse_majoration_))
+         (fun (_: unit) ->
+            o_add_mon_mon montant_verse_base_ montant_verse_majoration_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4850,9 +5128,13 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
              if droit_ouvert_base_ then
-              ((((montant_verse_base_ +$ montant_verse_majoration_) +$
-                   montant_verse_forfaitaire_) +$
-                  montant_verse_complement_pour_base_et_majoration_) +$
+              (o_add_mon_mon
+                 (o_add_mon_mon
+                    (o_add_mon_mon
+                       (o_add_mon_mon montant_verse_base_
+                          montant_verse_majoration_)
+                       montant_verse_forfaitaire_)
+                    montant_verse_complement_pour_base_et_majoration_)
                  montant_verse_complement_pour_forfaitaire_) else
               (money_of_cents_string "0")))
     with
@@ -4863,9 +5145,10 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                        "Prologue"]})))) in
   let _: unit = if (
                   try
-                    (personne_charge_effective_permanente_est_parent_ ||
-                       ((not personne_charge_effective_permanente_est_parent_)
-                          &&
+                    (o_or personne_charge_effective_permanente_est_parent_
+                       (o_and
+                          (o_not
+                             personne_charge_effective_permanente_est_parent_)
                           personne_charge_effective_permanente_remplit_titre__i_))
                   with
                   EmptyError -> (raise (NoValueProvided
@@ -4912,18 +5195,22 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
               law_headings=["Article L131-1"; "Interface du programme";
                              "Épilogue"]} true))
          (fun (_: unit) ->
-            Array.map
+            o_map
               (fun (enfant_: EnfantEntree.t) ->
                  {Enfant.identifiant = (enfant_.EnfantEntree.d_identifiant);
                     Enfant.obligation_scolaire =
                       ( if
-                         (((enfant_.EnfantEntree.d_date_de_naissance) +@
-                             (duration_of_numbers (3) (0) (0))) >=@
+                         (o_gte_dat_dat
+                            (o_add_dat_dur
+                               (enfant_.EnfantEntree.d_date_de_naissance)
+                               (duration_of_numbers (3) (0) (0)))
                             i_date_courante_) then
                          (SituationObligationScolaire.Avant ()) else
                          ( if
-                            (((enfant_.EnfantEntree.d_date_de_naissance) +@
-                                (duration_of_numbers (16) (0) (0))) >=@
+                            (o_gte_dat_dat
+                               (o_add_dat_dur
+                                  (enfant_.EnfantEntree.d_date_de_naissance)
+                                  (duration_of_numbers (16) (0) (0)))
                                i_date_courante_) then
                             (SituationObligationScolaire.Pendant ()) else
                             (SituationObligationScolaire.Apres ())));

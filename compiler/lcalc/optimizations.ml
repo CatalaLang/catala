@@ -73,10 +73,12 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
       (fun cond etrue efalse ->
         match Marked.unmark cond with
         | ELit (LBool true)
-        | EApp { f = EOp (Unop (Log _)), _; args = [(ELit (LBool true), _)] } ->
+        | EApp { f = EOp { op = Log _; _ }, _; args = [(ELit (LBool true), _)] }
+          ->
           Marked.unmark etrue
         | ELit (LBool false)
-        | EApp { f = EOp (Unop (Log _)), _; args = [(ELit (LBool false), _)] }
+        | EApp
+            { f = EOp { op = Log _; _ }, _; args = [(ELit (LBool false), _)] }
           ->
           Marked.unmark efalse
         | _ -> EIfThenElse { cond; etrue; efalse })

@@ -42,7 +42,7 @@ let base_type (fmt : Format.formatter) (s : string) : unit =
 let punctuation (fmt : Format.formatter) (s : string) : unit =
   Cli.format_with_style [ANSITerminal.cyan] fmt s
 
-let operator (fmt : Format.formatter) (s : string) : unit =
+let op_style (fmt : Format.formatter) (s : string) : unit =
   Cli.format_with_style [ANSITerminal.green] fmt s
 
 let lit_style (fmt : Format.formatter) (s : string) : unit =
@@ -81,7 +81,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " operator "*")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " op_style "*")
          typ)
       ts
   | TStruct s -> (
@@ -113,7 +113,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
         punctuation "]")
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens t1 operator "→"
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens t1 op_style "→"
       typ t2
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" typ t1
@@ -137,38 +137,6 @@ let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
   | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
 
-let op_kind (fmt : Format.formatter) (k : 'a op_kind) =
-  Format.fprintf fmt "%s"
-    (match k with
-    | KInt -> ""
-    | KRat -> "."
-    | KMoney -> "$"
-    | KDate -> "@"
-    | KDuration -> "^")
-
-let binop (fmt : Format.formatter) (op : 'a binop) : unit =
-  operator fmt
-    (match op with
-    | Add k -> Format.asprintf "+%a" op_kind k
-    | Sub k -> Format.asprintf "-%a" op_kind k
-    | Mult k -> Format.asprintf "*%a" op_kind k
-    | Div k -> Format.asprintf "/%a" op_kind k
-    | And -> "&&"
-    | Or -> "||"
-    | Xor -> "xor"
-    | Eq -> "="
-    | Neq -> "!="
-    | Lt k -> Format.asprintf "%s%a" "<" op_kind k
-    | Lte k -> Format.asprintf "%s%a" "<=" op_kind k
-    | Gt k -> Format.asprintf "%s%a" ">" op_kind k
-    | Gte k -> Format.asprintf "%s%a" ">=" op_kind k
-    | Concat -> "++"
-    | Map -> "map"
-    | Filter -> "filter")
-
-let ternop (fmt : Format.formatter) (op : ternop) : unit =
-  match op with Fold -> keyword fmt "fold"
-
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "@<2>%a"
     (fun fmt -> function
@@ -179,30 +147,98 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
         Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
     entry
 
-let unop (fmt : Format.formatter) (op : 'a unop) : unit =
+let operator_to_string : type a k. (a, k) Op.t -> string = function
+  | Not -> "~"
+  | Length -> "length"
+  | IntToRat -> "int_to_rat"
+  | MoneyToRat -> "money_to_rat"
+  | RatToMoney -> "rat_to_money"
+  | GetDay -> "get_day"
+  | GetMonth -> "get_month"
+  | GetYear -> "get_year"
+  | FirstDayOfMonth -> "first_day_of_month"
+  | LastDayOfMonth -> "last_day_of_month"
+  | RoundMoney -> "round_money"
+  | RoundDecimal -> "round_decimal"
+  | Log _ -> "Log"
+  | Minus -> "-"
+  | Minus_int -> "-!"
+  | Minus_rat -> "-."
+  | Minus_mon -> "-$"
+  | Minus_dur -> "-^"
+  | And -> "&&"
+  | Or -> "||"
+  | Xor -> "xor"
+  | Eq -> "="
+  | Map -> "map"
+  | Concat -> "++"
+  | Filter -> "filter"
+  | Add -> "+"
+  | Add_int_int -> "+!"
+  | Add_rat_rat -> "+."
+  | Add_mon_mon -> "+$"
+  | Add_dat_dur -> "+@"
+  | Add_dur_dur -> "+^"
+  | Sub -> "-"
+  | Sub_int_int -> "-!"
+  | Sub_rat_rat -> "-."
+  | Sub_mon_mon -> "-$"
+  | Sub_dat_dat -> "-@"
+  | Sub_dat_dur -> "-@^"
+  | Sub_dur_dur -> "-^"
+  | Mult -> "*"
+  | Mult_int_int -> "*!"
+  | Mult_rat_rat -> "*."
+  | Mult_mon_rat -> "*$"
+  | Mult_dur_int -> "*^"
+  | Div -> "/"
+  | Div_int_int -> "/!"
+  | Div_rat_rat -> "/."
+  | Div_mon_mon -> "/$"
+  | Div_mon_rat -> "/$."
+  | Lt -> "<"
+  | Lt_int_int -> "<!"
+  | Lt_rat_rat -> "<."
+  | Lt_mon_mon -> "<$"
+  | Lt_dur_dur -> "<^"
+  | Lt_dat_dat -> "<@"
+  | Lte -> "<="
+  | Lte_int_int -> "<=!"
+  | Lte_rat_rat -> "<=."
+  | Lte_mon_mon -> "<=$"
+  | Lte_dur_dur -> "<=^"
+  | Lte_dat_dat -> "<=@"
+  | Gt -> ">"
+  | Gt_int_int -> ">!"
+  | Gt_rat_rat -> ">."
+  | Gt_mon_mon -> ">$"
+  | Gt_dur_dur -> ">^"
+  | Gt_dat_dat -> ">@"
+  | Gte -> ">="
+  | Gte_int_int -> ">=!"
+  | Gte_rat_rat -> ">=."
+  | Gte_mon_mon -> ">=$"
+  | Gte_dur_dur -> ">=^"
+  | Gte_dat_dat -> ">=@"
+  | Eq_int_int -> "=!"
+  | Eq_rat_rat -> "=."
+  | Eq_mon_mon -> "=$"
+  | Eq_dur_dur -> "=^"
+  | Eq_dat_dat -> "=@"
+  | Fold -> "fold"
+
+let operator (type k) (fmt : Format.formatter) (op : ('a, k) operator) : unit =
   match op with
-  | Minus _ -> Format.pp_print_string fmt "-"
-  | Not -> Format.pp_print_string fmt "~"
   | Log (entry, infos) ->
-    Format.fprintf fmt "log@[<hov 2>[%a|%a]@]" log_entry entry
+    Format.fprintf fmt "%a@[<hov 2>[%a|%a]@]" op_style "log" log_entry entry
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
          (fun fmt info -> Uid.MarkedString.format fmt info))
       infos
-  | Length -> Format.pp_print_string fmt "length"
-  | IntToRat -> Format.pp_print_string fmt "int_to_rat"
-  | MoneyToRat -> Format.pp_print_string fmt "money_to_rat"
-  | RatToMoney -> Format.pp_print_string fmt "rat_to_money"
-  | GetDay -> Format.pp_print_string fmt "get_day"
-  | GetMonth -> Format.pp_print_string fmt "get_month"
-  | GetYear -> Format.pp_print_string fmt "get_year"
-  | FirstDayOfMonth -> Format.pp_print_string fmt "first_day_of_month"
-  | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
-  | RoundMoney -> Format.pp_print_string fmt "round_money"
-  | RoundDecimal -> Format.pp_print_string fmt "round_decimal"
+  | op -> Format.fprintf fmt "%a" op_style (operator_to_string op)
 
 let except (fmt : Format.formatter) (exn : except) : unit =
-  operator fmt
+  op_style fmt
     (match exn with
     | EmptyError -> "EmptyError"
     | ConflictError -> "ConflictError"
@@ -279,16 +315,16 @@ let rec expr_aux :
            Format.fprintf fmt "%a%a%a %a%a" punctuation "(" var x punctuation
              ":" (typ ctx) tau punctuation ")"))
       xs_tau punctuation "→" expr body
-  | EApp { f = EOp (Binop ((Map | Filter) as op)), _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" binop op with_parens arg1
+  | EApp { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] } ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" operator op with_parens arg1
       with_parens arg2
-  | EApp { f = EOp (Binop op), _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" with_parens arg1 binop op
+  | EApp { f = EOp { op; _ }, _; args = [arg1; arg2] } ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" with_parens arg1 operator op
       with_parens arg2
-  | EApp { f = EOp (Unop (Log _)), _; args = [arg1] } when not debug ->
+  | EApp { f = EOp { op = Log _; _ }, _; args = [arg1] } when not debug ->
     expr fmt arg1
-  | EApp { f = EOp (Unop op), _; args = [arg1] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" unop op with_parens arg1
+  | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" operator op with_parens arg1
   | EApp { f; args } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" expr f
       (Format.pp_print_list
@@ -298,9 +334,7 @@ let rec expr_aux :
   | EIfThenElse { cond; etrue; efalse } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]" keyword "if" expr
       cond keyword "then" expr etrue keyword "else" expr efalse
-  | EOp (Ternop op) -> ternop fmt op
-  | EOp (Binop op) -> binop fmt op
-  | EOp (Unop op) -> unop fmt op
+  | EOp { op; _ } -> operator fmt op
   | EDefault { excepts; just; cons } ->
     if List.length excepts = 0 then
       Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" expr just
@@ -313,7 +347,7 @@ let rec expr_aux :
         excepts punctuation "|" expr just punctuation "⊢" expr cons punctuation
         "⟩"
   | EErrorOnEmpty e' ->
-    Format.fprintf fmt "%a@ %a" operator "error_empty" with_parens e'
+    Format.fprintf fmt "%a@ %a" op_style "error_empty" with_parens e'
   | EAssert e' ->
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation "("
       expr e' punctuation ")"

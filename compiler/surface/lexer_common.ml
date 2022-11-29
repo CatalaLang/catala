@@ -69,9 +69,9 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
 let token_list_language_agnostic : (string * token) list =
   [
     ".", DOT;
-    "<=", LESSER_EQUAL;
-    ">=", GREATER_EQUAL;
-    ">", GREATER;
+    "<=", LESSER_EQUAL KPoly;
+    ">=", GREATER_EQUAL KPoly;
+    ">", GREATER KPoly;
     "!=", NOT_EQUAL;
     "=", EQUAL;
     "(", LPAREN;
@@ -80,10 +80,10 @@ let token_list_language_agnostic : (string * token) list =
     "}", RBRACKET;
     "{", LSQUARE;
     "}", RSQUARE;
-    "+", PLUS;
-    "-", MINUS;
-    "*", MULT;
-    "/", DIV;
+    "+", PLUS KPoly;
+    "-", MINUS KPoly;
+    "*", MULT KPoly;
+    "/", DIV KPoly;
     "|", VERTICAL;
     ":", COLON;
     ";", SEMICOLON;

@@ -12,15 +12,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] Error during typechecking, incompatible types:
---> integer
---> money
+[ERROR] I don't know how to apply operator >= on types integer and
+money
 
-Error coming from typechecking the following expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.61-62:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:10.63-66:
 └──┐
 10 │   definition list_high_count equals number for m in list of (m >=$ $7)
-   │                                                              ‾
+   │                                                                ‾‾‾
    └─ Article
 
 Type integer coming from expression:
@@ -31,10 +29,10 @@ Type integer coming from expression:
   └─ Article
 
 Type money coming from expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.63-66:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:10.67-69:
 └──┐
 10 │   definition list_high_count equals number for m in list of (m >=$ $7)
-   │                                                                ‾‾‾
+   │                                                                    ‾‾
    └─ Article
 #return code 255#
 ```

@@ -64,25 +64,24 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Print.binop op format_with_parens
-      arg1 format_with_parens arg2
-  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
+  | EApp ((EOp ((Map | Filter) as op), _), [arg1; arg2]) ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Print.operator op
+      format_with_parens arg1 format_with_parens arg2
+  | EApp ((EOp op, _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      Print.binop op format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [arg1]) when not debug ->
+      Print.operator op format_with_parens arg2
+  | EApp ((EOp (Log _), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.unop op format_with_parens arg1
+  | EApp ((EOp op, _), [arg1]) ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.operator op format_with_parens
+      arg1
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EOp (Ternop op) -> Format.fprintf fmt "%a" Print.ternop op
-  | EOp (Binop op) -> Format.fprintf fmt "%a" Print.binop op
-  | EOp (Unop op) -> Format.fprintf fmt "%a" Print.unop op
+  | EOp op -> Format.fprintf fmt "%a" Print.operator op
 
 let rec format_statement
     (decl_ctx : decl_ctx)

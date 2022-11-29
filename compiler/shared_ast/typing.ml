@@ -225,73 +225,48 @@ let lit_type (type a) (lit : a A.glit) : naked_typ =
   | LUnit -> TLit TUnit
   | LEmptyError -> TAny (Any.fresh ())
 
-(** Operators have a single type, instead of being polymorphic with constraints.
-    This allows us to have a simpler type system, while we argue the syntactic
-    burden of operator annotations helps the programmer visualize the type flow
-    in the code. *)
-let op_type (op : 'a A.operator Marked.pos) : unionfind_typ =
+(** [op_type] and [resolve_overload] are a bit similar, and work on disjoint
+    sets of operators. However, their assumptions are different so we keep the
+    functions separate. In particular [resolve_overloads] requires its argument
+    types to be known in advance. *)
+
+let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
+    : unionfind_typ =
+  let open Operator in
   let pos = Marked.get_mark op in
-  let bt = UnionFind.make (TLit TBool, pos) in
-  let it = UnionFind.make (TLit TInt, pos) in
-  let rt = UnionFind.make (TLit TRat, pos) in
-  let mt = UnionFind.make (TLit TMoney, pos) in
-  let dut = UnionFind.make (TLit TDuration, pos) in
-  let dat = UnionFind.make (TLit TDate, pos) in
-  let any = UnionFind.make (TAny (Any.fresh ()), pos) in
-  let array_any = UnionFind.make (TArray any, pos) in
-  let any2 = UnionFind.make (TAny (Any.fresh ()), pos) in
-  let array_any2 = UnionFind.make (TArray any2, pos) in
-  let arr x y = UnionFind.make (TArrow (x, y), pos) in
-  match Marked.unmark op with
-  | A.Ternop A.Fold ->
-    arr (arr any2 (arr any any2)) (arr any2 (arr array_any any2))
-  | A.Binop (A.And | A.Or | A.Xor) -> arr bt (arr bt bt)
-  | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) ->
-    arr it (arr it it)
-  | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) ->
-    arr rt (arr rt rt)
-  | A.Binop (A.Add KMoney | A.Sub KMoney) -> arr mt (arr mt mt)
-  | A.Binop (A.Add KDuration | A.Sub KDuration) -> arr dut (arr dut dut)
-  | A.Binop (A.Sub KDate) -> arr dat (arr dat dut)
-  | A.Binop (A.Add KDate) -> arr dat (arr dut dat)
-  | A.Binop (A.Mult KDuration) -> arr dut (arr it dut)
-  | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
-  | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)
-  | A.Binop (A.Lt KInt | A.Lte KInt | A.Gt KInt | A.Gte KInt) ->
-    arr it (arr it bt)
-  | A.Binop (A.Lt KRat | A.Lte KRat | A.Gt KRat | A.Gte KRat) ->
-    arr rt (arr rt bt)
-  | A.Binop (A.Lt KMoney | A.Lte KMoney | A.Gt KMoney | A.Gte KMoney) ->
-    arr mt (arr mt bt)
-  | A.Binop (A.Lt KDate | A.Lte KDate | A.Gt KDate | A.Gte KDate) ->
-    arr dat (arr dat bt)
-  | A.Binop (A.Lt KDuration | A.Lte KDuration | A.Gt KDuration | A.Gte KDuration)
-    ->
-    arr dut (arr dut bt)
-  | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
-  | A.Binop A.Map -> arr (arr any any2) (arr array_any array_any2)
-  | A.Binop A.Filter -> arr (arr any bt) (arr array_any array_any)
-  | A.Binop A.Concat -> arr array_any (arr array_any array_any)
-  | A.Unop (A.Minus KInt) -> arr it it
-  | A.Unop (A.Minus KRat) -> arr rt rt
-  | A.Unop (A.Minus KMoney) -> arr mt mt
-  | A.Unop (A.Minus KDuration) -> arr dut dut
-  | A.Unop A.Not -> arr bt bt
-  | A.Unop (A.Log (A.PosRecordIfTrueBool, _)) -> arr bt bt
-  | A.Unop (A.Log _) -> arr any any
-  | A.Unop A.Length -> arr array_any it
-  | A.Unop A.GetDay -> arr dat it
-  | A.Unop A.GetMonth -> arr dat it
-  | A.Unop A.GetYear -> arr dat it
-  | A.Unop A.FirstDayOfMonth -> arr dat dat
-  | A.Unop A.LastDayOfMonth -> arr dat dat
-  | A.Unop A.RoundMoney -> arr mt mt
-  | A.Unop A.RoundDecimal -> arr rt rt
-  | A.Unop A.IntToRat -> arr it rt
-  | A.Unop A.MoneyToRat -> arr mt rt
-  | A.Unop A.RatToMoney -> arr rt mt
-  | Binop (Mult KDate) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
-    Errors.raise_spanned_error pos "This operator is not available!"
+  let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
+  let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
+  let bt = lazy (UnionFind.make (TLit TBool, pos)) in
+  let it = lazy (UnionFind.make (TLit TInt, pos)) in
+  let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
+  let ( @-> ) x y =
+    lazy (UnionFind.make (TArrow (Lazy.force x, Lazy.force y), pos))
+  in
+  let ty =
+    match Marked.unmark op with
+    | Fold -> (any2 @-> any @-> any2) @-> any2 @-> array any @-> any2
+    | Eq -> any @-> any @-> bt
+    | Map -> (any @-> any2) @-> array any @-> array any2
+    | Filter -> (any @-> bt) @-> array any @-> array any
+    | Concat -> array any @-> array any @-> array any
+    | Log (PosRecordIfTrueBool, _) -> bt @-> bt
+    | Log _ -> any @-> any
+    | Length -> array any @-> it
+  in
+  Lazy.force ty
+
+let resolve_overload_ret_type
+    (ctx : A.decl_ctx)
+    e
+    (op : ('a A.any, Operator.overloaded) A.operator)
+    tys : unionfind_typ =
+  let op_ty =
+    Operator.overload_type ctx
+      (Marked.mark (Expr.pos e) op)
+      (List.map (typ_to_ast ~unsafe:true) tys)
+    (* We use [unsafe] because the error is caught below *)
+  in
+  ast_to_typ (Type.arrow_return op_ty)
 
 (** {1 Double-directed typing} *)
 
@@ -605,24 +580,41 @@ and typecheck_expr_top_down :
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' (List.map typ_to_ast tau_args) mark
-  | A.EApp { f = (EOp _, _) as e1; args } ->
-    (* Same as EApp, but the typing order is different to help with
-       disambiguation: - type of the operator is extracted first (to figure
-       linked type vars between arguments) - arguments are typed right-to-left,
-       because our operators with function args always have the functions first,
-       and the argument types of those functions can always be inferred from the
-       later operator arguments *)
-    let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
+  | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
+    let t_args = List.map ast_to_typ tys in
     let t_func =
       List.fold_right
         (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
         t_args tau
     in
-    let e1' = typecheck_expr_top_down ctx env t_func e1 in
-    let args' =
-      List.rev_map2
-        (typecheck_expr_top_down ctx env)
-        (List.rev t_args) (List.rev args)
+    let e1', args' =
+      Operator.kind_dispatch op
+        ~polymorphic:(fun _ ->
+          (* Type the operator first, then right-to-left: polymorphic operators
+             are required to allow the resolution of all type variables this
+             way *)
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          let args' =
+            List.rev_map2
+              (typecheck_expr_top_down ctx env)
+              (List.rev t_args) (List.rev args)
+          in
+          e1', args')
+        ~overloaded:(fun _ ->
+          (* Typing the arguments first is required to resolve the operator *)
+          let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          e1', args')
+        ~monomorphic:(fun _ ->
+          (* Here it doesn't matter but may affect the error messages *)
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+          e1', args')
+        ~resolved:(fun _ ->
+          (* This case should not fail *)
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+          e1', args')
     in
     Expr.eapp e1' args' context_mark
   | A.EApp { f = e1; args } ->
@@ -638,7 +630,35 @@ and typecheck_expr_top_down :
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
     let e1' = typecheck_expr_top_down ctx env t_func e1 in
     Expr.eapp e1' args' context_mark
-  | A.EOp op -> Expr.eop op (uf_mark (op_type (Marked.mark pos_e op)))
+  | A.EOp { op; tys } ->
+    let tys' = List.map ast_to_typ tys in
+    let t_ret = unionfind (TAny (Any.fresh ())) in
+    let t_func =
+      List.fold_right
+        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
+        tys' t_ret
+    in
+    unify ctx e t_func tau;
+    let tys, mark =
+      Operator.kind_dispatch op
+        ~polymorphic:(fun op ->
+          tys, uf_mark (polymorphic_op_type (Marked.mark pos_e op)))
+        ~monomorphic:(fun op ->
+          let mark =
+            uf_mark
+              (ast_to_typ (Operator.monomorphic_type (Marked.mark pos_e op)))
+          in
+          List.map typ_to_ast tys', mark)
+        ~overloaded:(fun op ->
+          unify ctx e t_ret (resolve_overload_ret_type ctx e op tys');
+          List.map typ_to_ast tys', { uf = t_func; pos = pos_e })
+        ~resolved:(fun op ->
+          let mark =
+            uf_mark (ast_to_typ (Operator.resolved_type (Marked.mark pos_e op)))
+          in
+          List.map typ_to_ast tys', mark)
+    in
+    Expr.eop op tys mark
   | A.EDefault { excepts; just; cons } ->
     let cons' = typecheck_expr_top_down ctx env tau cons in
     let just' =

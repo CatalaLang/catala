@@ -36,7 +36,7 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   Expr.eapp
-    (Expr.eop (Unop (Log (l, markings))) (Marked.get_mark e))
+    (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Marked.get_mark e))
     [e] (Marked.get_mark e)
 
 let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
@@ -128,9 +128,23 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
     Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) tys m
+  | EApp { f = EOp { op; tys }, m1; args } ->
+    let args = List.map (translate_expr ctx) args in
+    Operator.kind_dispatch op
+      ~monomorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
+      ~polymorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
+      ~overloaded:(fun op ->
+        match
+          Operator.resolve_overload ctx.decl_ctx
+            (Marked.mark (Expr.pos e) op)
+            tys
+        with
+        | op, `Straight -> Expr.eapp (Expr.eop op tys m1) args m
+        | op, `Reversed ->
+          Expr.eapp (Expr.eop op (List.rev tys) m1) (List.rev args) m)
+  | EOp _ -> assert false (* Only allowed within [EApp] *)
   | EApp { f; args } ->
     Expr.eapp (translate_expr ctx f) (List.map (translate_expr ctx) args) m
-  | EOp op -> Expr.eop (Expr.translate_op op) m
   | EDefault { excepts; just; cons } ->
     Expr.edefault
       (List.map (translate_expr ctx) excepts)

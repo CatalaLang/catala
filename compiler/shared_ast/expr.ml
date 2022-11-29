@@ -90,7 +90,7 @@ let eabs binder tys mark =
 
 let eapp f args = Box.app1n f args @@ fun f args -> EApp { f; args }
 let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
-let eop op = Box.app0 @@ EOp op
+let eop op tys = Box.app0 @@ EOp { op; tys }
 
 let edefault excepts just cons =
   Box.app2n just cons excepts
@@ -212,7 +212,7 @@ let map
   match Marked.unmark e with
   | ELit l -> elit l m
   | EApp { f = e1; args } -> eapp (f e1) (List.map f args) m
-  | EOp op -> eop op m
+  | EOp { op; tys } -> eop op tys m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
   | EAbs { binder; tys } ->
@@ -302,7 +302,7 @@ let map_gather
     let acc1, f = f e1 in
     let acc2, args = lfoldmap args in
     join acc1 acc2, eapp f args m
-  | EOp op -> acc, eop op m
+  | EOp { op; tys } -> acc, eop op tys m
   | EArray args ->
     let acc, args = lfoldmap args in
     acc, earray args m
@@ -396,99 +396,36 @@ let is_value (type a) (e : (a, _) gexpr) =
   | ELit _ | EAbs _ | EOp _ | ERaise _ -> true
   | _ -> false
 
-let equal_tlit l1 l2 = l1 = l2
-let compare_tlit l1 l2 = Stdlib.compare l1 l2
-
-let rec equal_typ ty1 ty2 =
-  match Marked.unmark ty1, Marked.unmark ty2 with
-  | TLit l1, TLit l2 -> equal_tlit l1 l2
-  | TTuple tys1, TTuple tys2 -> equal_typ_list tys1 tys2
-  | TStruct n1, TStruct n2 -> StructName.equal n1 n2
-  | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
-  | TOption t1, TOption t2 -> equal_typ t1 t2
-  | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typ t1 t2 && equal_typ t1' t2'
-  | TArray t1, TArray t2 -> equal_typ t1 t2
-  | TAny, TAny -> true
-  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TAny ),
-      _ ) ->
-    false
-
-and equal_typ_list tys1 tys2 =
-  try List.for_all2 equal_typ tys1 tys2 with Invalid_argument _ -> false
-
-(* Similar to [equal_typ], but allows TAny holes *)
-let rec unifiable ty1 ty2 =
-  match Marked.unmark ty1, Marked.unmark ty2 with
-  | TAny, _ | _, TAny -> true
-  | TLit l1, TLit l2 -> equal_tlit l1 l2
-  | TTuple tys1, TTuple tys2 -> unifiable_list tys1 tys2
-  | TStruct n1, TStruct n2 -> StructName.equal n1 n2
-  | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
-  | TOption t1, TOption t2 -> unifiable t1 t2
-  | TArrow (t1, t1'), TArrow (t2, t2') -> unifiable t1 t2 && unifiable t1' t2'
-  | TArray t1, TArray t2 -> unifiable t1 t2
-  | ( (TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _ | TArray _),
-      _ ) ->
-    false
-
-and unifiable_list tys1 tys2 =
-  try List.for_all2 unifiable tys1 tys2 with Invalid_argument _ -> false
-
-let rec compare_typ ty1 ty2 =
-  match Marked.unmark ty1, Marked.unmark ty2 with
-  | TLit l1, TLit l2 -> compare_tlit l1 l2
-  | TTuple tys1, TTuple tys2 -> List.compare compare_typ tys1 tys2
-  | TStruct n1, TStruct n2 -> StructName.compare n1 n2
-  | TEnum en1, TEnum en2 -> EnumName.compare en1 en2
-  | TOption t1, TOption t2 -> compare_typ t1 t2
-  | TArrow (a1, b1), TArrow (a2, b2) -> (
-    match compare_typ a1 a2 with 0 -> compare_typ b1 b2 | n -> n)
-  | TArray t1, TArray t2 -> compare_typ t1 t2
-  | TAny, TAny -> 0
-  | TLit _, _ -> -1
-  | _, TLit _ -> 1
-  | TTuple _, _ -> -1
-  | _, TTuple _ -> 1
-  | TStruct _, _ -> -1
-  | _, TStruct _ -> 1
-  | TEnum _, _ -> -1
-  | _, TEnum _ -> 1
-  | TOption _, _ -> -1
-  | _, TOption _ -> 1
-  | TArrow _, _ -> -1
-  | _, TArrow _ -> 1
-  | TArray _, _ -> -1
-  | _, TArray _ -> 1
-
 let equal_lit (type a) (l1 : a glit) (l2 : a glit) =
+  let open Runtime.Oper in
   match l1, l2 with
-  | LBool b1, LBool b2 -> Bool.equal b1 b2
+  | LBool b1, LBool b2 -> not (o_xor b1 b2)
   | LEmptyError, LEmptyError -> true
-  | LInt n1, LInt n2 -> Runtime.( =! ) n1 n2
-  | LRat r1, LRat r2 -> Runtime.( =& ) r1 r2
-  | LMoney m1, LMoney m2 -> Runtime.( =$ ) m1 m2
+  | LInt n1, LInt n2 -> o_eq_int_int n1 n2
+  | LRat r1, LRat r2 -> o_eq_rat_rat r1 r2
+  | LMoney m1, LMoney m2 -> o_eq_mon_mon m1 m2
   | LUnit, LUnit -> true
-  | LDate d1, LDate d2 -> Runtime.( =@ ) d1 d2
-  | LDuration d1, LDuration d2 -> Runtime.( =^ ) d1 d2
+  | LDate d1, LDate d2 -> o_eq_dat_dat d1 d2
+  | LDuration d1, LDuration d2 -> o_eq_dur_dur d1 d2
   | ( ( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
       | LDuration _ ),
       _ ) ->
     false
 
 let compare_lit (type a) (l1 : a glit) (l2 : a glit) =
+  let open Runtime.Oper in
   match l1, l2 with
   | LBool b1, LBool b2 -> Bool.compare b1 b2
   | LEmptyError, LEmptyError -> 0
   | LInt n1, LInt n2 ->
-    if Runtime.( <! ) n1 n2 then -1 else if Runtime.( =! ) n1 n2 then 0 else 1
+    if o_lt_int_int n1 n2 then -1 else if o_eq_int_int n1 n2 then 0 else 1
   | LRat r1, LRat r2 ->
-    if Runtime.( <& ) r1 r2 then -1 else if Runtime.( =& ) r1 r2 then 0 else 1
+    if o_lt_rat_rat r1 r2 then -1 else if o_eq_rat_rat r1 r2 then 0 else 1
   | LMoney m1, LMoney m2 ->
-    if Runtime.( <$ ) m1 m2 then -1 else if Runtime.( =$ ) m1 m2 then 0 else 1
+    if o_lt_mon_mon m1 m2 then -1 else if o_eq_mon_mon m1 m2 then 0 else 1
   | LUnit, LUnit -> 0
   | LDate d1, LDate d2 ->
-    if Runtime.( <@ ) d1 d2 then -1 else if Runtime.( =@ ) d1 d2 then 0 else 1
+    if o_lt_dat_dat d1 d2 then -1 else if o_eq_dat_dat d1 d2 then 0 else 1
   | LDuration d1, LDuration d2 -> (
     (* Duration comparison in the runtime may fail, so rely on a basic
        lexicographic comparison instead *)
@@ -540,119 +477,6 @@ let compare_location
   | _, SubScopeVar _ -> .
 
 let equal_location a b = compare_location a b = 0
-
-let equal_log_entries l1 l2 =
-  match l1, l2 with
-  | VarDef t1, VarDef t2 -> equal_typ (t1, Pos.no_pos) (t2, Pos.no_pos)
-  | x, y -> x = y
-
-let compare_log_entries l1 l2 =
-  match l1, l2 with
-  | VarDef t1, VarDef t2 -> compare_typ (t1, Pos.no_pos) (t2, Pos.no_pos)
-  | BeginCall, BeginCall
-  | EndCall, EndCall
-  | PosRecordIfTrueBool, PosRecordIfTrueBool ->
-    0
-  | VarDef _, _ -> -1
-  | _, VarDef _ -> 1
-  | BeginCall, _ -> -1
-  | _, BeginCall -> 1
-  | EndCall, _ -> -1
-  | _, EndCall -> 1
-  | PosRecordIfTrueBool, _ -> .
-  | _, PosRecordIfTrueBool -> .
-
-(* let equal_op_kind = Stdlib.(=) *)
-
-let compare_op_kind = Stdlib.compare
-
-let equal_unops op1 op2 =
-  match op1, op2 with
-  (* Log entries contain a typ which contain position information, we thus need
-     to descend into them *)
-  | Log (l1, info1), Log (l2, info2) ->
-    equal_log_entries l1 l2 && List.equal Uid.MarkedString.equal info1 info2
-  | Log _, _ | _, Log _ -> false
-  (* All the other cases can be discharged through equality *)
-  | ( ( Not | Minus _ | Length | IntToRat | MoneyToRat | RatToMoney | GetDay
-      | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | RoundMoney
-      | RoundDecimal ),
-      _ ) ->
-    op1 = op2
-
-let compare_unops op1 op2 =
-  match op1, op2 with
-  | Not, Not -> 0
-  | Minus k1, Minus k2 -> compare_op_kind k1 k2
-  | Log (l1, info1), Log (l2, info2) -> (
-    match compare_log_entries l1 l2 with
-    | 0 -> List.compare Uid.MarkedString.compare info1 info2
-    | n -> n)
-  | Length, Length
-  | IntToRat, IntToRat
-  | MoneyToRat, MoneyToRat
-  | RatToMoney, RatToMoney
-  | GetDay, GetDay
-  | GetMonth, GetMonth
-  | GetYear, GetYear
-  | FirstDayOfMonth, FirstDayOfMonth
-  | LastDayOfMonth, LastDayOfMonth
-  | RoundMoney, RoundMoney
-  | RoundDecimal, RoundDecimal ->
-    0
-  | Not, _ -> -1
-  | _, Not -> 1
-  | Minus _, _ -> -1
-  | _, Minus _ -> 1
-  | Log _, _ -> -1
-  | _, Log _ -> 1
-  | Length, _ -> -1
-  | _, Length -> 1
-  | IntToRat, _ -> -1
-  | _, IntToRat -> 1
-  | MoneyToRat, _ -> -1
-  | _, MoneyToRat -> 1
-  | RatToMoney, _ -> -1
-  | _, RatToMoney -> 1
-  | GetDay, _ -> -1
-  | _, GetDay -> 1
-  | GetMonth, _ -> -1
-  | _, GetMonth -> 1
-  | GetYear, _ -> -1
-  | _, GetYear -> 1
-  | FirstDayOfMonth, _ -> -1
-  | _, FirstDayOfMonth -> 1
-  | LastDayOfMonth, _ -> -1
-  | _, LastDayOfMonth -> 1
-  | RoundMoney, _ -> -1
-  | _, RoundMoney -> 1
-  | RoundDecimal, _ -> .
-  | _, RoundDecimal -> .
-
-let equal_binop = Stdlib.( = )
-let compare_binop = Stdlib.compare
-let equal_ternop = Stdlib.( = )
-let compare_ternop = Stdlib.compare
-
-let equal_ops op1 op2 =
-  match op1, op2 with
-  | Ternop op1, Ternop op2 -> equal_ternop op1 op2
-  | Binop op1, Binop op2 -> equal_binop op1 op2
-  | Unop op1, Unop op2 -> equal_unops op1 op2
-  | _, _ -> false
-
-let compare_op op1 op2 =
-  match op1, op2 with
-  | Ternop op1, Ternop op2 -> compare_ternop op1 op2
-  | Binop op1, Binop op2 -> compare_binop op1 op2
-  | Unop op1, Unop op2 -> compare_unops op1 op2
-  | Ternop _, _ -> -1
-  | _, Ternop _ -> 1
-  | Binop _, _ -> -1
-  | _, Binop _ -> 1
-  | Unop _, _ -> .
-  | _, Unop _ -> .
-
 let equal_except ex1 ex2 = ex1 = ex2
 let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
 
@@ -673,7 +497,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | EArray es1, EArray es2 -> equal_list es1 es2
   | ELit l1, ELit l2 -> l1 = l2
   | EAbs { binder = b1; tys = tys1 }, EAbs { binder = b2; tys = tys2 } ->
-    equal_typ_list tys1 tys2
+    Type.equal_list tys1 tys2
     &&
     let vars1, body1 = Bindlib.unmbind b1 in
     let body2 = Bindlib.msubst b2 (Array.map (fun x -> EVar x) vars1) in
@@ -681,7 +505,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | EApp { f = e1; args = args1 }, EApp { f = e2; args = args2 } ->
     equal e1 e2 && equal_list args1 args2
   | EAssert e1, EAssert e2 -> equal e1 e2
-  | EOp op1, EOp op2 -> equal_ops op1 op2
+  | EOp { op = op1; tys = tys1 }, EOp { op = op2; tys = tys2 } ->
+    Operator.equal op1 op2 && Type.equal_list tys1 tys2
   | ( EDefault { excepts = exc1; just = def1; cons = cons1 },
       EDefault { excepts = exc2; just = def2; cons = cons2 } ) ->
     equal def1 def2 && equal cons1 cons2 && equal_list exc1 exc2
@@ -734,15 +559,16 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EApp {f=f1; args=args1}, EApp {f=f2; args=args2} ->
     compare f1 f2 @@< fun () ->
     List.compare compare args1 args2
-  | EOp op1, EOp op2 ->
-    compare_op op1 op2
+  | EOp {op=op1; tys=tys1}, EOp {op=op2; tys=tys2} ->
+    Operator.compare op1 op2 @@< fun () ->
+    List.compare Type.compare tys1 tys2
   | EArray a1, EArray a2 ->
     List.compare compare a1 a2
   | EVar v1, EVar v2 ->
     Bindlib.compare_vars v1 v2
   | EAbs {binder=binder1; tys=typs1},
     EAbs {binder=binder2; tys=typs2} ->
-    List.compare compare_typ typs1 typs2 @@< fun () ->
+    List.compare Type.compare typs1 typs2 @@< fun () ->
     let _, e1, e2 = Bindlib.unmbind2 binder1 binder2 in
     compare e1 e2
   | EIfThenElse {cond=i1; etrue=t1; efalse=e1},
@@ -835,7 +661,7 @@ let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t = function
 let remove_logging_calls e =
   let rec f e =
     match Marked.unmark e with
-    | EApp { f = EOp (Unop (Log _)), _; args = [arg] } -> map ~f arg
+    | EApp { f = EOp { op = Log _; _ }, _; args = [arg] } -> map ~f arg
     | _ -> map ~f e
   in
   f e
@@ -903,7 +729,7 @@ let make_app e u pos =
             (fun tf tx ->
               match Marked.unmark tf with
               | TArrow (tx', tr) ->
-                assert (unifiable tx.ty tx');
+                assert (Type.unifiable tx.ty tx');
                 (* wrong arg type *)
                 tr
               | TAny -> tf
@@ -930,7 +756,7 @@ let make_multiple_let_in xs taus e1s e2 mpos =
 let make_default_unboxed excepts just cons =
   let rec bool_value = function
     | ELit (LBool b), _ -> Some b
-    | EApp { f = EOp (Unop (Log (l, _))), _; args = [e]; _ }, _
+    | EApp { f = EOp { op = Log (l, _); _ }, _; args = [e]; _ }, _
       when l <> PosRecordIfTrueBool
            (* we don't remove the log calls corresponding to source code
               definitions !*) ->
@@ -959,33 +785,3 @@ let make_tuple el m0 =
         (List.map (fun e -> Marked.get_mark e) el)
     in
     etuple el m
-
-let translate_op_kind : type a. a op_kind -> 'b op_kind = function
-  | KInt -> KInt
-  | KRat -> KRat
-  | KMoney -> KMoney
-  | KDate -> KDate
-  | KDuration -> KDuration
-
-let translate_op : type a. a operator -> 'b operator = function
-  | Ternop o -> Ternop o
-  | Binop o ->
-    Binop
-      (match o with
-      | Add k -> Add (translate_op_kind k)
-      | Sub k -> Sub (translate_op_kind k)
-      | Mult k -> Mult (translate_op_kind k)
-      | Div k -> Div (translate_op_kind k)
-      | Lt k -> Lt (translate_op_kind k)
-      | Lte k -> Lte (translate_op_kind k)
-      | Gt k -> Gt (translate_op_kind k)
-      | Gte k -> Gte (translate_op_kind k)
-      | (And | Or | Xor | Eq | Neq | Map | Concat | Filter) as o -> o)
-  | Unop o ->
-    Unop
-      (match o with
-      | Minus k -> Minus (translate_op_kind k)
-      | ( Not | Log _ | Length | IntToRat | MoneyToRat | RatToMoney | GetDay
-        | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | RoundMoney
-        | RoundDecimal ) as o ->
-        o)

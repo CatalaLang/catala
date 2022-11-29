@@ -125,7 +125,7 @@ module Rule = struct
         Expr.compare c1 c2
       | n -> n)
     | Some (v1, t1), Some (v2, t2) -> (
-      match Shared_ast.Expr.compare_typ t1 t2 with
+      match Type.compare t1 t2 with
       | 0 -> (
         let open Bindlib in
         let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in

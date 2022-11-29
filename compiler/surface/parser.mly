@@ -149,41 +149,25 @@ literal:
 | FALSE { (LBool false, Pos.from_lpos $sloc) }
 
 compare_op:
-| LESSER { (Lt KInt, Pos.from_lpos $sloc) }
-| LESSER_EQUAL { (Lte KInt, Pos.from_lpos $sloc) }
-| GREATER { (Gt KInt, Pos.from_lpos $sloc) }
-| GREATER_EQUAL { (Gte KInt, Pos.from_lpos $sloc) }
-| LESSER_DEC { (Lt KDec, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_DEC { (Lte KDec, Pos.from_lpos $sloc) }
-| GREATER_DEC { (Gt KDec, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_DEC { (Gte KDec, Pos.from_lpos $sloc) }
-| LESSER_MONEY { (Lt KMoney, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_MONEY { (Lte KMoney, Pos.from_lpos $sloc) }
-| GREATER_MONEY { (Gt KMoney, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_MONEY { (Gte KMoney, Pos.from_lpos $sloc) }
-| LESSER_DATE { (Lt KDate, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_DATE { (Lte KDate, Pos.from_lpos $sloc) }
-| GREATER_DATE { (Gt KDate, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_DATE { (Gte KDate, Pos.from_lpos $sloc) }
-| LESSER_DURATION { (Lt KDuration, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_DURATION { (Lte KDuration, Pos.from_lpos $sloc) }
-| GREATER_DURATION { (Gt KDuration, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_DURATION { (Gte KDuration, Pos.from_lpos $sloc) }
+| LESSER { (Lt KPoly, Pos.from_lpos $sloc) }
+| LESSER_EQUAL { (Lte KPoly, Pos.from_lpos $sloc) }
+| GREATER { (Gt KPoly, Pos.from_lpos $sloc) }
+| GREATER_EQUAL { (Gte KPoly, Pos.from_lpos $sloc) }
 | EQUAL { (Eq, Pos.from_lpos $sloc) }
 | NOT_EQUAL { (Neq, Pos.from_lpos $sloc) }
 
 aggregate_func:
-| CONTENT MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
+| CONTENT MAXIMUM t = option(typ_base) INIT init = primitive_expression {
+  (Aggregate (AggregateArgExtremum (true, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
-| CONTENT MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
+| CONTENT MINIMUM t = option(typ_base) INIT init = primitive_expression {
+  (Aggregate (AggregateArgExtremum (false, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
-| MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
+| MAXIMUM t = option(typ_base) INIT init = primitive_expression {
+  (Aggregate (AggregateExtremum (true, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
-| MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
+| MINIMUM t = option(typ_base) INIT init = primitive_expression {
+  (Aggregate (AggregateExtremum (false, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
 }
 | SUM t = typ_base { (Aggregate (AggregateSum (Marked.unmark t)), Pos.from_lpos $sloc) }
 | CARDINAL { (Aggregate AggregateCount, Pos.from_lpos $sloc) }
@@ -216,23 +200,15 @@ base_expression:
 
 unop:
 | NOT { (Not, Pos.from_lpos $sloc) }
-| MINUS { (Minus KInt, Pos.from_lpos $sloc) }
-| MINUSDEC { (Minus KDec, Pos.from_lpos $sloc) }
-| MINUSMONEY { (Minus KMoney, Pos.from_lpos $sloc) }
-| MINUSDURATION { (Minus KDuration, Pos.from_lpos $sloc) }
+| k = MINUS { (Minus k, Pos.from_lpos $sloc) }
 
 unop_expression:
 | e = base_expression { e }
 | op = unop e = unop_expression { (Unop (op, e), Pos.from_lpos $sloc) }
 
 mult_op:
-| MULT { (Mult KInt, Pos.from_lpos $sloc) }
-| DIV { (Div KInt, Pos.from_lpos $sloc) }
-| MULTDEC { (Mult KDec, Pos.from_lpos $sloc) }
-| DIVDEC { (Div KDec, Pos.from_lpos $sloc) }
-| MULTMONEY { (Mult KMoney, Pos.from_lpos $sloc) }
-| DIVMONEY { (Div KMoney, Pos.from_lpos $sloc) }
-| MULDURATION { (Mult KDuration, Pos.from_lpos $sloc) }
+| k = MULT { (Mult k, Pos.from_lpos $sloc) }
+| k = DIV { (Div k, Pos.from_lpos $sloc) }
 
 mult_expression:
 | e =  unop_expression { e }
@@ -241,16 +217,8 @@ mult_expression:
 }
 
 sum_op:
-| PLUSDURATION { (Add KDuration, Pos.from_lpos $sloc) }
-| MINUSDURATION { (Sub KDuration, Pos.from_lpos $sloc) }
-| PLUSDATE { (Add KDate, Pos.from_lpos $sloc) }
-| MINUSDATE { (Sub KDate, Pos.from_lpos $sloc) }
-| PLUSMONEY { (Add KMoney, Pos.from_lpos $sloc) }
-| MINUSMONEY { (Sub KMoney, Pos.from_lpos $sloc) }
-| PLUSDEC { (Add KDec, Pos.from_lpos $sloc) }
-| MINUSDEC { (Sub KDec, Pos.from_lpos $sloc) }
-| PLUS { (Add KInt, Pos.from_lpos $sloc) }
-| MINUS { (Sub KInt, Pos.from_lpos $sloc) }
+| k = PLUS { (Add k, Pos.from_lpos $sloc) }
+| k = MINUS { (Sub k, Pos.from_lpos $sloc) }
 | PLUSPLUS { (Concat, Pos.from_lpos $sloc) }
 
 sum_expression:

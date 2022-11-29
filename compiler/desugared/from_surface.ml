@@ -16,6 +16,7 @@
    the License. *)
 
 open Catala_utils
+module S = Surface.Ast
 module SurfacePrint = Surface.Print
 open Shared_ast
 module Runtime = Runtime_ocaml.Runtime
@@ -27,33 +28,87 @@ module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Translating expressions} *)
 
-let translate_op_kind (k : Surface.Ast.op_kind) : desugared op_kind =
-  match k with
-  | Surface.Ast.KInt -> KInt
-  | Surface.Ast.KDec -> KRat
-  | Surface.Ast.KMoney -> KMoney
-  | Surface.Ast.KDate -> KDate
-  | Surface.Ast.KDuration -> KDuration
+(* Resolves the operator kinds into the expected operator operand types *)
 
-let translate_binop (op : Surface.Ast.binop) : desugared binop =
+let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
+ fun op pos ->
+  let e op tys =
+    Expr.eop op (List.map (Marked.mark pos) tys) (Untyped { pos })
+  in
   match op with
-  | And -> And
-  | Or -> Or
-  | Xor -> Xor
-  | Add l -> Add (translate_op_kind l)
-  | Sub l -> Sub (translate_op_kind l)
-  | Mult l -> Mult (translate_op_kind l)
-  | Div l -> Div (translate_op_kind l)
-  | Lt l -> Lt (translate_op_kind l)
-  | Lte l -> Lte (translate_op_kind l)
-  | Gt l -> Gt (translate_op_kind l)
-  | Gte l -> Gte (translate_op_kind l)
-  | Eq -> Eq
-  | Neq -> Neq
-  | Concat -> Concat
+  | S.And -> e And [TLit TBool; TLit TBool]
+  | S.Or -> e Or [TLit TBool; TLit TBool]
+  | S.Xor -> e Xor [TLit TBool; TLit TBool]
+  | S.Add k ->
+    e Add
+      (match k with
+      | S.KPoly -> [TAny; TAny]
+      | S.KInt -> [TLit TInt; TLit TInt]
+      | S.KDec -> [TLit TRat; TLit TRat]
+      | S.KMoney -> [TLit TMoney; TLit TMoney]
+      | S.KDate -> [TLit TDate; TLit TDuration]
+      | S.KDuration -> [TLit TDuration; TLit TDuration])
+  | S.Sub k ->
+    e Sub
+      (match k with
+      | S.KPoly -> [TAny; TAny]
+      | S.KInt -> [TLit TInt; TLit TInt]
+      | S.KDec -> [TLit TRat; TLit TRat]
+      | S.KMoney -> [TLit TMoney; TLit TMoney]
+      | S.KDate -> [TLit TDate; TLit TDate]
+      | S.KDuration -> [TLit TDuration; TLit TDuration])
+  | S.Mult k ->
+    e Mult
+      (match k with
+      | S.KPoly -> [TAny; TAny]
+      | S.KInt -> [TLit TInt; TLit TInt]
+      | S.KDec -> [TLit TRat; TLit TRat]
+      | S.KMoney -> [TLit TMoney; TLit TRat]
+      | S.KDate -> Errors.raise_spanned_error pos "Invalid operator"
+      | S.KDuration -> [TLit TDuration; TLit TInt])
+  | S.Div k ->
+    e Div
+      (match k with
+      | S.KPoly -> [TAny; TAny]
+      | S.KInt -> [TLit TInt; TLit TInt]
+      | S.KDec -> [TLit TRat; TLit TRat]
+      | S.KMoney -> [TLit TMoney; TLit TMoney]
+      | S.KDate -> Errors.raise_spanned_error pos "Invalid operator"
+      | S.KDuration -> [TLit TDuration; TLit TDuration])
+  | S.Lt k | S.Lte k | S.Gt k | S.Gte k ->
+    e
+      (match op with
+      | S.Lt _ -> Lt
+      | S.Lte _ -> Lte
+      | S.Gt _ -> Gt
+      | S.Gte _ -> Gte
+      | _ -> assert false)
+      (match k with
+      | S.KPoly -> [TAny; TAny]
+      | S.KInt -> [TLit TInt; TLit TInt]
+      | S.KDec -> [TLit TRat; TLit TRat]
+      | S.KMoney -> [TLit TMoney; TLit TMoney]
+      | S.KDate -> [TLit TDate; TLit TDate]
+      | S.KDuration -> [TLit TDuration; TLit TDuration])
+  | S.Eq ->
+    e Eq [TAny; TAny]
+    (* This is a truly polymorphic operator, not an overload *)
+  | S.Neq -> assert false (* desugared already *)
+  | S.Concat -> e Concat [TArray (TAny, pos); TArray (TAny, pos)]
 
-let translate_unop (op : Surface.Ast.unop) : desugared unop =
-  match op with Not -> Not | Minus l -> Minus (translate_op_kind l)
+let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
+  let e op ty = Expr.eop op [Marked.mark pos ty] (Untyped { pos }) in
+  match op with
+  | S.Not -> e Not (TLit TBool)
+  | S.Minus k ->
+    e Minus
+      (match k with
+      | S.KPoly -> TAny
+      | S.KInt -> TLit TInt
+      | S.KDec -> TLit TRat
+      | S.KMoney -> TLit TMoney
+      | S.KDate -> Errors.raise_spanned_error pos "Invalid operator"
+      | S.KDuration -> TLit TDuration)
 
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
@@ -102,6 +157,21 @@ let disambiguate_constructor
       Errors.raise_spanned_error (Marked.get_mark enum)
         "Enum %s has not been defined before" (Marked.unmark enum))
 
+let int100 = Runtime.integer_of_int 100
+let rat100 = Runtime.decimal_of_integer int100
+
+let aggregate_typ pos = function
+  | None -> TAny
+  | Some S.Integer -> TLit TInt
+  | Some S.Decimal -> TLit TRat
+  | Some S.Money -> TLit TMoney
+  | Some S.Duration -> TLit TDuration
+  | Some S.Date -> TLit TDate
+  | Some pred_typ ->
+    Errors.raise_spanned_error pos
+      "It is impossible to compute this aggregation of two values of type %a"
+      SurfacePrint.format_primitive_typ pred_typ
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -148,30 +218,36 @@ let rec translate_expr
   | IfThenElse (e_if, e_then, e_else) ->
     Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
       emark
+  | Binop ((S.Neq, posn), e1, e2) ->
+    (* Neq is just sugar *)
+    rec_helper (Unop ((S.Not, posn), (Binop ((S.Eq, posn), e1, e2), posn)), pos)
   | Binop ((op, pos), e1, e2) ->
-    let op_term = Expr.eop (Binop (translate_binop op)) (Untyped { pos }) in
+    let op_term = translate_binop op pos in
     Expr.eapp op_term [rec_helper e1; rec_helper e2] emark
   | Unop ((op, pos), e) ->
-    let op_term = Expr.eop (Unop (translate_unop op)) (Untyped { pos }) in
+    let op_term = translate_unop op pos in
     Expr.eapp op_term [rec_helper e] emark
   | Literal l ->
     let lit =
       match l with
       | LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
       | LNumber ((Int i, _), Some (Percent, _)) ->
-        LRat Runtime.(decimal_of_string i /& decimal_of_string "100")
+        LRat Runtime.(Oper.o_div_rat_rat (decimal_of_string i) rat100)
       | LNumber ((Dec (i, f), _), None) ->
         LRat Runtime.(decimal_of_string (i ^ "." ^ f))
       | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
         LRat
-          Runtime.(decimal_of_string (i ^ "." ^ f) /& decimal_of_string "100")
+          Runtime.(Oper.o_div_rat_rat (decimal_of_string (i ^ "." ^ f)) rat100)
       | LBool b -> LBool b
       | LMoneyAmount i ->
         LMoney
           Runtime.(
             money_of_cents_integer
-              ((integer_of_string i.money_amount_units *! integer_of_int 100)
-              +! integer_of_string i.money_amount_cents))
+              (Oper.o_add_int_int
+                 (Oper.o_mult_int_int
+                    (integer_of_string i.money_amount_units)
+                    int100)
+                 (integer_of_string i.money_amount_cents)))
       | LNumber ((Int i, _), Some (Year, _)) ->
         LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
       | LNumber ((Int i, _), Some (Month, _)) ->
@@ -468,9 +544,10 @@ let rec translate_expr
     Expr.eapp
       (Expr.eop
          (match op' with
-         | Surface.Ast.Map -> Binop Map
-         | Surface.Ast.Filter -> Binop Filter
+         | Surface.Ast.Map -> Map
+         | Surface.Ast.Filter -> Filter
          | _ -> assert false (* should not happen *))
+         [TAny, pos; TAny, pos]
          emark)
       [f_pred; collection] emark
   | CollectionOp
@@ -485,20 +562,8 @@ let rec translate_expr
     let ctxt, param =
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
     in
-    let op_kind =
-      match pred_typ with
-      | Surface.Ast.Integer -> KInt
-      | Surface.Ast.Decimal -> KRat
-      | Surface.Ast.Money -> KMoney
-      | Surface.Ast.Duration -> KDuration
-      | Surface.Ast.Date -> KDate
-      | _ ->
-        Errors.raise_spanned_error pos
-          "It is impossible to compute the arg-%s of two values of type %a"
-          (if max_or_min then "max" else "min")
-          SurfacePrint.format_primitive_typ pred_typ
-    in
-    let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
+    let op_ty = aggregate_typ pos pred_typ in
+    let cmp_op = if max_or_min then Op.Gt else Op.Lt in
     let f_pred =
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
@@ -512,7 +577,9 @@ let rec translate_expr
     let fold_body =
       Expr.eifthenelse
         (Expr.eapp
-           (Expr.eop (Binop cmp_op) (Untyped { pos = pos_op' }))
+           (Expr.eop cmp_op
+              [op_ty, pos_op'; op_ty, pos_op']
+              (Untyped { pos = pos_op' }))
            [
              Expr.eapp f_pred [acc_var_e] emark;
              Expr.eapp f_pred [item_var_e] emark;
@@ -523,7 +590,9 @@ let rec translate_expr
     let fold_f =
       Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
     in
-    Expr.eapp (Expr.eop (Ternop Fold) emark) [fold_f; init; collection] emark
+    Expr.eapp
+      (Expr.eop Fold [TAny, pos_op'; TAny, pos_op'; TAny, pos_op'] emark)
+      [fold_f; init; collection] emark
   | CollectionOp (op', param', collection, predicate) ->
     let ctxt, param =
       Name_resolution.add_def_local_var ctxt (Marked.unmark param')
@@ -561,20 +630,22 @@ let rec translate_expr
       Expr.make_var acc_var (Untyped { pos = Marked.get_mark param' })
     in
     let f_body =
-      let make_body (op : desugared binop) =
-        Expr.eapp (Expr.eop (Binop op) mark)
+      let make_body op =
+        Expr.eapp (translate_binop op pos)
           [acc; translate_expr scope inside_definition_of ctxt predicate]
           emark
       in
-      let make_extr_body (cmp_op : desugared binop) (t : typ) =
+      let make_extr_body cmp_op typ =
         let tmp_var = Var.make "tmp" in
         let tmp =
           Expr.make_var tmp_var (Untyped { pos = Marked.get_mark param' })
         in
-        Expr.make_let_in tmp_var t
+        Expr.make_let_in tmp_var (TAny, pos)
           (translate_expr scope inside_definition_of ctxt predicate)
           (Expr.eifthenelse
-             (Expr.eapp (Expr.eop (Binop cmp_op) mark) [acc; tmp] emark)
+             (Expr.eapp
+                (Expr.eop cmp_op [typ, pos; typ, pos] mark)
+                [acc; tmp] emark)
              acc tmp emark)
           pos
       in
@@ -587,7 +658,7 @@ let rec translate_expr
       | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
         make_body (Add KInt)
       | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
-        make_body (Add KRat)
+        make_body (Add KDec)
       | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
         make_body (Add KMoney)
       | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
@@ -596,20 +667,8 @@ let rec translate_expr
         assert false (* should not happen *)
       | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (max_or_min, t, _))
         ->
-        let op_kind, typ =
-          match t with
-          | Surface.Ast.Integer -> KInt, (TLit TInt, pos)
-          | Surface.Ast.Decimal -> KRat, (TLit TRat, pos)
-          | Surface.Ast.Money -> KMoney, (TLit TMoney, pos)
-          | Surface.Ast.Duration -> KDuration, (TLit TDuration, pos)
-          | Surface.Ast.Date -> KDate, (TLit TDate, pos)
-          | _ ->
-            Errors.raise_spanned_error pos
-              "It is impossible to compute the %s of two values of type %a"
-              (if max_or_min then "max" else "min")
-              SurfacePrint.format_primitive_typ t
-        in
-        let cmp_op = if max_or_min then Gt op_kind else Lt op_kind in
+        let typ = aggregate_typ pos t in
+        let cmp_op = if max_or_min then Op.Gt else Op.Lt in
         make_extr_body cmp_op typ
       | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
         let predicate =
@@ -617,7 +676,7 @@ let rec translate_expr
         in
         Expr.eifthenelse predicate
           (Expr.eapp
-             (Expr.eop (Binop (Add KInt)) mark)
+             (Expr.eop Add [TLit TInt, pos; TLit TInt, pos] mark)
              [
                acc;
                Expr.elit
@@ -628,11 +687,11 @@ let rec translate_expr
           acc emark
     in
     let f =
-      let make_f (t : typ_lit) =
+      let make_f t =
         Expr.eabs
           (Expr.bind [| acc_var; param |] f_body)
           [
-            TLit t, Marked.get_mark op';
+            t, Marked.get_mark op';
             TAny, pos
             (* we put any here because the type of the elements of the arrays is
                not always the type of the accumulator; for instance in
@@ -644,30 +703,17 @@ let rec translate_expr
       | Surface.Ast.Map | Surface.Ast.Filter
       | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
         assert false (* should not happen *)
-      | Surface.Ast.Exists -> make_f TBool
-      | Surface.Ast.Forall -> make_f TBool
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer)
-      | Surface.Ast.Aggregate
-          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Integer, _)) ->
-        make_f TInt
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal)
-      | Surface.Ast.Aggregate
-          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Decimal, _)) ->
-        make_f TRat
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money)
-      | Surface.Ast.Aggregate
-          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Money, _)) ->
-        make_f TMoney
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration)
-      | Surface.Ast.Aggregate
-          (Surface.Ast.AggregateExtremum (_, Surface.Ast.Duration, _)) ->
-        make_f TDuration
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum _)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount -> make_f TInt
+      | Surface.Ast.Exists -> make_f (TLit TBool)
+      | Surface.Ast.Forall -> make_f (TLit TBool)
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum k) ->
+        make_f (aggregate_typ pos (Some k))
+      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (_, k, _)) ->
+        make_f (aggregate_typ pos k)
+      | Surface.Ast.Aggregate Surface.Ast.AggregateCount -> make_f (TLit TInt)
     in
-    Expr.eapp (Expr.eop (Ternop Fold) emark) [f; init; collection] emark
+    Expr.eapp
+      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] mark)
+      [f; init; collection] emark
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
     let param = Expr.make_var param_var emark in
@@ -678,8 +724,13 @@ let rec translate_expr
     let f_body =
       let member = translate_expr scope inside_definition_of ctxt member in
       Expr.eapp
-        (Expr.eop (Binop Or) emark)
-        [Expr.eapp (Expr.eop (Binop Eq) emark) [member; param] emark; acc]
+        (Expr.eop Or [TLit TBool, pos; TLit TBool, pos] emark)
+        [
+          Expr.eapp
+            (Expr.eop Eq [TAny, pos; TAny, pos] emark)
+            [member; param] emark;
+          acc;
+        ]
         emark
     in
     let f =
@@ -688,18 +739,20 @@ let rec translate_expr
         [TLit TBool, pos; TAny, pos]
         emark
     in
-    Expr.eapp (Expr.eop (Ternop Fold) emark) [f; init; collection] emark
-  | Builtin IntToDec -> Expr.eop (Unop IntToRat) emark
-  | Builtin MoneyToDec -> Expr.eop (Unop MoneyToRat) emark
-  | Builtin DecToMoney -> Expr.eop (Unop RatToMoney) emark
-  | Builtin Cardinal -> Expr.eop (Unop Length) emark
-  | Builtin GetDay -> Expr.eop (Unop GetDay) emark
-  | Builtin GetMonth -> Expr.eop (Unop GetMonth) emark
-  | Builtin GetYear -> Expr.eop (Unop GetYear) emark
-  | Builtin FirstDayOfMonth -> Expr.eop (Unop FirstDayOfMonth) emark
-  | Builtin LastDayOfMonth -> Expr.eop (Unop LastDayOfMonth) emark
-  | Builtin RoundMoney -> Expr.eop (Unop RoundMoney) emark
-  | Builtin RoundDecimal -> Expr.eop (Unop RoundDecimal) emark
+    Expr.eapp
+      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
+      [f; init; collection] emark
+  | Builtin IntToDec -> Expr.eop IntToRat [TLit TInt, pos] emark
+  | Builtin MoneyToDec -> Expr.eop MoneyToRat [TLit TMoney, pos] emark
+  | Builtin DecToMoney -> Expr.eop RatToMoney [TLit TRat, pos] emark
+  | Builtin Cardinal -> Expr.eop Length [TArray (TAny, pos), pos] emark
+  | Builtin GetDay -> Expr.eop GetDay [TLit TDate, pos] emark
+  | Builtin GetMonth -> Expr.eop GetMonth [TLit TDate, pos] emark
+  | Builtin GetYear -> Expr.eop GetYear [TLit TDate, pos] emark
+  | Builtin FirstDayOfMonth -> Expr.eop FirstDayOfMonth [TLit TDate, pos] emark
+  | Builtin LastDayOfMonth -> Expr.eop LastDayOfMonth [TLit TDate, pos] emark
+  | Builtin RoundMoney -> Expr.eop RoundMoney [TLit TMoney, pos] emark
+  | Builtin RoundDecimal -> Expr.eop RoundDecimal [TLit TRat, pos] emark
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)
@@ -844,7 +897,11 @@ let merge_conditions
     (default_pos : Pos.t) : Ast.expr boxed =
   match precond, cond with
   | Some precond, Some cond ->
-    let op_term = Expr.eop (Binop And) (Marked.get_mark cond) in
+    let op_term =
+      Expr.eop And
+        [TLit TBool, default_pos; TLit TBool, default_pos]
+        (Marked.get_mark cond)
+    in
     Expr.eapp op_term [precond; cond] (Marked.get_mark cond)
   | Some precond, None -> Marked.unmark precond, Untyped { pos = default_pos }
   | None, Some cond -> cond

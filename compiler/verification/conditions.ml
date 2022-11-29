@@ -37,11 +37,28 @@ let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
     match args with hd :: tl -> hd, tl | [] -> (ELit (LBool true), mark), []
   in
   List.fold_left
-    (fun acc arg -> EApp { f = EOp (Binop And), mark; args = [arg; acc] }, mark)
+    (fun acc arg ->
+      ( EApp
+          {
+            f =
+              ( EOp
+                  {
+                    op = And;
+                    tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
+                  },
+                mark );
+            args = [arg; acc];
+          },
+        mark ))
     acc list
 
 let negation (arg : vc_return) (mark : typed mark) : vc_return =
-  EApp { f = EOp (Unop Not), mark; args = [arg] }, mark
+  ( EApp
+      {
+        f = EOp { op = Not; tys = [TLit TBool, Expr.pos arg] }, mark;
+        args = [arg];
+      },
+    mark )
 
 let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
@@ -49,7 +66,18 @@ let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   in
   List.fold_left
     (fun (acc : vc_return) arg ->
-      EApp { f = EOp (Binop Or), mark; args = [arg; acc] }, mark)
+      ( EApp
+          {
+            f =
+              ( EOp
+                  {
+                    op = Or;
+                    tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
+                  },
+                mark );
+            args = [arg; acc];
+          },
+        mark ))
     acc list
 
 (** [half_product \[a1,...,an\] \[b1,...,bm\] returns \[(a1,b1),...(a1,bn),...(an,b1),...(an,bm)\]] *)

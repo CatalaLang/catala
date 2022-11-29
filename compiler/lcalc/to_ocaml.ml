@@ -54,36 +54,6 @@ let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
     let years, months, days = Runtime.duration_to_years_months_days d in
     Format.fprintf fmt "duration_of_numbers (%d) (%d) (%d)" years months days
 
-let format_op_kind (fmt : Format.formatter) (k : 'a op_kind) =
-  Format.fprintf fmt "%s"
-    (match k with
-    | KInt -> "!"
-    | KRat -> "&"
-    | KMoney -> "$"
-    | KDate -> "@"
-    | KDuration -> "^")
-
-let format_binop (fmt : Format.formatter) (op : 'a binop Marked.pos) : unit =
-  match Marked.unmark op with
-  | Add k -> Format.fprintf fmt "+%a" format_op_kind k
-  | Sub k -> Format.fprintf fmt "-%a" format_op_kind k
-  | Mult k -> Format.fprintf fmt "*%a" format_op_kind k
-  | Div k -> Format.fprintf fmt "/%a" format_op_kind k
-  | And -> Format.fprintf fmt "%s" "&&"
-  | Or -> Format.fprintf fmt "%s" "||"
-  | Eq -> Format.fprintf fmt "%s" "="
-  | Neq | Xor -> Format.fprintf fmt "%s" "<>"
-  | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
-  | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
-  | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
-  | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
-  | Concat -> Format.fprintf fmt "@"
-  | Map -> Format.fprintf fmt "Array.map"
-  | Filter -> Format.fprintf fmt "array_filter"
-
-let format_ternop (fmt : Format.formatter) (op : ternop Marked.pos) : unit =
-  match Marked.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
-
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     : unit =
   Format.fprintf fmt "@[<hov 2>[%a]@]"
@@ -103,26 +73,6 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let format_unop (fmt : Format.formatter) (op : lcalc unop Marked.pos) : unit =
-  match Marked.unmark op with
-  | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
-  | Not -> Format.fprintf fmt "%s" "not"
-  | Log (_entry, _infos) ->
-    Errors.raise_spanned_error (Marked.get_mark op)
-      "Internal error: a log operator has not been caught by the expression \
-       match"
-  | Length -> Format.fprintf fmt "%s" "array_length"
-  | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
-  | MoneyToRat -> Format.fprintf fmt "%s" "decimal_of_money"
-  | RatToMoney -> Format.fprintf fmt "%s" "money_of_decimal"
-  | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
-  | GetMonth -> Format.fprintf fmt "%s" "month_number_of_date"
-  | GetYear -> Format.fprintf fmt "%s" "year_of_date"
-  | FirstDayOfMonth -> Format.fprintf fmt "%s" "first_day_of_month"
-  | LastDayOfMonth -> Format.fprintf fmt "%s" "last_day_of_month"
-  | RoundMoney -> Format.fprintf fmt "%s" "money_round"
-  | RoundDecimal -> Format.fprintf fmt "%s" "decimal_round"
-
 let avoid_keywords (s : string) : string =
   match s with
   (* list taken from
@@ -134,7 +84,7 @@ let avoid_keywords (s : string) : string =
   | "match" | "method" | "mod" | "module" | "mutable" | "new" | "nonrec"
   | "object" | "of" | "open" | "or" | "private" | "rec" | "sig" | "struct"
   | "then" | "to" | "true" | "try" | "type" | "val" | "virtual" | "when"
-  | "while" | "with" ->
+  | "while" | "with" | "Stdlib" | "Runtime" | "Oper" ->
     s ^ "_user"
   | _ -> s
 
@@ -235,8 +185,8 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   if
     List.mem lowercase_name ["handle_default"; "handle_default_opt"]
     || String.begins_with_uppercase (Bindlib.name_of v)
-  then Format.fprintf fmt "%s" lowercase_name
-  else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
+  then Format.pp_print_string fmt lowercase_name
+  else if lowercase_name = "_" then Format.pp_print_string fmt lowercase_name
   else (
     Cli.debug_print "lowercase_name: %s " lowercase_name;
     Format.fprintf fmt "%s_" lowercase_name)
@@ -305,7 +255,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "let@ %a@ = %a@ in@ x"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt i -> Format.fprintf fmt "%s" (if i = index then "x" else "_")))
+         (fun fmt i ->
+           Format.pp_print_string fmt (if i = index then "x" else "_")))
       (List.init size Fun.id) format_with_parens e
   | EStructAccess { e; field; name } ->
     Format.fprintf fmt "%a.%a" format_with_parens e format_struct_field_name
@@ -355,25 +306,19 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          (fun fmt (x, tau) ->
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
-  | EApp { f = EOp (Binop ((Map | Filter) as op)), _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos)
-      format_with_parens arg1 format_with_parens arg2
-  | EApp { f = EOp (Binop op), _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      format_binop (op, Pos.no_pos) format_with_parens arg2
   | EApp
       {
-        f = EApp { f = EOp (Unop (Log (BeginCall, info))), _; args = [f] }, _;
+        f = EApp { f = EOp { op = Log (BeginCall, info); _ }, _; args = [f] }, _;
         args = [arg];
       }
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EApp { f = EOp (Unop (Log (VarDef tau, info))), _; args = [arg1] }
+  | EApp { f = EOp { op = Log (VarDef tau, info); _ }, _; args = [arg1] }
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
       info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
-  | EApp { f = EOp (Unop (Log (PosRecordIfTrueBool, _))), m; args = [arg1] }
+  | EApp { f = EOp { op = Log (PosRecordIfTrueBool, _); _ }, m; args = [arg1] }
     when !Cli.trace_flag ->
     let pos = Expr.mark_pos m in
     Format.fprintf fmt
@@ -382,15 +327,12 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EApp { f = EOp (Unop (Log (EndCall, info))), _; args = [arg1] }
+  | EApp { f = EOp { op = Log (EndCall, info); _ }, _; args = [arg1] }
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
-  | EApp { f = EOp (Unop (Log _)), _; args = [arg1] } ->
+  | EApp { f = EOp { op = Log _; _ }, _; args = [arg1] } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp { f = EOp (Unop op), _; args = [arg1] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos)
-      format_with_parens arg1
   | EApp { f = EVar x, pos; args }
     when Var.compare x (Var.translate Ast.handle_default) = 0
          || Var.compare x (Var.translate Ast.handle_default_opt) = 0 ->
@@ -419,9 +361,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt
       "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
       format_with_parens cond format_with_parens etrue format_with_parens efalse
-  | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
-  | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
-  | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
+  | EOp { op; _ } -> Format.pp_print_string fmt (Operator.name op)
   | EAssert e' ->
     Format.fprintf fmt
       "@[<hov 2>if@ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \

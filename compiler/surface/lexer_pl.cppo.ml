@@ -102,7 +102,7 @@
 
 (* Specific delimiters *)
 
-#define MR_MONEY_OP_SUFFIX '$'
+#define MS_MONEY_OP_SUFFIX "$"
 #define MC_DECIMAL_SEPARATOR '.'
 #define MR_MONEY_PREFIX ""
 #define MR_MONEY_DELIM ','

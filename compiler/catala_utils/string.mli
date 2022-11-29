@@ -39,4 +39,10 @@ val to_camel_case : string -> string
 (** Converts snake_case into CamlCase after removing Remove all diacritics on
     Latin letters. *)
 
+val remove_prefix : prefix:string -> string -> string
+(** [remove_prefix ~prefix str] returns
+
+    - if [str] starts with [prefix], a string [s] such that [prefix ^ s = str]
+    - otherwise, [str] unchanged *)
+
 val format_t : Format.formatter -> string -> unit
