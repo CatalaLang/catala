@@ -1,20 +1,26 @@
 # 83. Property transferred in connection with performance of services
 
 ```catala-metadata
-declaration scope Transferred_property_83:
-  input fair_market_value_unrestricted content money
-  input fair_market_value_when_transfered content money
-  input amount_paid content money
-  input elects_to_include_in_year_of_transfer content boolean
+declaration structure PropertyTransfer:
+  data taxpayer_performed_the_service content boolean
+  data elects_to_include_in_year_of_transfer content boolean
     # has to be explicitely selected within 30 days of transfer
-  input substantial_risk_of_forfeiture content boolean
-  input transferable content boolean
-  input section_421_applies content boolean
-  input transfer_401a_or_404a2 content boolean
-  input option_without_ascertainable_fair_market_value content boolean
-  input exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant content boolean
-  input group_term_life_insurance_79 content boolean
 
+  data fair_market_value_unrestricted content money
+  data fair_market_value_when_transfered content money
+  data amount_paid content money
+  data was_disposed_of_before_unrestricted content boolean
+  data substantial_risk_of_forfeiture content boolean
+  data transferable content boolean
+  data section_421_applies content boolean
+  data transfer_401a_or_404a2 content boolean
+  data option_without_ascertainable_fair_market_value content boolean
+  data exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant content boolean
+  data group_term_life_insurance_79 content boolean
+
+
+declaration scope Transferred_property_83:
+  input transfer content PropertyTransfer
   internal is_restricted content boolean
   output amount_to_include_in_gross_income content TransferredReturn
 
@@ -47,14 +53,26 @@ transferable or not subject to a substantial risk of forfeiture.
 
 ```catala
 scope Transferred_property_83:
+  label section_83_default
+  definition amount_to_include_in_gross_income
+    equals NotThisYear
+  # Default case
+
+  exception section_83b
+  # todo info: any better way to define a global exclusion case ?
+  definition amount_to_include_in_gross_income
+    under condition not transfer.taxpayer_performed_the_service
+    consequence equals DoesNotApply
+
   label section_83a
   exception section_83_default
   definition amount_to_include_in_gross_income
-    under condition (not is_restricted)
+    under condition (not is_restricted) and
+                    (not transfer.was_disposed_of_before_unrestricted)
     consequence equals
-# Note: should not apply if the property was already sold
-      if fair_market_value_unrestricted >$ amount_paid
-      then IncludeInGrossIncome content (fair_market_value_unrestricted -$ amount_paid)
+      if transfer.fair_market_value_unrestricted >$ transfer.amount_paid
+      then IncludeInGrossIncome content
+          (transfer.fair_market_value_unrestricted -$ transfer.amount_paid)
       else IncludeInGrossIncome content $0
 ```
 
@@ -77,15 +95,13 @@ scope Transferred_property_83:
   label section_83b
   exception section_83a
   definition amount_to_include_in_gross_income
-    under condition elects_to_include_in_year_of_transfer
+    under condition transfer.elects_to_include_in_year_of_transfer
+    # todo legal: can this still apply if was_disposed_of_before_unrestricted ?
     consequence equals
-      if fair_market_value_when_transfered >$ amount_paid
-      then IncludeInGrossIncome content (fair_market_value_when_transfered -$ amount_paid)
+      if transfer.fair_market_value_when_transfered >$ transfer.amount_paid
+      then IncludeInGrossIncome content (transfer.fair_market_value_when_transfered -$ transfer.amount_paid)
       else IncludeInGrossIncome content $0
 
-  label section_83_default
-  definition amount_to_include_in_gross_income equals NotThisYear
-  # Default case
 
 # "if such property is subsequently forfeited, ..." applies to the future and
 # not to the current computation, so we don't encode it here
@@ -122,7 +138,7 @@ such property are—
 
 ```catala
 scope Transferred_property_83:
-  definition is_restricted equals substantial_risk_of_forfeiture or not transferable
+  definition is_restricted equals transfer.substantial_risk_of_forfeiture or not transfer.transferable
 ```
 
 ## (e) Applicability of section
@@ -140,11 +156,11 @@ scope Transferred_property_83:
   exception section_83b
   definition amount_to_include_in_gross_income
     under condition
-      section_421_applies or
-      transfer_401a_or_404a2 or
-      option_without_ascertainable_fair_market_value or
-      exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant or
-      group_term_life_insurance_79
+      transfer.section_421_applies or
+      transfer.transfer_401a_or_404a2 or
+      transfer.option_without_ascertainable_fair_market_value or
+      transfer.exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant or
+      transfer.group_term_life_insurance_79
     consequence equals
       DoesNotApply
 ```
@@ -162,7 +178,16 @@ who performed such services.
 
 ```catala
 declaration scope Deduction_by_employer:
+  input transfer content PropertyTransfer
   output deduction_under_section_162 content money
+  transferred_value_83 scope Transferred_property_83
 
+scope Deduction_by_employer:
+  definition transferred_value_83.transfer equals transfer
 
+  definition deduction_under_section_162 equals
+    match transferred_value_83.amount_to_include_in_gross_income with pattern
+    -- DoesNotApply: $0
+    -- NotThisYear: $0
+    -- IncludeInGrossIncome of amount: amount
 ```
