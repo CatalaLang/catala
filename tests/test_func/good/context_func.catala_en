@@ -16,22 +16,10 @@ scope B:
 ```
 
 ```catala-test-inline
-$ catala Scopelang
-struct A = {
-
-}
-
-struct B = {
-
-}
-
-let scope A (f: integer → integer|context) =
-  let f : integer → integer = reentrant or by default
-    λ (param: integer) → ⟨true ⊢ param + 1⟩
-
+$ catala Scopelang -s B
 let scope B (b: bool|input) =
   let a.f : integer → integer =
-    λ (param: integer) → error_empty ⟨b && param > 0 ⊢ param - 1⟩;
+    λ (param: integer) → ⟨b && param > 0 ⊢ param - 1⟩;
   call A[a]
 ```
 
