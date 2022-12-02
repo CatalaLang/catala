@@ -28,9 +28,9 @@ $ catala Dcalc -s A
 let A =
   λ (A_in: A_in {"f_in": integer → integer}) →
     let f : integer → integer = A_in."f_in" in
-    let f1 : integer → integer = error_empty
-      λ (param: integer) → ⟨f param | true ⊢
-        error_empty ⟨true ⊢ param + 1⟩⟩ in
+    let f1 : integer → integer =
+      λ (param: integer) → error_empty
+        ⟨f param | true ⊢ ⟨true ⊢ param + 1⟩⟩ in
     A {  }
 ```
 
@@ -40,8 +40,7 @@ let B =
   λ (B_in: B_in {"b_in": bool}) →
     let b : bool = B_in."b_in" in
     let a.f : integer → integer =
-      λ (param: integer) → error_empty
-        ⟨b && param > 0 ⊢ param - 1⟩ in
+      λ (param: integer) → ⟨b && param > 0 ⊢ param - 1⟩ in
     let result : A {} = A (A_in { "f_in"= a.f }) in
     B {  }
 ```
