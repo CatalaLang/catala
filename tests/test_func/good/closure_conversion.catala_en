@@ -12,21 +12,19 @@ scope S:
 ```
 
 ```catala-test-inline
-$ catala Lcalc -s S
+$ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
 let S =
   λ (S_in: S_in {"x_in": bool}) →
-    let x : bool = S_in."x_in" in
-    let f : integer → integer =
-      try
-        (λ (param: integer) →
-           try
-             handle_default [] (λ (_: unit) → true)
-               (λ (_: unit) → if x then param else - param) with
-             EmptyError -> raise NoValueProvided) with EmptyError ->
-        raise NoValueProvided in
-    let z : integer =
-      try handle_default [] (λ (_: unit) → true) (λ (_: unit) → f -1)
-        with EmptyError -> raise NoValueProvided in
+    let x : any = S_in."x_in" in
+    let f : any =
+      let S : any =
+        λ (env: any) (param: integer) →
+          let x1 : any = env.1 in
+          if x1 then param else - param in
+      (S, x) in
+    let z : any = let env : any = f in
+      let code : any = env.0 in
+      code env -1 in
     S { "z"= z }
 ```
 

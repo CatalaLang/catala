@@ -27,6 +27,62 @@ type 'm ctx = { name_context : string; globally_bound_vars : 'm expr Var.Set.t }
 let tys_as_tanys tys =
   List.map (fun x -> Marked.map_under_mark (fun _ -> TAny) x) tys
 
+type 'm hoisted_closure = { name : 'm expr Var.t; closure : 'm expr }
+
+let rec hoist_context_free_closures :
+    type m. m ctx -> m expr -> m hoisted_closure list * m expr boxed =
+ fun ctx e ->
+  let m = Marked.get_mark e in
+  match Marked.unmark e with
+  | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
+  | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ | EVar _ ->
+    Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
+  | EMatch { e; cases; name } ->
+    let collected_closures, new_e = (hoist_context_free_closures ctx) e in
+    (* We do not close the clotures inside the arms of the match expression,
+       since they get a special treatment at compilation to Scalc. *)
+    let collected_closures, new_cases =
+      EnumConstructorMap.fold
+        (fun cons e1 (collected_closures, new_cases) ->
+          match Marked.unmark e1 with
+          | EAbs { binder; tys } ->
+            let vars, body = Bindlib.unmbind binder in
+            let new_collected_closures, new_body =
+              (hoist_context_free_closures ctx) body
+            in
+            let new_binder = Expr.bind vars new_body in
+            ( collected_closures @ new_collected_closures,
+              EnumConstructorMap.add cons
+                (Expr.eabs new_binder tys (Marked.get_mark e1))
+                new_cases )
+          | _ -> failwith "should not happen")
+        cases
+        (collected_closures, EnumConstructorMap.empty)
+    in
+    collected_closures, Expr.ematch new_e name new_cases m
+  | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
+    (* let-binding, we should not close these *)
+    let vars, body = Bindlib.unmbind binder in
+    let collected_closures, new_body = (hoist_context_free_closures ctx) body in
+    let new_binder = Expr.bind vars new_body in
+    let collected_closures, new_args =
+      List.fold_right
+        (fun arg (collected_closures, new_args) ->
+          let new_collected_closures, new_arg =
+            (hoist_context_free_closures ctx) arg
+          in
+          collected_closures @ new_collected_closures, new_arg :: new_args)
+        args (collected_closures, [])
+    in
+    ( collected_closures,
+      Expr.eapp (Expr.eabs new_binder (tys_as_tanys tys) e1_pos) new_args m )
+  | EAbs _ ->
+    (* this is the closure we want to hoist*)
+    let closure_var = Var.make ctx.name_context in
+    [{ name = closure_var; closure = e }], Expr.make_var closure_var m
+  | EApp _ ->
+    Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
+
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
     http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
