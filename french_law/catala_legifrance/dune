@@ -3,7 +3,7 @@
  (package catala_legifrance)
  (libraries
   catala.surface
-  catala.utils
+  catala.catala_utils
   cmdliner
   cohttp
   lwt

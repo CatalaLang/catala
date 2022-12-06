@@ -16,8 +16,10 @@
 
 (** {2 catala-facing API} *)
 
+open Catala_utils
+
 type 'ast plugin_apply_fun_typ =
-  source_file:Utils.Pos.input_file ->
+  source_file:Pos.input_file ->
   output_file:string option ->
   scope:string option ->
   'ast ->

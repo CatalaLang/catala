@@ -13,7 +13,7 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
-open Utils
+open Catala_utils
 open Shared_ast
 open Ast
 module D = Dcalc.Ast
@@ -27,16 +27,16 @@ let rec iota_expr (e : 'm expr) : 'm expr boxed =
   | EMatch { e = EInj { e = e'; cons; name = n' }, _; cases; name = n }
     when EnumName.equal n n' ->
     let e1 = visitor_map iota_expr e' in
-    let case = visitor_map iota_expr (EnumConstructorMap.find cons cases) in
+    let case = visitor_map iota_expr (EnumConstructor.Map.find cons cases) in
     Expr.eapp case [e1] m
   | EMatch { e = e'; cases; name = n }
     when cases
-         |> EnumConstructorMap.mapi (fun i case ->
+         |> EnumConstructor.Map.mapi (fun i case ->
                 match Marked.unmark case with
                 | EInj { cons = i'; name = n'; _ } ->
                   EnumConstructor.equal i i' && EnumName.equal n n'
                 | _ -> false)
-         |> EnumConstructorMap.for_all (fun _ b -> b) ->
+         |> EnumConstructor.Map.for_all (fun _ b -> b) ->
     visitor_map iota_expr e'
   | _ -> visitor_map iota_expr e
 

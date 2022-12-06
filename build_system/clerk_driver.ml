@@ -16,7 +16,7 @@
    the License. *)
 
 open Cmdliner
-open Utils
+open Catala_utils
 open Ninja_utils
 module Nj = Ninja_utils
 

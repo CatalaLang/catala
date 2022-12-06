@@ -16,7 +16,7 @@
 
 (** Abstract syntax tree of the desugared representation *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** Inside a scope, a definition can refer either to a scope def, or a subscope
@@ -100,7 +100,7 @@ type io = {
 (** Characterization of the input/output status of a scope variable. *)
 
 type scope_def = {
-  scope_def_rules : rule RuleMap.t;
+  scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
   scope_def_is_condition : bool;
   scope_def_io : io;
@@ -109,17 +109,20 @@ type scope_def = {
 type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
-  scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : ScopeName.t SubScopeMap.t;
+  scope_vars : var_or_states ScopeVar.Map.t;
+  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
+type program = {
+  program_scopes : scope ScopeName.Map.t;
+  program_ctx : decl_ctx;
+}
 
 (** {1 Helpers} *)
 
 val locations_used : expr -> LocationSet.t
-val free_variables : rule RuleMap.t -> Pos.t ScopeDefMap.t
+val free_variables : rule RuleName.Map.t -> Pos.t ScopeDefMap.t

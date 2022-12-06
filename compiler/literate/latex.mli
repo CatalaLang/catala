@@ -17,7 +17,7 @@
 (** This modules weaves the source code and the legislative text together into a
     document that law professionals can understand. *)
 
-open Utils
+open Catala_utils
 
 (** {1 Helpers} *)
 

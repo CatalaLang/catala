@@ -11,9 +11,8 @@ declaration scope Bar:
 $ catala Typecheck 
 [ERROR] The struct Foo does not have any fields; give it some for Catala to be able to accept it.
 
-┌─⯈ tests/test_struct/bad/empty_struct.catala_en:4.22-25
+┌─⯈ tests/test_struct/bad/empty_struct.catala_en:4.22-25:
 └─┐
-  │
 4 │ declaration structure Foo:
   │                       ‾‾‾
   └─ Test

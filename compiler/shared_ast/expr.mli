@@ -17,7 +17,7 @@
 
 (** Functions handling the expressions of [shared_ast] *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 (** {2 Boxed constructors} *)
@@ -66,7 +66,7 @@ val eapp :
 val eassert :
   (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr -> 't -> ('a, 't) boxed_gexpr
 
-val eop : operator -> 't -> (_ any, 't) boxed_gexpr
+val eop : 'a any operator -> 't -> ('a, 't) boxed_gexpr
 
 val edefault :
   (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr list ->
@@ -101,13 +101,20 @@ val elocation :
 
 val estruct :
   StructName.t ->
-  ('a any, 't) boxed_gexpr StructFieldMap.t ->
+  ('a any, 't) boxed_gexpr StructField.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
+val edstructaccess :
+  (desugared, 't) boxed_gexpr ->
+  IdentName.t ->
+  StructName.t option ->
+  't ->
+  (desugared, 't) boxed_gexpr
+
 val estructaccess :
-  ('a any, 't) boxed_gexpr ->
-  StructFieldName.t ->
+  (([< scopelang | dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
+  StructField.t ->
   StructName.t ->
   't ->
   ('a, 't) boxed_gexpr
@@ -122,13 +129,13 @@ val einj :
 val ematch :
   ('a any, 't) boxed_gexpr ->
   EnumName.t ->
-  ('a, 't) boxed_gexpr EnumConstructorMap.t ->
+  ('a, 't) boxed_gexpr EnumConstructor.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
 val escopecall :
   ScopeName.t ->
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVarMap.t ->
+  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVar.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
@@ -303,6 +310,11 @@ val make_tuple :
 
 (** {2 Transformations} *)
 
+val translate_op :
+  [< desugared | scopelang | dcalc | lcalc ] operator -> 'b any operator
+(** Operators are actually all the same after initial desambiguation, so this
+    function allows converting their types ; otherwise, this is the identity *)
+
 val remove_logging_calls : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
@@ -360,10 +372,10 @@ module Box : sig
       a separate argument. *)
 
   val app1 :
-    ('a, 't) boxed_gexpr ->
-    (('a, 't) gexpr -> ('a, 't) naked_gexpr) ->
-    't ->
-    ('a, 't) boxed_gexpr
+    ('a, 't1) boxed_gexpr ->
+    (('a, 't1) gexpr -> ('a, 't2) naked_gexpr) ->
+    't2 ->
+    ('a, 't2) boxed_gexpr
 
   val app2 :
     ('a, 't) boxed_gexpr ->

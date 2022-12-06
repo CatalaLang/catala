@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 include Shared_ast
 
 type lit = lcalc glit
@@ -28,10 +28,10 @@ let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
 let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
-let option_enum_config : typ EnumConstructorMap.t =
-  EnumConstructorMap.empty
-  |> EnumConstructorMap.add none_constr (TLit TUnit, Pos.no_pos)
-  |> EnumConstructorMap.add some_constr (TAny, Pos.no_pos)
+let option_enum_config : typ EnumConstructor.Map.t =
+  EnumConstructor.Map.empty
+  |> EnumConstructor.Map.add none_constr (TLit TUnit, Pos.no_pos)
+  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
 
 (* FIXME: proper typing in all the constructors below *)
 
@@ -49,9 +49,9 @@ let make_some e =
 let make_matchopt_with_abs_arms arg e_none e_some =
   let m = Marked.get_mark arg in
   let cases =
-    EnumConstructorMap.empty
-    |> EnumConstructorMap.add none_constr e_none
-    |> EnumConstructorMap.add some_constr e_some
+    EnumConstructor.Map.empty
+    |> EnumConstructor.Map.add none_constr e_none
+    |> EnumConstructor.Map.add some_constr e_some
   in
   Expr.ematch arg option_enum cases m
 

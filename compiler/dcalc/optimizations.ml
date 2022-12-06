@@ -14,7 +14,7 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
-open Utils
+open Catala_utils
 open Shared_ast
 open Ast
 
@@ -80,7 +80,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EMatch { e = EInj { e; name = name1; cons }, _; cases; name }
       when EnumName.equal name name1 ->
       (* iota reduction *)
-      EApp { f = EnumConstructorMap.find cons cases; args = [e] }
+      EApp { f = EnumConstructor.Map.find cons cases; args = [e] }
     | EApp { f = EAbs { binder; _ }, _; args } ->
       (* beta reduction *)
       Marked.unmark (Bindlib.msubst binder (List.map fst args |> Array.of_list))

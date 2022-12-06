@@ -95,12 +95,12 @@ scope Section121TwoPersons:
 
   definition person1 equals match return_type with pattern
     -- SingleReturn of data_person1 : data_person1
-    -- JointReturn of data_couple : data_couple.JointReturn.person1
+    -- JointReturn of data_couple : data_couple.person1
     -- SingleReturnSurvivingSpouse of data_single: data_single.return
 
   definition person2 equals match return_type with pattern
     -- SingleReturn of data_person2 : data_person2
-    -- JointReturn of data_couple : data_couple.JointReturn.person2
+    -- JointReturn of data_couple : data_couple.person2
     -- SingleReturnSurvivingSpouse of data_single: data_single.return
 
   definition section121Person1.property_ownage equals person1.property_ownage
@@ -316,25 +316,25 @@ scope Section121TwoPasses under condition
     first_pass.gain_cap_person_2
 
   definition period_merge.periods1 equals match return_type with pattern
-    -- JointReturn of joint_return: joint_return.JointReturn.person1.property_ownage
+    -- JointReturn of joint_return: joint_return.person1.property_ownage
     -- SingleReturnSurvivingSpouse of dead_spouse_info : [] # does not happen
     -- SingleReturn of return : [] # does not happen
   definition period_merge.periods2 equals match return_type with pattern
-    -- JointReturn of joint_return: joint_return.JointReturn.person2.property_ownage
+    -- JointReturn of joint_return: joint_return.person2.property_ownage
     -- SingleReturnSurvivingSpouse of dead_spouse_info : [] # does not happen
     -- SingleReturn of return : [] # does not happen
 
   definition second_pass.person1 equals PersonalData {
     -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
-      first_pass.JointReturn.person1.property_usage_as_principal_residence
-    -- other_section_121a_sale: first_pass.JointReturn.person1.other_section_121a_sale
+      first_pass.person1.property_usage_as_principal_residence
+    -- other_section_121a_sale: first_pass.person1.other_section_121a_sale
   }
   definition second_pass.person2 equals PersonalData {
     -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
-      first_pass.JointReturn.person2.property_usage_as_principal_residence
-    -- other_section_121a_sale: first_pass.JointReturn.person2.other_section_121a_sale
+      first_pass.person2.property_usage_as_principal_residence
+    -- other_section_121a_sale: first_pass.person2.other_section_121a_sale
   }
 ```
 
@@ -350,7 +350,7 @@ scope Section121SinglePerson:
   rule section_121_b_3_applies under condition
     (other_section_121a_sale with pattern
        MostRecentSaleWhereSection121aApplied of other_sale) and
-    date_of_sale_or_exchange -@ other_sale.PreviousSaleWhereSection121aApplied.date_of_sale_or_exchange <=^ 2 year
+    date_of_sale_or_exchange -@ other_sale.date_of_sale_or_exchange <=^ 2 year
   consequence fulfilled
 
   exception

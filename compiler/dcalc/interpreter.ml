@@ -16,7 +16,7 @@
 
 (** Reference interpreter for the default calculus *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module Runtime = Runtime_ocaml.Runtime
 
@@ -31,7 +31,7 @@ let log_indent = ref 0
 
 let rec evaluate_operator
     (ctx : decl_ctx)
-    (op : operator)
+    (op : dcalc operator)
     (pos : Pos.t)
     (args : 'm Ast.expr list) : 'm Ast.naked_expr =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use
@@ -180,7 +180,7 @@ let rec evaluate_operator
     ELit
       (LBool
          (StructName.equal s1 s2
-         && StructFieldMap.equal
+         && StructField.Map.equal
               (fun e1 e2 ->
                 match evaluate_operator ctx op pos [e1; e2] with
                 | ELit (LBool b) -> b
@@ -342,8 +342,8 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
          happen if the term was well-typed")
   | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
   | EStruct { fields = es; name } ->
-    let new_es = StructFieldMap.map (evaluate_expr ctx) es in
-    if StructFieldMap.exists (fun _ e -> is_empty_error e) new_es then
+    let new_es = StructField.Map.map (evaluate_expr ctx) es in
+    if StructField.Map.exists (fun _ e -> is_empty_error e) new_es then
       Marked.same_mark_as (ELit LEmptyError) e
     else Marked.same_mark_as (EStruct { fields = new_es; name }) e
   | EStructAccess { e = e1; name = s; field } -> (
@@ -355,13 +355,13 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
           [None, Expr.pos e; None, Expr.pos e1]
           "Error during struct access: not the same structs (should not happen \
            if the term was well-typed)";
-      match StructFieldMap.find_opt field es with
+      match StructField.Map.find_opt field es with
       | Some e' -> e'
       | None ->
         Errors.raise_spanned_error (Expr.pos e1)
           "Invalid field access %a in struct %a (should not happen if the term \
            was well-typed)"
-          StructFieldName.format_t field StructName.format_t s)
+          StructField.format_t field StructName.format_t s)
     | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e1)
@@ -383,7 +383,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
           "Error during match: two different enums found (should not happen if \
            the term was well-typed)";
       let es_n =
-        match EnumConstructorMap.find_opt cons es with
+        match EnumConstructor.Map.find_opt cons es with
         | Some es_n -> es_n
         | None ->
           Errors.raise_spanned_error (Expr.pos e)
@@ -499,9 +499,9 @@ let interpret_program :
        the types of the scope arguments. For [context] arguments, we can provide
        an empty thunked term. But for [input] arguments of another type, we
        cannot provide anything so we have to fail. *)
-    let taus = StructMap.find s_in ctx.ctx_structs in
+    let taus = StructName.Map.find s_in ctx.ctx_structs in
     let application_term =
-      StructFieldMap.map
+      StructField.Map.map
         (fun ty ->
           match Marked.unmark ty with
           | TArrow ((TLit TUnit, _), ty_in) ->
@@ -523,8 +523,8 @@ let interpret_program :
     match Marked.unmark (evaluate_expr ctx (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
-        (fun (fld, e) -> StructFieldName.get_info fld, e)
-        (StructFieldMap.bindings fields)
+        (fun (fld, e) -> StructField.get_info fld, e)
+        (StructField.Map.bindings fields)
     | _ ->
       Errors.raise_spanned_error (Expr.pos e)
         "The interpretation of a program should always yield a struct \

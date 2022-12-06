@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 module D = Dcalc.Ast
 module A = Ast
 
@@ -255,11 +255,12 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     e', hoists
   | EStruct { name; fields } ->
     let fields', h_fields =
-      StructFieldMap.fold
+      StructField.Map.fold
         (fun field e (fields, hoists) ->
           let e, h = translate_and_hoist ctx e in
-          StructFieldMap.add field e fields, h :: hoists)
-        fields (StructFieldMap.empty, [])
+          StructField.Map.add field e fields, h :: hoists)
+        fields
+        (StructField.Map.empty, [])
     in
     let hoists = disjoint_union_maps (Expr.pos e) h_fields in
     Expr.estruct name fields' mark, hoists
@@ -274,12 +275,12 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
   | EMatch { name; e = e1; cases } ->
     let e1', h1 = translate_and_hoist ctx e1 in
     let cases', h_cases =
-      EnumConstructorMap.fold
+      EnumConstructor.Map.fold
         (fun cons e (cases, hoists) ->
           let e', h = translate_and_hoist ctx e in
-          EnumConstructorMap.add cons e' cases, h :: hoists)
+          EnumConstructor.Map.add cons e' cases, h :: hoists)
         cases
-        (EnumConstructorMap.empty, [])
+        (EnumConstructor.Map.empty, [])
     in
     let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_cases) in
     let e' = Expr.ematch e1' name cases' mark in
@@ -288,7 +289,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
 
     Expr.earray es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | EOp op -> Expr.eop op mark, Var.Map.empty
+  | EOp op -> Expr.eop (Expr.translate_op op) mark, Var.Map.empty
 
 and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
     'm A.expr boxed =
@@ -537,7 +538,7 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
       prgm.decl_ctx with
       ctx_enums =
         prgm.decl_ctx.ctx_enums
-        |> EnumMap.add A.option_enum A.option_enum_config;
+        |> EnumName.Map.add A.option_enum A.option_enum_config;
     }
   in
   let decl_ctx =
@@ -545,9 +546,9 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
       decl_ctx with
       ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> StructMap.mapi (fun n str ->
+        |> StructName.Map.mapi (fun n str ->
                if List.mem n inputs_structs then
-                 StructFieldMap.map translate_typ str
+                 StructField.Map.map translate_typ str
                  (* Cli.debug_print @@ Format.asprintf "Input type: %a"
                     (Print.typ decl_ctx) tau; Cli.debug_print @@ Format.asprintf
                     "Output type: %a" (Print.typ decl_ctx) (translate_typ
