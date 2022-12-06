@@ -1,0 +1,29 @@
+## Article
+
+```catala
+declaration scope S:
+  internal f content integer depends on integer
+  input x content boolean
+  output z content integer
+
+scope S:
+  definition f of y equals if x then y else - y
+  definition z equals f of -1
+```
+
+```catala-test-inline
+$ catala Lcalc -s S
+let S =
+  λ (S_in: S_in {"x_in": bool}) →
+    let x : bool = S_in."x_in" in
+    let f : integer → integer =
+      try
+        (λ (param: integer) →
+           try
+             handle_default [] (λ (_: unit) → true)
+               (λ (_: unit) → if x then param else - param) with
+             EmptyError -> raise NoValueProvided) with EmptyError ->
+        raise NoValueProvided in
+    S {  }
+```
+
