@@ -136,7 +136,7 @@ des revenus de la personne pour une année.
 ```catala
 champ d'application CalculImpôtRevenu:
   définition impôt_revenu égal à
-    personne.revenu *€ pourcentage_fixe
+    personne.revenu * pourcentage_fixe
 ```
 
 Dans le code, nous définissons à l'intérieur de notre champ d'application
@@ -145,18 +145,13 @@ Quand nous définissons des formules, vous avez accès à tous les opérateurs
 arithmétiques habituels : addition "+", soustraction "-", multiplication "*"
 et division (barre oblique).
 
-Toutefois, dans le code Catala, vous pouvez voir que nous utilisons "*€"
-pour multiplier les revenus d'une personne par le pourcentage fixe. Le
-suffixe € inique que nous effectuons une multiplication sur une somme d'argent.
-En effet, en Catala, vous devez rester conscient de la donnée manipulée :
-est-ce de l'argent ? est-ce un entier ? Utiliser simple "+" ou "*" est ambigu
-en termes d'arrondis car l'argent est habituellement arrondi au centime.
-Ainsi, afin d'être clair, nous suffixons ces opérations avec quelque chose
-qui indique le type de donnée manipulé. Les suffixes sont "€" pour de l'argent,
-"." pour les décimales, arobase (comme dans les adresses mail) pour les dates et
-le symbole chapeau pour les durées. Si vous oubliez le suffixe, le vérificateur
-de types de Catala va afficher une message d'erreur afin de vous aider à le placer
-comme il le faut.
+Toutefois, dans le code Catala, ces opérateurs peuvent avoir un sens légèrement
+différent suivant unités concernées. En effet, l'argent par exemple est arrondi
+au centime ; les entiers sont tronqués lors de leur division. Dans le cas
+ci-dessus, le compilateur Catala est capable de valider que la multiplication
+d'une quantité d'argent par un décimal (pourcentage) donne en effet une quantité
+d'argent. D'autres opérations sont simplement rejetées, comme multiplier deux
+quantités d'argent entre elles, ou bien tenter d'additionner des dates.
 
 Mais dans l'article 1, une question reste sans réponse: quelle est la valeur
 de la pourcentage fixe? Souvent, des valeurs précises sont définis ailleurs
@@ -238,11 +233,11 @@ par le taux de chaque branche.
 ```catala
 champ d'application CalculImpôtDeuxTranches :
   définition formule_imposition de revenu égal à
-    si revenu <=€ tranches.seuil alors
-      revenu *€ tranches.taux1
+    si revenu <= tranches.seuil alors
+      revenu * tranches.taux1
     sinon (
-      tranches.seuil *€ tranches.taux1 +€
-      (revenu -€ tranches.seuil) *€ tranches.taux2
+      tranches.seuil * tranches.taux1 +
+      (revenu - tranches.seuil) * tranches.taux2
     )
 ```
 
@@ -286,7 +281,7 @@ sur le revenu prévu à l'article 1.
 ```catala
 champ d'application NouveauCalculImpôtRevenu:
   définition impôt_revenu sous condition
-    personne.revenu <=€ 10 000€
+    personne.revenu <= 10 000€
   conséquence égal à 0€
 ```
 
@@ -393,7 +388,7 @@ champ d'application NouveauCalculImpôtRevenuCorrect :
   # Puis, vous pouvez déclarez l'exception par référence à l'étiquette
   exception article_5
   définition impôt_revenu sous condition
-    personne.revenu <=€ 10 000€
+    personne.revenu <= 10 000€
   conséquence égal à 0€
 ```
 

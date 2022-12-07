@@ -167,7 +167,7 @@ individual's income over a year.
 ```catala
 scope IncomeTaxComputation:
   definition income_tax equals
-    individual.income *$ fixed_percentage
+    individual.income * fixed_percentage
 ```
 
 In the code, we are defining inside our scope the amount of the income tax
@@ -175,17 +175,12 @@ according to the formula described in the article. When defining formulas,
 you have access to all the usual arithmetic operators: addition "+",
 subtraction "-", multiplication "*" and division (slash).
 
-However, in the Catala code, you can see that we use "*$" ("*€" in French, etc.)
-to multiply the individual income by the fixed percentage. The $ suffix
-indicates that we are performing a multiplication on an amount of money.
-Indeed, in Catala, you have to keep track of what you are dealing with:
-is it money ? Is it an integer? Using just "+" or "*" can be ambiguous
-in terms of rounding, since money is usually rounded at the cent. So to
-disambiguate, we suffix these operations with something that indicates the type
-of what we manipulate. The suffixes are "$" for money, "." for decimals, "@"
-for dates and the "^" symbol for durations. If you forget the suffix, the Catala type
-checker will display an error message that will help you put it where it
-belongs.
+However, in the Catala code, you should be aware that these operators can behave
+differently depending on the quantities considered: indeed, money for example is
+rounded at the cent ; integers are rounded down on division. Here the Catala
+compiler is able to check that money multiplied by a decimal (percentage) indeed
+yields an amount of money. Some other operations are refused altogether, like
+multiplying two amounts of money together, or adding two dates.
 
 Coming back to article 1, one question remains unknown: what is the value
 of the fixed percentage? Often, precise values are defined elsewhere in the
@@ -314,11 +309,11 @@ scope TwoBracketsTaxComputation :
     # "income". The name of the parameter is your choice, and will not impact
     # things outside this part of the definition. You can choose another
     # name in another definition of "tax_formula".
-    if income <=$ brackets.breakpoint then
-      income *$ brackets.rate1
+    if income <= brackets.breakpoint then
+      income * brackets.rate1
     else (
-      brackets.breakpoint *$ brackets.rate1 +$
-      (income -$ brackets.breakpoint) *$ brackets.rate2
+      brackets.breakpoint * brackets.rate1 +
+      (income - brackets.breakpoint) * brackets.rate2
     )
     # This is the formula for implementing a two-bracketstax system.
 ```
@@ -381,7 +376,7 @@ scope NewIncomeTaxComputation:
   # Here, we simply define a new conditional definition for "income tax"
   # that handles the special case.
   definition income_tax under condition
-    individual.income <=$ $10,000
+    individual.income <= $10,000
   consequence equals $0
   # What, you think something might be wrong with this? Hmmm... We'll see
   # later!
@@ -432,7 +427,7 @@ scope Test1:
   definition income_tax equals tax_computation.income_tax
   # Next, we retrieve the income tax value compute it by the subscope and
   # assert that it is equal to the expected value :
-  # ($230,000-$100,00)*40%+$100,000*20% = $72,000
+  # ($230,000-100,00)*40%+100,000*20% = $72,000
   assertion income_tax = $72,000
 ```
 
@@ -499,7 +494,7 @@ scope NewIncomeTaxComputationFixed:
   # Then, you can declare the exception by referring back to the label
   exception article_5
   definition income_tax under condition
-    individual.income <=$ $10,000
+    individual.income <= $10,000
   consequence equals $0
 ```
 
@@ -658,7 +653,7 @@ scope BasisForFineDetermination :
   # an exceptional definition for income tax for people earning less than
   # $10,0000.
   definition tax_computation.income_tax under condition
-    individual.income <=$ $10,000
+    individual.income <= $10,000
   consequence equals $500
 ```
 
@@ -695,13 +690,13 @@ declaration scope WealthTax:
 scope WealthTax:
   definition wealth state total equals total_wealth
   definition wealth state after_charity_deductions equals
-    wealth -$ # Here, "wealth" refers to the state "total"
+    wealth - # Here, "wealth" refers to the state "total"
       value_of_buildings_used_for_charity
   definition wealth state after_capping equals
-    if wealth >=$ $2,500,000 then $2,500,000 else wealth
+    if wealth >= $2,500,000 then $2,500,000 else wealth
     # Here, "wealth" refers to the state "after_charity_decuctions"
 
-  assertion wealth >$ $0
+  assertion wealth > $0
   # Outside of the definition of "wealth", "wealth" always refer to the final
   # state of the variable, here "after_capping".
 
@@ -763,10 +758,10 @@ declaration scope DecimalValues:
 
 scope DecimalValues:
   definition value1 under condition
-    12.655465446655426 -. 0.45265426541654  <. 12.3554654652 consequence
-  equals (integer_to_decimal of 45) /. (integer_to_decimal of 9)
-  # The /. operators corresponds to an exact division.
-  definition value2 equals value1 *. value1 *. 65%
+    12.655465446655426 - 0.45265426541654  < 12.3554654652 consequence
+  equals (integer_to_decimal of 45) / (integer_to_decimal of 9)
+  # The / operators corresponds to an exact division.
+  definition value2 equals value1 * value1 * 65%
   # Percentages are decimal numbers (0.65 here)
 ```
 
@@ -787,10 +782,10 @@ declaration scope MoneyValues:
 
 scope MoneyValues:
   definition value1 under condition
-    12.655465446655426 -. 0.45265426541654  <. 12.3554654652 consequence
-  equals (integer_to_decimal of 45) /. (integer_to_decimal of 9)
+    12.655465446655426 - 0.45265426541654  < 12.3554654652 consequence
+  equals (integer_to_decimal of 45) / (integer_to_decimal of 9)
   definition value2 equals
-    $1.00 *$ ((($6,520.23 -$ $320.45) *$ value1) /$ $45)
+    $1.00 * ((($6,520.23 - $320.45) * value1) / $45)
 ```
 
 
@@ -812,9 +807,9 @@ declaration scope DateValues:
   internal value2 content duration
 
 scope DateValues:
-  definition value1 equals |2000-01-01| +@ 1 year # yields |2001-01-01|
+  definition value1 equals |2000-01-01| + 1 year # yields |2001-01-01|
   definition value2 equals
-    (value1 -@ |1999-12-31|) +^ 45 day # 367 + 45 days (2000 is bissextile)
+    (value1 - |1999-12-31|) + 45 day # 367 + 45 days (2000 is bissextile)
 ```
 
 ### Collections
