@@ -82,6 +82,7 @@ let rec hoist_context_free_closures :
     [{ name = closure_var; closure = e }], Expr.make_var closure_var m
   | EApp _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
+ [@@warning "-32"]
 
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
@@ -249,6 +250,10 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
         let new_scope_lets =
           Scope.map_exprs_in_lets ~reset_types:true
             ~f:(closure_conversion_expr ctx)
+              (*fun e -> let e = closure_conversion_expr ctx e in let m =
+                Marked.get_mark e in let e = Bindlib.box_apply (fun e -> let _,
+                e = hoist_context_free_closures ctx (e, m) in Bindlib.unbox
+                (Marked.unmark e)) (Marked.unmark e) in e, m*)
             ~varf:(fun v -> v)
             scope_body_expr
         in

@@ -83,8 +83,11 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
           Marked.unmark efalse
         | _ -> EIfThenElse { cond; etrue; efalse })
       m
+  | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [(EVar v, _)] } ->
+    (* basic inlining 1 *)
+    Expr.box (Bindlib.msubst binder [| EVar v |])
   | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [arg] } -> (
-    (* basic inlining *)
+    (* basic inlining 2 *)
     let vars, body = Bindlib.unmbind binder in
     let v = Array.get vars 0 in
     match Marked.unmark body with

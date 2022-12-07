@@ -320,6 +320,12 @@ let driver source_file (options : Cli.options) : int =
                 else Cli.debug_print "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
+                let prgm =
+                  if options.optimize then (
+                    Cli.debug_print "Optimizing lambda calculus...";
+                    Lcalc.Optimizations.optimize_program prgm)
+                  else prgm
+                in
                 prgm)
               else prgm
             in
