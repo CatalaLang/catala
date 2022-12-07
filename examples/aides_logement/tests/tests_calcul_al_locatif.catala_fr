@@ -7,7 +7,7 @@
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf
 déclaration champ d'application Exemple1 :
   calcul champ d'application CalculAllocationLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple1 :
   définition calcul.loyer_principal égal à 425 €
@@ -39,7 +39,7 @@ champ d'application Exemple1 :
 # Transmis par DGALN/DHUP/FE4 le 12/07/2022
 déclaration champ d'application Exemple2 :
   calcul champ d'application CalculAllocationLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple2 :
   définition calcul.loyer_principal égal à 425 €

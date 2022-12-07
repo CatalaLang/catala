@@ -8,7 +8,7 @@
 déclaration champ d'application Smic :
   entrée date_courante contenu date
   entrée résidence contenu Collectivité
-  sortie brut_horaire contenu argent
+  résultat brut_horaire contenu argent
 ```
 
 ## Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance

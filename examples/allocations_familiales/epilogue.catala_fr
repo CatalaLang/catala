@@ -76,7 +76,7 @@ déclaration champ d'application InterfaceAllocationsFamiliales:
   allocations_familiales champ d'application AllocationsFamiliales
   entrée i_ressources_ménage contenu argent
   entrée i_résidence contenu Collectivité
-  sortie i_montant_versé contenu argent
+  résultat i_montant_versé contenu argent
   entrée i_personne_charge_effective_permanente_est_parent condition
   entrée i_personne_charge_effective_permanente_remplit_titre_I condition
   entrée i_avait_enfant_à_charge_avant_1er_janvier_2012 condition

@@ -109,7 +109,8 @@
 #define MS_FALSE "faux"
 #define MS_INPUT "entrée"
 #define MR_INPUT "entr", 0xE9, "e"
-#define MS_OUTPUT "sortie"
+#define MS_OUTPUT "résultat"
+#define MR_OUTPUT "r", 0xE9,"sultat"
 #define MS_INTERNAL "interne"
 
 (* Specific delimiters *)

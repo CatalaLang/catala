@@ -5,7 +5,7 @@
 ```catala
 déclaration champ d'application Exemple1 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple1:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -34,7 +34,7 @@ champ d'application Exemple1:
 ```catala
 déclaration champ d'application Exemple2 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple2:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -64,7 +64,7 @@ champ d'application Exemple2:
 ```catala
 déclaration champ d'application Exemple3 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple3:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -94,7 +94,7 @@ champ d'application Exemple3:
 ```catala
 déclaration champ d'application Exemple4 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple4:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -124,7 +124,7 @@ champ d'application Exemple4:
 ```catala
 déclaration champ d'application Exemple5 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple5:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -154,7 +154,7 @@ champ d'application Exemple5:
 ```catala
 déclaration champ d'application Exemple6 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple6:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -184,7 +184,7 @@ champ d'application Exemple6:
 ```catala
 déclaration champ d'application Exemple7 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple7:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -214,7 +214,7 @@ champ d'application Exemple7:
 ```catala
 déclaration champ d'application Exemple8 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple8:
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
@@ -244,7 +244,7 @@ champ d'application Exemple8:
 ```catala
 déclaration champ d'application Exemple9 :
   calcul champ d'application CalculAidePersonnaliséeLogementLocatif
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple9:
   définition montant égal à

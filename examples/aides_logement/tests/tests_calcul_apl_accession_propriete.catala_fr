@@ -7,7 +7,7 @@
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=45
 déclaration champ d'application Exemple1:
   calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple1:
   définition calcul.ressources_ménage_arrondies égal à 18 000 €
@@ -42,7 +42,7 @@ champ d'application Exemple1:
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=45
 déclaration champ d'application Exemple2:
   calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple2:
   définition calcul.ressources_ménage_arrondies égal à 19 000 €
@@ -79,7 +79,7 @@ champ d'application Exemple2:
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application Exemple3:
   calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple3:
   définition calcul.ressources_ménage_arrondies égal à 18 000 €
@@ -113,7 +113,7 @@ champ d'application Exemple3:
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application Exemple4:
   calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application Exemple4:
   définition calcul.ressources_ménage_arrondies égal à 19 000 €

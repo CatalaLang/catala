@@ -21,8 +21,8 @@
 
 (define-generic-mode 'catala-mode-fr
   '("#")
-  '("contexte" "entrée" "sortie" "interne"
-    "champ d'application" "si et seulement si" "dépend de" "déclaration" "inclus" "collection" "contenu" "optionnel" "structure" "énumération" "contexte" "entrée" "sortie" "interne" "règle" "sous condition" "condition" "donnée" "conséquence" "rempli" "égal à" "assertion" "définition" "état" "étiquette" "exception" "soit")
+  '("contexte" "entrée" "résultat" "interne"
+    "champ d'application" "si et seulement si" "dépend de" "déclaration" "inclus" "collection" "contenu" "optionnel" "structure" "énumération" "contexte" "entrée" "résultat" "interne" "règle" "sous condition" "condition" "donnée" "conséquence" "rempli" "égal à" "assertion" "définition" "état" "étiquette" "exception" "soit")
   '(("\\<\\(selon\\|sous\s+forme\\|fixé\\|par\\|décroissante\\|croissante\\|varie\\|avec\\|on\s+a\\|soit\\|dans\\|tel\s+que\\|existe\\|pour\\|tout\\|de\\|si\\|alors\\|sinon\\|initial\\)\\>" . font-lock-builtin-face)
     ("\\<\\(vrai\\|faux\\)\\>" . font-lock-constant-face)
     ("\\<\\([0-9][0-9 ]*\\(,[0-9]*\\|\\)\\)\\>" . font-lock-constant-face)

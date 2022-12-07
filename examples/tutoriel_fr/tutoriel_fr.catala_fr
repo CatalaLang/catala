@@ -122,7 +122,7 @@ déclaration champ d'application CalculImpôtRevenu:
   # cela ressemble à un paramètre de fonction en informatique. C'est la
   # donnée sur laquelle le champ d'application va intervenir
   interne pourcentage_fixe contenu décimal
-  sortie impôt_revenu contenu argent
+  résultat impôt_revenu contenu argent
 ```
 
 Nous avons maintenant tout ce dont nous avons besoin pour annoter le contenu
@@ -220,7 +220,7 @@ déclaration structure DeuxTranches:
 
 déclaration champ d'application CalculImpôtDeuxTranches :
   entrée tranches contenu DeuxTranches
-  sortie formule_imposition contenu argent dépend de argent
+  résultat formule_imposition contenu argent dépend de argent
 ```
 
 Et dans le code :
@@ -262,7 +262,7 @@ déclaration champ d'application NouveauCalculImpôtRevenu:
   # pas une donnée mais plutôt un sous-champ d'application qui peut être
   # utilisé pour calculer des choses.
   entrée personne contenu Personne
-  sortie impôt_revenu contenu argent
+  résultat impôt_revenu contenu argent
 
 champ d'application NouveauCalculImpôtRevenu :
   définition deux_tranches.tranches égal à DeuxTranches {
@@ -309,7 +309,7 @@ champ d'application :
 ```catala
 déclaration champ d'application Test1:
   calcul_impôt champ d'application NouveauCalculImpôtRevenu
-  sortie impôt_revenu contenu argent
+  résultat impôt_revenu contenu argent
 
 champ d'application Test1:
   définition
@@ -336,7 +336,7 @@ Ce test devrait être bon. Maintenant étudions un test en échec :
 ```catala
 déclaration champ d'application Test2:
   calcul_impôt champ d'application NouveauCalculImpôtRevenu
-  sortie impôt_revenu contenu argent
+  résultat impôt_revenu contenu argent
 
 champ d'application Test2:
   définition calcul_impôt.personne égal à Personne {
@@ -369,7 +369,7 @@ version correcte du champ d'application NouveauCalculImpotRevenu :
 déclaration champ d'application NouveauCalculImpôtRevenuCorrect:
   deux_tranches champ d'application CalculImpôtDeuxTranches
   entrée personne contenu Personne
-  sortie impôt_revenu contenu argent
+  résultat impôt_revenu contenu argent
 
 champ d'application NouveauCalculImpôtRevenuCorrect :
   définition deux_tranches.tranches égal à DeuxTranches {
@@ -398,7 +398,7 @@ Le test devrait désormais fonctionner :
 ```catala
 déclaration champ d'application Test3:
   calcul_impôt champ d'application NouveauCalculImpôtRevenuCorrect
-  sortie impôt_revenu contenu argent
+  résultat impôt_revenu contenu argent
 
 champ d'application Test3:
   définition calcul_impôt.personne égal à Personne {
