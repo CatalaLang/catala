@@ -75,6 +75,7 @@ let rec all_resolved ty =
   | TOption t1 | TArray t1 -> all_resolved t1
   | TArrow (t1, t2) -> all_resolved t1 && all_resolved t2
   | TTuple ts -> List.for_all all_resolved ts
+  [@@warning "-32"]
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -570,7 +571,7 @@ and typecheck_expr_top_down :
           tau_args t_ret
       in
       let mark = uf_mark t_func in
-      assert (List.for_all all_resolved tau_args);
+      (* assert (List.for_all all_resolved tau_args); *)
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
       let env =
@@ -580,9 +581,15 @@ and typecheck_expr_top_down :
       in
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-      Expr.eabs binder' (List.map typ_to_ast tau_args) mark
-  | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
-    let t_args = List.map ast_to_typ tys in
+      Expr.eabs binder' (List.map (typ_to_ast ~unsafe:true) tau_args) mark
+  | A.EApp { f = (EOp _, _) as e1; args } ->
+    (* Same as EApp, but the typing order is different to help with
+       disambiguation: - type of the operator is extracted first (to figure
+       linked type vars between arguments) - arguments are typed right-to-left,
+       because our operators with function args always have the functions first,
+       and the argument types of those functions can always be inferred from the
+       later operator arguments *)
+    let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
     let t_func =
       List.fold_right
         (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))

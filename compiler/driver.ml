@@ -326,6 +326,10 @@ let driver source_file (options : Cli.options) : int =
                     Lcalc.Optimizations.optimize_program prgm)
                   else prgm
                 in
+                Cli.debug_print "Retyping lambda calculus...";
+                let prgm =
+                  Shared_ast.Program.untype (Shared_ast.Typing.program prgm)
+                in
                 prgm)
               else prgm
             in
