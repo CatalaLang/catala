@@ -82,6 +82,18 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     (* context sub-scope variables *)
     let _, body = Bindlib.unmbind binder in
     body
+  | EAbs { binder; _ } -> (
+    (* context scope variables *)
+    let _, body = Bindlib.unmbind binder in
+    match Marked.unmark body with
+    | EErrorOnEmpty e -> e
+    | _ ->
+      Errors.raise_spanned_error (Expr.pos e)
+        "Internal error: this expression does not have the structure expected \
+         by the VC generator:\n\
+         %a"
+        (Expr.format ~debug:true ctx.decl)
+        e)
   | EErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
   | _ ->

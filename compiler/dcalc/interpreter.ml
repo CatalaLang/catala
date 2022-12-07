@@ -504,8 +504,11 @@ let interpret_program :
       StructField.Map.map
         (fun ty ->
           match Marked.unmark ty with
-          | TArrow ((TLit TUnit, _), ty_in) ->
-            Expr.empty_thunked_term (Expr.with_ty mark_e ty_in)
+          | TArrow (ty_in, ty_out) ->
+            Expr.make_abs
+              [| Var.make "_" |]
+              (Bindlib.box (ELit LEmptyError), Expr.with_ty mark_e ty_out)
+              [ty_in] (Expr.mark_pos mark_e)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)
               "This scope needs input arguments to be executed. But the Catala \
