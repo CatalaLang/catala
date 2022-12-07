@@ -18,7 +18,7 @@ module type Info = sig
   type info
 
   val to_string : info -> string
-  val format_info : Format.formatter -> info -> unit
+  val format : Format.formatter -> info -> unit
   val equal : info -> info -> bool
   val compare : info -> info -> int
 end
@@ -33,10 +33,21 @@ module type Id = sig
   val equal : t -> t -> bool
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
+
+  module Set : Set.S with type elt = t
+  module Map : Map.S with type key = t
 end
 
 module Make (X : Info) () : Id with type info = X.info = struct
-  type t = { id : int; info : X.info }
+  module Ordering = struct
+    type t = { id : int; info : X.info }
+
+    let compare (x : t) (y : t) : int = compare x.id y.id
+    let equal x y = Int.equal x.id y.id
+  end
+
+  include Ordering
+
   type info = X.info
 
   let counter = ref 0
@@ -46,20 +57,20 @@ module Make (X : Info) () : Id with type info = X.info = struct
     { id = !counter; info }
 
   let get_info (uid : t) : X.info = uid.info
-  let compare (x : t) (y : t) : int = compare x.id y.id
-  let equal x y = Int.equal x.id y.id
-
-  let format_t (fmt : Format.formatter) (x : t) : unit =
-    X.format_info fmt x.info
-
+  let format_t (fmt : Format.formatter) (x : t) : unit = X.format fmt x.info
   let hash (x : t) : int = x.id
+
+  module Set = Set.Make (Ordering)
+  module Map = Map.Make (Ordering)
 end
 
 module MarkedString = struct
   type info = string Marked.pos
 
   let to_string (s, _) = s
-  let format_info fmt i = Format.pp_print_string fmt (to_string i)
+  let format fmt i = Format.pp_print_string fmt (to_string i)
   let equal i1 i2 = String.equal (Marked.unmark i1) (Marked.unmark i2)
   let compare i1 i2 = String.compare (Marked.unmark i1) (Marked.unmark i2)
 end
+
+module Gen () = Make (MarkedString) ()

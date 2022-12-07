@@ -31,7 +31,7 @@ val code_buffer : Buffer.t
 val update_acc : Sedlexing.lexbuf -> unit
 (** Updates {!val:code_buffer} with the current lexeme *)
 
-val raise_lexer_error : Utils.Pos.t -> string -> 'a
+val raise_lexer_error : Catala_utils.Pos.t -> string -> 'a
 (** Error-generating helper *)
 
 val token_list_language_agnostic : (string * Tokens.token) list

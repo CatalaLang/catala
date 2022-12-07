@@ -25,7 +25,8 @@ module Env : sig
   val empty : 'e t
   val add_var : 'e Var.t -> typ -> 'e t -> 'e t
   val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
-  val add_scope : ScopeName.t -> vars:typ ScopeVarMap.t -> 'e t -> 'e t
+  val add_scope : ScopeName.t -> vars:typ ScopeVar.Map.t -> 'e t -> 'e t
+  val open_scope : ScopeName.t -> 'e t -> 'e t
 end
 
 val expr :
@@ -42,6 +43,17 @@ val expr :
     step. This can be used for double-checking after AST transformations and
     filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
     what you want. *)
+
+val check_expr :
+  decl_ctx ->
+  ?env:'e Env.t ->
+  ?typ:typ ->
+  (('a, 'm mark) gexpr as 'e) ->
+  ('a, untyped mark) boxed_gexpr
+(** Same as [expr], but doesn't annotate the returned expression. Equivalent to
+    [Typing.expr |> Expr.untype], but more efficient. This can be useful for
+    type-checking and disambiguation (some AST nodes are updated with missing
+    information, e.g. any [TAny] appearing in the AST is replaced) *)
 
 val program : ('a, 'm mark) gexpr program -> ('a, typed mark) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the

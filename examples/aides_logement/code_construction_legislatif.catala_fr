@@ -640,9 +640,9 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
-        (selon location.Location.bailleur sous forme
+        (selon location.bailleur sous forme
         -- BailleurSocial de convention:
-          convention.ConventionBailleurSocial.
+          convention.
             conventionné_livre_III_titre_V_chap_III
         -- BailleurPrivéAvecConventionnementSocial de convention:
           convention.conventionné_livre_III_titre_II_chap_I_sec_3
@@ -683,7 +683,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
-        location.LogementFoyer.conventionné_livre_III_titre_V_chap_III
+        location.conventionné_livre_III_titre_V_chap_III
       -- n'importe quel: faux
   conséquence rempli
 ```
@@ -891,19 +891,19 @@ champ d'application ÉligibilitéAllocationLogement:
       -- AutrePersonneÀCharge: faux
       -- EnfantÀCharge de enfant: (prestations_familiales.droit_ouvert de
         EnfantPrestationsFamiliales {
-        -- identifiant: enfant.EnfantÀCharge.identifiant
-        -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
-        -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
-        -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
+        -- identifiant: enfant.identifiant
+        -- obligation_scolaire: enfant.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+        -- date_de_naissance: enfant.date_de_naissance
         -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
           -- GardeAlternéeCoefficientPriseEnCharge:
             PriseEnChargeEnfant.GardeAlternéePartageAllocations
           -- PasDeGardeAlternée:
             PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
-          enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
+          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.EnfantÀCharge.
+          enfant.
             bénéficie_titre_personnel_aide_personnelle_logement
       }
       )
@@ -923,19 +923,19 @@ champ d'application ÉligibilitéAllocationLogement:
       -- AutrePersonneÀCharge: faux
       -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
         EnfantPrestationsFamiliales {
-        -- identifiant: enfant.EnfantÀCharge.identifiant
-        -- obligation_scolaire: enfant.EnfantÀCharge.obligation_scolaire
-        -- rémuneration_mensuelle: enfant.EnfantÀCharge.rémuneration_mensuelle
-        -- date_de_naissance: enfant.EnfantÀCharge.date_de_naissance
+        -- identifiant: enfant.identifiant
+        -- obligation_scolaire: enfant.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+        -- date_de_naissance: enfant.date_de_naissance
         -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
           -- GardeAlternéeCoefficientPriseEnCharge:
             PriseEnChargeEnfant.GardeAlternéePartageAllocations
           -- PasDeGardeAlternée:
             PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
-          enfant.EnfantÀCharge.a_déjà_ouvert_droit_aux_allocations_familiales
+          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.EnfantÀCharge.
+          enfant.
             bénéficie_titre_personnel_aide_personnelle_logement
       }
       )

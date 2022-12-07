@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module L = Lcalc.Ast
@@ -31,12 +31,12 @@ and naked_expr =
   | EVar of LocalName.t
   | EFunc of TopLevelName.t
   | EStruct of expr list * StructName.t
-  | EStructFieldAccess of expr * StructFieldName.t * StructName.t
+  | EStructFieldAccess of expr * StructField.t * StructName.t
   | EInj of expr * EnumConstructor.t * EnumName.t
   | EArray of expr list
   | ELit of L.lit
   | EApp of expr * expr list
-  | EOp of operator
+  | EOp of lcalc operator
 
 type stmt =
   | SInnerFuncDef of LocalName.t Marked.pos * func

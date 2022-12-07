@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module A = Ast
 module L = Lcalc.Ast
@@ -48,7 +48,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     [], (local_var, Expr.pos expr)
   | EStruct { fields; name } ->
     let args_stmts, new_args =
-      StructFieldMap.fold
+      StructField.Map.fold
         (fun _ arg (args_stmts, new_args) ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
           arg_stmts @ args_stmts, new_arg :: new_args)
@@ -207,7 +207,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   | EMatch { e = e1; cases; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     let new_cases =
-      EnumConstructorMap.fold
+      EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Marked.unmark arg with
           | EAbs { binder; _ } ->

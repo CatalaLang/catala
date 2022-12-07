@@ -4,7 +4,7 @@
  (libraries
   bindlib
   unionFind
-  utils
+  catala_utils
   re
   ubase
   catala.runtime_ocaml

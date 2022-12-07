@@ -14,6 +14,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+include module type of Stdlib.String
+module Set : Set.S with type elt = string
+module Map : Map.S with type key = string
+
 (** Helper functions used for string manipulation. *)
 
 val to_ascii : string -> string
@@ -34,3 +38,5 @@ val to_snake_case : string -> string
 val to_camel_case : string -> string
 (** Converts snake_case into CamlCase after removing Remove all diacritics on
     Latin letters. *)
+
+val format_t : Format.formatter -> string -> unit

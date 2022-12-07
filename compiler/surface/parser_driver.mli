@@ -17,6 +17,6 @@
 (** Wrapping module around parser and lexer that offers the
     [Surface.Parser_driver.parse_source_file] API. *)
 
-open Utils
+open Catala_utils
 
 val parse_top_level_file : Pos.input_file -> Cli.backend_lang -> Ast.program

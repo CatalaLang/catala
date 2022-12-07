@@ -1,7 +1,7 @@
 (library
  (name desugared)
  (public_name catala.desugared)
- (libraries ocamlgraph utils shared_ast surface))
+ (libraries ocamlgraph catala_utils shared_ast surface))
 
 (documentation
  (package catala)

@@ -15,10 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-module Cli = Utils.Cli
-module File = Utils.File
-module Errors = Utils.Errors
-module Pos = Utils.Pos
+open Catala_utils
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]
@@ -151,20 +148,18 @@ let driver source_file (options : Cli.options) : int =
         | None, _ ->
           let _, scope =
             try
-              Desugared.Name_resolution.IdentMap.filter_map
+              Shared_ast.IdentName.Map.filter_map
                 (fun _ -> function
                   | Desugared.Name_resolution.TScope (uid, _) -> Some uid
                   | _ -> None)
                 ctxt.typedefs
-              |> Desugared.Name_resolution.IdentMap.choose
+              |> Shared_ast.IdentName.Map.choose
             with Not_found ->
               Errors.raise_error "There isn't any scope inside the program."
           in
           scope
         | Some name, _ -> (
-          match
-            Desugared.Name_resolution.IdentMap.find_opt name ctxt.typedefs
-          with
+          match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
           | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
           | _ ->
             Errors.raise_error "There is no scope \"%s\" inside the program."
@@ -172,6 +167,8 @@ let driver source_file (options : Cli.options) : int =
       in
       Cli.debug_print "Desugaring...";
       let prgm = Desugared.From_surface.translate_program ctxt prgm in
+      Cli.debug_print "Disambiguating...";
+      let prgm = Desugared.Disambiguate.program prgm in
       Cli.debug_print "Collecting rules...";
       let prgm = Scopelang.From_desugared.translate_program prgm in
       match backend with
@@ -182,7 +179,8 @@ let driver source_file (options : Cli.options) : int =
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.scope prgm.program_ctx ~debug:options.debug)
-            (scope_uid, Shared_ast.ScopeMap.find scope_uid prgm.program_scopes)
+            ( scope_uid,
+              Shared_ast.ScopeName.Map.find scope_uid prgm.program_scopes )
         else
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)

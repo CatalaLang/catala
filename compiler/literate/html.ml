@@ -18,7 +18,7 @@
 (** This modules weaves the source code and the legislative text together into a
     document that law professionals can understand. *)
 
-open Utils
+open Catala_utils
 open Literate_common
 module A = Surface.Ast
 module P = Printf
@@ -91,7 +91,7 @@ let wrap_html
      </ul>\n"
     css_as_string (literal_title language)
     (literal_generated_by language)
-    Utils.Cli.version
+    Cli.version
     (pre_html (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat "\n"
@@ -133,7 +133,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
       "html";
       "-O";
       "style=colorful,anchorlinenos=True,lineanchors=\""
-      ^ String_common.to_ascii (Pos.get_file (Marked.get_mark c))
+      ^ String.to_ascii (Pos.get_file (Marked.get_mark c))
       ^ "\",linenos=table,linenostart="
       ^ string_of_int (Pos.get_start_line (Marked.get_mark c));
       "-o";
@@ -160,7 +160,7 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
 
 let sanitize_html_href str =
   str
-  |> String_common.to_ascii
+  |> String.to_ascii
   |> R.substitute ~rex:(R.regexp "[' '°\"]") ~subst:(function _ -> "%20")
 
 let rec law_structure_to_html

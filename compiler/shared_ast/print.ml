@@ -14,8 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
-open String_common
+open Catala_utils
 open Definitions
 
 let typ_needs_parens (ty : typ) : bool =
@@ -26,27 +25,28 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
     (fun fmt info ->
-      Utils.Cli.format_with_style
-        (if begins_with_uppercase (Marked.unmark info) then [ANSITerminal.red]
+      Cli.format_with_style
+        (if String.begins_with_uppercase (Marked.unmark info) then
+         [ANSITerminal.red]
         else [])
         fmt
-        (Utils.Uid.MarkedString.to_string info))
+        (Uid.MarkedString.to_string info))
     fmt infos
 
 let keyword (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.red] fmt s
+  Cli.format_with_style [ANSITerminal.red] fmt s
 
 let base_type (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.yellow] fmt s
+  Cli.format_with_style [ANSITerminal.yellow] fmt s
 
 let punctuation (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.cyan] fmt s
+  Cli.format_with_style [ANSITerminal.cyan] fmt s
 
 let operator (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.green] fmt s
+  Cli.format_with_style [ANSITerminal.green] fmt s
 
 let lit_style (fmt : Format.formatter) (s : string) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.yellow] fmt s
+  Cli.format_with_style [ANSITerminal.yellow] fmt s
 
 let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   base_type fmt
@@ -68,7 +68,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
       ScopeVar.format_t (Marked.unmark subvar)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
-  Utils.Cli.format_with_style [ANSITerminal.magenta] fmt
+  Cli.format_with_style [ANSITerminal.magenta] fmt
     (Format.asprintf "%a" EnumConstructor.format_t c)
 
 let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
@@ -94,9 +94,9 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
            (fun fmt (field, mty) ->
              Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-               StructFieldName.format_t field punctuation "\"" punctuation ":"
-               typ mty))
-        (StructFieldMap.bindings (StructMap.find s ctx.ctx_structs))
+               StructField.format_t field punctuation "\"" punctuation ":" typ
+               mty))
+        (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
         punctuation "}")
   | TEnum e -> (
     match ctx with
@@ -109,7 +109,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
            (fun fmt (case, mty) ->
              Format.fprintf fmt "%a%a@ %a" enum_constructor case punctuation ":"
                typ mty))
-        (EnumConstructorMap.bindings (EnumMap.find e ctx.ctx_enums))
+        (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
         punctuation "]")
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
   | TArrow (t1, t2) ->
@@ -127,9 +127,9 @@ let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
+      (Runtime.decimal_to_string ~max_prec_digits:!Cli.max_prec_digits i)
   | LMoney e -> (
-    match !Utils.Cli.locale_lang with
+    match !Cli.locale_lang with
     | En -> lit_style fmt (Format.asprintf "$%s" (Runtime.money_to_string e))
     | Fr -> lit_style fmt (Format.asprintf "%s €" (Runtime.money_to_string e))
     | Pl -> lit_style fmt (Format.asprintf "%s PLN" (Runtime.money_to_string e))
@@ -137,7 +137,7 @@ let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
   | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
 
-let op_kind (fmt : Format.formatter) (k : op_kind) =
+let op_kind (fmt : Format.formatter) (k : 'a op_kind) =
   Format.fprintf fmt "%s"
     (match k with
     | KInt -> ""
@@ -146,7 +146,7 @@ let op_kind (fmt : Format.formatter) (k : op_kind) =
     | KDate -> "@"
     | KDuration -> "^")
 
-let binop (fmt : Format.formatter) (op : binop) : unit =
+let binop (fmt : Format.formatter) (op : 'a binop) : unit =
   operator fmt
     (match op with
     | Add k -> Format.asprintf "+%a" op_kind k
@@ -172,14 +172,14 @@ let ternop (fmt : Format.formatter) (op : ternop) : unit =
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "@<2>%a"
     (fun fmt -> function
-      | VarDef _ -> Utils.Cli.format_with_style [ANSITerminal.blue] fmt "≔ "
-      | BeginCall -> Utils.Cli.format_with_style [ANSITerminal.yellow] fmt "→ "
-      | EndCall -> Utils.Cli.format_with_style [ANSITerminal.yellow] fmt "← "
+      | VarDef _ -> Cli.format_with_style [ANSITerminal.blue] fmt "≔ "
+      | BeginCall -> Cli.format_with_style [ANSITerminal.yellow] fmt "→ "
+      | EndCall -> Cli.format_with_style [ANSITerminal.yellow] fmt "← "
       | PosRecordIfTrueBool ->
-        Utils.Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
+        Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
     entry
 
-let unop (fmt : Format.formatter) (op : unop) : unit =
+let unop (fmt : Format.formatter) (op : 'a unop) : unit =
   match op with
   | Minus _ -> Format.pp_print_string fmt "-"
   | Not -> Format.pp_print_string fmt "~"
@@ -187,7 +187,7 @@ let unop (fmt : Format.formatter) (op : unop) : unit =
     Format.fprintf fmt "log@[<hov 2>[%a|%a]@]" log_entry entry
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-         (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+         (fun fmt info -> Uid.MarkedString.format fmt info))
       infos
   | Length -> Format.pp_print_string fmt "length"
   | IntToRat -> Format.pp_print_string fmt "int_to_rat"
@@ -323,6 +323,9 @@ let rec expr_aux :
   | ERaise exn ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
   | ELocation loc -> location fmt loc
+  | EDStructAccess { e; field; _ } ->
+    Format.fprintf fmt "%a%a%a%a%a" expr e punctuation "." punctuation "\""
+      IdentName.format_t field punctuation "\""
   | EStruct { name; fields } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
       punctuation "{"
@@ -330,13 +333,13 @@ let rec expr_aux :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
          (fun fmt (field_name, field_expr) ->
            Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-             StructFieldName.format_t field_name punctuation "\"" punctuation
-             "=" expr field_expr))
-      (StructFieldMap.bindings fields)
+             StructField.format_t field_name punctuation "\"" punctuation "="
+             expr field_expr))
+      (StructField.Map.bindings fields)
       punctuation "}"
   | EStructAccess { e; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" expr e punctuation "." punctuation "\""
-      StructFieldName.format_t field punctuation "\""
+      StructField.format_t field punctuation "\""
   | EInj { e; cons; _ } ->
     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons expr e
   | EMatch { e; cases; _ } ->
@@ -347,7 +350,7 @@ let rec expr_aux :
          (fun fmt (cons_name, case_expr) ->
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
              enum_constructor cons_name punctuation "→" expr case_expr))
-      (EnumConstructorMap.bindings cases)
+      (EnumConstructor.Map.bindings cases)
   | EScopeCall { scope; args } ->
     Format.pp_open_hovbox fmt 2;
     ScopeName.format_t fmt scope;
@@ -362,7 +365,7 @@ let rec expr_aux :
         Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\"" ScopeVar.format_t
           field_name punctuation "\"" punctuation "=" expr field_expr)
       fmt
-      (ScopeVarMap.bindings args);
+      (ScopeVar.Map.bindings args);
     Format.pp_close_box fmt ();
     punctuation fmt "}";
     Format.pp_close_box fmt ()

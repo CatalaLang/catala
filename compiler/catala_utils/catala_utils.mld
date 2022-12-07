@@ -7,12 +7,12 @@ In {{: desugared.html} the desugared representation} or in the
 global identifiers. These identifiers use OCaml's type system to statically
 distinguish e.g. a scope identifier from a struct identifier.
 
-The {!module: Utils.Uid} module provides a generative functor whose output is
+The {!module: Uid} module provides a generative functor whose output is
 a fresh sort of global identifiers.
 
 Related modules:
 
-{!modules: Utils.Uid}
+{!modules: Uid}
 
 {1 Source code positions}
 
@@ -22,7 +22,7 @@ code. These annotations are critical to produce readable error messages.
 
 Related modules:
 
-{!modules: Utils.Pos}
+{!modules: Pos}
 
 {1 Error messages}
 

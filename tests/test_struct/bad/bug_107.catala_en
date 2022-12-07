@@ -21,17 +21,15 @@ $ catala Interpret -s A
 [ERROR] struct name "S" already defined
 
 First definition:
-┌─⯈ tests/test_struct/bad/bug_107.catala_en:4.22-23
+┌─⯈ tests/test_struct/bad/bug_107.catala_en:4.22-23:
 └─┐
-  │
 4 │ declaration structure S:
   │                       ‾
   └─ https://github.com/CatalaLang/catala/issues/107
 
 Second definition:
-┌─⯈ tests/test_struct/bad/bug_107.catala_en:8.22-23
+┌─⯈ tests/test_struct/bad/bug_107.catala_en:8.22-23:
 └─┐
-  │
 8 │ declaration structure S:
   │                       ‾
   └─ https://github.com/CatalaLang/catala/issues/107

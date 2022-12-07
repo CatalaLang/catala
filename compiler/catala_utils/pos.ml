@@ -79,11 +79,11 @@ let to_string (pos : t) : string =
 let to_string_short (pos : t) : string =
   let s, e = pos.code_pos in
   if e.Lexing.pos_lnum = s.Lexing.pos_lnum then
-    Printf.sprintf "%s:%d.%d-%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+    Printf.sprintf "%s:%d.%d-%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
       (s.Lexing.pos_cnum - s.Lexing.pos_bol)
       (e.Lexing.pos_cnum - e.Lexing.pos_bol)
   else
-    Printf.sprintf "%s:%d.%d-%d.%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+    Printf.sprintf "%s:%d.%d-%d.%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
       (s.Lexing.pos_cnum - s.Lexing.pos_bol)
       e.Lexing.pos_lnum
       (e.Lexing.pos_cnum - e.Lexing.pos_bol)
@@ -101,6 +101,27 @@ let string_repeat n s =
     Bytes.blit_string s 0 buf (i * slen) slen
   done;
   Bytes.to_string buf
+
+(* Note: this should do, but remains incorrect for combined unicode characters
+   that display as one (e.g. `e` + postfix `'`). We should switch to Uuseg at
+   some poing *)
+let string_columns s =
+  let len = String.length s in
+  let rec aux ncols i =
+    if i >= len then ncols
+    else if s.[i] = '\t' then aux (ncols + 8) (i + 1)
+    else
+      aux (ncols + 1) (i + Uchar.utf_decode_length (String.get_utf_8_uchar s i))
+  in
+  aux 0 0
+
+let utf8_byte_index s ui0 =
+  let rec aux bi ui =
+    if ui >= ui0 then bi
+    else
+      aux (bi + Uchar.utf_decode_length (String.get_utf_8_uchar s bi)) (ui + 1)
+  in
+  aux 0 0
 
 let retrieve_loc_text (pos : t) : string =
   try
@@ -132,34 +153,32 @@ let retrieve_loc_text (pos : t) : string =
       let print_matched_line (line : string) (line_no : int) : string =
         let line_indent = indent_number line in
         let error_indicator_style = [ANSITerminal.red; ANSITerminal.Bold] in
-        line
-        ^
-        if line_no >= sline && line_no <= eline then
-          "\n"
-          ^
-          if line_no = sline && line_no = eline then
-            Cli.with_style error_indicator_style "%*s%s"
-              (get_start_column pos - 1)
-              ""
-              (string_repeat
-                 (max (get_end_column pos - get_start_column pos) 0)
-                 "‾")
-          else if line_no = sline && line_no <> eline then
-            Cli.with_style error_indicator_style "%*s%s"
-              (get_start_column pos - 1)
-              ""
-              (string_repeat
-                 (max (String.length line - get_start_column pos) 0)
-                 "‾")
-          else if line_no <> sline && line_no <> eline then
-            Cli.with_style error_indicator_style "%*s%s" line_indent ""
-              (string_repeat (max (String.length line - line_indent) 0) "‾")
-          else if line_no <> sline && line_no = eline then
-            Cli.with_style error_indicator_style "%*s%*s" line_indent ""
-              (get_end_column pos - 1 - line_indent)
-              (string_repeat (max (get_end_column pos - line_indent) 0) "‾")
-          else assert false (* should not happen *)
-        else ""
+        let match_start_index =
+          utf8_byte_index line
+            (if line_no = sline then get_start_column pos - 1 else line_indent)
+        in
+        let match_end_index =
+          if line_no = eline then utf8_byte_index line (get_end_column pos - 1)
+          else String.length line
+        in
+        let unmatched_prefix = String.sub line 0 match_start_index in
+        let matched_substring =
+          String.sub line match_start_index
+            (max 0 (match_end_index - match_start_index))
+        in
+        let match_start_col = string_columns unmatched_prefix in
+        let match_num_cols = string_columns matched_substring in
+        String.concat ""
+          (line
+          :: "\n"
+          ::
+          (if line_no >= sline && line_no <= eline then
+           [
+             string_repeat match_start_col " ";
+             Cli.with_style error_indicator_style "%s"
+               (string_repeat match_num_cols "‾");
+           ]
+          else []))
       in
       let include_extra_count = 0 in
       let rec get_lines (n : int) : string list =
@@ -193,10 +212,8 @@ let retrieve_loc_text (pos : t) : string =
         (Cli.with_style blue_style "└%s┐" (string_repeat spaces "─"));
       Buffer.add_char buf '\n';
       Buffer.add_string buf
-        (Cli.add_prefix_to_each_line
-           (String.concat "\n" ("" :: pos_lines))
-           (fun i ->
-             let cur_line = sline - include_extra_count + i - 1 in
+        (Cli.add_prefix_to_each_line (String.concat "\n" pos_lines) (fun i ->
+             let cur_line = sline - include_extra_count + i in
              if
                cur_line >= sline
                && cur_line <= sline + (2 * (eline - sline))

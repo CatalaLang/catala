@@ -17,7 +17,7 @@
 (** Graph representation of the dependencies between scopes in the Catala
     program. Vertices are functions, x -> y if x is used in the definition of y. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Scope dependencies} *)

@@ -18,7 +18,7 @@
 (** This modules weaves the source code and the legislative text together into a
     document that law professionals can understand. *)
 
-open Utils
+open Catala_utils
 open Literate_common
 module A = Surface.Ast
 module R = Re.Pcre
@@ -158,7 +158,7 @@ codes={\catcode`\$=3\catcode`\^=7}
        https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography *)
     (literal_title language)
     (literal_generated_by language)
-    Utils.Cli.version
+    Cli.version
     (pre_latexify (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat

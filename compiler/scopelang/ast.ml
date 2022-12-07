@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 type location = scopelang glocation
@@ -46,13 +46,13 @@ type 'm rule =
 
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ * Desugared.Ast.io) ScopeVarMap.t;
+  scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
 }
 
 type 'm program = {
-  program_scopes : 'm scope_decl ScopeMap.t;
+  program_scopes : 'm scope_decl ScopeName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -70,17 +70,17 @@ let type_rule decl_ctx env = function
 
 let type_program (prg : 'm program) : typed program =
   let typing_env =
-    ScopeMap.fold
+    ScopeName.Map.fold
       (fun scope_name scope_decl ->
-        let vars = ScopeVarMap.map fst scope_decl.scope_sig in
+        let vars = ScopeVar.Map.map fst scope_decl.scope_sig in
         Typing.Env.add_scope scope_name ~vars)
       prg.program_scopes Typing.Env.empty
   in
   let program_scopes =
-    ScopeMap.map
+    ScopeName.Map.map
       (fun scope_decl ->
         let typing_env =
-          ScopeVarMap.fold
+          ScopeVar.Map.fold
             (fun svar (typ, _) env -> Typing.Env.add_scope_var svar typ env)
             scope_decl.scope_sig typing_env
         in

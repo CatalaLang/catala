@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 (** Helper functions to interact with {!Unix.tm} dates *)
 
 type date_format = DDMMYYYY | ISO
@@ -53,7 +55,7 @@ let parse_expiration_date (date_format : date_format) (expiration_date : string)
            Unix.tm_isdst = false;
          })
   with _ ->
-    Utils.Errors.raise_error "Error while parsing expiration date argument (%s)"
+    Errors.raise_error "Error while parsing expiration date argument (%s)"
       expiration_date
 
 (** Prints an [Unix.tm] under the ISO formatting [YYYY-MM-DD] *)

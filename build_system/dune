@@ -9,7 +9,7 @@
  (public_name clerk.driver)
  (libraries
   catala.runtime_ocaml
-  catala.utils
+  catala.catala_utils
   ninja_utils
   cmdliner
   re

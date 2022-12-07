@@ -19,8 +19,8 @@ open Shared_ast
 (** Formats a lambda calculus program into a valid OCaml program *)
 
 val avoid_keywords : string -> string
-val find_struct : StructName.t -> decl_ctx -> typ StructFieldMap.t
-val find_enum : EnumName.t -> decl_ctx -> typ EnumConstructorMap.t
+val find_struct : StructName.t -> decl_ctx -> typ StructField.Map.t
+val find_enum : EnumName.t -> decl_ctx -> typ EnumConstructor.Map.t
 val typ_needs_parens : typ -> bool
 
 (* val needs_parens : 'm expr -> bool *)
@@ -29,7 +29,7 @@ val format_enum_cons_name : Format.formatter -> EnumConstructor.t -> unit
 val format_struct_name : Format.formatter -> StructName.t -> unit
 
 val format_struct_field_name :
-  Format.formatter -> StructName.t option * StructFieldName.t -> unit
+  Format.formatter -> StructName.t option * StructField.t -> unit
 
 val format_to_module_name :
   Format.formatter -> [< `Ename of EnumName.t | `Sname of StructName.t ] -> unit

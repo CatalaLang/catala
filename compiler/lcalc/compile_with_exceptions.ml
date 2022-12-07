@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
@@ -43,7 +43,7 @@ let rec translate_default
     Expr.make_app
       (Expr.make_var
          (Var.translate A.handle_default)
-         (Expr.with_ty mark_default (Utils.Marked.mark pos TAny)))
+         (Expr.with_ty mark_default (Marked.mark pos TAny)))
       [
         Expr.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just);
@@ -58,13 +58,13 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
   match Marked.unmark e with
   | EVar v -> Expr.make_var (Var.Map.find v ctx) m
   | EStruct { name; fields } ->
-    Expr.estruct name (StructFieldMap.map (translate_expr ctx) fields) m
+    Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
   | EStructAccess { name; e; field } ->
     Expr.estructaccess (translate_expr ctx e) field name m
   | EInj { name; e; cons } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { name; e; cases } ->
     Expr.ematch (translate_expr ctx e) name
-      (EnumConstructorMap.map (translate_expr ctx) cases)
+      (EnumConstructor.Map.map (translate_expr ctx) cases)
       m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
   | ELit
@@ -72,7 +72,7 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
       l) ->
     Expr.elit l m
   | ELit LEmptyError -> Expr.eraise EmptyError m
-  | EOp op -> Expr.eop op m
+  | EOp op -> Expr.eop (Expr.translate_op op) m
   | EIfThenElse { cond; etrue; efalse } ->
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)

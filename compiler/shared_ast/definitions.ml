@@ -20,72 +20,46 @@
 
 (* Doesn't define values, so OK to have without an mli *)
 
-open Utils
+open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
-
-module ScopeName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module ScopeSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
-module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
-
-module StructName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
-
-module EnumName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
+module ScopeName = Uid.Gen ()
+module StructName = Uid.Gen ()
+module StructField = Uid.Gen ()
+module EnumName = Uid.Gen ()
+module EnumConstructor = Uid.Gen ()
 
 (** Only used by surface *)
 
-module RuleName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module RuleName = Uid.Gen ()
+module LabelName = Uid.Gen ()
 
-module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
-module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
+(** Used for unresolved structs/maps in desugared *)
 
-module LabelName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
-module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
+module IdentName = String
 
 (** Only used by desugared/scopelang *)
 
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
-module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
-
-module SubScopeName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module SubScopeNameSet : Set.S with type elt = SubScopeName.t =
-  Set.Make (SubScopeName)
-
-module SubScopeMap : Map.S with type key = SubScopeName.t =
-  Map.Make (SubScopeName)
-
-module StructFieldMap : Map.S with type key = StructFieldName.t =
-  Map.Make (StructFieldName)
-
-module EnumConstructorMap : Map.S with type key = EnumConstructor.t =
-  Map.Make (EnumConstructor)
-
-module StateName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module ScopeVar = Uid.Gen ()
+module SubScopeName = Uid.Gen ()
+module StateName = Uid.Gen ()
 
 (** {1 Abstract syntax tree} *)
+
+(** Define a common base type for the expressions in most passes of the compiler *)
+
+type desugared = [ `Desugared ]
+(** {2 Phantom types used to select relevant cases on the generic AST}
+
+    we instantiate them with a polymorphic variant to take advantage of
+    sub-typing. The values aren't actually used. *)
+
+type scopelang = [ `Scopelang ]
+type dcalc = [ `Dcalc ]
+type lcalc = [ `Lcalc ]
+
+type 'a any = [< desugared | scopelang | dcalc | lcalc ] as 'a
+(** ['a any] is 'a, but adds the constraint that it should be restricted to
+    valid AST kinds *)
 
 (** {2 Types} *)
 
@@ -108,27 +82,28 @@ and naked_typ =
 type date = Runtime.date
 type duration = Runtime.duration
 
-type op_kind =
-  | KInt
-  | KRat
-  | KMoney
-  | KDate
-  | KDuration  (** All ops don't have a KDate and KDuration. *)
+type 'a op_kind =
+  (* | Kpoly: desugared op_kind -- Coming soon ! *)
+  | KInt : 'a any op_kind
+  | KRat : 'a any op_kind
+  | KMoney : 'a any op_kind
+  | KDate : 'a any op_kind
+  | KDuration : 'a any op_kind  (** All ops don't have a KDate and KDuration. *)
 
 type ternop = Fold
 
-type binop =
+type 'a binop =
   | And
   | Or
   | Xor
-  | Add of op_kind
-  | Sub of op_kind
-  | Mult of op_kind
-  | Div of op_kind
-  | Lt of op_kind
-  | Lte of op_kind
-  | Gt of op_kind
-  | Gte of op_kind
+  | Add of 'a op_kind
+  | Sub of 'a op_kind
+  | Mult of 'a op_kind
+  | Div of 'a op_kind
+  | Lt of 'a op_kind
+  | Lte of 'a op_kind
+  | Gt of 'a op_kind
+  | Gte of 'a op_kind
   | Eq
   | Neq
   | Map
@@ -143,9 +118,9 @@ type log_entry =
   | EndCall
   | PosRecordIfTrueBool
 
-type unop =
+type 'a unop =
   | Not
-  | Minus of op_kind
+  | Minus of 'a op_kind
   | Log of log_entry * Uid.MarkedString.info list
   | Length
   | IntToRat
@@ -159,18 +134,12 @@ type unop =
   | RoundMoney
   | RoundDecimal
 
-type operator = Ternop of ternop | Binop of binop | Unop of unop
+type 'a operator = Ternop of ternop | Binop of 'a binop | Unop of 'a unop
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 (** {2 Generic expressions} *)
 
 (** Define a common base type for the expressions in most passes of the compiler *)
-
-type desugared = [ `Desugared ]
-type scopelang = [ `Scopelang ]
-type dcalc = [ `Dcalc ]
-type lcalc = [ `Lcalc ]
-type 'a any = [< desugared | scopelang | dcalc | lcalc ] as 'a
 
 (** Literals are the same throughout compilation except for the [LEmptyError]
     case which is eliminated midway through. *)
@@ -216,7 +185,7 @@ and ('a, 't) naked_gexpr =
       args : ('a, 't) gexpr list;
     }
       -> ('a any, 't) naked_gexpr
-  | EOp : operator -> ('a any, 't) naked_gexpr
+  | EOp : 'a operator -> ('a any, 't) naked_gexpr
   | EArray : ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
   | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a any, 't) naked_gexpr
   | EAbs : {
@@ -232,13 +201,7 @@ and ('a, 't) naked_gexpr =
       -> ('a any, 't) naked_gexpr
   | EStruct : {
       name : StructName.t;
-      fields : ('a, 't) gexpr StructFieldMap.t;
-    }
-      -> ('a any, 't) naked_gexpr
-  | EStructAccess : {
-      name : StructName.t;
-      e : ('a, 't) gexpr;
-      field : StructFieldName.t;
+      fields : ('a, 't) gexpr StructField.Map.t;
     }
       -> ('a any, 't) naked_gexpr
   | EInj : {
@@ -250,7 +213,7 @@ and ('a, 't) naked_gexpr =
   | EMatch : {
       name : EnumName.t;
       e : ('a, 't) gexpr;
-      cases : ('a, 't) gexpr EnumConstructorMap.t;
+      cases : ('a, 't) gexpr EnumConstructor.Map.t;
     }
       -> ('a any, 't) naked_gexpr
   (* Early stages *)
@@ -259,9 +222,23 @@ and ('a, 't) naked_gexpr =
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
   | EScopeCall : {
       scope : ScopeName.t;
-      args : ('a, 't) gexpr ScopeVarMap.t;
+      args : ('a, 't) gexpr ScopeVar.Map.t;
     }
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
+  (* [desugared] has ambiguous struct fields *)
+  | EDStructAccess : {
+      name_opt : StructName.t option;
+      e : ('a, 't) gexpr;
+      field : IdentName.t;
+    }
+      -> ((desugared as 'a), 't) naked_gexpr
+  (* Resolved struct/enums, after [desugared] *)
+  | EStructAccess : {
+      name : StructName.t;
+      e : ('a, 't) gexpr;
+      field : StructField.t;
+    }
+      -> (([< scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
   (* Lambda-like *)
   | EAssert : ('a, 't) gexpr -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   (* Default terms *)
@@ -386,18 +363,20 @@ and 'e scopes =
   | ScopeDef of 'e scope_def
   constraint 'e = (_ any, _ mark) gexpr
 
-type struct_ctx = typ StructFieldMap.t StructMap.t
-type enum_ctx = typ EnumConstructorMap.t EnumMap.t
+type struct_ctx = typ StructField.Map.t StructName.Map.t
+type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
 
 type scope_out_struct = {
   out_struct_name : StructName.t;
-  out_struct_fields : StructFieldName.t ScopeVarMap.t;
+  out_struct_fields : StructField.t ScopeVar.Map.t;
 }
 
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
-  ctx_scopes : scope_out_struct ScopeMap.t;
+  ctx_struct_fields : StructField.t StructName.Map.t IdentName.Map.t;
+      (** needed for disambiguation (desugared -> scope) *)
+  ctx_scopes : scope_out_struct ScopeName.Map.t;
 }
 
 type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }

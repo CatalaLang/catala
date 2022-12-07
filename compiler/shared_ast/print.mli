@@ -16,7 +16,7 @@
 
 (** Printing functions for the default calculus AST *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 (** {1 Common syntax highlighting helpers}*)
@@ -35,11 +35,11 @@ val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val typ : decl_ctx -> Format.formatter -> typ -> unit
 val lit : Format.formatter -> 'a glit -> unit
-val op_kind : Format.formatter -> op_kind -> unit
-val binop : Format.formatter -> binop -> unit
+val op_kind : Format.formatter -> 'a any op_kind -> unit
+val binop : Format.formatter -> 'a any binop -> unit
 val ternop : Format.formatter -> ternop -> unit
 val log_entry : Format.formatter -> log_entry -> unit
-val unop : Format.formatter -> unop -> unit
+val unop : Format.formatter -> 'a any unop -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit

@@ -18,7 +18,7 @@
     without the expected backend. All functions print an error message and exit *)
 
 let dummy () =
-  Utils.Cli.error_print
+  Catala_utils.Cli.error_print
     "This instance of Catala was compiled without Z3 support.";
   exit 124
 
@@ -36,7 +36,6 @@ module Io = struct
   type model = unit
   type vc_encoding_result = Success of model * model | Fail of string
 
-  let print_positive_result _ = dummy ()
   let print_negative_result _ _ _ = dummy ()
   let encode_and_check_vc _ _ = dummy ()
 end
