@@ -95,40 +95,36 @@ let merge_defaults
      variable being defined is a function. *)
   if is_func then
     let m_callee = Marked.get_mark callee in
-    Bindlib.unbox
-      (Bindlib.box_apply
-         (fun naked_unboxed_callee ->
-           match naked_unboxed_callee with
-           | EAbs { binder; tys } ->
-             let vars, body = Bindlib.unmbind binder in
-             let m_body = Marked.get_mark body in
-             let caller =
-               let m = Marked.get_mark caller in
-               let pos = Expr.mark_pos m in
-               Expr.make_app caller
-                 (List.map2
-                    (fun (var : (dcalc, 'm mark) naked_gexpr Bindlib.var) ty ->
-                      Expr.evar var
-                        (* we have to correctly propagate types when doing this
-                           rewriting *)
-                        (Expr.with_ty m_body ~pos:(Expr.mark_pos m_body) ty))
-                    (Array.to_list vars) tys)
-                 pos
-             in
-
-             let ltrue =
-               Expr.elit (LBool true)
-                 (Expr.with_ty m_callee
-                    (Marked.mark (Expr.mark_pos m_callee) (TLit TBool)))
-             in
-             let d = Expr.edefault [caller] ltrue (Expr.rebox body) m_body in
-             Expr.make_abs vars
-               (Expr.eerroronempty d m_body)
-               tys (Expr.mark_pos m_callee)
-           | _ -> assert false
-           (* should not happen because there should always be a lambda at the
-              beginning of a default with a function type *))
-         (Marked.unmark callee))
+    let unboxed_callee = Expr.unbox callee in
+    match Marked.unmark unboxed_callee with
+    | EAbs { binder; tys } ->
+      let vars, body = Bindlib.unmbind binder in
+      let m_body = Marked.get_mark body in
+      let caller =
+        let m = Marked.get_mark caller in
+        let pos = Expr.mark_pos m in
+        Expr.make_app caller
+          (List.map2
+             (fun (var : (dcalc, 'm mark) naked_gexpr Bindlib.var) ty ->
+               Expr.evar var
+                 (* we have to correctly propagate types when doing this
+                    rewriting *)
+                 (Expr.with_ty m_body ~pos:(Expr.mark_pos m_body) ty))
+             (Array.to_list vars) tys)
+          pos
+      in
+      let ltrue =
+        Expr.elit (LBool true)
+          (Expr.with_ty m_callee
+             (Marked.mark (Expr.mark_pos m_callee) (TLit TBool)))
+      in
+      let d = Expr.edefault [caller] ltrue (Expr.rebox body) m_body in
+      Expr.make_abs vars
+        (Expr.eerroronempty d m_body)
+        tys (Expr.mark_pos m_callee)
+    | _ -> assert false
+    (* should not happen because there should always be a lambda at the
+       beginning of a default with a function type *)
   else
     let caller =
       let m = Marked.get_mark caller in
