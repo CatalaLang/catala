@@ -86,7 +86,8 @@ let rec hoist_context_free_closures :
 
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
-    http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
+    http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=10
+    (environment-passing closure conversion). *)
 let rec transform_closures_expr :
     type m. m ctx -> m expr -> m expr Var.Set.t * m expr boxed =
  fun ctx e ->
@@ -162,8 +163,8 @@ let rec transform_closures_expr :
            (fun i _ ->
              Expr.etupleaccess
                (Expr.evar inner_c_var binder_mark)
-               (i + 1)
-               (List.length extra_vars_list + 1)
+               i
+               (List.length extra_vars_list)
                binder_mark)
            extra_vars_list)
         new_body
@@ -182,9 +183,13 @@ let rec transform_closures_expr :
         new_closure
         (Expr.etuple
            ((Bindlib.box_var code_var, binder_mark)
-           :: List.map
-                (fun extra_var -> Bindlib.box_var extra_var, binder_mark)
-                extra_vars_list)
+           :: [
+                Expr.etuple
+                  (List.map
+                     (fun extra_var -> Bindlib.box_var extra_var, binder_mark)
+                     extra_vars_list)
+                  m;
+              ])
            m)
         (Expr.pos e) )
   | EApp { f = EOp _, _; _ } ->
@@ -199,6 +204,7 @@ let rec transform_closures_expr :
       e
   | EApp { f = e1; args } ->
     let free_vars, new_e1 = (transform_closures_expr ctx) e1 in
+    let code_env_var = Var.make "code_and_env" in
     let env_var = Var.make "env" in
     let code_var = Var.make "code" in
     let free_vars, new_args =
@@ -212,20 +218,21 @@ let rec transform_closures_expr :
       let m1 = Marked.get_mark e1 in
       Expr.make_let_in code_var
         (TAny, Expr.pos e)
-        (Expr.etupleaccess
-           (Bindlib.box_var env_var, m1)
-           0
-           (List.length new_args + 1)
-           m)
-        (Expr.eapp
-           (Bindlib.box_var code_var, m1)
-           ((Bindlib.box_var env_var, m1) :: new_args)
-           m)
+        (Expr.etupleaccess (Bindlib.box_var code_env_var, m1) 0 2 m)
+        (Expr.make_let_in env_var
+           (TAny, Expr.pos e)
+           (Expr.etupleaccess (Bindlib.box_var code_env_var, m1) 1 2 m)
+           (Expr.eapp
+              (Bindlib.box_var code_var, m1)
+              ((Bindlib.box_var env_var, m1) :: new_args)
+              m)
+           (Expr.pos e))
         (Expr.pos e)
     in
     ( free_vars,
-      Expr.make_let_in env_var (TAny, Expr.pos e) new_e1 call_expr (Expr.pos e)
-    )
+      Expr.make_let_in code_env_var
+        (TAny, Expr.pos e)
+        new_e1 call_expr (Expr.pos e) )
 
 let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
   let _vars, e' = (transform_closures_expr ctx) e in
@@ -250,6 +257,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
         let new_scope_lets =
           Scope.map_exprs_in_lets ~reset_types:true
             ~f:(closure_conversion_expr ctx)
+              (* TODO: change [name_context] for the variable name*)
               (*fun e -> let e = closure_conversion_expr ctx e in let m =
                 Marked.get_mark e in let e = Bindlib.box_apply (fun e -> let _,
                 e = hoist_context_free_closures ctx (e, m) in Bindlib.unbox

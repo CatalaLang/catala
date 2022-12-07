@@ -764,7 +764,7 @@ let rec scope_body_expr ctx env ty_out body_expr =
         A.ScopeLet
           {
             scope_let_kind;
-            scope_let_typ;
+            scope_let_typ = typ_to_ast (ty e);
             scope_let_expr;
             scope_let_next;
             scope_let_pos;
