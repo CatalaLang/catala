@@ -464,13 +464,23 @@ and typecheck_expr_top_down :
             A.StructName.format_t name
       in
       let field =
-        try
-          A.StructName.Map.find name
-            (A.IdentName.Map.find field ctx.ctx_struct_fields)
+        let candidate_structs =
+          try A.IdentName.Map.find field ctx.ctx_struct_fields
+          with Not_found ->
+            Errors.raise_spanned_error context_mark.pos
+              "Field %s does not belong to structure %a (no structure defines \
+               it)"
+              field A.StructName.format_t name
+        in
+        try A.StructName.Map.find name candidate_structs
         with Not_found ->
           Errors.raise_spanned_error context_mark.pos
-            "Field %s does not belong to structure %a" field
+            "Field %s does not belong to structure %a, but to %a" field
             A.StructName.format_t name
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
+               A.StructName.format_t)
+            (List.map fst (A.StructName.Map.bindings candidate_structs))
       in
       A.StructField.Map.find field str
     in

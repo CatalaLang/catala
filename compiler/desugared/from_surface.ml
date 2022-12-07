@@ -275,7 +275,7 @@ let rec translate_expr
             try Name_resolution.get_struct ctxt c
             with Not_found ->
               Errors.raise_spanned_error (Marked.get_mark c)
-                "Struct %s has not been defined before" (Marked.unmark c))
+                "Structure %s was not declared" (Marked.unmark c))
           c
       in
       Expr.edstructaccess e (Marked.unmark x) str emark)

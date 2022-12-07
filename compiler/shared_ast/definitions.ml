@@ -225,20 +225,20 @@ and ('a, 't) naked_gexpr =
       args : ('a, 't) gexpr ScopeVar.Map.t;
     }
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  (* [desugared] has ambiguous struct fields *)
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 't) gexpr;
       field : IdentName.t;
     }
       -> ((desugared as 'a), 't) naked_gexpr
-  (* Resolved struct/enums, after [desugared] *)
+      (** [desugared] has ambiguous struct fields *)
   | EStructAccess : {
       name : StructName.t;
       e : ('a, 't) gexpr;
       field : StructField.t;
     }
       -> (([< scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
+      (** Resolved struct/enums, after [desugared] *)
   (* Lambda-like *)
   | EAssert : ('a, 't) gexpr -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   (* Default terms *)
