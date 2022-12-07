@@ -1426,7 +1426,7 @@ champ d'application CalculAidePersonnaliséeLogement:
     selon catégorie_calcul_apl sous forme
     -- Location de location:
       (soit traitement_formule égal à
-        CalculAidePersonnaliséeLogementLocatif de {
+        résultat de CalculAidePersonnaliséeLogementLocatif avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1457,7 +1457,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       })
     -- LogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
-        CalculAidePersonnaliséeLogementFoyer de {
+        résultat de CalculAidePersonnaliséeLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1477,7 +1477,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       })
     -- AccessionPropriété de propriétaire:
       (soit traitement_formule égal à
-         CalculAidePersonnaliséeLogementAccessionPropriété de {
+         résultat de CalculAidePersonnaliséeLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
@@ -1510,7 +1510,7 @@ champ d'application CalculAllocationLogement:
     selon mode_occupation sous forme
     -- Locataire de location:
       (soit traitement_formule égal à
-        CalculAllocationLogementLocatif de {
+        résultat de CalculAllocationLogementLocatif avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1542,7 +1542,7 @@ champ d'application CalculAllocationLogement:
       })
     -- SousLocataire de location: # Identique à Locataire
       (soit traitement_formule égal à
-        CalculAllocationLogementLocatif de {
+        résultat de CalculAllocationLogementLocatif avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1574,7 +1574,7 @@ champ d'application CalculAllocationLogement:
       })
     -- RésidentLogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
-        CalculAllocationLogementFoyer de {
+        résultat de CalculAllocationLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1595,7 +1595,7 @@ champ d'application CalculAllocationLogement:
       })
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       (soit traitement_formule égal à
-         CalculAllocationLogementAccessionPropriété de {
+         résultat de CalculAllocationLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
@@ -1622,7 +1622,7 @@ champ d'application CalculAllocationLogement:
     -- LocationAccession de propriétaire:
       # Identique à AccessionPropriétéLocalUsageExclusifHabitation
       (soit traitement_formule égal à
-         CalculAllocationLogementAccessionPropriété de {
+         résultat de CalculAllocationLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone

@@ -2139,7 +2139,7 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
          try
            (handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=520; start_column=10; end_line=520; end_column=17;
+                start_line=520; start_column=12; end_line=520; end_column=19;
                 law_headings=["Calcul des contributions sociales s'appliquant aux aides personnelles au logement";
                                "Déclarations des champs d'application";
                                "Prologue : aides au logement"]} ([||])
@@ -2156,14 +2156,14 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
-             start_line=520; start_column=10; end_line=520; end_column=17;
+             start_line=520; start_column=12; end_line=520; end_column=19;
              law_headings=["Calcul des contributions sociales s'appliquant aux aides personnelles au logement";
                             "Déclarations des champs d'application";
                             "Prologue : aides au logement"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=520; start_column=10; end_line=520; end_column=17;
+        start_line=520; start_column=12; end_line=520; end_column=19;
         law_headings=["Calcul des contributions sociales s'appliquant aux aides personnelles au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -2367,7 +2367,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=596; start_column=10; end_line=596; end_column=17;
+           start_line=596; start_column=12; end_line=596; end_column=19;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -2375,8 +2375,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=596; start_column=10;
-                   end_line=596; end_column=17;
+                   start_line=596; start_column=12;
+                   end_line=596; end_column=19;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -2497,7 +2497,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=596; start_column=10; end_line=596; end_column=17;
+        start_line=596; start_column=12; end_line=596; end_column=19;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -2514,7 +2514,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=603; start_column=10; end_line=603; end_column=32;
+           start_line=603; start_column=12; end_line=603; end_column=34;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -2522,8 +2522,8 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=603; start_column=10;
-                   end_line=603; end_column=32;
+                   start_line=603; start_column=12;
+                   end_line=603; end_column=34;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -2613,7 +2613,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=603; start_column=10; end_line=603; end_column=32;
+        start_line=603; start_column=12; end_line=603; end_column=34;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -2630,7 +2630,7 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=659; start_column=10; end_line=659; end_column=32;
+           start_line=659; start_column=12; end_line=659; end_column=34;
            law_headings=["Secteur accession à la propriété";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -2674,7 +2674,7 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=659; start_column=10; end_line=659; end_column=32;
+        start_line=659; start_column=12; end_line=659; end_column=34;
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -2689,15 +2689,15 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=998; start_column=10; end_line=998; end_column=29;
+           start_line=998; start_column=12; end_line=998; end_column=31;
            law_headings=["Date d'ouverture des droits à la retraite";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=998; start_column=10;
-                   end_line=998; end_column=29;
+                   start_line=998; start_column=12;
+                   end_line=998; end_column=31;
                    law_headings=["Date d'ouverture des droits à la retraite";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -2720,8 +2720,8 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=998; start_column=10;
-                   end_line=998; end_column=29;
+                   start_line=998; start_column=12;
+                   end_line=998; end_column=31;
                    law_headings=["Date d'ouverture des droits à la retraite";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -2744,8 +2744,8 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=998; start_column=10;
-                   end_line=998; end_column=29;
+                   start_line=998; start_column=12;
+                   end_line=998; end_column=31;
                    law_headings=["Date d'ouverture des droits à la retraite";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -2773,8 +2773,8 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=998; start_column=10;
-                   end_line=998; end_column=29;
+                   start_line=998; start_column=12;
+                   end_line=998; end_column=31;
                    law_headings=["Date d'ouverture des droits à la retraite";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -2799,8 +2799,8 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=998; start_column=10;
-                   end_line=998; end_column=29;
+                   start_line=998; start_column=12;
+                   end_line=998; end_column=31;
                    law_headings=["Date d'ouverture des droits à la retraite";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -2825,8 +2825,8 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=998; start_column=10;
-                   end_line=998; end_column=29;
+                   start_line=998; start_column=12;
+                   end_line=998; end_column=31;
                    law_headings=["Date d'ouverture des droits à la retraite";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -2852,7 +2852,7 @@ let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetr
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=998; start_column=10; end_line=998; end_column=29;
+        start_line=998; start_column=12; end_line=998; end_column=31;
         law_headings=["Date d'ouverture des droits à la retraite";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -3243,23 +3243,23 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=1018; start_column=10; end_line=1018; end_column=24;
+           start_line=1018; start_column=12; end_line=1018; end_column=26;
            law_headings=["Quantification des impayés de dépense de logement";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=1018; start_column=10;
-                   end_line=1018; end_column=24;
+                   start_line=1018; start_column=12;
+                   end_line=1018; end_column=26;
                    law_headings=["Quantification des impayés de dépense de logement";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]}
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=1018; start_column=10;
-                           end_line=1018; end_column=24;
+                           start_line=1018; start_column=12;
+                           end_line=1018; end_column=26;
                            law_headings=["Quantification des impayés de dépense de logement";
                                           "Calcul du montant de l'allocation logement";
                                           "Prologue : aides au logement"]}
@@ -3308,7 +3308,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1018; start_column=10; end_line=1018; end_column=24;
+        start_line=1018; start_column=12; end_line=1018; end_column=26;
         law_headings=["Quantification des impayés de dépense de logement";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -3321,12 +3321,12 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
     try
       (handle_default
          {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-           start_line=6; start_column=10; end_line=6; end_column=17;
+           start_line=6; start_column=12; end_line=6; end_column=19;
            law_headings=["Montant de la base mensuelle des allocations familiales"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -3344,7 +3344,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -3362,7 +3362,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -3380,7 +3380,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -3399,7 +3399,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-        start_line=6; start_column=10; end_line=6; end_column=17;
+        start_line=6; start_column=12; end_line=6; end_column=19;
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
   {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
@@ -3411,14 +3411,14 @@ let smic (smic_in: SmicIn.t) : Smic.t =
     try
       (handle_default
          {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-           start_line=11; start_column=10; end_line=11; end_column=22;
+           start_line=11; start_column=12; end_line=11; end_column=24;
            law_headings=["Prologue";
                           "Montant du salaire minimum de croissance"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3461,8 +3461,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3484,8 +3484,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3528,8 +3528,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3551,8 +3551,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3595,8 +3595,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3618,8 +3618,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3662,8 +3662,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3685,8 +3685,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3729,8 +3729,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -3753,7 +3753,7 @@ let smic (smic_in: SmicIn.t) : Smic.t =
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-        start_line=11; start_column=10; end_line=11; end_column=22;
+        start_line=11; start_column=12; end_line=11; end_column=24;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
   {Smic.brut_horaire = brut_horaire_}
 
@@ -3870,7 +3870,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=564; start_column=10; end_line=564; end_column=36;
+           start_line=564; start_column=12; end_line=564; end_column=38;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -3878,8 +3878,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=564; start_column=10;
-                   end_line=564; end_column=36;
+                   start_line=564; start_column=12;
+                   end_line=564; end_column=38;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -3887,8 +3887,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=564; start_column=10;
-                           end_line=564; end_column=36;
+                           start_line=564; start_column=12;
+                           end_line=564; end_column=38;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -3896,8 +3896,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([|(fun (_: unit) ->
                                handle_default
                                  {filename = "examples/aides_logement/prologue.catala_fr";
-                                   start_line=564; start_column=10;
-                                   end_line=564; end_column=36;
+                                   start_line=564; start_column=12;
+                                   end_line=564; end_column=38;
                                    law_headings=["Secteur locatif";
                                                   "Calcul du montant de l'aide personnalisée au logement";
                                                   "Déclarations des champs d'application";
@@ -4084,7 +4084,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=564; start_column=10; end_line=564; end_column=36;
+        start_line=564; start_column=12; end_line=564; end_column=38;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -4463,7 +4463,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=562; start_column=10; end_line=562; end_column=33;
+           start_line=562; start_column=12; end_line=562; end_column=35;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -4471,8 +4471,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=562; start_column=10;
-                   end_line=562; end_column=33;
+                   start_line=562; start_column=12;
+                   end_line=562; end_column=35;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -4480,8 +4480,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4520,8 +4520,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4560,8 +4560,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4614,8 +4614,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4657,8 +4657,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4700,8 +4700,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4757,8 +4757,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4801,8 +4801,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4845,8 +4845,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4904,8 +4904,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=562; start_column=10;
-                   end_line=562; end_column=33;
+                   start_line=562; start_column=12;
+                   end_line=562; end_column=35;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -4913,8 +4913,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=562; start_column=10;
-                           end_line=562; end_column=33;
+                           start_line=562; start_column=12;
+                           end_line=562; end_column=35;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -4922,8 +4922,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([|(fun (_: unit) ->
                                handle_default
                                  {filename = "examples/aides_logement/prologue.catala_fr";
-                                   start_line=562; start_column=10;
-                                   end_line=562; end_column=33;
+                                   start_line=562; start_column=12;
+                                   end_line=562; end_column=35;
                                    law_headings=["Secteur locatif";
                                                   "Calcul du montant de l'aide personnalisée au logement";
                                                   "Déclarations des champs d'application";
@@ -4954,8 +4954,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                             (fun (_: unit) ->
                                handle_default
                                  {filename = "examples/aides_logement/prologue.catala_fr";
-                                   start_line=562; start_column=10;
-                                   end_line=562; end_column=33;
+                                   start_line=562; start_column=12;
+                                   end_line=562; end_column=35;
                                    law_headings=["Secteur locatif";
                                                   "Calcul du montant de l'aide personnalisée au logement";
                                                   "Déclarations des champs d'application";
@@ -4989,8 +4989,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                             (fun (_: unit) ->
                                handle_default
                                  {filename = "examples/aides_logement/prologue.catala_fr";
-                                   start_line=562; start_column=10;
-                                   end_line=562; end_column=33;
+                                   start_line=562; start_column=12;
+                                   end_line=562; end_column=35;
                                    law_headings=["Secteur locatif";
                                                   "Calcul du montant de l'aide personnalisée au logement";
                                                   "Déclarations des champs d'application";
@@ -5028,8 +5028,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5037,8 +5037,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([|(fun (_: unit) ->
                             handle_default
                               {filename = "examples/aides_logement/prologue.catala_fr";
-                                start_line=562; start_column=10;
-                                end_line=562; end_column=33;
+                                start_line=562; start_column=12;
+                                end_line=562; end_column=35;
                                 law_headings=["Secteur locatif";
                                                "Calcul du montant de l'aide personnalisée au logement";
                                                "Déclarations des champs d'application";
@@ -5067,8 +5067,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          (fun (_: unit) ->
                             handle_default
                               {filename = "examples/aides_logement/prologue.catala_fr";
-                                start_line=562; start_column=10;
-                                end_line=562; end_column=33;
+                                start_line=562; start_column=12;
+                                end_line=562; end_column=35;
                                 law_headings=["Secteur locatif";
                                                "Calcul du montant de l'aide personnalisée au logement";
                                                "Déclarations des champs d'application";
@@ -5100,8 +5100,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          (fun (_: unit) ->
                             handle_default
                               {filename = "examples/aides_logement/prologue.catala_fr";
-                                start_line=562; start_column=10;
-                                end_line=562; end_column=33;
+                                start_line=562; start_column=12;
+                                end_line=562; end_column=35;
                                 law_headings=["Secteur locatif";
                                                "Calcul du montant de l'aide personnalisée au logement";
                                                "Déclarations des champs d'application";
@@ -5137,7 +5137,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
          (fun (_: unit) ->
             handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=562; start_column=10; end_line=562; end_column=33;
+                start_line=562; start_column=12; end_line=562; end_column=35;
                 law_headings=["Secteur locatif";
                                "Calcul du montant de l'aide personnalisée au logement";
                                "Déclarations des champs d'application";
@@ -5145,8 +5145,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5183,8 +5183,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5221,8 +5221,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5270,8 +5270,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5311,8 +5311,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5352,8 +5352,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5404,8 +5404,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5446,8 +5446,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5488,8 +5488,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=562; start_column=10;
-                        end_line=562; end_column=33;
+                        start_line=562; start_column=12;
+                        end_line=562; end_column=35;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5542,7 +5542,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=562; start_column=10; end_line=562; end_column=33;
+        start_line=562; start_column=12; end_line=562; end_column=35;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -5553,7 +5553,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=561; start_column=10; end_line=561; end_column=45;
+           start_line=561; start_column=12; end_line=561; end_column=47;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -5561,8 +5561,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=561; start_column=10;
-                   end_line=561; end_column=45;
+                   start_line=561; start_column=12;
+                   end_line=561; end_column=47;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -5570,8 +5570,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=561; start_column=10;
-                           end_line=561; end_column=45;
+                           start_line=561; start_column=12;
+                           end_line=561; end_column=47;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -5601,8 +5601,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=561; start_column=10;
-                           end_line=561; end_column=45;
+                           start_line=561; start_column=12;
+                           end_line=561; end_column=47;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -5635,8 +5635,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=561; start_column=10;
-                           end_line=561; end_column=45;
+                           start_line=561; start_column=12;
+                           end_line=561; end_column=47;
                            law_headings=["Secteur locatif";
                                           "Calcul du montant de l'aide personnalisée au logement";
                                           "Déclarations des champs d'application";
@@ -5672,7 +5672,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
          (fun (_: unit) ->
             handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=561; start_column=10; end_line=561; end_column=45;
+                start_line=561; start_column=12; end_line=561; end_column=47;
                 law_headings=["Secteur locatif";
                                "Calcul du montant de l'aide personnalisée au logement";
                                "Déclarations des champs d'application";
@@ -5680,8 +5680,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=561; start_column=10;
-                        end_line=561; end_column=45;
+                        start_line=561; start_column=12;
+                        end_line=561; end_column=47;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5703,8 +5703,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=561; start_column=10;
-                        end_line=561; end_column=45;
+                        start_line=561; start_column=12;
+                        end_line=561; end_column=47;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5729,8 +5729,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                  (fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=561; start_column=10;
-                        end_line=561; end_column=45;
+                        start_line=561; start_column=12;
+                        end_line=561; end_column=47;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'aide personnalisée au logement";
                                        "Déclarations des champs d'application";
@@ -5757,7 +5757,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=561; start_column=10; end_line=561; end_column=45;
+        start_line=561; start_column=12; end_line=561; end_column=47;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -5998,7 +5998,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=563; start_column=10; end_line=563; end_column=32;
+           start_line=563; start_column=12; end_line=563; end_column=34;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -6006,8 +6006,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=563; start_column=10;
-                   end_line=563; end_column=32;
+                   start_line=563; start_column=12;
+                   end_line=563; end_column=34;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -6037,8 +6037,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=563; start_column=10;
-                   end_line=563; end_column=32;
+                   start_line=563; start_column=12;
+                   end_line=563; end_column=34;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -6071,8 +6071,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=563; start_column=10;
-                   end_line=563; end_column=32;
+                   start_line=563; start_column=12;
+                   end_line=563; end_column=34;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -6107,7 +6107,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=563; start_column=10; end_line=563; end_column=32;
+        start_line=563; start_column=12; end_line=563; end_column=34;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -6793,7 +6793,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=565; start_column=10; end_line=565; end_column=35;
+           start_line=565; start_column=12; end_line=565; end_column=37;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -6827,7 +6827,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=565; start_column=10; end_line=565; end_column=35;
+        start_line=565; start_column=12; end_line=565; end_column=37;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -6838,7 +6838,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=570; start_column=10; end_line=570; end_column=29;
+           start_line=570; start_column=12; end_line=570; end_column=31;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -6867,7 +6867,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=570; start_column=10; end_line=570; end_column=29;
+        start_line=570; start_column=12; end_line=570; end_column=31;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -6962,7 +6962,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=618; start_column=10; end_line=618; end_column=31;
+           start_line=618; start_column=12; end_line=618; end_column=33;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -6977,7 +6977,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=618; start_column=10; end_line=618; end_column=31;
+        start_line=618; start_column=12; end_line=618; end_column=33;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -7130,7 +7130,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=621; start_column=10; end_line=621; end_column=44;
+           start_line=621; start_column=12; end_line=621; end_column=46;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -7138,8 +7138,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=621; start_column=10;
-                   end_line=621; end_column=44;
+                   start_line=621; start_column=12;
+                   end_line=621; end_column=46;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -7249,8 +7249,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=621; start_column=10;
-                   end_line=621; end_column=44;
+                   start_line=621; start_column=12;
+                   end_line=621; end_column=46;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -7363,8 +7363,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=621; start_column=10;
-                   end_line=621; end_column=44;
+                   start_line=621; start_column=12;
+                   end_line=621; end_column=46;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -7479,7 +7479,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=621; start_column=10; end_line=621; end_column=44;
+        start_line=621; start_column=12; end_line=621; end_column=46;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -7701,7 +7701,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=617; start_column=10; end_line=617; end_column=44;
+           start_line=617; start_column=12; end_line=617; end_column=46;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -7719,7 +7719,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=617; start_column=10; end_line=617; end_column=44;
+        start_line=617; start_column=12; end_line=617; end_column=46;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -7730,7 +7730,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=620; start_column=10; end_line=620; end_column=36;
+           start_line=620; start_column=12; end_line=620; end_column=38;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -7754,7 +7754,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=620; start_column=10; end_line=620; end_column=36;
+        start_line=620; start_column=12; end_line=620; end_column=38;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -7765,7 +7765,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=619; start_column=19; end_line=619; end_column=41;
+           start_line=619; start_column=21; end_line=619; end_column=43;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -7775,7 +7775,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
          (fun (_: unit) ->
             handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=619; start_column=19; end_line=619; end_column=41;
+                start_line=619; start_column=21; end_line=619; end_column=43;
                 law_headings=["Secteur logement-foyer";
                                "Calcul du montant de l'aide personnalisée au logement";
                                "Déclarations des champs d'application";
@@ -7798,7 +7798,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=619; start_column=19; end_line=619; end_column=41;
+        start_line=619; start_column=21; end_line=619; end_column=43;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -8126,7 +8126,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=628; start_column=10; end_line=628; end_column=36;
+           start_line=628; start_column=12; end_line=628; end_column=38;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -8147,7 +8147,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=628; start_column=10; end_line=628; end_column=36;
+        start_line=628; start_column=12; end_line=628; end_column=38;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -8451,7 +8451,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=641; start_column=10; end_line=641; end_column=29;
+           start_line=641; start_column=12; end_line=641; end_column=31;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -8480,7 +8480,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=641; start_column=10; end_line=641; end_column=29;
+        start_line=641; start_column=12; end_line=641; end_column=31;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -13834,7 +13834,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=680; start_column=10; end_line=680; end_column=29;
+           start_line=680; start_column=12; end_line=680; end_column=31;
            law_headings=["Secteur accession à la propriété";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -13842,8 +13842,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=680; start_column=10;
-                   end_line=680; end_column=29;
+                   start_line=680; start_column=12;
+                   end_line=680; end_column=31;
                    law_headings=["Secteur accession à la propriété";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -13913,8 +13913,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=680; start_column=10;
-                   end_line=680; end_column=29;
+                   start_line=680; start_column=12;
+                   end_line=680; end_column=31;
                    law_headings=["Secteur accession à la propriété";
                                   "Calcul du montant de l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
@@ -13943,7 +13943,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=680; start_column=10; end_line=680; end_column=29;
+        start_line=680; start_column=12; end_line=680; end_column=31;
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -14068,7 +14068,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=679; start_column=10; end_line=679; end_column=29;
+           start_line=679; start_column=12; end_line=679; end_column=31;
            law_headings=["Secteur accession à la propriété";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -14093,7 +14093,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=679; start_column=10; end_line=679; end_column=29;
+        start_line=679; start_column=12; end_line=679; end_column=31;
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -14219,7 +14219,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=711; start_column=10; end_line=711; end_column=29;
+           start_line=711; start_column=12; end_line=711; end_column=31;
            law_headings=["Secteur accession à la propriété";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -14249,7 +14249,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=711; start_column=10; end_line=711; end_column=29;
+        start_line=711; start_column=12; end_line=711; end_column=31;
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -15519,15 +15519,15 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=320; start_column=10; end_line=320; end_column=21;
+           start_line=320; start_column=12; end_line=320; end_column=23;
            law_headings=["Éligibilité aux aides personnelles au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=320; start_column=10;
-                   end_line=320; end_column=21;
+                   start_line=320; start_column=12;
+                   end_line=320; end_column=23;
                    law_headings=["Éligibilité aux aides personnelles au logement";
                                   "Déclarations des champs d'application";
                                   "Prologue : aides au logement"]} ([||])
@@ -15543,7 +15543,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                           eligibilite_logement_)))) (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/prologue.catala_fr";
-              start_line=320; start_column=10; end_line=320; end_column=21;
+              start_line=320; start_column=12; end_line=320; end_column=23;
               law_headings=["Éligibilité aux aides personnelles au logement";
                              "Déclarations des champs d'application";
                              "Prologue : aides au logement"]} true))
@@ -15551,7 +15551,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=320; start_column=10; end_line=320; end_column=21;
+        start_line=320; start_column=12; end_line=320; end_column=23;
         law_headings=["Éligibilité aux aides personnelles au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -15563,15 +15563,15 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
          try
            (handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=324; start_column=10; end_line=324; end_column=28;
+                start_line=324; start_column=12; end_line=324; end_column=30;
                 law_headings=["Éligibilité aux aides personnelles au logement";
                                "Déclarations des champs d'application";
                                "Prologue : aides au logement"]}
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=324; start_column=10;
-                        end_line=324; end_column=28;
+                        start_line=324; start_column=12;
+                        end_line=324; end_column=30;
                         law_headings=["Éligibilité aux aides personnelles au logement";
                                        "Déclarations des champs d'application";
                                        "Prologue : aides au logement"]}
@@ -15624,8 +15624,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                       (fun (_: unit) -> true))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=324; start_column=10;
-                   end_line=324; end_column=28;
+                   start_line=324; start_column=12;
+                   end_line=324; end_column=30;
                    law_headings=["Éligibilité aux aides personnelles au logement";
                                   "Déclarations des champs d'application";
                                   "Prologue : aides au logement"]} true))
@@ -15633,14 +15633,14 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
-             start_line=324; start_column=10; end_line=324; end_column=28;
+             start_line=324; start_column=12; end_line=324; end_column=30;
              law_headings=["Éligibilité aux aides personnelles au logement";
                             "Déclarations des champs d'application";
                             "Prologue : aides au logement"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=324; start_column=10; end_line=324; end_column=28;
+        start_line=324; start_column=12; end_line=324; end_column=30;
         law_headings=["Éligibilité aux aides personnelles au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -15826,7 +15826,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=322; start_column=10; end_line=322; end_column=59;
+           start_line=322; start_column=12; end_line=322; end_column=61;
            law_headings=["Éligibilité aux aides personnelles au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -15867,7 +15867,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=322; start_column=10; end_line=322; end_column=59;
+        start_line=322; start_column=12; end_line=322; end_column=61;
         law_headings=["Éligibilité aux aides personnelles au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -15877,7 +15877,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=321; start_column=10; end_line=321; end_column=52;
+           start_line=321; start_column=12; end_line=321; end_column=54;
            law_headings=["Éligibilité aux aides personnelles au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -15891,7 +15891,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=321; start_column=10; end_line=321; end_column=52;
+        start_line=321; start_column=12; end_line=321; end_column=54;
         law_headings=["Éligibilité aux aides personnelles au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -16244,15 +16244,15 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=508; start_column=10; end_line=508; end_column=37;
+           start_line=508; start_column=12; end_line=508; end_column=39;
            law_headings=["Prise en compte des ressources pour les aides personnelles au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=508; start_column=10;
-                   end_line=508; end_column=37;
+                   start_line=508; start_column=12;
+                   end_line=508; end_column=39;
                    law_headings=["Prise en compte des ressources pour les aides personnelles au logement";
                                   "Déclarations des champs d'application";
                                   "Prologue : aides au logement"]} ([||])
@@ -16308,7 +16308,7 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=508; start_column=10; end_line=508; end_column=37;
+        start_line=508; start_column=12; end_line=508; end_column=39;
         law_headings=["Prise en compte des ressources pour les aides personnelles au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -16398,7 +16398,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
     try
       (handle_default
          {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-           start_line=43; start_column=10; end_line=43; end_column=22;
+           start_line=43; start_column=12; end_line=43; end_column=24;
            law_headings=["Prologue : prestations familiales"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/../prestations_familiales/sécurité_sociale_R.catala_fr";
@@ -16413,7 +16413,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-        start_line=43; start_column=10; end_line=43; end_column=22;
+        start_line=43; start_column=12; end_line=43; end_column=24;
         law_headings=["Prologue : prestations familiales"]})))) in
   let smic_dot_date_courante_: date = 
     try ((log_variable_definition
@@ -16463,13 +16463,13 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
     try
       (handle_default
          {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-           start_line=44; start_column=10; end_line=44; end_column=33;
+           start_line=44; start_column=12; end_line=44; end_column=35;
            law_headings=["Prologue : prestations familiales"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                   start_line=44; start_column=10;
-                   end_line=44; end_column=33;
+                   start_line=44; start_column=12;
+                   end_line=44; end_column=35;
                    law_headings=["Prologue : prestations familiales"]} (
                  [||])
                  (fun (_: unit) -> (log_decision_taken
@@ -16496,13 +16496,13 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-              start_line=44; start_column=10; end_line=44; end_column=33;
+              start_line=44; start_column=12; end_line=44; end_column=35;
               law_headings=["Prologue : prestations familiales"]} true))
          (fun (_: unit) -> false))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-        start_line=44; start_column=10; end_line=44; end_column=33;
+        start_line=44; start_column=12; end_line=44; end_column=35;
         law_headings=["Prologue : prestations familiales"]})))) in
   let plafond_l512_3_2_: money = (log_variable_definition
     ["ÉligibilitéPrestationsFamiliales"; "plafond_l512_3_2"] (embed_money)
@@ -16561,13 +16561,13 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
          try
            (handle_default
               {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                start_line=41; start_column=10; end_line=41; end_column=29;
+                start_line=41; start_column=12; end_line=41; end_column=31;
                 law_headings=["Prologue : prestations familiales"]}
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                        start_line=41; start_column=10;
-                        end_line=41; end_column=29;
+                        start_line=41; start_column=12;
+                        end_line=41; end_column=31;
                         law_headings=["Prologue : prestations familiales"]}
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
@@ -16614,19 +16614,19 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                                plafond_l512_3_2_)))) (fun (_: unit) -> true))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                   start_line=41; start_column=10;
-                   end_line=41; end_column=29;
+                   start_line=41; start_column=12;
+                   end_line=41; end_column=31;
                    law_headings=["Prologue : prestations familiales"]} true))
               (fun (_: unit) -> false))
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-             start_line=41; start_column=10; end_line=41; end_column=29;
+             start_line=41; start_column=12; end_line=41; end_column=31;
              law_headings=["Prologue : prestations familiales"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-        start_line=41; start_column=10; end_line=41; end_column=29;
+        start_line=41; start_column=12; end_line=41; end_column=31;
         law_headings=["Prologue : prestations familiales"]})))) in
   let droit_ouvert_: EnfantPrestationsFamiliales.t -> bool = (log_variable_definition
     ["ÉligibilitéPrestationsFamiliales"; "droit_ouvert"] (unembeddable) (
@@ -16635,25 +16635,25 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
          try
            (handle_default
               {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                start_line=40; start_column=10; end_line=40; end_column=22;
+                start_line=40; start_column=12; end_line=40; end_column=24;
                 law_headings=["Prologue : prestations familiales"]}
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                        start_line=40; start_column=10;
-                        end_line=40; end_column=22;
+                        start_line=40; start_column=12;
+                        end_line=40; end_column=24;
                         law_headings=["Prologue : prestations familiales"]}
                       ([|(fun (_: unit) ->
                             handle_default
                               {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                                start_line=40; start_column=10;
-                                end_line=40; end_column=22;
+                                start_line=40; start_column=12;
+                                end_line=40; end_column=24;
                                 law_headings=["Prologue : prestations familiales"]}
                               ([|(fun (_: unit) ->
                                     handle_default
                                       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                                        start_line=40; start_column=10;
-                                        end_line=40; end_column=22;
+                                        start_line=40; start_column=12;
+                                        end_line=40; end_column=24;
                                         law_headings=["Prologue : prestations familiales"]}
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
@@ -16719,19 +16719,19 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                       (fun (_: unit) -> raise EmptyError))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-                   start_line=40; start_column=10;
-                   end_line=40; end_column=22;
+                   start_line=40; start_column=12;
+                   end_line=40; end_column=24;
                    law_headings=["Prologue : prestations familiales"]} true))
               (fun (_: unit) -> false))
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-             start_line=40; start_column=10; end_line=40; end_column=22;
+             start_line=40; start_column=12; end_line=40; end_column=24;
              law_headings=["Prologue : prestations familiales"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/../prestations_familiales/prologue.catala_fr";
-        start_line=40; start_column=10; end_line=40; end_column=22;
+        start_line=40; start_column=12; end_line=40; end_column=24;
         law_headings=["Prologue : prestations familiales"]})))) in
   {EligibilitePrestationsFamiliales.droit_ouvert = droit_ouvert_;
      EligibilitePrestationsFamiliales.conditions_hors_age =
@@ -17119,15 +17119,15 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
          try
            (handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=788; start_column=10; end_line=788; end_column=32;
+                start_line=788; start_column=12; end_line=788; end_column=34;
                 law_headings=["Secteur locatif";
                                "Calcul du montant de l'allocation logement";
                                "Prologue : aides au logement"]}
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/aides_logement/prologue.catala_fr";
-                        start_line=788; start_column=10;
-                        end_line=788; end_column=32;
+                        start_line=788; start_column=12;
+                        end_line=788; end_column=34;
                         law_headings=["Secteur locatif";
                                        "Calcul du montant de l'allocation logement";
                                        "Prologue : aides au logement"]}
@@ -17174,14 +17174,14 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
-             start_line=788; start_column=10; end_line=788; end_column=32;
+             start_line=788; start_column=12; end_line=788; end_column=34;
              law_headings=["Secteur locatif";
                             "Calcul du montant de l'allocation logement";
                             "Prologue : aides au logement"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=788; start_column=10; end_line=788; end_column=32;
+        start_line=788; start_column=12; end_line=788; end_column=34;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -17191,15 +17191,15 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=786; start_column=10; end_line=786; end_column=29;
+           start_line=786; start_column=12; end_line=786; end_column=31;
            law_headings=["Secteur locatif";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=786; start_column=10;
-                   end_line=786; end_column=29;
+                   start_line=786; start_column=12;
+                   end_line=786; end_column=31;
                    law_headings=["Secteur locatif";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -17240,7 +17240,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=786; start_column=10; end_line=786; end_column=29;
+        start_line=786; start_column=12; end_line=786; end_column=31;
         law_headings=["Secteur locatif";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -17749,15 +17749,15 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=932; start_column=10; end_line=932; end_column=37;
+           start_line=932; start_column=12; end_line=932; end_column=39;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=932; start_column=10;
-                   end_line=932; end_column=37;
+                   start_line=932; start_column=12;
+                   end_line=932; end_column=39;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -17780,8 +17780,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=932; start_column=10;
-                   end_line=932; end_column=37;
+                   start_line=932; start_column=12;
+                   end_line=932; end_column=39;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -17808,7 +17808,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=932; start_column=10; end_line=932; end_column=37;
+        start_line=932; start_column=12; end_line=932; end_column=39;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -17817,15 +17817,15 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=931; start_column=10; end_line=931; end_column=27;
+           start_line=931; start_column=12; end_line=931; end_column=29;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=931; start_column=10;
-                   end_line=931; end_column=27;
+                   start_line=931; start_column=12;
+                   end_line=931; end_column=29;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -17859,8 +17859,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=931; start_column=10;
-                   end_line=931; end_column=27;
+                   start_line=931; start_column=12;
+                   end_line=931; end_column=29;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -17894,16 +17894,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=931; start_column=10;
-                   end_line=931; end_column=27;
+                   start_line=931; start_column=12;
+                   end_line=931; end_column=29;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]}
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=931; start_column=10;
-                           end_line=931; end_column=27;
+                           start_line=931; start_column=12;
+                           end_line=931; end_column=29;
                            law_headings=["Secteur logement-foyer";
                                           "Calcul du montant de l'allocation logement";
                                           "Prologue : aides au logement"]}
@@ -17965,8 +17965,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=931; start_column=10;
-                   end_line=931; end_column=27;
+                   start_line=931; start_column=12;
+                   end_line=931; end_column=29;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -18003,8 +18003,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=931; start_column=10;
-                   end_line=931; end_column=27;
+                   start_line=931; start_column=12;
+                   end_line=931; end_column=29;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]} ([||])
@@ -18041,16 +18041,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=931; start_column=10;
-                   end_line=931; end_column=27;
+                   start_line=931; start_column=12;
+                   end_line=931; end_column=29;
                    law_headings=["Secteur logement-foyer";
                                   "Calcul du montant de l'allocation logement";
                                   "Prologue : aides au logement"]}
                  ([|(fun (_: unit) ->
                        handle_default
                          {filename = "examples/aides_logement/prologue.catala_fr";
-                           start_line=931; start_column=10;
-                           end_line=931; end_column=27;
+                           start_line=931; start_column=12;
+                           end_line=931; end_column=29;
                            law_headings=["Secteur logement-foyer";
                                           "Calcul du montant de l'allocation logement";
                                           "Prologue : aides au logement"]}
@@ -18119,7 +18119,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=931; start_column=10; end_line=931; end_column=27;
+        start_line=931; start_column=12; end_line=931; end_column=29;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -18295,7 +18295,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=930; start_column=10; end_line=930; end_column=37;
+           start_line=930; start_column=12; end_line=930; end_column=39;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]} ([||])
@@ -18315,7 +18315,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=930; start_column=10; end_line=930; end_column=37;
+        start_line=930; start_column=12; end_line=930; end_column=39;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -18366,7 +18366,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=933; start_column=10; end_line=933; end_column=23;
+           start_line=933; start_column=12; end_line=933; end_column=25;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]} ([||])
@@ -18385,7 +18385,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=933; start_column=10; end_line=933; end_column=23;
+        start_line=933; start_column=12; end_line=933; end_column=25;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -18460,7 +18460,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=943; start_column=10; end_line=943; end_column=29;
+           start_line=943; start_column=12; end_line=943; end_column=31;
            law_headings=["Secteur logement-foyer";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]} ([||])
@@ -18484,7 +18484,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=943; start_column=10; end_line=943; end_column=29;
+        start_line=943; start_column=12; end_line=943; end_column=31;
         law_headings=["Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -24089,7 +24089,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=876; start_column=10; end_line=876; end_column=29;
+           start_line=876; start_column=12; end_line=876; end_column=31;
            law_headings=["Secteur accession à la propriété";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]} ([||])
@@ -24113,7 +24113,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=876; start_column=10; end_line=876; end_column=29;
+        start_line=876; start_column=12; end_line=876; end_column=31;
         law_headings=["Secteur accession à la propriété";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -25036,7 +25036,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
          try
            (handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=746; start_column=10; end_line=746; end_column=32;
+                start_line=746; start_column=12; end_line=746; end_column=34;
                 law_headings=["Tous secteurs";
                                "Calcul du montant de l'aide personnalisée au logement";
                                "Déclarations des champs d'application";
@@ -25059,7 +25059,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
-             start_line=746; start_column=10; end_line=746; end_column=32;
+             start_line=746; start_column=12; end_line=746; end_column=34;
              law_headings=["Tous secteurs";
                             "Calcul du montant de l'aide personnalisée au logement";
                             "Déclarations des champs d'application";
@@ -25067,7 +25067,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=746; start_column=10; end_line=746; end_column=32;
+        start_line=746; start_column=12; end_line=746; end_column=34;
         law_headings=["Tous secteurs";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -25078,7 +25078,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=745; start_column=10; end_line=745; end_column=29;
+           start_line=745; start_column=12; end_line=745; end_column=31;
            law_headings=["Tous secteurs";
                           "Calcul du montant de l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
@@ -25099,7 +25099,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=745; start_column=10; end_line=745; end_column=29;
+        start_line=745; start_column=12; end_line=745; end_column=31;
         law_headings=["Tous secteurs";
                        "Calcul du montant de l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
@@ -25525,7 +25525,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=464; start_column=10; end_line=464; end_column=36;
+           start_line=464; start_column=12; end_line=464; end_column=38;
            law_headings=["Éligibilité à la prime de déménagement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -25548,7 +25548,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=464; start_column=10; end_line=464; end_column=36;
+        start_line=464; start_column=12; end_line=464; end_column=38;
         law_headings=["Éligibilité à la prime de déménagement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -26220,7 +26220,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=372; start_column=10; end_line=372; end_column=59;
+           start_line=372; start_column=12; end_line=372; end_column=61;
            law_headings=["Éligibilité à l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -26235,7 +26235,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=372; start_column=10; end_line=372; end_column=59;
+        start_line=372; start_column=12; end_line=372; end_column=61;
         law_headings=["Éligibilité à l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -26245,7 +26245,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=371; start_column=10; end_line=371; end_column=52;
+           start_line=371; start_column=12; end_line=371; end_column=54;
            law_headings=["Éligibilité à l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -26260,7 +26260,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=371; start_column=10; end_line=371; end_column=52;
+        start_line=371; start_column=12; end_line=371; end_column=54;
         law_headings=["Éligibilité à l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -26270,15 +26270,15 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=370; start_column=10; end_line=370; end_column=21;
+           start_line=370; start_column=12; end_line=370; end_column=23;
            law_headings=["Éligibilité à l'aide personnalisée au logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/aides_logement/prologue.catala_fr";
-                   start_line=370; start_column=10;
-                   end_line=370; end_column=21;
+                   start_line=370; start_column=12;
+                   end_line=370; end_column=23;
                    law_headings=["Éligibilité à l'aide personnalisée au logement";
                                   "Déclarations des champs d'application";
                                   "Prologue : aides au logement"]} ([||])
@@ -26297,7 +26297,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/prologue.catala_fr";
-              start_line=370; start_column=10; end_line=370; end_column=21;
+              start_line=370; start_column=12; end_line=370; end_column=23;
               law_headings=["Éligibilité à l'aide personnalisée au logement";
                              "Déclarations des champs d'application";
                              "Prologue : aides au logement"]} true))
@@ -26305,7 +26305,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=370; start_column=10; end_line=370; end_column=21;
+        start_line=370; start_column=12; end_line=370; end_column=23;
         law_headings=["Éligibilité à l'aide personnalisée au logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -26845,7 +26845,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=414; start_column=10; end_line=414; end_column=59;
+           start_line=414; start_column=12; end_line=414; end_column=61;
            law_headings=["Éligibilité aux allocations de logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -26860,7 +26860,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=414; start_column=10; end_line=414; end_column=59;
+        start_line=414; start_column=12; end_line=414; end_column=61;
         law_headings=["Éligibilité aux allocations de logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -26870,7 +26870,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=413; start_column=10; end_line=413; end_column=52;
+           start_line=413; start_column=12; end_line=413; end_column=54;
            law_headings=["Éligibilité aux allocations de logement";
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]} ([||])
@@ -26885,7 +26885,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=413; start_column=10; end_line=413; end_column=52;
+        start_line=413; start_column=12; end_line=413; end_column=54;
         law_headings=["Éligibilité aux allocations de logement";
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
@@ -28562,7 +28562,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
          try
            (handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=991; start_column=10; end_line=991; end_column=32;
+                start_line=991; start_column=12; end_line=991; end_column=34;
                 law_headings=["Tous secteurs"; "Secteur logement-foyer";
                                "Calcul du montant de l'allocation logement";
                                "Prologue : aides au logement"]} ([||])
@@ -28584,14 +28584,14 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
-             start_line=991; start_column=10; end_line=991; end_column=32;
+             start_line=991; start_column=12; end_line=991; end_column=34;
              law_headings=["Tous secteurs"; "Secteur logement-foyer";
                             "Calcul du montant de l'allocation logement";
                             "Prologue : aides au logement"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=991; start_column=10; end_line=991; end_column=32;
+        start_line=991; start_column=12; end_line=991; end_column=34;
         law_headings=["Tous secteurs"; "Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -28600,7 +28600,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=990; start_column=10; end_line=990; end_column=29;
+           start_line=990; start_column=12; end_line=990; end_column=31;
            law_headings=["Tous secteurs"; "Secteur logement-foyer";
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]} ([||])
@@ -28620,7 +28620,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=990; start_column=10; end_line=990; end_column=29;
+        start_line=990; start_column=12; end_line=990; end_column=31;
         law_headings=["Tous secteurs"; "Secteur logement-foyer";
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
@@ -29202,7 +29202,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=1055; start_column=10; end_line=1055; end_column=59;
+           start_line=1055; start_column=12; end_line=1055; end_column=61;
            law_headings=["Calculette globale";
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -29215,14 +29215,14 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1055; start_column=10; end_line=1055; end_column=59;
+        start_line=1055; start_column=12; end_line=1055; end_column=61;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})))) in
   let eligibilite_: bool = (log_variable_definition
     ["CalculetteAidesAuLogement"; "éligibilité"] (embed_bool) (
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=1052; start_column=10; end_line=1052; end_column=21;
+           start_line=1052; start_column=12; end_line=1052; end_column=23;
            law_headings=["Calculette globale";
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -29247,7 +29247,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1052; start_column=10; end_line=1052; end_column=21;
+        start_line=1052; start_column=12; end_line=1052; end_column=23;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_: money -> money = (log_variable_definition
     ["CalculetteAidesAuLogement"; "traitement_aide_finale"] (unembeddable) (
@@ -29256,8 +29256,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          try
            (handle_default
               {filename = "examples/aides_logement/prologue.catala_fr";
-                start_line=1054; start_column=10;
-                end_line=1054; end_column=32;
+                start_line=1054; start_column=12;
+                end_line=1054; end_column=34;
                 law_headings=["Calculette globale";
                                "Prologue : aides au logement"]} ([||])
               (fun (_: unit) -> (log_decision_taken
@@ -29319,20 +29319,20 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/aides_logement/prologue.catala_fr";
-             start_line=1054; start_column=10; end_line=1054; end_column=32;
+             start_line=1054; start_column=12; end_line=1054; end_column=34;
              law_headings=["Calculette globale";
                             "Prologue : aides au logement"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1054; start_column=10; end_line=1054; end_column=32;
+        start_line=1054; start_column=12; end_line=1054; end_column=34;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
     ["CalculetteAidesAuLogement"; "aide_finale_formule"] (embed_money) (
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=1053; start_column=10; end_line=1053; end_column=29;
+           start_line=1053; start_column=12; end_line=1053; end_column=31;
            law_headings=["Calculette globale";
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -29397,7 +29397,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1053; start_column=10; end_line=1053; end_column=29;
+        start_line=1053; start_column=12; end_line=1053; end_column=31;
         law_headings=["Calculette globale"; "Prologue : aides au logement"]})))) in
   {CalculetteAidesAuLogement.eligibilite = eligibilite_;
      CalculetteAidesAuLogement.aide_finale_formule = aide_finale_formule_;
@@ -29669,7 +29669,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=1125; start_column=10; end_line=1125; end_column=21;
+           start_line=1125; start_column=12; end_line=1125; end_column=23;
            law_headings=["Calculette avec garde alternée";
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -29681,7 +29681,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1125; start_column=10; end_line=1125; end_column=21;
+        start_line=1125; start_column=12; end_line=1125; end_column=23;
         law_headings=["Calculette avec garde alternée";
                        "Prologue : aides au logement"]})))) in
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
@@ -29713,7 +29713,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
     try
       (handle_default
          {filename = "examples/aides_logement/prologue.catala_fr";
-           start_line=1126; start_column=10; end_line=1126; end_column=21;
+           start_line=1126; start_column=12; end_line=1126; end_column=23;
            law_headings=["Calculette avec garde alternée";
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -29753,7 +29753,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
-        start_line=1126; start_column=10; end_line=1126; end_column=21;
+        start_line=1126; start_column=12; end_line=1126; end_column=23;
         law_headings=["Calculette avec garde alternée";
                        "Prologue : aides au logement"]})))) in
   {CalculetteAidesAuLogementGardeAlternee.eligibilite = eligibilite_;

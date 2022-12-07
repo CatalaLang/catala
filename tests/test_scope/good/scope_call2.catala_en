@@ -14,8 +14,8 @@ declaration scope Titi:
 
 scope Titi:
   definition toto.bar equals 44
-  definition fizz equals Toto of {}
-  definition fuzz equals Toto of {--bar: 111}
+  definition fizz equals output of Toto
+  definition fuzz equals output of Toto with {--bar: 111}
 ```
 
 ```catala-test-inline

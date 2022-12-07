@@ -366,7 +366,7 @@ let allocation_familiales_avril2008 (allocation_familiales_avril2008_in: Allocat
     try
       (handle_default
          {filename = "examples/allocations_familiales/prologue.catala_fr";
-           start_line=76; start_column=10; end_line=76; end_column=37;
+           start_line=76; start_column=12; end_line=76; end_column=39;
            law_headings=["Allocations familiales"; "Champs d'applications";
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -382,7 +382,7 @@ let allocation_familiales_avril2008 (allocation_familiales_avril2008_in: Allocat
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=76; start_column=10; end_line=76; end_column=37;
+        start_line=76; start_column=12; end_line=76; end_column=39;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   {AllocationFamilialesAvril2008.age_minimum_alinea_1_l521_3 =
@@ -395,7 +395,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
     try
       (handle_default
          {filename = "examples/allocations_familiales/prologue.catala_fr";
-           start_line=80; start_column=10; end_line=80; end_column=21;
+           start_line=80; start_column=12; end_line=80; end_column=23;
            law_headings=["Allocations familiales"; "Champs d'applications";
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -428,7 +428,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=80; start_column=10; end_line=80; end_column=21;
+        start_line=80; start_column=12; end_line=80; end_column=23;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   {EnfantLePlusAge.le_plus_age = le_plus_age_}
@@ -441,14 +441,14 @@ let smic (smic_in: SmicIn.t) : Smic.t =
     try
       (handle_default
          {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-           start_line=11; start_column=10; end_line=11; end_column=22;
+           start_line=11; start_column=12; end_line=11; end_column=24;
            law_headings=["Prologue";
                           "Montant du salaire minimum de croissance"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -491,8 +491,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -514,8 +514,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -558,8 +558,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -581,8 +581,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -625,8 +625,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -648,8 +648,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -692,8 +692,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -715,8 +715,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -759,8 +759,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                   start_line=11; start_column=10;
-                   end_line=11; end_column=22;
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
                    law_headings=["Prologue";
                                   "Montant du salaire minimum de croissance"]}
                  ([||])
@@ -783,7 +783,7 @@ let smic (smic_in: SmicIn.t) : Smic.t =
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-        start_line=11; start_column=10; end_line=11; end_column=22;
+        start_line=11; start_column=12; end_line=11; end_column=24;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
   {Smic.brut_horaire = brut_horaire_}
 
@@ -794,12 +794,12 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
     try
       (handle_default
          {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-           start_line=6; start_column=10; end_line=6; end_column=17;
+           start_line=6; start_column=12; end_line=6; end_column=19;
            law_headings=["Montant de la base mensuelle des allocations familiales"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -817,7 +817,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -835,7 +835,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -853,7 +853,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
             (fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                   start_line=6; start_column=10; end_line=6; end_column=17;
+                   start_line=6; start_column=12; end_line=6; end_column=19;
                    law_headings=["Montant de la base mensuelle des allocations familiales"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
@@ -872,7 +872,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-        start_line=6; start_column=10; end_line=6; end_column=17;
+        start_line=6; start_column=12; end_line=6; end_column=19;
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
   {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
@@ -885,7 +885,7 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
     try
       (handle_default
          {filename = "examples/allocations_familiales/prologue.catala_fr";
-           start_line=60; start_column=10; end_line=60; end_column=22;
+           start_line=60; start_column=12; end_line=60; end_column=24;
            law_headings=["Prestations familiales"; "Champs d'applications";
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -901,7 +901,7 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=60; start_column=10; end_line=60; end_column=22;
+        start_line=60; start_column=12; end_line=60; end_column=24;
         law_headings=["Prestations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   let smic_dot_date_courante_: date = 
@@ -955,14 +955,14 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
     try
       (handle_default
          {filename = "examples/allocations_familiales/prologue.catala_fr";
-           start_line=61; start_column=10; end_line=61; end_column=33;
+           start_line=61; start_column=12; end_line=61; end_column=35;
            law_headings=["Prestations familiales"; "Champs d'applications";
                           "Prologue"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
-                   start_line=61; start_column=10;
-                   end_line=61; end_column=33;
+                   start_line=61; start_column=12;
+                   end_line=61; end_column=35;
                    law_headings=["Prestations familiales";
                                   "Champs d'applications"; "Prologue"]}
                  ([||])
@@ -990,14 +990,14 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/prologue.catala_fr";
-              start_line=61; start_column=10; end_line=61; end_column=33;
+              start_line=61; start_column=12; end_line=61; end_column=35;
               law_headings=["Prestations familiales";
                              "Champs d'applications"; "Prologue"]} true))
          (fun (_: unit) -> false))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=61; start_column=10; end_line=61; end_column=33;
+        start_line=61; start_column=12; end_line=61; end_column=35;
         law_headings=["Prestations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   let plafond_l512_3_2_: money = (log_variable_definition
@@ -1058,14 +1058,14 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
          try
            (handle_default
               {filename = "examples/allocations_familiales/prologue.catala_fr";
-                start_line=58; start_column=10; end_line=58; end_column=29;
+                start_line=58; start_column=12; end_line=58; end_column=31;
                 law_headings=["Prestations familiales";
                                "Champs d'applications"; "Prologue"]}
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
-                        start_line=58; start_column=10;
-                        end_line=58; end_column=29;
+                        start_line=58; start_column=12;
+                        end_line=58; end_column=31;
                         law_headings=["Prestations familiales";
                                        "Champs d'applications"; "Prologue"]}
                       ([||])
@@ -1110,21 +1110,21 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                plafond_l512_3_2_)))) (fun (_: unit) -> true))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
-                   start_line=58; start_column=10;
-                   end_line=58; end_column=29;
+                   start_line=58; start_column=12;
+                   end_line=58; end_column=31;
                    law_headings=["Prestations familiales";
                                   "Champs d'applications"; "Prologue"]} true))
               (fun (_: unit) -> false))
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/allocations_familiales/prologue.catala_fr";
-             start_line=58; start_column=10; end_line=58; end_column=29;
+             start_line=58; start_column=12; end_line=58; end_column=31;
              law_headings=["Prestations familiales"; "Champs d'applications";
                             "Prologue"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=58; start_column=10; end_line=58; end_column=29;
+        start_line=58; start_column=12; end_line=58; end_column=31;
         law_headings=["Prestations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   let droit_ouvert_: Enfant.t -> bool = (log_variable_definition
@@ -1134,21 +1134,21 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
          try
            (handle_default
               {filename = "examples/allocations_familiales/prologue.catala_fr";
-                start_line=57; start_column=10; end_line=57; end_column=22;
+                start_line=57; start_column=12; end_line=57; end_column=24;
                 law_headings=["Prestations familiales";
                                "Champs d'applications"; "Prologue"]}
               ([|(fun (_: unit) ->
                     handle_default
                       {filename = "examples/allocations_familiales/prologue.catala_fr";
-                        start_line=57; start_column=10;
-                        end_line=57; end_column=22;
+                        start_line=57; start_column=12;
+                        end_line=57; end_column=24;
                         law_headings=["Prestations familiales";
                                        "Champs d'applications"; "Prologue"]}
                       ([|(fun (_: unit) ->
                             handle_default
                               {filename = "examples/allocations_familiales/prologue.catala_fr";
-                                start_line=57; start_column=10;
-                                end_line=57; end_column=22;
+                                start_line=57; start_column=12;
+                                end_line=57; end_column=24;
                                 law_headings=["Prestations familiales";
                                                "Champs d'applications";
                                                "Prologue"]} ([||])
@@ -1170,24 +1170,24 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                       (fun (_: unit) ->
                          handle_default
                            {filename = "examples/allocations_familiales/prologue.catala_fr";
-                             start_line=57; start_column=10;
-                             end_line=57; end_column=22;
+                             start_line=57; start_column=12;
+                             end_line=57; end_column=24;
                              law_headings=["Prestations familiales";
                                             "Champs d'applications";
                                             "Prologue"]}
                            ([|(fun (_: unit) ->
                                  handle_default
                                    {filename = "examples/allocations_familiales/prologue.catala_fr";
-                                     start_line=57; start_column=10;
-                                     end_line=57; end_column=22;
+                                     start_line=57; start_column=12;
+                                     end_line=57; end_column=24;
                                      law_headings=["Prestations familiales";
                                                     "Champs d'applications";
                                                     "Prologue"]}
                                    ([|(fun (_: unit) ->
                                          handle_default
                                            {filename = "examples/allocations_familiales/prologue.catala_fr";
-                                             start_line=57; start_column=10;
-                                             end_line=57; end_column=22;
+                                             start_line=57; start_column=12;
+                                             end_line=57; end_column=24;
                                              law_headings=["Prestations familiales";
                                                             "Champs d'applications";
                                                             "Prologue"]}
@@ -1258,21 +1258,21 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                            (fun (_: unit) -> raise EmptyError)))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/allocations_familiales/prologue.catala_fr";
-                   start_line=57; start_column=10;
-                   end_line=57; end_column=22;
+                   start_line=57; start_column=12;
+                   end_line=57; end_column=24;
                    law_headings=["Prestations familiales";
                                   "Champs d'applications"; "Prologue"]} true))
               (fun (_: unit) -> false))
          with
          EmptyError -> (raise (NoValueProvided
            {filename = "examples/allocations_familiales/prologue.catala_fr";
-             start_line=57; start_column=10; end_line=57; end_column=22;
+             start_line=57; start_column=12; end_line=57; end_column=24;
              law_headings=["Prestations familiales"; "Champs d'applications";
                             "Prologue"]})))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=57; start_column=10; end_line=57; end_column=22;
+        start_line=57; start_column=12; end_line=57; end_column=24;
         law_headings=["Prestations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   {PrestationsFamiliales.droit_ouvert = droit_ouvert_;
@@ -5119,7 +5119,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
     try
       (handle_default
          {filename = "examples/allocations_familiales/prologue.catala_fr";
-           start_line=100; start_column=10; end_line=100; end_column=23;
+           start_line=100; start_column=12; end_line=100; end_column=25;
            law_headings=["Allocations familiales"; "Champs d'applications";
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
@@ -5140,7 +5140,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
-        start_line=100; start_column=10; end_line=100; end_column=23;
+        start_line=100; start_column=12; end_line=100; end_column=25;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   let _: unit = if (
@@ -5424,7 +5424,7 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
     try
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=79; start_column=10; end_line=79; end_column=25;
+           start_line=79; start_column=12; end_line=79; end_column=27;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -5434,6 +5434,6 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=79; start_column=10; end_line=79; end_column=25;
+        start_line=79; start_column=12; end_line=79; end_column=27;
         law_headings=["Interface du programme"; "Épilogue"]})))) in
   {InterfaceAllocationsFamiliales.i_montant_verse = i_montant_verse_}

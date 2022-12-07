@@ -180,15 +180,19 @@ aggregate:
   (CollectionOp (func, i, e1, e2), Pos.from_lpos $sloc)
 }
 
+scope_call_args:
+| WITH_V LBRACKET fields = list(preceded (ALT, struct_content_field)) RBRACKET {
+  fields
+}
+
 base_expression:
 | e = primitive_expression { e }
 | ag = aggregate { ag }
 | e1 = small_expression OF e2 = base_expression {
   (FunCall (e1, e2), Pos.from_lpos $sloc)
 }
-| c = constructor OF
-  LBRACKET fields = list(preceded (ALT, struct_content_field)) RBRACKET {
-  (* empty list is allowed *)
+| OUTPUT OF c = constructor fields = option(scope_call_args) {
+  let fields = Option.value ~default:[] fields in
   (ScopeCall (c, fields), Pos.from_lpos $sloc)
 }
 | e = primitive_expression WITH c = constructor_binding {

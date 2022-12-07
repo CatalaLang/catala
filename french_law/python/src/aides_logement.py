@@ -2691,17 +2691,17 @@ def contributions_sociales_aides_personnelle_logement(contributions_sociales_aid
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                      start_line=520,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=520,
-                                                     end_column=17,
+                                                     end_column=19,
                                                      law_headings=["Calcul des contributions sociales s'appliquant aux aides personnelles au logement",
                                                      "Déclarations des champs d'application",
                                                      "Prologue : aides au logement"]))
     except EmptyError:
         temp_montant = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=520, start_column=10,
-                                             end_line=520, end_column=17,
+                                             start_line=520, start_column=12,
+                                             end_line=520, end_column=19,
                                              law_headings=["Calcul des contributions sociales s'appliquant aux aides personnelles au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -2891,8 +2891,8 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
     except EmptyError:
         temp_montant_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=596, start_column=10,
-                                             end_line=596, end_column=17,
+                                             start_line=596, start_column=12,
+                                             end_line=596, end_column=19,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -2974,8 +2974,8 @@ def calcul_nombre_part_logement_foyer(calcul_nombre_part_logement_foyer_in:Calcu
     except EmptyError:
         temp_n_nombre_parts_d832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=603, start_column=10,
-                                             end_line=603, end_column=32,
+                                             start_line=603, start_column=12,
+                                             end_line=603, end_column=34,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -3020,8 +3020,8 @@ def calcul_nombre_parts_accession_propriete(calcul_nombre_parts_accession_propri
     except EmptyError:
         temp_n_nombre_parts_d832_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=659, start_column=10,
-                                             end_line=659, end_column=32,
+                                             start_line=659, start_column=12,
+                                             end_line=659, end_column=34,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -3079,8 +3079,8 @@ def ouverture_droits_retraite(ouverture_droits_retraite_in:OuvertureDroitsRetrai
                 raise EmptyError
         temp_age_ouverture_droit_8 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                     start_line=998,
-                                                    start_column=10,
-                                                    end_line=998, end_column=29,
+                                                    start_column=12,
+                                                    end_line=998, end_column=31,
                                                     law_headings=["Date d'ouverture des droits à la retraite",
                                                     "Calcul du montant de l'allocation logement",
                                                     "Prologue : aides au logement"]), [temp_age_ouverture_droit_7,
@@ -3094,8 +3094,8 @@ def ouverture_droits_retraite(ouverture_droits_retraite_in:OuvertureDroitsRetrai
     except EmptyError:
         temp_age_ouverture_droit_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=998, start_column=10,
-                                             end_line=998, end_column=29,
+                                             start_line=998, start_column=12,
+                                             end_line=998, end_column=31,
                                              law_headings=["Date d'ouverture des droits à la retraite",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -3449,8 +3449,8 @@ def impaye_depense_logement(impaye_depense_logement_in:ImpayeDepenseLogementIn):
         temp_montant_impaye_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1018,
-                                             start_column=10, end_line=1018,
-                                             end_column=24,
+                                             start_column=12, end_line=1018,
+                                             end_column=26,
                                              law_headings=["Quantification des impayés de dépense de logement",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -3493,8 +3493,8 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
             else:
                 raise EmptyError
         temp_montant_12 = handle_default(SourcePosition(filename="examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
-                                         start_line=6, start_column=10,
-                                         end_line=6, end_column=17,
+                                         start_line=6, start_column=12,
+                                         end_line=6, end_column=19,
                                          law_headings=["Montant de la base mensuelle des allocations familiales"]), [temp_montant_11,
                                          temp_montant_10, temp_montant_9,
                                          temp_montant_8], temp_montant_7,
@@ -3502,8 +3502,8 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
     except EmptyError:
         temp_montant_12 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
-                                             start_line=6, start_column=10,
-                                             end_line=6, end_column=17,
+                                             start_line=6, start_column=12,
+                                             end_line=6, end_column=19,
                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     montant_2 = temp_montant_12
     return BaseMensuelleAllocationsFamiliales(montant = montant_2)
@@ -3652,8 +3652,8 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         temp_brut_horaire_12 = handle_default(SourcePosition(filename="examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr",
-                                              start_line=11, start_column=10,
-                                              end_line=11, end_column=22,
+                                              start_line=11, start_column=12,
+                                              end_line=11, end_column=24,
                                               law_headings=["Prologue",
                                               "Montant du salaire minimum de croissance"]), [temp_brut_horaire_11,
                                               temp_brut_horaire_10,
@@ -3670,8 +3670,8 @@ def smic(smic_in:SmicIn):
     except EmptyError:
         temp_brut_horaire_12 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr",
-                                             start_line=11, start_column=10,
-                                             end_line=11, end_column=22,
+                                             start_line=11, start_column=12,
+                                             end_line=11, end_column=24,
                                              law_headings=["Prologue",
                                              "Montant du salaire minimum de croissance"]))
     brut_horaire = temp_brut_horaire_12
@@ -3868,8 +3868,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp_taux_composition_familiale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=564, start_column=10,
-                                             end_line=564, end_column=36,
+                                             start_line=564, start_column=12,
+                                             end_line=564, end_column=38,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -4372,8 +4372,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                 else:
                     raise EmptyError
             return handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                  start_line=562, start_column=10,
-                                  end_line=562, end_column=33,
+                                  start_line=562, start_column=12,
+                                  end_line=562, end_column=35,
                                   law_headings=["Secteur locatif",
                                   "Calcul du montant de l'aide personnalisée au logement",
                                   "Déclarations des champs d'application",
@@ -4447,8 +4447,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                     else:
                         raise EmptyError
                 return handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                      start_line=562, start_column=10,
-                                      end_line=562, end_column=33,
+                                      start_line=562, start_column=12,
+                                      end_line=562, end_column=35,
                                       law_headings=["Secteur locatif",
                                       "Calcul du montant de l'aide personnalisée au logement",
                                       "Déclarations des champs d'application",
@@ -4510,8 +4510,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                     else:
                         raise EmptyError
                 return handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                      start_line=562, start_column=10,
-                                      end_line=562, end_column=33,
+                                      start_line=562, start_column=12,
+                                      end_line=562, end_column=35,
                                       law_headings=["Secteur locatif",
                                       "Calcul du montant de l'aide personnalisée au logement",
                                       "Déclarations des champs d'application",
@@ -4751,8 +4751,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                 else:
                     raise EmptyError
             return handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                  start_line=562, start_column=10,
-                                  end_line=562, end_column=33,
+                                  start_line=562, start_column=12,
+                                  end_line=562, end_column=35,
                                   law_headings=["Secteur locatif",
                                   "Calcul du montant de l'aide personnalisée au logement",
                                   "Déclarations des champs d'application",
@@ -4769,8 +4769,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                   temp_plafond_loyer_d823_16_2_31)
         temp_plafond_loyer_d823_16_2_48 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                          start_line=562,
-                                                         start_column=10,
-                                                         end_line=562, end_column=33,
+                                                         start_column=12,
+                                                         end_line=562, end_column=35,
                                                          law_headings=["Secteur locatif",
                                                          "Calcul du montant de l'aide personnalisée au logement",
                                                          "Déclarations des champs d'application",
@@ -4781,8 +4781,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp_plafond_loyer_d823_16_2_48 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=562, start_column=10,
-                                             end_line=562, end_column=33,
+                                             start_line=562, start_column=12,
+                                             end_line=562, end_column=35,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -4843,7 +4843,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                     raise EmptyError
             temp_montant_forfaitaire_charges_d823_16_8 = handle_default(
                 SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                start_line=561, start_column=10, end_line=561, end_column=45,
+                start_line=561, start_column=12, end_line=561, end_column=47,
                 law_headings=["Secteur locatif",
                 "Calcul du montant de l'aide personnalisée au logement",
                 "Déclarations des champs d'application",
@@ -4885,7 +4885,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                     raise EmptyError
             temp_montant_forfaitaire_charges_d823_16_8 = handle_default(
                 SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                start_line=561, start_column=10, end_line=561, end_column=45,
+                start_line=561, start_column=12, end_line=561, end_column=47,
                 law_headings=["Secteur locatif",
                 "Calcul du montant de l'aide personnalisée au logement",
                 "Déclarations des champs d'application",
@@ -4897,8 +4897,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp_montant_forfaitaire_charges_d823_16_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=561, start_column=10,
-                                             end_line=561, end_column=45,
+                                             start_line=561, start_column=12,
+                                             end_line=561, end_column=47,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -5074,8 +5074,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                 raise EmptyError
         temp_participation_minimale_5 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                        start_line=563,
-                                                       start_column=10,
-                                                       end_line=563, end_column=32,
+                                                       start_column=12,
+                                                       end_line=563, end_column=34,
                                                        law_headings=["Secteur locatif",
                                                        "Calcul du montant de l'aide personnalisée au logement",
                                                        "Déclarations des champs d'application",
@@ -5087,8 +5087,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp_participation_minimale_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=563, start_column=10,
-                                             end_line=563, end_column=32,
+                                             start_line=563, start_column=12,
+                                             end_line=563, end_column=34,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -5426,8 +5426,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp_participation_personnelle_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=565, start_column=10,
-                                             end_line=565, end_column=35,
+                                             start_line=565, start_column=12,
+                                             end_line=565, end_column=37,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -5445,8 +5445,8 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
     except EmptyError:
         temp_aide_finale_formule = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=570, start_column=10,
-                                             end_line=570, end_column=29,
+                                             start_line=570, start_column=12,
+                                             end_line=570, end_column=31,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -5531,8 +5531,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_coefficient_r_d832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=618, start_column=10,
-                                             end_line=618, end_column=31,
+                                             start_line=618, start_column=12,
+                                             end_line=618, end_column=33,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -5884,8 +5884,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                 raise EmptyError
         temp_plafond_equivalence_loyer_eligible_5 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                                    start_line=621,
-                                                                   start_column=10,
-                                                                   end_line=621, end_column=44,
+                                                                   start_column=12,
+                                                                   end_line=621, end_column=46,
                                                                    law_headings=["Secteur logement-foyer",
                                                                    "Calcul du montant de l'aide personnalisée au logement",
                                                                    "Déclarations des champs d'application",
@@ -5897,8 +5897,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_plafond_equivalence_loyer_eligible_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=621, start_column=10,
-                                             end_line=621, end_column=44,
+                                             start_line=621, start_column=12,
+                                             end_line=621, end_column=46,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -6010,8 +6010,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_coefficient_multiplicateur_d832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=617, start_column=10,
-                                             end_line=617, end_column=44,
+                                             start_line=617, start_column=12,
+                                             end_line=617, end_column=46,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -6026,8 +6026,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_equivalence_loyer_eligible = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=620, start_column=10,
-                                             end_line=620, end_column=36,
+                                             start_line=620, start_column=12,
+                                             end_line=620, end_column=38,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -6041,8 +6041,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_n_nombre_parts_d832_25_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=619, start_column=19,
-                                             end_line=619, end_column=41,
+                                             start_line=619, start_column=21,
+                                             end_line=619, end_column=43,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -6193,8 +6193,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_equivalence_loyer_minimale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=628, start_column=10,
-                                             end_line=628, end_column=36,
+                                             start_line=628, start_column=12,
+                                             end_line=628, end_column=38,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -6336,8 +6336,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_aide_finale_formule_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=641, start_column=10,
-                                             end_line=641, end_column=29,
+                                             start_line=641, start_column=12,
+                                             end_line=641, end_column=31,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -10499,8 +10499,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                 raise EmptyError
         temp_mensualite_minimale_9 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                     start_line=680,
-                                                    start_column=10,
-                                                    end_line=680, end_column=29,
+                                                    start_column=12,
+                                                    end_line=680, end_column=31,
                                                     law_headings=["Secteur accession à la propriété",
                                                     "Calcul du montant de l'aide personnalisée au logement",
                                                     "Déclarations des champs d'application",
@@ -10511,8 +10511,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_mensualite_minimale_9 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=680, start_column=10,
-                                             end_line=680, end_column=29,
+                                             start_line=680, start_column=12,
+                                             end_line=680, end_column=31,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -10575,8 +10575,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_mensualite_eligible = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=679, start_column=10,
-                                             end_line=679, end_column=29,
+                                             start_line=679, start_column=12,
+                                             end_line=679, end_column=31,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -10651,8 +10651,8 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
     except EmptyError:
         temp_aide_finale_formule_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=711, start_column=10,
-                                             end_line=711, end_column=29,
+                                             start_line=711, start_column=12,
+                                             end_line=711, end_column=31,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -11314,8 +11314,8 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
     except EmptyError:
         temp_eligibilite = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=320, start_column=10,
-                                             end_line=320, end_column=21,
+                                             start_line=320, start_column=12,
+                                             end_line=320, end_column=23,
                                              law_headings=["Éligibilité aux aides personnelles au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -11352,17 +11352,17 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                      start_line=324,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=324,
-                                                     end_column=28,
+                                                     end_column=30,
                                                      law_headings=["Éligibilité aux aides personnelles au logement",
                                                      "Déclarations des champs d'application",
                                                      "Prologue : aides au logement"]))
     except EmptyError:
         temp_condition_2_r823_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=324, start_column=10,
-                                             end_line=324, end_column=28,
+                                             start_line=324, start_column=12,
+                                             end_line=324, end_column=30,
                                              law_headings=["Éligibilité aux aides personnelles au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -11484,8 +11484,8 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
     except EmptyError:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=322, start_column=10,
-                                             end_line=322, end_column=59,
+                                             start_line=322, start_column=12,
+                                             end_line=322, end_column=61,
                                              law_headings=["Éligibilité aux aides personnelles au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -11495,8 +11495,8 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
     except EmptyError:
         temp_nombre_personnes_a_charge_prises_en_compte = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=321, start_column=10,
-                                             end_line=321, end_column=52,
+                                             start_line=321, start_column=12,
+                                             end_line=321, end_column=54,
                                              law_headings=["Éligibilité aux aides personnelles au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -11752,8 +11752,8 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
     except EmptyError:
         temp_ressources_prises_en_compte_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=508, start_column=10,
-                                             end_line=508, end_column=37,
+                                             start_line=508, start_column=12,
+                                             end_line=508, end_column=39,
                                              law_headings=["Prise en compte des ressources pour les aides personnelles au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -11819,8 +11819,8 @@ def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:Eli
     except EmptyError:
         temp_age_l512_3_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/prologue.catala_fr",
-                                             start_line=43, start_column=10,
-                                             end_line=43, end_column=22,
+                                             start_line=43, start_column=12,
+                                             end_line=43, end_column=24,
                                              law_headings=["Prologue : prestations familiales"]))
     age_l512_3_2 = temp_age_l512_3_2
     try:
@@ -11865,8 +11865,8 @@ def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:Eli
     except EmptyError:
         temp_regime_outre_mer_l751_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/prologue.catala_fr",
-                                             start_line=44, start_column=10,
-                                             end_line=44, end_column=33,
+                                             start_line=44, start_column=12,
+                                             end_line=44, end_column=35,
                                              law_headings=["Prologue : prestations familiales"]))
     regime_outre_mer_l751_1 = temp_regime_outre_mer_l751_1
     try:
@@ -11934,15 +11934,15 @@ def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:Eli
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/prologue.catala_fr",
                                                      start_line=41,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=41,
-                                                     end_column=29,
+                                                     end_column=31,
                                                      law_headings=["Prologue : prestations familiales"]))
     except EmptyError:
         temp_conditions_hors_age = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/prologue.catala_fr",
-                                             start_line=41, start_column=10,
-                                             end_line=41, end_column=29,
+                                             start_line=41, start_column=12,
+                                             end_line=41, end_column=31,
                                              law_headings=["Prologue : prestations familiales"]))
     conditions_hors_age = temp_conditions_hors_age
     try:
@@ -11999,15 +11999,15 @@ def eligibilite_prestations_familiales(eligibilite_prestations_familiales_in:Eli
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/prologue.catala_fr",
                                                      start_line=40,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=40,
-                                                     end_column=22,
+                                                     end_column=24,
                                                      law_headings=["Prologue : prestations familiales"]))
     except EmptyError:
         temp_droit_ouvert = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/prologue.catala_fr",
-                                             start_line=40, start_column=10,
-                                             end_line=40, end_column=22,
+                                             start_line=40, start_column=12,
+                                             end_line=40, end_column=24,
                                              law_headings=["Prologue : prestations familiales"]))
     droit_ouvert = temp_droit_ouvert
     return EligibilitePrestationsFamiliales(droit_ouvert = droit_ouvert,
@@ -12215,17 +12215,17 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                      start_line=788,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=788,
-                                                     end_column=32,
+                                                     end_column=34,
                                                      law_headings=["Secteur locatif",
                                                      "Calcul du montant de l'allocation logement",
                                                      "Prologue : aides au logement"]))
     except EmptyError:
         temp_traitement_aide_finale = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=788, start_column=10,
-                                             end_line=788, end_column=32,
+                                             start_line=788, start_column=12,
+                                             end_line=788, end_column=34,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12258,8 +12258,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_aide_finale_formule_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=786, start_column=10,
-                                             end_line=786, end_column=29,
+                                             start_line=786, start_column=12,
+                                             end_line=786, end_column=31,
                                              law_headings=["Secteur locatif",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12522,8 +12522,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                 raise EmptyError
         temp_montant_forfaitaire_charges_4 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                             start_line=932,
-                                                            start_column=10,
-                                                            end_line=932, end_column=37,
+                                                            start_column=12,
+                                                            end_line=932, end_column=39,
                                                             law_headings=["Secteur logement-foyer",
                                                             "Calcul du montant de l'allocation logement",
                                                             "Prologue : aides au logement"]), [temp_montant_forfaitaire_charges_3,
@@ -12533,8 +12533,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_montant_forfaitaire_charges_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=932, start_column=10,
-                                             end_line=932, end_column=37,
+                                             start_line=932, start_column=12,
+                                             end_line=932, end_column=39,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12752,8 +12752,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                 raise EmptyError
         temp_equivalence_loyer_16 = handle_default(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                    start_line=931,
-                                                   start_column=10,
-                                                   end_line=931, end_column=27,
+                                                   start_column=12,
+                                                   end_line=931, end_column=29,
                                                    law_headings=["Secteur logement-foyer",
                                                    "Calcul du montant de l'allocation logement",
                                                    "Prologue : aides au logement"]), [temp_equivalence_loyer_14,
@@ -12767,8 +12767,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_equivalence_loyer_16 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=931, start_column=10,
-                                             end_line=931, end_column=27,
+                                             start_line=931, start_column=12,
+                                             end_line=931, end_column=29,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12856,8 +12856,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_coefficient_prise_en_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=930, start_column=10,
-                                             end_line=930, end_column=37,
+                                             start_line=930, start_column=12,
+                                             end_line=930, end_column=39,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12890,8 +12890,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_loyer_minimal = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=933, start_column=10,
-                                             end_line=933, end_column=23,
+                                             start_line=933, start_column=12,
+                                             end_line=933, end_column=25,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -12930,8 +12930,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_aide_finale_formule_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=943, start_column=10,
-                                             end_line=943, end_column=29,
+                                             start_line=943, start_column=12,
+                                             end_line=943, end_column=31,
                                              law_headings=["Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -16452,8 +16452,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_aide_finale_formule_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=876, start_column=10,
-                                             end_line=876, end_column=29,
+                                             start_line=876, start_column=12,
+                                             end_line=876, end_column=31,
                                              law_headings=["Secteur accession à la propriété",
                                              "Calcul du montant de l'allocation logement",
                                              "Prologue : aides au logement"]))
@@ -17899,9 +17899,9 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                      start_line=746,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=746,
-                                                     end_column=32,
+                                                     end_column=34,
                                                      law_headings=["Tous secteurs",
                                                      "Calcul du montant de l'aide personnalisée au logement",
                                                      "Déclarations des champs d'application",
@@ -17909,8 +17909,8 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
     except EmptyError:
         temp_traitement_aide_finale_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=746, start_column=10,
-                                             end_line=746, end_column=32,
+                                             start_line=746, start_column=12,
+                                             end_line=746, end_column=34,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -17921,8 +17921,8 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
     except EmptyError:
         temp_aide_finale_formule_7 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=745, start_column=10,
-                                             end_line=745, end_column=29,
+                                             start_line=745, start_column=12,
+                                             end_line=745, end_column=31,
                                              law_headings=["Tous secteurs",
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
@@ -18163,8 +18163,8 @@ def eligibilite_prime_de_demenagement(eligibilite_prime_de_demenagement_in:Eligi
     except EmptyError:
         temp_montant_prime_demenagement = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=464, start_column=10,
-                                             end_line=464, end_column=36,
+                                             start_line=464, start_column=12,
+                                             end_line=464, end_column=38,
                                              law_headings=["Éligibilité à la prime de déménagement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -18594,8 +18594,8 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
     except EmptyError:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=372, start_column=10,
-                                             end_line=372, end_column=59,
+                                             start_line=372, start_column=12,
+                                             end_line=372, end_column=61,
                                              law_headings=["Éligibilité à l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -18605,8 +18605,8 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
     except EmptyError:
         temp_nombre_personnes_a_charge_prises_en_compte_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=371, start_column=10,
-                                             end_line=371, end_column=52,
+                                             start_line=371, start_column=12,
+                                             end_line=371, end_column=54,
                                              law_headings=["Éligibilité à l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -18624,8 +18624,8 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
     except EmptyError:
         temp_eligibilite_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=370, start_column=10,
-                                             end_line=370, end_column=21,
+                                             start_line=370, start_column=12,
+                                             end_line=370, end_column=23,
                                              law_headings=["Éligibilité à l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -18969,8 +18969,8 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
     except EmptyError:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=414, start_column=10,
-                                             end_line=414, end_column=59,
+                                             start_line=414, start_column=12,
+                                             end_line=414, end_column=61,
                                              law_headings=["Éligibilité aux allocations de logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -18980,8 +18980,8 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
     except EmptyError:
         temp_nombre_personnes_a_charge_prises_en_compte_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=413, start_column=10,
-                                             end_line=413, end_column=52,
+                                             start_line=413, start_column=12,
+                                             end_line=413, end_column=54,
                                              law_headings=["Éligibilité aux allocations de logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
@@ -21578,9 +21578,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                      start_line=991,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=991,
-                                                     end_column=32,
+                                                     end_column=34,
                                                      law_headings=["Tous secteurs",
                                                      "Secteur logement-foyer",
                                                      "Calcul du montant de l'allocation logement",
@@ -21588,8 +21588,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     except EmptyError:
         temp_traitement_aide_finale_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=991, start_column=10,
-                                             end_line=991, end_column=32,
+                                             start_line=991, start_column=12,
+                                             end_line=991, end_column=34,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
@@ -21600,8 +21600,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     except EmptyError:
         temp_aide_finale_formule_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
-                                             start_line=990, start_column=10,
-                                             end_line=990, end_column=29,
+                                             start_line=990, start_column=12,
+                                             end_line=990, end_column=31,
                                              law_headings=["Tous secteurs",
                                              "Secteur logement-foyer",
                                              "Calcul du montant de l'allocation logement",
@@ -21908,8 +21908,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
         temp_coefficents_enfants_garde_alternee_pris_en_compte_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1055,
-                                             start_column=10, end_line=1055,
-                                             end_column=59,
+                                             start_column=12, end_line=1055,
+                                             end_column=61,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     coefficents_enfants_garde_alternee_pris_en_compte_3 = temp_coefficents_enfants_garde_alternee_pris_en_compte_5
@@ -21930,8 +21930,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
         temp_eligibilite_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1052,
-                                             start_column=10, end_line=1052,
-                                             end_column=21,
+                                             start_column=12, end_line=1052,
+                                             end_column=23,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     eligibilite_2 = temp_eligibilite_3
@@ -21972,17 +21972,17 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                                      start_line=1054,
-                                                     start_column=10,
+                                                     start_column=12,
                                                      end_line=1054,
-                                                     end_column=32,
+                                                     end_column=34,
                                                      law_headings=["Calculette globale",
                                                      "Prologue : aides au logement"]))
     except EmptyError:
         temp_traitement_aide_finale_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1054,
-                                             start_column=10, end_line=1054,
-                                             end_column=32,
+                                             start_column=12, end_line=1054,
+                                             end_column=34,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     traitement_aide_finale_3 = temp_traitement_aide_finale_4
@@ -22018,8 +22018,8 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
         temp_aide_finale_formule_9 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1053,
-                                             start_column=10, end_line=1053,
-                                             end_column=29,
+                                             start_column=12, end_line=1053,
+                                             end_column=31,
                                              law_headings=["Calculette globale",
                                              "Prologue : aides au logement"]))
     aide_finale_formule_8 = temp_aide_finale_formule_9
@@ -22174,8 +22174,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
         temp_eligibilite_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1125,
-                                             start_column=10, end_line=1125,
-                                             end_column=21,
+                                             start_column=12, end_line=1125,
+                                             end_column=23,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
     eligibilite_3 = temp_eligibilite_4
@@ -22208,8 +22208,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
         temp_aide_finale_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=1126,
-                                             start_column=10, end_line=1126,
-                                             end_column=21,
+                                             start_column=12, end_line=1126,
+                                             end_column=23,
                                              law_headings=["Calculette avec garde alternée",
                                              "Prologue : aides au logement"]))
     aide_finale = temp_aide_finale_2
