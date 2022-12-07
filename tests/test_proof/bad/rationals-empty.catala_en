@@ -7,7 +7,7 @@ declaration scope A:
 
 scope A:
   definition x equals 1.
-  definition y under condition x >. 1./.3. consequence equals true
+  definition y under condition x > 1./3. consequence equals true
 ```
 
 ```catala-test-inline

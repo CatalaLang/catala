@@ -38,13 +38,13 @@ or noDrawLottery.typeOrg with pattern OrganisationType.NonProfit
 benefiting organisation,
 ```catala
 scope GamingAuthorized:
-definition minimumProceeds equals noDrawLottery.proceedsToBenefitingOrg >=$ noDrawLottery.grossProceeds *$ 40 %
+definition minimumProceeds equals noDrawLottery.proceedsToBenefitingOrg >= noDrawLottery.grossProceeds * 40 %
 
 ```
 (c) the total value of all of the prizes does not exceed $5,000,
 ```catala
 scope GamingAuthorized:
-definition maxValueOfPrizes equals noDrawLottery.totalValueOfThePrizes <=$ $5,000
+definition maxValueOfPrizes equals noDrawLottery.totalValueOfThePrizes <= $5,000
 ```
 (d) the total number of tickets produced or obtained for sale for the lottery does
 not exceed 3,000.

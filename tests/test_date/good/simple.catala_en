@@ -9,7 +9,7 @@ declaration scope A:
 scope A:
   definition x equals |2019-01-01|
   definition y equals |2002-09-30|
-  definition z equals x -@ y
+  definition z equals x - y
 ```
 
 ```catala-test-inline

@@ -805,7 +805,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                       start_line=28; start_column=5;
-                      end_line=29; end_column=34;
+                      end_line=29; end_column=33;
                       law_headings=["Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -823,7 +823,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                       start_line=48; start_column=5;
-                      end_line=49; end_column=34;
+                      end_line=49; end_column=33;
                       law_headings=["Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -841,7 +841,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                       start_line=64; start_column=5;
-                      end_line=65; end_column=34;
+                      end_line=65; end_column=33;
                       law_headings=["Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -859,7 +859,7 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
                       start_line=82; start_column=5;
-                      end_line=83; end_column=34;
+                      end_line=83; end_column=33;
                       law_headings=["Instruction interministérielle n°DSS/2B/2022/82 du 28 mars 2022 relative à la revalorisation au 1er avril 2022 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -1072,7 +1072,7 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
                            start_line=68; start_column=5;
-                           end_line=71; end_column=57;
+                           end_line=71; end_column=56;
                            law_headings=["Article L512-3";
                                           "Chapitre 2 : Champ d'application";
                                           "Titre 1 : Champ d'application - Généralités";
@@ -1197,7 +1197,7 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                               {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
                                                 start_line=60;
                                                 start_column=5;
-                                                end_line=62; end_column=64;
+                                                end_line=62; end_column=62;
                                                 law_headings=["Article L512-3";
                                                                "Chapitre 2 : Champ d'application";
                                                                "Titre 1 : Champ d'application - Généralités";
@@ -1862,7 +1862,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
                            start_line=83; start_column=19;
-                           end_line=83; end_column=69;
+                           end_line=83; end_column=67;
                            law_headings=["Article R521-1";
                                           "Chapitre 1er : Allocations familiales";
                                           "Titre 2 : Prestations générales d'entretien";
@@ -1991,7 +1991,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=30; start_column=5;
-                              end_line=30; end_column=69;
+                              end_line=30; end_column=67;
                               law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
                             (o_and
@@ -2017,7 +2017,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=63; start_column=5;
-                              end_line=63; end_column=69;
+                              end_line=63; end_column=67;
                               law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
                             (o_and
@@ -2043,7 +2043,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=96; start_column=5;
-                              end_line=96; end_column=69;
+                              end_line=96; end_column=67;
                               law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
                             (o_and
@@ -2069,7 +2069,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=132; start_column=5;
-                              end_line=132; end_column=69;
+                              end_line=132; end_column=67;
                               law_headings=["Article 1";
                                              "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations";
                                              "Montant des plafonds de ressources"]}
@@ -2133,7 +2133,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=23; start_column=5;
-                              end_line=23; end_column=69;
+                              end_line=23; end_column=67;
                               law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
                             (o_and
@@ -2159,7 +2159,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=56; start_column=5;
-                              end_line=56; end_column=69;
+                              end_line=56; end_column=67;
                               law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
                             (o_and
@@ -2185,7 +2185,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=89; start_column=5;
-                              end_line=89; end_column=69;
+                              end_line=89; end_column=67;
                               law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
                                              "Montant des plafonds de ressources"]}
                             (o_and
@@ -2211,7 +2211,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=116; start_column=5;
-                              end_line=116; end_column=69;
+                              end_line=116; end_column=67;
                               law_headings=["Article 1";
                                              "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations";
                                              "Montant des plafonds de ressources"]}
@@ -2471,7 +2471,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=431; start_column=5;
-                              end_line=431; end_column=69;
+                              end_line=431; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2502,7 +2502,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=439; start_column=5;
-                              end_line=439; end_column=69;
+                              end_line=439; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2533,7 +2533,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=447; start_column=5;
-                              end_line=447; end_column=69;
+                              end_line=447; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2564,7 +2564,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=455; start_column=5;
-                              end_line=455; end_column=69;
+                              end_line=455; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2595,7 +2595,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=463; start_column=5;
-                              end_line=463; end_column=69;
+                              end_line=463; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2626,7 +2626,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=471; start_column=5;
-                              end_line=471; end_column=69;
+                              end_line=471; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2657,7 +2657,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=479; start_column=5;
-                              end_line=479; end_column=69;
+                              end_line=479; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2688,7 +2688,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=487; start_column=5;
-                              end_line=487; end_column=69;
+                              end_line=487; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2719,7 +2719,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=495; start_column=5;
-                              end_line=495; end_column=69;
+                              end_line=495; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -2750,7 +2750,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                               start_line=503; start_column=5;
-                              end_line=503; end_column=69;
+                              end_line=503; end_column=67;
                               law_headings=["Annexe";
                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                              "Dispositions spéciales relatives à Mayotte"]}
@@ -3575,7 +3575,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                                    start_line=165; start_column=5;
-                                   end_line=166; end_column=68;
+                                   end_line=166; end_column=65;
                                    law_headings=["Article D521-1";
                                                   "Chapitre 1er : Allocations familiales";
                                                   "Titre 2 : Prestations générales d'entretien";
@@ -3609,7 +3609,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                                    start_line=174; start_column=5;
-                                   end_line=175; end_column=68;
+                                   end_line=175; end_column=65;
                                    law_headings=["Article D521-1";
                                                   "Chapitre 1er : Allocations familiales";
                                                   "Titre 2 : Prestations générales d'entretien";
@@ -3677,7 +3677,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                       start_line=220; start_column=5;
-                      end_line=220; end_column=43;
+                      end_line=220; end_column=42;
                       law_headings=["Article D521-2";
                                      "Chapitre 1er : Allocations familiales";
                                      "Titre 2 : Prestations générales d'entretien";
@@ -3699,7 +3699,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                       start_line=234; start_column=5;
-                      end_line=235; end_column=46;
+                      end_line=235; end_column=45;
                       law_headings=["Article D521-2";
                                      "Chapitre 1er : Allocations familiales";
                                      "Titre 2 : Prestations générales d'entretien";
@@ -3723,7 +3723,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                       start_line=248; start_column=5;
-                      end_line=248; end_column=43;
+                      end_line=248; end_column=42;
                       law_headings=["Article D521-2";
                                      "Chapitre 1er : Allocations familiales";
                                      "Titre 2 : Prestations générales d'entretien";
@@ -3896,7 +3896,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=350; start_column=5;
-                                      end_line=350; end_column=69;
+                                      end_line=350; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -3928,7 +3928,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=358; start_column=5;
-                                      end_line=358; end_column=69;
+                                      end_line=358; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -3960,7 +3960,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=366; start_column=5;
-                                      end_line=366; end_column=69;
+                                      end_line=366; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -3992,7 +3992,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=374; start_column=5;
-                                      end_line=374; end_column=69;
+                                      end_line=374; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4024,7 +4024,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=382; start_column=5;
-                                      end_line=382; end_column=69;
+                                      end_line=382; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4056,7 +4056,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=390; start_column=5;
-                                      end_line=390; end_column=69;
+                                      end_line=390; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4088,7 +4088,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=398; start_column=5;
-                                      end_line=398; end_column=69;
+                                      end_line=398; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4120,7 +4120,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=406; start_column=5;
-                                      end_line=406; end_column=69;
+                                      end_line=406; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4152,7 +4152,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=414; start_column=5;
-                                      end_line=414; end_column=69;
+                                      end_line=414; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4184,7 +4184,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
                                       start_line=422; start_column=5;
-                                      end_line=422; end_column=69;
+                                      end_line=422; end_column=67;
                                       law_headings=["Annexe";
                                                      "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                      "Dispositions spéciales relatives à Mayotte"]}
@@ -4678,7 +4678,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                                    start_line=378; start_column=5;
-                                   end_line=382; end_column=57;
+                                   end_line=382; end_column=55;
                                    law_headings=["Article D755-5";
                                                   "Chapitre 5 : Prestations familiales et prestations assimilées";
                                                   "Titre 5 : Départements d'outre-mer";
@@ -4731,7 +4731,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                                    start_line=388; start_column=5;
-                                   end_line=391; end_column=58;
+                                   end_line=391; end_column=56;
                                    law_headings=["Article D755-5";
                                                   "Chapitre 5 : Prestations familiales et prestations assimilées";
                                                   "Titre 5 : Départements d'outre-mer";
@@ -4832,7 +4832,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                               start_line=267; start_column=5;
-                              end_line=269; end_column=42;
+                              end_line=269; end_column=41;
                               law_headings=["Article D521-2";
                                              "Chapitre 1er : Allocations familiales";
                                              "Titre 2 : Prestations générales d'entretien";
@@ -4868,7 +4868,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
                               start_line=277; start_column=5;
-                              end_line=279; end_column=41;
+                              end_line=279; end_column=40;
                               law_headings=["Article D521-2";
                                              "Chapitre 1er : Allocations familiales";
                                              "Titre 2 : Prestations générales d'entretien";

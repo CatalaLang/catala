@@ -25,8 +25,8 @@ familiales, est ainsi porté de 411,92 € à 413,16 € au 1er avril 2019.
 champ d'application BaseMensuelleAllocationsFamiliales :
   définition montant
   sous condition
-    date_courante >=@ |2019-04-01| et
-    date_courante <@ |2020-04-01|
+    date_courante >= |2019-04-01| et
+    date_courante < |2020-04-01|
   conséquence égal à 413,16 €
 ```
 
@@ -45,8 +45,8 @@ est ainsi porté de 413,16 € à 414,4 € au 1er avril 2020.
 champ d'application BaseMensuelleAllocationsFamiliales :
   définition montant
   sous condition
-    date_courante >=@ |2020-04-01| et
-    date_courante <@ |2021-04-01|
+    date_courante >= |2020-04-01| et
+    date_courante < |2021-04-01|
   conséquence égal à 414,4 €
 ```
 
@@ -61,8 +61,8 @@ est donc porté de 414,4 € au 1er avril 2020 à 414,81 € au 1er avril 2021.
 champ d'application BaseMensuelleAllocationsFamiliales :
   définition montant
   sous condition
-    date_courante >=@ |2021-04-01| et
-    date_courante <@ |2022-04-01|
+    date_courante >= |2021-04-01| et
+    date_courante < |2022-04-01|
   conséquence égal à 414,81 €
 ```
 
@@ -79,7 +79,7 @@ de 414,81 € au 1er avril 2021 à 422,28 € au 1er avril 2022.
 champ d'application BaseMensuelleAllocationsFamiliales :
   définition montant
   sous condition
-    date_courante >=@ |2022-04-01| et
-    date_courante <@ |2023-04-01|
+    date_courante >= |2022-04-01| et
+    date_courante < |2023-04-01|
   conséquence égal à 422,28 €
 ```

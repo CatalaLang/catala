@@ -38,7 +38,7 @@ requirements are complied with—
 benefiting organisation,
 ```catala
 scope GamingAuthorized:
-definition minimumProceeds equals (artUnion.proceedsToBenefitingOrg >=$ artUnion.grossProceeds *$ 30 %)
+definition minimumProceeds equals (artUnion.proceedsToBenefitingOrg >= artUnion.grossProceeds * 30 %)
 
 definition benefitingOrg equals artUnion.typeOrg with pattern BenefitingOrganisation.Charitable or
  artUnion.typeOrg with pattern BenefitingOrganisation.NonProfit or artUnion.typeOrg with pattern BenefitingOrganisation.ObjectOfPublicOrCharitableCharacter
@@ -47,14 +47,14 @@ definition benefitingOrg equals artUnion.typeOrg with pattern BenefitingOrganisa
 (b) the total value of all the prizes exceeds $30,000,
 ```catala
 scope GamingAuthorized:
-definition valueOfPrizes equals (artUnion.totalValueOfThePrizes >=$ $30,000)
+definition valueOfPrizes equals (artUnion.totalValueOfThePrizes >= $30,000)
 
 ```
 (c) the maximum amount of money payable as a separate prize does not exceed
 $30,000,
 ```catala
 scope GamingAuthorized:
-definition separatePrizeMaxValue equals (artUnion.maxAmountMoneyAsSeparatePrize <=$ $30,000)
+definition separatePrizeMaxValue equals (artUnion.maxAmountMoneyAsSeparatePrize <= $30,000)
 ```
 (d) the person conducting the activity holds an authority to do so that is in force
 and the activity is conducted in accordance with the authority

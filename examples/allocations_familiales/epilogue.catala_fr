@@ -43,10 +43,10 @@ champ d'application AllocationsFamiliales:
 
   définition montant_versé égal à
     si droit_ouvert_base alors
-      montant_versé_base +€
-      montant_versé_majoration +€
-      montant_versé_forfaitaire +€
-      montant_versé_complément_pour_base_et_majoration +€
+      montant_versé_base +
+      montant_versé_majoration +
+      montant_versé_forfaitaire +
+      montant_versé_complément_pour_base_et_majoration +
       montant_versé_complément_pour_forfaitaire
     sinon 0€
 ```
@@ -120,9 +120,9 @@ champ d'application InterfaceAllocationsFamiliales:
       -- date_de_naissance : enfant.d_date_de_naissance
       -- prise_en_charge : enfant.d_prise_en_charge
       -- obligation_scolaire :
-        (si enfant.d_date_de_naissance +@ 3 an >=@ i_date_courante alors
+        (si enfant.d_date_de_naissance + 3 an >= i_date_courante alors
           Avant
-        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ i_date_courante alors
+        sinon (si enfant.d_date_de_naissance + 16 an >= i_date_courante alors
           Pendant
         sinon Après))
       -- a_déjà_ouvert_droit_aux_allocations_familiales:
