@@ -44,6 +44,7 @@ let name : type a k. (a, k) t -> string = function
   | Map -> "o_map"
   | Concat -> "o_concat"
   | Filter -> "o_filter"
+  | Reduce -> "o_reduce"
   | Add -> "o_add"
   | Add_int_int -> "o_add_int_int"
   | Add_rat_rat -> "o_add_rat_rat"
@@ -144,6 +145,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Map, Map
   | Concat, Concat
   | Filter, Filter
+  | Reduce, Reduce
   | Add, Add
   | Add_int_int, Add_int_int
   | Add_rat_rat, Add_rat_rat
@@ -222,6 +224,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Map, _ -> -1 | _, Map -> 1
   | Concat, _ -> -1 | _, Concat -> 1
   | Filter, _ -> -1 | _, Filter -> 1
+  | Reduce, _ -> -1 | _, Reduce -> 1
   | Add, _ -> -1 | _, Add -> 1
   | Add_int_int, _ -> -1 | _, Add_int_int -> 1
   | Add_rat_rat, _ -> -1 | _, Add_rat_rat -> 1
@@ -295,7 +298,8 @@ let kind_dispatch :
     | FirstDayOfMonth | LastDayOfMonth | RoundMoney | RoundDecimal | And | Or
     | Xor ) as op ->
     monomorphic op
-  | (Log _ | Length | Eq | Map | Concat | Filter | Fold) as op -> polymorphic op
+  | (Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold) as op ->
+    polymorphic op
   | (Minus | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte) as op ->
     overloaded op
   | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | Add_int_int | Add_rat_rat
@@ -324,6 +328,7 @@ let translate :
   | Map -> Map
   | Concat -> Concat
   | Filter -> Filter
+  | Reduce -> Reduce
   | Fold -> Fold
   | Not -> Not
   | IntToRat -> IntToRat

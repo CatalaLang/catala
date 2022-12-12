@@ -308,6 +308,7 @@ module Oper : sig
   val o_xor : bool -> bool -> bool
   val o_eq : 'a -> 'a -> bool
   val o_map : ('a -> 'b) -> 'a array -> 'b array
+  val o_reduce : ('a -> 'a -> 'a) -> 'a -> 'a array -> 'a
   val o_concat : 'a array -> 'a array -> 'a array
   val o_filter : ('a -> bool) -> 'a array -> 'a array
   val o_add_int_int : integer -> integer -> integer

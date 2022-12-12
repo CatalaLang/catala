@@ -197,14 +197,11 @@ module R = Re.Pcre
 #ifndef MR_MINIMUM
   #define MR_MINIMUM MS_MINIMUM
 #endif
-#ifndef MR_FILTER
-  #define MR_FILTER MS_FILTER
+#ifndef MR_IS
+  #define MR_IS MS_IS
 #endif
-#ifndef MR_MAP
-  #define MR_MAP MS_MAP
-#endif
-#ifndef MR_INIT
-  #define MR_INIT MS_INIT
+#ifndef MR_EMPTY
+  #define MR_EMPTY MS_EMPTY
 #endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
@@ -325,9 +322,8 @@ let token_list : (string * token) list =
     (MS_NOT, NOT);
     (MS_MAXIMUM, MAXIMUM);
     (MS_MINIMUM, MINIMUM);
-    (MS_FILTER, FILTER);
-    (MS_MAP, MAP);
-    (MS_INIT, INIT);
+    (MS_IS, IS);
+    (MS_EMPTY, EMPTY);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -574,15 +570,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_MINIMUM ->
       L.update_acc lexbuf;
       MINIMUM
-  | MR_FILTER ->
+  | MR_IS ->
       L.update_acc lexbuf;
-      FILTER
-  | MR_MAP ->
+      IS
+  | MR_EMPTY ->
       L.update_acc lexbuf;
-      MAP
-  | MR_INIT ->
-      L.update_acc lexbuf;
-      INIT
+      EMPTY
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL

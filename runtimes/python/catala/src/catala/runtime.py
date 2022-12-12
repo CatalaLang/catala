@@ -572,6 +572,13 @@ def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
 
 
+def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Alpha, l: List[Alpha]) -> Alpha:
+    if l == []:
+        return dft
+    else:
+        return reduce(f, l)
+
+
 def list_length(l: List[Alpha]) -> Integer:
     return Integer(len(l))
 

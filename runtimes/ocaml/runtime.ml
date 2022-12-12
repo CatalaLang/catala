@@ -599,6 +599,17 @@ module Oper = struct
   let o_xor : bool -> bool -> bool = ( <> )
   let o_eq = ( = )
   let o_map = Array.map
+
+  let o_reduce f dft a =
+    let len = Array.length a in
+    if len = 0 then dft
+    else
+      let r = ref a.(0) in
+      for i = 1 to len - 1 do
+        r := f !r a.(i)
+      done;
+      !r
+
   let o_concat = Array.append
   let o_filter f a = Array.of_list (List.filter f (Array.to_list a))
   let o_add_int_int i1 i2 = Z.add i1 i2

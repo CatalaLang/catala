@@ -171,6 +171,7 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Xor -> "xor"
   | Eq -> "="
   | Map -> "map"
+  | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
   | Add -> "+"

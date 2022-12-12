@@ -153,6 +153,7 @@ module Op = struct
     | Map : ('a any, polymorphic) t
     | Concat : ('a any, polymorphic) t
     | Filter : ('a any, polymorphic) t
+    | Reduce : ('a any, polymorphic) t
     (* * overloaded *)
     | Add : (desugared, overloaded) t
     | Add_int_int : ([< scopelang | dcalc | lcalc ], resolved) t

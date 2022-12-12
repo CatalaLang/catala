@@ -172,6 +172,16 @@ and evaluate_operator :
                  evaluate_expr ctx
                    (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
                es)
+        | Reduce, [f; default; (EArray [], _)] ->
+          ignore (evaluate_expr ctx f);
+          Marked.unmark (evaluate_expr ctx default)
+        | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
+          Marked.unmark
+            (List.fold_left
+               (fun acc x ->
+                 evaluate_expr ctx
+                   (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
+               x0 xn)
         | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
         | Filter, [f; (EArray es, _)] ->
           EArray
@@ -195,7 +205,8 @@ and evaluate_operator :
                  evaluate_expr ctx
                    (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
                init es)
-        | (Length | Log _ | Eq | Map | Concat | Filter | Fold), _ -> err ())
+        | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ ->
+          err ())
       ~monomorphic:(fun op ->
         let rlit =
           match op, List.map (function ELit l, _ -> l | _ -> err ()) args with

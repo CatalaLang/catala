@@ -156,38 +156,17 @@ compare_op:
 | EQUAL { (Eq, Pos.from_lpos $sloc) }
 | NOT_EQUAL { (Neq, Pos.from_lpos $sloc) }
 
-aggregate_func:
-| CONTENT MAXIMUM t = option(typ_base) INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (true, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| CONTENT MINIMUM t = option(typ_base) INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (false, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| MAXIMUM t = option(typ_base) INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (true, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| MINIMUM t = option(typ_base) INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (false, Option.map Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| SUM t = typ_base { (Aggregate (AggregateSum (Marked.unmark t)), Pos.from_lpos $sloc) }
-| CARDINAL { (Aggregate AggregateCount, Pos.from_lpos $sloc) }
-| FILTER { (Filter, Pos.from_lpos $sloc ) }
-| MAP { (Map, Pos.from_lpos $sloc) }
-
-aggregate:
-| func = aggregate_func FOR i = ident IN e1 = primitive_expression
-  OF e2 = base_expression {
-  (CollectionOp (func, i, e1, e2), Pos.from_lpos $sloc)
-}
-
 scope_call_args:
 | WITH_V LBRACKET fields = list(preceded (ALT, struct_content_field)) RBRACKET {
   fields
 }
 
+minmax:
+| MAXIMUM { true }
+| MINIMUM { false }
+
 base_expression:
 | e = primitive_expression { e }
-| ag = aggregate { ag }
 | e1 = small_expression OF e2 = base_expression {
   (FunCall (e1, e2), Pos.from_lpos $sloc)
 }
@@ -200,6 +179,23 @@ base_expression:
 }
 | e1 = primitive_expression CONTAINS e2 = base_expression {
   (MemCollection (e2, e1), Pos.from_lpos $sloc)
+}
+| SUM typ = typ_base
+  OF coll = base_expression
+{
+  CollectionOp (AggregateSum { typ = Marked.unmark typ }, coll), Pos.from_lpos $sloc
+}
+| f = primitive_expression
+  FOR i = ident
+  IN coll = base_expression
+{
+  CollectionOp (Map {f = i, f}, coll), Pos.from_lpos $sloc
+}
+| max = minmax
+  OF coll = base_expression
+  OR IF COLLECTION IS EMPTY THEN default = base_expression
+{
+  CollectionOp (AggregateExtremum { max; default }, coll), Pos.from_lpos $sloc
 }
 
 unop:
@@ -297,41 +293,47 @@ let (arms, _) = arms in
 }
 | { ([], Pos.from_lpos $sloc)}
 
-for_all_marked:
-| FOR ALL { Pos.from_lpos $sloc }
-
-exists_marked:
-| EXISTS { Pos.from_lpos $sloc }
-
-forall_prefix:
-| pos = for_all_marked i = ident IN e = primitive_expression WE_HAVE {
-  (pos, i, e)
+let_expression:
+| e = logical_expression { e }
+| EXISTS i = ident
+  IN coll = compare_expression
+  SUCH THAT predicate = compare_expression
+{
+  CollectionOp (Exists {predicate = i, predicate}, coll), Pos.from_lpos $sloc
 }
-
-exists_prefix:
-| pos = exists_marked i = ident IN e = primitive_expression SUCH THAT {
-  (pos, i, e)
-}
-
-expression:
-| i_in_e1 = exists_prefix e2 = expression {
-let (pos, i,e1) = i_in_e1 in
-(CollectionOp ((Exists, pos), i, e1, e2), Pos.from_lpos $sloc)
-}
-| i_in_e1 = forall_prefix e2 = expression {
-let (pos, i,e1) = i_in_e1 in
-(CollectionOp ((Forall, pos), i, e1, e2), Pos.from_lpos $sloc)
+| FOR ALL i = ident
+  IN coll = compare_expression
+  WE_HAVE predicate = compare_expression
+{
+  CollectionOp (Forall {predicate = i, predicate}, coll), Pos.from_lpos $sloc
 }
 | MATCH e = primitive_expression WITH arms = match_arms {
   (MatchWith (e, arms), Pos.from_lpos $sloc)
 }
-| IF e1 = expression THEN e2 = expression ELSE e3 = expression {
+| IF e1 = let_expression THEN e2 = let_expression ELSE e3 = let_expression {
   (IfThenElse (e1, e2, e3), Pos.from_lpos $sloc)
 }
-| LET id = ident DEFINED_AS e1 = expression IN e2 = expression {
+| LET id = ident DEFINED_AS e1 = let_expression IN e2 = let_expression {
   (LetIn (id, e1, e2), Pos.from_lpos $sloc)
 }
-| e = logical_expression { e }
+
+expression:
+| e = let_expression { e }
+| i = ident
+  IN coll = compare_expression
+  SUCH THAT f = compare_expression
+{
+  CollectionOp (Filter {f = i, f}, coll), Pos.from_lpos $sloc
+}
+| i = ident
+  IN coll = compare_expression
+  SUCH THAT f = compare_expression
+  IS max = minmax
+  OR IF COLLECTION IS EMPTY THEN default = expression
+{
+  CollectionOp (AggregateArgExtremum { max; default; f = i, f }, coll),
+  Pos.from_lpos $sloc
+}
 
 condition:
 | UNDER_CONDITION e = expression { e }
