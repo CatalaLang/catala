@@ -127,8 +127,7 @@ champ d'application RessourcesAidesPersonnelleLogement:
     ressources_personnes_vivant_habituellement_foyer
 
   définition ressources_personnes_vivant_habituellement_foyer égal à
-    somme argent pour personne dans personnes_vivant_habituellement_foyer de
-      personne.ressources
+    somme argent de personne.ressources pour personne dans personnes_vivant_habituellement_foyer
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
@@ -1124,7 +1123,7 @@ habituellement au foyer :
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition personnes_à_charge_prises_en_compte égal à
-    filtre pour personne_à_charge dans ménage.personnes_à_charge de
+    personne_à_charge dans ménage.personnes_à_charge tel que
       prise_en_compte_personne_à_charge de personne_à_charge
 ```
 
@@ -2046,7 +2045,7 @@ de la date d'emménagement.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
   règle condition_rang_enfant sous condition
-    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+    nombre de (personne_à_charge dans ménage.personnes_à_charge tel que
       (selon personne_à_charge sous forme
       -- EnfantÀCharge: vrai
       -- AutrePersonneÀCharge: faux)
@@ -4025,7 +4024,6 @@ nombre de parts " N ", le total étant divisé par douze.
 # à chaque étape de calcul.
 champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26_multipliées égal à
-    application pour tranche dans tranches_revenus_d832_26 de
       TrancheRevenuDécimal {
         -- haut: (selon tranche.haut sous forme
           -- LimiteTranche.Infini: LimiteTrancheDécimal.Infini
@@ -4036,34 +4034,35 @@ champ d'application CalculÉquivalenceLoyerMinimale:
           n_nombre_parts_d832_25
         -- taux: tranche.taux
       }
+      pour tranche dans tranches_revenus_d832_26
 
   définition montant égal à
     soit ressources_ménage_arrondies égal à
       argent_vers_décimal de ressources_ménage_arrondies
     dans
     décimal_vers_argent de (
-      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
-        (si
-          ressources_ménage_arrondies <= tranche.bas
-        alors 0,0
-        sinon
-          (selon tranche.haut sous forme
-          -- LimiteTrancheDécimal.Revenu de tranche_haut:
-            (si
-              ressources_ménage_arrondies >= tranche_haut
-            alors
-              (tranche_haut - tranche.bas) *
-                tranche.taux
+      ((somme décimal de
+          ((si ressources_ménage_arrondies <= tranche.bas alors 0,0
             sinon
-              ((ressources_ménage_arrondies -
-                tranche.bas) *
-                  tranche.taux))
-          -- LimiteTrancheDécimal.Infini:
-            (ressources_ménage_arrondies - tranche.bas) *
-              tranche.taux)
-        ))) +
-      argent_vers_décimal de montant_forfaitaire_d832_26 *
-        n_nombre_parts_d832_25) / 12,0)
+              selon tranche.haut sous forme
+              -- LimiteTrancheDécimal.Revenu de tranche_haut: (
+                si
+                  ressources_ménage_arrondies >= tranche_haut
+                alors
+                  (tranche_haut - tranche.bas) *
+                  tranche.taux
+                sinon
+                  (ressources_ménage_arrondies - tranche.bas) *
+                  tranche.taux
+              )
+              -- LimiteTrancheDécimal.Infini:
+                (ressources_ménage_arrondies - tranche.bas) *
+                tranche.taux))
+            pour tranche dans tranches_revenus_d832_26_multipliées)
+       +
+       argent_vers_décimal de montant_forfaitaire_d832_26
+       * n_nombre_parts_d832_25)
+      / 12,0)
 ```
 
 Toutefois, pour les logements-foyers de jeunes travailleurs et pour les résidences sociales
@@ -4081,27 +4080,27 @@ champ d'application CalculÉquivalenceLoyerMinimale:
       argent_vers_décimal de ressources_ménage_arrondies
     dans
     décimal_vers_argent de (
-      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
-        (si
-          ressources_ménage_arrondies <= tranche.bas
-        alors 0,0
-        sinon
-          (selon tranche.haut sous forme
-          -- LimiteTrancheDécimal.Revenu de tranche_haut:
-            (si
-              ressources_ménage_arrondies >= tranche_haut
-            alors
-              (tranche_haut - tranche.bas) *
-                tranche.taux
-            sinon
-              ((ressources_ménage_arrondies -
-                tranche.bas) *
-                  tranche.taux))
-          -- LimiteTrancheDécimal.Infini:
-            (ressources_ménage_arrondies - tranche.bas) *
-              tranche.taux)
-        ))) +
-      argent_vers_décimal de montant_forfaitaire_d832_26) / 12,0)
+      ((somme décimal de
+        ((si ressources_ménage_arrondies <= tranche.bas alors 0,0
+          sinon
+            (selon tranche.haut sous forme
+             -- LimiteTrancheDécimal.Revenu de tranche_haut: (
+               si
+                 ressources_ménage_arrondies >= tranche_haut
+               alors
+                 (tranche_haut - tranche.bas) *
+                 tranche.taux
+               sinon
+                 (ressources_ménage_arrondies - tranche.bas) *
+                 tranche.taux
+             )
+             -- LimiteTrancheDécimal.Infini:
+               (ressources_ménage_arrondies - tranche.bas) *
+               tranche.taux))
+         pour tranche dans tranches_revenus_d832_26_multipliées))
+       +
+       argent_vers_décimal de montant_forfaitaire_d832_26)
+      / 12,0)
 ```
 
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle

@@ -140,17 +140,15 @@ du nombre d'enfants à charge dans les conditions suivantes :
 ```catala
 champ d'application AllocationsFamiliales :
   définition nombre_moyen_enfants égal à
-    somme décimal pour enfant dans
-      enfants_à_charge_droit_ouvert_prestation_familiale
-    de (
-      selon (prise_en_compte de enfant) sous forme
-      -- Complète : 1,0
-      -- Partagée : 0,5
-      # Pas directement dans cet article de loi, mais concerne le
-      # cas où l'enfant est pris en charge par les services sociaux et
-      # la part de l'allocation va également au service social
-      -- Zéro: 0,0
-    )
+    somme décimal de
+      ((selon (prise_en_compte de enfant) sous forme
+        -- Complète : 1,0
+        -- Partagée : 0,5
+        # Pas directement dans cet article de loi, mais concerne le
+        # cas où l'enfant est pris en charge par les services sociaux et
+        # la part de l'allocation va également au service social
+        -- Zéro: 0,0)
+       pour enfant dans enfants_à_charge_droit_ouvert_prestation_familiale)
 ```
 
 Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du

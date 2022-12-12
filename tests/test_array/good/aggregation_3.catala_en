@@ -1,0 +1,64 @@
+```catala
+declaration scope S:
+  output x content integer
+
+scope S:
+    definition x equals 0
+
+# Map
+    assertion (i + 2) for i in [1; 2; 3] = [3; 4; 5]
+
+# Filter
+    assertion (i in [1; 2; 3] such that i >= 2) = [2; 3]
+
+# Sum
+    assertion sum integer of [1; 2; 3] = 6
+    assertion sum integer of (i + 2) for i in [1; 2; 3] = 12
+
+# Count
+    assertion number of [1; 2; 3] = 3
+    assertion number of (i in [1; 2; 3] such that i >= 2) = 2
+
+# Extremum
+    assertion maximum of [1; 2; 3] or if collection is empty then 10 = 3
+    assertion maximum of (integer_to_decimal of i) for i in [1; 2; 3] or if collection is empty then 10. = 3.
+
+# Arg extremum
+    assertion (i in [1; 2; 3]
+                 such that integer_to_decimal of ((2 - i) * (2 - i)) is minimum
+                 or if collection is empty then 42)
+              = 2
+```
+
+```catala-test-inline
+$ catala scopelang -s S
+let scope S (x: integer|internal|output) =
+  let x : integer = ⟨true ⊢ 0⟩;
+  assert reduce
+           (λ (x1: integer) (x2: integer) →
+              if
+                let i : integer = x1 in
+                  int_to_rat 2 -! i *! 2 -! i <.
+                  let i : integer = x2 in
+                  int_to_rat 2 -! i *! 2 -! i then x1 else x2) 42 [1; 2; 3] =
+           2;
+  assert reduce
+           (λ (x1: decimal) (x2: decimal) → if x1 >. x2 then x1 else x2)
+           10. map (λ (i: integer) → int_to_rat i) [1; 2; 3] = 3.;
+  assert reduce
+           (λ (x1: integer) (x2: integer) → if x1 >! x2 then x1 else x2)
+           10 [1; 2; 3] = 3;
+  assert length filter (λ (i: integer) → i >=! 2) [1; 2; 3] = 2;
+  assert length [1; 2; 3] = 3;
+  assert reduce (λ (x1: integer) (x2: integer) → x1 +! x2) 0
+           map (λ (i: integer) → i +! 2) [1; 2; 3] = 12;
+  assert reduce (λ (x1: integer) (x2: integer) → x1 +! x2) 0 [1; 2; 3] = 6;
+  assert filter (λ (i: integer) → i >=! 2) [1; 2; 3] = [2; 3];
+  assert map (λ (i: integer) → i +! 2) [1; 2; 3] = [3; 4; 5]
+```
+
+```catala-test-inline
+$ catala interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] x = 0
+```

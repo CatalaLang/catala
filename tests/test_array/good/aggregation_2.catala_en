@@ -21,8 +21,12 @@ declaration scope B:
    output argmin content S
 
 scope B:
-   definition argmax equals content maximum money initial S { -- id: -1 --income: $0 } for m in a.x of (m.income * 2.0)
-   definition argmin equals content minimum money initial  S { -- id: -1 --income: $20 } for m in a.x of (m.income + $5)
+   definition argmax equals
+     (m in a.x such that m.income * 2.0 is maximum
+      or if collection is empty then S { -- id: -1 --income: $0 })
+   definition argmin equals
+     (m in a.x such that m.income + $5 is minimum
+      or if collection is empty then S { -- id: -1 --income: $20 })
 ```
 
 ```catala-test-inline

@@ -198,8 +198,9 @@ champ d'application AllocationsFamiliales :
 champ d'application AllocationsFamiliales :
   définition montant_versé_forfaitaire égal à
     montant_versé_forfaitaire_par_enfant *
-    entier_vers_décimal de (nombre pour enfant dans enfants_à_charge de
-      droit_ouvert_forfaitaire de enfant)
+    entier_vers_décimal de
+      nombre de (enfant dans enfants_à_charge
+                 tel que droit_ouvert_forfaitaire de enfant)
 ```
 
 I.-Le montant mensuel de l'allocation forfaitaire prévue au deuxième alinéa de

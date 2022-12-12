@@ -73,8 +73,8 @@ champ d'application PrestationsFamiliales :
 
 champ d'application AllocationsFamiliales:
   définition enfants_à_charge_droit_ouvert_prestation_familiale égal à
-    filtre pour enfant dans enfants_à_charge de
-      prestations_familiales.droit_ouvert de enfant
+    enfant dans enfants_à_charge
+    tel que prestations_familiales.droit_ouvert de enfant
 ```
 
 Toutefois, pour l'attribution du complément familial et de l'allocation

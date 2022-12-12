@@ -7,7 +7,7 @@ declaration scope A:
 
 scope A:
   definition list equals [0; 5; 6; 7; 1; 64; 12]
-  definition list_high_count equals number for m in list of (m >= $7)
+  definition list_high_count equals number of (m >= $7) for m in list
 ```
 
 ```catala-test-inline
@@ -15,10 +15,10 @@ $ catala Interpret -s A
 [ERROR] I don't know how to apply operator >= on types integer and
 money
 
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.63-65:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:10.49-51:
 └──┐
-10 │   definition list_high_count equals number for m in list of (m >= $7)
-   │                                                                ‾‾
+10 │   definition list_high_count equals number of (m >= $7) for m in list
+   │                                                  ‾‾
    └─ Article
 
 Type integer coming from expression:
@@ -29,10 +29,10 @@ Type integer coming from expression:
   └─ Article
 
 Type money coming from expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.66-68:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:10.52-54:
 └──┐
-10 │   definition list_high_count equals number for m in list of (m >= $7)
-   │                                                                   ‾‾
+10 │   definition list_high_count equals number of (m >= $7) for m in list
+   │                                                     ‾‾
    └─ Article
 #return code 255#
 ```

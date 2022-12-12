@@ -334,22 +334,23 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition nombre_personnes_à_charge_prises_en_compte égal à
     nombre de personnes_à_charge_prises_en_compte
   définition coefficents_enfants_garde_alternée_pris_en_compte égal à
-    application pour personne_à_charge dans (
-      filtre pour personne_à_charge dans personnes_à_charge_prises_en_compte de
-        (selon personne_à_charge sous forme
-        -- AutrePersonneÀCharge: faux
+    ((selon personne_à_charge sous forme
+        -- AutrePersonneÀCharge: 0,0
         -- EnfantÀCharge de enfant: (
-          selon enfant.situation_garde_alternée sous forme
-          -- GardeAlternéeCoefficientPriseEnCharge: vrai
-          -- PasDeGardeAlternée: faux
-        ))
-    ) de (selon personne_à_charge sous forme
-      -- AutrePersonneÀCharge: 0,0
-      -- EnfantÀCharge de enfant: (
-        selon enfant.situation_garde_alternée sous forme
-        -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
-        -- PasDeGardeAlternée: 0,0
-    ))
+             selon enfant.situation_garde_alternée sous forme
+             -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
+             -- PasDeGardeAlternée: 0,0
+     ))
+     pour personne_à_charge dans (
+       personne_à_charge dans personnes_à_charge_prises_en_compte
+       tel que
+         (selon personne_à_charge sous forme
+          -- AutrePersonneÀCharge: faux
+          -- EnfantÀCharge de enfant: (
+               selon enfant.situation_garde_alternée sous forme
+               -- GardeAlternéeCoefficientPriseEnCharge: vrai
+               -- PasDeGardeAlternée: faux
+    ))))
 ```
 
 ### Éligibilité à l'aide personnalisée au logement
@@ -1155,16 +1156,15 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
       -- logement :
         ménage.logement
       -- personnes_à_charge :
-        filtre pour personne_à_charge dans
-          ménage.personnes_à_charge
-        de
-          (selon personne_à_charge sous forme
-          -- AutrePersonneÀCharge: vrai
-          -- EnfantÀCharge de enfant: (
-            selon enfant.situation_garde_alternée sous forme
-            -- GardeAlternéeCoefficientPriseEnCharge: faux
-            -- PasDeGardeAlternée: vrai
-          ))
+         (personne_à_charge dans ménage.personnes_à_charge
+          tel que
+            (selon personne_à_charge sous forme
+             -- AutrePersonneÀCharge: vrai
+             -- EnfantÀCharge de enfant: (
+                selon enfant.situation_garde_alternée sous forme
+             -- GardeAlternéeCoefficientPriseEnCharge: faux
+             -- PasDeGardeAlternée: vrai
+         )))
       -- nombre_autres_occupants_logement :
         ménage.nombre_autres_occupants_logement
       -- situation_familiale :
