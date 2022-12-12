@@ -256,7 +256,7 @@ and evaluate_operator :
           | Mult_mon_rat, [LMoney x; LRat y] -> LMoney (o_mult_mon_rat x y)
           | Mult_dur_int, [LDuration x; LInt y] ->
             LDuration (o_mult_dur_int x y)
-          | Div_int_int, [LInt x; LInt y] -> LInt (protect o_div_int_int x y)
+          | Div_int_int, [LInt x; LInt y] -> LRat (protect o_div_int_int x y)
           | Div_rat_rat, [LRat x; LRat y] -> LRat (protect o_div_rat_rat x y)
           | Div_mon_mon, [LMoney x; LMoney y] ->
             LRat (protect o_div_mon_mon x y)

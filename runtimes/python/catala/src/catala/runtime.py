@@ -39,8 +39,8 @@ class Integer:
     def __mul__(self, other: 'Integer') -> 'Integer':
         return Integer(self.value * other.value)
 
-    def __truediv__(self, other: 'Integer') -> 'Integer':
-        return Integer(self.value // other.value)
+    def __truediv__(self, other: 'Integer') -> 'Decimal':
+        return Decimal (self.value) / Decimal (other.value)
 
     def __neg__(self: 'Integer') -> 'Integer':
         return Integer(- self.value)

@@ -639,7 +639,11 @@ module Oper = struct
     else Z.(res * of_int sign_int)
 
   let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
-  let o_div_int_int i1 i2 = Z.div i1 i2 (* raises Division_by_zero *)
+
+  let o_div_int_int i1 i2 =
+    (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
+    if Z.zero = i2 then raise Division_by_zero
+    else Q.div (Q.of_bigint i1) (Q.of_bigint i2)
 
   let o_div_rat_rat i1 i2 =
     if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2

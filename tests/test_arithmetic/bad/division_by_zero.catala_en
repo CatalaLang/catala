@@ -4,7 +4,7 @@
 
 ```catala
 declaration scope Int:
-  context i content integer
+  context i content decimal
 
 scope Int:
   definition i equals 1 / 0

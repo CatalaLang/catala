@@ -177,12 +177,11 @@ subtraction "-", multiplication "*" and division (slash).
 
 However, in the Catala code, you should be aware that these operators can behave
 differently depending on the quantities considered: indeed, money for example is
-rounded at the cent ; integers are rounded down on division. The Catala compiler
-is able to automatically select the appropriate operation: here it can detect
-that money is being multiplied by a decimal (percentage) which is a known
-operation that yields an amount of money, rounded at the cent. Some other
-operations are not allowed, like multiplying two amounts of money together, or
-adding two dates.
+rounded at the cent. The Catala compiler is able to automatically select the
+appropriate operation: here it can detect that money is being multiplied by a
+decimal which is a known operation that yields an amount of money, rounded at
+the cent. Some other operations are not allowed, like multiplying two amounts of
+money together, or adding two dates.
 
 Coming back to article 1, one question remains unknown: what is the value
 of the fixed percentage? Often, precise values are defined elsewhere in the
@@ -742,9 +741,9 @@ declaration scope IntegerValues:
   internal value2 content integer
 
 scope IntegerValues:
-  definition value1 under condition 12 - (5 * 3) < 65 consequence equals 45 / 9
+  definition value1 under condition 12 - (5 * 3) < 65 consequence equals 45 * 9
   # The / operators corresponds to an integer division that truncates towards 0.
-  definition value2 equals value1 * value1 * 65 / 100
+  definition value2 equals value1 * value1 * 65 * 100
 ```
 
 ### Decimals
@@ -761,8 +760,9 @@ declaration scope DecimalValues:
 scope DecimalValues:
   definition value1 under condition
     12.655465446655426 - 0.45265426541654  < 12.3554654652 consequence
-  equals (integer_to_decimal of 45) / (integer_to_decimal of 9)
-  # The / operators corresponds to an exact division.
+  equals 45 / 9
+  # The / operator corresponds to an exact division. The division of integers
+  # yields a decimal.
   definition value2 equals value1 * value1 * 65%
   # Percentages are decimal numbers (0.65 here)
 ```

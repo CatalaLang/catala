@@ -435,7 +435,7 @@ let resolved_type (op, pos) =
   | Mult_rat_rat -> TRat @- TRat @-> TRat
   | Mult_mon_rat -> TMoney @- TRat @-> TMoney
   | Mult_dur_int -> TDuration @- TInt @-> TDuration
-  | Div_int_int -> TInt @- TInt @-> TInt
+  | Div_int_int -> TInt @- TInt @-> TRat
   | Div_rat_rat -> TRat @- TRat @-> TRat
   | Div_mon_mon -> TMoney @- TMoney @-> TRat
   | Div_mon_rat -> TMoney @- TRat @-> TMoney

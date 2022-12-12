@@ -326,7 +326,7 @@ module Oper : sig
   val o_mult_rat_rat : decimal -> decimal -> decimal
   val o_mult_mon_rat : money -> decimal -> money
   val o_mult_dur_int : duration -> integer -> duration
-  val o_div_int_int : integer -> integer -> integer
+  val o_div_int_int : integer -> integer -> decimal
   val o_div_rat_rat : decimal -> decimal -> decimal
   val o_div_mon_mon : money -> money -> decimal
   val o_div_mon_rat : money -> decimal -> money
