@@ -28,19 +28,23 @@ module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Translating expressions} *)
 
-(* Resolves the operator kinds into the expected operator operand types *)
+(* Resolves the operator kinds into the expected operator operand types.
+
+   This gives only partial typing information, in the case it is enforced using
+   the operator suffixes for explicit typing. See {!modules:
+   Shared_ast.Operator} for detail. *)
 
 let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
  fun op pos ->
-  let e op tys =
+  let op_expr op tys =
     Expr.eop op (List.map (Marked.mark pos) tys) (Untyped { pos })
   in
   match op with
-  | S.And -> e And [TLit TBool; TLit TBool]
-  | S.Or -> e Or [TLit TBool; TLit TBool]
-  | S.Xor -> e Xor [TLit TBool; TLit TBool]
+  | S.And -> op_expr And [TLit TBool; TLit TBool]
+  | S.Or -> op_expr Or [TLit TBool; TLit TBool]
+  | S.Xor -> op_expr Xor [TLit TBool; TLit TBool]
   | S.Add k ->
-    e Add
+    op_expr Add
       (match k with
       | S.KPoly -> [TAny; TAny]
       | S.KInt -> [TLit TInt; TLit TInt]
@@ -49,7 +53,7 @@ let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
       | S.KDate -> [TLit TDate; TLit TDuration]
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Sub k ->
-    e Sub
+    op_expr Sub
       (match k with
       | S.KPoly -> [TAny; TAny]
       | S.KInt -> [TLit TInt; TLit TInt]
@@ -58,25 +62,29 @@ let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
       | S.KDate -> [TLit TDate; TLit TDate]
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Mult k ->
-    e Mult
+    op_expr Mult
       (match k with
       | S.KPoly -> [TAny; TAny]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TRat]
-      | S.KDate -> Errors.raise_spanned_error pos "Invalid operator"
+      | S.KDate ->
+        Errors.raise_spanned_error pos
+          "This operator doesn't exist, dates can't be multiplied"
       | S.KDuration -> [TLit TDuration; TLit TInt])
   | S.Div k ->
-    e Div
+    op_expr Div
       (match k with
       | S.KPoly -> [TAny; TAny]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
-      | S.KDate -> Errors.raise_spanned_error pos "Invalid operator"
+      | S.KDate ->
+        Errors.raise_spanned_error pos
+          "This operator doesn't exist, dates can't be divided"
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Lt k | S.Lte k | S.Gt k | S.Gte k ->
-    e
+    op_expr
       (match op with
       | S.Lt _ -> Lt
       | S.Lte _ -> Lte
@@ -91,23 +99,25 @@ let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
       | S.KDate -> [TLit TDate; TLit TDate]
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Eq ->
-    e Eq [TAny; TAny]
+    op_expr Eq [TAny; TAny]
     (* This is a truly polymorphic operator, not an overload *)
   | S.Neq -> assert false (* desugared already *)
-  | S.Concat -> e Concat [TArray (TAny, pos); TArray (TAny, pos)]
+  | S.Concat -> op_expr Concat [TArray (TAny, pos); TArray (TAny, pos)]
 
 let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
-  let e op ty = Expr.eop op [Marked.mark pos ty] (Untyped { pos }) in
+  let op_expr op ty = Expr.eop op [Marked.mark pos ty] (Untyped { pos }) in
   match op with
-  | S.Not -> e Not (TLit TBool)
+  | S.Not -> op_expr Not (TLit TBool)
   | S.Minus k ->
-    e Minus
+    op_expr Minus
       (match k with
       | S.KPoly -> TAny
       | S.KInt -> TLit TInt
       | S.KDec -> TLit TRat
       | S.KMoney -> TLit TMoney
-      | S.KDate -> Errors.raise_spanned_error pos "Invalid operator"
+      | S.KDate ->
+        Errors.raise_spanned_error pos
+          "This operator doesn't exist, dates can't be negative"
       | S.KDuration -> TLit TDuration)
 
 let disambiguate_constructor

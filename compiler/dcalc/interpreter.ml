@@ -66,7 +66,9 @@ let print_log ctx entry infos pos e =
       Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos
 
-(* Todo: this should be handled early when resolving overloads *)
+(* Todo: this should be handled early when resolving overloads. Here we have
+   proper structural equality, but the OCaml backend for example uses the
+   builtin equality function instead of this. *)
 let rec handle_eq ctx pos e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with

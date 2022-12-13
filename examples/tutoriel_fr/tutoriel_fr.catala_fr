@@ -147,15 +147,16 @@ et division (barre oblique).
 
 Toutefois, dans le code Catala, ces opérateurs peuvent avoir un sens légèrement
 différent suivant unités concernées. En effet, l'argent par exemple est arrondi
-au centime ; les entiers sont tronqués lors de leur division. Dans le cas
-ci-dessus, le compilateur Catala est capable de valider que la multiplication
-d'une quantité d'argent par un décimal (pourcentage) donne en effet une quantité
-d'argent. D'autres opérations sont simplement rejetées, comme multiplier deux
-quantités d'argent entre elles, ou bien tenter d'additionner des dates.
+au centime ; les entiers sont tronqués lors de leur division. Le compilateur
+Catala sélectionne automatiquement l'opération appropriée: ici, de l'argent est
+multiplié par un pourcentage (soit un nombre décimal), ce qui est une opération
+connue dont le résultat est une quantité d'argent, arrondie au centime. D'autres
+opérations sont rejetées, comme la multiplication de deux quantités d'argent
+entre elles, ou bien l'addition de deux dates.
 
-Mais dans l'article 1, une question reste sans réponse: quelle est la valeur
-de la pourcentage fixe? Souvent, des valeurs précises sont définis ailleurs
-dans les sources législatives. Ici, supposons que nous avons:
+Revenons à l'article 1, dont une question reste sans réponse: quelle est la
+valeur de la pourcentage fixe? Souvent, des valeurs précises sont définis
+ailleurs dans les sources législatives. Ici, supposons que nous avons:
 
 ### Article 2
 

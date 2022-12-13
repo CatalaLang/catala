@@ -177,10 +177,12 @@ subtraction "-", multiplication "*" and division (slash).
 
 However, in the Catala code, you should be aware that these operators can behave
 differently depending on the quantities considered: indeed, money for example is
-rounded at the cent ; integers are rounded down on division. Here the Catala
-compiler is able to check that money multiplied by a decimal (percentage) indeed
-yields an amount of money. Some other operations are refused altogether, like
-multiplying two amounts of money together, or adding two dates.
+rounded at the cent ; integers are rounded down on division. The Catala compiler
+is able to automatically select the appropriate operation: here it can detect
+that money is being multiplied by a decimal (percentage) which is a known
+operation that yields an amount of money, rounded at the cent. Some other
+operations are not allowed, like multiplying two amounts of money together, or
+adding two dates.
 
 Coming back to article 1, one question remains unknown: what is the value
 of the fixed percentage? Often, precise values are defined elsewhere in the

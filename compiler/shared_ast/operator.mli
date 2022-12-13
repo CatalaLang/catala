@@ -16,6 +16,19 @@
 
 (** {1 Catala operator utilities} *)
 
+(** Resolving operators from the surface syntax proceeds in three steps:
+
+    - During desugaring, the operators may remain untyped (with [TAny]) or, if
+      they have an explicit type suffix (e.g. the [$] for "money" in [+$]),
+      their operands types are already explicited in the [EOp] expression node.
+    - {!modules:Shared_ast.Typing} will then enforce these constraints in
+      addition to the known built-in type for each operator (e.g.
+      [Eq: 'a -> 'a -> 'a] isn't encoded in the first-order AST types).
+    - Finally, during {!modules:Scopelang.From_desugared}, these types are
+      leveraged to resolve the overloaded operators to their concrete,
+      monomorphic counterparts
+*)
+
 open Catala_utils
 open Definitions
 include module type of Definitions.Op
@@ -67,3 +80,6 @@ val resolve_overload :
   (desugared, overloaded) t Marked.pos ->
   typ list ->
   ([< scopelang | dcalc | lcalc ], resolved) t * [ `Straight | `Reversed ]
+(** Some overloads are sugar for an operation with reversed operands, e.g.
+    [TRat * TMoney] is using [mult_mon_rat]. [`Reversed] is returned to signify
+    this case. *)
