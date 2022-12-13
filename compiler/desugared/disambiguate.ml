@@ -70,7 +70,8 @@ let program prg =
             scope.scope_defs ScopeVar.Map.empty
         in
         Typing.Env.add_scope scope_name ~vars env)
-      prg.program_scopes Typing.Env.empty
+      prg.program_scopes
+      (Typing.Env.empty prg.program_ctx)
   in
   let program_scopes =
     ScopeName.Map.map (scope prg.program_ctx env) prg.program_scopes

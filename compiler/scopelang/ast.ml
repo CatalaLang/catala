@@ -74,7 +74,8 @@ let type_program (prg : 'm program) : typed program =
       (fun scope_name scope_decl ->
         let vars = ScopeVar.Map.map fst scope_decl.scope_sig in
         Typing.Env.add_scope scope_name ~vars)
-      prg.program_scopes Typing.Env.empty
+      prg.program_scopes
+      (Typing.Env.empty prg.program_ctx)
   in
   let program_scopes =
     ScopeName.Map.map

@@ -275,13 +275,25 @@ let resolve_overload_ret_type
 
 module Env = struct
   type 'e t = {
+    structs : unionfind_typ A.StructField.Map.t A.StructName.Map.t;
+    enums : unionfind_typ A.EnumConstructor.Map.t A.EnumName.Map.t;
     vars : ('e, unionfind_typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
   }
 
-  let empty =
+  let empty (decl_ctx : A.decl_ctx) =
+    (* We fill the environment initially with the structs and enums
+       declarations *)
     {
+      structs =
+        A.StructName.Map.map
+          (A.StructField.Map.map ast_to_typ)
+          decl_ctx.ctx_structs;
+      enums =
+        A.EnumName.Map.map
+          (A.EnumConstructor.Map.map ast_to_typ)
+          decl_ctx.ctx_enums;
       vars = Var.Map.empty;
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
@@ -376,7 +388,8 @@ and typecheck_expr_top_down :
     Expr.elocation loc (uf_mark (ast_to_typ ty))
   | A.EStruct { name; fields } ->
     let mark = ty_mark (TStruct name) in
-    let str = A.StructName.Map.find name ctx.A.ctx_structs in
+    let str_ast = A.StructName.Map.find name ctx.A.ctx_structs in
+    let str = A.StructName.Map.find name env.structs in
     let _check_fields : unit =
       let missing_fields, extra_fields =
         A.StructField.Map.fold
@@ -385,7 +398,7 @@ and typecheck_expr_top_down :
               A.StructField.Map.remove fld remaining, extra
             else remaining, A.StructField.Map.add fld x extra)
           fields
-          (str, A.StructField.Map.empty)
+          (str_ast, A.StructField.Map.empty)
       in
       let errs =
         List.map
@@ -412,8 +425,7 @@ and typecheck_expr_top_down :
       A.StructField.Map.mapi
         (fun f_name f_e ->
           let f_ty = A.StructField.Map.find f_name str in
-          typecheck_expr_top_down ~leave_unresolved ctx env (ast_to_typ f_ty)
-            f_e)
+          typecheck_expr_top_down ~leave_unresolved ctx env f_ty f_e)
         fields
     in
     Expr.estruct name fields' mark
@@ -440,7 +452,7 @@ and typecheck_expr_top_down :
     in
     let fld_ty =
       let str =
-        try A.StructName.Map.find name ctx.A.ctx_structs
+        try A.StructName.Map.find name env.structs
         with Not_found ->
           Errors.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format_t name
@@ -466,12 +478,12 @@ and typecheck_expr_top_down :
       in
       A.StructField.Map.find field str
     in
-    let mark = uf_mark (ast_to_typ fld_ty) in
+    let mark = uf_mark fld_ty in
     Expr.edstructaccess e_struct' field (Some name) mark
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
-        try A.StructName.Map.find name ctx.A.ctx_structs
+        try A.StructName.Map.find name env.structs
         with Not_found ->
           Errors.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format_t name
@@ -487,7 +499,7 @@ and typecheck_expr_top_down :
           "Structure %a doesn't define a field %a" A.StructName.format_t name
           A.StructField.format_t field
     in
-    let mark = uf_mark (ast_to_typ fld_ty) in
+    let mark = uf_mark fld_ty in
     let e_struct' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind (TStruct name)) e_struct
@@ -497,14 +509,12 @@ and typecheck_expr_top_down :
     let mark = uf_mark (unionfind (TEnum name)) in
     let e_enum' =
       typecheck_expr_top_down ~leave_unresolved ctx env
-        (ast_to_typ
-           (A.EnumConstructor.Map.find cons
-              (A.EnumName.Map.find name ctx.A.ctx_enums)))
+        (A.EnumConstructor.Map.find cons (A.EnumName.Map.find name env.enums))
         e_enum
     in
     Expr.einj e_enum' cons name mark
   | A.EMatch { e = e1; name; cases } ->
-    let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
+    let cases_ty = A.EnumName.Map.find name env.enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
     let mark = uf_mark t_ret in
     let e1' =
@@ -515,7 +525,7 @@ and typecheck_expr_top_down :
       A.EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
-          let e_ty = unionfind ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
+          let e_ty = unionfind ~pos:e (TArrow (c_ty, t_ret)) in
           typecheck_expr_top_down ~leave_unresolved ctx env e_ty e)
         cases
     in
@@ -770,7 +780,7 @@ let expr_raw
     (type a)
     ~(leave_unresolved : bool)
     (ctx : A.decl_ctx)
-    ?(env = Env.empty)
+    ?(env = Env.empty ctx)
     ?(typ : A.typ option)
     (e : (a, 'm) A.gexpr) : (a, mark) A.gexpr =
   let fty =
@@ -878,8 +888,25 @@ let rec scopes ~leave_unresolved ctx env = function
       body_e scope_next
 
 let program ~leave_unresolved prg =
+  let env = Env.empty prg.A.decl_ctx in
   let scopes =
-    Bindlib.unbox
-      (scopes ~leave_unresolved prg.A.decl_ctx Env.empty prg.A.scopes)
+    Bindlib.unbox (scopes ~leave_unresolved prg.A.decl_ctx env prg.A.scopes)
   in
-  { prg with scopes }
+  {
+    A.scopes;
+    decl_ctx =
+      {
+        prg.decl_ctx with
+        (* We can retrieve the inferred types from [env] even though we didn't
+           get an updated version from [scopes] because unification is
+           imperative. *)
+        ctx_structs =
+          A.StructName.Map.map
+            (A.StructField.Map.map (typ_to_ast ~leave_unresolved))
+            env.structs;
+        ctx_enums =
+          A.EnumName.Map.map
+            (A.EnumConstructor.Map.map (typ_to_ast ~leave_unresolved))
+            env.enums;
+      };
+  }

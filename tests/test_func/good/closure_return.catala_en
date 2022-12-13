@@ -11,7 +11,8 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc --avoid_exceptions -O --closure_conversion
-let S : S_in {"x_in": any} → S {"f": any} =
+let S :
+  S_in {"x_in": any} → S {"f": ((bool) → integer → integer * (any))} =
   λ (S_in: S_in {"x_in": any}) →
     let x : any = S_in."x_in" in
     let f : ((bool) → integer → integer * (any)) =

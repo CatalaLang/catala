@@ -22,7 +22,7 @@ open Definitions
 module Env : sig
   type 'e t
 
-  val empty : 'e t
+  val empty : decl_ctx -> 'e t
   val add_var : 'e Var.t -> typ -> 'e t -> 'e t
   val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
   val add_scope : ScopeName.t -> vars:typ ScopeVar.Map.t -> 'e t -> 'e t
