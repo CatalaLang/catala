@@ -72,7 +72,7 @@ let atomic_expression :=
 | LPAREN ; e = expression ; RPAREN ; { e }
 
 let small_expression :=
-| e = atomic_expression ; { e }
+| ~ = atomic_expression ; <>
 | e = small_expression ; DOT ; c = option(terminated(constructor,DOT)) ; i = ident ; {
   (Dotted (e, c, i), Pos.from_lpos $sloc)
 }
@@ -116,7 +116,7 @@ let struct_or_enum_inject :=
 }
 
 let primitive_expression :=
-| e = small_expression ; { e }
+| ~ = small_expression ; <>
 | e = struct_or_enum_inject ; {
   e
 }
@@ -177,7 +177,7 @@ let minmax :=
 | MINIMUM ; { false }
 
 let base_expression :=
-| e = primitive_expression ; { e }
+| ~ = primitive_expression ; <>
 | e1 = small_expression ;
   OF ;
   e2 = base_expression ; {
@@ -219,7 +219,7 @@ let unop :=
 | k = MINUS ; { (Minus k, Pos.from_lpos $sloc) }
 
 let unop_expression :=
-| e = base_expression ; { e }
+| ~ = base_expression ; <>
 | op = unop ; e = unop_expression ; {
   (Unop (op, e), Pos.from_lpos $sloc)
 }
@@ -229,7 +229,7 @@ let mult_op :=
 | k = DIV ; { (Div k, Pos.from_lpos $sloc) }
 
 let mult_expression :=
-| e =  unop_expression ; { e }
+| ~ =  unop_expression ; <>
 | e1 = mult_expression ;
   binop = mult_op ;
   e2 = unop_expression ; {
@@ -242,7 +242,7 @@ let sum_op :=
 | PLUSPLUS ; { (Concat, Pos.from_lpos $sloc) }
 
 let sum_expression :=
-| e = mult_expression ; { e }
+| ~ = mult_expression ; <>
 | e1 = sum_expression ;
   binop = sum_op ;
   e2 = mult_expression ; {
@@ -276,7 +276,7 @@ let logical_or_expression :=
 }
 
 let logical_expression :=
-| e = logical_or_expression ; { e }
+| ~ = logical_or_expression ; <>
 | e1 = logical_or_expression ;
   binop = logical_and_op ;
   e2 = logical_expression ; {
@@ -332,7 +332,7 @@ let match_arms :=
 | { ([], Pos.from_lpos $sloc) }
 
 let let_expression :=
-| e = logical_expression ; { e }
+| ~ = logical_expression ; <>
 | EXISTS ; i = ident ;
   IN ; coll = compare_expression ;
   SUCH ; THAT ; predicate = compare_expression ; {
@@ -359,7 +359,7 @@ let let_expression :=
 }
 
 let expression :=
-| e = let_expression ; { e }
+| ~ = let_expression ; <>
 | i = ident ;
   IN ; coll = compare_expression ;
   SUCH ; THAT ; f = compare_expression ; {
