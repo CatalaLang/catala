@@ -22,7 +22,11 @@ module D = Dcalc.Ast
 (** TODO: This version is not yet debugged and ought to be specialized when
     Lcalc has more structure. *)
 
-type 'm ctx = { name_context : string; globally_bound_vars : 'm expr Var.Set.t }
+type 'm ctx = {
+  decl_ctx : decl_ctx;
+  name_context : string;
+  globally_bound_vars : 'm expr Var.Set.t;
+}
 
 let tys_as_tanys tys =
   List.map (fun x -> Marked.map_under_mark (fun _ -> TAny) x) tys
@@ -234,39 +238,80 @@ let rec transform_closures_expr :
         (TAny, Expr.pos e)
         new_e1 call_expr (Expr.pos e) )
 
-let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
-  let _vars, e' = (transform_closures_expr ctx) e in
-  e'
+(* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
+   type *)
+let closure_conversion_scope_let ctx scope_body_expr =
+  Scope.fold_right_lets
+    ~f:(fun scope_let var_next acc ->
+      let _free_vars, new_scope_let_expr =
+        (transform_closures_expr
+           { ctx with name_context = Bindlib.name_of var_next })
+          scope_let.scope_let_expr
+      in
+      Bindlib.box_apply2
+        (fun scope_let_next scope_let_expr ->
+          ScopeLet
+            {
+              scope_let with
+              scope_let_next;
+              scope_let_expr;
+              scope_let_typ = Marked.same_mark_as TAny scope_let.scope_let_typ;
+            })
+        (Bindlib.bind_var var_next acc)
+        (Expr.Box.lift new_scope_let_expr))
+    ~init:(fun res ->
+      let _free_vars, new_scope_let_expr = (transform_closures_expr ctx) res in
+      (* INVARIANT here: the result expr of a scope is simply a struct
+         containing all output variables so nothing should be converted here, so
+         no need to take into account free variables. *)
+      Bindlib.box_apply
+        (fun res -> Result res)
+        (Expr.Box.lift new_scope_let_expr))
+    scope_body_expr
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
-  let new_scopes, _ =
+  let new_scopes, _, new_decl_ctx =
     Scope.fold_left
-      ~f:(fun (acc_new_scopes, global_vars) scope scope_var ->
+      ~f:(fun (acc_new_scopes, global_vars, decl_ctx) scope scope_var ->
         (* [acc_new_scopes] represents what has been translated in the past, it
            needs a continuation to attach the rest of the translated scopes. *)
         let scope_input_var, scope_body_expr =
           Bindlib.unbind scope.scope_body.scope_body_expr
         in
-        let global_vars = Var.Set.add scope_var global_vars in
+        let new_global_vars = Var.Set.add scope_var global_vars in
         let ctx =
           {
+            decl_ctx = p.decl_ctx;
             name_context = Marked.unmark (ScopeName.get_info scope.scope_name);
-            globally_bound_vars = global_vars;
+            globally_bound_vars = new_global_vars;
           }
         in
-        let new_scope_lets =
-          Scope.map_exprs_in_lets ~reset_types:true
-            ~f:(closure_conversion_expr ctx)
-              (* TODO: change [name_context] for the variable name*)
-              (*fun e -> let e = closure_conversion_expr ctx e in let m =
-                Marked.get_mark e in let e = Bindlib.box_apply (fun e -> let _,
-                e = hoist_context_free_closures ctx (e, m) in Bindlib.unbox
-                (Marked.unmark e)) (Marked.unmark e) in e, m*)
-            ~varf:(fun v -> v)
-            scope_body_expr
-        in
+        let new_scope_lets = closure_conversion_scope_let ctx scope_body_expr in
         let new_scope_body_expr =
           Bindlib.bind_var scope_input_var new_scope_lets
+        in
+        let new_decl_ctx =
+          (* Because closure conversion can change the type of input and output
+             scope variables that are structs, their type will change. So we
+             replace their type decleration in the structs with TAny so that a
+             later re-typing phase can infer them. *)
+          let replace_arrow_type_with_any s =
+            Some
+              (StructField.Map.map
+                 (fun t ->
+                   match Marked.unmark t with
+                   | TArrow _ -> Marked.same_mark_as TAny t
+                   | _ -> t)
+                 (Option.get s))
+          in
+          {
+            decl_ctx with
+            ctx_structs =
+              StructName.Map.update scope.scope_body.scope_body_output_struct
+                replace_arrow_type_with_any
+                (StructName.Map.update scope.scope_body.scope_body_input_struct
+                   replace_arrow_type_with_any decl_ctx.ctx_structs);
+          }
         in
         ( (fun next ->
             acc_new_scopes
@@ -284,16 +329,18 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
                      })
                  new_scope_body_expr
                  (Bindlib.bind_var scope_var next))),
-          global_vars ))
+          new_global_vars,
+          new_decl_ctx ))
       ~init:
         ( Fun.id,
           Var.Set.of_list
-            (List.map Var.translate [handle_default; handle_default_opt]) )
+            (List.map Var.translate [handle_default; handle_default_opt]),
+          p.decl_ctx )
       p.scopes
   in
   let new_program =
     Bindlib.box_apply
-      (fun new_scopes -> { p with scopes = new_scopes })
+      (fun new_scopes -> { scopes = new_scopes; decl_ctx = new_decl_ctx })
       (new_scopes (Bindlib.box Nil))
   in
   new_program
