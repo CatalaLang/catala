@@ -417,6 +417,19 @@ let monomorphic_type (op, pos) =
   | Or -> TBool @- TBool @-> TBool
   | Xor -> TBool @- TBool @-> TBool
 
+(** Rules for overloads definitions:
+
+    - the concrete operator, including its return type, is uniquely determined
+      by the type of the operands
+
+    - no resolved version of an operator should be the redefinition of another
+      one with an added conversion. For example, [int + rat -> rat] is not
+      acceptable (that would amount to implicit casts).
+
+    These two points can be generalised for binary operators as: when
+    considering an operator with type ['a -> 'b -> 'c], for any given two among
+    ['a], ['b] and ['c], there should be a unique solution for the third. *)
+
 let resolved_type (op, pos) =
   let ( @- ) a b = TArrow ((TLit a, pos), b), pos in
   let ( @-> ) a b = TArrow ((TLit a, pos), (TLit b, pos)), pos in
