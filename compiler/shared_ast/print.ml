@@ -381,8 +381,8 @@ let rec expr_aux :
   | EInj { e; cons; _ } ->
     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons expr e
   | EMatch { e; cases; _ } ->
-    Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" keyword "match"
-      expr e keyword "with"
+    Format.fprintf fmt "@[<v 0>@[<hov 2>%a@ %a@]@ %a@ %a@]" keyword "match" expr
+      e keyword "with"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (cons_name, case_expr) ->

@@ -315,9 +315,9 @@ let driver source_file (options : Cli.options) : int =
               if options.closure_conversion then (
                 if not options.avoid_exceptions then
                   Errors.raise_error
-                    "option --avoid_exceptions must be enabled for \
-                     --closure_conversion"
-                else Cli.debug_print "Performing closure conversion...";
+                    "Option --avoid_exceptions must be enabled for \
+                     --closure_conversion";
+                Cli.debug_print "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
                 let prgm =

@@ -610,8 +610,8 @@ and typecheck_expr_top_down :
         typecheck_expr_top_down ~leave_unresolved ctx env t_ret body
       in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-      Expr.eabs binder' (List.map (typ_to_ast ~unsafe:true) tau_args) mark
-  | A.EApp { f = (EOp _, _) as e1; args } ->
+      Expr.eabs binder' (List.map (typ_to_ast ~leave_unresolved) tau_args) mark
+  | A.EApp { f = (EOp { op; _ }, _) as e1; args } ->
     (* Same as EApp, but the typing order is different to help with
        disambiguation: - type of the operator is extracted first (to figure
        linked type vars between arguments) - arguments are typed right-to-left,
