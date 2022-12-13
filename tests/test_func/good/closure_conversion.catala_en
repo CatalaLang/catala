@@ -20,7 +20,7 @@ let S =
       let S : (bool) → integer → integer =
         λ (env: (bool)) (param: integer) →
           let x1 : bool = env.0 in
-          if x1 then param else - param in
+          if x1 then param else -! param in
       (S, (x)) in
     let z : integer =
       let code_and_env : ((bool) → integer → integer * (bool)) = f in
