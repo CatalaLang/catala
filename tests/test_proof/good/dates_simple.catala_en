@@ -7,10 +7,10 @@ declaration scope A:
 
 scope A:
   definition x equals |2022-01-16|
-  definition y under condition x <@ |2010-01-01| consequence equals true
-  definition y under condition x >=@ |2010-01-01| and x <@ |2015-01-01| consequence equals false
-  definition y under condition x >=@ |2015-01-01| and x <@ |2020-01-01| consequence equals true
-  definition y under condition x >=@ |2020-01-01| consequence equals false
+  definition y under condition x < |2010-01-01| consequence equals true
+  definition y under condition x >= |2010-01-01| and x < |2015-01-01| consequence equals false
+  definition y under condition x >= |2015-01-01| and x < |2020-01-01| consequence equals true
+  definition y under condition x >= |2020-01-01| consequence equals false
 ```
 
 ```catala-test-inline

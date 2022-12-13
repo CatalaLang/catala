@@ -48,6 +48,12 @@ let to_camel_case (s : string) : string =
          last_was_underscore := is_underscore);
   !out
 
+let remove_prefix ~prefix s =
+  if starts_with ~prefix s then
+    let plen = length prefix in
+    sub s plen (length s - plen)
+  else s
+
 let format_t = Format.pp_print_string
 
 module Set = Set.Make (Stdlib.String)

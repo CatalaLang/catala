@@ -6,7 +6,7 @@ declaration scope A:
   output y content money
 
 scope A:
-  definition x equals $0.15 *$ 2.0
+  definition x equals $0.15 * 2.0
   definition y equals $0.3
   assertion x = y
 ```

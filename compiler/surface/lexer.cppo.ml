@@ -263,6 +263,9 @@ module R = Re.Pcre
 #ifndef MR_INTERNAL
   #define MR_INTERNAL MS_INTERNAL
 #endif
+#ifndef MR_MONEY_OP_SUFFIX
+  #define MR_MONEY_OP_SUFFIX MS_MONEY_OP_SUFFIX
+#endif
 
 let token_list : (string * token) list =
   [
@@ -364,6 +367,18 @@ let space_plus = [%sedlex.regexp? Plus white_space]
 
 (** Regexp matching white space but not newlines *)
 let hspace = [%sedlex.regexp? Sub (white_space, Chars "\n\r")]
+
+(** Operator explicit typing suffix chars *)
+let op_kind_re = [%sedlex.regexp? "" | MR_MONEY_OP_SUFFIX | Chars "!.@^"]
+
+let op_kind = function
+  | "" -> Ast.KPoly
+  | "!" -> Ast.KInt
+  | "." -> Ast.KDec
+  | MS_MONEY_OP_SUFFIX -> Ast.KMoney
+  | "@" -> Ast.KDate
+  | "^" -> Ast.KDuration
+  | _ -> invalid_arg "op_kind"
 
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
@@ -629,117 +644,38 @@ let rec lex_code (lexbuf : lexbuf) : token =
     L.update_acc lexbuf;
     DECIMAL_LITERAL
       (dec_parts 1, dec_parts 2)
-  | "<=@" ->
+  | "<=", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"<=" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_EQUAL_DATE
-  | "<@" ->
+      LESSER_EQUAL k
+  | "<", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"<" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_DATE
-  | ">=@" ->
+      LESSER k
+  | ">=", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:">=" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      GREATER_EQUAL_DATE
-  | ">@" ->
+      GREATER_EQUAL k
+  | ">", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:">" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      GREATER_DATE
-  | "-@" ->
+      GREATER k
+  | "-", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"-" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      MINUSDATE
-  | "+@" ->
+      MINUS k
+  | "+", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"+" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      PLUSDATE
-  | "<=^" ->
+      PLUS k
+  | "*", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"*" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_EQUAL_DURATION
-  | "<^" ->
+      MULT k
+  | '/', op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"/" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_DURATION
-  | ">=^" ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL_DURATION
-  | ">^" ->
-      L.update_acc lexbuf;
-      GREATER_DURATION
-  | "+^" ->
-      L.update_acc lexbuf;
-      PLUSDURATION
-  | "-^" ->
-      L.update_acc lexbuf;
-      MINUSDURATION
-  | "*^" ->
-      L.update_acc lexbuf;
-      MULDURATION
-  | "<=", MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      LESSER_EQUAL_MONEY
-  | '<', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      LESSER_MONEY
-  | ">=", MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL_MONEY
-  | '>', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      GREATER_MONEY
-  | '+', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      PLUSMONEY
-  | '-', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      MINUSMONEY
-  | '*', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      MULTMONEY
-  | '/', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      DIVMONEY
-  | "<=." ->
-      L.update_acc lexbuf;
-      LESSER_EQUAL_DEC
-  | "<." ->
-      L.update_acc lexbuf;
-      LESSER_DEC
-  | ">=." ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL_DEC
-  | ">." ->
-      L.update_acc lexbuf;
-      GREATER_DEC
-  | "+." ->
-      L.update_acc lexbuf;
-      PLUSDEC
-  | "-." ->
-      L.update_acc lexbuf;
-      MINUSDEC
-  | "*." ->
-      L.update_acc lexbuf;
-      MULTDEC
-  | "/." ->
-      L.update_acc lexbuf;
-      DIVDEC
-  | "<=" ->
-      L.update_acc lexbuf;
-      LESSER_EQUAL
-  | '<' ->
-      L.update_acc lexbuf;
-      LESSER
-  | ">=" ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL
-  | '>' ->
-      L.update_acc lexbuf;
-      GREATER
-  | '+' ->
-      L.update_acc lexbuf;
-      PLUS
-  | '-' ->
-      L.update_acc lexbuf;
-      MINUS
-  | '*' ->
-      L.update_acc lexbuf;
-      MULT
-  | '/' ->
-      L.update_acc lexbuf;
-      DIV
+      DIV k
   | "!=" ->
       L.update_acc lexbuf;
       NOT_EQUAL

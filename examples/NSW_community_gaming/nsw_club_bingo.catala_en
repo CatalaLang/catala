@@ -27,14 +27,14 @@ scope GamingAuthorized:
 
 ```catala
 scope GamingAuthorized:
-  definition prizeValueIsSmall equals (clubBingo.totalValuePrizePerGame <=$ $70)
+  definition prizeValueIsSmall equals (clubBingo.totalValuePrizePerGame <= $70)
 ```
 
 (c)  if a bonus prize is offered at the end of a session of club bingo, only 1 prize of a value not exceeding $70 may be offered,
 ```catala
 scope GamingAuthorized:
   definition bonusPrize equals
-     ( (clubBingo.bonusPrizeMaxValue <=$ $70) or (not clubBingo.bonusPrizeOffered) )
+     ( (clubBingo.bonusPrizeMaxValue <= $70) or (not clubBingo.bonusPrizeOffered) )
 ```
 
 (d)  none of the prizes consist of or include money.

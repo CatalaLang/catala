@@ -9,9 +9,9 @@ declaration scope A:
 
 scope A:
   definition x equals 84.64866565265689623
-  definition y equals -. 4.36829778705320654980
+  definition y equals - 4.36829778705320654980
   definition z equals 654265429805103220650980650.5705405106540
-  definition a equals x /. (y *. (x +. y) *. (x *. x *. z *. z))
+  definition a equals x / (y * (x + y) * (x * x * z * z))
 ```
 
 ```catala-test-inline

@@ -171,15 +171,15 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
     usufruit_ou_propriété_famille et
     (selon ménage.logement.propriétaire sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
-      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_propriété et
+      -- ParentOuAutre.Autre: 0,0) < seuil_l822_3_parts_propriété et
     (selon ménage.logement.usufruit sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
-      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_usufruit
+      -- ParentOuAutre.Autre: 0,0) < seuil_l822_3_parts_usufruit
   conséquence rempli
-  # Les <. sont stricts par mention de R822-1
+  # Les < sont stricts par mention de R822-1
 
-  assertion seuil_l822_3_parts_propriété <. 20 %
-  assertion seuil_l822_3_parts_usufruit <. 20 %
+  assertion seuil_l822_3_parts_propriété < 20 %
+  assertion seuil_l822_3_parts_usufruit < 20 %
 ```
 
 ###### Article L822-4 | LEGIARTI000038814940
@@ -203,7 +203,7 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      personne.date_naissance_personne_sous_location +@ 30 an >@
+      personne.date_naissance_personne_sous_location + 30 an >
         date_courante ou
       personne.conforme_article_l442_1
   conséquence rempli
@@ -244,11 +244,11 @@ réglementaire.
 # la formule est bien de cette forme là.
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition patrimoine_total_demandeur égal à
-    demandeur.patrimoine.produisant_revenu_période_r822_3_3_r822_4 +€
+    demandeur.patrimoine.produisant_revenu_période_r822_3_3_r822_4 +
     demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
 
   étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
-    si patrimoine_total_demandeur >€ seuil_l822_5_patrimoine alors
+    si patrimoine_total_demandeur > seuil_l822_5_patrimoine alors
       patrimoine_total_demandeur
     sinon
       0€
@@ -562,8 +562,8 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
   règle éligibilité_logement sous condition
     éligibilité_apl.éligibilité et condition_rang_enfant et
     condition_période_déménagement et
-    éligibilité_apl.date_courante -@ date_emménagement
-     <=^ délai_après_emménagement_l823_8_2
+    éligibilité_apl.date_courante - date_emménagement
+     <= délai_après_emménagement_l823_8_2
   conséquence rempli
 ```
 
@@ -720,9 +720,9 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
   sous condition
     selon ménage.logement.mode_occupation sous forme
       -- LocationAccession de propriété:
-        propriété.prêt.date_signature >=@ |2017-12-31|
+        propriété.prêt.date_signature >= |2017-12-31|
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
-        propriété.prêt.date_signature >=@ |2017-12-31|
+        propriété.prêt.date_signature >= |2017-12-31|
       -- n'importe quel: faux
   conséquence non rempli
 ```
@@ -741,13 +741,13 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
       -- LocationAccession de propriété:
         # Le fait que cette exception ne soit valable qu'après le 1er janvier
         # 2018 nous a été confirmé le 25/05/2022 par DGALN/DHUP/FE4.
-        propriété.prêt.date_signature >=@ |2018-01-01| et
-        propriété.prêt.date_signature <@ |2020-01-01| et
+        propriété.prêt.date_signature >= |2018-01-01| et
+        propriété.prêt.date_signature < |2020-01-01| et
         propriété.ancienneté_logement sous forme Ancien et
         propriété.logement_situé_commune_déséquilibre_l831_2
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
-        propriété.prêt.date_signature >=@ |2018-01-01| et
-        propriété.prêt.date_signature <@ |2020-01-01| et
+        propriété.prêt.date_signature >= |2018-01-01| et
+        propriété.prêt.date_signature < |2020-01-01| et
         propriété.ancienneté_logement sous forme Ancien et
         propriété.logement_situé_commune_déséquilibre_l831_2
       -- n'importe quel: faux
@@ -809,12 +809,12 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
   égal à
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     si
-      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€ 0€
+      aide_finale - réduction_loyer_solidarité * fraction_l832_3 >= 0€
     alors
-      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3
+      aide_finale - réduction_loyer_solidarité * fraction_l832_3
     sinon 0€
 
-  assertion fraction_l832_3 >=. 90% et fraction_l832_3 <=. 98%
+  assertion fraction_l832_3 >= 90% et fraction_l832_3 <= 98%
 ```
 
 ###### Article L832-4 | LEGIARTI000038814870
@@ -941,7 +941,7 @@ champ d'application ÉligibilitéAllocationLogement:
       )
     )) = 0 et
     (selon ménage.situation_familiale sous forme
-    -- Mariés de date_mariage : date_courante <=@ date_mariage +@ durée_l841_1_3
+    -- Mariés de date_mariage : date_courante <= date_mariage + durée_l841_1_3
     -- n'importe quel: faux)
   conséquence rempli
 ```
@@ -1075,7 +1075,7 @@ champ d'application CalculetteAidesAuLogement:
       non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
     alors
       (si calcul_aide_personnalisée_logement.traitement_aide_finale de
-        calcul_aide_personnalisée_logement.aide_finale_formule >€
+        calcul_aide_personnalisée_logement.aide_finale_formule >
           calcul_allocation_logement.traitement_aide_finale de
             calcul_allocation_logement.aide_finale_formule
       alors
@@ -1099,7 +1099,7 @@ champ d'application CalculetteAidesAuLogement:
         éligibilité_aide_personnalisée_logement.éligibilité et
         non (éligibilité_allocation_logement.éligibilité sous forme PasÉligible)
       alors
-        (si aide_finale_apl >€ aide_finale_al
+        (si aide_finale_apl > aide_finale_al
         alors aide_finale_apl
         sinon aide_finale_al)
       sinon si
@@ -1133,7 +1133,7 @@ champ d'application ÉligibilitéAllocationLogement:
   exception définition éligibilité état l841_2 sous condition
     selon ménage.logement.mode_occupation sous forme
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
-      propriétaire.prêt.date_signature >@ |2017-12-31|
+      propriétaire.prêt.date_signature > |2017-12-31|
     -- n'importe quel: faux
   conséquence égal à PasÉligible
 ```

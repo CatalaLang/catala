@@ -246,7 +246,7 @@ type match_case_pattern =
         name = "match_case_pattern_iter";
       }]
 
-type op_kind = KInt | KDec | KMoney | KDate | KDuration
+type op_kind = KPoly | KInt | KDec | KMoney | KDate | KDuration
 [@@deriving
   visitors { variety = "map"; name = "op_kind_map"; nude = true },
     visitors { variety = "iter"; name = "op_kind_iter"; nude = true }]
@@ -387,9 +387,12 @@ type literal =
 
 type aggregate_func =
   | AggregateSum of primitive_typ
+  (* it would be nice to remove the need for specifying the type here like for
+     extremums, but we need an additionl overload for "neutral element for
+     addition across types" *)
   | AggregateCount
-  | AggregateExtremum of bool * primitive_typ * expression Marked.pos
-  | AggregateArgExtremum of bool * primitive_typ * expression Marked.pos
+  | AggregateExtremum of bool * primitive_typ option * expression Marked.pos
+  | AggregateArgExtremum of bool * primitive_typ option * expression Marked.pos
 
 and collection_op =
   | Exists

@@ -82,34 +82,6 @@ and naked_typ =
 type date = Runtime.date
 type duration = Runtime.duration
 
-type 'a op_kind =
-  (* | Kpoly: desugared op_kind -- Coming soon ! *)
-  | KInt : 'a any op_kind
-  | KRat : 'a any op_kind
-  | KMoney : 'a any op_kind
-  | KDate : 'a any op_kind
-  | KDuration : 'a any op_kind  (** All ops don't have a KDate and KDuration. *)
-
-type ternop = Fold
-
-type 'a binop =
-  | And
-  | Or
-  | Xor
-  | Add of 'a op_kind
-  | Sub of 'a op_kind
-  | Mult of 'a op_kind
-  | Div of 'a op_kind
-  | Lt of 'a op_kind
-  | Lte of 'a op_kind
-  | Gt of 'a op_kind
-  | Gte of 'a op_kind
-  | Eq
-  | Neq
-  | Map
-  | Concat
-  | Filter
-
 type log_entry =
   | VarDef of naked_typ
       (** During code generation, we need to know the type of the variable being
@@ -118,23 +90,131 @@ type log_entry =
   | EndCall
   | PosRecordIfTrueBool
 
-type 'a unop =
-  | Not
-  | Minus of 'a op_kind
-  | Log of log_entry * Uid.MarkedString.info list
-  | Length
-  | IntToRat
-  | MoneyToRat
-  | RatToMoney
-  | GetDay
-  | GetMonth
-  | GetYear
-  | FirstDayOfMonth
-  | LastDayOfMonth
-  | RoundMoney
-  | RoundDecimal
+module Op = struct
+  (** Classification of operators on how they should be typed *)
 
-type 'a operator = Ternop of ternop | Binop of 'a binop | Unop of 'a unop
+  type monomorphic =
+    | Monomorphic  (** Operands and return types of the operator are fixed *)
+
+  type polymorphic =
+    | Polymorphic
+        (** The operator is truly polymorphic: it's the same runtime function
+            that may work on multiple types. We require that resolving the
+            argument types from right to left trivially resolves all type
+            variables declared in the operator type. *)
+
+  type overloaded =
+    | Overloaded
+        (** The operator is ambiguous and requires the types of its arguments to
+            be known before it can be typed, using a pre-defined table *)
+
+  type resolved =
+    | Resolved  (** Explicit monomorphic versions of the overloaded operators *)
+
+  (** Classification of operators. This could be inlined in the definition of
+      [t] but is more concise this way *)
+  type (_, _) kind =
+    | Monomorphic : ('a any, monomorphic) kind
+    | Polymorphic : ('a any, polymorphic) kind
+    | Overloaded : ([< desugared ], overloaded) kind
+    | Resolved : ([< scopelang | dcalc | lcalc ], resolved) kind
+
+  type (_, _) t =
+    (* unary *)
+    (* * monomorphic *)
+    | Not : ('a any, monomorphic) t
+    (* Todo: [AToB] operators could actually be overloaded [ToB] operators*)
+    | IntToRat : ('a any, monomorphic) t
+    | MoneyToRat : ('a any, monomorphic) t
+    | RatToMoney : ('a any, monomorphic) t
+    | GetDay : ('a any, monomorphic) t
+    | GetMonth : ('a any, monomorphic) t
+    | GetYear : ('a any, monomorphic) t
+    | FirstDayOfMonth : ('a any, monomorphic) t
+    | LastDayOfMonth : ('a any, monomorphic) t
+    | RoundMoney : ('a any, monomorphic) t
+    | RoundDecimal : ('a any, monomorphic) t
+    (* * polymorphic *)
+    | Length : ('a any, polymorphic) t
+    | Log : log_entry * Uid.MarkedString.info list -> ('a any, polymorphic) t
+    (* * overloaded *)
+    | Minus : (desugared, overloaded) t
+    | Minus_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Minus_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Minus_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Minus_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    (* binary *)
+    (* * monomorphic *)
+    | And : ('a any, monomorphic) t
+    | Or : ('a any, monomorphic) t
+    | Xor : ('a any, monomorphic) t
+    (* * polymorphic *)
+    | Eq : ('a any, polymorphic) t
+    | Map : ('a any, polymorphic) t
+    | Concat : ('a any, polymorphic) t
+    | Filter : ('a any, polymorphic) t
+    (* * overloaded *)
+    | Add : (desugared, overloaded) t
+    | Add_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Add_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Add_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Add_dat_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Add_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Sub : (desugared, overloaded) t
+    | Sub_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Sub_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Sub_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Sub_dat_dat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Sub_dat_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Sub_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Mult : (desugared, overloaded) t
+    | Mult_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Mult_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Mult_mon_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Mult_dur_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Div : (desugared, overloaded) t
+    | Div_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Div_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Div_mon_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Div_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lt : (desugared, overloaded) t
+    | Lt_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lt_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lt_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lt_dat_dat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lt_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lte : (desugared, overloaded) t
+    | Lte_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lte_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lte_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lte_dat_dat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Lte_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gt : (desugared, overloaded) t
+    | Gt_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gt_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gt_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gt_dat_dat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gt_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gte : (desugared, overloaded) t
+    | Gte_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gte_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gte_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gte_dat_dat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Gte_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    (* Todo: Eq is not an overload at the moment, but it should be one. The
+       trick is that it needs generation of specific code for arrays, every
+       struct and enum: operators [Eq_structs of StructName.t], etc. *)
+    | Eq_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Eq_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Eq_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Eq_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Eq_dat_dat : ([< scopelang | dcalc | lcalc ], resolved) t
+    (* ternary *)
+    (* * polymorphic *)
+    | Fold : ('a any, polymorphic) t
+end
+
+type ('a, 'k) operator = ('a any, 'k) Op.t
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 (** {2 Generic expressions} *)
@@ -175,7 +255,9 @@ type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
     - To write a function that handles cases from different ASTs, explicit the
       type variables: [fun (type a) (x: a naked_gexpr) -> ...]
     - For recursive functions, you may need to additionally explicit the
-      generalisation of the variable: [let rec f: type a . a naked_gexpr -> ...] *)
+      generalisation of the variable: [let rec f: type a . a naked_gexpr -> ...]
+    - Always think of using the pre-defined map/fold functions in [Expr] rather
+      than completely defining your recursion manually. *)
 
 and ('a, 't) naked_gexpr =
   (* Constructors common to all ASTs *)
@@ -185,7 +267,7 @@ and ('a, 't) naked_gexpr =
       args : ('a, 't) gexpr list;
     }
       -> ('a any, 't) naked_gexpr
-  | EOp : 'a operator -> ('a any, 't) naked_gexpr
+  | EOp : { op : ('a, _) operator; tys : typ list } -> ('a any, 't) naked_gexpr
   | EArray : ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
   | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a any, 't) naked_gexpr
   | EAbs : {
@@ -225,20 +307,20 @@ and ('a, 't) naked_gexpr =
       args : ('a, 't) gexpr ScopeVar.Map.t;
     }
       -> (([< desugared | scopelang ] as 'a), 't) naked_gexpr
-  (* [desugared] has ambiguous struct fields *)
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 't) gexpr;
       field : IdentName.t;
     }
       -> ((desugared as 'a), 't) naked_gexpr
-  (* Resolved struct/enums, after [desugared] *)
+      (** [desugared] has ambiguous struct fields *)
   | EStructAccess : {
       name : StructName.t;
       e : ('a, 't) gexpr;
       field : StructField.t;
     }
       -> (([< scopelang | dcalc | lcalc ] as 'a), 't) naked_gexpr
+      (** Resolved struct/enums, after [desugared] *)
   (* Lambda-like *)
   | EAssert : ('a, 't) gexpr -> (([< dcalc | lcalc ] as 'a), 't) naked_gexpr
   (* Default terms *)

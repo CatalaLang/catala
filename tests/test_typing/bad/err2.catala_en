@@ -31,10 +31,10 @@ Type decimal coming from expression:
 
 
 Type collection coming from expression:
-┌─⯈ tests/test_typing/bad/err2.catala_en:10.22-28:
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.35-37:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
-   │                       ‾‾‾‾‾‾
+   │                                    ‾‾
 
 #return code 255#
 ```

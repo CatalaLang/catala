@@ -85,7 +85,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
                        .io_input
                  with
                  | Reentrant ->
-                   Format.fprintf fmt "%a@ %a" Print.operator
+                   Format.fprintf fmt "%a@ %a" Print.op_style
                      "reentrant or by default" (Print.expr ~debug ctx) e
                  | _ -> Format.fprintf fmt "%a" (Print.expr ~debug ctx) e))
              e

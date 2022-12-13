@@ -37,8 +37,12 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EApp
         {
           f =
-            ( EOp (Unop Not), _
-            | ( EApp { f = EOp (Unop (Log _)), _; args = [(EOp (Unop Not), _)] },
+            ( EOp { op = Not; _ }, _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(EOp { op = Not; _ }, _)];
+                  },
                 _ ) ) as op;
           args = [e1];
         } -> (
@@ -50,8 +54,12 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EApp
         {
           f =
-            ( EOp (Binop Or), _
-            | ( EApp { f = EOp (Unop (Log _)), _; args = [(EOp (Binop Or), _)] },
+            ( EOp { op = Or; _ }, _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(EOp { op = Or; _ }, _)];
+                  },
                 _ ) ) as op;
           args = [e1; e2];
         } -> (
@@ -65,8 +73,12 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EApp
         {
           f =
-            ( EOp (Binop And), _
-            | ( EApp { f = EOp (Unop (Log _)), _; args = [(EOp (Binop And), _)] },
+            ( EOp { op = And; _ }, _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(EOp { op = And; _ }, _)];
+                  },
                 _ ) ) as op;
           args = [e1; e2];
         } -> (
@@ -111,15 +123,17 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
         | ( [],
             ( ( ELit (LBool true)
               | EApp
-                  { f = EOp (Unop (Log _)), _; args = [(ELit (LBool true), _)] }
-                ),
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool true), _)];
+                  } ),
               _ ) ) ->
           Marked.unmark cons
         | ( [],
             ( ( ELit (LBool false)
               | EApp
                   {
-                    f = EOp (Unop (Log _)), _;
+                    f = EOp { op = Log _; _ }, _;
                     args = [(ELit (LBool false), _)];
                   } ),
               _ ) ) ->
@@ -139,7 +153,10 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
           cond =
             ( ELit (LBool true), _
             | ( EApp
-                  { f = EOp (Unop (Log _)), _; args = [(ELit (LBool true), _)] },
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool true), _)];
+                  },
                 _ ) );
           etrue;
           _;
@@ -151,7 +168,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
             ( ( ELit (LBool false)
               | EApp
                   {
-                    f = EOp (Unop (Log _)), _;
+                    f = EOp { op = Log _; _ }, _;
                     args = [(ELit (LBool false), _)];
                   } ),
               _ );
@@ -166,7 +183,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
             ( ( ELit (LBool btrue)
               | EApp
                   {
-                    f = EOp (Unop (Log _)), _;
+                    f = EOp { op = Log _; _ }, _;
                     args = [(ELit (LBool btrue), _)];
                   } ),
               _ );
@@ -174,14 +191,18 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
             ( ( ELit (LBool bfalse)
               | EApp
                   {
-                    f = EOp (Unop (Log _)), _;
+                    f = EOp { op = Log _; _ }, _;
                     args = [(ELit (LBool bfalse), _)];
                   } ),
               _ );
         } ->
       if btrue && not bfalse then Marked.unmark cond
       else if (not btrue) && bfalse then
-        EApp { f = EOp (Unop Not), mark; args = [cond] }
+        EApp
+          {
+            f = EOp { op = Not; tys = [TLit TBool, Expr.mark_pos mark] }, mark;
+            args = [cond];
+          }
         (* note: this last call eliminates the condition & might skip log calls
            as well *)
       else (* btrue = bfalse *) ELit (LBool btrue)

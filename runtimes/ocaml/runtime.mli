@@ -285,85 +285,76 @@ val no_input : unit -> 'a
 
 (**{1 Operators} *)
 
-(**{2 Money} *)
+module Oper : sig
+  (* The types **must** match with Shared_ast.Operator.*_type *)
+  val o_not : bool -> bool
+  val o_length : 'a array -> integer
+  val o_intToRat : integer -> decimal
+  val o_moneyToRat : money -> decimal
+  val o_ratToMoney : decimal -> money
+  val o_getDay : date -> integer
+  val o_getMonth : date -> integer
+  val o_getYear : date -> integer
+  val o_firstDayOfMonth : date -> date
+  val o_lastDayOfMonth : date -> date
+  val o_roundMoney : money -> money
+  val o_roundDecimal : decimal -> decimal
+  val o_minus_int : integer -> integer
+  val o_minus_rat : decimal -> decimal
+  val o_minus_mon : money -> money
+  val o_minus_dur : duration -> duration
+  val o_and : bool -> bool -> bool
+  val o_or : bool -> bool -> bool
+  val o_xor : bool -> bool -> bool
+  val o_eq : 'a -> 'a -> bool
+  val o_map : ('a -> 'b) -> 'a array -> 'b array
+  val o_concat : 'a array -> 'a array -> 'a array
+  val o_filter : ('a -> bool) -> 'a array -> 'a array
+  val o_add_int_int : integer -> integer -> integer
+  val o_add_rat_rat : decimal -> decimal -> decimal
+  val o_add_mon_mon : money -> money -> money
+  val o_add_dat_dur : date -> duration -> date
+  val o_add_dur_dur : duration -> duration -> duration
+  val o_sub_int_int : integer -> integer -> integer
+  val o_sub_rat_rat : decimal -> decimal -> decimal
+  val o_sub_mon_mon : money -> money -> money
+  val o_sub_dat_dat : date -> date -> duration
+  val o_sub_dat_dur : date -> duration -> date
+  val o_sub_dur_dur : duration -> duration -> duration
+  val o_mult_int_int : integer -> integer -> integer
+  val o_mult_rat_rat : decimal -> decimal -> decimal
+  val o_mult_mon_rat : money -> decimal -> money
+  val o_mult_dur_int : duration -> integer -> duration
+  val o_div_int_int : integer -> integer -> integer
+  val o_div_rat_rat : decimal -> decimal -> decimal
+  val o_div_mon_mon : money -> money -> decimal
+  val o_div_mon_rat : money -> decimal -> money
+  val o_lt_int_int : integer -> integer -> bool
+  val o_lt_rat_rat : decimal -> decimal -> bool
+  val o_lt_mon_mon : money -> money -> bool
+  val o_lt_dur_dur : duration -> duration -> bool
+  val o_lt_dat_dat : date -> date -> bool
+  val o_lte_int_int : integer -> integer -> bool
+  val o_lte_rat_rat : decimal -> decimal -> bool
+  val o_lte_mon_mon : money -> money -> bool
+  val o_lte_dur_dur : duration -> duration -> bool
+  val o_lte_dat_dat : date -> date -> bool
+  val o_gt_int_int : integer -> integer -> bool
+  val o_gt_rat_rat : decimal -> decimal -> bool
+  val o_gt_mon_mon : money -> money -> bool
+  val o_gt_dur_dur : duration -> duration -> bool
+  val o_gt_dat_dat : date -> date -> bool
+  val o_gte_int_int : integer -> integer -> bool
+  val o_gte_rat_rat : decimal -> decimal -> bool
+  val o_gte_mon_mon : money -> money -> bool
+  val o_gte_dur_dur : duration -> duration -> bool
+  val o_gte_dat_dat : date -> date -> bool
+  val o_eq_int_int : integer -> integer -> bool
+  val o_eq_rat_rat : decimal -> decimal -> bool
+  val o_eq_mon_mon : money -> money -> bool
+  val o_eq_dur_dur : duration -> duration -> bool
+  val o_eq_dat_dat : date -> date -> bool
+  val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
+end
 
-val ( *$ ) : money -> decimal -> money
-
-val ( /$ ) : money -> money -> decimal
-(** @raise Division_by_zero *)
-
-val ( +$ ) : money -> money -> money
-val ( -$ ) : money -> money -> money
-val ( ~-$ ) : money -> money
-val ( =$ ) : money -> money -> bool
-val ( <=$ ) : money -> money -> bool
-val ( >=$ ) : money -> money -> bool
-val ( <$ ) : money -> money -> bool
-val ( >$ ) : money -> money -> bool
-
-(**{2 Integers} *)
-
-val ( +! ) : integer -> integer -> integer
-val ( -! ) : integer -> integer -> integer
-val ( ~-! ) : integer -> integer
-val ( *! ) : integer -> integer -> integer
-
-val ( /! ) : integer -> integer -> integer
-(** @raise Division_by_zero *)
-
-val ( =! ) : integer -> integer -> bool
-val ( >=! ) : integer -> integer -> bool
-val ( <=! ) : integer -> integer -> bool
-val ( >! ) : integer -> integer -> bool
-val ( <! ) : integer -> integer -> bool
-
-(** {2 Decimals} *)
-
-val ( +& ) : decimal -> decimal -> decimal
-val ( -& ) : decimal -> decimal -> decimal
-val ( ~-& ) : decimal -> decimal
-val ( *& ) : decimal -> decimal -> decimal
-
-val ( /& ) : decimal -> decimal -> decimal
-(** @raise Division_by_zero *)
-
-val ( =& ) : decimal -> decimal -> bool
-val ( >=& ) : decimal -> decimal -> bool
-val ( <=& ) : decimal -> decimal -> bool
-val ( >& ) : decimal -> decimal -> bool
-val ( <& ) : decimal -> decimal -> bool
-
-(** {2 Dates} *)
-
-val ( +@ ) : date -> duration -> date
-val ( -@ ) : date -> date -> duration
-val ( =@ ) : date -> date -> bool
-val ( >=@ ) : date -> date -> bool
-val ( <=@ ) : date -> date -> bool
-val ( >@ ) : date -> date -> bool
-val ( <@ ) : date -> date -> bool
-
-(** {2 Durations} *)
-
-val ( +^ ) : duration -> duration -> duration
-val ( -^ ) : duration -> duration -> duration
-val ( *^ ) : duration -> integer -> duration
-val ( ~-^ ) : duration -> duration
-val ( =^ ) : duration -> duration -> bool
-
-val ( >=^ ) : duration -> duration -> bool
-(** @raise UncomparableDurations *)
-
-val ( <=^ ) : duration -> duration -> bool
-(** @raise UncomparableDurations *)
-
-val ( >^ ) : duration -> duration -> bool
-(** @raise UncomparableDurations *)
-
-val ( <^ ) : duration -> duration -> bool
-(** @raise UncomparableDurations *)
-
-(** {2 Arrays} *)
-
-val array_filter : ('a -> bool) -> 'a array -> 'a array
-val array_length : 'a array -> integer
+include module type of Oper

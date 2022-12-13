@@ -7,8 +7,8 @@ declaration scope A:
 
 scope A:
   definition x equals 94 day
-  definition y under condition (x +^ x) >^ 100 day consequence equals true
-  definition y under condition (x +^ x) <=^ 100 day consequence equals false
+  definition y under condition (x + x) > 100 day consequence equals true
+  definition y under condition (x + x) <= 100 day consequence equals false
 ```
 
 ```catala-test-inline

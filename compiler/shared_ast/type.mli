@@ -14,12 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-include Definitions
-module Var = Var
-module Type = Type
-module Operator = Operator
-module Expr = Expr
-module Scope = Scope
-module Program = Program
-module Print = Print
-module Typing = Typing
+type t = Definitions.typ
+
+val equal : t -> t -> bool
+val equal_list : t list -> t list -> bool
+val compare : t -> t -> int
+
+val unifiable : t -> t -> bool
+(** Similar to [equal], but allows TAny holes *)
+
+val arrow_return : t -> t
+(** Returns the last member in nested [TArrow] types *)

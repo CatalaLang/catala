@@ -5,7 +5,7 @@ declaration scope A:
    output x content collection money
 
 scope A:
-   definition x equals [$0; $4 +$ $5; $8 *$ 0.65]
+   definition x equals [$0; $4 + $5; $8 * 0.65]
 
 declaration scope B:
    a scope A
@@ -15,10 +15,10 @@ declaration scope B:
    output z content integer
 
 scope B:
-   definition max equals maximum money initial $0 for m in a.x of m *$ 2.0
-   definition min equals minimum money initial $20 for m in a.x of m +$ $5
-   definition y equals sum money for m in a.x of (m +$ $1)
-   definition z equals number for m in a.x of (m >=$ $8.95)
+   definition max equals maximum money initial $0 for m in a.x of m * 2.0
+   definition min equals minimum money initial $20 for m in a.x of m + $5
+   definition y equals sum money for m in a.x of (m + $1)
+   definition z equals number for m in a.x of (m >= $8.95)
 ```
 
 ```catala-test-inline

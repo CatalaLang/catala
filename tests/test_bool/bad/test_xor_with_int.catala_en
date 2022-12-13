@@ -15,17 +15,17 @@ $ catala Typecheck
 --> bool
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.36-38:
+┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.29-31:
 └─┐
 8 │   definition test_var equals 10 xor 20
-  │                                     ‾‾
+  │                              ‾‾
   └─ 'xor' should be a boolean operator
 
 Type integer coming from expression:
-┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.36-38:
+┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.29-31:
 └─┐
 8 │   definition test_var equals 10 xor 20
-  │                                     ‾‾
+  │                              ‾‾
   └─ 'xor' should be a boolean operator
 
 Type bool coming from expression:

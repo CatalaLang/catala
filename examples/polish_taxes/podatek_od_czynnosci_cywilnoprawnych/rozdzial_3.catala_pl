@@ -17,7 +17,7 @@ deklaracja zakres UmowaSprzedazy:
 
 zakres UmowaSprzedazy:
   definicja podatek wynosi
-    kwota *$ stawka_podatku
+    kwota * stawka_podatku
 
 zakres UmowaSprzedazy:
   etykieta a7_u1_p1_ppa
@@ -48,7 +48,7 @@ deklaracja zakres UmowaZamianyLubDarowizny:
 
 zakres UmowaZamianyLubDarowizny:
   definicja podatek wynosi
-    kwota *$ stawka_podatku
+    kwota * stawka_podatku
 
 zakres UmowaZamianyLubDarowizny:
   etykieta a7_u1_p2_ppa
@@ -75,7 +75,7 @@ deklaracja zakres OdplatneUzytkowanie:
 
 zakres OdplatneUzytkowanie:
   definicja podatek wynosi
-    kwota *$ stawka_podatku
+    kwota * stawka_podatku
 
 zakres OdplatneUzytkowanie:
   definicja stawka_podatku wynosi 1%
@@ -91,7 +91,7 @@ deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja podatek wynosi
-    kwota *$ stawka_podatku # TODO: extract somehow?
+    kwota * stawka_podatku # TODO: extract somehow?
                             # this exists in every declaration
 
 zakres PozyczkaLubDepozytNieprawidlowy:
@@ -112,7 +112,7 @@ deklaracja  zakres Hipoteka:
 zakres Hipoteka:
   etykieta a7_u1_p7_ppa
   definicja podatek wynosi
-    kwota *$ stawka_podatku
+    kwota * stawka_podatku
 
 zakres Hipoteka:
   definicja stawka_podatku wynosi 0.1%
@@ -138,7 +138,7 @@ deklaracja zakres UmowaSpolki:
 
 zakres UmowaSpolki:
   definicja podatek wynosi
-    kwota *$ stawka_podatku
+    kwota * stawka_podatku
 
 zakres UmowaSpolki:
   definicja stawka_podatku wynosi 0.5%

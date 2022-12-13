@@ -5,7 +5,7 @@ declaration scope A:
    output x content collection money
 
 scope A:
-   definition x equals [$0; $4 +$ $5; $8 *$ 0.65]
+   definition x equals [$0; $4 + $5; $8 * 0.65]
 
 declaration scope B:
    a scope A
@@ -13,8 +13,8 @@ declaration scope B:
    output z content collection boolean
 
 scope B:
-   definition y equals filter for m in a.x of (m >=$ $4.95)
-   definition z equals map for m in a.x of (m >=$ $4.95)
+   definition y equals filter for m in a.x of (m >= $4.95)
+   definition z equals map for m in a.x of (m >= $4.95)
 ```
 
 ```catala-test-inline

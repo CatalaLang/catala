@@ -37,13 +37,13 @@ definition benefitingOrg equals drawLottery.typeOrg with pattern OrganisationTyp
 benefiting organisation,
 ```catala
 scope GamingAuthorized:
-definition minimumProceeds equals drawLottery.proceedsToBenefitingOrg >=$ drawLottery.grossProceeds *$ 40 %
+definition minimumProceeds equals drawLottery.proceedsToBenefitingOrg >= drawLottery.grossProceeds * 40 %
 ```
 
 (c) the total value of all of the prizes does not exceed $30,000.
 ```catala
 scope GamingAuthorized:
-definition maxValueOfPrizes equals drawLottery.totalValueOfThePrizes <=$ $30,000
+definition maxValueOfPrizes equals drawLottery.totalValueOfThePrizes <= $30,000
 
 scope GamingAuthorized:
   rule authorized

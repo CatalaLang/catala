@@ -21,7 +21,7 @@ scope S:
        then B { -- y: false -- z: -1. }
        else B { -- y: true  -- z: -2. }
      in
-     let a equals 2. *. b.z in
+     let a equals 2. * b.z in
      A { -- x: a -- y : b }
 ```
 

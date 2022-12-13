@@ -66,7 +66,7 @@ val eapp :
 val eassert :
   (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr -> 't -> ('a, 't) boxed_gexpr
 
-val eop : 'a any operator -> 't -> ('a, 't) boxed_gexpr
+val eop : ('a any, 'k) operator -> typ list -> 't -> ('a, 't) boxed_gexpr
 
 val edefault :
   (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr list ->
@@ -310,11 +310,6 @@ val make_tuple :
 
 (** {2 Transformations} *)
 
-val translate_op :
-  [< desugared | scopelang | dcalc | lcalc ] operator -> 'b any operator
-(** Operators are actually all the same after initial desambiguation, so this
-    function allows converting their types ; otherwise, this is the identity *)
-
 val remove_logging_calls : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
@@ -340,8 +335,6 @@ val compare : ('a, 't) gexpr -> ('a, 't) gexpr -> int
 (** Standard comparison function, suitable for e.g. [Set.Make]. Ignores position
     information *)
 
-val equal_typ : typ -> typ -> bool
-val compare_typ : typ -> typ -> int
 val is_value : ('a any, 't) gexpr -> bool
 val free_vars : ('a any, 't) gexpr -> ('a, 't) gexpr Var.Set.t
 

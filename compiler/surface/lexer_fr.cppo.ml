@@ -114,7 +114,9 @@
 
 (* Specific delimiters *)
 
-#define MR_MONEY_OP_SUFFIX 0x20AC (* The euro sign *)
+#define MS_MONEY_OP_SUFFIX "€"
+#define MR_MONEY_OP_SUFFIX 0x20AC
+                           (* The euro sign *)
 #define MC_DECIMAL_SEPARATOR ','
 #define MR_MONEY_PREFIX ""
 #define MR_MONEY_DELIM ' '

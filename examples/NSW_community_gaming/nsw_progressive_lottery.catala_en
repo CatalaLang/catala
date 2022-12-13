@@ -22,7 +22,7 @@ declaration scope GamingAuthorized:
   (a) the maximum amount of money payable as a prize does not exceed $7,000,
 ```catala
 scope GamingAuthorized:
-  definition maxCashPrize equals (progressiveLottery.maxAmountPayable <=$ $7000)
+  definition maxCashPrize equals (progressiveLottery.maxAmountPayable <= $7000)
 ```
   (b) if the total value of all the prizes exceeds $30,000, the person conducting the
   activity holds an authority to do so that is in force and the activity is conducted
@@ -30,7 +30,7 @@ scope GamingAuthorized:
 ```catala
 scope GamingAuthorized:
   definition amountOfPrizesGreaterThan30000 equals
-    (progressiveLottery.totalValueOfThePrizes <$ $30000
+    (progressiveLottery.totalValueOfThePrizes < $30000
       or progressiveLottery.holdsAuthority)
 
 scope GamingAuthorized:

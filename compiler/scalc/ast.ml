@@ -28,15 +28,15 @@ let handle_default_opt = TopLevelName.fresh ("handle_default_opt", Pos.no_pos)
 type expr = naked_expr Marked.pos
 
 and naked_expr =
-  | EVar of LocalName.t
-  | EFunc of TopLevelName.t
-  | EStruct of expr list * StructName.t
-  | EStructFieldAccess of expr * StructField.t * StructName.t
-  | EInj of expr * EnumConstructor.t * EnumName.t
-  | EArray of expr list
-  | ELit of L.lit
-  | EApp of expr * expr list
-  | EOp of lcalc operator
+  | EVar : LocalName.t -> naked_expr
+  | EFunc : TopLevelName.t -> naked_expr
+  | EStruct : expr list * StructName.t -> naked_expr
+  | EStructFieldAccess : expr * StructField.t * StructName.t -> naked_expr
+  | EInj : expr * EnumConstructor.t * EnumName.t -> naked_expr
+  | EArray : expr list -> naked_expr
+  | ELit : L.lit -> naked_expr
+  | EApp : expr * expr list -> naked_expr
+  | EOp : (lcalc, _) operator -> naked_expr
 
 type stmt =
   | SInnerFuncDef of LocalName.t Marked.pos * func

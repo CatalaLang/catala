@@ -148,7 +148,7 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
-  Expr.eapp (Expr.eop (Unop (Log (l, markings))) m) [e] m
+  Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m
 
 (* In a list of exceptions, it is normally an error if more than a single one
    apply at the same time. This relaxes this constraint slightly, allowing a
@@ -417,7 +417,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)
       m
-  | EOp op -> Expr.eop (Expr.translate_op op) m
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 

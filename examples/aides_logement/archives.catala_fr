@@ -26,8 +26,8 @@ pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
 
   # Colonne 1
   étiquette base définition plafond_loyer_d823_16_2 sous condition
@@ -55,13 +55,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      406,30€ +€ 58,95€ *€ (entier_vers_décimal de
+      406,30€ + 58,95€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      357,80€ +€ 52,08€ *€ (entier_vers_décimal de
+      357,80€ + 52,08€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      330,94€ +€ 47,43€ *€ (entier_vers_décimal de
+      330,94€ + 47,43€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
 
 ```
@@ -112,7 +112,7 @@ compter du 1er octobre 2021.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition
-    date_courante >=@ |2021-10-01| et date_courante <@ |2022-07-01| et
+    date_courante >= |2021-10-01| et date_courante < |2022-07-01| et
     logement_est_chambre:
 
   étiquette chambre exception base
@@ -156,10 +156,10 @@ du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   étiquette base définition montant_forfaitaire_charges_d823_16 égal à
-    54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    54,22€ + 12,29€ * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 13 | LEGIARTI000044137423 [archive]
@@ -170,14 +170,14 @@ défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,3
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition participation_minimale égal à
     si
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16)
-        *€ 8,5% >=€ 35,39 €
+      (loyer_éligible + montant_forfaitaire_charges_d823_16)
+        * 8,5% >= 35,39 €
     alors
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16) *€ 8,5%
+      (loyer_éligible + montant_forfaitaire_charges_d823_16) * 8,5%
     sinon
       35,39 €
 ```
@@ -215,8 +215,8 @@ Majoration par personne à charge                    -0,06%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition taux_composition_familiale égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -235,7 +235,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% -. (0,06% *. (entier_vers_décimal de
+      (1,73% - (0,06% * (entier_vers_décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
@@ -249,10 +249,10 @@ RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition rapport_loyers égal à
-    arrondi_décimal de ((loyer_éligible /€ loyer_référence) *. 100,0) /. 100,0
+    arrondi_décimal de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
@@ -273,21 +273,21 @@ $\textrm{TL}=0 \%$    $\textrm{TL}=0,45 \%\times (\textrm{RL}-45\%)$ $\textrm{TL
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   # Ici on choisit de mettre des >= pour inclure le résultat sur la crête
   # dans la case de droite ; nous avons bien vérifié que sur la crête le
   # résultat est le même à gauche et à droite.
   définition taux_loyer_éligible état formule égal à
-    si rapport_loyers <. 45% alors 0% sinon (
-    si rapport_loyers >=. 45% et rapport_loyers <. 75% alors
-      0,45% *. (rapport_loyers -. 0,45%)
-    sinon (si rapport_loyers >=. 75% alors
-      0,45% *. 30% +. 0,68% *. (rapport_loyers -. 75%)
+    si rapport_loyers < 45% alors 0% sinon (
+    si rapport_loyers >= 45% et rapport_loyers < 75% alors
+      0,45% * (rapport_loyers - 0,45%)
+    sinon (si rapport_loyers >= 75% alors
+      0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
   définition taux_loyer_éligible état arrondi égal à
     # La troisième décimale en pourcentage est en fait la cinquième décimale
-    (arrondi_décimal de (taux_loyer_éligible *. 100000,0)) /. 100000,0
+    (arrondi_décimal de (taux_loyer_éligible * 100000,0)) / 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
@@ -301,15 +301,15 @@ Majoration par personne à charge	                    52,08
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 259,78€
       -- Couple: 317,97€
-    sinon (357,80€ +€
-      (52,08€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    sinon (357,80€ +
+      (52,08€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
@@ -342,8 +342,8 @@ charge supplémentaire               44,21  39,06  35,57
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01| et colocation:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01| et colocation:
 
   # Ici l'exception est rapportée au cas de base puisqu'on suppose
   # qu'on ne peut pas être en colocation dans un logement constitué
@@ -372,13 +372,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      304,73€ +€ 44,21€ *€ (entier_vers_décimal de
+      304,73€ + 44,21€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      268,35€ +€ 39,06€ *€ (entier_vers_décimal de
+      268,35€ + 39,06€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      248,21€ +€ 35,57€ *€ (entier_vers_décimal de
+      248,21€ + 35,57€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
 ```
 
@@ -392,13 +392,13 @@ Majoration par personne à charge 12,29
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01| et colocation:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01| et colocation:
   exception base définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
-    -- Couple: 54,22€) +€
-    12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    -- Couple: 54,22€) +
+    12,29€ * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -424,11 +424,11 @@ du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
-    54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    54,22 € + 12,29 € * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 24 | LEGIARTI000044137409 [archive]
@@ -439,11 +439,11 @@ Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition plafond_mensualité_d832_10_3 état copropriétaires égal à
     si copropriété alors
-      plafond_mensualité_d832_10_3 *€ 75%
+      plafond_mensualité_d832_10_3 * 75%
     sinon
       plafond_mensualité_d832_10_3
 ```
@@ -458,15 +458,15 @@ Majoration par personne à charge 12,29
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
     exception base définition montant_forfaitaire_charges_d832_10 sous condition
       copropriété
     conséquence égal à
      (selon situation_familiale_calcul_apl sous forme
        -- PersonneSeule: 27,10€
-       -- Couple: 54,22€) +€
-     12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+       -- Couple: 54,22€) +
+     12,29 € * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -494,8 +494,8 @@ pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
-  date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition plafond_équivalence_loyer_éligible égal à
     (selon zone sous forme
     -- Zone1: (
@@ -510,8 +510,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         636,35 €
       sinon
-        (686,37 € +€
-        71,19€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (686,37 € +
+        71,19€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -524,8 +524,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         579,29 €
       sinon
-        (617,27 € +€
-        64,34€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (617,27 € +
+        64,34€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -538,8 +538,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         541,10 €
       sinon
-        (576,57 € +€
-        59,71€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (576,57 € +
+        59,71€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
     )
 ```
 
@@ -559,11 +559,11 @@ les prestations dues à compter du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   étiquette oct_2021_juin_2022 définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
-   sinon 54,22 € +€ (12,29 € *€ (
+   sinon 54,22 € + (12,29 € * (
      entier_vers_décimal de nombre_personnes_à_charge))
 ```
 
@@ -575,12 +575,12 @@ Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   exception définition calcul_plafond_mensualité_d842_6 de date_calcul
   état avec_copropriété égal à
     si copropriété alors
-      calcul_plafond_mensualité_d842_6 de date_calcul *€ 75%
+      calcul_plafond_mensualité_d842_6 de date_calcul * 75%
     sinon
       calcul_plafond_mensualité_d842_6 de date_calcul
 ```
@@ -595,15 +595,15 @@ Majoration par personne à charge                         12,29
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   exception oct_2021_juin_2022
   définition montant_forfaitaire_charges sous condition
     copropriété
   conséquence égal à
     (selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 27,10 €
-      -- Couple : 54,22€) +€ (12,29 € *€ (
+      -- Couple : 54,22€) + (12,29 € * (
       entier_vers_décimal de nombre_personnes_à_charge))
 ```
 
@@ -628,11 +628,11 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
-   sinon 54,22 € +€ (12,29 € *€ (
+   sinon 54,22 € + (12,29 € * (
      entier_vers_décimal de nombre_personnes_à_charge))
 ```
 
@@ -650,8 +650,8 @@ b) 131,00 euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme ÉtudiantLogéEnChambreCROUS
   conséquence égal à
@@ -668,8 +668,8 @@ b) 264,40 euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         ÉtudiantLogéEnChambreCROUSRéhabilitée
@@ -687,8 +687,8 @@ b) 320,73 euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         PersonnesÂgéesSelon3DeD842_16
@@ -706,8 +706,8 @@ b) 264,40 euros lorsqu'il s'agit d'un couple.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2021-10-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2021-10-01| et
+    date_courante < |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         AutresPersonnes
@@ -751,8 +751,8 @@ octobre 2020.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01|:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01|:
 
   # Colonne 1
   étiquette base définition plafond_loyer_d823_16_2 sous condition
@@ -780,13 +780,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      404,60€ +€ 58,70€ *€ (entier_vers_décimal de
+      404,60€ + 58,70€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      356,30€ +€ 51,86€ *€ (entier_vers_décimal de
+      356,30€ + 51,86€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      329,56€ +€ 47,23€ *€ (entier_vers_décimal de
+      329,56€ + 47,23€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
 
 ```
@@ -836,7 +836,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2020.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition
-    date_courante <@ |2021-10-01| et date_courante >=@ |2020-10-01| et
+    date_courante < |2021-10-01| et date_courante >= |2020-10-01| et
     logement_est_chambre:
 
   étiquette chambre exception base
@@ -880,10 +880,10 @@ compter du 1er octobre 2020.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01|:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01|:
   étiquette base définition montant_forfaitaire_charges_d823_16 égal à
-    53,99€ +€ 12,24€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    53,99€ + 12,24€ * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 #### Article 13 | LEGIARTI000042378442 [archive]
@@ -894,14 +894,14 @@ défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,2
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01|:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01|:
   définition participation_minimale égal à
     si
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16)
-        *€ 8,5% >=€ 35,24 €
+      (loyer_éligible + montant_forfaitaire_charges_d823_16)
+        * 8,5% >= 35,24 €
     alors
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16) *€ 8,5%
+      (loyer_éligible + montant_forfaitaire_charges_d823_16) * 8,5%
     sinon
       35,24 €
 ```
@@ -939,8 +939,8 @@ Majoration par personne à charge	                   -0,06%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2020-10-01| et
-  date_courante <@ |2021-10-01|:
+  sous condition date_courante >= |2020-10-01| et
+  date_courante < |2021-10-01|:
   définition taux_composition_familiale égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -959,7 +959,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% -. (0,06% *. (entier_vers_décimal de
+      (1,73% - (0,06% * (entier_vers_décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
@@ -973,10 +973,10 @@ RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2020-10-01| et
-    date_courante <@ |2021-10-01|:
+  sous condition date_courante >= |2020-10-01| et
+    date_courante < |2021-10-01|:
   définition rapport_loyers égal à
-    arrondi_décimal de ((loyer_éligible /€ loyer_référence) *. 100,0) /. 100,0
+    arrondi_décimal de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
@@ -997,18 +997,18 @@ $\text{TL}=0 \%$    $\text{TL}=0,45 \%\times (\text{RL}-45\%)$ $\text{TL}=0,45\%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2020-10-01| et
-    date_courante <@ |2021-10-01|:
+  sous condition date_courante >= |2020-10-01| et
+    date_courante < |2021-10-01|:
   définition taux_loyer_éligible état formule égal à
-    si rapport_loyers <. 45% alors 0% sinon (
-    si rapport_loyers >=. 45% et rapport_loyers <. 75% alors
-      0,45% *. (rapport_loyers -. 0,45%)
-    sinon (si rapport_loyers >=. 75% alors
-      0,45% *. 30% +. 0,68% *. (rapport_loyers -. 75%)
+    si rapport_loyers < 45% alors 0% sinon (
+    si rapport_loyers >= 45% et rapport_loyers < 75% alors
+      0,45% * (rapport_loyers - 0,45%)
+    sinon (si rapport_loyers >= 75% alors
+      0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
   définition taux_loyer_éligible état arrondi égal à
     # La troisième décimale en pourcentage est en fait la cinquième décimale
-    (arrondi_décimal de (taux_loyer_éligible *. 100000,0)) /. 100000,0
+    (arrondi_décimal de (taux_loyer_éligible * 100000,0)) / 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
@@ -1022,15 +1022,15 @@ Majoration par personne à charge	                  51,86
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2020-10-01| et
-    date_courante <@ |2021-10-01|:
+  sous condition date_courante >= |2020-10-01| et
+    date_courante < |2021-10-01|:
   définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 258,69€
       -- Couple: 316,64€
-    sinon (356,30€ +€
-      (51,86€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    sinon (356,30€ +
+      (51,86€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
@@ -1065,8 +1065,8 @@ charge supplémentaire               44,03  38,90  35,42
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01| et colocation:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01| et colocation:
 
   exception base définition plafond_loyer_d823_16_2 sous condition
     (situation_familiale_calcul_apl sous forme PersonneSeule) et
@@ -1091,13 +1091,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      303,45€ +€ 44,03€ *€ (entier_vers_décimal de
+      303,45€ + 44,03€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      267,23€ +€ 38,90€ *€ (entier_vers_décimal de
+      267,23€ + 38,90€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      247,17€ +€ 35,42€ *€ (entier_vers_décimal de
+      247,17€ + 35,42€ * (entier_vers_décimal de
         (nombre_personnes_à_charge - 1))
 ```
 
@@ -1111,13 +1111,13 @@ Majoration par personne à charge 12,24
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01| et colocation:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01| et colocation:
   exception base définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 26,99€
-    -- Couple: 53,99€) +€
-    12,24€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    -- Couple: 53,99€) +
+    12,24€ * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -1145,11 +1145,11 @@ sont applicables pour les prestations dues à compter du 1er octobre 2020.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01|:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
-    53,99 € +€ 12,24 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    53,99 € + 12,24 € * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 #### Article 24 | LEGIARTI000042378430 [archive]
@@ -1160,11 +1160,11 @@ Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01|:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01|:
   définition plafond_mensualité_d832_10_3 état copropriétaires égal à
     si copropriété alors
-      plafond_mensualité_d832_10_3 *€ 75%
+      plafond_mensualité_d832_10_3 * 75%
     sinon
       plafond_mensualité_d832_10_3
 ```
@@ -1179,15 +1179,15 @@ Majoration par personne à charge 12,24
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante <@ |2021-10-01| et
-    date_courante >=@ |2020-10-01|:
+  sous condition date_courante < |2021-10-01| et
+    date_courante >= |2020-10-01|:
     exception base définition montant_forfaitaire_charges_d832_10 sous condition
       copropriété
     conséquence égal à
       (selon situation_familiale_calcul_apl sous forme
         -- PersonneSeule: 26,99€
-        -- Couple: 53,99€) +€
-      12,24 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+        -- Couple: 53,99€) +
+      12,24 € * (entier_vers_décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -1218,7 +1218,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2020.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
-  date_courante <@ |2021-10-01| et date_courante >=@ |2020-10-01|:
+  date_courante < |2021-10-01| et date_courante >= |2020-10-01|:
   définition plafond_équivalence_loyer_éligible égal à
     (selon zone sous forme
     -- Zone1: (
@@ -1233,8 +1233,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         633,69 €
       sinon
-        (683,5 € +€
-        70,89€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (683,5 € +
+        70,89€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -1247,8 +1247,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         576,87 €
       sinon
-        (614,69 € +€
-        64,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (614,69 € +
+        64,07€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -1261,8 +1261,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         538,84 €
       sinon
-        (574,16 € +€
-        59,46€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (574,16 € +
+        59,46€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
     )
 ```
 
@@ -1308,8 +1308,8 @@ Personne seule ou couple ayant :
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-01-01| et
-    date_courante <@ |2022-07-01|:
+  sous condition date_courante >= |2022-01-01| et
+    date_courante < |2022-07-01|:
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -1328,7 +1328,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       9 439 €
     sinon
-      (9 439€ +€ (311 € *€ (entier_vers_décimal de
+      (9 439€ + (311 € * (entier_vers_décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 ```
@@ -1362,8 +1362,8 @@ Personne seule ou couple ayant :
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante <@ |2022-01-01| et
-    date_courante >=@ |2020-01-01|:
+  sous condition date_courante < |2022-01-01| et
+    date_courante >= |2020-01-01|:
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -1382,7 +1382,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       9 246 €
     sinon
-      (9 246€ +€ (305 € *€ (entier_vers_décimal de
+      (9 246€ + (305 € * (entier_vers_décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 ```

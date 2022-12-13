@@ -111,7 +111,7 @@ let unique_name (v : 'e Var.t) : string =
 let date_to_int (d : Runtime.date) : int =
   (* Alternatively, could expose this from Runtime as a (noop) coercion, but
      would allow to break abstraction more easily elsewhere *)
-  let period = Runtime.( -@ ) d base_day in
+  let period = Runtime.Oper.o_sub_dat_dat d base_day in
   let y, m, d = Runtime.duration_to_years_months_days period in
   assert (y = 0 && m = 0);
   d
@@ -124,7 +124,7 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
   Runtime.date_to_string
-    (Runtime.( +@ ) base_day (Runtime.duration_of_numbers 0 0 nb))
+    (Runtime.Oper.o_add_dat_dur base_day (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
@@ -426,223 +426,181 @@ let is_leap_year = Runtime.is_leap_year
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
-let rec translate_op (ctx : context) (op : dcalc operator) (args : 'm expr list)
-    : context * Expr.expr =
-  match op with
-  | Ternop _top ->
-    let _e1, _e2, _e3 =
-      match args with
-      | [e1; e2; e3] -> e1, e2, e3
-      | _ ->
-        Format.kasprintf failwith
-          "[Z3 encoding] Ill-formed ternary operator application: %a"
-          (Shared_ast.Expr.format ctx.ctx_decl)
-          (Shared_ast.Expr.eapp
-             (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
-             (List.map Shared_ast.Expr.untype args)
-             (Untyped { pos = Pos.no_pos })
-          |> Shared_ast.Expr.unbox)
-    in
+let rec translate_op :
+    type k.
+    context -> (dcalc, k) operator -> 'm expr list -> context * Expr.expr =
+ fun ctx op args ->
+  let ill_formed () =
+    Format.kasprintf failwith
+      "[Z3 encoding] Ill-formed operator application: %a"
+      (Shared_ast.Expr.format ctx.ctx_decl)
+      (Shared_ast.Expr.eapp
+         (Shared_ast.Expr.eop op [] (Untyped { pos = Pos.no_pos }))
+         (List.map Shared_ast.Expr.untype args)
+         (Untyped { pos = Pos.no_pos })
+      |> Shared_ast.Expr.unbox)
+  in
+  let app f =
+    let ctx, args = List.fold_left_map translate_expr ctx args in
+    ctx, f ctx.ctx_z3 args
+  in
+  let app1 f =
+    app (fun ctx -> function [a] -> f ctx a | _ -> ill_formed ())
+  in
+  let app2 f =
+    app (fun ctx -> function [a; b] -> f ctx a b | _ -> ill_formed ())
+  in
+  match op, args with
+  | Fold, _ ->
     failwith "[Z3 encoding] ternary operator application not supported"
-  | Binop bop -> (
     (* Special case for GetYear comparisons *)
-    match bop, args with
-    | ( Lt KInt,
-        [
-          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
-          (ELit (LInt n), _);
-        ] ) ->
-      let n = Runtime.integer_to_int n in
-      let ctx, e1 = translate_expr ctx e1 in
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n))
-      in
-      (* e2 corresponds to the first day of the year n. GetYear e1 < e2 can thus
-         be directly translated as < in the Z3 encoding using the number of
-         days *)
-      ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
-    | ( Lte KInt,
-        [
-          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
-          (ELit (LInt n), _);
-        ] ) ->
-      let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if is_leap_year n then 365 else 364 in
-      let n = Runtime.integer_to_int n in
-      (* We want that the year corresponding to e1 is smaller or equal to n. We
-         encode this as the day corresponding to e1 is smaller or equal than the
-         last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
-         year, Jan 1st + 364 else *)
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n) + nb_days)
-      in
-      ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
-    | ( Gt KInt,
-        [
-          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
-          (ELit (LInt n), _);
-        ] ) ->
-      let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if is_leap_year n then 365 else 364 in
-      let n = Runtime.integer_to_int n in
-      (* We want that the year corresponding to e1 is greater to n. We encode
-         this as the day corresponding to e1 is greater than the last day of the
-         year [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st +
-         364 else *)
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n) + nb_days)
-      in
-      ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
-    | ( Gte KInt,
-        [
-          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
-          (ELit (LInt n), _);
-        ] ) ->
-      let n = Runtime.integer_to_int n in
-      let ctx, e1 = translate_expr ctx e1 in
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n))
-      in
-      (* e2 corresponds to the first day of the year n. GetYear e1 >= e2 can
-         thus be directly translated as >= in the Z3 encoding using the number
-         of days *)
-      ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-    | ( Eq,
-        [
-          (EApp { f = EOp (Unop GetYear), _; args = [e1] }, _);
-          (ELit (LInt n), _);
-        ] ) ->
-      let n = Runtime.integer_to_int n in
-      let ctx, e1 = translate_expr ctx e1 in
-      let min_date =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n))
-      in
-      let max_date =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year (n + 1)))
-      in
-      ( ctx,
-        Boolean.mk_and ctx.ctx_z3
-          [
-            Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
-            Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
-          ] )
-    | _ -> (
-      let ctx, e1, e2 =
-        match args with
-        | [e1; e2] ->
-          let ctx, e1 = translate_expr ctx e1 in
-          let ctx, e2 = translate_expr ctx e2 in
-          ctx, e1, e2
-        | _ ->
-          Format.kasprintf failwith
-            "[Z3 encoding] Ill-formed binary operator application: %a"
-            (Shared_ast.Expr.format ctx.ctx_decl)
-            (Shared_ast.Expr.eapp
-               (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
-               (List.map Shared_ast.Expr.untype args)
-               (Untyped { pos = Pos.no_pos })
-            |> Shared_ast.Expr.unbox)
-      in
-
-      match bop with
-      | And -> ctx, Boolean.mk_and ctx.ctx_z3 [e1; e2]
-      | Or -> ctx, Boolean.mk_or ctx.ctx_z3 [e1; e2]
-      | Xor -> ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2
-      | Add KInt | Add KRat | Add KMoney | Add KDate | Add KDuration ->
-        ctx, Arithmetic.mk_add ctx.ctx_z3 [e1; e2]
-      | Sub KInt | Sub KRat | Sub KMoney | Sub KDate | Sub KDuration ->
-        ctx, Arithmetic.mk_sub ctx.ctx_z3 [e1; e2]
-      | Mult KInt | Mult KRat | Mult KMoney | Mult KDate | Mult KDuration ->
-        ctx, Arithmetic.mk_mul ctx.ctx_z3 [e1; e2]
-      | Div KInt | Div KRat | Div KMoney ->
-        ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2
-      | Div _ ->
-        failwith
-          "[Z3 encoding] application of non-integer binary operator Div not \
-           supported"
-      | Lt KInt | Lt KRat | Lt KMoney | Lt KDate | Lt KDuration ->
-        ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
-      | Lte KInt | Lte KRat | Lte KMoney | Lte KDate | Lte KDuration ->
-        ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
-      | Gt KInt | Gt KRat | Gt KMoney | Gt KDate | Gt KDuration ->
-        ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
-      | Gte KInt | Gte KRat | Gte KMoney | Gte KDate | Gte KDuration ->
-        ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-      | Eq -> ctx, Boolean.mk_eq ctx.ctx_z3 e1 e2
-      | Neq -> ctx, Boolean.mk_not ctx.ctx_z3 (Boolean.mk_eq ctx.ctx_z3 e1 e2)
-      | Map ->
-        failwith
-          "[Z3 encoding] application of binary operator Map not supported"
-      | Concat ->
-        failwith
-          "[Z3 encoding] application of binary operator Concat not supported"
-      | Filter ->
-        failwith
-          "[Z3 encoding] application of binary operator Filter not supported"))
-  | Unop uop -> (
-    let ctx, e1 =
-      match args with
-      | [e1] -> (
-        try translate_expr ctx e1
-        with Z3.Error s ->
-          Errors.raise_spanned_error (Shared_ast.Expr.pos e1) "%s" s)
-      | _ ->
-        Format.kasprintf failwith
-          "[Z3 encoding] Ill-formed unary operator application: %a"
-          (Shared_ast.Expr.format ctx.ctx_decl)
-          (Shared_ast.Expr.eapp
-             (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
-             (List.map Shared_ast.Expr.untype args)
-             (Untyped { pos = Pos.no_pos })
-          |> Shared_ast.Expr.unbox)
+  | ( Lt_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
     in
-
-    match uop with
-    | Not -> ctx, Boolean.mk_not ctx.ctx_z3 e1
-    | Minus _ ->
-      failwith "[Z3 encoding] application of unary operator Minus not supported"
-    (* Omitting the log from the VC *)
-    | Log _ -> ctx, e1
-    | Length ->
-      (* For now, an array is only its symbolic length. We simply return it *)
-      ctx, e1
-    | IntToRat ->
-      failwith
-        "[Z3 encoding] application of unary operator IntToRat not supported"
-    | MoneyToRat ->
-      failwith
-        "[Z3 encoding] application of unary operator MoneyToRat not supported"
-    | RatToMoney ->
-      failwith
-        "[Z3 encoding] application of unary operator RatToMoney not supported"
-    | GetDay ->
-      failwith
-        "[Z3 encoding] application of unary operator GetDay not supported"
-    | GetMonth ->
-      failwith
-        "[Z3 encoding] application of unary operator GetMonth not supported"
-    | GetYear ->
-      failwith
-        "[Z3 encoding] GetYear operator only supported in comparisons with \
-         literal"
-    | FirstDayOfMonth ->
-      failwith
-        "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
-         with literal"
-    | LastDayOfMonth ->
-      failwith
-        "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
-         with literal"
-    | RoundDecimal ->
-      failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
-    | RoundMoney ->
-      failwith "[Z3 encoding] RoundMoney operator  not implemented yet")
+    (* e2 corresponds to the first day of the year n. GetYear e1 < e2 can thus
+       be directly translated as < in the Z3 encoding using the number of
+       days *)
+    ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
+  | ( Lte_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let ctx, e1 = translate_expr ctx e1 in
+    let nb_days = if is_leap_year n then 365 else 364 in
+    let n = Runtime.integer_to_int n in
+    (* We want that the year corresponding to e1 is smaller or equal to n. We
+       encode this as the day corresponding to e1 is smaller or equal than the
+       last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
+       year, Jan 1st + 364 else *)
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year n) + nb_days)
+    in
+    ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
+  | ( Gt_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let ctx, e1 = translate_expr ctx e1 in
+    let nb_days = if is_leap_year n then 365 else 364 in
+    let n = Runtime.integer_to_int n in
+    (* We want that the year corresponding to e1 is greater to n. We encode this
+       as the day corresponding to e1 is greater than the last day of the year
+       [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st + 364
+       else *)
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year n) + nb_days)
+    in
+    ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
+  | ( Gte_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
+    in
+    (* e2 corresponds to the first day of the year n. GetYear e1 >= e2 can thus
+       be directly translated as >= in the Z3 encoding using the number of
+       days *)
+    ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
+  | ( Eq,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let min_date =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
+    in
+    let max_date =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year (n + 1)))
+    in
+    ( ctx,
+      Boolean.mk_and ctx.ctx_z3
+        [
+          Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
+          Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
+        ] )
+  | And, _ -> app Boolean.mk_and
+  | Or, _ -> app Boolean.mk_or
+  | Xor, _ -> app2 Boolean.mk_xor
+  | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur), _ ->
+    app Arithmetic.mk_add
+  | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+      | Sub_dur_dur ),
+      _ ) ->
+    app Arithmetic.mk_sub
+  | (Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int), _ ->
+    app Arithmetic.mk_mul
+  | (Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon), _ ->
+    app2 Arithmetic.mk_div
+  | (Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur), _ ->
+    app2 Arithmetic.mk_lt
+  | (Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur), _ ->
+    app2 Arithmetic.mk_le
+  | (Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur), _ ->
+    app2 Arithmetic.mk_gt
+  | (Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur), _ ->
+    app2 Arithmetic.mk_ge
+  | Eq, _ -> app2 Boolean.mk_eq
+  | Map, _ ->
+    failwith "[Z3 encoding] application of binary operator Map not supported"
+  | Concat, _ ->
+    failwith "[Z3 encoding] application of binary operator Concat not supported"
+  | Filter, _ ->
+    failwith "[Z3 encoding] application of binary operator Filter not supported"
+  | Not, _ -> app1 Boolean.mk_not
+  (* Omitting the log from the VC *)
+  | Log _, [e1] -> translate_expr ctx e1
+  | Length, [e1] ->
+    (* For now, an array is only its symbolic length. We simply return it *)
+    translate_expr ctx e1
+  | IntToRat, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator IntToRat not supported"
+  | MoneyToRat, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator MoneyToRat not supported"
+  | RatToMoney, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator RatToMoney not supported"
+  | GetDay, _ ->
+    failwith "[Z3 encoding] application of unary operator GetDay not supported"
+  | GetMonth, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator GetMonth not supported"
+  | GetYear, _ ->
+    failwith
+      "[Z3 encoding] GetYear operator only supported in comparisons with \
+       literal"
+  | FirstDayOfMonth, _ ->
+    failwith
+      "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
+       with literal"
+  | LastDayOfMonth, _ ->
+    failwith
+      "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
+       with literal"
+  | RoundDecimal, _ ->
+    failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
+  | RoundMoney, _ ->
+    failwith "[Z3 encoding] RoundMoney operator  not implemented yet"
+  | _ -> ill_formed ()
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
@@ -780,7 +738,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
   | EApp { f = head; args } -> (
     match Marked.unmark head with
-    | EOp op -> translate_op ctx op args
+    | EOp { op; _ } -> translate_op ctx op args
     | EVar v ->
       let (Typed { ty = f_ty; _ }) = Marked.get_mark head in
       let ctx, fd = find_or_create_funcdecl ctx v f_ty in

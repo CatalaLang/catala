@@ -53,15 +53,15 @@ ou un plus grand nombre.
 champ d'application RéserveHéréditaire:
   définition quotité_réserve_héréditaire
   sous condition nombre de enfants_réserve_héréditaire = 1 conséquence
-  égal à 1,0 /. 2,0
+  égal à 1,0 / 2,0
 
   définition quotité_réserve_héréditaire
   sous condition nombre de enfants_réserve_héréditaire = 2 conséquence
-  égal à 1,0 /. 3,0
+  égal à 1,0 / 3,0
 
   définition quotité_réserve_héréditaire
   sous condition nombre de enfants_réserve_héréditaire >= 3 conséquence
-  égal à 1,0 /. 4,0
+  égal à 1,0 / 4,0
 ```
 
 L'enfant qui renonce à la succession n'est compris dans le nombre d'enfants
@@ -100,7 +100,7 @@ conjoint survivant, non divorcé.
 champ d'application RéserveHéréditaire:
   définition quotité_réserve_héréditaire
   sous condition nombre de enfants_réserve_héréditaire = 0 et conjoint_survivant_non_divorcé
-  conséquence égal à 1,0 -. (3,0 /. 4,0)
+  conséquence égal à 1,0 - (3,0 / 4,0)
 ```
 
 NOTA:
@@ -130,10 +130,10 @@ disponible.
 ```catala
 champ d'application RéserveHéréditaire:
   définition patrimoine_assiette_réserve_héréditaire égal à
-    patrimoine_total -€ (
+    patrimoine_total - (
       somme argent pour bien dans biens_usufruit_rente_viagère de
         (si bien.prise_en_compte_pour_réserve_héréditaire
         alors 0 € sinon bien.valeur))
   définition montant_réserve_héréditaire égal à
-    patrimoine_assiette_réserve_héréditaire *€ quotité_réserve_héréditaire
+    patrimoine_assiette_réserve_héréditaire * quotité_réserve_héréditaire
 ```

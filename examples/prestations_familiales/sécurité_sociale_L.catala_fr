@@ -65,9 +65,9 @@ dont la rémunération éventuelle n'excède pas un plafond.
 champ d'application ÉligibilitéPrestationsFamiliales :
   étiquette cas_base règle droit_ouvert de enfant sous condition
     enfant.obligation_scolaire sous forme Après et
-    (enfant.rémuneration_mensuelle <=€
+    (enfant.rémuneration_mensuelle <=
       plafond_l512_3_2) et
-    (enfant.date_de_naissance +@ âge_l512_3_2 >@
+    (enfant.date_de_naissance + âge_l512_3_2 >
       date_courante)
   conséquence rempli
 
@@ -77,7 +77,7 @@ champ d'application ÉligibilitéPrestationsFamiliales :
     enfant.obligation_scolaire sous forme Avant ou
     enfant.obligation_scolaire sous forme Pendant ou
     enfant.obligation_scolaire sous forme Après et
-    (enfant.rémuneration_mensuelle <=€
+    (enfant.rémuneration_mensuelle <=
       plafond_l512_3_2)
   conséquence rempli
 ```

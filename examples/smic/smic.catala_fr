@@ -26,7 +26,7 @@ son montant est porté à 10,03 € l'heure.
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et (
+    date_courante >= |2019-01-01| et date_courante <= |2019-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -44,7 +44,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et (
+    date_courante >= |2019-01-01| et date_courante <= |2019-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,57 €
@@ -65,7 +65,7 @@ son montant est porté à 10,15 € l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et (
+    date_courante >= |2020-01-01| et date_courante <= |2020-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -83,7 +83,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et (
+    date_courante >= |2020-01-01| et date_courante <= |2020-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,66 €
@@ -104,7 +104,7 @@ son montant est porté à 10,25 € l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31| et (
+    date_courante >= |2021-01-01| et date_courante <= |2021-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -122,7 +122,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31| et (
+    date_courante >= |2021-01-01| et date_courante <= |2021-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,74 €
@@ -143,7 +143,7 @@ porté à 10,57 euros l'heure.
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2022-01-01| et date_courante <=@ |2022-04-30| et (
+    date_courante >= |2022-01-01| et date_courante <= |2022-04-30| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -162,7 +162,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2022-01-01| et date_courante <=@ |2022-04-30| et (
+    date_courante >= |2022-01-01| et date_courante <= |2022-04-30| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,98 €
@@ -183,7 +183,7 @@ est porté à 10,85 € l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2022-05-01| et date_courante <=@ |2022-12-31| et (
+    date_courante >= |2022-05-01| et date_courante <= |2022-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -201,7 +201,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |2022-05-01| et date_courante <=@ |2022-12-31| et (
+    date_courante >= |2022-05-01| et date_courante <= |2022-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 8,19 €

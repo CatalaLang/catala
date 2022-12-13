@@ -27,11 +27,11 @@ let A =
     let e : unit → integer = A_in."e_in" in
     let f : unit → integer = A_in."f_in" in
     let a : integer = error_empty ⟨true ⊢ 0⟩ in
-    let b : integer = error_empty ⟨true ⊢ a + 1⟩ in
+    let b : integer = error_empty ⟨true ⊢ a +! 1⟩ in
     let e1 : integer = error_empty
-      ⟨e () | true ⊢ ⟨true ⊢ b + c + d + 1⟩⟩ in
+      ⟨e () | true ⊢ ⟨true ⊢ b +! c +! d +! 1⟩⟩ in
     let f1 : integer = error_empty
-      ⟨f () | true ⊢ ⟨true ⊢ e1 + 1⟩⟩ in
+      ⟨f () | true ⊢ ⟨true ⊢ e1 +! 1⟩⟩ in
     A { "b"= b; "d"= d; "f"= f1 }
 ```
 

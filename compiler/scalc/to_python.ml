@@ -24,11 +24,11 @@ module L = Lcalc.Ast
 
 let format_lit (fmt : Format.formatter) (l : L.lit Marked.pos) : unit =
   match Marked.unmark l with
-  | LBool true -> Format.fprintf fmt "True"
-  | LBool false -> Format.fprintf fmt "False"
+  | LBool true -> Format.pp_print_string fmt "True"
+  | LBool false -> Format.pp_print_string fmt "False"
   | LInt i ->
     Format.fprintf fmt "integer_of_string(\"%s\")" (Runtime.integer_to_string i)
-  | LUnit -> Format.fprintf fmt "Unit()"
+  | LUnit -> Format.pp_print_string fmt "Unit()"
   | LRat i -> Format.fprintf fmt "decimal_of_string(\"%a\")" Print.lit (LRat i)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string(\"%s\")"
@@ -44,31 +44,59 @@ let format_lit (fmt : Format.formatter) (l : L.lit Marked.pos) : unit =
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   match entry with
-  | VarDef _ -> Format.fprintf fmt ":="
-  | BeginCall -> Format.fprintf fmt "→ "
+  | VarDef _ -> Format.pp_print_string fmt ":="
+  | BeginCall -> Format.pp_print_string fmt "→ "
   | EndCall -> Format.fprintf fmt "%s" "← "
-  | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
+  | PosRecordIfTrueBool -> Format.pp_print_string fmt "☛ "
 
-let format_binop (fmt : Format.formatter) (op : lcalc binop Marked.pos) : unit =
+let format_op
+    (type k)
+    (fmt : Format.formatter)
+    (op : (lcalc, k) operator Marked.pos) : unit =
   match Marked.unmark op with
-  | Add _ | Concat -> Format.fprintf fmt "+"
-  | Sub _ -> Format.fprintf fmt "-"
-  | Mult _ -> Format.fprintf fmt "*"
-  | Div KInt -> Format.fprintf fmt "//"
-  | Div _ -> Format.fprintf fmt "/"
-  | And -> Format.fprintf fmt "and"
-  | Or -> Format.fprintf fmt "or"
-  | Eq -> Format.fprintf fmt "=="
-  | Neq | Xor -> Format.fprintf fmt "!="
-  | Lt _ -> Format.fprintf fmt "<"
-  | Lte _ -> Format.fprintf fmt "<="
-  | Gt _ -> Format.fprintf fmt ">"
-  | Gte _ -> Format.fprintf fmt ">="
-  | Map -> Format.fprintf fmt "list_map"
-  | Filter -> Format.fprintf fmt "list_filter"
-
-let format_ternop (fmt : Format.formatter) (op : ternop Marked.pos) : unit =
-  match Marked.unmark op with Fold -> Format.fprintf fmt "list_fold_left"
+  | Log (entry, infos) -> assert false
+  | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
+    Format.pp_print_string fmt "-"
+  (* Todo: use the names from [Operator.name] *)
+  | Not -> Format.pp_print_string fmt "not"
+  | Length -> Format.pp_print_string fmt "list_length"
+  | IntToRat -> Format.pp_print_string fmt "decimal_of_integer"
+  | MoneyToRat -> Format.pp_print_string fmt "decimal_of_money"
+  | RatToMoney -> Format.pp_print_string fmt "money_of_decimal"
+  | GetDay -> Format.pp_print_string fmt "day_of_month_of_date"
+  | GetMonth -> Format.pp_print_string fmt "month_number_of_date"
+  | GetYear -> Format.pp_print_string fmt "year_of_date"
+  | FirstDayOfMonth -> Format.pp_print_string fmt "first_day_of_month"
+  | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
+  | RoundMoney -> Format.pp_print_string fmt "money_round"
+  | RoundDecimal -> Format.pp_print_string fmt "decimal_round"
+  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur | Concat
+    ->
+    Format.pp_print_string fmt "+"
+  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | Sub_dur_dur ->
+    Format.pp_print_string fmt "-"
+  | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
+    Format.pp_print_string fmt "*"
+  | Div_int_int -> Format.pp_print_string fmt "//"
+  | Div_rat_rat | Div_mon_mon | Div_mon_rat -> Format.pp_print_string fmt "/"
+  | And -> Format.pp_print_string fmt "and"
+  | Or -> Format.pp_print_string fmt "or"
+  | Eq -> Format.pp_print_string fmt "=="
+  | Xor -> Format.pp_print_string fmt "!="
+  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
+    Format.pp_print_string fmt "<"
+  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur ->
+    Format.pp_print_string fmt "<="
+  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
+    Format.pp_print_string fmt ">"
+  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
+    Format.pp_print_string fmt ">="
+  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
+    Format.pp_print_string fmt "=="
+  | Map -> Format.pp_print_string fmt "list_map"
+  | Filter -> Format.pp_print_string fmt "list_filter"
+  | Fold -> Format.pp_print_string fmt "list_fold_left"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     : unit =
@@ -88,23 +116,6 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
          Format.fprintf fmt "\"%s\""
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
-
-let format_unop (fmt : Format.formatter) (op : lcalc unop Marked.pos) : unit =
-  match Marked.unmark op with
-  | Minus _ -> Format.fprintf fmt "-"
-  | Not -> Format.fprintf fmt "not"
-  | Log (entry, infos) -> assert false (* should not happen *)
-  | Length -> Format.fprintf fmt "%s" "list_length"
-  | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
-  | MoneyToRat -> Format.fprintf fmt "%s" "decimal_of_money"
-  | RatToMoney -> Format.fprintf fmt "%s" "money_of_decimal"
-  | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
-  | GetMonth -> Format.fprintf fmt "%s" "month_number_of_date"
-  | GetYear -> Format.fprintf fmt "%s" "year_of_date"
-  | FirstDayOfMonth -> Format.fprintf fmt "%s" "first_day_of_month"
-  | LastDayOfMonth -> Format.fprintf fmt "%s" "last_day_of_month"
-  | RoundMoney -> Format.fprintf fmt "%s" "money_round"
-  | RoundDecimal -> Format.fprintf fmt "%s" "decimal_round"
 
 let avoid_keywords (s : string) : string =
   if
@@ -298,21 +309,20 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
-  | EApp ((EOp (Binop ((Map | Filter) as op)), _), [arg1; arg2]) ->
-    Format.fprintf fmt "%a(%a,@ %a)" format_binop (op, Pos.no_pos)
+  | EApp ((EOp ((Map | Filter) as op), _), [arg1; arg2]) ->
+    Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
-  | EApp ((EOp (Binop op), _), [arg1; arg2]) ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_binop
+  | EApp ((EOp op, _), [arg1; arg2]) ->
+    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
       (op, Pos.no_pos) (format_expression ctx) arg2
-  | EApp ((EApp ((EOp (Unop (Log (BeginCall, info))), _), [f]), _), [arg])
+  | EApp ((EApp ((EOp (Log (BeginCall, info)), _), [f]), _), [arg])
     when !Cli.trace_flag ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
-  | EApp ((EOp (Unop (Log (VarDef tau, info))), _), [arg1]) when !Cli.trace_flag
-    ->
+  | EApp ((EOp (Log (VarDef tau, info)), _), [arg1]) when !Cli.trace_flag ->
     Format.fprintf fmt "log_variable_definition(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
-  | EApp ((EOp (Unop (Log (PosRecordIfTrueBool, _))), pos), [arg1])
+  | EApp ((EOp (Log (PosRecordIfTrueBool, _)), pos), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt
       "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
@@ -320,16 +330,21 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EApp ((EOp (Unop (Log (EndCall, info))), _), [arg1]) when !Cli.trace_flag ->
+  | EApp ((EOp (Log (EndCall, info)), _), [arg1]) when !Cli.trace_flag ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
-  | EApp ((EOp (Unop (Log _)), _), [arg1]) ->
+  | EApp ((EOp (Log _), _), [arg1]) ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
-  | EApp ((EOp (Unop ((Minus _ | Not) as op)), _), [arg1]) ->
-    Format.fprintf fmt "%a %a" format_unop (op, Pos.no_pos)
+  | EApp ((EOp Not, _), [arg1]) ->
+    Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp ((EOp (Unop op), _), [arg1]) ->
-    Format.fprintf fmt "%a(%a)" format_unop (op, Pos.no_pos)
+  | EApp
+      ((EOp ((Minus_int | Minus_rat | Minus_mon | Minus_dur) as op), _), [arg1])
+    ->
+    Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
+      (format_expression ctx) arg1
+  | EApp ((EOp op, _), [arg1]) ->
+    Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
   | EApp ((EFunc x, pos), args)
     when Ast.TopLevelName.compare x Ast.handle_default = 0
@@ -350,9 +365,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
-  | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
-  | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
+  | EOp op -> Format.fprintf fmt "%a" format_op (op, Pos.no_pos)
 
 let rec format_statement
     (ctx : decl_ctx)
