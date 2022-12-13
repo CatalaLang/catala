@@ -289,16 +289,16 @@ module Oper : sig
   (* The types **must** match with Shared_ast.Operator.*_type *)
   val o_not : bool -> bool
   val o_length : 'a array -> integer
-  val o_intToRat : integer -> decimal
-  val o_moneyToRat : money -> decimal
-  val o_ratToMoney : decimal -> money
+  val o_torat_int : integer -> decimal
+  val o_torat_mon : money -> decimal
+  val o_tomoney_rat : decimal -> money
   val o_getDay : date -> integer
   val o_getMonth : date -> integer
   val o_getYear : date -> integer
   val o_firstDayOfMonth : date -> date
   val o_lastDayOfMonth : date -> date
-  val o_roundMoney : money -> money
-  val o_roundDecimal : decimal -> decimal
+  val o_round_mon : money -> money
+  val o_round_rat : decimal -> decimal
   val o_minus_int : integer -> integer
   val o_minus_rat : decimal -> decimal
   val o_minus_mon : money -> money

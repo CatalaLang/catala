@@ -82,6 +82,8 @@ small_expression:
 | CARDINAL {
   (Builtin Cardinal, Pos.from_lpos $sloc)
 }
+| DECIMAL { Builtin ToDecimal, Pos.from_lpos $sloc }
+| MONEY { Builtin ToMoney, Pos.from_lpos $sloc }
 | LSQUARE l = separated_list(SEMICOLON, expression) RSQUARE {
   (ArrayLit l, Pos.from_lpos $sloc)
 }
@@ -212,7 +214,7 @@ mult_op:
 
 mult_expression:
 | e =  unop_expression { e }
-| e1 = mult_expression binop = mult_op e2  = unop_expression {
+| e1 = mult_expression binop = mult_op e2 = unop_expression {
   (Binop (binop, e1, e2), Pos.from_lpos $sloc)
 }
 

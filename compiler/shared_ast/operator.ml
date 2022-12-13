@@ -21,22 +21,25 @@ include Definitions.Op
 let name : type a k. (a, k) t -> string = function
   | Not -> "o_not"
   | Length -> "o_length"
-  | IntToRat -> "o_intToRat"
-  | MoneyToRat -> "o_moneyToRat"
-  | RatToMoney -> "o_ratToMoney"
   | GetDay -> "o_getDay"
   | GetMonth -> "o_getMonth"
   | GetYear -> "o_getYear"
   | FirstDayOfMonth -> "o_firstDayOfMonth"
   | LastDayOfMonth -> "o_lastDayOfMonth"
-  | RoundMoney -> "o_roundMoney"
-  | RoundDecimal -> "o_roundDecimal"
   | Log _ -> "o_log"
   | Minus -> "o_minus"
   | Minus_int -> "o_minus_int"
   | Minus_rat -> "o_minus_rat"
   | Minus_mon -> "o_minus_mon"
   | Minus_dur -> "o_minus_dur"
+  | ToRat -> "o_torat"
+  | ToRat_int -> "o_torat_int"
+  | ToRat_mon -> "o_torat_mon"
+  | ToMoney -> "o_tomoney"
+  | ToMoney_rat -> "o_tomoney_rat"
+  | Round -> "o_round"
+  | Round_rat -> "o_round_rat"
+  | Round_mon -> "o_round_mon"
   | And -> "o_and"
   | Or -> "o_or"
   | Xor -> "o_xor"
@@ -123,21 +126,24 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
     | n -> n)
   | Not, Not
   | Length, Length
-  | IntToRat, IntToRat
-  | MoneyToRat, MoneyToRat
-  | RatToMoney, RatToMoney
   | GetDay, GetDay
   | GetMonth, GetMonth
   | GetYear, GetYear
   | FirstDayOfMonth, FirstDayOfMonth
   | LastDayOfMonth, LastDayOfMonth
-  | RoundMoney, RoundMoney
-  | RoundDecimal, RoundDecimal
   | Minus, Minus
   | Minus_int, Minus_int
   | Minus_rat, Minus_rat
   | Minus_mon, Minus_mon
   | Minus_dur, Minus_dur
+  | ToRat, ToRat
+  | ToRat_int, ToRat_int
+  | ToRat_mon, ToRat_mon
+  | ToMoney, ToMoney
+  | ToMoney_rat, ToMoney_rat
+  | Round, Round
+  | Round_rat, Round_rat
+  | Round_mon, Round_mon
   | And, And
   | Or, Or
   | Xor, Xor
@@ -201,22 +207,25 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Fold, Fold -> 0
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
-  | IntToRat, _ -> -1 | _, IntToRat -> 1
-  | MoneyToRat, _ -> -1 | _, MoneyToRat -> 1
-  | RatToMoney, _ -> -1 | _, RatToMoney -> 1
   | GetDay, _ -> -1 | _, GetDay -> 1
   | GetMonth, _ -> -1 | _, GetMonth -> 1
   | GetYear, _ -> -1 | _, GetYear -> 1
   | FirstDayOfMonth, _ -> -1 | _, FirstDayOfMonth -> 1
   | LastDayOfMonth, _ -> -1 | _, LastDayOfMonth -> 1
-  | RoundMoney, _ -> -1 | _, RoundMoney -> 1
-  | RoundDecimal, _ -> -1 | _, RoundDecimal -> 1
   | Log _, _ -> -1 | _, Log _ -> 1
   | Minus, _ -> -1 | _, Minus -> 1
   | Minus_int, _ -> -1 | _, Minus_int -> 1
   | Minus_rat, _ -> -1 | _, Minus_rat -> 1
   | Minus_mon, _ -> -1 | _, Minus_mon -> 1
   | Minus_dur, _ -> -1 | _, Minus_dur -> 1
+  | ToRat, _ -> -1 | _, ToRat -> 1
+  | ToRat_int, _ -> -1 | _, ToRat_int -> 1
+  | ToRat_mon, _ -> -1 | _, ToRat_mon -> 1
+  | ToMoney, _ -> -1 | _, ToMoney -> 1
+  | ToMoney_rat, _ -> -1 | _, ToMoney_rat -> 1
+  | Round, _ -> -1 | _, Round -> 1
+  | Round_rat, _ -> -1 | _, Round_rat -> 1
+  | Round_mon, _ -> -1 | _, Round_mon -> 1
   | And, _ -> -1 | _, And -> 1
   | Or, _ -> -1 | _, Or -> 1
   | Xor, _ -> -1 | _, Xor -> 1
@@ -294,15 +303,16 @@ let kind_dispatch :
  fun ~polymorphic ~monomorphic ?(overloaded = fun _ -> assert false)
      ?(resolved = fun _ -> assert false) op ->
   match op with
-  | ( Not | IntToRat | MoneyToRat | RatToMoney | GetDay | GetMonth | GetYear
-    | FirstDayOfMonth | LastDayOfMonth | RoundMoney | RoundDecimal | And | Or
-    | Xor ) as op ->
+  | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
+    | Or | Xor ) as op ->
     monomorphic op
   | (Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold) as op ->
     polymorphic op
-  | (Minus | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte) as op ->
+  | ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
+    | Gte ) as op ->
     overloaded op
-  | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | Add_int_int | Add_rat_rat
+  | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
+    | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
     | Add_mon_mon | Add_dat_dur | Add_dur_dur | Sub_int_int | Sub_rat_rat
     | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
     | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
@@ -331,16 +341,11 @@ let translate :
   | Reduce -> Reduce
   | Fold -> Fold
   | Not -> Not
-  | IntToRat -> IntToRat
-  | MoneyToRat -> MoneyToRat
-  | RatToMoney -> RatToMoney
   | GetDay -> GetDay
   | GetMonth -> GetMonth
   | GetYear -> GetYear
   | FirstDayOfMonth -> FirstDayOfMonth
   | LastDayOfMonth -> LastDayOfMonth
-  | RoundMoney -> RoundMoney
-  | RoundDecimal -> RoundDecimal
   | And -> And
   | Or -> Or
   | Xor -> Xor
@@ -348,6 +353,11 @@ let translate :
   | Minus_rat -> Minus_rat
   | Minus_mon -> Minus_mon
   | Minus_dur -> Minus_dur
+  | ToRat_int -> ToRat_int
+  | ToRat_mon -> ToRat_mon
+  | ToMoney_rat -> ToMoney_rat
+  | Round_rat -> Round_rat
+  | Round_mon -> Round_mon
   | Add_int_int -> Add_int_int
   | Add_rat_rat -> Add_rat_rat
   | Add_mon_mon -> Add_mon_mon
@@ -398,16 +408,11 @@ let monomorphic_type (op, pos) =
   let ( @-> ) a b = TArrow ((TLit a, pos), (TLit b, pos)), pos in
   match op with
   | Not -> TBool @-> TBool
-  | IntToRat -> TInt @-> TRat
-  | MoneyToRat -> TMoney @-> TRat
-  | RatToMoney -> TRat @-> TMoney
   | GetDay -> TDate @-> TInt
   | GetMonth -> TDate @-> TInt
   | GetYear -> TDate @-> TInt
   | FirstDayOfMonth -> TDate @-> TDate
   | LastDayOfMonth -> TDate @-> TDate
-  | RoundMoney -> TMoney @-> TMoney
-  | RoundDecimal -> TRat @-> TRat
   | And -> TBool @- TBool @-> TBool
   | Or -> TBool @- TBool @-> TBool
   | Xor -> TBool @- TBool @-> TBool
@@ -420,6 +425,11 @@ let resolved_type (op, pos) =
   | Minus_rat -> TRat @-> TRat
   | Minus_mon -> TMoney @-> TMoney
   | Minus_dur -> TDuration @-> TDuration
+  | ToRat_int -> TInt @-> TRat
+  | ToRat_mon -> TMoney @-> TRat
+  | ToMoney_rat -> TRat @-> TMoney
+  | Round_rat -> TRat @-> TRat
+  | Round_mon -> TMoney @-> TMoney
   | Add_int_int -> TInt @- TInt @-> TInt
   | Add_rat_rat -> TRat @- TRat @-> TRat
   | Add_mon_mon -> TMoney @- TMoney @-> TMoney
@@ -472,6 +482,11 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
   | Minus, [TRat] -> Minus_rat, `Straight
   | Minus, [TMoney] -> Minus_mon, `Straight
   | Minus, [TDuration] -> Minus_dur, `Straight
+  | ToRat, [TInt] -> ToRat_int, `Straight
+  | ToRat, [TMoney] -> ToRat_mon, `Straight
+  | ToMoney, [TRat] -> ToMoney_rat, `Straight
+  | Round, [TRat] -> Round_rat, `Straight
+  | Round, [TMoney] -> Round_mon, `Straight
   | Add, [TInt; TInt] -> Add_int_int, `Straight
   | Add, [TRat; TRat] -> Add_rat_rat, `Straight
   | Add, [TMoney; TMoney] -> Add_mon_mon, `Straight
@@ -514,7 +529,10 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
   | Gte, [TMoney; TMoney] -> Gte_mon_mon, `Straight
   | Gte, [TDuration; TDuration] -> Gte_dur_dur, `Straight
   | Gte, [TDate; TDate] -> Gte_dat_dat, `Straight
-  | (Minus | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte), _ -> raise Not_found
+  | ( ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
+      | Gte ),
+      _ ) ->
+    raise Not_found
 
 let resolve_overload
     ctx

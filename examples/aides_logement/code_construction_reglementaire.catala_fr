@@ -1875,7 +1875,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
       contributions_sociales.montant de aide_finale
     dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€
@@ -1962,7 +1962,7 @@ champ d'application CalculAidePersonnaliséeLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi_argent de ((ressources_ménage * 1%) + 0,49€) * 100,0
+    arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
@@ -3149,7 +3149,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     soit crds égal à contributions_sociales.montant de aide_finale dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€
@@ -3195,8 +3195,8 @@ Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition coefficient_prise_en_charge_d832_10 état arrondi égal à
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 - 0,005)
+  définition coefficient_prise_en_charge_d832_10 état coeff_arrondi égal à
+    (arrondi de ((coefficient_prise_en_charge_d832_10 - 0,005)
       * 100,0)) / 100,0
   définition coefficient_prise_en_charge_d832_10 état seuil égal à
     si coefficient_prise_en_charge_d832_10 >= 0,95 alors 0,95 sinon
@@ -3259,7 +3259,7 @@ champ d'application CalculNombrePartsAccessionPropriété:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 + (0,5 * (entier_vers_décimal de
+      ( 4,3 + (0,5 * (décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
 
@@ -3431,12 +3431,12 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     # décimal plutôt que argent qui arrondi systématiquement au centime près
     # à chaque étape de calcul.
     soit ressources_ménage_arrondies égal à
-      argent_vers_décimal de ressources_ménage_arrondies
+      décimal de ressources_ménage_arrondies
     dans
     soit montant_limite_tranches_d832_15_1 égal à
-      argent_vers_décimal de montant_limite_tranches_d832_15_1
+      décimal de montant_limite_tranches_d832_15_1
     dans
-    décimal_vers_argent de (
+    argent de (
       ((si
         # Pour la tranche supérieure
         ressources_ménage_arrondies >=
@@ -3804,7 +3804,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
       contributions_sociales.montant de aide_finale
     dans
     soit aide_finale_moins_crds_arrondie égal à
-       arrondi_argent de ((aide_finale - crds) - 0,50€)
+       arrondi de ((aide_finale - crds) - 0,50€)
     dans si
       aide_finale_moins_crds_arrondie + crds >= 0€
     alors
@@ -3871,8 +3871,8 @@ calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition coefficient_prise_en_charge_d832_25 état arrondi égal à
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 - 0,005)
+  définition coefficient_prise_en_charge_d832_25 état coeff_arrondi égal à
+    (arrondi de ((coefficient_prise_en_charge_d832_25 - 0,005)
       * 100,0)) / 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil égal à
     si coefficient_prise_en_charge_d832_25 >= 0,95 alors 0,95 sinon
@@ -3915,7 +3915,7 @@ champ d'application CalculNombrePartLogementFoyer:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 + (0,5 * (entier_vers_décimal de
+      ( 4,3 + (0,5 * (décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
 
@@ -3953,11 +3953,11 @@ lorsque le calcul le porte à une valeur supérieure à 0,90, il est considéré
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  exception définition coefficient_prise_en_charge_d832_25 état arrondi
+  exception définition coefficient_prise_en_charge_d832_25 état coeff_arrondi
   sous condition
     condition_2_du_832_25
   conséquence égal à
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 - 0,005)
+    (arrondi de ((coefficient_prise_en_charge_d832_25 - 0,005)
       * 100,0)) / 100,0
   exception définition coefficient_prise_en_charge_d832_25 état seuil
   sous condition
@@ -4003,7 +4003,7 @@ champ d'application CalculNombrePartLogementFoyer:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 + (0,5 * (entier_vers_décimal de
+      ( 4,3 + (0,5 * (décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
 ```
@@ -4029,8 +4029,8 @@ champ d'application CalculÉquivalenceLoyerMinimale:
           -- LimiteTranche.Infini: LimiteTrancheDécimal.Infini
           -- LimiteTranche.Revenu de tranche_haut:
             LimiteTrancheDécimal.Revenu contenu
-              ((argent_vers_décimal de tranche_haut) * n_nombre_parts_d832_25))
-        -- bas: argent_vers_décimal de tranche.bas *
+              ((décimal de tranche_haut) * n_nombre_parts_d832_25))
+        -- bas: décimal de tranche.bas *
           n_nombre_parts_d832_25
         -- taux: tranche.taux
       }
@@ -4038,9 +4038,9 @@ champ d'application CalculÉquivalenceLoyerMinimale:
 
   définition montant égal à
     soit ressources_ménage_arrondies égal à
-      argent_vers_décimal de ressources_ménage_arrondies
+      décimal de ressources_ménage_arrondies
     dans
-    décimal_vers_argent de (
+    argent de (
       ((somme décimal de
           ((si ressources_ménage_arrondies <= tranche.bas alors 0,0
             sinon
@@ -4060,7 +4060,7 @@ champ d'application CalculÉquivalenceLoyerMinimale:
                 tranche.taux))
             pour tranche dans tranches_revenus_d832_26_multipliées)
        +
-       argent_vers_décimal de montant_forfaitaire_d832_26
+       décimal de montant_forfaitaire_d832_26
        * n_nombre_parts_d832_25)
       / 12,0)
 ```
@@ -4077,9 +4077,9 @@ champ d'application CalculÉquivalenceLoyerMinimale:
     condition_2_du_832_25
   conséquence égal à
     soit ressources_ménage_arrondies égal à
-      argent_vers_décimal de ressources_ménage_arrondies
+      décimal de ressources_ménage_arrondies
     dans
-    décimal_vers_argent de (
+    argent de (
       ((somme décimal de
         ((si ressources_ménage_arrondies <= tranche.bas alors 0,0
           sinon
@@ -4099,7 +4099,7 @@ champ d'application CalculÉquivalenceLoyerMinimale:
                tranche.taux))
          pour tranche dans tranches_revenus_d832_26_multipliées))
        +
-       argent_vers_décimal de montant_forfaitaire_d832_26)
+       décimal de montant_forfaitaire_d832_26)
       / 12,0)
 ```
 
@@ -4475,7 +4475,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     soit crds égal à contributions_sociales.montant de aide_finale dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€
@@ -4714,7 +4714,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     si ressources_ménage_arrondies <= seuil_minimal_ressources_ménage alors
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-      (arrondi_argent de ((seuil_minimal_ressources_ménage + 49,99€) * 1%)) *
+      (arrondi de ((seuil_minimal_ressources_ménage + 49,99€) * 1%)) *
         100,0
     sinon
       ressources_ménage_arrondies
@@ -4799,7 +4799,7 @@ champ d'application CalculAllocationLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi_argent de ((ressources_ménage * 1%) + 0,49€) * 100,0
+    arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
 ```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions
@@ -4888,7 +4888,7 @@ champ d'application CalculAllocationLogementFoyer:
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     soit crds égal à contributions_sociales.montant de aide_finale dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€

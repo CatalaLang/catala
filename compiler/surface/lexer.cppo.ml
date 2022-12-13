@@ -221,20 +221,8 @@ module R = Re.Pcre
 #ifndef MR_FALSE
   #define MR_FALSE MS_FALSE
 #endif
-#ifndef MR_IntToDec
-  #define MR_IntToDec MS_IntToDec
-#endif
-#ifndef MR_MoneyToDec
-  #define MR_MoneyToDec MS_MoneyToDec
-#endif
-#ifndef MR_DecToMoney
-  #define MR_DecToMoney MS_DecToMoney
-#endif
-#ifndef MR_RoundMoney
-  #define MR_RoundMoney MS_RoundMoney
-#endif
-#ifndef MR_RoundDecimal
-  #define MR_RoundDecimal MS_RoundDecimal
+#ifndef MR_Round
+  #define MR_Round MS_Round
 #endif
 #ifndef MR_GetDay
   #define MR_GetDay MS_GetDay
@@ -340,16 +328,12 @@ let token_list : (string * token) list =
 let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
-  | MR_IntToDec, eof -> Some IntToDec
-  | MR_DecToMoney, eof -> Some DecToMoney
-  | MR_MoneyToDec, eof -> Some MoneyToDec
+  | MR_Round, eof -> Some Round
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear
   | MR_FirstDayOfMonth -> Some FirstDayOfMonth
   | MR_LastDayOfMonth -> Some LastDayOfMonth
-  | MR_RoundMoney, eof -> Some RoundMoney
-  | MR_RoundDecimal, eof -> Some RoundDecimal
   | _ -> None
 
 (** Regexp matching any digit character.

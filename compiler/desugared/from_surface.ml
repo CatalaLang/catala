@@ -687,17 +687,15 @@ let rec translate_expr
     Expr.eapp
       (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
       [f; init; collection] emark
-  | Builtin IntToDec -> Expr.eop IntToRat [TLit TInt, pos] emark
-  | Builtin MoneyToDec -> Expr.eop MoneyToRat [TLit TMoney, pos] emark
-  | Builtin DecToMoney -> Expr.eop RatToMoney [TLit TRat, pos] emark
+  | Builtin ToDecimal -> Expr.eop ToRat [TAny, pos] emark
+  | Builtin ToMoney -> Expr.eop ToMoney [TAny, pos] emark
+  | Builtin Round -> Expr.eop Round [TAny, pos] emark
   | Builtin Cardinal -> Expr.eop Length [TArray (TAny, pos), pos] emark
   | Builtin GetDay -> Expr.eop GetDay [TLit TDate, pos] emark
   | Builtin GetMonth -> Expr.eop GetMonth [TLit TDate, pos] emark
   | Builtin GetYear -> Expr.eop GetYear [TLit TDate, pos] emark
   | Builtin FirstDayOfMonth -> Expr.eop FirstDayOfMonth [TLit TDate, pos] emark
   | Builtin LastDayOfMonth -> Expr.eop LastDayOfMonth [TLit TDate, pos] emark
-  | Builtin RoundMoney -> Expr.eop RoundMoney [TLit TMoney, pos] emark
-  | Builtin RoundDecimal -> Expr.eop RoundDecimal [TLit TRat, pos] emark
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)

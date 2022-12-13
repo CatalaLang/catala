@@ -158,7 +158,7 @@ enfants à charge.
 ```catala
 champ d'application AllocationsFamiliales :
   définition nombre_total_enfants égal à
-    entier_vers_décimal de (nombre de
+    décimal de (nombre de
       enfants_à_charge_droit_ouvert_prestation_familiale)
 ```
 

@@ -570,15 +570,15 @@ let rec translate_op :
   | Length, [e1] ->
     (* For now, an array is only its symbolic length. We simply return it *)
     translate_expr ctx e1
-  | IntToRat, _ ->
+  | ToRat_int, _ ->
     failwith
-      "[Z3 encoding] application of unary operator IntToRat not supported"
-  | MoneyToRat, _ ->
+      "[Z3 encoding] application of unary operator ToRat_int not supported"
+  | ToRat_mon, _ ->
     failwith
-      "[Z3 encoding] application of unary operator MoneyToRat not supported"
-  | RatToMoney, _ ->
+      "[Z3 encoding] application of unary operator ToRat_mon not supported"
+  | ToMoney_rat, _ ->
     failwith
-      "[Z3 encoding] application of unary operator RatToMoney not supported"
+      "[Z3 encoding] application of unary operator ToMoney_rat not supported"
   | GetDay, _ ->
     failwith "[Z3 encoding] application of unary operator GetDay not supported"
   | GetMonth, _ ->
@@ -596,10 +596,10 @@ let rec translate_op :
     failwith
       "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
        with literal"
-  | RoundDecimal, _ ->
-    failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
-  | RoundMoney, _ ->
-    failwith "[Z3 encoding] RoundMoney operator  not implemented yet"
+  | Round_rat, _ ->
+    failwith "[Z3 encoding] Round_rat operator  not implemented yet"
+  | Round_mon, _ ->
+    failwith "[Z3 encoding] Round_mon operator  not implemented yet"
   | _ -> ill_formed ()
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3

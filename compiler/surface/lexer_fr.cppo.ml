@@ -125,15 +125,7 @@
 
 (* Builtins *)
 
-#define MS_RoundMoney "arrondi_argent"
-#define MS_RoundDecimal "arrondi_décimal"
-#define MR_RoundDecimal "arrondi_d", 0xE9, "cimal"
-#define MS_IntToDec "entier_vers_décimal"
-#define MR_IntToDec "entier_vers_d", 0xE9, "cimal"
-#define MS_MoneyToDec "argent_vers_décimal"
-#define MR_MoneyToDec "argent_vers_d", 0xE9, "cimal"
-#define MS_DecToMoney "décimal_vers_argent"
-#define MR_DecToMoney "d", 0xE9, "cimal_vers_argent"
+#define MS_Round "arrondi"
 #define MS_GetDay "accès_jour"
 #define MR_GetDay "acc", 0xE8, "s_jour"
 #define MS_GetMonth "accès_mois"

@@ -514,22 +514,22 @@ def allocation_familiales_avril2008(allocation_familiales_avril2008_in:Allocatio
 def enfant_le_plus_age(enfant_le_plus_age_in:EnfantLePlusAgeIn):
     enfants = enfant_le_plus_age_in.enfants_in
     try:
-        def temp_le_plus_age(acc:Enfant, item:Enfant):
-            if (acc.date_de_naissance < item.date_de_naissance):
-                return acc
+        def temp_le_plus_age(x1:Enfant, x2:Enfant):
+            if (x1.date_de_naissance < x2.date_de_naissance):
+                return x1
             else:
-                return item
-        temp_le_plus_age_1 = list_fold_left(temp_le_plus_age,
-                                            Enfant(identifiant = integer_of_string("-1"),
-                                            obligation_scolaire = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
-                                            Unit()),
-                                            remuneration_mensuelle = money_of_cents_string("0"),
-                                            date_de_naissance = date_of_numbers(2999,12,31),
-                                            prise_en_charge = PriseEnCharge(PriseEnCharge_Code.EffectiveEtPermanente,
-                                            Unit()),
-                                            a_deja_ouvert_droit_aux_allocations_familiales = False,
-                                            beneficie_titre_personnel_aide_personnelle_logement = False),
-                                            enfants)
+                return x2
+        temp_le_plus_age_1 = list_reduce(temp_le_plus_age,
+                                         Enfant(identifiant = integer_of_string("-1"),
+                                         obligation_scolaire = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
+                                         Unit()),
+                                         remuneration_mensuelle = money_of_cents_string("0"),
+                                         date_de_naissance = date_of_numbers(2999,12,31),
+                                         prise_en_charge = PriseEnCharge(PriseEnCharge_Code.EffectiveEtPermanente,
+                                         Unit()),
+                                         a_deja_ouvert_droit_aux_allocations_familiales = False,
+                                         beneficie_titre_personnel_aide_personnelle_logement = False),
+                                         enfants)
     except EmptyError:
         temp_le_plus_age_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
@@ -1846,21 +1846,23 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     nombre_total_enfants = temp_nombre_total_enfants
     try:
-        def temp_nombre_moyen_enfants(acc_1:Decimal, enfant_1:Enfant):
+        def temp_nombre_moyen_enfants(enfant_1:Enfant):
             match_arg_16 = prise_en_compte(enfant_1)
             if match_arg_16.code == PriseEnCompte_Code.Complete:
                 _ = match_arg_16.value
-                temp_nombre_moyen_enfants_1 = decimal_of_string("1.")
+                return decimal_of_string("1.")
             elif match_arg_16.code == PriseEnCompte_Code.Partagee:
                 _ = match_arg_16.value
-                temp_nombre_moyen_enfants_1 = decimal_of_string("0.5")
+                return decimal_of_string("0.5")
             elif match_arg_16.code == PriseEnCompte_Code.Zero:
                 _ = match_arg_16.value
-                temp_nombre_moyen_enfants_1 = decimal_of_string("0.")
-            return (acc_1 + temp_nombre_moyen_enfants_1)
-        temp_nombre_moyen_enfants_2 = list_fold_left(temp_nombre_moyen_enfants,
-                                                     decimal_of_string("0."),
-                                                     enfants_a_charge_droit_ouvert_prestation_familiale)
+                return decimal_of_string("0.")
+        def temp_nombre_moyen_enfants_1(x1_1:Decimal, x2_1:Decimal):
+            return (x1_1 + x2_1)
+        temp_nombre_moyen_enfants_2 = list_reduce(temp_nombre_moyen_enfants_1,
+                                                  decimal_of_string("0."),
+                                                  list_map(temp_nombre_moyen_enfants,
+                                                  enfants_a_charge_droit_ouvert_prestation_familiale))
     except EmptyError:
         temp_nombre_moyen_enfants_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
@@ -2637,15 +2639,11 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     montant_initial_metropole_majoration = temp_montant_initial_metropole_majoration
     try:
-        def temp_montant_verse_forfaitaire(acc_2:Integer, enfant_2:Enfant):
-            if droit_ouvert_forfaitaire(enfant_2):
-                return (acc_2 + integer_of_string("1"))
-            else:
-                return acc_2
+        def temp_montant_verse_forfaitaire(enfant_2:Enfant):
+            return droit_ouvert_forfaitaire(enfant_2)
         temp_montant_verse_forfaitaire_1 = (montant_verse_forfaitaire_par_enfant *
-            decimal_of_integer(list_fold_left(temp_montant_verse_forfaitaire,
-                                              integer_of_string("0"),
-                                              enfants_a_charge)))
+            decimal_of_integer(list_length(list_filter(temp_montant_verse_forfaitaire,
+            enfants_a_charge))))
     except EmptyError:
         temp_montant_verse_forfaitaire_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
@@ -2872,23 +2870,25 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     montant_verse_base = temp_montant_verse_base
     try:
         if droit_ouvert_base:
-            def temp_montant_verse_majoration(acc_3:Money, enfant_3:Enfant):
-                return (acc_3 +
-                    montant_avec_garde_alternee_majoration(enfant_3))
-            temp_montant_verse_majoration_1 = list_fold_left(temp_montant_verse_majoration,
-                                                             money_of_cents_string("0"),
-                                                             enfants_a_charge)
+            def temp_montant_verse_majoration(enfant_3:Enfant):
+                return montant_avec_garde_alternee_majoration(enfant_3)
+            def temp_montant_verse_majoration_1(x1_2:Money, x2_2:Money):
+                return (x1_2 + x2_2)
+            temp_montant_verse_majoration_2 = list_reduce(temp_montant_verse_majoration_1,
+                                                          money_of_cents_string("0"),
+                                                          list_map(temp_montant_verse_majoration,
+                                                          enfants_a_charge))
         else:
-            temp_montant_verse_majoration_1 = money_of_cents_string("0")
+            temp_montant_verse_majoration_2 = money_of_cents_string("0")
     except EmptyError:
-        temp_montant_verse_majoration_1 = dead_value
+        temp_montant_verse_majoration_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
                                              start_line=129, start_column=11,
                                              end_line=129, end_column=35,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
-    montant_verse_majoration = temp_montant_verse_majoration_1
+    montant_verse_majoration = temp_montant_verse_majoration_2
     try:
         temp_montant_base_complement_pour_base_et_majoration = (montant_verse_base +
             montant_verse_majoration)

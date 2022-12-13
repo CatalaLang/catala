@@ -301,16 +301,14 @@ type unop = Not | Minus of op_kind
 
 type builtin_expression =
   | Cardinal
-  | IntToDec
-  | MoneyToDec
-  | DecToMoney
+  | ToDecimal
+  | ToMoney
   | GetDay
   | GetMonth
   | GetYear
   | LastDayOfMonth
   | FirstDayOfMonth
-  | RoundMoney
-  | RoundDecimal
+  | Round
 [@@deriving
   visitors { variety = "map"; name = "builtin_expression_map"; nude = true },
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]

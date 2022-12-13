@@ -785,7 +785,7 @@ declaration scope MoneyValues:
 scope MoneyValues:
   definition value1 under condition
     12.655465446655426 - 0.45265426541654  < 12.3554654652 consequence
-  equals (integer_to_decimal of 45) / (integer_to_decimal of 9)
+  equals (decimal of 45) / (decimal of 9)
   definition value2 equals
     $1.00 * ((($6,520.23 - $320.45) * value1) / $45)
 ```

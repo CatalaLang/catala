@@ -60,16 +60,16 @@ let format_op
   (* Todo: use the names from [Operator.name] *)
   | Not -> Format.pp_print_string fmt "not"
   | Length -> Format.pp_print_string fmt "list_length"
-  | IntToRat -> Format.pp_print_string fmt "decimal_of_integer"
-  | MoneyToRat -> Format.pp_print_string fmt "decimal_of_money"
-  | RatToMoney -> Format.pp_print_string fmt "money_of_decimal"
+  | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
+  | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
+  | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"
   | GetDay -> Format.pp_print_string fmt "day_of_month_of_date"
   | GetMonth -> Format.pp_print_string fmt "month_number_of_date"
   | GetYear -> Format.pp_print_string fmt "year_of_date"
   | FirstDayOfMonth -> Format.pp_print_string fmt "first_day_of_month"
   | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
-  | RoundMoney -> Format.pp_print_string fmt "money_round"
-  | RoundDecimal -> Format.pp_print_string fmt "decimal_round"
+  | Round_mon -> Format.pp_print_string fmt "money_round"
+  | Round_rat -> Format.pp_print_string fmt "decimal_round"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur | Concat
     ->
     Format.pp_print_string fmt "+"
