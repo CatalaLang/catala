@@ -14,14 +14,14 @@ scope S:
 ```catala-test-inline
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
 let S =
-  λ (S_in: S_in {"x_in": bool}) →
+  λ (S_in: S_in {"x_in": any}) →
     let x : bool = S_in."x_in" in
     let f : ((bool) → integer → integer * (bool)) =
-      let S : (bool) → integer → integer =
+      let f1 : (bool) → integer → integer =
         λ (env: (bool)) (param: integer) →
           let x1 : bool = env.0 in
           if x1 then param else -! param in
-      (S, (x)) in
+      (f1, (x)) in
     let z : integer =
       let code_and_env : ((bool) → integer → integer * (bool)) = f in
       let code : (bool) → integer → integer = code_and_env.0 in

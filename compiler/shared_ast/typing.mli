@@ -29,7 +29,13 @@ module Env : sig
   val open_scope : ScopeName.t -> 'e t -> 'e t
 end
 
+(** In the following functions, the [~leave_unresolved] labeled parameter
+    controls the behavior of the typer in the case where polymorphic expressions
+    are still found after typing: if set to [true], it allows them (giving them
+    [TAny] and losing typing information), if set to [false], it aborts. *)
+
 val expr :
+  leave_unresolved:bool ->
   decl_ctx ->
   ?env:'e Env.t ->
   ?typ:typ ->
@@ -45,6 +51,7 @@ val expr :
     what you want. *)
 
 val check_expr :
+  leave_unresolved:bool ->
   decl_ctx ->
   ?env:'e Env.t ->
   ?typ:typ ->
@@ -55,7 +62,10 @@ val check_expr :
     type-checking and disambiguation (some AST nodes are updated with missing
     information, e.g. any [TAny] appearing in the AST is replaced) *)
 
-val program : ('a, 'm mark) gexpr program -> ('a, typed mark) gexpr program
+val program :
+  leave_unresolved:bool ->
+  ('a, 'm mark) gexpr program ->
+  ('a, typed mark) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
     later dcalc/lcalc stages.
 

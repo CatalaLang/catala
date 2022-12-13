@@ -256,7 +256,7 @@ let driver source_file (options : Cli.options) : int =
           as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
-            try Shared_ast.Typing.program prgm
+            try Shared_ast.Typing.program ~leave_unresolved:false prgm
             with Errors.StructuredError (msg, details) ->
               let msg =
                 "Typing error occured during re-typing on the 'default \
@@ -328,7 +328,8 @@ let driver source_file (options : Cli.options) : int =
                 in
                 Cli.debug_print "Retyping lambda calculus...";
                 let prgm =
-                  Shared_ast.Program.untype (Shared_ast.Typing.program prgm)
+                  Shared_ast.Program.untype
+                    (Shared_ast.Typing.program ~leave_unresolved:true prgm)
                 in
                 prgm)
               else prgm

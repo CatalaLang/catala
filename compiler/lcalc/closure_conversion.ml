@@ -295,22 +295,19 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
              scope variables that are structs, their type will change. So we
              replace their type decleration in the structs with TAny so that a
              later re-typing phase can infer them. *)
-          let replace_arrow_type_with_any s =
+          let replace_type_with_any s =
             Some
               (StructField.Map.map
-                 (fun t ->
-                   match Marked.unmark t with
-                   | TArrow _ -> Marked.same_mark_as TAny t
-                   | _ -> t)
+                 (fun t -> Marked.same_mark_as TAny t)
                  (Option.get s))
           in
           {
             decl_ctx with
             ctx_structs =
               StructName.Map.update scope.scope_body.scope_body_output_struct
-                replace_arrow_type_with_any
+                replace_type_with_any
                 (StructName.Map.update scope.scope_body.scope_body_input_struct
-                   replace_arrow_type_with_any decl_ctx.ctx_structs);
+                   replace_type_with_any decl_ctx.ctx_structs);
           }
         in
         ( (fun next ->
