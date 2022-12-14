@@ -127,7 +127,7 @@ champ d'application RessourcesAidesPersonnelleLogement:
     ressources_personnes_vivant_habituellement_foyer
 
   définition ressources_personnes_vivant_habituellement_foyer égal à
-    somme argent de personne.ressources pour personne dans personnes_vivant_habituellement_foyer
+    somme argent de personne.ressources pour personne parmi personnes_vivant_habituellement_foyer
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
@@ -138,7 +138,7 @@ droit à celle-ci.
 
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
-  assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
+  assertion pour tout personne parmi personnes_vivant_habituellement_foyer on a
     personne.durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
   # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
   # des différentes périodes mentionnées et en forçant l'utilisateur à bien
@@ -1123,7 +1123,7 @@ habituellement au foyer :
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition personnes_à_charge_prises_en_compte égal à
-    personne_à_charge dans ménage.personnes_à_charge tel que
+    personne_à_charge parmi ménage.personnes_à_charge tel que
       prise_en_compte_personne_à_charge de personne_à_charge
 ```
 
@@ -2045,7 +2045,7 @@ de la date d'emménagement.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
   règle condition_rang_enfant sous condition
-    nombre de (personne_à_charge dans ménage.personnes_à_charge tel que
+    nombre de (personne_à_charge parmi ménage.personnes_à_charge tel que
       (selon personne_à_charge sous forme
       -- EnfantÀCharge: vrai
       -- AutrePersonneÀCharge: faux)
@@ -4034,7 +4034,7 @@ champ d'application CalculÉquivalenceLoyerMinimale:
           n_nombre_parts_d832_25
         -- taux: tranche.taux
       }
-      pour tranche dans tranches_revenus_d832_26
+      pour tranche parmi tranches_revenus_d832_26
 
   définition montant égal à
     soit ressources_ménage_arrondies égal à
@@ -4058,7 +4058,7 @@ champ d'application CalculÉquivalenceLoyerMinimale:
               -- LimiteTrancheDécimal.Infini:
                 (ressources_ménage_arrondies - tranche.bas) *
                 tranche.taux))
-            pour tranche dans tranches_revenus_d832_26_multipliées)
+            pour tranche parmi tranches_revenus_d832_26_multipliées)
        +
        décimal de montant_forfaitaire_d832_26
        * n_nombre_parts_d832_25)
@@ -4097,7 +4097,7 @@ champ d'application CalculÉquivalenceLoyerMinimale:
              -- LimiteTrancheDécimal.Infini:
                (ressources_ménage_arrondies - tranche.bas) *
                tranche.taux))
-         pour tranche dans tranches_revenus_d832_26_multipliées))
+         pour tranche parmi tranches_revenus_d832_26_multipliées))
        +
        décimal de montant_forfaitaire_d832_26)
       / 12,0)

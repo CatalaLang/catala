@@ -41,18 +41,18 @@ $ catala Interpret -s First_case
 [ERROR] Wildcard must be the last match case
 
 Not ending wildcard:
-┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:19.7-20:
+┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:19.4-20:
 └──┐
 19 │     -- anything : 31
-   │        ‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ Wildcard must be the last case
     └─ Wildcard can't be the first case
 
 Next reachable case:
-┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:20.7-17:
+┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:20.4-17:
 └──┐
 20 │     -- Case2 : 42
-   │        ‾‾‾‾‾‾‾‾‾‾
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ Wildcard must be the last case
     └─ Wildcard can't be the first case
 #return code 255#
@@ -63,18 +63,18 @@ $ catala Interpret -s Middle_case
 [ERROR] Wildcard must be the last match case
 
 Not ending wildcard:
-┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:19.7-20:
+┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:19.4-20:
 └──┐
 19 │     -- anything : 31
-   │        ‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ Wildcard must be the last case
     └─ Wildcard can't be the first case
 
 Next reachable case:
-┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:20.7-17:
+┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:20.4-17:
 └──┐
 20 │     -- Case2 : 42
-   │        ‾‾‾‾‾‾‾‾‾‾
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ Wildcard must be the last case
     └─ Wildcard can't be the first case
 #return code 255#

@@ -22,11 +22,11 @@ declaration scope B:
 
 scope B:
    definition argmax equals
-     (m in a.x such that m.income * 2.0 is maximum
-      or if collection is empty then S { -- id: -1 --income: $0 })
+     (m among a.x such that m.income * 2.0 is maximum
+      or if collection empty then S { -- id: -1 --income: $0 })
    definition argmin equals
-     (m in a.x such that m.income + $5 is minimum
-      or if collection is empty then S { -- id: -1 --income: $20 })
+     (m among a.x such that m.income + $5 is minimum
+      or if collection empty then S { -- id: -1 --income: $20 })
 ```
 
 ```catala-test-inline

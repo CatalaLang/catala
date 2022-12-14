@@ -4422,11 +4422,11 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
   définition plafond_d823_22 égal à
    base_mensuelle_allocations_familiales.montant * 240% +
    (si
-      nombre de (personne_à_charge dans ménage.personnes_à_charge
+      nombre de (personne_à_charge parmi ménage.personnes_à_charge
         tel que personne_à_charge sous forme EnfantÀCharge) > 3
     alors
       base_mensuelle_allocations_familiales.montant * (décimal de (
-      nombre de (personne_à_charge dans ménage.personnes_à_charge
+      nombre de (personne_à_charge parmi ménage.personnes_à_charge
         tel que personne_à_charge sous forme EnfantÀCharge) - 3) * 20%)
     sinon 0€)
 ```

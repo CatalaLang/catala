@@ -75,6 +75,8 @@
 #define MS_EXISTS "istnieje"
 (* "in" or "w" ? *)
 #define MS_IN "in"
+#define MS_AMONG "wśród"
+#define MR_AMONG "w", 0x15B,"r", 0xf3,"d"
 #define MS_SUCH "takie ze"
 #define MR_SUCH "takie", space_plus, "ze"
 #define MS_THAT "to"

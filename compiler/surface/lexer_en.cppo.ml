@@ -70,6 +70,7 @@
 #define MS_LET "let"
 #define MS_EXISTS "exists"
 #define MS_IN "in"
+#define MS_AMONG "among"
 #define MS_SUCH "such"
 #define MS_THAT "that"
 #define MS_AND "and"

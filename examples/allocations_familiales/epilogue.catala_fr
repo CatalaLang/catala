@@ -10,8 +10,8 @@ la fonction du bloc de code ci-dessous.
 ```catala-metadata
 champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé égal à
-    potentiel_plus_âgé dans enfants tel que potentiel_plus_âgé.date_de_naissance est minimum
-    ou si collection est vide alors Enfant {
+    potentiel_plus_âgé parmi enfants tel que potentiel_plus_âgé.date_de_naissance est minimum
+    ou si collection vide alors Enfant {
       -- identifiant: -1
       -- obligation_scolaire: Pendant
       -- rémuneration_mensuelle: 0€
@@ -38,7 +38,7 @@ champ d'application AllocationsFamiliales:
   définition montant_versé_majoration égal à
     si droit_ouvert_base alors
       somme argent de (montant_avec_garde_alternée_majoration de enfant)
-                   pour enfant dans enfants_à_charge
+                   pour enfant parmi enfants_à_charge
     sinon 0€
 
   définition montant_versé égal à
@@ -130,5 +130,5 @@ champ d'application InterfaceAllocationsFamiliales:
        -- bénéficie_titre_personnel_aide_personnelle_logement:
          enfant.d_bénéficie_titre_personnel_aide_personnelle_logement
      }
-     pour enfant dans i_enfants)
+     pour enfant parmi i_enfants)
 ```

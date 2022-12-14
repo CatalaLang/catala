@@ -76,7 +76,7 @@ champ d'application RéserveHéréditaire:
     sinon vrai
 
   définition enfants_réserve_héréditaire égal à
-    enfant dans enfants tel que
+    enfant parmi enfants tel que
       (enfant_pris_en_compte_réserve_héréditaire de enfant)
 ```
 
@@ -134,7 +134,7 @@ champ d'application RéserveHéréditaire:
       somme argent de
         (si bien.prise_en_compte_pour_réserve_héréditaire
          alors 0 € sinon bien.valeur)
-        pour bien dans biens_usufruit_rente_viagère)
+        pour bien parmi biens_usufruit_rente_viagère)
   définition montant_réserve_héréditaire égal à
     patrimoine_assiette_réserve_héréditaire * quotité_réserve_héréditaire
 ```

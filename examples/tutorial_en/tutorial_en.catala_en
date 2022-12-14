@@ -829,7 +829,7 @@ declaration scope CollectionValues:
 
 scope CollectionValues:
   definition value1 equals [45;-6;3;4;0;2155]
-  definition value2 equals sum integer of (i * i) for i in value1
+  definition value2 equals sum integer of (i * i) for i among value1
   # sum of squares
 ```
 

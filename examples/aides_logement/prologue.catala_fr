@@ -341,8 +341,8 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
              -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
              -- PasDeGardeAlternée: 0,0
      ))
-     pour personne_à_charge dans (
-       personne_à_charge dans personnes_à_charge_prises_en_compte
+     pour personne_à_charge parmi (
+       personne_à_charge parmi personnes_à_charge_prises_en_compte
        tel que
          (selon personne_à_charge sous forme
           -- AutrePersonneÀCharge: faux
@@ -1156,7 +1156,7 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
       -- logement :
         ménage.logement
       -- personnes_à_charge :
-         (personne_à_charge dans ménage.personnes_à_charge
+         (personne_à_charge parmi ménage.personnes_à_charge
           tel que
             (selon personne_à_charge sous forme
              -- AutrePersonneÀCharge: vrai

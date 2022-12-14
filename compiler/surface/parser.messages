@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 343.
+## Ends in an error in state: 333.
 ##
 ## list(enum_decl_line) -> enum_decl_line . list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -12,9 +12,9 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 329.
 ##
-## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
+## option(enum_decl_line_payload) -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTENT
@@ -24,7 +24,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 337.
+## Ends in an error in state: 328.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -36,7 +36,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 336.
+## Ends in an error in state: 327.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -48,7 +48,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 335.
+## Ends in an error in state: 326.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -60,7 +60,7 @@ expected an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 334.
+## Ends in an error in state: 325.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -72,7 +72,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 333.
+## Ends in an error in state: 324.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -91,7 +91,7 @@ expected the name of your enum
 
 source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 308.
+## Ends in an error in state: 299.
 ##
 ## code_item -> DECLARATION SCOPE constructor COLON . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -103,7 +103,7 @@ expected a context item introduced by "context"
 
 source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 307.
+## Ends in an error in state: 298.
 ##
 ## code_item -> DECLARATION SCOPE constructor . COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -115,7 +115,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 306.
+## Ends in an error in state: 297.
 ##
 ## code_item -> DECLARATION SCOPE . constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -127,19 +127,19 @@ expected the name of the scope you are declaring
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION YEAR
 ##
-## Ends in an error in state: 293.
+## Ends in an error in state: 283.
 ##
-## typ -> collection_marked . typ [ STATE SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
+## typ -> COLLECTION . typ [ STATE SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## collection_marked
+## COLLECTION
 ##
 
 expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
-## Ends in an error in state: 301.
+## Ends in an error in state: 292.
 ##
 ## list(struct_scope) -> struct_scope . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -151,9 +151,9 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 297.
+## Ends in an error in state: 289.
 ##
-## struct_scope_func -> DEPENDS . typ [ STATE SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## option(struct_scope_func) -> DEPENDS . typ [ STATE SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEPENDS
@@ -163,7 +163,7 @@ expected the type of the parameter of this struct data function
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
-## Ends in an error in state: 296.
+## Ends in an error in state: 288.
 ##
 ## struct_scope -> struct_scope_base . option(struct_scope_func) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -175,7 +175,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
-## Ends in an error in state: 303.
+## Ends in an error in state: 294.
 ##
 ## struct_scope_base -> condition_pos . ident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -187,7 +187,7 @@ expected the name of this struct condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 289.
+## Ends in an error in state: 282.
 ##
 ## struct_scope_base -> DATA ident CONTENT . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -199,7 +199,7 @@ expected the type of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
-## Ends in an error in state: 288.
+## Ends in an error in state: 281.
 ##
 ## struct_scope_base -> DATA ident . CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -211,7 +211,7 @@ expected the type of this struct data, introduced by the content keyword
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
-## Ends in an error in state: 287.
+## Ends in an error in state: 280.
 ##
 ## struct_scope_base -> DATA . ident CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -223,7 +223,7 @@ expected the name of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 286.
+## Ends in an error in state: 279.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -235,7 +235,7 @@ expected struct data or condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 285.
+## Ends in an error in state: 278.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -247,7 +247,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 284.
+## Ends in an error in state: 277.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -259,7 +259,7 @@ expected the struct name
 
 source_file: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 283.
+## Ends in an error in state: 276.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -273,72 +273,66 @@ expected the kind of the declaration (struct, scope or enum)
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THEN
 ##
-## Ends in an error in state: 248.
+## Ends in an error in state: 237.
 ##
-## nonempty_list(scope_item) -> scope_item . [ SCOPE END_CODE DECLARATION ]
-## nonempty_list(scope_item) -> scope_item . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
+## assertion_base -> naked_expression . [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## naked_expression -> naked_expression . DOT ident [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . DOT constructor DOT ident [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . OF naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . WITH constructor_binding [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . CONTAINS naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . FOR ident AMONG naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . MULT naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . DIV naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . PLUS naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . MINUS naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . PLUSPLUS naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . compare_op naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . OR naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . XOR naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
+## naked_expression -> naked_expression . AND naked_expression [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
 ##
 ## The known suffix of the stack is as follows:
-## scope_item
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 162, spurious reduction of production let_expression -> logical_expression
-## In state 172, spurious reduction of production expression -> let_expression
-## In state 242, spurious reduction of production assertion_base -> expression
-## In state 243, spurious reduction of production assertion -> option(condition_consequence) assertion_base
-## In state 247, spurious reduction of production scope_item -> ASSERTION assertion
+## naked_expression
 ##
 
 expected a new scope use item
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT BY YEAR
 ##
-## Ends in an error in state: 239.
+## Ends in an error in state: 234.
 ##
-## assertion -> FIXED qident BY . ident [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> FIXED separated_nonempty_list(DOT,ident) BY . ident [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## FIXED qident BY
+## FIXED separated_nonempty_list(DOT,ident) BY
 ##
 
 expected the legislative text by which the value of the variable is fixed
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT WITH_V
 ##
-## Ends in an error in state: 238.
+## Ends in an error in state: 233.
 ##
-## assertion -> FIXED qident . BY ident [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> FIXED separated_nonempty_list(DOT,ident) . BY ident [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## FIXED qident
+## FIXED separated_nonempty_list(DOT,ident)
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 232, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 224, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
+## In state 226, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
 ##
 
 expected the legislative text by which the value of the variable is fixed
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
-## Ends in an error in state: 237.
+## Ends in an error in state: 232.
 ##
-## assertion -> FIXED . qident BY ident [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> FIXED . separated_nonempty_list(DOT,ident) BY ident [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIXED
@@ -349,38 +343,36 @@ expected the name of the variable that should be fixed
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION TRUE THEN
 ##
-## Ends in an error in state: 245.
+## Ends in an error in state: 230.
 ##
-## condition_consequence -> condition . CONSEQUENCE [ VERTICAL TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LSQUARE LPAREN LET INT_LITERAL IF IDENT FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL CONSTRUCTOR CARDINAL ]
+## condition_consequence -> UNDER_CONDITION naked_expression . CONSEQUENCE [ VERTICAL TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LSQUARE LPAREN LET INT_LITERAL IF IDENT FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL CONSTRUCTOR CARDINAL ]
+## naked_expression -> naked_expression . DOT ident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . DOT constructor DOT ident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . OF naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . WITH constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . CONTAINS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . FOR ident AMONG naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . MULT naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . DIV naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . PLUS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . MINUS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . PLUSPLUS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . compare_op naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . OR naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . XOR naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
+## naked_expression -> naked_expression . AND naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
 ##
 ## The known suffix of the stack is as follows:
-## condition
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 162, spurious reduction of production let_expression -> logical_expression
-## In state 172, spurious reduction of production expression -> let_expression
-## In state 236, spurious reduction of production condition -> UNDER_CONDITION expression
+## UNDER_CONDITION naked_expression
 ##
 
 expected a consequence for this definition under condition
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION YEAR
 ##
-## Ends in an error in state: 235.
+## Ends in an error in state: 229.
 ##
-## condition -> UNDER_CONDITION . expression [ CONSEQUENCE ]
+## condition_consequence -> UNDER_CONDITION . naked_expression CONSEQUENCE [ VERTICAL TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LSQUARE LPAREN LET INT_LITERAL IF IDENT FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL CONSTRUCTOR CARDINAL ]
 ##
 ## The known suffix of the stack is as follows:
 ## UNDER_CONDITION
@@ -390,59 +382,39 @@ expected an expression for this condition
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT UNDER_CONDITION
 ##
-## Ends in an error in state: 225.
+## Ends in an error in state: 219.
 ##
-## assertion -> VARIES qident . WITH_V base_expression option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES separated_nonempty_list(DOT,ident) . WITH_V naked_expression option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## VARIES qident
+## VARIES separated_nonempty_list(DOT,ident)
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 232, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 224, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
+## In state 226, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
 ##
 
 expected an indication about what this variable varies with
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V TRUE XOR
-##
-## Ends in an error in state: 227.
-##
-## assertion -> VARIES qident WITH_V base_expression . option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## VARIES qident WITH_V base_expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-##
-
-expected an indication about the variation sense of the variable, or a new scope item
-
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V YEAR
 ##
-## Ends in an error in state: 226.
+## Ends in an error in state: 220.
 ##
-## assertion -> VARIES qident WITH_V . base_expression option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES separated_nonempty_list(DOT,ident) WITH_V . naked_expression option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## VARIES qident WITH_V
+## VARIES separated_nonempty_list(DOT,ident) WITH_V
 ##
 
 the variable varies with an expression that was expected here
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
-## Ends in an error in state: 223.
+## Ends in an error in state: 218.
 ##
-## assertion -> VARIES . qident WITH_V base_expression option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES . separated_nonempty_list(DOT,ident) WITH_V naked_expression option(variation_type) [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## VARIES
@@ -452,7 +424,7 @@ expecting the name of the varying variable
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION YEAR
 ##
-## Ends in an error in state: 222.
+## Ends in an error in state: 217.
 ##
 ## scope_item -> ASSERTION . assertion [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -464,24 +436,24 @@ expected an expression that shoud be asserted during execution
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 276.
+## Ends in an error in state: 269.
 ##
-## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,ident) option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS . naked_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS
+## option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,ident) option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS
 ##
 
 expected an expression for the definition
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
-## Ends in an error in state: 273.
+## Ends in an error in state: 266.
 ##
-## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) . option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,ident) option(definition_parameters) . option(state) option(condition_consequence) DEFINED_AS naked_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) DEFINITION qident option(definition_parameters)
+## option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,ident) option(definition_parameters)
 ##
 
 expected a expression for defining this function, introduced by the defined as keyword
@@ -489,28 +461,27 @@ expected a expression for defining this function, introduced by the defined as k
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
-## Ends in an error in state: 272.
+## Ends in an error in state: 265.
 ##
-## definition -> option(label) option(exception_to) DEFINITION qident . option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,ident) . option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS naked_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) DEFINITION qident
+## option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,ident)
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 232, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 224, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
+## In state 226, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
 ##
 
 expected the defined as keyword to introduce the definition of this variable
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 271.
+## Ends in an error in state: 264.
 ##
-## definition -> option(label) option(exception_to) DEFINITION . qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION . separated_nonempty_list(DOT,ident) option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS naked_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) DEFINITION
@@ -520,9 +491,9 @@ expected the name of the variable you want to define
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION IDENT YEAR
 ##
-## Ends in an error in state: 254.
+## Ends in an error in state: 247.
 ##
-## definition -> option(label) option(exception_to) . DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) . DEFINITION separated_nonempty_list(DOT,ident) option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS naked_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
@@ -533,7 +504,7 @@ expected a rule or a definition after the exception declaration
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION YEAR
 ##
-## Ends in an error in state: 251.
+## Ends in an error in state: 244.
 ##
 ## exception_to -> EXCEPTION . option(ident) [ RULE DEFINITION ]
 ##
@@ -545,9 +516,9 @@ expected the label to which the exception is referring back
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON LABEL IDENT DEFINED_AS
 ##
-## Ends in an error in state: 250.
+## Ends in an error in state: 243.
 ##
-## definition -> option(label) . option(exception_to) DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) . option(exception_to) DEFINITION separated_nonempty_list(DOT,ident) option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS naked_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ## rule -> option(label) . option(exception_to) RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
@@ -558,7 +529,7 @@ expected a rule or a definition after the label declaration
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON LABEL YEAR
 ##
-## Ends in an error in state: 220.
+## Ends in an error in state: 215.
 ##
 ## label -> LABEL . ident [ RULE EXCEPTION DEFINITION ]
 ##
@@ -570,7 +541,7 @@ expected the name of the label
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
-## Ends in an error in state: 233.
+## Ends in an error in state: 227.
 ##
 ## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS BY ]
 ##
@@ -582,7 +553,7 @@ expected a struct field or a sub-scope context item after the dot
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT NOT FALSE
 ##
-## Ends in an error in state: 264.
+## Ends in an error in state: 262.
 ##
 ## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -594,7 +565,7 @@ expected the filled keyword the this rule
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
-## Ends in an error in state: 256.
+## Ends in an error in state: 254.
 ##
 ## rule -> option(label) option(exception_to) RULE rule_expr . option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -606,7 +577,7 @@ expected the expression of the rule
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
-## Ends in an error in state: 267.
+## Ends in an error in state: 250.
 ##
 ## definition_parameters -> OF . ident [ UNDER_CONDITION STATE NOT FILLED DEFINED_AS ]
 ##
@@ -619,26 +590,25 @@ expected the name of the parameter for this dependent variable
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
-## Ends in an error in state: 266.
+## Ends in an error in state: 249.
 ##
-## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION STATE NOT FILLED ]
+## rule_expr -> separated_nonempty_list(DOT,ident) . option(definition_parameters) [ UNDER_CONDITION STATE NOT FILLED ]
 ##
 ## The known suffix of the stack is as follows:
-## qident
+## separated_nonempty_list(DOT,ident)
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 232, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 224, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
+## In state 226, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
 ##
 
 expected a condition or a consequence for this rule
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT YEAR
 ##
-## Ends in an error in state: 232.
+## Ends in an error in state: 226.
 ##
 ## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS BY ]
 ## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS BY ]
@@ -651,7 +621,7 @@ expected a condition or a consequence for this rule, or the rest of the variable
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE YEAR
 ##
-## Ends in an error in state: 255.
+## Ends in an error in state: 248.
 ##
 ## rule -> option(label) option(exception_to) RULE . rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -663,7 +633,7 @@ expected the name of the variable subject to the rule
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 219.
+## Ends in an error in state: 214.
 ##
 ## code_item -> SCOPE constructor option(scope_use_condition) COLON . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -673,139 +643,18 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON YEAR
 
 expected a scope use item: a rule, definition or assertion
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT TRUE YEAR
-##
-## Ends in an error in state: 101.
-##
-## enum_inject_content -> CONTENT small_expression . [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-## small_expression -> small_expression . DOT option(terminated(constructor,DOT)) ident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## CONTENT small_expression
-##
-
-the expression for the content of the enum case is already well-formed, expected an operator to form a bigger expression
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT YEAR
-##
-## Ends in an error in state: 100.
-##
-## enum_inject_content -> CONTENT . small_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## CONTENT
-##
-
-expected an expression for the content of this enum case
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR DOT CONSTRUCTOR ALL
-##
-## Ends in an error in state: 99.
-##
-## struct_or_enum_inject -> constructor option(preceded(DOT,constructor)) . option(enum_inject_content) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## constructor option(preceded(DOT,constructor))
-##
-
-expected the rest of the path, or the content of the enum constructor
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR DOT YEAR
-##
-## Ends in an error in state: 72.
-##
-## option(preceded(DOT,constructor)) -> DOT . constructor [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTENT CONTAINS CONSTRUCTOR CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## DOT
-##
-
-expected the rest of the path after the dot
 
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT COLON CARDINAL THEN
-##
-## Ends in an error in state: 94.
-##
-## nonempty_list(preceded(ALT,struct_content_field)) -> ALT struct_content_field . [ RBRACKET ]
-## nonempty_list(preceded(ALT,struct_content_field)) -> ALT struct_content_field . nonempty_list(preceded(ALT,struct_content_field)) [ RBRACKET ]
-##
-## The known suffix of the stack is as follows:
-## ALT struct_content_field
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 209, spurious reduction of production struct_content_field -> ident COLON logical_expression
-##
 
-expected another structure field or the closing bracket
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT COLON YEAR
-##
-## Ends in an error in state: 35.
-##
-## struct_content_field -> ident COLON . logical_expression [ RBRACKET ALT ]
-##
-## The known suffix of the stack is as follows:
-## ident COLON
-##
-
-expected the expression for this struct field
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT YEAR
-##
-## Ends in an error in state: 34.
-##
-## struct_content_field -> ident . COLON logical_expression [ RBRACKET ALT ]
-##
-## The known suffix of the stack is as follows:
-## ident
-##
-
-expected a colon
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT YEAR
-##
-## Ends in an error in state: 93.
-##
-## nonempty_list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field [ RBRACKET ]
-## nonempty_list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field nonempty_list(preceded(ALT,struct_content_field)) [ RBRACKET ]
-##
-## The known suffix of the stack is as follows:
-## ALT
-##
-
-expected the name of the structure field
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET YEAR
-##
-## Ends in an error in state: 92.
-##
-## struct_inject_content -> LBRACKET . nonempty_list(preceded(ALT,struct_content_field)) RBRACKET [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## LBRACKET
-##
-
-expected structure fields introduced by --
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 91.
+## Ends in an error in state: 118.
 ##
-## struct_or_enum_inject -> constructor . option(preceded(DOT,constructor)) option(enum_inject_content) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-## struct_or_enum_inject -> constructor . struct_inject_content [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> constructor . enum_content_opt [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> constructor . DOT constructor enum_content_opt [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> constructor . LBRACKET nonempty_list(preceded(ALT,struct_content_field)) RBRACKET [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> constructor . DOT constructor LBRACKET nonempty_list(preceded(ALT,struct_content_field)) RBRACKET [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor
@@ -813,47 +662,11 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR YEAR
 
 expected a payload for the enum case constructor, or the rest of the expression (with an operator ?)
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN CARDINAL SUCH THAT YEAR
-##
-## Ends in an error in state: 150.
-##
-## let_expression -> EXISTS ident IN compare_expression SUCH THAT . compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## EXISTS ident IN compare_expression SUCH THAT
-##
-
-expected an expression for the existential test
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN TRUE SUCH YEAR
-##
-## Ends in an error in state: 149.
-##
-## let_expression -> EXISTS ident IN compare_expression SUCH . THAT compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## EXISTS ident IN compare_expression SUCH
-##
-
-expected a keyword to complete the "such that" construction
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN YEAR
-##
-## Ends in an error in state: 147.
-##
-## let_expression -> EXISTS ident IN . compare_expression SUCH THAT compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## EXISTS ident IN
-##
-
-expected an expression that designates the set subject to the existential test
-
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT YEAR
 ##
-## Ends in an error in state: 146.
+## Ends in an error in state: 65.
 ##
-## let_expression -> EXISTS ident . IN compare_expression SUCH THAT compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> EXISTS ident . AMONG naked_expression SUCH THAT naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## EXISTS ident
@@ -863,9 +676,9 @@ expected the "in" keyword to continue this existential test
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS YEAR
 ##
-## Ends in an error in state: 145.
+## Ends in an error in state: 64.
 ##
-## let_expression -> EXISTS . ident IN compare_expression SUCH THAT compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> EXISTS . ident AMONG naked_expression SUCH THAT naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## EXISTS
@@ -873,35 +686,11 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS YEAR
 
 expected an identifier that will designate the existential witness for the test
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT IN CARDINAL WE_HAVE YEAR
-##
-## Ends in an error in state: 143.
-##
-## let_expression -> FOR ALL ident IN compare_expression WE_HAVE . compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## FOR ALL ident IN compare_expression WE_HAVE
-##
-
-expected an expression for the universal test
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT IN YEAR
-##
-## Ends in an error in state: 54.
-##
-## let_expression -> FOR ALL ident IN . compare_expression WE_HAVE compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## FOR ALL ident IN
-##
-
-expected the expression designating the set on which to perform the universal test
-
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT YEAR
 ##
-## Ends in an error in state: 53.
+## Ends in an error in state: 61.
 ##
-## let_expression -> FOR ALL ident . IN compare_expression WE_HAVE compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> FOR ALL ident . AMONG naked_expression WE_HAVE naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR ALL ident
@@ -911,9 +700,9 @@ expected the "in" keyword for the rest of the universal test
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL YEAR
 ##
-## Ends in an error in state: 52.
+## Ends in an error in state: 60.
 ##
-## let_expression -> FOR ALL . ident IN compare_expression WE_HAVE compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> FOR ALL . ident AMONG naked_expression WE_HAVE naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR ALL
@@ -923,9 +712,9 @@ expected an identifier for the bound variable of the universal test
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR YEAR
 ##
-## Ends in an error in state: 51.
+## Ends in an error in state: 59.
 ##
-## let_expression -> FOR . ALL ident IN compare_expression WE_HAVE compare_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> FOR . ALL ident AMONG naked_expression WE_HAVE naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR
@@ -935,27 +724,27 @@ expected the "all" keyword to mean the "for all" construction of the universal t
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE SEMICOLON
 ##
-## Ends in an error in state: 163.
+## Ends in an error in state: 162.
 ##
-## let_expression -> IF let_expression . THEN let_expression ELSE let_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> naked_expression . DOT ident [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . DOT constructor DOT ident [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . OF naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . WITH constructor_binding [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . CONTAINS naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . FOR ident AMONG naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . MULT naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . DIV naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . PLUS naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . MINUS naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . PLUSPLUS naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . compare_op naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . OR naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . XOR naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . AND naked_expression [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> IF naked_expression . THEN naked_expression ELSE naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## IF let_expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 162, spurious reduction of production let_expression -> logical_expression
+## IF naked_expression
 ##
 
 expected the "then" keyword as the conditional expression is complete
@@ -965,9 +754,9 @@ expected the "then" keyword as the conditional expression is complete
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF YEAR
 ##
-## Ends in an error in state: 49.
+## Ends in an error in state: 57.
 ##
-## let_expression -> IF . let_expression THEN let_expression ELSE let_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> IF . naked_expression THEN naked_expression ELSE naked_expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF
@@ -977,49 +766,48 @@ expected an expression for the test of the conditional
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION INT_LITERAL WITH_V
 ##
-## Ends in an error in state: 81.
+## Ends in an error in state: 51.
 ##
-## literal -> num_literal . option(unit_literal) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## literal -> INT_LITERAL . option(addpos(unit_literal)) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## num_literal
+## INT_LITERAL
 ##
 
 expected a unit for this literal, or a valid operator to complete the expression
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LPAREN TRUE THEN
 ##
-## Ends in an error in state: 188.
+## Ends in an error in state: 170.
 ##
-## atomic_expression -> LPAREN expression . RPAREN [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> LPAREN naked_expression . RPAREN [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> naked_expression . DOT ident [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . DOT constructor DOT ident [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . OF naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . WITH constructor_binding [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . CONTAINS naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . FOR ident AMONG naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . MULT naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . DIV naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . PLUS naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . MINUS naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . PLUSPLUS naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . compare_op naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . OR naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . XOR naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . AND naked_expression [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ##
 ## The known suffix of the stack is as follows:
-## LPAREN expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 162, spurious reduction of production let_expression -> logical_expression
-## In state 172, spurious reduction of production expression -> let_expression
+## LPAREN naked_expression
 ##
 
 unmatched parenthesis that should have been closed by here
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LPAREN YEAR
 ##
-## Ends in an error in state: 44.
+## Ends in an error in state: 47.
 ##
-## atomic_expression -> LPAREN . expression RPAREN [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> LPAREN . naked_expression RPAREN [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN
@@ -1030,38 +818,37 @@ expected an expression inside the parenthesis
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LSQUARE TRUE THEN
 ##
-## Ends in an error in state: 206.
+## Ends in an error in state: 173.
 ##
-## separated_nonempty_list(SEMICOLON,expression) -> expression . [ RSQUARE ]
-## separated_nonempty_list(SEMICOLON,expression) -> expression . SEMICOLON separated_nonempty_list(SEMICOLON,expression) [ RSQUARE ]
+## naked_expression -> naked_expression . DOT ident [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . DOT constructor DOT ident [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . OF naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . WITH constructor_binding [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . CONTAINS naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . FOR ident AMONG naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . MULT naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . DIV naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . PLUS naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . MINUS naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . PLUSPLUS naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . compare_op naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . OR naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . XOR naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> naked_expression . AND naked_expression [ XOR WITH SEMICOLON RSQUARE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## separated_nonempty_list(SEMICOLON,expression) -> naked_expression . [ RSQUARE ]
+## separated_nonempty_list(SEMICOLON,expression) -> naked_expression . SEMICOLON separated_nonempty_list(SEMICOLON,expression) [ RSQUARE ]
 ##
 ## The known suffix of the stack is as follows:
-## expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 162, spurious reduction of production let_expression -> logical_expression
-## In state 172, spurious reduction of production expression -> let_expression
+## naked_expression
 ##
 
 expected a semicolon or a right square bracket after the collection element
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LSQUARE YEAR
 ##
-## Ends in an error in state: 42.
+## Ends in an error in state: 46.
 ##
-## small_expression -> LSQUARE . loption(separated_nonempty_list(SEMICOLON,expression)) RSQUARE [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> LSQUARE . loption(separated_nonempty_list(SEMICOLON,expression)) RSQUARE [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## LSQUARE
@@ -1069,71 +856,14 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LSQUARE YEAR
 
 expected a collection element
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR COLON CARDINAL RBRACKET
-##
-## Ends in an error in state: 197.
-##
-## match_arms -> ALT match_arm . match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## ALT match_arm
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 201, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
-##
 
-expected the "with pattern" keyword to complete the pattern matching expression
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR COLON YEAR
-##
-## Ends in an error in state: 200.
-##
-## match_arm -> constructor_binding COLON . logical_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
-##
-## The known suffix of the stack is as follows:
-## constructor_binding COLON
-##
-
-expected a correct expression for this match arm
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR XOR
-##
-## Ends in an error in state: 199.
-##
-## match_arm -> constructor_binding . COLON logical_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
-##
-## The known suffix of the stack is as follows:
-## constructor_binding
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 71, spurious reduction of production option(preceded(DOT,constructor)) ->
-## In state 74, spurious reduction of production maybe_qualified_constructor -> constructor option(preceded(DOT,constructor))
-## In state 67, spurious reduction of production optional_binding ->
-## In state 76, spurious reduction of production constructor_binding -> maybe_qualified_constructor optional_binding
-##
-
-expected a constructor payload binding or a colon
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT YEAR
 ##
-## Ends in an error in state: 193.
+## Ends in an error in state: 180.
 ##
-## match_arms -> ALT . match_arm match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## nonempty_list(addpos(preceded(ALT,match_arm))) -> ALT . match_arm [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## nonempty_list(addpos(preceded(ALT,match_arm))) -> ALT . match_arm nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ALT
@@ -1143,21 +873,22 @@ expected the name of the constructor for the enum case in the pattern matching
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH YEAR
 ##
-## Ends in an error in state: 192.
+## Ends in an error in state: 179.
 ##
-## let_expression -> MATCH primitive_expression WITH . match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> naked_expression WITH . constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
+## naked_expression -> MATCH naked_expression WITH . nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## MATCH primitive_expression WITH
+## MATCH naked_expression WITH
 ##
 
 expected a pattern matching case
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH YEAR
 ##
-## Ends in an error in state: 43.
+## Ends in an error in state: 45.
 ##
-## let_expression -> MATCH . primitive_expression WITH match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL IN EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## naked_expression -> MATCH . naked_expression WITH nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH
@@ -1165,180 +896,41 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH YEAR
 
 expected an expression to match with
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM YEAR
-##
-## Ends in an error in state: 15.
-##
-## base_expression -> SUM . typ_base OF base_expression [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## SUM
-##
-
-expected the "for" keyword to spell the aggregation
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE ASSERTION
-##
-## Ends in an error in state: 218.
-##
-## code_item -> SCOPE constructor option(scope_use_condition) . COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## SCOPE constructor option(scope_use_condition)
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-## In state 140, spurious reduction of production sum_expression -> mult_expression
-## In state 123, spurious reduction of production compare_expression -> sum_expression
-## In state 161, spurious reduction of production logical_atom -> compare_expression
-## In state 156, spurious reduction of production logical_or_expression -> logical_atom
-## In state 152, spurious reduction of production logical_expression -> logical_or_expression
-## In state 162, spurious reduction of production let_expression -> logical_expression
-## In state 172, spurious reduction of production expression -> let_expression
-## In state 216, spurious reduction of production scope_use_condition -> UNDER_CONDITION expression
-## In state 217, spurious reduction of production option(scope_use_condition) -> scope_use_condition
-##
-
-expected a colon after the scope use precondition
-
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE DOT CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 103.
+## Ends in an error in state: 94.
 ##
-## small_expression -> small_expression DOT option(terminated(constructor,DOT)) . ident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> naked_expression DOT constructor DOT . ident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## small_expression DOT option(terminated(constructor,DOT))
+## naked_expression DOT constructor DOT
 ##
 
 expected the rest of the path after the dot
 
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE DOT CONSTRUCTOR YEAR
-##
-## Ends in an error in state: 105.
-##
-## option(terminated(constructor,DOT)) -> constructor . DOT [ IDENT ]
-##
-## The known suffix of the stack is as follows:
-## constructor
-##
-
-expected the rest of the path after a dot
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE DOT YEAR
-##
-## Ends in an error in state: 102.
-##
-## small_expression -> small_expression DOT . option(terminated(constructor,DOT)) ident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## small_expression DOT
-##
-
-expected the name of the struct field of the expression before
-
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE INCREASING
-##
-## Ends in an error in state: 140.
-##
-## mult_expression -> mult_expression . mult_op unop_expression [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## sum_expression -> mult_expression . [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## mult_expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 63, spurious reduction of production primitive_expression -> small_expression
-## In state 65, spurious reduction of production base_expression -> primitive_expression
-## In state 122, spurious reduction of production unop_expression -> base_expression
-## In state 59, spurious reduction of production mult_expression -> unop_expression
-##
-
-expected an operator to compose the expression on the left
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WITH CONSTRUCTOR CONSTRUCTOR
-##
-## Ends in an error in state: 67.
-##
-## constructor_binding -> maybe_qualified_constructor . optional_binding [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## maybe_qualified_constructor
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 71, spurious reduction of production option(preceded(DOT,constructor)) ->
-## In state 74, spurious reduction of production maybe_qualified_constructor -> constructor option(preceded(DOT,constructor))
-##
-
-a enum constructor pattern should be followed by a payload
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WITH CONSTRUCTOR OF CONSTRUCTOR XOR
-##
-## Ends in an error in state: 69.
-##
-## optional_binding -> OF maybe_qualified_constructor . constructor_binding [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## OF maybe_qualified_constructor
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 71, spurious reduction of production option(preceded(DOT,constructor)) ->
-## In state 74, spurious reduction of production maybe_qualified_constructor -> constructor option(preceded(DOT,constructor))
-##
-
-unexpected expression following a function application with an enum constructor name
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WITH CONSTRUCTOR OF YEAR
-##
-## Ends in an error in state: 68.
-##
-## optional_binding -> OF . ident [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## optional_binding -> OF . maybe_qualified_constructor constructor_binding [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## OF
-##
-
-expecting an expression to stand in as the function argument
-
-source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WITH CONSTRUCTOR YEAR
-##
-## Ends in an error in state: 71.
-##
-## maybe_qualified_constructor -> constructor . option(preceded(DOT,constructor)) [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSTRUCTOR CONSEQUENCE COLON ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## constructor
-##
-
-the expression before ended, what follows next should be an operator or the rest of the code structure
-
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE YEAR
 ##
-## Ends in an error in state: 63.
+## Ends in an error in state: 211.
 ##
-## base_expression -> small_expression . OF base_expression [ XOR WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## primitive_expression -> small_expression . [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
-## small_expression -> small_expression . DOT option(terminated(constructor,DOT)) ident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COLON ASSERTION AND ALT ]
+## naked_expression -> naked_expression . DOT ident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . DOT constructor DOT ident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . OF naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . WITH constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . CONTAINS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . FOR ident AMONG naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . MULT naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . DIV naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . PLUS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . MINUS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . PLUSPLUS naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . compare_op naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . OR naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . XOR naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## naked_expression -> naked_expression . AND naked_expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON AND ]
+## scope_use_condition -> UNDER_CONDITION naked_expression . [ COLON ]
 ##
 ## The known suffix of the stack is as follows:
-## small_expression
+## UNDER_CONDITION naked_expression
 ##
 
 expected the function application operator
@@ -1359,7 +951,7 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION YEAR
 ##
 ## Ends in an error in state: 10.
 ##
-## scope_use_condition -> UNDER_CONDITION . expression [ COLON ]
+## scope_use_condition -> UNDER_CONDITION . naked_expression [ COLON ]
 ##
 ## The known suffix of the stack is as follows:
 ## UNDER_CONDITION
@@ -1393,7 +985,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 361.
+## Ends in an error in state: 351.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##

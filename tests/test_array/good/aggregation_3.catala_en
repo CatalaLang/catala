@@ -6,27 +6,27 @@ scope S:
     definition x equals 0
 
 # Map
-    assertion (i + 2) for i in [1; 2; 3] = [3; 4; 5]
+    assertion (i + 2) for i among [1; 2; 3] = [3; 4; 5]
 
 # Filter
-    assertion (i in [1; 2; 3] such that i >= 2) = [2; 3]
+    assertion (i among [1; 2; 3] such that i >= 2) = [2; 3]
 
 # Sum
     assertion sum integer of [1; 2; 3] = 6
-    assertion sum integer of (i + 2) for i in [1; 2; 3] = 12
+    assertion sum integer of (i + 2) for i among [1; 2; 3] = 12
 
 # Count
     assertion number of [1; 2; 3] = 3
-    assertion number of (i in [1; 2; 3] such that i >= 2) = 2
+    assertion (number of i among [1; 2; 3] such that i >= 2) = 2
 
 # Extremum
-    assertion maximum of [1; 2; 3] or if collection is empty then 10 = 3
-    assertion maximum of (decimal of i) for i in [1; 2; 3] or if collection is empty then 10. = 3.
+    assertion maximum of [1; 2; 3] or if collection empty then 10 = 3
+    assertion maximum of (decimal of i) for i among [1; 2; 3] or if collection empty then 10. = 3.
 
 # Arg extremum
-    assertion (i in [1; 2; 3]
+    assertion (i among [1; 2; 3]
                  such that decimal of ((2 - i) * (2 - i)) is minimum
-                 or if collection is empty then 42)
+                 or if collection empty then 42)
               = 2
 ```
 

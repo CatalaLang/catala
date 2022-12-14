@@ -173,6 +173,9 @@ module R = Re.Pcre
 #ifndef MR_IN
   #define MR_IN MS_IN
 #endif
+#ifndef MR_AMONG
+  #define MR_AMONG MS_AMONG
+#endif
 #ifndef MR_SUCH
   #define MR_SUCH MS_SUCH
 #endif
@@ -302,6 +305,7 @@ let token_list : (string * token) list =
     (MS_LET, LET);
     (MS_EXISTS, EXISTS);
     (MS_IN, IN);
+    (MS_AMONG, AMONG);
     (MS_SUCH, SUCH);
     (MS_THAT, THAT);
     (MS_AND, AND);
@@ -530,6 +534,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_IN ->
       L.update_acc lexbuf;
       IN
+  | MR_AMONG ->
+      L.update_acc lexbuf;
+      AMONG
   | MR_SUCH ->
       L.update_acc lexbuf;
       SUCH

@@ -264,7 +264,7 @@ n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette l822_5_2 exception r822_22_3 définition patrimoine_pris_en_compte
-  sous condition existe prestation dans ménage.prestations_reçues tel que
+  sous condition existe prestation parmi ménage.prestations_reçues tel que
     (prestation = AllocationSoutienEnfantHandicapé ou
      prestation = AllocationAdulteHandicapé)
   conséquence égal à 0€
@@ -867,7 +867,7 @@ d) Soit l'allocation de soutien familial mentionnée au 6° du même article ;
 champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_1 règle éligibilité_allocation_logement_familiale
   sous condition
-    existe prestation dans ménage.prestations_reçues tel que (
+    existe prestation parmi ménage.prestations_reçues tel que (
       prestation = PrestationReçue.AllocationsFamiliales ou
       prestation = PrestationReçue.ComplémentFamilial ou
       prestation = PrestationReçue.AllocationSoutienFamilial ou
@@ -888,7 +888,7 @@ champ d'application ÉligibilitéAllocationLogement:
   règle éligibilité_allocation_logement_familiale
   sous condition
     nombre de
-      (personne_à_charge dans ménage.personnes_à_charge tel que
+      (personne_à_charge parmi ménage.personnes_à_charge tel que
        (selon personne_à_charge sous forme
         -- AutrePersonneÀCharge: faux
         -- EnfantÀCharge de enfant: prestations_familiales.droit_ouvert de
@@ -920,7 +920,7 @@ champ d'application ÉligibilitéAllocationLogement:
   règle éligibilité_allocation_logement_familiale
   sous condition
     nombre de
-      (personne_à_charge dans ménage.personnes_à_charge tel que
+      (personne_à_charge parmi ménage.personnes_à_charge tel que
        (selon personne_à_charge sous forme
         -- AutrePersonneÀCharge: faux
         -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
@@ -958,7 +958,7 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_4 exception l841_1_3
   règle éligibilité_allocation_logement_familiale
   sous condition
-    nombre de (personne_à_charge dans ménage.personnes_à_charge
+    nombre de (personne_à_charge parmi ménage.personnes_à_charge
       tel que éligibilité_commune.condition_2_r823_4 de personne_à_charge)
     >= 1
   conséquence rempli
@@ -976,7 +976,7 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_4 exception l841_1_3
   règle éligibilité_allocation_logement_familiale
   sous condition
-    (nombre de (personne_à_charge dans ménage.personnes_à_charge tel que
+    (nombre de (personne_à_charge parmi ménage.personnes_à_charge tel que
       (selon personne_à_charge sous forme
       -- AutrePersonneÀCharge de parent:
         # Cela a l'air similaire au 3° du R823-4 code construction mais

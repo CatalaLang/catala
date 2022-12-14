@@ -17,8 +17,8 @@ declaration scope B:
 scope B:
    definition v equals number of a.x
    definition w equals a.x contains 64
-   definition y equals exists m in a.x such that m = 9
-   definition z equals for all m in a.x we have m > 0
+   definition y equals exists m among a.x such that m = 9
+   definition z equals for all m among a.x we have m > 0
 ```
 
 ```catala-test-inline

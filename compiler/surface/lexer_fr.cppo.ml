@@ -89,6 +89,7 @@
 #define MS_LET "soit"
 #define MS_EXISTS "existe"
 #define MS_IN "dans"
+#define MS_AMONG "parmi"
 #define MS_SUCH "tel"
 #define MS_THAT "que"
 #define MS_AND "et"

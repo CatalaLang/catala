@@ -148,7 +148,7 @@ champ d'application AllocationsFamiliales :
         # cas où l'enfant est pris en charge par les services sociaux et
         # la part de l'allocation va également au service social
         -- Zéro: 0,0)
-       pour enfant dans enfants_à_charge_droit_ouvert_prestation_familiale)
+       pour enfant parmi enfants_à_charge_droit_ouvert_prestation_familiale)
 ```
 
 Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du

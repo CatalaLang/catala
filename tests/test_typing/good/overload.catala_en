@@ -47,13 +47,14 @@ scope S:
   assertion o_m = -$m1 +$ m2 -$ m1 *$ x2 / (m1 *$ x1 /$ m2) +$ m1 / x2
   assertion o_d = -^d1 +^ d2 -^ d1 *^ i2
   assertion o_t = t1 +@ d1 +@ (t2 -@ t1) +@ d1
-  assertion o_b =
+  assertion o_b = (
     i1 <!  i2 and x1 <.  x2 and m1 <$  m2 and d1 <^  d2 and t1 <@  t2 and
     i1 <=! i2 and x1 <=. x2 and m1 <=$ m2 and d1 <=^ d2 and t1 <=@ t2 and
     not (
     i1 >!  i2 or  x1 >.  x2 or  m1 >$  m2 or  d1 >^  d2 or  t1 >@  t2 or
     i1 >=! i2 or  x1 >=. x2 or  m1 >=$ m2 or  d1 >=^ d2 or  t1 >=@ t2
     )
+  )
 ```
 
 ```catala-test-inline

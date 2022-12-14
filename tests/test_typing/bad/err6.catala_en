@@ -19,7 +19,7 @@ scope S:
 scope S2:
   definition sub.x equals 44.
   definition sub.y equals Int content 44
-  rule r under condition exists x in sub.z such that x.e with pattern Int
+  rule r under condition exists x among sub.z such that x.e with pattern Int
     consequence fulfilled
   definition a equals if r then Int content (number of sub.z) else Dec content 0.0
 ```
