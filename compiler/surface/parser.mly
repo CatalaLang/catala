@@ -62,7 +62,7 @@ let typ_base :=
 | TEXT ; { Text }
 | DECIMAL ; { Decimal }
 | DATE ; { Date }
-| c = CONSTRUCTOR ; <Named>
+| c = UIDENT ; <Named>
 
 let typ :=
 | t = typ_base ; <Primitive>
@@ -85,7 +85,7 @@ let expression ==
 let naked_expression :=
 
 (* let atomic_expression := *)
-| q = IDENT ; {
+| q = LIDENT ; {
     (match Localisation.lex_builtin q with
      | Some b -> Builtin b
      | None -> Ident q)
@@ -111,7 +111,7 @@ let naked_expression :=
 | MONEY ; {
   Builtin ToMoney
 }
-| LSQUARE ; l = separated_list(SEMICOLON, expression) ; RSQUARE ; {
+| LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ; {
   ArrayLit l
 }
 
@@ -265,9 +265,9 @@ let struct_or_enum_inject ==
 }
 | _ = path ;
   c = constructor ;
-  LBRACKET ;
+  LBRACE ;
   fields = nonempty_list(preceded(ALT, struct_content_field)) ;
-  RBRACKET ; {
+  RBRACE ; {
   StructLit(c, fields)
 }
 
@@ -292,7 +292,7 @@ let literal :=
     money_amount_cents = cents;
   }
 }
-| VERTICAL ; d = DATE_LITERAL ; VERTICAL ; {
+| BAR ; d = DATE_LITERAL ; BAR ; {
   let (y,m,d) = d in
   LDate {
     literal_date_year = y;
@@ -313,9 +313,9 @@ let compare_op :=
 
 let scope_call_args ==
 | WITH_V ;
-  LBRACKET ;
+  LBRACE ;
   fields = list(preceded (ALT, struct_content_field)) ;
-  RBRACKET ; {
+  RBRACE ; {
   fields
 }
 
@@ -485,7 +485,7 @@ let scope_item :=
 }
 
 let ident :=
-| i = IDENT ; {
+| i = LIDENT ; {
  match Localisation.lex_builtin i with
  | Some _ ->
      Errors.raise_spanned_error
@@ -624,7 +624,7 @@ let enum_decl_line :=
 }
 
 let constructor :=
-| ~ = addpos(CONSTRUCTOR) ; <>
+| ~ = addpos(UIDENT) ; <>
 
 let scope_use_condition :=
 | UNDER_CONDITION ; e = expression ; <>

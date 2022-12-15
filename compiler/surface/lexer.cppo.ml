@@ -677,19 +677,19 @@ let rec lex_code (lexbuf : lexbuf) : token =
       RPAREN
   | '{' ->
       L.update_acc lexbuf;
-      LBRACKET
+      LBRACE
   | '}' ->
       L.update_acc lexbuf;
-      RBRACKET
+      RBRACE
   | '[' ->
       L.update_acc lexbuf;
-      LSQUARE
+      LBRACKET
   | ']' ->
       L.update_acc lexbuf;
-      RSQUARE
+      RBRACKET
   | '|' ->
       L.update_acc lexbuf;
-      VERTICAL
+      BAR
   | ':' ->
       L.update_acc lexbuf;
       COLON
@@ -708,11 +708,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | uppercase, Star (uppercase | lowercase | digit | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;
-      CONSTRUCTOR (Utf8.lexeme lexbuf)
+      UIDENT (Utf8.lexeme lexbuf)
   | lowercase, Star (lowercase | uppercase | digit | '_' | '\'') ->
       (* Name of variable *)
       L.update_acc lexbuf;
-      IDENT (Utf8.lexeme lexbuf)
+      LIDENT (Utf8.lexeme lexbuf)
   | Opt '-', Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;
