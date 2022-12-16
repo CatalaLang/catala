@@ -3,7 +3,7 @@
 FROM ocamlpro/ocaml:4.14-2022-07-17 AS dev-build-context
 
 # pandoc is not in alpine stable yet, install it manually with an explicit repository
-RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
 RUN mkdir catala
 WORKDIR catala
