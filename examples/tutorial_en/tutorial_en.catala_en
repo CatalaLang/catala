@@ -429,7 +429,7 @@ scope Test1:
   definition income_tax equals tax_computation.income_tax
   # Next, we retrieve the income tax value compute it by the subscope and
   # assert that it is equal to the expected value :
-  # ($230,000-100,00)*40%+100,000*20% = $72,000
+  # ($230,000-100,000)*40%+100,000*20% = $72,000
   assertion income_tax = $72,000
 ```
 
