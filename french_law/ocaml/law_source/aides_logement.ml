@@ -22979,8 +22979,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=4684; start_column=6;
-                      end_line=4690; end_column=6;
+                      start_line=4684; start_column=5;
+                      end_line=4690; end_column=7;
                       law_headings=["Article D842-12";
                                      "Section 2 : Accession à la propriété";
                                      "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement";
@@ -24654,8 +24654,8 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                             with
                             EmptyError -> (raise (NoValueProvided
                               {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                start_line=1443; start_column=16;
-                                end_line=1446; end_column=39;
+                                start_line=1443; start_column=15;
+                                end_line=1446; end_column=40;
                                 law_headings=["Article D823-9";
                                                "Section 1 : Calcul, liquidation et versement des aides";
                                                "Chapitre III : Modalités de liquidation et de versement";
@@ -25362,8 +25362,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                      start_line=2057; start_column=6;
-                      end_line=2067; end_column=75;
+                      start_line=2057; start_column=5;
+                      end_line=2068; end_column=6;
                       law_headings=["Article D823-20";
                                      "Section 2 : Prime de déménagement";
                                      "Chapitre III : Modalités de liquidation et de versement";
@@ -27723,8 +27723,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                             with
                             EmptyError -> (raise (NoValueProvided
                               {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                start_line=1527; start_column=16;
-                                end_line=1530; end_column=39;
+                                start_line=1527; start_column=15;
+                                end_line=1530; end_column=40;
                                 law_headings=["Article D823-9";
                                                "Section 1 : Calcul, liquidation et versement des aides";
                                                "Chapitre III : Modalités de liquidation et de versement";
@@ -28270,8 +28270,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                             with
                             EmptyError -> (raise (NoValueProvided
                               {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
-                                start_line=1559; start_column=16;
-                                end_line=1562; end_column=39;
+                                start_line=1559; start_column=15;
+                                end_line=1562; end_column=40;
                                 law_headings=["Article D823-9";
                                                "Section 1 : Calcul, liquidation et versement des aides";
                                                "Chapitre III : Modalités de liquidation et de versement";

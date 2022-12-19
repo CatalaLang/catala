@@ -99,7 +99,6 @@
 #define MS_NOT "non"
 #define MS_MAXIMUM "maximum"
 #define MS_MINIMUM "minimum"
-#define MS_MAP "application"
 #define MS_IS "est"
 #define MS_EMPTY "vide"
 #define MS_CARDINAL "nombre"

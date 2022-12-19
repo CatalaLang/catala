@@ -79,7 +79,6 @@
 #define MS_NOT "not"
 #define MS_MAXIMUM "maximum"
 #define MS_MINIMUM "minimum"
-#define MS_MAP "map"
 #define MS_IS "is"
 #define MS_EMPTY "empty"
 #define MS_CARDINAL "number"

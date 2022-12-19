@@ -42,7 +42,7 @@ end>
 %nonassoc compare_expr GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left sum_expr PLUS MINUS PLUSPLUS
 %left mult_expr MULT DIV
-%right apply OF CONTAINS FOR WITH
+%right apply OF CONTAINS FOR SUCH WITH
 %right unop_expr
 %right CONTENT
 %left DOT
@@ -240,6 +240,12 @@ let naked_expression :=
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
   CollectionOp (Filter {f = i, f}, coll)
+} %prec top_expr
+| fmap = expression ;
+  FOR ; i = ident ;
+  AMONG ; coll = expression ;
+  SUCH ; THAT ; ffilt = expression ; {
+  CollectionOp (Map {f = i, fmap}, (CollectionOp (Filter {f = i, ffilt}, coll), Pos.from_lpos $loc))
 } %prec top_expr
 | i = ident ;
   AMONG ; coll = expression ;
@@ -609,18 +615,14 @@ let scope_decl_item :=
   }, Pos.from_lpos $sloc
 }
 
-let enum_decl_line_payload ==
-| CONTENT ; t = addpos(typ) ; {
-  let (t, t_pos) = t in (Base (Data t), t_pos)
-}
-
 let enum_decl_line :=
 | ALT ; c = constructor ;
-  t = option(enum_decl_line_payload) ; {
-  ({
+  t = option(preceded(CONTENT,addpos(typ))) ; {
+  {
     enum_decl_case_name = c;
-    enum_decl_case_typ = t;
-  }, Pos.from_lpos $sloc)
+    enum_decl_case_typ =
+      Option.map (fun (t, t_pos) ->  Base (Data t), t_pos) t;
+  }, Pos.from_lpos $sloc
 }
 
 let constructor :=

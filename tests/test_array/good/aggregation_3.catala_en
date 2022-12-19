@@ -10,6 +10,7 @@ scope S:
 
 # Filter
     assertion (i among [1; 2; 3] such that i >= 2) = [2; 3]
+    assertion ((i + 2) for i among [1; 2; 3] such that i > 2) = [5]
 
 # Sum
     assertion sum integer of [1; 2; 3] = 6
@@ -53,6 +54,8 @@ let scope S (x: integer|internal|output) =
   assert reduce (λ (x1: integer) (x2: integer) → x1 +! x2) 0
            map (λ (i: integer) → i +! 2) [1; 2; 3] = 12;
   assert reduce (λ (x1: integer) (x2: integer) → x1 +! x2) 0 [1; 2; 3] = 6;
+  assert map (λ (i: integer) → i +! 2)
+           filter (λ (i: integer) → i >! 2) [1; 2; 3] = [5];
   assert filter (λ (i: integer) → i >=! 2) [1; 2; 3] = [2; 3];
   assert map (λ (i: integer) → i +! 2) [1; 2; 3] = [3; 4; 5]
 ```
