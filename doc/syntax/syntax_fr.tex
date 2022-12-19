@@ -17,10 +17,9 @@
 \usepackage{enumitem}
 \usepackage{minted}
 \usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
-\usepackage{fancyhdr}
-\usepackage{hyperref}
+\usepackage{fancyhdr}\usepackage{hyperref}
 
-\usemintedstyle{manni}
+\usemintedstyle{tango}
 
 \setlist[itemize]{noitemsep, topsep=0pt}
 
@@ -84,25 +83,27 @@
 \pagestyle{fancy}
 \newcommand{\makeheader}[3]{
   \fancyhead[L]{
-    \begin{minipage}{150pt}
-     \includegraphics[width=24mm]{by-sa.pdf}
+    \begin{minipage}{30pt}
+      \vspace{-3pt}
+     \includegraphics[width=\textwidth]{logo.pdf}
     \end{minipage}
   }
   \fancyhead[C]{
-   \LARGE{\bfseries #1}
+   \LARGE{#1}
   }
   \fancyhead[R]{
    {\scriptsize
-    #2 $\cdot$ Revision \#1 \copyright\ \the\year$\quad$
-    \begin{minipage}{30pt}
-     \vspace{-3pt}
-     \includegraphics[width=\textwidth]{logo.pdf} %defined at bottom
-    \end{minipage}
+    #2 $\cdot$ Révision \#1 $\cdot$ \copyright\ \the\year$\quad$
+    %% \begin{minipage}{30pt}
+    %%  \vspace{-3pt}
+    %%  \includegraphics[width=\textwidth]{logo.pdf} %defined at bottom
+    %% \end{minipage}
    }}
   \fancyfoot[L]{}
   \fancyfoot[C]{}
   \fancyfoot[R]{}
 }
+\renewcommand\headrule{}
 
 \newenvironment{absolutelynopagebreak}
   {\par\nobreak\vfil\penalty0\vfilneg
@@ -137,8 +138,8 @@
 \makeatletter
 \renewcommand{\section}{\@startsection{section}{1}{0mm}%
                                 {-1ex plus -.5ex minus -.2ex}%
-                                {0.5ex}%
-                                {\normalfont\large\bfseries}}
+                                {1ex}%
+                                {\normalfont\articlenormalsize\bfseries}}
 \renewcommand{\subsection}{\@startsection{subsection}{2}{4mm}%
                                 {-1ex}%
                                 {0.5ex}%
@@ -164,22 +165,13 @@
 \newenvironment{catala}{%
   \VerbatimEnvironment
   \let\FV@ListVSpace\relax
-  \begin{minted}[autogobble]{catala_en}}%
- {\end{minted}}
-\makeatother
-
-% https://github.com/gpoore/minted/issues/82
-\makeatletter
-\newenvironment{catala-expr}{%
-  \VerbatimEnvironment
-  \let\FV@ListVSpace\relax
-  \begin{minted}[autogobble,firstline=2,escapeinside=||]{catala_en}}%
+  \begin{minted}[autogobble]{catala_fr}}%
  {\end{minted}}
 \makeatother
 
 \begin{document}
 
-\makeheader{The Catala Syntax \hspace{2em}\small english version}{v0.8.0}{1}
+\makeheader{\MakeUppercase{La syntaxe de Catala} \hspace{2em}\small version française}{v0.8.0}{1}
 % warning: this is repeated for p.2
 % \begin{center}
 %   2022-12-15
@@ -190,7 +182,7 @@
 %   v.0.8.0
 % \end{center}
 % \hrule
-
+\null
 \begin{multicols}{3}
 
 \newlength\cola
@@ -200,482 +192,499 @@
 
 
 
-\section{Literate programming}
+\section{Programmation littéraire}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Heading & \begin{catala}
-    # Title
-    ### Sub-subtitle
+  En-têtes & \begin{catala}
+    # Titre
+    ### Sous-sous-titre
   \end{catala}
   \\
-  Code block &
+  Référence au journal officiel & \begin{catala}
+    # Article 1 | JORFARTI000012345678
+  \end{catala}
+  \\
+  Bloc de code &
   \begin{catala}
     ```catala
     ```
   \end{catala}
   \\
-  Metadata block & \begin{catala}
+  Bloc de métadonnées & \begin{catala}
     ```catala-metadata
     ```
   \end{catala}
   \\
-  File inclusion & \begin{catala}
-    > Include: foo.catala_en
+  Inclusion de fichier & \begin{catala}
+    > Inclusion: foo.catala_en
   \end{catala}
   \\
 \end{tabular}
 
-%% \newcommand*\FancyVerbStartString{```catala}
-\newcommand*\FancyVerbStopString{```}
+\newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
+\newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
 
-
-\section{Types and literals}
+\section{Types et littéraux}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    boolean
+    booléen
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    true        false
+    vrai        faux
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    integer
+    entier
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
     65536
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    decimal
+    décimal
     ```
-  \end{catala-expr}
-  & \begin{catala-expr}
+  \end{catala}
+  & \begin{catala}
       ```catala
-      65536.262144        37%
+      65536,262144        37%
       ```
-    \end{catala-expr}
+    \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    money
+    argent
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    $1,234,567.89
+    1 234 567,89€
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
     date
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    ||2021-01-31||
+    |2021-01-31|
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    duration
+    durée
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    254 day 4 month 1 year
+    254 jour 4 mois 1 an
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    collection integer
+    collection entier
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
     [ 12; 24; 36 ]
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    decimal depends on money
+    décimal dépend de argent
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    f of x equals x / $12.0
+    f de x égale à x / 12,0€
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
     Struct1
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    Struct1 { -- fld1: 9 -- fld2: false }
+    Struct1 { -- chp1: 9 -- chp2: faux }
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    Enum1
+    Énum1
     ```
-  \end{catala-expr}
+  \end{catala}
   &
-  \begin{catala-expr}
+  \begin{catala}
     ```catala
-    Case1 content 12        Case2
+    Cas1 contenu 12        Cas2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
 \end{tabular}
 
 \section{Expressions}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Local definition & \begin{catala-expr}
+  Définition locale & \begin{catala}
     ```catala
-    let x equals 36 - 5 in ...
+    soit x égale à 36 - 5 dans ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Pattern matching & \begin{catala-expr}
+  Filtrage par motif & \begin{catala}
     ```catala
-    match expr with pattern
-    -- Case1 of x: ...
-    -- Case2 : ...
+    selon expr sous forme
+    -- Cas1 de x: ...
+    -- Cas2 : ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Pattern test and optional binding & \begin{catala-expr}
+  Test de filtrage\newline avec variable optionnelle & \begin{catala}
     ```catala
-    expr with pattern Case1
-    expr with pattern Case1 of x
-              and x >= 2
+    expr sous forme Cas1
+    expr sous forme Cas1 de x
+              et x >= 2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Structure field access & \begin{catala-expr}
+  Champ de structure & \begin{catala}
     ```catala
-    struc1.fld2
+    struc1.chp2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Function call & \begin{catala-expr}
+  Appel de fonction & \begin{catala}
     ```catala
-    f of $44.50
+    f de 44,50€
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Subscope variable & \begin{catala-expr}
+  Var. de sous-ch. d'app. & \begin{catala}
     ```catala
-    sub1.var0
+    ss_ch1.var0
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Direct scope call & \begin{catala-expr}
+  Appel direct\newline du champ d'application & \begin{catala}
     ```catala
-    outut of Scope1
-      with { -- fld1: 9 -- fld2: true }
+    résultat de ChApp1
+      avec { -- chp1: 9 -- chp2: vrai }
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Conditional & \begin{catala-expr}
+  Branchement conditionnel & \begin{catala}
     ```catala
-    if ... then ... else ...
+    si ... alors ... sinon ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
 \end{tabular}
 
-\section{Metadata declaration}
+\section{Déclaration des métadonnées}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
 
-  Structure declaration &
-  \begin{catala-expr}
+  Déclaration de structure &
+  \begin{catala}
     ```catala
-    declaration structure Struct1:
-      data fld1 content integer
-      data fld2 content boolean
-  \end{catala-expr}
+    déclaration structure Struct1:
+      donnée chp1 contenu entier
+      donnée chp2 contenu booléen
+  \end{catala}
   \\
-  Enumeration declaration & \begin{catala-expr}
+  Déclaration d'énumération & \begin{catala}
     ```catala
-    declaration enumeration Enum1:
-      -- Case1 content integer
-      -- Case2
+    déclaration énumeration Énum1:
+      -- Cas1 contenu entier
+      -- Cas2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Scope declaration & \begin{catala-expr}
+  Déclaration de champ\newline d'application & \begin{catala}
     ```catala
-    declaration scope Scope1:
-      internal var1 content integer
-      internal var2 condition
-      sub1 scope Scope0
+    déclaration champ d'application ChApp1:
+      interne var1 contenu entier
+      interne var2 condition
+      ss_ch1 champ d'application ChApp0
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Input-output qualifiers & \begin{catala-expr}
+  Qualificateurs d'entrée-\newline sortie & \begin{catala}
     ```catala
-      internal var1 content ...
-      output var3 content ...
-      input var4 content ...
-      input output var5 content ...
-      context var6 content ...
-      context output var7 content ...
+      interne var1 contenu ...
+      résultat var3 contenu ...
+      entrée var4 contenu ...
+      entrée résultat var5 contenu ...
+      contexte var6 contenu ...
+      contexte résultat var7 contenu ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  State transitions declaration & \begin{catala-expr}
+  Transitions d'état & \begin{catala}
     ```catala
-    internal var1 content ...
-      state before_f
-      state after_f
+    interne var1 contenu ...
+      état avant
+      état après
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
 \end{tabular}
 
-\section{Operators and built-ins}
+\section{Opérations}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Logical operators & \begin{catala-expr}
+  Opérateurs logiques & \begin{catala}
     ```catala
-    not a
-    a and b
-    a or b    # "or otherwise"
-    a xor b   # exclusive or
+    non a
+    a et b
+    a ou b        # "ou à défaut"
+    a ou bien b   # ou exclusif
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Arithmetic & \begin{catala-expr}
+  Arithmétique & \begin{catala}
     ```catala
     - a
     a + b        a - b
     a * b        a / b
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Comparison &
-  \begin{catala-expr}
+  Comparaisons &
+  \begin{catala}
     ```catala
     a = b        a != b
     a > b        a < b
     a >= b       a <= b
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Conversions & \begin{catala-expr}
+  Conversions & \begin{catala}
     ```catala
-    decimal of 44
-    money of 23.15
+    décimal de 44
+    argent de 23,15
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Rounding & \begin{catala-expr}
+  Arrondis & \begin{catala}
     ```catala
-    round of $9.99
+    arrondi de 9,99€
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Date parts & \begin{catala-expr}
+  Éléments de dates & \begin{catala}
     ```catala
-    get_day of ...
-    get_month of ...
-    get_year of ...
+    accès_jour de ...
+    accès_mois de ...
+    accès_année de ...
     ```
-  \end{catala-expr}
+  \end{catala}
+  \\
+  Opérateurs à types\newline explicites &
+  \begin{catala}
+    ```catala
+    a +! b    # entier
+    a +. b    # décimal
+    a +€ b    # argent
+    a +^ b    # durée
+    ```
+  \end{catala}
   \\
 \end{tabular}
 
 \columnbreak
 
-\section{Scope definition}
+\section{Définition de champ d'application}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Scope use & \begin{catala-expr}
+  Utilisation & \begin{catala}
     ```catala
-    scope Scope1: ...
+    champ d'application ChApp1: ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Use-wide condition & \begin{catala-expr}
+  Avec condition générale & \begin{catala}
     ```catala
-    scope Scope1
-      under condition var1 >= 2: ...
+    champ d'application ChApp1
+      sous condition var1 >= 2: ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Unconditional definition & \begin{catala-expr}
+  Définition inconditionnelle & \begin{catala}
     ```catala
-    definition var1 equals ...
+    définition var1 égale à ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Conditional definition & \begin{catala-expr}
+  Définition conditionnelle& \begin{catala}
     ```catala
-    definition var1
-      under condition ...
-      consequence equals ...
+    définition var1
+      sous condition ...
+      conséquence égale à ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Rule\newline(definition for conditions) & \begin{catala-expr}
+  Règle\newline(définition de condition) & \begin{catala}
     ```catala
-    rule var2
-      under condition var1 >= 2
-      consequence fulfilled
+    règle var2
+      sous condition var1 >= 2
+      conséquence rempli
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Negative rule & \begin{catala-expr}
+  Règle négative & \begin{catala}
     ```catala
-    rule var2
-      under condition var1 = 0
-      consequence not fulfilled
+      conséquence non rempli
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Function definition/rule & \begin{catala-expr}
+  Définition de fonction/règle & \begin{catala}
     ```catala
-    definition f of x equals ...
+    définition f de x égale à ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Labeled definition or rule & \begin{catala-expr}
+  Définition/règle étiquetée & \begin{catala}
     ```catala
-    label lbl1 definition var1 ...
+    étiquette étq1 définition var1 ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Exception to label & \begin{catala-expr}
+  Exc. à définition étiquetée & \begin{catala}
     ```catala
-    exception lbl1 definition var1 ...
+    exception étq1 définition var1 ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Exception to implicit & \begin{catala-expr}
+  Exception à implicite & \begin{catala}
     ```catala
-    exception definition var1 ...
+    exception définition var1 ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  State definition & \begin{catala-expr}
+  Définition d'états & \begin{catala}
     ```catala
-    definition var1
-      state before_f
-      equals ...
+    définition var1
+      état avant
+      égale à ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Assertion & \begin{catala-expr}
+  Assertion & \begin{catala}
     ```catala
     assertion ...
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
 \end{tabular}
 
-\section{Collection operations}
+\section{Opérations sur les collections}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
   
-  Presence test & \begin{catala-expr}
+  Test de présence& \begin{catala}
     ```catala
-    coll contains 3
+    coll contient 3
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Cardinal & \begin{catala-expr}
+  Cardinal & \begin{catala}
     ```catala
-    number of coll
+    nombre de coll
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Existence test & \begin{catala-expr}
+  Test d'existence & \begin{catala}
     ```catala
-    exists x among coll such that x >= 2
+    existe x parmi coll tel que x >= 2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  For all test & \begin{catala-expr}
+  Test pour tous & \begin{catala}
     ```catala
-    for all x among coll we have x >= 2
+    pour tout x parmi coll on a x >= 2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Map & \begin{catala-expr}
+  Application un-à-un & \begin{catala}
     ```catala
-    (x + 2) for x among coll
+    (x + 2) pour x parmi coll
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Filter & \begin{catala-expr}
+  Filtrage & \begin{catala}
     ```catala
-    x among coll such that x >= 2
+    x parmi coll tel que x >= 2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Merge & \begin{catala-expr}
+  Filtrage + application & \begin{catala}
+    ```catala
+    (x - 2) pour x parmi coll
+            tel que x >= 2
+    ```
+  \end{catala}
+  \\
+  Réunion & \begin{catala}
     ```catala
     coll1 ++ coll2
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Aggregation & \begin{catala-expr}
+  Aggrégation & \begin{catala}
     ```catala
-    sum integer coll
+    somme entier coll
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Count & \begin{catala-expr}
+  Comptage & \begin{catala}
     ```catala
-    number of coll
+    nombre de coll
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Extremum & \begin{catala-expr}
+  Extremums & \begin{catala}
     ```catala
-    maximum of coll
-      or if collection empty then -1
+    maximum de coll
+      ou si collection vide alors -1
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
-  Arg-extremum & \begin{catala-expr}
+  Élément selon extremum & \begin{catala}
     ```catala
-    x among coll
-      such that (x * x) is minimum
-      or if collection empty then -1
+    x parmi coll
+      tel que (x * x) est minimum
+      ou si collection vide alors -1
     ```
-  \end{catala-expr}
+  \end{catala}
   \\
 \end{tabular}
 
 \end{multicols}
-\vfill
 \end{document}
