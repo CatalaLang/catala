@@ -561,10 +561,12 @@ let rec translate_expr
         [TAny, pos]
         pos
     in
-    let v1, v2 = Var.make "x1", Var.make "x2" in
+    let param_name = Bindlib.name_of param in
+    let v1, v2 = Var.make (param_name ^ "_1"), Var.make (param_name ^ "_2") in
     let x1 = Expr.make_var v1 emark in
     let x2 = Expr.make_var v2 emark in
     let reduce_f =
+      (* fun x1 x2 -> cmp_op (pred x1) (pred x2) *)
       (* Note: this computes f_pred twice on every element, but we'd rather not
          rely on returning tuples here *)
       Expr.make_abs [| v1; v2 |]
@@ -618,7 +620,9 @@ let rec translate_expr
     let default = translate_expr scope inside_definition_of ctxt default in
     let op = translate_binop (if max then S.Gt KPoly else S.Lt KPoly) pos in
     let op_f =
-      let v1, v2 = Var.make "x1", Var.make "x2" in
+      (* fun x1 x2 -> if op x1 x2 then x1 else x2 *)
+      let vname = if max then "max" else "min" in
+      let v1, v2 = Var.make (vname ^ "1"), Var.make (vname ^ "2") in
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
@@ -645,9 +649,10 @@ let rec translate_expr
           SurfacePrint.format_primitive_typ t
     in
     let op_f =
+      (* fun x1 x2 -> op x1 x2 *)
       (* we're not allowed pass the operator directly as argument, it must
          appear inside an [EApp] *)
-      let v1, v2 = Var.make "x1", Var.make "x2" in
+      let v1, v2 = Var.make "sum1", Var.make "sum2" in
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]

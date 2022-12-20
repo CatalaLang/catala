@@ -83,8 +83,6 @@ let expression ==
 | e = addpos(naked_expression) ; { (e: expression) }
 
 let naked_expression :=
-
-(* let atomic_expression := *)
 | q = LIDENT ; {
     (match Localisation.lex_builtin q with
      | Some b -> Builtin b
@@ -94,9 +92,6 @@ let naked_expression :=
   Literal l
 }
 | LPAREN ; e = expression ; RPAREN ; <Marked.unmark>
-
-(* let small_expression :=
- * | ~ = atomic_expression ; <> *)
 | e = expression ;
   DOT ; c = path ;
   i = ident ; {
@@ -114,13 +109,7 @@ let naked_expression :=
 | LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ; {
   ArrayLit l
 }
-
-(* let primitive_expression :=
- * | ~ = small_expression ; <> *)
 | e = struct_or_enum_inject ; <>
-
-(* let base_expression :=
- * | ~ = primitive_expression ; <> *)
 | e1 = expression ;
   OF ;
   e2 = expression ; {
@@ -156,58 +145,34 @@ let naked_expression :=
   default = expression ; {
   CollectionOp (AggregateExtremum { max; default }, coll)
 } %prec apply
-
-(* let unop_expression :=
- * | ~ = base_expression ; <> *)
 | op = unop ; e = expression ; {
   Unop (op, e)
 } %prec unop_expr
-
-(* let mult_expression :=
- * | ~ =  unop_expression ; <> *)
 | e1 = expression ;
   binop = mult_op ;
   e2 = expression ; {
   Binop (binop, e1, e2)
 } %prec mult_expr
-
-(* let sum_expression :=
- * | ~ = mult_expression ; <> *)
 | e1 = expression ;
   binop = sum_op ;
   e2 = expression ; {
   Binop (binop, e1, e2)
 } %prec sum_expr
-
-(* let compare_expression :=
- * | ~ = sum_expression ; <> *)
 | e1 = expression ;
   binop = compare_op ;
   e2 = expression ; {
   Binop (binop, e1, e2)
 } %prec compare_expr
-
-(* let logical_atom :=
- * | ~ = compare_expression ; <> *)
-
-(* let logical_or_expression :=
- * | ~ = logical_atom ; <> *)
 | e1 = expression ;
   binop = logical_or_op ;
   e2 = expression ; {
   Binop (binop, e1, e2)
 } %prec logical_or_expr
-
-(* let logical_expression :=
- * | ~ = logical_or_expression ; <> *)
 | e1 = expression ;
   binop = logical_and_op ;
   e2 = expression ; {
   Binop (binop, e1, e2)
 } %prec logical_expr
-
-(* let let_expression :=
- * | ~ = logical_expression ; <> *)
 | EXISTS ; i = ident ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; predicate = expression ; {
@@ -233,9 +198,6 @@ let naked_expression :=
   IN ; e2 = expression ; {
   LetIn (id, e1, e2)
 } %prec let_expr
-
-(* let expression :=
- * | ~ = let_expression ; <> *)
 | i = ident ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
@@ -427,7 +389,7 @@ let exception_to :=
 }
 
 let definition :=
-| label = option(label); 
+| label = option(label);
   except = option(exception_to) ;
   DEFINITION ;
   name = addpos(qident) ;
@@ -708,7 +670,7 @@ let source_file_item :=
   END_DIRECTIVE ; {
   let filename = String.trim (String.concat "" args) in
   let pos = Pos.from_lpos $sloc in
-  let jorftext = Re.Pcre.regexp "JORFTEXT\\d; {12}" in
+  let jorftext = Re.Pcre.regexp "JORFTEXT\\d{12}" in
   if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
     LawInclude (Ast.LegislativeText (filename, pos))
   else if Filename.extension filename = ".pdf" || page <> None then

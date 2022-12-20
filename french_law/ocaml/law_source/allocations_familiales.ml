@@ -404,15 +404,19 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
             o_reduce
-              (fun (x1_: Enfant.t) (x2_: Enfant.t) ->
+              (fun (potentiel_plus_age_1_: Enfant.t)
+                 (potentiel_plus_age_2_: Enfant.t) ->
                   if
-                   (o_lt_dat_dat (let potentiel_plus_age_ : Enfant.t = x1_
+                   (o_lt_dat_dat
+                      (let potentiel_plus_age_ : Enfant.t =
+                         potentiel_plus_age_1_
                       in
                       (potentiel_plus_age_.Enfant.date_de_naissance))
-                      (let potentiel_plus_age_ : Enfant.t = x2_
+                      (let potentiel_plus_age_ : Enfant.t =
+                         potentiel_plus_age_2_
                       in
                       (potentiel_plus_age_.Enfant.date_de_naissance))) then
-                   x1_ else x2_)
+                   potentiel_plus_age_1_ else potentiel_plus_age_2_)
               ({Enfant.identifiant = (integer_of_string "-1");
                   Enfant.obligation_scolaire =
                     (SituationObligationScolaire.Pendant ());
@@ -2837,8 +2841,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                              "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
             o_reduce
-              (fun (x1_: decimal) (x2_: decimal) -> o_add_rat_rat x1_ x2_)
-              (decimal_of_string "0.")
+              (fun (sum1_: decimal) (sum2_: decimal) ->
+                 o_add_rat_rat sum1_ sum2_) (decimal_of_string "0.")
               (o_map
                  (fun (enfant_: Enfant.t) ->
                     match ((log_end_call
@@ -5027,8 +5031,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
          (fun (_: unit) ->
              if droit_ouvert_base_ then
               (o_reduce
-                 (fun (x1_: money) (x2_: money) -> o_add_mon_mon x1_ x2_)
-                 (money_of_cents_string "0")
+                 (fun (sum1_: money) (sum2_: money) ->
+                    o_add_mon_mon sum1_ sum2_) (money_of_cents_string "0")
                  (o_map
                     (fun (enfant_: Enfant.t) -> (log_end_call
                        ["AllocationsFamiliales";

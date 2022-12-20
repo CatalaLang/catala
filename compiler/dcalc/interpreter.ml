@@ -111,6 +111,7 @@ let rec handle_eq ctx pos e1 e2 =
     with Invalid_argument _ -> false)
   | _, _ -> false (* comparing anything else return false *)
 
+(* Call-by-value: the arguments are expected to be already evaluated here *)
 and evaluate_operator :
     type k.
     decl_ctx ->
@@ -172,9 +173,7 @@ and evaluate_operator :
                  evaluate_expr ctx
                    (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
                es)
-        | Reduce, [f; default; (EArray [], _)] ->
-          ignore (evaluate_expr ctx f);
-          Marked.unmark (evaluate_expr ctx default)
+        | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
         | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
           Marked.unmark
             (List.fold_left

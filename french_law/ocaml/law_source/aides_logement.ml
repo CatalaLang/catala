@@ -2402,8 +2402,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                        (o_div_rat_rat
                           (o_add_rat_rat
                              (o_reduce
-                                (fun (x1_: decimal) (x2_: decimal) ->
-                                   o_add_rat_rat x1_ x2_)
+                                (fun (sum1_: decimal) (sum2_: decimal) ->
+                                   o_add_rat_rat sum1_ sum2_)
                                 (decimal_of_string "0.")
                                 (o_map
                                    (fun (tranche_: TrancheRevenuDecimal.t) ->
@@ -2460,8 +2460,9 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                (o_div_rat_rat
                   (o_add_rat_rat
                      (o_reduce
-                        (fun (x1_: decimal) (x2_: decimal) ->
-                           o_add_rat_rat x1_ x2_) (decimal_of_string "0.")
+                        (fun (sum1_: decimal) (sum2_: decimal) ->
+                           o_add_rat_rat sum1_ sum2_)
+                        (decimal_of_string "0.")
                         (o_map
                            (fun (tranche_: TrancheRevenuDecimal.t) ->
                                if
@@ -16091,7 +16092,8 @@ let ressources_aides_personnelle_logement (ressources_aides_personnelle_logement
                              "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
-            o_reduce (fun (x1_: money) (x2_: money) -> o_add_mon_mon x1_ x2_)
+            o_reduce
+              (fun (sum1_: money) (sum2_: money) -> o_add_mon_mon sum1_ sum2_)
               (money_of_cents_string "0")
               (o_map
                  (fun (personne_: PersonneVivantHabituellementAuFoyer.t) ->
@@ -29710,8 +29712,9 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
                         calculette_sans_garde_alternee_dot_aide_finale_formule_)
                      (o_div_rat_rat
                         (o_reduce
-                           (fun (x1_: decimal) (x2_: decimal) ->
-                              o_add_rat_rat x1_ x2_) (decimal_of_string "0.")
+                           (fun (sum1_: decimal) (sum2_: decimal) ->
+                              o_add_rat_rat sum1_ sum2_)
+                           (decimal_of_string "0.")
                            coefficents_enfants_garde_alternee_pris_en_compte_)
                         (o_torat_int
                            (o_length
