@@ -850,8 +850,8 @@ sur le revenu.
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   exception définition ressources_prises_en_compte sous condition
-     mode_occupation sous forme Locataire ou
-     mode_occupation sous forme RésidentLogementFoyer et
+     (mode_occupation sous forme Locataire ou
+      mode_occupation sous forme RésidentLogementFoyer) et
      condition_âge_bourse_enseignement_supérieur et
      demandeur_poursuit_des_études
   conséquence égal à ressources_forfaitaires_r822_20

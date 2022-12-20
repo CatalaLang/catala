@@ -2853,8 +2853,8 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
                             _ = match_arg_1.value
                             return ((decimal_of_money(ressources_menage_arrondies) -
                                 tranche_1.bas) * tranche_1.taux)
-                def temp_montant_2(x1:Decimal, x2:Decimal):
-                    return (x1 + x2)
+                def temp_montant_2(sum1:Decimal, sum2:Decimal):
+                    return (sum1 + sum2)
                 temp_montant_3 = money_of_decimal(((list_reduce(temp_montant_2,
                                                                 decimal_of_string("0."),
                                                                 list_map(temp_montant_1,
@@ -2884,8 +2884,8 @@ def calcul_equivalence_loyer_minimale(calcul_equivalence_loyer_minimale_in:Calcu
                         _ = match_arg_2.value
                         return ((decimal_of_money(ressources_menage_arrondies) -
                             tranche_2.bas) * tranche_2.taux)
-            def temp_montant_5(x1_1:Decimal, x2_1:Decimal):
-                return (x1_1 + x2_1)
+            def temp_montant_5(sum1_1:Decimal, sum2_1:Decimal):
+                return (sum1_1 + sum2_1)
             temp_montant_3 = money_of_decimal(((list_reduce(temp_montant_5,
                                                             decimal_of_string("0."),
                                                             list_map(temp_montant_4,
@@ -11614,8 +11614,8 @@ def ressources_aides_personnelle_logement(ressources_aides_personnelle_logement_
     try:
         def temp_ressources_personnes_vivant_habituellement_foyer(personne_1:PersonneVivantHabituellementAuFoyer):
             return personne_1.ressources
-        def temp_ressources_personnes_vivant_habituellement_foyer_1(x1_2:Money, x2_2:Money):
-            return (x1_2 + x2_2)
+        def temp_ressources_personnes_vivant_habituellement_foyer_1(sum1_2:Money, sum2_2:Money):
+            return (sum1_2 + sum2_2)
         temp_ressources_personnes_vivant_habituellement_foyer_2 = list_reduce(
             temp_ressources_personnes_vivant_habituellement_foyer_1,
             money_of_cents_string("0"),
@@ -16689,9 +16689,9 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                 temp_sous_calcul_traitement_1 = dead_value
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                                      start_line=1443,
-                                                     start_column=15,
+                                                     start_column=16,
                                                      end_line=1446,
-                                                     end_column=40,
+                                                     end_column=39,
                                                      law_headings=["Article D823-9",
                                                      "Section 1 : Calcul, liquidation et versement des aides",
                                                      "Chapitre III : Modalités de liquidation et de versement",
@@ -16906,9 +16906,9 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                 temp_sous_calcul_traitement_14 = dead_value
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                                      start_line=1443,
-                                                     start_column=15,
+                                                     start_column=16,
                                                      end_line=1446,
-                                                     end_column=40,
+                                                     end_column=39,
                                                      law_headings=["Article D823-9",
                                                      "Section 1 : Calcul, liquidation et versement des aides",
                                                      "Chapitre III : Modalités de liquidation et de versement",
@@ -19383,9 +19383,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                 temp_sous_calcul_traitement_77 = dead_value
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                                      start_line=1527,
-                                                     start_column=15,
+                                                     start_column=16,
                                                      end_line=1530,
-                                                     end_column=40,
+                                                     end_column=39,
                                                      law_headings=["Article D823-9",
                                                      "Section 1 : Calcul, liquidation et versement des aides",
                                                      "Chapitre III : Modalités de liquidation et de versement",
@@ -19616,9 +19616,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                 temp_sous_calcul_traitement_91 = dead_value
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                                      start_line=1527,
-                                                     start_column=15,
+                                                     start_column=16,
                                                      end_line=1530,
-                                                     end_column=40,
+                                                     end_column=39,
                                                      law_headings=["Article D823-9",
                                                      "Section 1 : Calcul, liquidation et versement des aides",
                                                      "Chapitre III : Modalités de liquidation et de versement",
@@ -20637,9 +20637,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                 temp_sous_calcul_traitement_150 = dead_value
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                                      start_line=1559,
-                                                     start_column=15,
+                                                     start_column=16,
                                                      end_line=1562,
-                                                     end_column=40,
+                                                     end_column=39,
                                                      law_headings=["Article D823-9",
                                                      "Section 1 : Calcul, liquidation et versement des aides",
                                                      "Chapitre III : Modalités de liquidation et de versement",
@@ -20870,9 +20870,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                 temp_sous_calcul_traitement_164 = dead_value
                 raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                                      start_line=1559,
-                                                     start_column=15,
+                                                     start_column=16,
                                                      end_line=1562,
-                                                     end_column=40,
+                                                     end_column=39,
                                                      law_headings=["Article D823-9",
                                                      "Section 1 : Calcul, liquidation et versement des aides",
                                                      "Chapitre III : Modalités de liquidation et de versement",
@@ -22167,8 +22167,8 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
             integer_of_string("0")):
             temp_aide_finale = money_of_cents_string("0")
         else:
-            def temp_aide_finale_1(x1_3:Decimal, x2_3:Decimal):
-                return (x1_3 + x2_3)
+            def temp_aide_finale_1(sum1_3:Decimal, sum2_3:Decimal):
+                return (sum1_3 + sum2_3)
             temp_aide_finale = ((calculette_dot_aide_finale_formule -
                 calculette_sans_garde_alternee_dot_aide_finale_formule) *
                 (list_reduce(temp_aide_finale_1, decimal_of_string("0."),

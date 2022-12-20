@@ -37,8 +37,7 @@ end>
 %right top_expr
 %right ALT
 %right let_expr IS
-%right logical_expr AND
-%right logical_or_expr OR XOR
+%right logical_expr AND OR XOR
 %nonassoc compare_expr GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left sum_expr PLUS MINUS PLUSPLUS
 %left mult_expr MULT DIV
@@ -91,7 +90,7 @@ let naked_expression :=
 | l = literal ; {
   Literal l
 }
-| LPAREN ; e = expression ; RPAREN ; <Marked.unmark>
+| LPAREN ; e = expression ; RPAREN ; <Paren>
 | e = expression ;
   DOT ; c = path ;
   i = ident ; {
@@ -164,12 +163,7 @@ let naked_expression :=
   Binop (binop, e1, e2)
 } %prec compare_expr
 | e1 = expression ;
-  binop = logical_or_op ;
-  e2 = expression ; {
-  Binop (binop, e1, e2)
-} %prec logical_or_expr
-| e1 = expression ;
-  binop = logical_and_op ;
+  binop = addpos(logical_op) ;
   e2 = expression ; {
   Binop (binop, e1, e2)
 } %prec logical_expr
@@ -304,12 +298,10 @@ let sum_op ==
 | k = MINUS ; { (Sub k, Pos.from_lpos $sloc) }
 | PLUSPLUS ; { (Concat, Pos.from_lpos $sloc) }
 
-let logical_and_op ==
-| AND ; { (And, Pos.from_lpos $sloc) }
-
-let logical_or_op ==
-| OR ; { (Or, Pos.from_lpos $sloc) }
-| XOR ; { (Xor, Pos.from_lpos $sloc) }
+let logical_op ==
+| AND ; { And }
+| OR ; { Or }
+| XOR ; { Xor }
 
 let constructor_binding :=
 | ~ = path; ~ = constructor ; OF ; ~ = ident ; {
