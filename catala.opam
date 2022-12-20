@@ -45,6 +45,7 @@ depends: [
   "obelisk" {cataladevmode}
   "conf-npm" {cataladevmode}
   "conf-python-3-dev" {cataladevmode}
+  "cpdf" {cataladevmode}
   "z3" {catalaz3mode}
 ]
 depopts: ["z3"]

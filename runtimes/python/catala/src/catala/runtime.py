@@ -39,8 +39,8 @@ class Integer:
     def __mul__(self, other: 'Integer') -> 'Integer':
         return Integer(self.value * other.value)
 
-    def __truediv__(self, other: 'Integer') -> 'Integer':
-        return Integer(self.value // other.value)
+    def __truediv__(self, other: 'Integer') -> 'Decimal':
+        return Decimal (self.value) / Decimal (other.value)
 
     def __neg__(self: 'Integer') -> 'Integer':
         return Integer(- self.value)
@@ -570,6 +570,13 @@ def list_filter(f: Callable[[Alpha], bool], l: List[Alpha]) -> List[Alpha]:
 
 def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
+
+
+def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Alpha, l: List[Alpha]) -> Alpha:
+    if l == []:
+        return dft
+    else:
+        return reduce(f, l)
 
 
 def list_length(l: List[Alpha]) -> Integer:

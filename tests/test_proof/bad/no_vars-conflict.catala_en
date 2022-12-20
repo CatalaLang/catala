@@ -8,7 +8,7 @@ declaration scope A:
   context y content integer
 
 scope A:
-  definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54))
+  definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54.))
   consequence equals 0
 
   definition y under condition x <= 0 consequence equals -1

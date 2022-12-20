@@ -19,8 +19,8 @@ scope SubFoo:
 scope Foo:
   definition example equals
     if true or false then
-      let results_foo equals SubFoo of { -- x: 1 -- y: 2 } in
-      results_foo.z1 + 1 * (SubFoo of { -- x: 10 -- y: 20 }).z2
+      let results_foo equals output of SubFoo with { -- x: 1 -- y: 2 } in
+      results_foo.z1 + 1 * (output of SubFoo with { -- x: 10 -- y: 20 }).z2
     else 0
 ```
 

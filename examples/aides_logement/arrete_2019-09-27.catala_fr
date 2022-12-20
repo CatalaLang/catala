@@ -125,13 +125,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      420,52€ + 61,01€ * (entier_vers_décimal de
+      420,52€ + 61,01€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      370,32€ + 53,90€ * (entier_vers_décimal de
+      370,32€ + 53,90€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      342,52€ + 49,09€ * (entier_vers_décimal de
+      342,52€ + 49,09€ * (décimal de
         (nombre_personnes_à_charge - 1))
 
 ```
@@ -228,7 +228,7 @@ ces dispositions sont applicables pour les prestations dues à compter du
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01|:
   étiquette base définition montant_forfaitaire_charges_d823_16 égal à
-    56,12€ + 12,72€ * (entier_vers_décimal de nombre_personnes_à_charge)
+    56,12€ + 12,72€ * (décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 10 | LEGIARTI000039160745
@@ -363,7 +363,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% - (0,06% * (entier_vers_décimal de
+      (1,73% - (0,06% * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
@@ -379,7 +379,7 @@ RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01|:
   définition rapport_loyers égal à
-    arrondi_décimal de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
+    arrondi de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
@@ -411,9 +411,9 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si rapport_loyers >= 75% alors
       0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
-  définition taux_loyer_éligible état arrondi égal à
+  définition taux_loyer_éligible état taux_arrondi égal à
     # La troisième décimale en pourcentage est en fait la cinquième décimale
-    (arrondi_décimal de (taux_loyer_éligible * 100000,0)) / 100000,0
+    (arrondi de (taux_loyer_éligible * 100000,0)) / 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
@@ -434,7 +434,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       -- PersonneSeule: 259,78€
       -- Couple: 317,97€
     sinon (357,80€ +
-      (52,08€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      (52,08€ * (décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
@@ -482,7 +482,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       9 816 €
     sinon
-      (9 816€ + (323 € * (entier_vers_décimal de
+      (9 816€ + (323 € * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 ```
@@ -546,13 +546,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      315,39€ + 45,76€ * (entier_vers_décimal de
+      315,39€ + 45,76€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      277,74€ + 40,43€ * (entier_vers_décimal de
+      277,74€ + 40,43€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      256,89€ + 36,82€ * (entier_vers_décimal de
+      256,89€ + 36,82€ * (décimal de
         (nombre_personnes_à_charge - 1))
 ```
 
@@ -571,7 +571,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 28,05€
     -- Couple: 56,12€) +
-    12,72€ * (entier_vers_décimal de nombre_personnes_à_charge)
+    12,72€ * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -625,21 +625,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 2085 €
          -- Couple: 2515€)
       sinon (2945 € +
-        430€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        430€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1860 €
          -- Couple: 2239€)
       sinon (2618 € +
-        379€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        379€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1736 €
          -- Couple: 2082€)
       sinon (2428 € +
-        356€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        356€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -669,21 +669,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1678 €
          -- Couple: 2025€)
       sinon (2372 € +
-        347€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        347€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1496 €
          -- Couple: 1801€)
       sinon (2106 € +
-        305€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        305€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1397 €
          -- Couple: 1676€)
       sinon (1955 € +
-        279€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        279€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -713,21 +713,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1840 €
          -- Couple: 2200€)
       sinon (2600 € +
-        380€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        380€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1642 €
          -- Couple: 1977€)
       sinon (2312 € +
-        335€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        335€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1532 €
          -- Couple: 1837€)
       sinon (2142 € +
-        305€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        305€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -756,21 +756,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1481 €
          -- Couple: 1787€)
       sinon (2093 € +
-        306€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        306€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1320 €
          -- Couple: 1589€)
       sinon (1858 € +
-        269€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        269€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1233 €
          -- Couple: 1479€)
       sinon (1725 € +
-        246€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        246€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -808,21 +808,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 2085 €
          -- Couple: 2515€)
       sinon (2945 € +
-        430€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        430€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1860 €
          -- Couple: 2239€)
       sinon (2618 € +
-        379€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        379€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1736 €
          -- Couple: 2082€)
       sinon (2428 € +
-        346€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        346€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -855,21 +855,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1678 €
          -- Couple: 2025€)
       sinon (2372 € +
-        347€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        347€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1496 €
          -- Couple: 1801€)
       sinon (2106 € +
-        305€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        305€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1397 €
          -- Couple: 1676 €)
       sinon (1955 € +
-        279€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        279€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -900,7 +900,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
        -- PersonneSeule: 869 €
        -- Couple: 971€)
     sinon (1073 € +
-      102€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      102€ * (décimal de (nombre_personnes_à_charge - 1))))
     * taux_francs_vers_euros
 ```
 
@@ -931,21 +931,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1981 €
          -- Couple: 2390€)
       sinon (2799 € +
-        409€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        409€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1768 €
          -- Couple: 2128€)
       sinon (2488 € +
-        360€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        360€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1650 €
          -- Couple: 1979€)
       sinon (2308 € +
-        329€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        329€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -975,21 +975,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1595 €
          -- Couple: 1925€)
       sinon (2255 € +
-        330€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        330€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1422 €
          -- Couple: 1712€)
       sinon (2002 € +
-        290€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        290€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1328 €
          -- Couple: 1593€)
       sinon (1858 € +
-        265€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        265€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -1020,21 +1020,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 2001 €
          -- Couple: 1414€)
       sinon (1827 € +
-        413€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        413€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1786 €
          -- Couple: 2150€)
       sinon (2514 € +
-        364€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        364€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1667 €
          -- Couple: 1999€)
       sinon (2331 € +
-        332€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        332€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -1064,21 +1064,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1611 €
          -- Couple: 1944€)
       sinon (2277 € +
-        333€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        333€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1436 €
          -- Couple: 1729€)
       sinon (2022 € +
-        293€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        293€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1341 €
          -- Couple: 1609€)
       sinon (1877 € +
-        268€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        268€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -1111,21 +1111,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 2025 €
          -- Couple: 2443€)
       sinon (2861 € +
-        418€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        418€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1807 €
          -- Couple: 2175€)
       sinon (2543 € +
-        368€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        368€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1687 €
          -- Couple: 2023€)
       sinon (2359 € +
-        336€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        336€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -1154,21 +1154,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 308,71€
          -- Couple: 372,43€)
       sinon (436,15€ +
-        63,72€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        63,72€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 275,48€
          -- Couple: 331,48€)
       sinon (387,68€ +
-        56,1€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        56,1€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 257,18€
          -- Couple: 308,4€)
       sinon (359,62€ +
-        51,22€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        51,22€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1200,21 +1200,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 1630€
          -- Couple: 1967€)
       sinon (2304€ +
-        337€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        337€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1453€
          -- Couple: 1750€)
       sinon (2047€ +
-        297€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        297€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1357€
          -- Couple: 1628€)
       sinon (1899€ +
-        271€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        271€ * (décimal de (nombre_personnes_à_charge - 1))))
     ) * taux_francs_vers_euros
 ```
 
@@ -1243,21 +1243,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 248,49€
          -- Couple: 299,87€)
       sinon (351,25€ +
-        51,38€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        51,38€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 221,51€
          -- Couple: 266,79€)
       sinon (312,07€ +
-        45,28€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        45,28€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 206,87€
          -- Couple: 248,18€)
       sinon (289,49€ +
-        41,31€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        41,31€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1288,21 +1288,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 312,41€
          -- Couple: 376,89€)
       sinon (441,37€ +
-        64,48€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        64,48€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 278,79€
          -- Couple: 335,56€)
       sinon (392,33€ +
-        56,77€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        56,77€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 260,27€
          -- Couple: 312,1€)
       sinon (363,93€ +
-        51,83€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        51,83€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1332,21 +1332,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 251,47€
          -- Couple: 303,47€)
       sinon (355,47€ +
-        52€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        52€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 224,17€
          -- Couple: 269,99€)
       sinon (315,81€ +
-        45,82€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        45,82€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 209,35€
          -- Couple: 251,16€)
       sinon (292,97€ +
-        41,81€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        41,81€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1377,21 +1377,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 316,16€
          -- Couple: 381,41€)
       sinon (446,66€ +
-        65,25€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        65,25€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 282,14€
          -- Couple: 339,59€)
       sinon (397,04€ +
-        57,45€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        57,45€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 263,39€
          -- Couple: 315,84€)
       sinon (368,29€ +
-        52,45€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        52,45€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1421,21 +1421,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 254,49€
          -- Couple: 307,11€)
       sinon (359,73€ +
-        52,62€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        52,62€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 226,86€
          -- Couple: 273,23€)
       sinon (319,6€ +
-        46,37€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        46,37€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 211,86€
          -- Couple: 254,17€)
       sinon (296,48€ +
-        42,31€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        42,31€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1466,21 +1466,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 321,85€
          -- Couple: 388,27€)
       sinon (454,69€ +
-        66,42€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        66,42€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 287,22€
          -- Couple: 345,7€)
       sinon (404,18€ +
-        58,48€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        58,48€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 268,13€
          -- Couple: 321,52€)
       sinon (374,91€ +
-        53,39€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        53,39€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1510,21 +1510,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 259,07€
          -- Couple: 312,64€)
       sinon (366,21€ +
-        53,57€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        53,57€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 230,94€
          -- Couple: 278,14€)
       sinon (325,34€ +
-        47,2€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        47,2€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 215,67€
          -- Couple: 258,74€)
       sinon (301,81€ +
-        43,07€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        43,07€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1555,21 +1555,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 330,86€
          -- Couple: 399,14€)
       sinon (467,42€ +
-        68,28€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        68,28€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 295,26€
          -- Couple: 355,38€)
       sinon (415,5€ +
-        60,12€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        60,12€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 275,64€
          -- Couple: 330,52€)
       sinon (385,41€ +
-        54,88€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        54,88€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1599,21 +1599,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 266,32€
          -- Couple: 321,39€)
       sinon (376,46€ +
-        55,07€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        55,07€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 237,41€
          -- Couple: 285,93€)
       sinon (334,45€ +
-        48,52€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        48,52€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 221,71€
          -- Couple: 365,98€)
       sinon (310,26€ +
-        44,28€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        44,28€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1644,21 +1644,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 339,99€
          -- Couple: 410,16€)
       sinon (480,32€ +
-        70,16€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        70,16€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 303,41€
          -- Couple: 365,19€)
       sinon (426,97€ +
-        61,78€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,78€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 283,25€
          -- Couple: 339,64€)
       sinon (396,05€ +
-        56,39€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        56,39€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1688,21 +1688,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 273,67€
          -- Couple: 330,26€)
       sinon (386,85€ +
-        56,59€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        56,59€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 243,96€
          -- Couple: 293,82€)
       sinon (343,68€ +
-        49,86€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        49,86€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 227,83€
          -- Couple: 273,32€)
       sinon (318,82€ +
-        45,5€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        45,5€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1733,21 +1733,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 350,02€
          -- Couple: 422,26€)
       sinon (494,49€ +
-        72,23€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        72,23€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 312,36€
          -- Couple: 375,96€)
       sinon (439,57€ +
-        63,6€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        63,6€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 291,61€
          -- Couple: 349,66€)
       sinon (407,73€ +
-        58,05€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        58,05€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1777,21 +1777,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 281,74€
          -- Couple: 340€)
       sinon (398,26€ +
-        58,26€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        58,26€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 251,16€
          -- Couple: 302,49€)
       sinon (353,82€ +
-        51,33€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        51,33€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 234,55€
          -- Couple: 281,38€)
       sinon (328,23€ +
-        46,84€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        46,84€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1822,21 +1822,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 351,14€
          -- Couple: 423,61€)
       sinon (496,07€ +
-        72,46€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        72,46€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 313,36€
          -- Couple: 377,16€)
       sinon (440,98€ +
-        63,8€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        63,8€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 292,54€
          -- Couple: 350,78€)
       sinon (409,03€ +
-        58,24€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        58,24€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1866,21 +1866,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 282,64€
          -- Couple: 341,09€)
       sinon (399,53€ +
-        58,45€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        58,45€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 251,96€
          -- Couple: 303,46€)
       sinon (354,95€ +
-        51,49€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        51,49€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 235,3€
          -- Couple: 282,28€)
       sinon (329,28€ +
-        46,99€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        46,99€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1911,21 +1911,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 355€
          -- Couple: 428,27€)
       sinon (501,53€ +
-        73,26€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        73,26€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 316,81€
          -- Couple: 381,31€)
       sinon (445,83€ +
-        64,5€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        64,5€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 295,76€
          -- Couple: 354,64€)
       sinon (413,53€ +
-        58,88€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        58,88€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1955,21 +1955,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 285,75€
          -- Couple: 344,84€)
       sinon (403,92€ +
-        59,09€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        59,09€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 254,73€
          -- Couple: 306,8€)
       sinon (358,85€ +
-        52,06€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        52,06€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 237,89€
          -- Couple: 285,39€)
       sinon (332,9€ +
-        47,51€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        47,51€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2000,21 +2000,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 358,55€
          -- Couple: 432,55€)
       sinon (506,55€ +
-        73,99€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        73,99€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 319,98€
          -- Couple: 385,12€)
       sinon (450,29€ +
-        65,15€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        65,15€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 298,72€
          -- Couple: 358,19€)
       sinon (417,67€ +
-        59,47€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        59,47€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2045,21 +2045,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 288,61€
          -- Couple: 348,29€)
       sinon (407,96€ +
-        59,68€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        59,68€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 257,28€
          -- Couple: 309,87€)
       sinon (362,44€ +
-        52,58€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        52,58€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 240,27€
          -- Couple: 288,24€)
       sinon (336,23€ +
-        47,99€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        47,99€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2090,21 +2090,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 366,26€
          -- Couple: 441,85€)
       sinon (517,44€ +
-        75,58€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        75,58€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 326,86€
          -- Couple: 393,4€)
       sinon (459,97€ +
-        66,55€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        66,55€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 305,14€
          -- Couple: 365,89€)
       sinon (426,65€ +
-        60,75€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        60,75€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2134,21 +2134,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 294,82€
          -- Couple: 355,78€)
       sinon (416,73€ +
-        60,96€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        60,96€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 262,81€
          -- Couple: 316,53€)
       sinon (370,23€ +
-        53,71€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        53,71€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 245,44€
          -- Couple: 294,44€)
       sinon (343,46€ +
-        49,02€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        49,02€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2179,21 +2179,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 368,35€
          -- Couple: 444,37€)
       sinon (520,39€ +
-        76,01€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        76,01€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 328,72€
          -- Couple: 395,64€)
       sinon (462,59€ +
-        66,93€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        66,93€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 306,88€
          -- Couple: 367,98€)
       sinon (429,08€ +
-        61,1€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,1€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2223,21 +2223,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 296,5€
          -- Couple: 357,81€)
       sinon (419,11€ +
-        61,31€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,31€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 264,31€
          -- Couple: 318,33€)
       sinon (372,34€ +
-        54,02€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        54,02€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 246,84€
          -- Couple: 296,12€)
       sinon (345,42€ +
-        49,3€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        49,3€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2268,21 +2268,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 368,64€
          -- Couple: 444,73€)
       sinon (520,81€ +
-        76,07€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        76,07€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 328,98€
          -- Couple: 395,96€)
       sinon (462,96€ +
-        66,98€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        66,98€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 307,13€
          -- Couple: 368,27€)
       sinon (429,42€ +
-        61,15€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,15€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2312,21 +2312,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 296,74€
          -- Couple: 358,1€)
       sinon (419,45€ +
-        61,36€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,36€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 264,52€
          -- Couple: 318,58€)
       sinon (372,64€ +
-        54,06€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        54,06€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 247,04€
          -- Couple: 296,36€)
       sinon (345,7€ +
-        49,34€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        49,34€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2357,21 +2357,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 371,4€
          -- Couple: 448,07€)
       sinon (524,72€ +
-        76,64€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        76,64€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 331,45€
          -- Couple: 398,93€)
       sinon (466,43€ +
-        67,48€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        67,48€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 309,43€
          -- Couple: 371,03€)
       sinon (432,64€ +
-        61,61€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,61€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2401,21 +2401,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 298,97€
          -- Couple: 360,79€)
       sinon (422,6€ +
-        61,82€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,82€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 266,5€
          -- Couple: 320,97€)
       sinon (375,43€ +
-        54,47€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        54,47€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 248,89€
          -- Couple: 298,58€)
       sinon (348,29€ +
-        49,71€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        49,71€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2445,21 +2445,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 372,52€
          -- Couple: 449,41€)
       sinon (526,29€ +
-        76,87€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        76,87€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 332,44€
          -- Couple: 400,13€)
       sinon (467,83€ +
-        67,68€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        67,68€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 310,36€
          -- Couple: 372,15€)
       sinon (433,94€ +
-        61,79€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        61,79€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2488,21 +2488,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
          -- PersonneSeule: 299,86€
          -- Couple: 361,87€)
       sinon (423,86€ +
-        62,01€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        62,01€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 267,30€
          -- Couple: 321,93€)
       sinon (376,56€ +
-        54,63€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        54,63€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 249,64€
          -- Couple: 299,48€)
       sinon (349,34€ +
-        49,86€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        49,86€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -2547,7 +2547,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
   sous condition date_courante >= |2022-07-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
-    56,12 € + 12,72 € * (entier_vers_décimal de nombre_personnes_à_charge)
+    56,12 € + 12,72 € * (décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 20 | LEGIARTI000039160765
@@ -2630,7 +2630,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
      (selon situation_familiale_calcul_apl sous forme
        -- PersonneSeule: 28,05€
        -- Couple: 56,12€) +
-     12,72 € * (entier_vers_décimal de nombre_personnes_à_charge)
+     12,72 € * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -2714,7 +2714,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         658,62 €
       sinon
         (710,39 € +
-        73,68€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        73,68€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -2728,7 +2728,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         599,57 €
       sinon
         (638,87 € +
-        66,59€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        66,59€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -2742,7 +2742,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         560,04 €
       sinon
         (596,75 € +
-        61,80€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        61,80€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     )
 ```
 
@@ -3141,7 +3141,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2229 € sinon
         (si nombre_personnes_à_charge = 5 alors 2280 € sinon
         (2280€ + 198€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3154,7 +3154,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2042 € sinon
         (si nombre_personnes_à_charge = 5 alors 2187 € sinon
         (2187€ + 191€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3167,7 +3167,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 1942 € sinon
         (si nombre_personnes_à_charge = 5 alors 2086 € sinon
         (2086€ + 182€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3187,7 +3187,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2255 € sinon
         (si nombre_personnes_à_charge = 5 alors 2305 € sinon
         (2305€ + 200€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3200,7 +3200,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2065 € sinon
         (si nombre_personnes_à_charge = 5 alors 2211 € sinon
         (2211 € + 193€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3213,7 +3213,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 1964 € sinon
         (si nombre_personnes_à_charge = 5 alors 2109 € sinon
         (2109€ + 184€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3233,7 +3233,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2296 € sinon
         (si nombre_personnes_à_charge = 5 alors 2346 € sinon
         (2346€ + 204€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3246,7 +3246,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2102 € sinon
         (si nombre_personnes_à_charge = 5 alors 2251 € sinon
         (2251 € + 196€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3259,7 +3259,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 1999 € sinon
         (si nombre_personnes_à_charge = 5 alors 2147 € sinon
         (2147€ + 187€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3279,7 +3279,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2351 € sinon
         (si nombre_personnes_à_charge = 5 alors 2402 € sinon
         (2402€ + 209€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3292,7 +3292,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2152 € sinon
         (si nombre_personnes_à_charge = 5 alors 2305 € sinon
         (2305 € + 201€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3305,7 +3305,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2047 € sinon
         (si nombre_personnes_à_charge = 5 alors 2199 € sinon
         (2199€ + 191€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3325,7 +3325,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2353 € sinon
         (si nombre_personnes_à_charge = 5 alors 2404 € sinon
         (2404€ + 209€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3338,7 +3338,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2154 € sinon
         (si nombre_personnes_à_charge = 5 alors 2307 € sinon
         (2307 € + 201€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3351,7 +3351,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2049 € sinon
         (si nombre_personnes_à_charge = 5 alors 2201 € sinon
         (2201€ + 191€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3371,7 +3371,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2377 € sinon
         (si nombre_personnes_à_charge = 5 alors 2428 € sinon
         (2428€ + 211€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3384,7 +3384,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2176 € sinon
         (si nombre_personnes_à_charge = 5 alors 2330 € sinon
         (2330 € + 203€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3397,7 +3397,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2069 € sinon
         (si nombre_personnes_à_charge = 5 alors 2223 € sinon
         (2223€ + 193€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3417,7 +3417,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2406 € sinon
         (si nombre_personnes_à_charge = 5 alors 2457 € sinon
         (2457€ + 214€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3430,7 +3430,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2202 € sinon
         (si nombre_personnes_à_charge = 5 alors 2358 € sinon
         (2358 € + 205€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3443,7 +3443,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 2094 € sinon
         (si nombre_personnes_à_charge = 5 alors 2250 € sinon
         (2250€ + 195€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
@@ -3463,7 +3463,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 366,79 € sinon
         (si nombre_personnes_à_charge = 5 alors 374,57 € sinon
         (374,57€ + 32,62€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3476,7 +3476,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 335,69 € sinon
         (si nombre_personnes_à_charge = 5 alors 359,47 € sinon
         (359,47 € + 31,25€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3489,7 +3489,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 319,23 € sinon
         (si nombre_personnes_à_charge = 5 alors 343,01 € sinon
         (343,01€ + 29,73€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3508,7 +3508,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 371,19 € sinon
         (si nombre_personnes_à_charge = 5 alors 379,06 € sinon
         (379,06€ + 33,01€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3521,7 +3521,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 339,72 € sinon
         (si nombre_personnes_à_charge = 5 alors 363,78 € sinon
         (363,78 € + 31,63€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3534,7 +3534,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 323,06 € sinon
         (si nombre_personnes_à_charge = 5 alors 347,13 € sinon
         (347,13€ + 30,09€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3553,7 +3553,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 375,64 € sinon
         (si nombre_personnes_à_charge = 5 alors 383,61 € sinon
         (383,61€ + 33,41€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3566,7 +3566,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 343,80 € sinon
         (si nombre_personnes_à_charge = 5 alors 368,15 € sinon
         (368,15 € + 32,01€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3579,7 +3579,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 326,94 € sinon
         (si nombre_personnes_à_charge = 5 alors 351,30 € sinon
         (351,30€ + 30,45€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3598,7 +3598,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 382,40 € sinon
         (si nombre_personnes_à_charge = 5 alors 390,51 € sinon
         (390,51€ + 34,01€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3611,7 +3611,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 349,99 € sinon
         (si nombre_personnes_à_charge = 5 alors 374,78 € sinon
         (374,78 € + 32,59€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3624,7 +3624,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 332,82 € sinon
         (si nombre_personnes_à_charge = 5 alors 357,62 € sinon
         (357,62€ + 31,00€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3643,7 +3643,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 393,11 € sinon
         (si nombre_personnes_à_charge = 5 alors 401,44 € sinon
         (401,44€ + 34,96€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3656,7 +3656,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 359,79 € sinon
         (si nombre_personnes_à_charge = 5 alors 385,27 € sinon
         (385,27 € + 33,50€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3669,7 +3669,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 342,14 € sinon
         (si nombre_personnes_à_charge = 5 alors 367,33 € sinon
         (367,33€ + 31,87€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3688,7 +3688,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 403,96 € sinon
         (si nombre_personnes_à_charge = 5 alors 412,52 € sinon
         (412,52€ + 35,92€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3701,7 +3701,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 369,72 € sinon
         (si nombre_personnes_à_charge = 5 alors 395,90 € sinon
         (395,90 € + 34,42€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3714,7 +3714,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 351,58 € sinon
         (si nombre_personnes_à_charge = 5 alors 377,78 € sinon
         (377,78€ + 32,75€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3733,7 +3733,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 415,88 € sinon
         (si nombre_personnes_à_charge = 5 alors 424,69 € sinon
         (424,69€ + 36,98€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3746,7 +3746,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 380,63 € sinon
         (si nombre_personnes_à_charge = 5 alors 407,58 € sinon
         (407,58 € + 35,44€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3759,7 +3759,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 361,95 € sinon
         (si nombre_personnes_à_charge = 5 alors 388,92 € sinon
         (388,92€ + 33,72€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3778,7 +3778,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 417,21 € sinon
         (si nombre_personnes_à_charge = 5 alors 426,05 € sinon
         (426,05€ + 37,10€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3791,7 +3791,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 381,85 € sinon
         (si nombre_personnes_à_charge = 5 alors 408,88 € sinon
         (408,88 € + 35,55€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3804,7 +3804,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 363,11 € sinon
         (si nombre_personnes_à_charge = 5 alors 390,16 € sinon
         (390,16€ + 33,83€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3823,7 +3823,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 421,80 € sinon
         (si nombre_personnes_à_charge = 5 alors 430,74 € sinon
         (430,74€ + 37,51€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3836,7 +3836,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 386,05 € sinon
         (si nombre_personnes_à_charge = 5 alors 413,38 € sinon
         (413,38 € + 35,94€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3849,7 +3849,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 367,10 € sinon
         (si nombre_personnes_à_charge = 5 alors 394,45 € sinon
         (394,45€ + 34,20€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3868,7 +3868,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 426,02 € sinon
         (si nombre_personnes_à_charge = 5 alors 435,05 € sinon
         (435,05€ + 37,89€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3881,7 +3881,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 389,91 € sinon
         (si nombre_personnes_à_charge = 5 alors 417,51 € sinon
         (417,51 € + 36,30€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3894,7 +3894,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 370,77 € sinon
         (si nombre_personnes_à_charge = 5 alors 398,39 € sinon
         (398,39€ + 34,54€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3913,7 +3913,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 435,18 € sinon
         (si nombre_personnes_à_charge = 5 alors 444,40 € sinon
         (444,40€ + 38,70€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3926,7 +3926,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 398,29 € sinon
         (si nombre_personnes_à_charge = 5 alors 426,49 € sinon
         (426,59 € + 37,08€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3939,7 +3939,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 378,74 € sinon
         (si nombre_personnes_à_charge = 5 alors 406,96 € sinon
         (406,96€ + 35,28€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -3958,7 +3958,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 437,66 € sinon
         (si nombre_personnes_à_charge = 5 alors 446,93 € sinon
         (446,93€ + 38,92€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3971,7 +3971,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 400,56 € sinon
         (si nombre_personnes_à_charge = 5 alors 428,92 € sinon
         (428,92 € + 37,29€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3984,7 +3984,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 380,90 € sinon
         (si nombre_personnes_à_charge = 5 alors 409,28 € sinon
         (409,28€ + 35,48€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -4003,7 +4003,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 438,01 € sinon
         (si nombre_personnes_à_charge = 5 alors 447,29 € sinon
         (447,29€ + 38,95€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4016,7 +4016,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 400,88 € sinon
         (si nombre_personnes_à_charge = 5 alors 429,26 € sinon
         (429,26 € + 37,32€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4029,7 +4029,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 381,20 € sinon
         (si nombre_personnes_à_charge = 5 alors 409,61 € sinon
         (409,61€ + 35,51€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -4048,7 +4048,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 441,30 € sinon
         (si nombre_personnes_à_charge = 5 alors 450,64 € sinon
         (450,64€ + 39,24€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4061,7 +4061,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 403,89 € sinon
         (si nombre_personnes_à_charge = 5 alors 432,48 € sinon
         (432,48 € + 37,60€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4074,7 +4074,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 384,06 € sinon
         (si nombre_personnes_à_charge = 5 alors 412,68 € sinon
         (412,68€ + 35,78€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
@@ -4093,7 +4093,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 442,62 € sinon
         (si nombre_personnes_à_charge = 5 alors 452,00 € sinon
         (452,00€ + 39,36€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4106,7 +4106,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 405,10 € sinon
         (si nombre_personnes_à_charge = 5 alors 433,78 € sinon
         (433,78 € + 37,71€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4119,7 +4119,7 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 4 alors 385,21 € sinon
         (si nombre_personnes_à_charge = 5 alors 413,92 € sinon
         (413,92€ + 35,88€ *
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   # Une exception est à venir avec l'article 37
   définition calcul_plafond_mensualité_d842_6 de date_calcul
@@ -4167,7 +4167,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   étiquette récent définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 56,12 €
    sinon 56,12 € + (12,72 € * (
-     entier_vers_décimal de nombre_personnes_à_charge))
+     décimal de nombre_personnes_à_charge))
 ```
 
 ### Article 35 | LEGIARTI000039160693
@@ -4223,7 +4223,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     (selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 28,05 €
       -- Couple : 56,12€) + (12,72 € * (
-      entier_vers_décimal de nombre_personnes_à_charge))
+      décimal de nombre_personnes_à_charge))
 ```
 
 NOTA :
@@ -4292,7 +4292,7 @@ champ d'application CalculAllocationLogementFoyer
   définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 56,12 €
    sinon 56,12 € + (12,72 € * (
-     entier_vers_décimal de nombre_personnes_à_charge))
+     décimal de nombre_personnes_à_charge))
 ```
 
 ### Article 41 | LEGIARTI000039160703
@@ -4422,11 +4422,11 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
   définition plafond_d823_22 égal à
    base_mensuelle_allocations_familiales.montant * 240% +
    (si
-      (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-        personne_à_charge sous forme EnfantÀCharge) > 3
+      nombre de (personne_à_charge parmi ménage.personnes_à_charge
+        tel que personne_à_charge sous forme EnfantÀCharge) > 3
     alors
-      base_mensuelle_allocations_familiales.montant * (entier_vers_décimal de (
-      (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-      personne_à_charge sous forme EnfantÀCharge) - 3) * 20%)
+      base_mensuelle_allocations_familiales.montant * (décimal de (
+      nombre de (personne_à_charge parmi ménage.personnes_à_charge
+        tel que personne_à_charge sous forme EnfantÀCharge) - 3) * 20%)
     sinon 0€)
 ```

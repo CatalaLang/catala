@@ -248,6 +248,7 @@ let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
     | Eq -> any @-> any @-> bt
     | Map -> (any @-> any2) @-> array any @-> array any2
     | Filter -> (any @-> bt) @-> array any @-> array any
+    | Reduce -> (any @-> any @-> any) @-> any @-> array any @-> any
     | Concat -> array any @-> array any @-> array any
     | Log (PosRecordIfTrueBool, _) -> bt @-> bt
     | Log _ -> any @-> any

@@ -123,17 +123,11 @@ module Op = struct
     (* unary *)
     (* * monomorphic *)
     | Not : ('a any, monomorphic) t
-    (* Todo: [AToB] operators could actually be overloaded [ToB] operators*)
-    | IntToRat : ('a any, monomorphic) t
-    | MoneyToRat : ('a any, monomorphic) t
-    | RatToMoney : ('a any, monomorphic) t
     | GetDay : ('a any, monomorphic) t
     | GetMonth : ('a any, monomorphic) t
     | GetYear : ('a any, monomorphic) t
     | FirstDayOfMonth : ('a any, monomorphic) t
     | LastDayOfMonth : ('a any, monomorphic) t
-    | RoundMoney : ('a any, monomorphic) t
-    | RoundDecimal : ('a any, monomorphic) t
     (* * polymorphic *)
     | Length : ('a any, polymorphic) t
     | Log : log_entry * Uid.MarkedString.info list -> ('a any, polymorphic) t
@@ -143,6 +137,14 @@ module Op = struct
     | Minus_rat : ([< scopelang | dcalc | lcalc ], resolved) t
     | Minus_mon : ([< scopelang | dcalc | lcalc ], resolved) t
     | Minus_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | ToRat : (desugared, overloaded) t
+    | ToRat_int : ([< scopelang | dcalc | lcalc ], resolved) t
+    | ToRat_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | ToMoney : (desugared, overloaded) t
+    | ToMoney_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Round : (desugared, overloaded) t
+    | Round_rat : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Round_mon : ([< scopelang | dcalc | lcalc ], resolved) t
     (* binary *)
     (* * monomorphic *)
     | And : ('a any, monomorphic) t
@@ -153,6 +155,7 @@ module Op = struct
     | Map : ('a any, polymorphic) t
     | Concat : ('a any, polymorphic) t
     | Filter : ('a any, polymorphic) t
+    | Reduce : ('a any, polymorphic) t
     (* * overloaded *)
     | Add : (desugared, overloaded) t
     | Add_int_int : ([< scopelang | dcalc | lcalc ], resolved) t

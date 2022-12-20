@@ -10,8 +10,8 @@ declaration scope A:
 scope A:
   definition x equals 84.648665
   definition y equals 4.368297
-  definition x1 equals round_decimal of x
-  definition y1 equals round_decimal of y
+  definition x1 equals round of x
+  definition y1 equals round of y
 ```
 
 ```catala-test-inline

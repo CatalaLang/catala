@@ -266,11 +266,9 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
           # à domicile.
           (calculette.aide_finale_formule -
             calculette_sans_garde_alternée.aide_finale_formule) *
-              ((somme décimal pour coeff dans
-                coefficents_enfants_garde_alternée_pris_en_compte de coeff) /
-              (entier_vers_décimal de
-                (nombre de
-                  coefficents_enfants_garde_alternée_pris_en_compte)))))
+              ((somme décimal de coefficents_enfants_garde_alternée_pris_en_compte) /
+               (décimal de
+                nombre de coefficents_enfants_garde_alternée_pris_en_compte))))
 ```
 
 5. Considérant qu'il résulte de ce qui précède que le ministre du logement et

@@ -15,10 +15,12 @@ declaration scope B:
    output z content integer
 
 scope B:
-   definition max equals maximum money initial $0 for m in a.x of m * 2.0
-   definition min equals minimum money initial $20 for m in a.x of m + $5
-   definition y equals sum money for m in a.x of (m + $1)
-   definition z equals number for m in a.x of (m >= $8.95)
+   definition max equals maximum of (m * 2.0) for m among a.x
+                         or if collection empty then $0
+   definition min equals minimum of (m + $5) for m among a.x
+                         or if collection empty then $20
+   definition y equals sum money of (m + $1) for m among a.x
+   definition z equals number of m among a.x such that m >= $8.95
 ```
 
 ```catala-test-inline

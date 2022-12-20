@@ -54,11 +54,11 @@ déclaration énumération ÉlémentPrestationsFamiliales:
 
 ```catala-metadata
 déclaration champ d'application PrestationsFamiliales:
-  sortie droit_ouvert condition dépend de Enfant
-  sortie conditions_hors_âge condition dépend de Enfant
+  résultat droit_ouvert condition dépend de Enfant
+  résultat conditions_hors_âge condition dépend de Enfant
   interne plafond_l512_3_2 contenu argent
-  sortie âge_l512_3_2 contenu durée
-  sortie régime_outre_mer_l751_1 condition
+  résultat âge_l512_3_2 contenu durée
+  résultat régime_outre_mer_l751_1 condition
   entrée date_courante contenu date
   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
   entrée résidence contenu Collectivité
@@ -73,11 +73,11 @@ champ d'application PrestationsFamiliales:
 
 ```catala-metadata
 déclaration champ d'application AllocationFamilialesAvril2008:
-  sortie âge_minimum_alinéa_1_l521_3 contenu durée
+  résultat âge_minimum_alinéa_1_l521_3 contenu durée
 
 déclaration champ d'application EnfantLePlusÂgé:
   entrée enfants contenu collection Enfant
-  sortie le_plus_âgé contenu Enfant
+  résultat le_plus_âgé contenu Enfant
 
 déclaration champ d'application AllocationsFamiliales:
 
@@ -97,7 +97,7 @@ déclaration champ d'application AllocationsFamiliales:
   interne prise_en_compte contenu PriseEnCompte dépend de Enfant
   interne versement contenu VersementAllocations dépend de Enfant
 
-  sortie montant_versé contenu argent
+  résultat montant_versé contenu argent
 
   # Variables liées à la base des allications familiales
   interne droit_ouvert_base condition

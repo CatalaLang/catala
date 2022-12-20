@@ -301,16 +301,14 @@ type unop = Not | Minus of op_kind
 
 type builtin_expression =
   | Cardinal
-  | IntToDec
-  | MoneyToDec
-  | DecToMoney
+  | ToDecimal
+  | ToMoney
   | GetDay
   | GetMonth
   | GetYear
   | LastDayOfMonth
   | FirstDayOfMonth
-  | RoundMoney
-  | RoundDecimal
+  | Round
 [@@deriving
   visitors { variety = "map"; name = "builtin_expression_map"; nude = true },
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]
@@ -385,62 +383,50 @@ type literal =
         name = "literal_iter";
       }]
 
-type aggregate_func =
-  | AggregateSum of primitive_typ
+type collection_op =
+  | Exists of { predicate : ident Marked.pos * expression }
+  | Forall of { predicate : ident Marked.pos * expression }
+  | Map of { f : ident Marked.pos * expression }
+  | Filter of { f : ident Marked.pos * expression }
+  | AggregateSum of { typ : primitive_typ }
   (* it would be nice to remove the need for specifying the type here like for
      extremums, but we need an additionl overload for "neutral element for
      addition across types" *)
-  | AggregateCount
-  | AggregateExtremum of bool * primitive_typ option * expression Marked.pos
-  | AggregateArgExtremum of bool * primitive_typ option * expression Marked.pos
-
-and collection_op =
-  | Exists
-  | Forall
-  | Aggregate of aggregate_func
-  | Map
-  | Filter
+  | AggregateExtremum of { max : bool; default : expression }
+  | AggregateArgExtremum of {
+      max : bool;
+      default : expression;
+      f : ident Marked.pos * expression;
+    }
 
 and explicit_match_case = {
   match_case_pattern : match_case_pattern Marked.pos;
-  match_case_expr : expression Marked.pos;
+  match_case_expr : expression;
 }
 
-and match_case =
-  | WildCard of expression Marked.pos
-  | MatchCase of explicit_match_case
-
+and match_case = WildCard of expression | MatchCase of explicit_match_case
 and match_cases = match_case Marked.pos list
+and expression = naked_expression Marked.pos
 
-and expression =
-  | MatchWith of expression Marked.pos * match_cases Marked.pos
-  | IfThenElse of
-      expression Marked.pos * expression Marked.pos * expression Marked.pos
-  | Binop of binop Marked.pos * expression Marked.pos * expression Marked.pos
-  | Unop of unop Marked.pos * expression Marked.pos
-  | CollectionOp of
-      collection_op Marked.pos
-      * ident Marked.pos
-      * expression Marked.pos
-      * expression Marked.pos
-  | MemCollection of expression Marked.pos * expression Marked.pos
-  | TestMatchCase of expression Marked.pos * match_case_pattern Marked.pos
-  | FunCall of expression Marked.pos * expression Marked.pos
-  | ScopeCall of
-      constructor Marked.pos * (ident Marked.pos * expression Marked.pos) list
-  | LetIn of ident Marked.pos * expression Marked.pos * expression Marked.pos
+and naked_expression =
+  | MatchWith of expression * match_cases Marked.pos
+  | IfThenElse of expression * expression * expression
+  | Binop of binop Marked.pos * expression * expression
+  | Unop of unop Marked.pos * expression
+  | CollectionOp of collection_op * expression
+  | MemCollection of expression * expression
+  | TestMatchCase of expression * match_case_pattern Marked.pos
+  | FunCall of expression * expression
+  | ScopeCall of constructor Marked.pos * (ident Marked.pos * expression) list
+  | LetIn of ident Marked.pos * expression * expression
   | Builtin of builtin_expression
   | Literal of literal
   | EnumInject of
-      constructor Marked.pos option
-      * constructor Marked.pos
-      * expression Marked.pos option
-  | StructLit of
-      constructor Marked.pos * (ident Marked.pos * expression Marked.pos) list
-  | ArrayLit of expression Marked.pos list
+      constructor Marked.pos option * constructor Marked.pos * expression option
+  | StructLit of constructor Marked.pos * (ident Marked.pos * expression) list
+  | ArrayLit of expression list
   | Ident of ident
-  | Dotted of
-      expression Marked.pos * constructor Marked.pos option * ident Marked.pos
+  | Dotted of expression * constructor Marked.pos option * ident Marked.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors
@@ -494,7 +480,7 @@ type rule = {
   rule_label : ident Marked.pos option;
   rule_exception_to : exception_to;
   rule_parameter : ident Marked.pos option;
-  rule_condition : expression Marked.pos option;
+  rule_condition : expression option;
   rule_name : qident Marked.pos;
   rule_id : Shared_ast.RuleName.t; [@opaque]
   rule_consequence : (bool[@opaque]) Marked.pos;
@@ -519,9 +505,9 @@ type definition = {
   definition_exception_to : exception_to;
   definition_name : qident Marked.pos;
   definition_parameter : ident Marked.pos option;
-  definition_condition : expression Marked.pos option;
+  definition_condition : expression option;
   definition_id : Shared_ast.RuleName.t; [@opaque]
-  definition_expr : expression Marked.pos;
+  definition_expr : expression;
   definition_state : ident Marked.pos option;
 }
 [@@deriving
@@ -546,9 +532,7 @@ type variation_typ = Increasing | Decreasing
 type meta_assertion =
   | FixedBy of qident Marked.pos * ident Marked.pos
   | VariesWith of
-      qident Marked.pos
-      * expression Marked.pos
-      * variation_typ Marked.pos option
+      qident Marked.pos * expression * variation_typ Marked.pos option
 [@@deriving
   visitors
     {
@@ -564,8 +548,8 @@ type meta_assertion =
       }]
 
 type assertion = {
-  assertion_condition : expression Marked.pos option;
-  assertion_content : expression Marked.pos;
+  assertion_condition : expression option;
+  assertion_content : expression;
 }
 [@@deriving
   visitors
@@ -604,7 +588,7 @@ type scope_use_item =
       }]
 
 type scope_use = {
-  scope_use_condition : expression Marked.pos option;
+  scope_use_condition : expression option;
   scope_use_name : constructor Marked.pos;
   scope_use_items : scope_use_item Marked.pos list;
 }

@@ -170,18 +170,6 @@ let disambiguate_constructor
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
 
-let aggregate_typ pos = function
-  | None -> TAny
-  | Some S.Integer -> TLit TInt
-  | Some S.Decimal -> TLit TRat
-  | Some S.Money -> TLit TMoney
-  | Some S.Duration -> TLit TDuration
-  | Some S.Date -> TLit TDate
-  | Some pred_typ ->
-    Errors.raise_spanned_error pos
-      "It is impossible to compute this aggregation of two values of type %a"
-      SurfacePrint.format_primitive_typ pred_typ
-
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -190,7 +178,7 @@ let rec translate_expr
     (scope : ScopeName.t)
     (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    (expr : Surface.Ast.expression Marked.pos) : Ast.expr boxed =
+    (expr : Surface.Ast.expression) : Ast.expr boxed =
   let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   let pos = Marked.get_mark expr in
@@ -536,14 +524,11 @@ let rec translate_expr
       (translate_expr scope inside_definition_of ctxt e1)
       enum_uid cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
-  | CollectionOp
-      ( (((Surface.Ast.Filter | Surface.Ast.Map) as op'), _pos_op'),
-        param',
-        collection,
-        predicate ) ->
+  | CollectionOp (((S.Filter { f } | S.Map { f }) as op), collection) ->
     let collection = rec_helper collection in
+    let param, predicate = f in
     let ctxt, param =
-      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param)
     in
     let f_pred =
       Expr.make_abs [| param |]
@@ -553,177 +538,132 @@ let rec translate_expr
     in
     Expr.eapp
       (Expr.eop
-         (match op' with
-         | Surface.Ast.Map -> Map
-         | Surface.Ast.Filter -> Filter
-         | _ -> assert false (* should not happen *))
+         (match op with
+         | S.Map _ -> Map
+         | S.Filter _ -> Filter
+         | _ -> assert false)
          [TAny, pos; TAny, pos]
          emark)
       [f_pred; collection] emark
   | CollectionOp
-      ( ( Surface.Ast.Aggregate
-            (Surface.Ast.AggregateArgExtremum (max_or_min, pred_typ, init)),
-          pos_op' ),
-        param',
-        collection,
-        predicate ) ->
-    let init = rec_helper init in
+      (S.AggregateArgExtremum { max; default; f = param, predicate }, collection)
+    ->
+    let default = rec_helper default in
+    let pos_dft = Expr.pos default in
     let collection = rec_helper collection in
     let ctxt, param =
-      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param)
     in
-    let op_ty = aggregate_typ pos pred_typ in
-    let cmp_op = if max_or_min then Op.Gt else Op.Lt in
+    let cmp_op = if max then Op.Gt else Op.Lt in
     let f_pred =
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
         pos
     in
-    let acc_var = Var.make "acc" in
-    let acc_var_e = Expr.make_var acc_var emark in
-    let item_var = Var.make "item" in
-    let item_var_e = Expr.make_var item_var (Marked.get_mark collection) in
-    let fold_body =
-      Expr.eifthenelse
-        (Expr.eapp
-           (Expr.eop cmp_op
-              [op_ty, pos_op'; op_ty, pos_op']
-              (Untyped { pos = pos_op' }))
-           [
-             Expr.eapp f_pred [acc_var_e] emark;
-             Expr.eapp f_pred [item_var_e] emark;
-           ]
-           emark)
-        acc_var_e item_var_e emark
-    in
-    let fold_f =
-      Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
+    let param_name = Bindlib.name_of param in
+    let v1, v2 = Var.make (param_name ^ "_1"), Var.make (param_name ^ "_2") in
+    let x1 = Expr.make_var v1 emark in
+    let x2 = Expr.make_var v2 emark in
+    let reduce_f =
+      (* fun x1 x2 -> cmp_op (pred x1) (pred x2) *)
+      (* Note: this computes f_pred twice on every element, but we'd rather not
+         rely on returning tuples here *)
+      Expr.make_abs [| v1; v2 |]
+        (Expr.eifthenelse
+           (Expr.eapp
+              (Expr.eop cmp_op
+                 [TAny, pos_dft; TAny, pos_dft]
+                 (Untyped { pos = pos_dft }))
+              [Expr.eapp f_pred [x1] emark; Expr.eapp f_pred [x2] emark]
+              emark)
+           x1 x2 emark)
+        [TAny, pos; TAny, pos]
+        pos
     in
     Expr.eapp
-      (Expr.eop Fold [TAny, pos_op'; TAny, pos_op'; TAny, pos_op'] emark)
-      [fold_f; init; collection] emark
-  | CollectionOp (op', param', collection, predicate) ->
-    let ctxt, param =
-      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
-    in
+      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
+      [reduce_f; default; collection]
+      emark
+  | CollectionOp
+      (((Exists { predicate } | Forall { predicate }) as op), collection) ->
     let collection = rec_helper collection in
-    let mark = Untyped { pos = Marked.get_mark op' } in
-    let init =
-      match Marked.unmark op' with
-      | Surface.Ast.Map | Surface.Ast.Filter
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Exists -> Expr.elit (LBool false) mark
-      | Surface.Ast.Forall -> Expr.elit (LBool true) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
-        Expr.elit (LInt (Runtime.integer_of_int 0)) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
-        Expr.elit (LRat (Runtime.decimal_of_string "0")) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
-        Expr.elit
-          (LMoney (Runtime.money_of_cents_integer (Runtime.integer_of_int 0)))
-          mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
-        Expr.elit (LDuration (Runtime.duration_of_numbers 0 0 0)) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum t) ->
-        Errors.raise_spanned_error pos
-          "It is impossible to sum two values of type %a together"
-          SurfacePrint.format_primitive_typ t
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (_, _, init)) ->
-        rec_helper init
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
-        Expr.elit (LInt (Runtime.integer_of_int 0)) mark
+    let init, op =
+      match op with
+      | Exists _ -> false, S.Or
+      | Forall _ -> true, S.And
+      | _ -> assert false
     in
-    let acc_var = Var.make "acc" in
-    let acc =
-      Expr.make_var acc_var (Untyped { pos = Marked.get_mark param' })
-    in
-    let f_body =
-      let make_body op =
-        Expr.eapp (translate_binop op pos)
-          [acc; translate_expr scope inside_definition_of ctxt predicate]
-          emark
-      in
-      let make_extr_body cmp_op typ =
-        let tmp_var = Var.make "tmp" in
-        let tmp =
-          Expr.make_var tmp_var (Untyped { pos = Marked.get_mark param' })
-        in
-        Expr.make_let_in tmp_var (TAny, pos)
-          (translate_expr scope inside_definition_of ctxt predicate)
-          (Expr.eifthenelse
-             (Expr.eapp
-                (Expr.eop cmp_op [typ, pos; typ, pos] mark)
-                [acc; tmp] emark)
-             acc tmp emark)
-          pos
-      in
-      match Marked.unmark op' with
-      | Surface.Ast.Map | Surface.Ast.Filter
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Exists -> make_body Or
-      | Surface.Ast.Forall -> make_body And
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
-        make_body (Add KInt)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
-        make_body (Add KDec)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
-        make_body (Add KMoney)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
-        make_body (Add KDuration)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (max_or_min, t, _))
-        ->
-        let typ = aggregate_typ pos t in
-        let cmp_op = if max_or_min then Op.Gt else Op.Lt in
-        make_extr_body cmp_op typ
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
-        let predicate =
-          translate_expr scope inside_definition_of ctxt predicate
-        in
-        Expr.eifthenelse predicate
-          (Expr.eapp
-             (Expr.eop Add [TLit TInt, pos; TLit TInt, pos] mark)
-             [
-               acc;
-               Expr.elit
-                 (LInt (Runtime.integer_of_int 1))
-                 (Marked.get_mark predicate);
-             ]
-             emark)
-          acc emark
+    let init = Expr.elit (LBool init) emark in
+    let param0, predicate = predicate in
+    let ctxt, param =
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param0)
     in
     let f =
-      let make_f t =
-        Expr.eabs
-          (Expr.bind [| acc_var; param |] f_body)
-          [
-            t, Marked.get_mark op';
-            TAny, pos
-            (* we put any here because the type of the elements of the arrays is
-               not always the type of the accumulator; for instance in
-               AggregateCount. *);
-          ]
-          emark
+      let acc_var = Var.make "acc" in
+      let acc =
+        Expr.make_var acc_var (Untyped { pos = Marked.get_mark param0 })
       in
-      match Marked.unmark op' with
-      | Surface.Ast.Map | Surface.Ast.Filter
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Exists -> make_f (TLit TBool)
-      | Surface.Ast.Forall -> make_f (TLit TBool)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum k) ->
-        make_f (aggregate_typ pos (Some k))
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (_, k, _)) ->
-        make_f (aggregate_typ pos k)
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount -> make_f (TLit TInt)
+      Expr.eabs
+        (Expr.bind [| acc_var; param |]
+           (Expr.eapp (translate_binop op pos)
+              [acc; translate_expr scope inside_definition_of ctxt predicate]
+              emark))
+        [TAny, pos; TAny, pos]
+        emark
     in
     Expr.eapp
-      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] mark)
+      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
       [f; init; collection] emark
+  | CollectionOp (AggregateExtremum { max; default }, collection) ->
+    let collection = rec_helper collection in
+    let default = translate_expr scope inside_definition_of ctxt default in
+    let op = translate_binop (if max then S.Gt KPoly else S.Lt KPoly) pos in
+    let op_f =
+      (* fun x1 x2 -> if op x1 x2 then x1 else x2 *)
+      let vname = if max then "max" else "min" in
+      let v1, v2 = Var.make (vname ^ "1"), Var.make (vname ^ "2") in
+      let x1 = Expr.make_var v1 emark in
+      let x2 = Expr.make_var v2 emark in
+      Expr.make_abs [| v1; v2 |]
+        (Expr.eifthenelse (Expr.eapp op [x1; x2] emark) x1 x2 emark)
+        [TAny, pos; TAny, pos]
+        pos
+    in
+    Expr.eapp
+      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
+      [op_f; default; collection]
+      emark
+  | CollectionOp (AggregateSum { typ }, collection) ->
+    let collection = rec_helper collection in
+    let default_lit =
+      let i0 = Runtime.integer_of_int 0 in
+      match typ with
+      | S.Integer -> LInt i0
+      | S.Decimal -> LRat (Runtime.decimal_of_integer i0)
+      | S.Money -> LMoney (Runtime.money_of_cents_integer i0)
+      | S.Duration -> LDuration (Runtime.duration_of_numbers 0 0 0)
+      | t ->
+        Errors.raise_spanned_error pos
+          "It is impossible to sum values of type %a together"
+          SurfacePrint.format_primitive_typ t
+    in
+    let op_f =
+      (* fun x1 x2 -> op x1 x2 *)
+      (* we're not allowed pass the operator directly as argument, it must
+         appear inside an [EApp] *)
+      let v1, v2 = Var.make "sum1", Var.make "sum2" in
+      let x1 = Expr.make_var v1 emark in
+      let x2 = Expr.make_var v2 emark in
+      Expr.make_abs [| v1; v2 |]
+        (Expr.eapp (translate_binop (S.Add KPoly) pos) [x1; x2] emark)
+        [TAny, pos; TAny, pos]
+        pos
+    in
+    Expr.eapp
+      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
+      [op_f; Expr.elit default_lit emark; collection]
+      emark
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
     let param = Expr.make_var param_var emark in
@@ -752,17 +692,15 @@ let rec translate_expr
     Expr.eapp
       (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
       [f; init; collection] emark
-  | Builtin IntToDec -> Expr.eop IntToRat [TLit TInt, pos] emark
-  | Builtin MoneyToDec -> Expr.eop MoneyToRat [TLit TMoney, pos] emark
-  | Builtin DecToMoney -> Expr.eop RatToMoney [TLit TRat, pos] emark
+  | Builtin ToDecimal -> Expr.eop ToRat [TAny, pos] emark
+  | Builtin ToMoney -> Expr.eop ToMoney [TAny, pos] emark
+  | Builtin Round -> Expr.eop Round [TAny, pos] emark
   | Builtin Cardinal -> Expr.eop Length [TArray (TAny, pos), pos] emark
   | Builtin GetDay -> Expr.eop GetDay [TLit TDate, pos] emark
   | Builtin GetMonth -> Expr.eop GetMonth [TLit TDate, pos] emark
   | Builtin GetYear -> Expr.eop GetYear [TLit TDate, pos] emark
   | Builtin FirstDayOfMonth -> Expr.eop FirstDayOfMonth [TLit TDate, pos] emark
   | Builtin LastDayOfMonth -> Expr.eop LastDayOfMonth [TLit TDate, pos] emark
-  | Builtin RoundMoney -> Expr.eop RoundMoney [TLit TMoney, pos] emark
-  | Builtin RoundDecimal -> Expr.eop RoundDecimal [TLit TRat, pos] emark
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t)
@@ -928,8 +866,8 @@ let process_default
     (precond : Ast.expr boxed option)
     (exception_situation : Ast.exception_situation)
     (label_situation : Ast.label_situation)
-    (just : Surface.Ast.expression Marked.pos option)
-    (cons : Surface.Ast.expression Marked.pos) : Ast.rule =
+    (just : Surface.Ast.expression option)
+    (cons : Surface.Ast.expression) : Ast.rule =
   let just =
     match just with
     | Some just -> Some (translate_expr scope (Some def_key) ctxt just)
@@ -1092,7 +1030,7 @@ let process_assert
 
 (** Translates a surface definition, rule or assertion *)
 let process_scope_use_item
-    (precond : Surface.Ast.expression Marked.pos option)
+    (precond : Surface.Ast.expression option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)

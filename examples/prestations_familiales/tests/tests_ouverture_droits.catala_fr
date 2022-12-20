@@ -4,10 +4,10 @@
 
 ```catala
 déclaration champ d'application Données:
-  sortie enfant1 contenu EnfantPrestationsFamiliales
-  sortie enfant2 contenu EnfantPrestationsFamiliales
-  sortie enfant3 contenu EnfantPrestationsFamiliales
-  sortie enfant4 contenu EnfantPrestationsFamiliales
+  résultat enfant1 contenu EnfantPrestationsFamiliales
+  résultat enfant2 contenu EnfantPrestationsFamiliales
+  résultat enfant3 contenu EnfantPrestationsFamiliales
+  résultat enfant4 contenu EnfantPrestationsFamiliales
 
 champ d'application Données:
   définition enfant1 égal à EnfantPrestationsFamiliales {

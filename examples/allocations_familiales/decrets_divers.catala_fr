@@ -22,14 +22,14 @@ champ d'application AllocationsFamiliales :
   définition plafond_I_d521_3 sous condition
     date_courante >= |2018-01-01| et date_courante <= |2018-12-31|
   conséquence égal à 56 286 € +
-    5 628 € * (entier_vers_décimal de
+    5 628 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 
   exception
   définition plafond_II_d521_3 sous condition
     date_courante >= |2018-01-01| et date_courante <= |2018-12-31|
   conséquence égal à 78 770 € +
-    5 628 € * (entier_vers_décimal de
+    5 628 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
@@ -55,14 +55,14 @@ champ d'application AllocationsFamiliales :
   définition plafond_I_d521_3 sous condition
     date_courante >= |2019-01-01| et date_courante <= |2019-12-31|
   conséquence égal à 56 849 € +
-    5 684 € * (entier_vers_décimal de
+    5 684 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 
   exception
   définition plafond_II_d521_3 sous condition
     date_courante >= |2019-01-01| et date_courante <= |2019-12-31|
   conséquence égal à 79 558 € +
-    5 684 € * (entier_vers_décimal de
+    5 684 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
@@ -88,14 +88,14 @@ champ d'application AllocationsFamiliales :
   définition plafond_I_d521_3 sous condition
     date_courante >= |2020-01-01| et date_courante <= |2020-12-31|
   conséquence égal à 57 759 € +
-    5 775 € * (entier_vers_décimal de
+    5 775 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 
   exception
   définition plafond_II_d521_3 sous condition
     date_courante >= |2020-01-01| et date_courante <= |2020-12-31|
   conséquence égal à 80 831 € +
-    5 775 € * (entier_vers_décimal de
+    5 775 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
@@ -115,7 +115,7 @@ champ d'application AllocationsFamiliales :
   définition plafond_I_d521_3 sous condition
     date_courante >= |2021-01-01| et date_courante <= |2021-12-31|
   conséquence égal à 58 279 € +
-    5 827 € * (entier_vers_décimal de
+    5 827 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
@@ -131,7 +131,7 @@ champ d'application AllocationsFamiliales :
   définition plafond_II_d521_3 sous condition
     date_courante >= |2021-01-01| et date_courante <= |2021-12-31|
   conséquence égal à 81 558 € +
-    5 827 € * (entier_vers_décimal de
+    5 827 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
@@ -195,7 +195,7 @@ champ d'application AllocationsFamiliales :
   définition montant_initial_base_quatrième_enfant_et_plus_mayotte égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 3
     alors (bmaf.montant * 4,63 %) * (
-      entier_vers_décimal de
+      décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 3)
     ) sinon 0 €
 ```
