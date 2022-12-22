@@ -261,6 +261,10 @@ let driver
     (client_secret : string) =
   try
     if debug then Cli.debug_flag := true;
+    if not (expiration || diff) then
+      Errors.raise_error
+        "You have to check at least something, see the list of options with \
+         --help";
     let access_token = Api.get_token client_id client_secret in
     (* LégiFrance is only supported for French texts *)
     let program =
@@ -288,4 +292,5 @@ let driver
 let _ =
   Stdlib.exit
   @@ Cmdliner.Cmd.eval'
-       (Cmdliner.Cmd.v Cli.info (Legifrance_cli.catala_legifrance_t driver))
+       (Cmdliner.Cmd.v Legifrance_cli.info
+          (Legifrance_cli.catala_legifrance_t driver))
