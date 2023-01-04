@@ -1,6 +1,59 @@
-# Archives législatives et réglementaires
+# Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
-## Articles valables du 1er octobre 2021 au 1er juillet 2022
+## Articles valables du 1er juillet 2022 au 31 décembre 2022
+
+### Article 15 | LEGIARTI000046126962 [archive]
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
+le tableau suivant (en euros) :
+
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 870
+Couple sans personne à charge	             6 977
+Personne seule ou couple ayant :
+    -une personne à charge	               8 322
+    -deux personnes à charge	             8 509
+    -trois personnes à charge	             8 834
+    -quatre personnes à charge	           9 163
+    -cinq personnes à charge	             9 488
+    -six personnes à charge                9 816
+    -par personne à charge supplémentaire  323
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-07-01| et
+    date_courante < |2022-12-31|:
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 870 €
+      -- Couple: 6 977 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      8 322 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      8 509 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      8 834 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      9 163 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      9 488 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      9 816 €
+    sinon
+      (9 816€ + (323 € * (décimal de
+        (nombre_personnes_à_charge - 6))))
+    ))))))
+```
+
+NOTA :
+
+Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er juillet 2022.
+
+
+## Articles valables du 1er octobre 2021 au 30 juin 2022
 
 ### Article 7 | LEGIARTI000044137432 [archive]
 
@@ -722,7 +775,79 @@ Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces di
 applicables pour les prestations dues à compter du 1er octobre 2021.
 
 
-## Articles valables du 1er octobre 2020 au 1er octobre 2021
+## Articles valables du 1er janvier 2022 au 30 juin 2022
+
+### Article 6 | LEGIARTI000045011471 [archive]
+
+Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
+pour la location et à 6 000 euros pour la résidence en logement-foyer.
+
+Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
+pour la location et à 4 900 euros pour la résidence en logement-foyer.
+
+```catala
+# TODO informatique et juridique: traduire cet article qui vient définir
+# ressources_forfaitaires_r822_20
+```
+
+NOTA :
+
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+### Article 15 | LEGIARTI000045011468 [archive]
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
+le tableau suivant (en euros) :
+
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 683
+Couple sans personne à charge	             6 709
+Personne seule ou couple ayant :
+    -une personne à charge	               8 002
+    -deux personnes à charge	             8 182
+    -trois personnes à charge	             8 495
+    -quatre personnes à charge	           8 811
+    -cinq personnes à charge	             9 124
+    -six personnes à charge                9 439
+    -par personne à charge supplémentaire  311
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01| et
+    date_courante < |2022-07-01|:
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 683 €
+      -- Couple: 6709 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      8 002 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      8 192 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      8 495 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      8 811 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      9 124 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      9 439 €
+    sinon
+      (9 439€ + (311 € * (décimal de
+        (nombre_personnes_à_charge - 6))))
+    ))))))
+```
+
+NOTA :
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+
+## Articles valables du 1er octobre 2020 au 31 septembre 2021
 
 ### Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
@@ -1266,81 +1391,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
     )
 ```
 
-## Articles valables du 1er janvier 2022 au 1er juillet 2022
-
-### Article 6 | LEGIARTI000045011471 [archive]
-
-Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
-égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
-pour la location et à 6 000 euros pour la résidence en logement-foyer.
-
-Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
-pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
-pour la location et à 4 900 euros pour la résidence en logement-foyer.
-
-```catala
-# TODO informatique et juridique: traduire cet article qui vient définir
-# ressources_forfaitaires_r822_20
-```
-
-NOTA :
-
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-### Article 15 | LEGIARTI000045011468 [archive]
-
-Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
-le tableau suivant (en euros) :
-
-Composition du foyer	                     MONTANT  (en euros)
------------------------------------------  -------------------
-Personne seule sans personne à charge	     4 683
-Couple sans personne à charge	             6 709
-Personne seule ou couple ayant :
-    -une personne à charge	               8 002
-    -deux personnes à charge	             8 182
-    -trois personnes à charge	             8 495
-    -quatre personnes à charge	           8 811
-    -cinq personnes à charge	             9 124
-    -six personnes à charge                9 439
-    -par personne à charge supplémentaire  311
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2022-01-01| et
-    date_courante < |2022-07-01|:
-  définition abattement_forfaitaire_d823_17 égal à
-    si nombre_personnes_à_charge = 0 alors
-      selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 4 683 €
-      -- Couple: 6709 €
-    sinon (si nombre_personnes_à_charge = 1 alors
-      8 002 €
-    sinon (si nombre_personnes_à_charge = 2 alors
-      8 192 €
-    sinon (si nombre_personnes_à_charge = 3 alors
-      8 495 €
-    sinon (si nombre_personnes_à_charge = 4 alors
-      8 811 €
-    sinon (si nombre_personnes_à_charge = 5 alors
-      9 124 €
-    sinon (si nombre_personnes_à_charge = 6 alors
-      9 439 €
-    sinon
-      (9 439€ + (311 € * (décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
-```
-
-NOTA :
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-
-## Articles valables du 1er janvier 2020 au 1er janvier 2022
-
-### Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
+## Articles valables du 1er janvier 2020 au 31 décembre 2021
 
 #### Article 15 | LEGIARTI000041489192 [archive]
 
