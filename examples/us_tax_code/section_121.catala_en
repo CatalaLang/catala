@@ -272,7 +272,7 @@ respect to such property by reason of paragraph (3).
 ```catala
 scope Section121TwoPersons:
   rule section_121_b_2_A_condition under condition
-  (return_type with pattern JointReturn of data_couple)
+  (return_type with pattern JointReturn)
   and
   # i)
   (section121Person1.requirements_ownership_met or
@@ -349,8 +349,8 @@ was any other sale or exchange by the taxpayer to which subsection (a) applied.
 ```catala
 scope Section121SinglePerson:
   rule section_121_b_3_applies under condition
-    (other_section_121a_sale with pattern
-       MostRecentSaleWhereSection121aApplied of other_sale) and
+    other_section_121a_sale with pattern
+       MostRecentSaleWhereSection121aApplied of other_sale and
     date_of_sale_or_exchange - other_sale.date_of_sale_or_exchange <= 2 year
   consequence fulfilled
 

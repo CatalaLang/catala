@@ -514,11 +514,12 @@ def allocation_familiales_avril2008(allocation_familiales_avril2008_in:Allocatio
 def enfant_le_plus_age(enfant_le_plus_age_in:EnfantLePlusAgeIn):
     enfants = enfant_le_plus_age_in.enfants_in
     try:
-        def temp_le_plus_age(x1:Enfant, x2:Enfant):
-            if (x1.date_de_naissance < x2.date_de_naissance):
-                return x1
+        def temp_le_plus_age(potentiel_plus_age_1:Enfant, potentiel_plus_age_2:Enfant):
+            if (potentiel_plus_age_1.date_de_naissance <
+                potentiel_plus_age_2.date_de_naissance):
+                return potentiel_plus_age_1
             else:
-                return x2
+                return potentiel_plus_age_2
         temp_le_plus_age_1 = list_reduce(temp_le_plus_age,
                                          Enfant(identifiant = integer_of_string("-1"),
                                          obligation_scolaire = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
@@ -1857,8 +1858,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
             elif match_arg_16.code == PriseEnCompte_Code.Zero:
                 _ = match_arg_16.value
                 return decimal_of_string("0.")
-        def temp_nombre_moyen_enfants_1(x1_1:Decimal, x2_1:Decimal):
-            return (x1_1 + x2_1)
+        def temp_nombre_moyen_enfants_1(sum1:Decimal, sum2:Decimal):
+            return (sum1 + sum2)
         temp_nombre_moyen_enfants_2 = list_reduce(temp_nombre_moyen_enfants_1,
                                                   decimal_of_string("0."),
                                                   list_map(temp_nombre_moyen_enfants,
@@ -2872,8 +2873,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
         if droit_ouvert_base:
             def temp_montant_verse_majoration(enfant_3:Enfant):
                 return montant_avec_garde_alternee_majoration(enfant_3)
-            def temp_montant_verse_majoration_1(x1_2:Money, x2_2:Money):
-                return (x1_2 + x2_2)
+            def temp_montant_verse_majoration_1(sum1_1:Money, sum2_1:Money):
+                return (sum1_1 + sum2_1)
             temp_montant_verse_majoration_2 = list_reduce(temp_montant_verse_majoration_1,
                                                           money_of_cents_string("0"),
                                                           list_map(temp_montant_verse_majoration,

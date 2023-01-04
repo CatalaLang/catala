@@ -170,6 +170,24 @@ let disambiguate_constructor
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
 
+(** The parser allows any combination of logical operators with right
+    associativity. We actually want to reject anything that mixes operators
+    without parens, so that is handled here. *)
+let rec check_formula (op, pos_op) e =
+  match Marked.unmark e with
+  | S.Binop ((((S.And | S.Or | S.Xor) as op1), pos_op1), e1, e2) ->
+    if op = S.Xor || op <> op1 then
+      (* Xor is mathematically associative, but without a useful semantics ([a
+         xor b xor c] is most likely an error since it's true for [a = b = c =
+         true]) *)
+      Errors.raise_multispanned_error
+        [None, pos_op; None, pos_op1]
+        "Please add parentheses to explicit which of these operators should be \
+         applied first";
+    check_formula (op1, pos_op1) e1;
+    check_formula (op1, pos_op1) e2
+  | _ -> ()
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -184,6 +202,7 @@ let rec translate_expr
   let pos = Marked.get_mark expr in
   let emark = Untyped { pos } in
   match Marked.unmark expr with
+  | Paren e -> rec_helper e
   | Binop
       ( (Surface.Ast.And, _pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
@@ -213,6 +232,11 @@ let rec translate_expr
     Expr.ematch
       (translate_expr scope inside_definition_of ctxt e1_sub)
       enum_uid cases emark
+  | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
+    check_formula op e1;
+    check_formula op e2;
+    let op_term = translate_binop (Marked.unmark op) (Marked.get_mark op) in
+    Expr.eapp op_term [rec_helper e1; rec_helper e2] emark
   | IfThenElse (e_if, e_then, e_else) ->
     Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
       emark

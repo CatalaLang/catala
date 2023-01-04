@@ -409,6 +409,7 @@ and match_cases = match_case Marked.pos list
 and expression = naked_expression Marked.pos
 
 and naked_expression =
+  | Paren of expression
   | MatchWith of expression * match_cases Marked.pos
   | IfThenElse of expression * expression * expression
   | Binop of binop Marked.pos * expression * expression

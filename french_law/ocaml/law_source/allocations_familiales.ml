@@ -1865,8 +1865,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=83; start_column=18;
-                           end_line=83; end_column=68;
+                           start_line=83; start_column=19;
+                           end_line=83; end_column=67;
                            law_headings=["Article R521-1";
                                           "Chapitre 1er : Allocations familiales";
                                           "Titre 2 : Prestations générales d'entretien";
@@ -3371,8 +3371,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
-                                              start_line=159; start_column=5;
-                                              end_line=159; end_column=72;
+                                              start_line=159; start_column=6;
+                                              end_line=159; end_column=71;
                                               law_headings=["Article 7";
                                                              "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
                                                              "Dispositions spéciales relatives à Mayotte"]}
