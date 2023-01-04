@@ -1,7 +1,7 @@
 (library
  (name literate)
  (public_name catala.literate)
- (libraries re catala_utils surface ubase))
+ (libraries re catala_utils surface ubase uutf))
 
 (documentation
  (package catala)
