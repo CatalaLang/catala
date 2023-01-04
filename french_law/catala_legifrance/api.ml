@@ -191,13 +191,6 @@ let raise_article_parsing_error
     (Yojson.Basic.to_string json);
   exit 1
 
-type law_excerpt = Yojson.Basic.t
-
-let retrieve_law_excerpt (access_token : string) (text_id : string) :
-    law_excerpt =
-  run_request
-    (make_request access_token "consult/jorfPart" ["textCid", text_id])
-
 let get_article_id (article : article) : string =
   try
     article.content
@@ -234,6 +227,18 @@ let get_article_text (article : article) : string =
       with Yojson.Basic.Util.Type_error _ -> ""
     in
     text ^ " " ^ if nota <> "" then "NOTA : " ^ nota else ""
+  with Yojson.Basic.Util.Type_error (msg, obj) ->
+    raise_article_parsing_error article.content msg obj
+
+let get_article_title (article : article) : string =
+  try
+    article.content
+    |> Yojson.Basic.Util.member
+         (match article.typ with
+         | CETATEXT -> "text"
+         | LEGIARTI | JORFARTI -> "article")
+    |> Yojson.Basic.Util.member "titre"
+    |> Yojson.Basic.Util.to_string
   with Yojson.Basic.Util.Type_error (msg, obj) ->
     raise_article_parsing_error article.content msg obj
 
@@ -284,50 +289,3 @@ let get_article_new_version (article : article) : string =
       |> Yojson.Basic.Util.to_string
     with Yojson.Basic.Util.Type_error (msg, obj) ->
       raise_article_parsing_error article.content msg obj)
-
-let get_law_excerpt_title (json : law_excerpt) : string =
-  json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string
-
-type law_excerpt_article = { id : string; num : string; content : string }
-
-let clean_html (s : string) : string =
-  let new_line = Re.Pcre.regexp "\\s*\\<br\\s*\\/\\>\\s*" in
-  let s = Re.Pcre.substitute ~rex:new_line ~subst:(fun _ -> "\n") s in
-  let tag = Re.Pcre.regexp "\\<[^\\>]+\\>" in
-  let s = Re.Pcre.substitute ~rex:tag ~subst:(fun _ -> "") s in
-  String.trim s
-
-let get_law_excerpt_articles (json : law_excerpt) : law_excerpt_article list =
-  let articles =
-    json |> Yojson.Basic.Util.member "articles" |> Yojson.Basic.Util.to_list
-  in
-  let articles =
-    List.sort
-      (fun a1 a2 ->
-        let a1_num =
-          int_of_string
-            (a1 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        let a2_num =
-          int_of_string
-            (a2 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        compare a1_num a2_num)
-      articles
-  in
-  List.map
-    (fun article ->
-      let article_id =
-        article |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string
-      in
-      let article_num =
-        article |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string
-      in
-      let article_content =
-        article
-        |> Yojson.Basic.Util.member "content"
-        |> Yojson.Basic.Util.to_string
-        |> clean_html
-      in
-      { id = article_id; num = article_num; content = article_content })
-    articles

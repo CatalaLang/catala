@@ -151,7 +151,8 @@ codes={\catcode`\$=3\catcode`\^=7}
 \tableofcontents
 
 \[\star\star\star\]
-\clearpage|latex}
+\clearpage
+|latex}
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system
