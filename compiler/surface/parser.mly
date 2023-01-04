@@ -37,10 +37,10 @@ end>
 %right top_expr
 %right ALT
 %right let_expr IS
-%right logical_expr AND OR XOR
-%nonassoc compare_expr GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
-%left sum_expr PLUS MINUS PLUSPLUS
-%left mult_expr MULT DIV
+%right AND OR XOR
+%nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
+%left PLUS MINUS PLUSPLUS
+%left MULT DIV
 %right apply OF CONTAINS FOR SUCH WITH
 %right unop_expr
 %right CONTENT
@@ -148,25 +148,10 @@ let naked_expression :=
   Unop (op, e)
 } %prec unop_expr
 | e1 = expression ;
-  binop = mult_op ;
+  binop = addpos(binop) ;
   e2 = expression ; {
   Binop (binop, e1, e2)
-} %prec mult_expr
-| e1 = expression ;
-  binop = sum_op ;
-  e2 = expression ; {
-  Binop (binop, e1, e2)
-} %prec sum_expr
-| e1 = expression ;
-  binop = compare_op ;
-  e2 = expression ; {
-  Binop (binop, e1, e2)
-} %prec compare_expr
-| e1 = expression ;
-  binop = addpos(logical_op) ;
-  e2 = expression ; {
-  Binop (binop, e1, e2)
-} %prec logical_expr
+}
 | EXISTS ; i = ident ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; predicate = expression ; {
@@ -265,14 +250,6 @@ let literal :=
 | TRUE ; { LBool true }
 | FALSE ; { LBool false }
 
-let compare_op :=
-| LESSER ; { (Lt KPoly, Pos.from_lpos $sloc) }
-| LESSER_EQUAL ; { (Lte KPoly, Pos.from_lpos $sloc) }
-| GREATER ; { (Gt KPoly, Pos.from_lpos $sloc) }
-| GREATER_EQUAL ; { (Gte KPoly, Pos.from_lpos $sloc) }
-| EQUAL ; { (Eq, Pos.from_lpos $sloc) }
-| NOT_EQUAL ; { (Neq, Pos.from_lpos $sloc) }
-
 let scope_call_args ==
 | WITH_V ;
   LBRACE ;
@@ -289,16 +266,18 @@ let unop ==
 | NOT ; { (Not, Pos.from_lpos $sloc) }
 | k = MINUS ; { (Minus k, Pos.from_lpos $sloc) }
 
-let mult_op ==
-| k = MULT ; { (Mult k, Pos.from_lpos $sloc) }
-| k = DIV ; { (Div k, Pos.from_lpos $sloc) }
-
-let sum_op ==
-| k = PLUS ; { (Add k, Pos.from_lpos $sloc) }
-| k = MINUS ; { (Sub k, Pos.from_lpos $sloc) }
-| PLUSPLUS ; { (Concat, Pos.from_lpos $sloc) }
-
-let logical_op ==
+let binop ==
+| k = MULT ; <Mult>
+| k = DIV ; <Div>
+| k = PLUS ; <Add>
+| k = MINUS ; <Sub>
+| PLUSPLUS ; { Concat }
+| k = LESSER ; <Lt>
+| k = LESSER_EQUAL ; <Lte>
+| k = GREATER ; <Gt>
+| k = GREATER_EQUAL ; <Gte>
+| EQUAL ; { Eq }
+| NOT_EQUAL ; { Neq }
 | AND ; { And }
 | OR ; { Or }
 | XOR ; { Xor }

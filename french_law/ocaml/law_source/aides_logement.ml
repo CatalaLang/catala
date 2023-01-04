@@ -4314,7 +4314,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                     (o_and
                        (o_gte_dat_dat date_courante_
                           (date_of_numbers (2022) (7) (1)))
-                       (o_lt_dat_dat date_courante_
+                       (o_lte_dat_dat date_courante_
                           (date_of_numbers (2022) (12) (31))))))
                  (fun (_: unit) ->
                      if
