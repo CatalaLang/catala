@@ -1825,17 +1825,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (embed_array (embed_enfant))
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=32; start_column=14; end_line=32; end_column=40;
+           start_line=33; start_column=14; end_line=33; end_column=40;
            law_headings=["Règles diverses"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=32; start_column=14; end_line=32; end_column=40;
+              start_line=33; start_column=14; end_line=33; end_column=40;
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) -> enfants_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=32; start_column=14; end_line=32; end_column=40;
+        start_line=33; start_column=14; end_line=33; end_column=40;
         law_headings=["Règles diverses"; "Épilogue"]})) in
   let result_: EnfantLePlusAge.t = (log_end_call
     ["AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé"]
@@ -1952,8 +1952,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
               [||])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                   start_line=33; start_column=14;
-                   end_line=33; end_column=36;
+                   start_line=34; start_column=14;
+                   end_line=34; end_column=36;
                    law_headings=["Règles diverses"; "Épilogue"]} true))
               (fun (_: unit) ->
                  o_eq enfant_le_plus_age_dot_le_plus_age_ param_))
@@ -2295,8 +2295,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                          (fun (_: unit) -> false))|])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                      start_line=30; start_column=9;
-                      end_line=30; end_column=32;
+                      start_line=31; start_column=9;
+                      end_line=31; end_column=32;
                       law_headings=["Règles diverses"; "Épilogue"]} true))
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
@@ -4495,8 +4495,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=27; start_column=5;
-                           end_line=27; end_column=44;
+                           start_line=28; start_column=5;
+                           end_line=28; end_column=44;
                            law_headings=["Règles diverses"; "Épilogue"]}
                          (o_not ((log_end_call
                             ["AllocationsFamiliales";
@@ -5005,7 +5005,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=36; start_column=14; end_line=36; end_column=32;
+              start_line=37; start_column=14; end_line=37; end_column=32;
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
              if droit_ouvert_base_ then montant_avec_garde_alternee_base_
@@ -5026,7 +5026,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=38; start_column=14; end_line=38; end_column=38;
+              start_line=39; start_column=14; end_line=39; end_column=38;
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
              if droit_ouvert_base_ then
@@ -5128,7 +5128,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                           "Prologue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=44; start_column=14; end_line=44; end_column=27;
+              start_line=45; start_column=14; end_line=45; end_column=27;
               law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
              if droit_ouvert_base_ then
@@ -5191,11 +5191,11 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
     try
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=75; start_column=11; end_line=75; end_column=27;
+           start_line=76; start_column=11; end_line=76; end_column=27;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=116; start_column=14; end_line=116; end_column=30;
+              start_line=117; start_column=14; end_line=117; end_column=30;
               law_headings=["Article L131-1"; "Interface du programme";
                              "Épilogue"]} true))
          (fun (_: unit) ->
@@ -5232,7 +5232,7 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=75; start_column=11; end_line=75; end_column=27;
+        start_line=76; start_column=11; end_line=76; end_column=27;
         law_headings=["Interface du programme"; "Épilogue"]})))) in
   let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_: bool = 
     try ((log_variable_definition
@@ -5241,30 +5241,30 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (embed_bool)
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=91; start_column=5; end_line=91; end_column=75;
+           start_line=92; start_column=5; end_line=92; end_column=75;
            law_headings=["Interface du programme"; "Épilogue"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                   start_line=91; start_column=5; end_line=91; end_column=75;
+                   start_line=92; start_column=5; end_line=92; end_column=75;
                    law_headings=["Interface du programme"; "Épilogue"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                      start_line=92; start_column=18;
-                      end_line=92; end_column=67;
+                      start_line=93; start_column=18;
+                      end_line=93; end_column=67;
                       law_headings=["Interface du programme"; "Épilogue"]}
                     i_personne_charge_effective_permanente_est_parent_))
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=91; start_column=5; end_line=91; end_column=75;
+              start_line=92; start_column=5; end_line=92; end_column=75;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=91; start_column=5; end_line=91; end_column=75;
+        start_line=92; start_column=5; end_line=92; end_column=75;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_: bool = 
     try ((log_variable_definition
@@ -5273,30 +5273,30 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (embed_bool)
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=95; start_column=5; end_line=95; end_column=80;
+           start_line=96; start_column=5; end_line=96; end_column=80;
            law_headings=["Interface du programme"; "Épilogue"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                   start_line=95; start_column=5; end_line=95; end_column=80;
+                   start_line=96; start_column=5; end_line=96; end_column=80;
                    law_headings=["Interface du programme"; "Épilogue"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                      start_line=96; start_column=18;
-                      end_line=96; end_column=72;
+                      start_line=97; start_column=18;
+                      end_line=97; end_column=72;
                       law_headings=["Interface du programme"; "Épilogue"]}
                     i_personne_charge_effective_permanente_remplit_titre__i_))
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=95; start_column=5; end_line=95; end_column=80;
+              start_line=96; start_column=5; end_line=96; end_column=80;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=95; start_column=5; end_line=95; end_column=80;
+        start_line=96; start_column=5; end_line=96; end_column=80;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let allocations_familiales_dot_ressources_menage_: money = 
     try ((log_variable_definition
@@ -5304,17 +5304,17 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
         "allocations_familiales.ressources_ménage"] (embed_money)
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=87; start_column=14; end_line=87; end_column=54;
+           start_line=88; start_column=14; end_line=88; end_column=54;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=87; start_column=14; end_line=87; end_column=54;
+              start_line=88; start_column=14; end_line=88; end_column=54;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> i_ressources_menage_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=87; start_column=14; end_line=87; end_column=54;
+        start_line=88; start_column=14; end_line=88; end_column=54;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let allocations_familiales_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
@@ -5322,17 +5322,17 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (embed_collectivite)
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=88; start_column=14; end_line=88; end_column=46;
+           start_line=89; start_column=14; end_line=89; end_column=46;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=88; start_column=14; end_line=88; end_column=46;
+              start_line=89; start_column=14; end_line=89; end_column=46;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> i_residence_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=88; start_column=14; end_line=88; end_column=46;
+        start_line=89; start_column=14; end_line=89; end_column=46;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let allocations_familiales_dot_date_courante_: date = 
     try ((log_variable_definition
@@ -5340,17 +5340,17 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
         "allocations_familiales.date_courante"] (embed_date)
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=85; start_column=14; end_line=85; end_column=50;
+           start_line=86; start_column=14; end_line=86; end_column=50;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=85; start_column=14; end_line=85; end_column=50;
+              start_line=86; start_column=14; end_line=86; end_column=50;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> i_date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=85; start_column=14; end_line=85; end_column=50;
+        start_line=86; start_column=14; end_line=86; end_column=50;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let allocations_familiales_dot_enfants_a_charge_: Enfant.t array = 
     try ((log_variable_definition
@@ -5359,17 +5359,17 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (embed_array (embed_enfant))
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=86; start_column=14; end_line=86; end_column=53;
+           start_line=87; start_column=14; end_line=87; end_column=53;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=86; start_column=14; end_line=86; end_column=53;
+              start_line=87; start_column=14; end_line=87; end_column=53;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> enfants_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=86; start_column=14; end_line=86; end_column=53;
+        start_line=87; start_column=14; end_line=87; end_column=53;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_: bool = 
     try ((log_variable_definition
@@ -5378,30 +5378,31 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (embed_bool)
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=99; start_column=5; end_line=99; end_column=72;
+           start_line=100; start_column=5; end_line=100; end_column=72;
            law_headings=["Interface du programme"; "Épilogue"]}
          ([|(fun (_: unit) ->
                handle_default
                  {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                   start_line=99; start_column=5; end_line=99; end_column=72;
+                   start_line=100; start_column=5;
+                   end_line=100; end_column=72;
                    law_headings=["Interface du programme"; "Épilogue"]}
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                      start_line=100; start_column=18;
-                      end_line=100; end_column=64;
+                      start_line=101; start_column=18;
+                      end_line=101; end_column=64;
                       law_headings=["Interface du programme"; "Épilogue"]}
                     i_avait_enfant_a_charge_avant_1er_janvier_2012_))
                  (fun (_: unit) -> true))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=99; start_column=5; end_line=99; end_column=72;
+              start_line=100; start_column=5; end_line=100; end_column=72;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=99; start_column=5; end_line=99; end_column=72;
+        start_line=100; start_column=5; end_line=100; end_column=72;
         law_headings=["Interface du programme"; "Épilogue"]})) in
   let result_: AllocationsFamiliales.t = (log_end_call
     ["InterfaceAllocationsFamiliales"; "allocations_familiales";
@@ -5428,16 +5429,16 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
     try
       (handle_default
          {filename = "examples/allocations_familiales/epilogue.catala_fr";
-           start_line=79; start_column=12; end_line=79; end_column=27;
+           start_line=80; start_column=12; end_line=80; end_column=27;
            law_headings=["Interface du programme"; "Épilogue"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/allocations_familiales/epilogue.catala_fr";
-              start_line=89; start_column=14; end_line=89; end_column=29;
+              start_line=90; start_column=14; end_line=90; end_column=29;
               law_headings=["Interface du programme"; "Épilogue"]} true))
          (fun (_: unit) -> allocations_familiales_dot_montant_verse_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
-        start_line=79; start_column=12; end_line=79; end_column=27;
+        start_line=80; start_column=12; end_line=80; end_column=27;
         law_headings=["Interface du programme"; "Épilogue"]})))) in
   {InterfaceAllocationsFamiliales.i_montant_verse = i_montant_verse_}
