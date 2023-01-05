@@ -308,17 +308,20 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       Expr.estruct sc_sig.scope_sig_input_struct field_map (mark_tany m pos)
     in
     tag_with_log_entry
-      (Expr.eapp
-         (tag_with_log_entry
-            (Expr.evar sc_sig.scope_sig_scope_var (mark_tany m pos))
-            BeginCall
-            [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"])
-         [
-           tag_with_log_entry arg_struct
-             (VarDef (TStruct sc_sig.scope_sig_input_struct))
-             [ScopeName.get_info scope; Marked.mark (Expr.pos e) "input"];
-         ]
-         m)
+      (tag_with_log_entry
+         (Expr.eapp
+            (tag_with_log_entry
+               (Expr.evar sc_sig.scope_sig_scope_var (mark_tany m pos))
+               BeginCall
+               [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"])
+            [
+              tag_with_log_entry arg_struct
+                (VarDef (TStruct sc_sig.scope_sig_input_struct))
+                [ScopeName.get_info scope; Marked.mark (Expr.pos e) "input"];
+            ]
+            m)
+         (VarDef (TStruct sc_sig.scope_sig_output_struct))
+         [ScopeName.get_info scope; Marked.mark (Expr.pos e) "output"])
       EndCall
       [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"]
   | EApp { f; args } ->

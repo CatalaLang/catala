@@ -25669,6 +25669,9 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                 (let traitement_formule_ :
                    CalculAidePersonnaliseeLogementLocatif.t = ((log_end_call
                    ["CalculAidePersonnaliséeLogementLocatif"; "direct"]
+                   ((log_variable_definition
+                   ["CalculAidePersonnaliséeLogementLocatif"; "output"]
+                   (embed_calcul_aide_personnalisee_logement_locatif)
                    ((log_begin_call
                    ["CalculAidePersonnaliséeLogementLocatif"; "direct"]
                    calcul_aide_personnalisee_logement_locatif)
@@ -25860,7 +25863,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAidePersonnaliseeLogementLocatif.aide_finale_formule);
@@ -25871,7 +25874,11 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                    CalculAidePersonnaliseeLogementAccessionPropriete.t =
                    ((log_end_call
                    ["CalculAidePersonnaliséeLogementAccessionPropriété";
-                     "direct"] ((log_begin_call
+                     "direct"] ((log_variable_definition
+                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
+                     "output"]
+                   (embed_calcul_aide_personnalisee_logement_accession_propriete)
+                   ((log_begin_call
                    ["CalculAidePersonnaliséeLogementAccessionPropriété";
                      "direct"]
                    calcul_aide_personnalisee_logement_accession_propriete)
@@ -26082,7 +26089,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAidePersonnaliseeLogementAccessionPropriete.aide_finale_formule);
@@ -26092,6 +26099,9 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                 (let traitement_formule_ :
                    CalculAidePersonnaliseeLogementFoyer.t = ((log_end_call
                    ["CalculAidePersonnaliséeLogementFoyer"; "direct"]
+                   ((log_variable_definition
+                   ["CalculAidePersonnaliséeLogementFoyer"; "output"]
+                   (embed_calcul_aide_personnalisee_logement_foyer)
                    ((log_begin_call
                    ["CalculAidePersonnaliséeLogementFoyer"; "direct"]
                    calcul_aide_personnalisee_logement_foyer)
@@ -26208,7 +26218,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        CalculAidePersonnaliseeLogementFoyerIn.condition_2_du_832_25_in =
                          (fun (_: unit) -> raise EmptyError);
                        CalculAidePersonnaliseeLogementFoyerIn.n_nombre_parts_d832_25_in =
-                         (fun (_: unit) -> raise EmptyError)}))))))
+                         (fun (_: unit) -> raise EmptyError)}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAidePersonnaliseeLogementFoyer.aide_finale_formule);
@@ -28750,6 +28760,9 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                 (let traitement_formule_ : CalculAllocationLogementLocatif.t
                    = ((log_end_call
                    ["CalculAllocationLogementLocatif"; "direct"]
+                   ((log_variable_definition
+                   ["CalculAllocationLogementLocatif"; "output"]
+                   (embed_calcul_allocation_logement_locatif)
                    ((log_begin_call
                    ["CalculAllocationLogementLocatif"; "direct"]
                    calcul_allocation_logement_locatif)
@@ -28956,7 +28969,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAllocationLogementLocatif.aide_finale_formule);
@@ -28965,7 +28978,9 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
             | ModeOccupation.ResidentLogementFoyer logement_foyer__ ->
                 (let traitement_formule_ : CalculAllocationLogementFoyer.t =
                    ((log_end_call ["CalculAllocationLogementFoyer"; "direct"]
-                   ((log_begin_call
+                   ((log_variable_definition
+                   ["CalculAllocationLogementFoyer"; "output"]
+                   (embed_calcul_allocation_logement_foyer) ((log_begin_call
                    ["CalculAllocationLogementFoyer"; "direct"]
                    calcul_allocation_logement_foyer)
                    ((log_variable_definition
@@ -29093,7 +29108,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAllocationLogementFoyer.aide_finale_formule);
@@ -29104,6 +29119,9 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                    CalculAllocationLogementAccessionPropriete.t =
                    ((log_end_call
                    ["CalculAllocationLogementAccessionPropriété"; "direct"]
+                   ((log_variable_definition
+                   ["CalculAllocationLogementAccessionPropriété"; "output"]
+                   (embed_calcul_allocation_logement_accession_propriete)
                    ((log_begin_call
                    ["CalculAllocationLogementAccessionPropriété"; "direct"]
                    calcul_allocation_logement_accession_propriete)
@@ -29299,7 +29317,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAllocationLogementAccessionPropriete.aide_finale_formule);
@@ -29309,6 +29327,9 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                 (let traitement_formule_ : CalculAllocationLogementLocatif.t
                    = ((log_end_call
                    ["CalculAllocationLogementLocatif"; "direct"]
+                   ((log_variable_definition
+                   ["CalculAllocationLogementLocatif"; "output"]
+                   (embed_calcul_allocation_logement_locatif)
                    ((log_begin_call
                    ["CalculAllocationLogementLocatif"; "direct"]
                    calcul_allocation_logement_locatif)
@@ -29515,7 +29536,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAllocationLogementLocatif.aide_finale_formule);
@@ -29526,6 +29547,9 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                    CalculAllocationLogementAccessionPropriete.t =
                    ((log_end_call
                    ["CalculAllocationLogementAccessionPropriété"; "direct"]
+                   ((log_variable_definition
+                   ["CalculAllocationLogementAccessionPropriété"; "output"]
+                   (embed_calcul_allocation_logement_accession_propriete)
                    ((log_begin_call
                    ["CalculAllocationLogementAccessionPropriété"; "direct"]
                    calcul_allocation_logement_accession_propriete)
@@ -29721,7 +29745,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                             "Titre II : Dispositions communes aux aides personnelles au logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "Code de la construction et de l'habitation"]})))}))))))
+                                            "Code de la construction et de l'habitation"]})))}))))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
                     (traitement_formule_.CalculAllocationLogementAccessionPropriete.aide_finale_formule);
