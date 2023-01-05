@@ -800,7 +800,8 @@ Par personne supplémentaire à charge                     102
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  exception petit_2 définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
+  exception petit_2
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_courante >= |2023-01-01| et
     date_signature_prêt >= |1992-06-30| et

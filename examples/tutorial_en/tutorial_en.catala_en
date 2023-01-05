@@ -587,8 +587,8 @@ scope Test5:
   }
   definition income_tax equals
     if normal_income_tax_computation_applies then
-      (output of NewIncomeTaxComputationFixed with { -- individual: individual })
-      .income_tax
+      (output of NewIncomeTaxComputationFixed with
+        { -- individual: individual }).income_tax
     else $0 # Insert some other modes of computation here
 ```
 

@@ -127,7 +127,8 @@ champ d'application RessourcesAidesPersonnelleLogement:
     ressources_personnes_vivant_habituellement_foyer
 
   définition ressources_personnes_vivant_habituellement_foyer égal à
-    somme argent de personne.ressources pour personne parmi personnes_vivant_habituellement_foyer
+    somme argent de personne.ressources pour
+      personne parmi personnes_vivant_habituellement_foyer
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
