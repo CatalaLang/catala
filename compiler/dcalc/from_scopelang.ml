@@ -307,23 +307,64 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     let arg_struct =
       Expr.estruct sc_sig.scope_sig_input_struct field_map (mark_tany m pos)
     in
-    tag_with_log_entry
+    let called_func =
+      tag_with_log_entry
+        (Expr.evar sc_sig.scope_sig_scope_var (mark_tany m pos))
+        BeginCall
+        [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"]
+    in
+    let single_arg =
+      tag_with_log_entry arg_struct
+        (VarDef (TStruct sc_sig.scope_sig_input_struct))
+        [
+          ScopeName.get_info scope;
+          Marked.mark (Expr.pos e) "direct";
+          Marked.mark (Expr.pos e) "input";
+        ]
+    in
+    let direct_output_info =
+      [
+        ScopeName.get_info scope;
+        Marked.mark (Expr.pos e) "direct";
+        Marked.mark (Expr.pos e) "output";
+      ]
+    in
+    let calling_expr = Expr.eapp called_func [single_arg] m in
+    (* For the purposes of log parsing explained in Runtime.EventParser, we need
+       to wrap this function call in a flurry of log tags. Specifically, we are
+       mascarading this scope call as a function call. In a normal function
+       call, the log parser expects the output of the function to be defined as
+       a default, hence the production of the output should yield a
+       PosRecordIfTrueBool (which is not the case here). To remedy this absence
+       we fabricate a fake PosRecordIfTrueBool attached to a silent let binding
+       to "true" before returning the output value. *)
+    let result_var = Var.make "result" in
+    let if_then_else_returned =
+      Expr.eifthenelse
+        (tag_with_log_entry
+           (Expr.box
+              (Marked.mark
+                 (Expr.with_ty m (TLit TBool, Expr.pos e))
+                 (ELit (LBool true))))
+           PosRecordIfTrueBool direct_output_info)
+        (Expr.make_var result_var
+           (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
+        (Expr.box
+           (Marked.mark
+              (Expr.with_ty m
+                 (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
+              (ELit LEmptyError)))
+        (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
+    in
+    Expr.make_let_in result_var
+      (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
+      calling_expr
       (tag_with_log_entry
-         (Expr.eapp
-            (tag_with_log_entry
-               (Expr.evar sc_sig.scope_sig_scope_var (mark_tany m pos))
-               BeginCall
-               [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"])
-            [
-              tag_with_log_entry arg_struct
-                (VarDef (TStruct sc_sig.scope_sig_input_struct))
-                [ScopeName.get_info scope; Marked.mark (Expr.pos e) "input"];
-            ]
-            m)
-         (VarDef (TStruct sc_sig.scope_sig_output_struct))
-         [ScopeName.get_info scope; Marked.mark (Expr.pos e) "output"])
-      EndCall
-      [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"]
+         (tag_with_log_entry if_then_else_returned
+            (VarDef (TStruct sc_sig.scope_sig_output_struct)) direct_output_info)
+         EndCall
+         [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"])
+      (Expr.pos e)
   | EApp { f; args } ->
     (* We insert various log calls to record arguments and outputs of
        user-defined functions belonging to scopes *)
