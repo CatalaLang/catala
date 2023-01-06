@@ -61,13 +61,14 @@ let client_id =
   Arg.(
     required
     & pos 1 (some string) None
-    & info [] ~docv:"CLIENT_ID" ~doc:"LegiFrance Oauth client id")
+    & info [] ~docv:"CLIENT_ID" ~doc:"LegiFrance PISTE API Oauth client id")
 
 let client_secret =
   Arg.(
     required
     & pos 2 (some string) None
-    & info [] ~docv:"CLIENT_SECRET" ~doc:"LegiFrance Oauth client secret")
+    & info [] ~docv:"CLIENT_SECRET"
+        ~doc:"LegiFrance PISTE API Oauth client secret")
 
 let debug =
   Arg.(value & flag & info ["d"; "debug"] ~doc:"Prints debug information")
@@ -92,8 +93,7 @@ let info =
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
       `S Manpage.s_bugs;
       `P
-        "Please file bug reports at \
-         https://gitlab.inria.fr/verifisc/catala/issues";
+        "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error" 1] in
