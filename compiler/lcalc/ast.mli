@@ -51,6 +51,18 @@ val make_matchopt :
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 
+val make_bind_cont :
+  typed mark ->
+  typed expr boxed ->
+  (typed expr boxed -> typed expr boxed) ->
+  typed expr boxed
+
+val make_bindm_cont :
+  typed mark ->
+  typed expr boxed list ->
+  (typed expr boxed list -> typed expr boxed) ->
+  typed expr boxed
+
 (** {1 Special symbols} *)
 
 val handle_default : untyped expr Var.t

@@ -65,5 +65,26 @@ let make_matchopt pos v tau arg e_none e_some =
     (Expr.make_abs [| x |] e_none [TLit TUnit, pos] pos)
     (Expr.make_abs [| v |] e_some [tau] pos)
 
+
+let make_bind_cont (mark: typed mark) (arg: typed expr boxed) (e_some: typed expr boxed -> typed expr boxed) =
+  let pos = Expr.mark_pos mark in
+  let tau = Expr.ty arg in
+  let v = Var.make "arg" in
+
+  let v_exp: (_ Bindlib.box, _) Marked.t  = (Expr.make_var v mark) in
+
+  make_matchopt_with_abs_arms arg
+    (Expr.make_abs [| Var.make "_" |] (make_none mark) [TLit TUnit, pos] pos)
+    (Expr.make_abs [| v |] (e_some v_exp) [tau] pos)
+
+
+let make_bindm_cont mark args e_some =
+  let rec aux args acc =
+    match args with
+    | [] -> e_some acc
+    | h :: t ->
+      make_bind_cont mark h (fun arg -> aux t (arg :: acc))
+  in aux args []
+
 let handle_default = Var.make "handle_default"
 let handle_default_opt = Var.make "handle_default_opt"
