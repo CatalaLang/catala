@@ -13,3 +13,5 @@ legifrance_oauth*
 node_modules/
 build.ninja
 
+.envrc
+.direnv
