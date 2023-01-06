@@ -71,7 +71,7 @@ let format_prise_en_charge (fmt : Format.formatter) (g : AF.PriseEnCharge.t) :
 let num_successful = ref 0
 let total_amount = ref 0.
 
-let run_test () =
+let _run_test_allocations_familiales () =
   let num_children = Random.int 7 in
   let children = Array.init num_children random_children in
   let income = Random.int 100000 in
@@ -115,19 +115,116 @@ let run_test () =
     exit (-1)
   | Runtime.AssertionFailed _ -> ()
 
-let _bench =
-  Random.init (int_of_float (Unix.time ()));
-  let num_iter = 10000 in
-  let _ =
-    Benchmark.latency1 ~style:Auto ~name:"Allocations familiales"
-      (Int64.of_int num_iter) run_test ()
+let aides_logement_input :
+    Law_source.Aides_logement.CalculetteAidesAuLogementGardeAlterneeIn.t =
+  {
+    menage_in =
+      {
+        prestations_recues = Array.of_list [];
+        logement =
+          {
+            residence_principale = true;
+            est_ehpad_ou_maison_autonomie_l313_12_asf = false;
+            mode_occupation =
+              Law_source.Aides_logement.ModeOccupation.Locataire
+                {
+                  bailleur =
+                    Law_source.Aides_logement.TypeBailleur.BailleurPrive ();
+                  beneficiaire_aide_adulte_ou_enfant_handicapes = false;
+                  logement_est_chambre = false;
+                  colocation = false;
+                  agees_ou_handicap_adultes_hebergees_onereux_particuliers =
+                    false;
+                  logement_meuble_d842_2 = false;
+                  changement_logement_d842_4 =
+                    Law_source.Aides_logement.ChangementLogementD8424
+                    .PasDeChangement
+                      ();
+                  loyer_principal = Runtime.money_of_units_int 450;
+                };
+            proprietaire = Law_source.Aides_logement.ParentOuAutre.Autre ();
+            loue_ou_sous_loue_a_des_tiers =
+              Law_source.Aides_logement.LoueOuSousLoueADesTiers.Non ();
+            usufruit = Law_source.Aides_logement.ParentOuAutre.Autre ();
+            logement_decent_l89_462 = true;
+            surface_m_carres = Runtime.integer_of_int 65;
+            zone = Law_source.Aides_logement.ZoneDHabitation.Zone2 ();
+          };
+        personnes_a_charge =
+          Array.of_list
+            [
+              Law_source.Aides_logement.PersonneACharge.EnfantACharge
+                {
+                  beneficie_titre_personnel_aide_personnelle_logement = false;
+                  a_deja_ouvert_droit_aux_allocations_familiales = true;
+                  remuneration_mensuelle = Runtime.money_of_units_int 0;
+                  obligation_scolaire =
+                    Law_source.Aides_logement.SituationObligationScolaire
+                    .Pendant
+                      ();
+                  situation_garde_alternee =
+                    Law_source.Aides_logement.SituationGardeAlternee
+                    .PasDeGardeAlternee
+                      ();
+                  date_de_naissance = Runtime.date_of_numbers 2015 1 1;
+                  identifiant = Runtime.integer_of_int 0;
+                };
+              Law_source.Aides_logement.PersonneACharge.EnfantACharge
+                {
+                  beneficie_titre_personnel_aide_personnelle_logement = false;
+                  a_deja_ouvert_droit_aux_allocations_familiales = true;
+                  remuneration_mensuelle = Runtime.money_of_units_int 0;
+                  obligation_scolaire =
+                    Law_source.Aides_logement.SituationObligationScolaire
+                    .Pendant
+                      ();
+                  situation_garde_alternee =
+                    Law_source.Aides_logement.SituationGardeAlternee
+                    .PasDeGardeAlternee
+                      ();
+                  date_de_naissance = Runtime.date_of_numbers 2016 1 1;
+                  identifiant = Runtime.integer_of_int 1;
+                };
+            ];
+        nombre_autres_occupants_logement = Runtime.integer_of_int 0;
+        situation_familiale =
+          Law_source.Aides_logement.SituationFamiliale.Concubins ();
+        condition_rattache_foyer_fiscal_parent_ifi = false;
+        enfant_a_naitre_apres_quatrieme_mois_grossesse = false;
+      };
+    demandeur_in =
+      {
+        nationalite = Law_source.Aides_logement.Nationalite.Francaise ();
+        patrimoine =
+          {
+            produisant_revenu_periode_r822_3_3_r822_4 =
+              Runtime.money_of_units_int 0;
+            ne_produisant_pas_revenu_periode_r822_3_3_r822_4 =
+              Runtime.money_of_units_int 0;
+          };
+        personne_hebergee_centre_soin_l_L162_22_3_securite_sociale = false;
+        date_naissance = Runtime.date_of_numbers 1992 1 1;
+      };
+    date_courante_in = Runtime.date_of_numbers 2022 5 1;
+    ressources_menage_prises_en_compte_in = Runtime.money_of_units_int 11500;
+  }
+
+let run_test_aides_logement () =
+  Format.printf "Coucou !\n";
+  Runtime.reset_log ();
+  let _result =
+    Law_source.Aides_logement.calculette_aides_au_logement_garde_alternee
+      aides_logement_input
   in
-  Printf.printf
-    "Successful computations: %d (%.2f%%)\n\
-     Total benefits awarded: %.2f€ (mean %.2f€)\n"
-    !num_successful
-    (Float.mul
-       (Float.div (float_of_int !num_successful) (float_of_int num_iter))
-       100.)
-    !total_amount
-    (Float.div !total_amount (float_of_int !num_successful))
+  let log = Runtime.retrieve_log () in
+  let struct_log = Runtime.EventParser.parse_raw_events log in
+  Runtime.pp_events Format.std_formatter struct_log
+
+let _bench = run_test_aides_logement ()
+(* Random.init (int_of_float (Unix.time ())); let num_iter = 10000 in let _ =
+   Benchmark.latency1 ~style:Auto ~name:"Allocations familiales" (Int64.of_int
+   num_iter) run_test_allocations_familiales () in Printf.printf "Successful
+   computations: %d (%.2f%%)\n\ Total benefits awarded: %.2f€ (mean %.2f€)\n"
+   !num_successful (Float.mul (Float.div (float_of_int !num_successful)
+   (float_of_int num_iter)) 100.) !total_amount (Float.div !total_amount
+   (float_of_int !num_successful)) *)

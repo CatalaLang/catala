@@ -1,6 +1,6 @@
-(dirs runtimes compiler french_law build_system examples)
+(dirs runtimes compiler french_law build_system examples tests)
 
-(data_only_dirs tests syntax_highlighting)
+(data_only_dirs syntax_highlighting)
 
 (copy_files compiler/surface/grammar.html)
 
