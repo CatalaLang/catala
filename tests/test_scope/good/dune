@@ -1,0 +1,10 @@
+(executable
+ (name test)
+ (libraries catala.runtime_ocaml)
+ (modules test scope_call3))
+
+(rule
+ (target scope_call3.ml)
+ (deps scope_call3.catala_en)
+ (action
+  (run catala OCaml -t scope_call3.catala_en)))

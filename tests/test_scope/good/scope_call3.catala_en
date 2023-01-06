@@ -1,0 +1,78 @@
+```catala
+declaration scope WholeComputation:
+  internal f content integer depends on integer
+  housing_computation scope HousingComputation
+  output result content integer
+
+
+scope WholeComputation:
+  definition f of x equals housing_computation.f of x
+  definition result equals f of 1
+
+declaration scope HousingComputation:
+  output f content integer depends on integer
+
+
+scope HousingComputation:
+  definition f of x equals (output of RentComputation).f of x
+
+declaration scope RentComputation:
+  output f content integer depends on integer
+
+scope RentComputation:
+  definition f of x equals x + 1
+```
+
+```catala-test-inline
+$ catala Interpret -t -s WholeComputation
+[LOG] →  WholeComputation.housing_computation.HousingComputation
+[LOG]   ≔  HousingComputation.f: <function>
+[LOG] ←  WholeComputation.housing_computation.HousingComputation
+[LOG] ≔  WholeComputation.f: <function>
+[LOG] ☛ Definition applied:
+ ┌─⯈ tests/test_scope/good/scope_call3.catala_en:10.13-19:
+ └──┐
+ 10 │   definition result equals f of 1
+    │              ‾‾‾‾‾‾
+
+[LOG] →  WholeComputation.f
+[LOG]   ≔  WholeComputation.f.input: 1
+[LOG]   ☛ Definition applied:
+   ┌─⯈ tests/test_scope/good/scope_call3.catala_en:9.13-14:
+   └─┐
+   9 │   definition f of x equals housing_computation.f of x
+     │              ‾
+
+[LOG]   →  HousingComputation.f
+[LOG]     ≔  HousingComputation.f.input: 1
+[LOG]     ☛ Definition applied:
+     ┌─⯈ tests/test_scope/good/scope_call3.catala_en:17.13-14:
+     └──┐
+     17 │   definition f of x equals (output of RentComputation).f of x
+        │              ‾
+
+[LOG]     →  RentComputation.direct
+[LOG]       ≔  RentComputation.direct.input: RentComputation_in {  }
+[LOG]       ≔  RentComputation.f: <function>
+[LOG]       ☛ Definition applied:
+       ┌─⯈ tests/test_scope/good/scope_call3.catala_en:17.28-53:
+       └──┐
+       17 │   definition f of x equals (output of RentComputation).f of x
+          │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+[LOG]       ≔  RentComputation.direct.output: RentComputation { "f"= λ (param: integer) → error_empty ⟨true ⊢ param +! 1⟩ }
+[LOG]     ←  RentComputation.direct
+[LOG]     ☛ Definition applied:
+     ┌─⯈ tests/test_scope/good/scope_call3.catala_en:23.13-14:
+     └──┐
+     23 │   definition f of x equals x + 1
+        │              ‾
+
+[LOG]     ≔  HousingComputation.f.output: 2
+[LOG]   ←  HousingComputation.f
+[LOG]   ≔  WholeComputation.f.output: 2
+[LOG] ←  WholeComputation.f
+[LOG] ≔  WholeComputation.result: 2
+[RESULT] Computation successful! Results:
+[RESULT] result = 2
+```
