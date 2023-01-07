@@ -5,124 +5,213 @@ open Runtime_ocaml.Runtime
 [@@@ocaml.warning "-4-26-27-32-41-42"]
 
 module Enum = struct
- type t =
-    | Int of integer
-    | Dec of decimal
-    | Dat of date
-  end
+  type t = Int of integer | Dec of decimal | Dat of date
+end
 
 module Structure = struct
-  type t = {i: integer; e: Enum.t}
+  type t = { i : integer; e : Enum.t }
 end
 
 module SOut = struct
-  type t = {y_out: Enum.t; z_out: Structure.t array; a_out: decimal}
+  type t = { y_out : Enum.t; z_out : Structure.t array; a_out : decimal }
 end
 
 module SIn = struct
-  type t = {x_in: integer; y_in: Enum.t}
+  type t = { x_in : integer; y_in : Enum.t }
 end
 
 module S2Out = struct
-  type t = {a_out: Enum.t}
+  type t = { a_out : Enum.t }
 end
 
 module S2In = struct
   type t = unit
 end
 
+let s (s_in : SIn.t) : SOut.t =
+  let x_ : integer = s_in.SIn.x_in in
+  let y_ : Enum.t = s_in.SIn.y_in in
+  let z_ : Structure.t array =
+    try
+      handle_default
+        {
+          filename = "./common.catala_en";
+          start_line = 14;
+          start_column = 10;
+          end_line = 14;
+          end_column = 11;
+          law_headings = [];
+        }
+        [||]
+        (fun (_ : unit) -> true)
+        (fun (_ : unit) ->
+          [|
+            { Structure.i = integer_of_string "3"; Structure.e = Enum.Int x_ };
+            { Structure.i = integer_of_string "4"; Structure.e = y_ };
+            {
+              Structure.i = integer_of_string "5";
+              Structure.e = Enum.Dat (date_of_numbers 1970 1 1);
+            };
+          |])
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./common.catala_en";
+             start_line = 14;
+             start_column = 10;
+             end_line = 14;
+             end_column = 11;
+             law_headings = [];
+           })
+  in
+  let a_ : decimal =
+    try
+      handle_default
+        {
+          filename = "./common.catala_en";
+          start_line = 15;
+          start_column = 10;
+          end_line = 15;
+          end_column = 11;
+          law_headings = [];
+        }
+        [||]
+        (fun (_ : unit) -> true)
+        (fun (_ : unit) ->
+          decimal_of_integer (array_length (z_ @ z_)) /& decimal_of_string "2.")
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./common.catala_en";
+             start_line = 15;
+             start_column = 10;
+             end_line = 15;
+             end_column = 11;
+             law_headings = [];
+           })
+  in
+  { SOut.y_out = y_; SOut.z_out = z_; SOut.a_out = a_ }
 
-
-let s (s_in: SIn.t) : SOut.t =
-  let x_: integer = s_in.SIn.x_in in
-  let y_: Enum.t = s_in.SIn.y_in in
-  let z_: Structure.t array = (
+let s2 (s2_in : S2In.t) : S2Out.t =
+  let sub_dot_x_ : integer =
     try
-      (handle_default
-         {filename = "./common.catala_en"; start_line=14; start_column=10;
-           end_line=14; end_column=11; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            [|{Structure.i = (integer_of_string "3");
-                 Structure.e = (Enum.Int x_)};
-              {Structure.i = (integer_of_string "4"); Structure.e = y_};
-              {Structure.i = (integer_of_string "5");
-                 Structure.e = (Enum.Dat (date_of_numbers (1970) (1) (1)))}|]))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "./common.catala_en"; start_line=14; start_column=10;
-        end_line=14; end_column=11; law_headings=[]}))) in
-  let a_: decimal = (
+      handle_default
+        {
+          filename = "err6.catala_en";
+          start_line = 5;
+          start_column = 3;
+          end_line = 5;
+          end_column = 6;
+          law_headings = [];
+        }
+        [||]
+        (fun (_ : unit) -> true)
+        (fun (_ : unit) -> integer_of_string "44")
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./common.catala_en";
+             start_line = 12;
+             start_column = 9;
+             end_line = 12;
+             end_column = 10;
+             law_headings = [];
+           })
+  in
+  let sub_dot_y_ : Enum.t =
     try
-      (handle_default
-         {filename = "./common.catala_en"; start_line=15; start_column=10;
-           end_line=15; end_column=11; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            (decimal_of_integer (array_length (z_ @ z_))) /&
-              (decimal_of_string "2.")))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "./common.catala_en"; start_line=15; start_column=10;
-        end_line=15; end_column=11; law_headings=[]}))) in
-  {SOut.y_out = y_; SOut.z_out = z_; SOut.a_out = a_}
-
-let s2 (s2_in: S2In.t) : S2Out.t =
-  let sub_dot_x_: integer = 
+      handle_default
+        {
+          filename = "err6.catala_en";
+          start_line = 5;
+          start_column = 3;
+          end_line = 5;
+          end_column = 6;
+          law_headings = [];
+        }
+        [||]
+        (fun (_ : unit) -> true)
+        (fun (_ : unit) -> Enum.Int (integer_of_string "44"))
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./common.catala_en";
+             start_line = 13;
+             start_column = 16;
+             end_line = 13;
+             end_column = 17;
+             law_headings = [];
+           })
+  in
+  let result_ : SOut.t = s { SIn.x_in = sub_dot_x_; SIn.y_in = sub_dot_y_ } in
+  let sub_dot_y_ : Enum.t = result_.SOut.y_out in
+  let sub_dot_z_ : Structure.t array = result_.SOut.z_out in
+  let sub_dot_a_ : decimal = result_.SOut.a_out in
+  let r_ : bool =
     try
-      ((handle_default
-          {filename = "err6.catala_en"; start_line=5; start_column=3;
-            end_line=5; end_column=6; law_headings=[]} ([||])
-          (fun (_: unit) -> true) (fun (_: unit) -> integer_of_string "44")))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "./common.catala_en"; start_line=12; start_column=9;
-        end_line=12; end_column=10; law_headings=[]})) in
-  let sub_dot_y_: Enum.t = 
+      handle_default
+        {
+          filename = "err6.catala_en";
+          start_line = 6;
+          start_column = 12;
+          end_line = 6;
+          end_column = 13;
+          law_headings = [];
+        }
+        [||]
+        (fun (_ : unit) ->
+          Array.fold_left
+            (fun (acc_ : bool) (x_ : _) ->
+              acc_
+              ||
+              match x_.Structure.e with
+              | Enum.Int _ -> true
+              | Enum.Dec _ -> false
+              | Enum.Dat _ -> false)
+            false sub_dot_z_)
+        (fun (_ : unit) -> true)
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "err6.catala_en";
+             start_line = 6;
+             start_column = 12;
+             end_line = 6;
+             end_column = 13;
+             law_headings = [];
+           })
+  in
+  let a_ : Enum.t =
     try
-      ((handle_default
-          {filename = "err6.catala_en"; start_line=5; start_column=3;
-            end_line=5; end_column=6; law_headings=[]} ([||])
-          (fun (_: unit) -> true)
-          (fun (_: unit) -> Enum.Int (integer_of_string "44"))))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "./common.catala_en"; start_line=13; start_column=16;
-        end_line=13; end_column=17; law_headings=[]})) in
-  let result_: SOut.t = ((s) {SIn.x_in = sub_dot_x_; SIn.y_in = sub_dot_y_}) in
-  let sub_dot_y_: Enum.t = result_.SOut.y_out in
-  let sub_dot_z_: Structure.t array = result_.SOut.z_out in
-  let sub_dot_a_: decimal = result_.SOut.a_out in
-  let r_: bool = (
-    try
-      (handle_default
-         {filename = "err6.catala_en"; start_line=6; start_column=12;
-           end_line=6; end_column=13; law_headings=[]} ([||])
-         (fun (_: unit) ->
-            (Array.fold_left
-               (fun (acc_: bool) (x_: _) ->
-                  acc_ ||
-                    (match (x_.Structure.e)
-                     with
-                     | Enum.Int _ -> true
-                     | Enum.Dec _ -> false
-                     | Enum.Dat _ -> false)) false sub_dot_z_))
-         (fun (_: unit) -> true))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "err6.catala_en"; start_line=6; start_column=12;
-        end_line=6; end_column=13; law_headings=[]}))) in
-  let a_: Enum.t = (
-    try
-      (handle_default
-         {filename = "err6.catala_en"; start_line=7; start_column=10;
-           end_line=7; end_column=11; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-             if r_ then (Enum.Int (array_length sub_dot_z_)) else
-              (Enum.Dec (decimal_of_string "0."))))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "err6.catala_en"; start_line=7; start_column=10;
-        end_line=7; end_column=11; law_headings=[]}))) in
-  {S2Out.a_out = a_}
+      handle_default
+        {
+          filename = "err6.catala_en";
+          start_line = 7;
+          start_column = 10;
+          end_line = 7;
+          end_column = 11;
+          law_headings = [];
+        }
+        [||]
+        (fun (_ : unit) -> true)
+        (fun (_ : unit) ->
+          if r_ then Enum.Int (array_length sub_dot_z_)
+          else Enum.Dec (decimal_of_string "0."))
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "err6.catala_en";
+             start_line = 7;
+             start_column = 10;
+             end_line = 7;
+             end_column = 11;
+             law_headings = [];
+           })
+  in
+  { S2Out.a_out = a_ }
