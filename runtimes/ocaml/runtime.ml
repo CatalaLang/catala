@@ -388,26 +388,15 @@ module EventParser = struct
     and is_subscope_input_var_def name =
       2 = List.length name && String.contains (List.nth name 1) '.'
     in
-    List.iter
-      (fun event ->
-        Format.printf "To parse: %s\n"
-          (try raw_event_to_string event with Failure _ -> "nothing"))
-      raw_events;
-
     let rec parse_events (ctx : context) : context =
       match ctx.rest with
       | [] -> { ctx with events = ctx.events |> List.rev }
-      | (VariableDefinition (name, _) as e1) :: rest when is_var_def name ->
+      | VariableDefinition (name, _) :: rest when is_var_def name ->
         (* VariableDefinition without position corresponds to a function
            definition which are ignored for now in structured events. *)
-        Format.printf "Parsing1: %s\n" (raw_event_to_string e1);
         parse_events { ctx with rest }
-      | (DecisionTaken pos as e1)
-        :: (VariableDefinition (name, value) as e2)
-        :: rest
+      | DecisionTaken pos :: VariableDefinition (name, value) :: rest
         when is_subscope_input_var_def name -> (
-        Format.printf "Parsing2: %s\n" (raw_event_to_string e1);
-        Format.printf "Parsing2: %s\n" (raw_event_to_string e2);
         match name with
         | [_; var_dot_subscope_var_name] ->
           let var_name =
@@ -424,12 +413,8 @@ module EventParser = struct
             }
         | _ ->
           failwith "unreachable due to the [is_subscope_input_var_def] test")
-      | (DecisionTaken pos as e1)
-        :: (VariableDefinition (name, value) as e2)
-        :: rest
+      | DecisionTaken pos :: VariableDefinition (name, value) :: rest
         when is_var_def name || is_output_var_def name ->
-        Format.printf "Parsing3: %s\n" (raw_event_to_string e1);
-        Format.printf "Parsing3: %s\n" (raw_event_to_string e2);
         parse_events
           {
             ctx with
@@ -438,14 +423,8 @@ module EventParser = struct
               :: ctx.events;
             rest;
           }
-      | (DecisionTaken pos as e1)
-        :: (VariableDefinition _ as e2)
-        :: (BeginCall infos as e3)
-        :: _
+      | DecisionTaken pos :: VariableDefinition _ :: BeginCall infos :: _
         when is_function_call infos ->
-        Format.printf "Parsing4: %s\n" (raw_event_to_string e1);
-        Format.printf "Parsing4: %s\n" (raw_event_to_string e2);
-        Format.printf "Parsing4: %s\n" (raw_event_to_string e3);
         (* Variable definition with function calls. *)
         let rec parse_fun_calls fun_calls raw_events =
           match raw_events with
@@ -480,15 +459,12 @@ module EventParser = struct
         in
 
         parse_events { ctx with events = var_comp :: ctx.events; rest }
-      | (VariableDefinition _ as e1) :: (BeginCall infos as e2) :: _
-        when is_function_call infos ->
-        Format.printf "Parsing5: %s\n" (raw_event_to_string e1);
-        Format.printf "Parsing5: %s\n" (raw_event_to_string e2);
+      | VariableDefinition _ :: BeginCall infos :: _ when is_function_call infos
+        ->
         let rest, fun_call = parse_fun_call ctx.rest in
 
         parse_events { ctx with events = FunCall fun_call :: ctx.events; rest }
-      | (BeginCall infos as e1) :: rest when is_subscope_call infos -> (
-        Format.printf "Parsing6: %s\n" (raw_event_to_string e1);
+      | BeginCall infos :: rest when is_subscope_call infos -> (
         match infos with
         | [_; var_name; _] ->
           let body_ctx = parse_events { empty_ctx with rest } in
@@ -502,9 +478,7 @@ module EventParser = struct
               rest = body_ctx.rest;
             }
         | _ -> failwith "unreachable due to the [is_subscope_call] test")
-      | (EndCall _ as e1) :: rest ->
-        Format.printf "Parsing7: %s\n" (raw_event_to_string e1);
-        { ctx with events = ctx.events |> List.rev; rest }
+      | EndCall _ :: rest -> { ctx with events = ctx.events |> List.rev; rest }
       | event :: _ -> failwith ("Unexpected event: " ^ raw_event_to_string event)
     and parse_fun_call events =
       match events with

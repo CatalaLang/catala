@@ -326,7 +326,7 @@ let driver source_file (options : Cli.options) : int =
                     (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Expr.format prgm.decl_ctx)
+                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with

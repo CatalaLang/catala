@@ -104,14 +104,6 @@ let event_manager : event_manager Js.t =
           Js.array
             (Array.of_list
                (R_ocaml.retrieve_log ()
-               |> List.map (fun event ->
-                      Firebug.console##log
-                        (Js.string
-                           ("Parsing "
-                           ^
-                           try raw_event_to_string event
-                           with Failure _ -> "nothing"));
-                      event)
                |> R_ocaml.EventParser.parse_raw_events
                |> List.map (fun event ->
                       object%js

@@ -337,8 +337,60 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        a default, hence the production of the output should yield a
        PosRecordIfTrueBool (which is not the case here). To remedy this absence
        we fabricate a fake PosRecordIfTrueBool attached to a silent let binding
-       to "true" before returning the output value. *)
+       to "true" before returning the output value.
+
+       But this is not sufficient. Indeed for the tricky case of
+       [tests/test_scope/scope_call3.catala_en], when a scope returns a
+       function, because we insert loggins calls at the call site of the
+       function and not during its definition, then we're missing the call log
+       instructions of the function returned. To avoid this trap, we need to
+       rebind the resulting scope output struct by eta-expanding the functions
+       to insert logging instructions*)
     let result_var = Var.make "result" in
+    let result_eta_expanded_var = Var.make "result" in
+    let result_eta_expanded =
+      Expr.estruct sc_sig.scope_sig_output_struct
+        (StructField.Map.mapi
+           (fun field typ ->
+             let original_field_expr =
+               Expr.estructaccess
+                 (Expr.make_var result_var
+                    (Expr.with_ty m
+                       (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
+                 field sc_sig.scope_sig_output_struct (Expr.with_ty m typ)
+             in
+             match Marked.unmark typ with
+             | TArrow (t_in, t_out) ->
+               (* Here the output scope struct field is a function so we
+                  eta-expand it and insert logging instructions. Invariant:
+                  works because user-defined functions in scope have only one
+                  argument. *)
+               let param_var = Var.make "param" in
+               let f_markings =
+                 [ScopeName.get_info scope; StructField.get_info field]
+               in
+               Expr.make_abs
+                 (Array.of_list [param_var])
+                 (tag_with_log_entry
+                    (tag_with_log_entry
+                       (Expr.eapp
+                          (tag_with_log_entry original_field_expr BeginCall
+                             f_markings)
+                          [
+                            tag_with_log_entry
+                              (Expr.make_var param_var (Expr.with_ty m t_in))
+                              (VarDef (Marked.unmark t_in))
+                              (f_markings @ [Marked.mark (Expr.pos e) "input"]);
+                          ]
+                          (Expr.with_ty m t_out))
+                       (VarDef (Marked.unmark t_out))
+                       (f_markings @ [Marked.mark (Expr.pos e) "output"]))
+                    EndCall f_markings)
+                 [t_in] (Expr.pos e)
+             | _ -> original_field_expr)
+           (StructName.Map.find sc_sig.scope_sig_output_struct ctx.structs))
+        (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
+    in
     let if_then_else_returned =
       Expr.eifthenelse
         (tag_with_log_entry
@@ -347,7 +399,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                  (Expr.with_ty m (TLit TBool, Expr.pos e))
                  (ELit (LBool true))))
            PosRecordIfTrueBool direct_output_info)
-        (Expr.make_var result_var
+        (Expr.make_var result_eta_expanded_var
            (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
         (Expr.box
            (Marked.mark
@@ -359,11 +411,16 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.make_let_in result_var
       (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
       calling_expr
-      (tag_with_log_entry
-         (tag_with_log_entry if_then_else_returned
-            (VarDef (TStruct sc_sig.scope_sig_output_struct)) direct_output_info)
-         EndCall
-         [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"])
+      (Expr.make_let_in result_eta_expanded_var
+         (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
+         result_eta_expanded
+         (tag_with_log_entry
+            (tag_with_log_entry if_then_else_returned
+               (VarDef (TStruct sc_sig.scope_sig_output_struct))
+               direct_output_info)
+            EndCall
+            [ScopeName.get_info scope; Marked.mark (Expr.pos e) "direct"])
+         (Expr.pos e))
       (Expr.pos e)
   | EApp { f; args } ->
     (* We insert various log calls to record arguments and outputs of
