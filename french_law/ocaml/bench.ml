@@ -71,7 +71,7 @@ let format_prise_en_charge (fmt : Format.formatter) (g : AF.PriseEnCharge.t) :
 let num_successful = ref 0
 let total_amount = ref 0.
 
-let _run_test_allocations_familiales () =
+let run_test_allocations_familiales () =
   let num_children = Random.int 7 in
   let children = Array.init num_children random_children in
   let income = Random.int 100000 in
@@ -210,21 +210,39 @@ let aides_logement_input :
   }
 
 let run_test_aides_logement () =
-  Format.printf "Coucou !\n";
-  Runtime.reset_log ();
-  let _result =
-    Law_source.Aides_logement.calculette_aides_au_logement_garde_alternee
-      aides_logement_input
-  in
-  let log = Runtime.retrieve_log () in
-  let struct_log = Runtime.EventParser.parse_raw_events log in
-  Runtime.pp_events Format.std_formatter struct_log
+  try
+    ignore
+      (Law_source.Aides_logement.calculette_aides_au_logement_garde_alternee
+         aides_logement_input)
+  with
+  | (Runtime.NoValueProvided _ | Runtime.ConflictError _) as err ->
+    Format.printf "%s"
+      (match err with
+      | Runtime.NoValueProvided _ -> "No value provided somewhere!"
+      | Runtime.ConflictError _ -> "Conflict error!"
+      | _ -> failwith "impossible");
+    exit (-1)
+  | Runtime.AssertionFailed _ -> ()
 
-let _bench = run_test_aides_logement ()
-(* Random.init (int_of_float (Unix.time ())); let num_iter = 10000 in let _ =
-   Benchmark.latency1 ~style:Auto ~name:"Allocations familiales" (Int64.of_int
-   num_iter) run_test_allocations_familiales () in Printf.printf "Successful
-   computations: %d (%.2f%%)\n\ Total benefits awarded: %.2f€ (mean %.2f€)\n"
-   !num_successful (Float.mul (Float.div (float_of_int !num_successful)
-   (float_of_int num_iter)) 100.) !total_amount (Float.div !total_amount
-   (float_of_int !num_successful)) *)
+let _bench =
+  Random.init (int_of_float (Unix.time ()));
+  let num_iter = 10000 in
+  let _ =
+    Benchmark.latency1 ~style:Auto ~name:"Allocations familiales"
+      (Int64.of_int num_iter) run_test_allocations_familiales ()
+  in
+  Printf.printf
+    "Successful\n\
+    \   computations: %d (%.2f%%)\n\
+    \ Total benefits awarded: %.2f€ (mean %.2f€)\n"
+    !num_successful
+    (Float.mul
+       (Float.div (float_of_int !num_successful) (float_of_int num_iter))
+       100.)
+    !total_amount
+    (Float.div !total_amount (float_of_int !num_successful));
+  let _ =
+    Benchmark.latency1 ~style:Auto ~name:"Aides au logement"
+      (Int64.of_int num_iter) run_test_aides_logement ()
+  in
+  Printf.printf "Successful\n"

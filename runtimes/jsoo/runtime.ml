@@ -83,18 +83,6 @@ class type event_manager =
       (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
   end
 
-let raw_event_to_string = function
-  | R_ocaml.BeginCall name ->
-    Printf.sprintf "BeginCall([ " ^ String.concat ", " name ^ " ])"
-  | EndCall name ->
-    Printf.sprintf "EndCall([ " ^ String.concat ", " name ^ " ])"
-  | VariableDefinition (name, value) ->
-    Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
-      (R_ocaml.yojson_of_runtime_value value |> Yojson.Safe.to_string)
-  | DecisionTaken pos ->
-    Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
-      pos.start_column pos.end_line pos.end_column
-
 let event_manager : event_manager Js.t =
   object%js
     method resetLog = Js.wrap_meth_callback R_ocaml.reset_log
