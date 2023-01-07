@@ -736,7 +736,7 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                           (date_of_numbers (2022) (5) (1)))
                        (o_and
                           (o_lte_dat_dat date_courante_
-                             (date_of_numbers (2022) (12) (31)))
+                             (date_of_numbers (2022) (7) (31)))
                           (o_or (o_eq residence_ (Collectivite.Metropole ()))
                              (o_or
                                 (o_eq residence_ (Collectivite.Guadeloupe ()))
@@ -780,9 +780,143 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                           (date_of_numbers (2022) (5) (1)))
                        (o_and
                           (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2022) (7) (31)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
+                 (fun (_: unit) -> money_of_cents_string "819"));
+            (fun (_: unit) ->
+               handle_default
+                 {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
+                   law_headings=["Prologue";
+                                  "Montant du salaire minimum de croissance"]}
+                 ([||])
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                      start_line=225; start_column=5;
+                      end_line=234; end_column=6;
+                      law_headings=["Article 2";
+                                     "Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance";
+                                     "Montant du salaire minimum de croissance"]}
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (8) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2022) (12) (31)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
+                                                  (Collectivite.SaintPierreEtMiquelon
+                                                     ())))))))))))))
+                 (fun (_: unit) -> money_of_cents_string "1107"));
+            (fun (_: unit) ->
+               handle_default
+                 {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
+                   law_headings=["Prologue";
+                                  "Montant du salaire minimum de croissance"]}
+                 ([||])
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                      start_line=243; start_column=5;
+                      end_line=245; end_column=6;
+                      law_headings=["Article 2";
+                                     "Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance";
+                                     "Montant du salaire minimum de croissance"]}
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2022) (8) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
                              (date_of_numbers (2022) (12) (31)))
                           (o_eq residence_ (Collectivite.Mayotte ()))))))
-                 (fun (_: unit) -> money_of_cents_string "819"))|])
+                 (fun (_: unit) -> money_of_cents_string "835"));
+            (fun (_: unit) ->
+               handle_default
+                 {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
+                   law_headings=["Prologue";
+                                  "Montant du salaire minimum de croissance"]}
+                 ([||])
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                      start_line=265; start_column=5;
+                      end_line=274; end_column=6;
+                      law_headings=["Article 1";
+                                     "Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance";
+                                     "Montant du salaire minimum de croissance"]}
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2023) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2023) (12) (31)))
+                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                                (o_or
+                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_or
+                                      (o_eq residence_
+                                         (Collectivite.Martinique ()))
+                                      (o_or
+                                         (o_eq residence_
+                                            (Collectivite.LaReunion ()))
+                                         (o_or
+                                            (o_eq residence_
+                                               (Collectivite.SaintBarthelemy
+                                                  ()))
+                                            (o_or
+                                               (o_eq residence_
+                                                  (Collectivite.SaintMartin
+                                                     ()))
+                                               (o_eq residence_
+                                                  (Collectivite.SaintPierreEtMiquelon
+                                                     ())))))))))))))
+                 (fun (_: unit) -> money_of_cents_string "1127"));
+            (fun (_: unit) ->
+               handle_default
+                 {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                   start_line=11; start_column=12;
+                   end_line=11; end_column=24;
+                   law_headings=["Prologue";
+                                  "Montant du salaire minimum de croissance"]}
+                 ([||])
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                      start_line=283; start_column=5;
+                      end_line=285; end_column=6;
+                      law_headings=["Article 1";
+                                     "Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance";
+                                     "Montant du salaire minimum de croissance"]}
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2023) (1) (1)))
+                       (o_and
+                          (o_lte_dat_dat date_courante_
+                             (date_of_numbers (2023) (12) (31)))
+                          (o_eq residence_ (Collectivite.Mayotte ()))))))
+                 (fun (_: unit) -> money_of_cents_string "851"))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
     EmptyError -> (raise (NoValueProvided

@@ -183,7 +183,7 @@ est porté à 10,85 € l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >= |2022-05-01| et date_courante <= |2022-12-31| et (
+    date_courante >= |2022-05-01| et date_courante <= |2022-07-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -201,8 +201,87 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >= |2022-05-01| et date_courante <= |2022-12-31| et (
+    date_courante >= |2022-05-01| et date_courante <= |2022-07-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 8,19 €
+```
+
+## Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance
+
+### Article 2 | JORFARTI000046113526
+
+En conséquence, à compter du 1er août 2022, pour les catégories de travailleurs
+mentionnés à l'article L. 2211-1 du code du travail, le montant du salaire
+minimum de croissance est relevé dans les conditions ci-après :
+
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
+à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon,
+son montant est porté à 11,07 € l'heure ;
+
+```catala
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >= |2022-08-01| et date_courante <= |2022-12-31| et (
+      (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 11,07 €
+```
+
+2° A Mayotte, son montant est fixé à 8,35 € l'heure.
+
+```catala
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >= |2022-08-01| et date_courante <= |2022-12-31| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 8,35 €
+```
+
+## Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance
+
+### Article 1 | JORFARTI000046780051
+
+
+A compter du 1er janvier 2023, pour les catégories de travailleurs mentionnés à
+l'article L. 2211-1 du code du travail, le montant du salaire minimum de
+croissance est relevé dans les conditions ci-après :
+
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
+à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon,
+son montant est porté à 11,27 euros l'heure ;
+
+```catala
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >= |2023-01-01| et date_courante <= |2023-12-31| et (
+      (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 11,27 €
+```
+
+2° A Mayotte, son montant est fixé à 8,51 euros l'heure.
+
+```catala
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >= |2023-01-01| et date_courante <= |2023-12-31| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 8,51 €
 ```
