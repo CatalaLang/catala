@@ -61,7 +61,7 @@ let wrap_latex
 %s
 \usepackage{minted}
 \usepackage{longtable}
-\usepackage{booktabs}
+\usepackage{booktabs,tabularx}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
 \usepackage[hidelinks]{hyperref}
