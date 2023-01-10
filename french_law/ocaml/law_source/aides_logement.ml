@@ -2118,7 +2118,7 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/autres_sources.catala_fr";
-              start_line=161; start_column=39; end_line=161; end_column=68;
+              start_line=191; start_column=39; end_line=191; end_column=68;
               law_headings=["Article 19";
                              "Chapitre II : Des contributions pour le remboursement de la dette sociale.";
                              "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]}
@@ -2145,8 +2145,8 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
                                "Prologue : aides au logement"]} ([||])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/aides_logement/autres_sources.catala_fr";
-                   start_line=123; start_column=5;
-                   end_line=123; end_column=34;
+                   start_line=153; start_column=5;
+                   end_line=153; end_column=34;
                    law_headings=["Article 14";
                                   "Chapitre II : Des contributions pour le remboursement de la dette sociale.";
                                   "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]}
@@ -2170,15 +2170,15 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
   let _: unit = if (try exonere_csg_ with
                   EmptyError -> (raise (NoValueProvided
                     {filename = "examples/aides_logement/autres_sources.catala_fr";
-                      start_line=127; start_column=13;
-                      end_line=127; end_column=24;
+                      start_line=157; start_column=13;
+                      end_line=157; end_column=24;
                       law_headings=["Article 14";
                                      "Chapitre II : Des contributions pour le remboursement de la dette sociale.";
                                      "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]})))
                   then () else
                   raise (AssertionFailed {filename = "examples/aides_logement/autres_sources.catala_fr";
-                                           start_line=127; start_column=13;
-                                           end_line=127; end_column=24;
+                                           start_line=157; start_column=13;
+                                           end_line=157; end_column=24;
                                            law_headings=["Article 14";
                                                           "Chapitre II : Des contributions pour le remboursement de la dette sociale.";
                                                           "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]}) in
@@ -8966,7 +8966,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/autres_sources.catala_fr";
-              start_line=298; start_column=14; end_line=298; end_column=36;
+              start_line=328; start_column=14; end_line=328; end_column=36;
               law_headings=["Article premier";
                              "Règlement (CE) n°2866/98 du conseil du 31 décembre 1998 concernant les taux de conversion entre l'euro et les monnaies des États membres adoptant l'euro"]}
             true))
@@ -16312,8 +16312,28 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/autres_sources.catala_fr";
-                      start_line=60; start_column=5;
-                      end_line=61; end_column=33;
+                      start_line=58; start_column=5;
+                      end_line=59; end_column=33;
+                      law_headings=["Circulaire de la CNAV 2023-3 du 09/01/2022 \"Revalorisation à compter du 1er janvier 2023\"";
+                                     "Montants revalorisés de l'allocation de solidarité aux personnes âgées"]}
+                    (o_and
+                       (o_gte_dat_dat date_courante_
+                          (date_of_numbers (2023) (1) (1)))
+                       (o_lt_dat_dat date_courante_
+                          (date_of_numbers (2024) (1) (1))))))
+                 (fun (_: unit) -> money_of_cents_string "1153302"));
+            (fun (_: unit) ->
+               handle_default
+                 {filename = "examples/aides_logement/prologue.catala_fr";
+                   start_line=317; start_column=11;
+                   end_line=317; end_column=41;
+                   law_headings=["Éligibilité aux aides personnelles au logement";
+                                  "Déclarations des champs d'application";
+                                  "Prologue : aides au logement"]} ([||])
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/aides_logement/autres_sources.catala_fr";
+                      start_line=90; start_column=5;
+                      end_line=91; end_column=33;
                       law_headings=["Circulaire de la CNAV 2022-3 du 11/01/2022 \"Revalorisation à compter du 1er janvier 2022\"";
                                      "Montants revalorisés de l'allocation de solidarité aux personnes âgées"]}
                     (o_and
@@ -16332,8 +16352,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/autres_sources.catala_fr";
-                      start_line=93; start_column=5;
-                      end_line=94; end_column=33;
+                      start_line=123; start_column=5;
+                      end_line=124; end_column=33;
                       law_headings=["Circulaire de la CNAV 2021-1 du 11/01/2021 \"Revalorisation à compter du 1er janvier 2021\"";
                                      "Montants revalorisés de l'allocation de solidarité aux personnes âgées"]}
                     (o_and
@@ -20128,7 +20148,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/autres_sources.catala_fr";
-              start_line=301; start_column=14; end_line=301; end_column=36;
+              start_line=331; start_column=14; end_line=331; end_column=36;
               law_headings=["Article premier";
                              "Règlement (CE) n°2866/98 du conseil du 31 décembre 1998 concernant les taux de conversion entre l'euro et les monnaies des États membres adoptant l'euro"]}
             true))
@@ -31399,7 +31419,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/autres_sources.catala_fr";
-              start_line=254; start_column=14; end_line=254; end_column=25;
+              start_line=284; start_column=14; end_line=284; end_column=25;
               law_headings=["Conseil d'État, 5ème - 4ème chambres réunies, 21/07/2017, 398563"]}
             true))
          (fun (_: unit) -> (log_end_call

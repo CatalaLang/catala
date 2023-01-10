@@ -28,9 +28,39 @@ le bureau BRS de la 6° sous-direction de la direction du budget le 31/08/2022.
 Pour éviter de refaire les calculs de revalorisation en Catala, nous prendrons
 comme référence les valeurs de la CNAV rappelées dans des circulaires internes.
 
-## Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
+## Circulaire de la CNAV 2023-3 du 09/01/2022 "Revalorisation à compter du 1er janvier 2023"
 
-Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
+[Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2023_03_09012023.pdf)
+
+Le montant de l’Aspa s’élève, à compter du 1er janvier 2023, à :
+
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- ---------------
+Personne seule 11 533,02 €    961,08 €
+Couple marié   17 905,06 €    1 492,08 €
+
+```catala
+# Pas important pour nous
+```
+
+Pour prétendre à cette allocation non contributive, les plafonds de ressources sont fixés à:
+
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- -----------------
+Personne seule 11 533,02 €    961,08 €
+Couple marié   17 905,06 €    1 492,08 €
+
+```catala
+# Uniquement la valeur du plafond individuel est important pour l'éligibilité
+# aux APL
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition plafond_individuel_l815_9_sécu sous condition
+    date_courante >= |2023-01-01| et
+    date_courante < |2024-01-01|
+  conséquence égal à 11 533,02 €
+```
+
+## Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
 
 [Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2022_03_11012022.pdf)
 
