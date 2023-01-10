@@ -21,4 +21,4 @@
 
 open Shared_ast
 
-val translate_program :typed Dcalc.Ast.program -> typed Ast.program
+val translate_program : typed Dcalc.Ast.program -> typed Ast.program
