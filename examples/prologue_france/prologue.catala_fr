@@ -1,4 +1,6 @@
 ```catala-metadata
+# TODO juridique: trouver un meilleur nom que "Collectivité" pour désigner
+# cette énumération qui ne contient pas que des collectivités.
 déclaration énumération Collectivité :
   -- Guadeloupe
   -- Guyane

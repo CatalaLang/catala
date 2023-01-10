@@ -24,6 +24,7 @@ Personne seule ou couple ayant :
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01| et
     date_courante <= |2022-12-31|:
+  étiquette métropole
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -819,6 +820,7 @@ Personne seule ou couple ayant :
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-01-01| et
     date_courante < |2022-07-01|:
+  étiquette métropole
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -1415,6 +1417,7 @@ Personne seule ou couple ayant :
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2022-01-01| et
     date_courante >= |2020-01-01|:
+  étiquette métropole
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme

@@ -216,6 +216,7 @@ déclaration structure Ménage:
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
   donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
+  donnée résidence contenu Collectivité
 
 déclaration structure Patrimoine:
   donnée produisant_revenu_période_r822_3_3_r822_4 contenu argent
@@ -544,6 +545,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
   entrée logement_meublé_d842_2 contenu booléen
+  entrée résidence contenu Collectivité
 
   interne loyer_éligible contenu argent
   interne taux_loyer_éligible contenu décimal
@@ -737,6 +739,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
   entrée nombre_personnes_à_charge contenu entier
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
+  entrée résidence contenu Collectivité
 
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -778,6 +781,7 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
   entrée logement_meublé_d842_2 contenu booléen
+  entrée résidence contenu Collectivité
 
   # Entrées spécifiques
   entrée changement_logement_d842_4 contenu ChangementLogementD842_4
@@ -819,6 +823,7 @@ champ d'application CalculAllocationLogementLocatif:
     réduction_loyer_solidarité
   définition calcul_apl_locatif.logement_meublé_d842_2 égal à
     logement_meublé_d842_2
+  définition calcul_apl_locatif.résidence égal à résidence
 
 
   définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
@@ -982,6 +987,7 @@ déclaration champ d'application CalculAllocationLogement:
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
   entrée type_aide contenu TypeAidesPersonnelleLogement
+  entrée résidence contenu Collectivité
 
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -1096,6 +1102,10 @@ champ d'application CalculetteAidesAuLogement:
     date_courante
   définition calcul_allocation_logement.date_courante égal à
     date_courante
+  définition calcul_aide_personnalisée_logement.résidence égal à
+    ménage.résidence
+  définition calcul_allocation_logement.résidence égal à
+    ménage.résidence
 
   définition coefficents_enfants_garde_alternée_pris_en_compte égal à
     éligibilité_aide_personnalisée_logement.
@@ -1165,6 +1175,7 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
              -- GardeAlternéeCoefficientPriseEnCharge: faux
              -- PasDeGardeAlternée: vrai
          )))
+      -- résidence: ménage.résidence
       -- nombre_autres_occupants_logement :
         ménage.nombre_autres_occupants_logement
       -- situation_familiale :
