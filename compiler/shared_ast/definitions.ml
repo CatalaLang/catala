@@ -301,6 +301,13 @@ and ('a, 't) naked_gexpr =
       cases : ('a, 't) gexpr EnumConstructor.Map.t;
     }
       -> ('a any, 't) naked_gexpr
+  | ETuple : ('a, 't) gexpr list -> ('a any, 't) naked_gexpr
+  | ETupleAccess : {
+      e : ('a, 't) gexpr;
+      index : int;
+      size : int;
+    }
+      -> ('a any, 't) naked_gexpr
   (* Early stages *)
   | ELocation :
       'a glocation
@@ -337,13 +344,6 @@ and ('a, 't) naked_gexpr =
       ('a, 't) gexpr
       -> (([< desugared | scopelang | dcalc ] as 'a), 't) naked_gexpr
   (* Lambda calculus with exceptions *)
-  | ETuple : ('a, 't) gexpr list -> ((lcalc as 'a), 't) naked_gexpr
-  | ETupleAccess : {
-      e : ('a, 't) gexpr;
-      index : int;
-      size : int;
-    }
-      -> ((lcalc as 'a), 't) naked_gexpr
   | ERaise : except -> ((lcalc as 'a), 't) naked_gexpr
   | ECatch : {
       body : ('a, 't) gexpr;

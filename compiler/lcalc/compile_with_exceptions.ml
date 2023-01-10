@@ -61,6 +61,9 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
     Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
   | EStructAccess { name; e; field } ->
     Expr.estructaccess (translate_expr ctx e) field name m
+  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
+  | ETupleAccess { e; index; size } ->
+    Expr.etupleaccess (translate_expr ctx e) index size m
   | EInj { name; e; cons } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { name; e; cases } ->
     Expr.ematch (translate_expr ctx e) name

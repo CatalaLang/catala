@@ -268,6 +268,19 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     let e1', hoists = translate_and_hoist ctx e1 in
     let e1' = Expr.estructaccess e1' field name mark in
     e1', hoists
+  | ETuple es ->
+    let hoists, es' =
+      List.fold_left_map
+        (fun hoists e ->
+          let e, h = translate_and_hoist ctx e in
+          h :: hoists, e)
+        [] es
+    in
+    Expr.etuple es' mark, disjoint_union_maps (Expr.pos e) hoists
+  | ETupleAccess { e = e1; index; size } ->
+    let e1', hoists = translate_and_hoist ctx e1 in
+    let e1' = Expr.etupleaccess e1' index size mark in
+    e1', hoists
   | EInj { name; e = e1; cons } ->
     let e1', hoists = translate_and_hoist ctx e1 in
     let e1' = Expr.einj e1' cons name mark in
