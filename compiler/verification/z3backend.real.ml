@@ -676,6 +676,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     in
     let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
+  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
+  | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)

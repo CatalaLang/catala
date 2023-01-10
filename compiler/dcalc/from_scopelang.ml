@@ -222,6 +222,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.estruct name fields m
   | EStructAccess { e; field; name } ->
     Expr.estructaccess (translate_expr ctx e) field name m
+  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
+  | ETupleAccess { e; index; size } ->
+    Expr.etupleaccess (translate_expr ctx e) index size m
   | EInj { e; cons; name } ->
     let e' = translate_expr ctx e in
     Expr.einj e' cons name m

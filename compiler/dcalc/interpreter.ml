@@ -364,6 +364,12 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
          if the term was well-typed)"
         (Expr.format ctx ~debug:true)
         e StructName.format_t s)
+  | ETuple es ->
+    Marked.same_mark_as (ETuple (List.map (evaluate_expr ctx) es)) e
+  | ETupleAccess { e = e1; index; size } ->
+    Marked.same_mark_as
+      (ETupleAccess { e = evaluate_expr ctx e1; index; size })
+      e
   | EInj { e = e1; name; cons } ->
     let e1' = evaluate_expr ctx e1 in
     if is_empty_error e then Marked.same_mark_as (ELit LEmptyError) e

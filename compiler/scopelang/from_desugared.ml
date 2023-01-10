@@ -93,6 +93,9 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
           name
     in
     Expr.estructaccess e' field name m
+  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
+  | ETupleAccess { e; index; size } ->
+    Expr.etupleaccess (translate_expr ctx e) index size m
   | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { e; name; cases } ->
     Expr.ematch (translate_expr ctx e) name
