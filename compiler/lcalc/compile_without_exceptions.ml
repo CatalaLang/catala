@@ -45,12 +45,10 @@
    
 open Shared_ast
 
-let admit: 'a = assert false
-
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 
-type 'm info = { expr : 'm A.expr boxed; var : 'm A.expr Var.t; is_pure : bool }
+type 'm info = { expr : 'm A.expr boxed; var : 'm A.expr Var.t; is_pure : bool}
 (** Information about each encontered Dcalc variable is stored inside a context
     : what is the corresponding LCalc variable; an expression corresponding to
     the variable build correctly using Bindlib, and a boolean `is_pure`
