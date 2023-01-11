@@ -329,6 +329,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         Marked.mark (Expr.pos e) "output";
       ]
     in
+    (* calling_expr = scope_function scope_input_struct *)
     let calling_expr = Expr.eapp called_func [single_arg] m in
     (* For the purposes of log parsing explained in Runtime.EventParser, we need
        to wrap this function call in a flurry of log tags. Specifically, we are
@@ -348,6 +349,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        to insert logging instructions*)
     let result_var = Var.make "result" in
     let result_eta_expanded_var = Var.make "result" in
+    (* result_eta_expanded = { struct_output_function_field = lambda x -> log
+       (struct_output.struct_output_function_field x) ... } *)
     let result_eta_expanded =
       Expr.estruct sc_sig.scope_sig_output_struct
         (StructField.Map.mapi
@@ -391,6 +394,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
            (StructName.Map.find sc_sig.scope_sig_output_struct ctx.structs))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
+    (* Here we have to go through an if statement that records a decision being
+       taken with a log. We can't just do a let-in with the true boolean value
+       enclosed in the log because it might get optimized by a compiler later
+       down the chain. *)
+    (* if_then_else_returned = if log true then result_eta_expanded else
+       emptyError *)
     let if_then_else_returned =
       Expr.eifthenelse
         (tag_with_log_entry
@@ -408,6 +417,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
               (ELit LEmptyError)))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
+    (* let result_var = calling_expr in let result_eta_expanded_var =
+       result_eta_expaneded in log (if_then_else_returned ) *)
     Expr.make_let_in result_var
       (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
       calling_expr
