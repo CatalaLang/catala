@@ -122,8 +122,8 @@ let wrap_latex
 \newunicodechar{→}{$\rightarrow$}
 \newunicodechar{≠}{$\neq$}
 
-\newcommand*\FancyVerbStartString{```catala}
-\newcommand*\FancyVerbStopString{```}
+\newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
+\newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
 
 \fvset{
 numbers=left,
