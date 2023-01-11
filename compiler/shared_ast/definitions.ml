@@ -74,7 +74,7 @@ and naked_typ =
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TOption of typ
-  | TArrow of typ * typ
+  | TArrow of typ list * typ
   | TArray of typ
   | TAny
 
