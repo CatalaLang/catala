@@ -129,7 +129,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS
 ##
 ## Ends in an error in state: 286.
 ##
-## typ -> COLLECTION . typ [ STATE SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
+## typ -> COLLECTION . typ [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEPENDS DEFINED_AS DECLARATION DATA CONTEXT CONDITION COMMA ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## COLLECTION
@@ -264,6 +264,8 @@ source_file: BEGIN_CODE DECLARATION YEAR
 ## code_item -> DECLARATION . STRUCT UIDENT COLON list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE UIDENT COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . ENUM UIDENT COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION
@@ -1003,7 +1005,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 353.
+## Ends in an error in state: 370.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##

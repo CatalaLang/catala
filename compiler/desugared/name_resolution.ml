@@ -638,6 +638,9 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
           (TEnum e_uid) ctxt.typedefs;
     }
   | ScopeUse _ -> ctxt
+  | TopDef _ ->
+    Errors.raise_spanned_error (Marked.get_mark item)
+      "Toplevel definitions not handled yet"
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
@@ -647,6 +650,9 @@ let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
   | StructDecl sdecl -> process_struct_decl ctxt sdecl
   | EnumDecl edecl -> process_enum_decl ctxt edecl
   | ScopeUse _ -> ctxt
+  | TopDef _ ->
+    Errors.raise_spanned_error (Marked.get_mark item)
+      "Toplevel definitions not handled yet"
 
 (** Process a code block *)
 let process_code_block
@@ -867,6 +873,9 @@ let process_use_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
   match Marked.unmark item with
   | ScopeDecl _ | StructDecl _ | EnumDecl _ -> ctxt
   | ScopeUse suse -> process_scope_use ctxt suse
+  | TopDef _ ->
+    Errors.raise_spanned_error (Marked.get_mark item)
+      "Toplevel definitions not handled yet"
 
 (** {1 API} *)
 

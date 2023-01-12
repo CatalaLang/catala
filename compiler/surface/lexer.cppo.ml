@@ -705,6 +705,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | '.' ->
       L.update_acc lexbuf;
       DOT
+  | ',' ->
+      L.update_acc lexbuf;
+      COMMA
   | uppercase, Star (uppercase | lowercase | digit | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;

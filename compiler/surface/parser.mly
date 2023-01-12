@@ -596,6 +596,15 @@ let enum_decl_line :=
   }
 }
 
+(* let def_depends ==
+ * | DEPENDS ; arg = lident ; CONTENT ; ty_arg = addpos(typ) ; <> *)
+
+let var_content ==
+| ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
+let depends_stance ==
+| DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; <>
+| DEPENDS ; LPAREN ; args = separated_nonempty_list(COMMA,var_content) ; RPAREN ; <>
+
 let code_item :=
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
@@ -625,6 +634,17 @@ let code_item :=
   EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
+  }
+}
+| DECLARATION ; name = lident ;
+  CONTENT ; ty = addpos(typ) ;
+  args = depends_stance ;
+  DEFINED_AS ; e = expression ; {
+  TopDef {
+    topdef_name = name;
+    topdef_args = args;
+    topdef_type = ty;
+    topdef_expr = e;
   }
 }
 
