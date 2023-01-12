@@ -23,6 +23,7 @@
 open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
 module ScopeName = Uid.Gen ()
+module TopdefName = Uid.Gen ()
 module StructName = Uid.Gen ()
 module StructField = Uid.Gen ()
 module EnumName = Uid.Gen ()
@@ -440,12 +441,18 @@ type 'e scope_def = {
   scope_next : ('e, 'e scopes) binder;
 }
   constraint 'e = (_ any, _ mark) gexpr
+(* and 'e topdef = {
+ *   topdef_name : TopdefName.t;
+ *   topdef_expr : 'e;
+ *   topdef_next : ('e, 'e scopes) binder;
+ * }
+ *   constraint 'e = (_ any, _ mark) gexpr *)
 
 (** Finally, we do the same transformation for the whole program for the kinded
     lets. This permit us to use bindlib variables for scopes names. *)
 and 'e scopes =
   | Nil
-  | ScopeDef of 'e scope_def
+  | ScopeDef of 'e scope_def (* | Topdef of 'e topdef *)
   constraint 'e = (_ any, _ mark) gexpr
 
 type struct_ctx = typ StructField.Map.t StructName.Map.t
