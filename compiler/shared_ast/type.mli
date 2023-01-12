@@ -19,8 +19,9 @@ type t = Definitions.typ
 val equal : t -> t -> bool
 val equal_list : t list -> t list -> bool
 val compare : t -> t -> int
-
 val unifiable : t -> t -> bool
+
+val unifiable_list : t list -> t list -> bool
 (** Similar to [equal], but allows TAny holes *)
 
 val arrow_return : t -> t

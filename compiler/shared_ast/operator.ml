@@ -404,18 +404,19 @@ let translate :
   | Eq_dur_dur -> Eq_dur_dur
 
 let monomorphic_type (op, pos) =
-  let ( @- ) a b = TArrow ((TLit a, pos), b), pos in
-  let ( @-> ) a b = TArrow ((TLit a, pos), (TLit b, pos)), pos in
+  let ( @-> ) a b =
+    TArrow (List.map (fun tau -> TLit tau, pos) a, (TLit b, pos)), pos
+  in
   match op with
-  | Not -> TBool @-> TBool
-  | GetDay -> TDate @-> TInt
-  | GetMonth -> TDate @-> TInt
-  | GetYear -> TDate @-> TInt
-  | FirstDayOfMonth -> TDate @-> TDate
-  | LastDayOfMonth -> TDate @-> TDate
-  | And -> TBool @- TBool @-> TBool
-  | Or -> TBool @- TBool @-> TBool
-  | Xor -> TBool @- TBool @-> TBool
+  | Not -> [TBool] @-> TBool
+  | GetDay -> [TDate] @-> TInt
+  | GetMonth -> [TDate] @-> TInt
+  | GetYear -> [TDate] @-> TInt
+  | FirstDayOfMonth -> [TDate] @-> TDate
+  | LastDayOfMonth -> [TDate] @-> TDate
+  | And -> [TBool; TBool] @-> TBool
+  | Or -> [TBool; TBool] @-> TBool
+  | Xor -> [TBool; TBool] @-> TBool
 
 (** Rules for overloads definitions:
 
@@ -431,62 +432,63 @@ let monomorphic_type (op, pos) =
     ['a], ['b] and ['c], there should be a unique solution for the third. *)
 
 let resolved_type (op, pos) =
-  let ( @- ) a b = TArrow ((TLit a, pos), b), pos in
-  let ( @-> ) a b = TArrow ((TLit a, pos), (TLit b, pos)), pos in
+  let ( @-> ) a b =
+    TArrow (List.map (fun tau -> TLit tau, pos) a, (TLit b, pos)), pos
+  in
   match op with
-  | Minus_int -> TInt @-> TInt
-  | Minus_rat -> TRat @-> TRat
-  | Minus_mon -> TMoney @-> TMoney
-  | Minus_dur -> TDuration @-> TDuration
-  | ToRat_int -> TInt @-> TRat
-  | ToRat_mon -> TMoney @-> TRat
-  | ToMoney_rat -> TRat @-> TMoney
-  | Round_rat -> TRat @-> TRat
-  | Round_mon -> TMoney @-> TMoney
-  | Add_int_int -> TInt @- TInt @-> TInt
-  | Add_rat_rat -> TRat @- TRat @-> TRat
-  | Add_mon_mon -> TMoney @- TMoney @-> TMoney
-  | Add_dat_dur -> TDate @- TDuration @-> TDate
-  | Add_dur_dur -> TDuration @- TDuration @-> TDuration
-  | Sub_int_int -> TInt @- TInt @-> TInt
-  | Sub_rat_rat -> TRat @- TRat @-> TRat
-  | Sub_mon_mon -> TMoney @- TMoney @-> TMoney
-  | Sub_dat_dat -> TDate @- TDate @-> TDuration
-  | Sub_dat_dur -> TDate @- TDuration @-> TDuration
-  | Sub_dur_dur -> TDuration @- TDuration @-> TDuration
-  | Mult_int_int -> TInt @- TInt @-> TInt
-  | Mult_rat_rat -> TRat @- TRat @-> TRat
-  | Mult_mon_rat -> TMoney @- TRat @-> TMoney
-  | Mult_dur_int -> TDuration @- TInt @-> TDuration
-  | Div_int_int -> TInt @- TInt @-> TRat
-  | Div_rat_rat -> TRat @- TRat @-> TRat
-  | Div_mon_mon -> TMoney @- TMoney @-> TRat
-  | Div_mon_rat -> TMoney @- TRat @-> TMoney
-  | Lt_int_int -> TInt @- TInt @-> TBool
-  | Lt_rat_rat -> TRat @- TRat @-> TBool
-  | Lt_mon_mon -> TMoney @- TMoney @-> TBool
-  | Lt_dat_dat -> TDate @- TDate @-> TBool
-  | Lt_dur_dur -> TDuration @- TDuration @-> TBool
-  | Lte_int_int -> TInt @- TInt @-> TBool
-  | Lte_rat_rat -> TRat @- TRat @-> TBool
-  | Lte_mon_mon -> TMoney @- TMoney @-> TBool
-  | Lte_dat_dat -> TDate @- TDate @-> TBool
-  | Lte_dur_dur -> TDuration @- TDuration @-> TBool
-  | Gt_int_int -> TInt @- TInt @-> TBool
-  | Gt_rat_rat -> TRat @- TRat @-> TBool
-  | Gt_mon_mon -> TMoney @- TMoney @-> TBool
-  | Gt_dat_dat -> TDate @- TDate @-> TBool
-  | Gt_dur_dur -> TDuration @- TDuration @-> TBool
-  | Gte_int_int -> TInt @- TInt @-> TBool
-  | Gte_rat_rat -> TRat @- TRat @-> TBool
-  | Gte_mon_mon -> TMoney @- TMoney @-> TBool
-  | Gte_dat_dat -> TDate @- TDate @-> TBool
-  | Gte_dur_dur -> TDuration @- TDuration @-> TBool
-  | Eq_int_int -> TInt @- TInt @-> TBool
-  | Eq_rat_rat -> TRat @- TRat @-> TBool
-  | Eq_mon_mon -> TMoney @- TMoney @-> TBool
-  | Eq_dat_dat -> TDate @- TDate @-> TBool
-  | Eq_dur_dur -> TDuration @- TDuration @-> TBool
+  | Minus_int -> [TInt] @-> TInt
+  | Minus_rat -> [TRat] @-> TRat
+  | Minus_mon -> [TMoney] @-> TMoney
+  | Minus_dur -> [TDuration] @-> TDuration
+  | ToRat_int -> [TInt] @-> TRat
+  | ToRat_mon -> [TMoney] @-> TRat
+  | ToMoney_rat -> [TRat] @-> TMoney
+  | Round_rat -> [TRat] @-> TRat
+  | Round_mon -> [TMoney] @-> TMoney
+  | Add_int_int -> [TInt; TInt] @-> TInt
+  | Add_rat_rat -> [TRat; TRat] @-> TRat
+  | Add_mon_mon -> [TMoney; TMoney] @-> TMoney
+  | Add_dat_dur -> [TDate; TDuration] @-> TDate
+  | Add_dur_dur -> [TDuration; TDuration] @-> TDuration
+  | Sub_int_int -> [TInt; TInt] @-> TInt
+  | Sub_rat_rat -> [TRat; TRat] @-> TRat
+  | Sub_mon_mon -> [TMoney; TMoney] @-> TMoney
+  | Sub_dat_dat -> [TDate; TDate] @-> TDuration
+  | Sub_dat_dur -> [TDate; TDuration] @-> TDuration
+  | Sub_dur_dur -> [TDuration; TDuration] @-> TDuration
+  | Mult_int_int -> [TInt; TInt] @-> TInt
+  | Mult_rat_rat -> [TRat; TRat] @-> TRat
+  | Mult_mon_rat -> [TMoney; TRat] @-> TMoney
+  | Mult_dur_int -> [TDuration; TInt] @-> TDuration
+  | Div_int_int -> [TInt; TInt] @-> TRat
+  | Div_rat_rat -> [TRat; TRat] @-> TRat
+  | Div_mon_mon -> [TMoney; TMoney] @-> TRat
+  | Div_mon_rat -> [TMoney; TRat] @-> TMoney
+  | Lt_int_int -> [TInt; TInt] @-> TBool
+  | Lt_rat_rat -> [TRat; TRat] @-> TBool
+  | Lt_mon_mon -> [TMoney; TMoney] @-> TBool
+  | Lt_dat_dat -> [TDate; TDate] @-> TBool
+  | Lt_dur_dur -> [TDuration; TDuration] @-> TBool
+  | Lte_int_int -> [TInt; TInt] @-> TBool
+  | Lte_rat_rat -> [TRat; TRat] @-> TBool
+  | Lte_mon_mon -> [TMoney; TMoney] @-> TBool
+  | Lte_dat_dat -> [TDate; TDate] @-> TBool
+  | Lte_dur_dur -> [TDuration; TDuration] @-> TBool
+  | Gt_int_int -> [TInt; TInt] @-> TBool
+  | Gt_rat_rat -> [TRat; TRat] @-> TBool
+  | Gt_mon_mon -> [TMoney; TMoney] @-> TBool
+  | Gt_dat_dat -> [TDate; TDate] @-> TBool
+  | Gt_dur_dur -> [TDuration; TDuration] @-> TBool
+  | Gte_int_int -> [TInt; TInt] @-> TBool
+  | Gte_rat_rat -> [TRat; TRat] @-> TBool
+  | Gte_mon_mon -> [TMoney; TMoney] @-> TBool
+  | Gte_dat_dat -> [TDate; TDate] @-> TBool
+  | Gte_dur_dur -> [TDuration; TDuration] @-> TBool
+  | Eq_int_int -> [TInt; TInt] @-> TBool
+  | Eq_rat_rat -> [TRat; TRat] @-> TBool
+  | Eq_mon_mon -> [TMoney; TMoney] @-> TBool
+  | Eq_dat_dat -> [TDate; TDate] @-> TBool
+  | Eq_dur_dur -> [TDuration; TDuration] @-> TBool
 
 let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
     ('b, resolved) t * [ `Straight | `Reversed ] =

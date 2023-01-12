@@ -155,7 +155,7 @@ let build_typ_from_sig
     (pos : Pos.t) : typ =
   let input_typ = Marked.mark pos (TStruct scope_input_struct_name) in
   let result_typ = Marked.mark pos (TStruct scope_return_struct_name) in
-  Marked.mark pos (TArrow (input_typ, result_typ))
+  Marked.mark pos (TArrow ([input_typ], result_typ))
 
 type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 

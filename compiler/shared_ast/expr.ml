@@ -182,7 +182,7 @@ let fold_marks
   | [] -> invalid_arg "Dcalc.Ast.fold_mark"
   | Untyped _ :: _ as ms ->
     Untyped { pos = pos_f (List.map (function Untyped { pos } -> pos) ms) }
-  | Typed _ :: _ ->
+  | Typed _ :: _ as ms ->
     Typed
       {
         pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
@@ -713,34 +713,28 @@ let make_abs xs e taus pos =
   let mark =
     map_mark
       (fun _ -> pos)
-      (fun ety ->
-        List.fold_right
-          (fun tx acc -> Marked.mark pos (TArrow (tx, acc)))
-          taus ety)
+      (fun ety -> Marked.mark pos (TArrow (taus, ety)))
       (Marked.get_mark e)
   in
   eabs (bind xs e) taus mark
 
-let make_app e u pos =
+let make_app e args pos =
   let mark =
     fold_marks
       (fun _ -> pos)
       (function
         | [] -> assert false
-        | fty :: argtys ->
-          List.fold_left
-            (fun tf tx ->
-              match Marked.unmark tf with
-              | TArrow (tx', tr) ->
-                assert (Type.unifiable tx.ty tx');
-                (* wrong arg type *)
-                tr
-              | TAny -> tf
-              | _ -> assert false)
-            fty.ty argtys)
-      (List.map Marked.get_mark (e :: u))
+        | fty :: argtys -> (
+          match Marked.unmark fty.ty with
+          | TArrow (tx', tr) ->
+            assert (
+              argtys |> List.map (fun x -> x.ty) |> Type.unifiable_list tx');
+            tr
+          | TAny -> fty.ty
+          | _ -> assert false))
+      (List.map Marked.get_mark (e :: args))
   in
-  eapp e u mark
+  eapp e args mark
 
 let empty_thunked_term mark =
   let silent = Var.make "_" in
