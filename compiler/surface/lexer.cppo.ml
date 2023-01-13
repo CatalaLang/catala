@@ -601,14 +601,16 @@ let rec lex_code (lexbuf : lexbuf) : token =
       Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
       L.update_acc lexbuf;
       MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
-  | Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2) ->
+  | '|', Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2), '|' ->
     let rex =
       Re.(compile @@ whole_string @@ seq [
+          char '|';
           group (repn digit 4 None);
           char '-';
           group (repn digit 2 None);
           char '-';
           group (repn digit 2 None);
+          char '|';
         ])
     in
     let date_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
@@ -687,9 +689,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | ']' ->
       L.update_acc lexbuf;
       RBRACKET
-  | '|' ->
-      L.update_acc lexbuf;
-      BAR
   | ':' ->
       L.update_acc lexbuf;
       COLON

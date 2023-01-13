@@ -84,7 +84,6 @@ let token_list_language_agnostic : (string * token) list =
     "-", MINUS KPoly;
     "*", MULT KPoly;
     "/", DIV KPoly;
-    "|", BAR;
     ":", COLON;
     ";", SEMICOLON;
     "--", ALT;
