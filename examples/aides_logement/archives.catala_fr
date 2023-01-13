@@ -271,7 +271,7 @@ Majoration par personne à charge                    -0,06%
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  définition taux_composition_familiale égal à
+  étiquette base définition taux_composition_familiale égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,83%
@@ -448,7 +448,8 @@ Majoration par personne à charge 12,29
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01| et colocation:
-  exception base définition montant_forfaitaire_charges_d823_16 égal à
+  étiquette colocation exception base
+  définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
     -- Couple: 54,22€) +
@@ -615,7 +616,7 @@ les prestations dues à compter du 1er octobre 2021.
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  étiquette oct_2021_juin_2022 définition montant_forfaitaire_charges égal à
+  étiquette base définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
    sinon 54,22 € + (12,29 € * (
      décimal de nombre_personnes_à_charge))
@@ -651,7 +652,7 @@ Majoration par personne à charge                         12,29
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  exception oct_2021_juin_2022
+  étiquette copropriété exception base
   définition montant_forfaitaire_charges sous condition
     copropriété
   conséquence égal à
@@ -684,7 +685,7 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 champ d'application CalculAllocationLogementFoyer
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  définition montant_forfaitaire_charges égal à
+  étiquette base définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
    sinon 54,22 € + (12,29 € * (
      décimal de nombre_personnes_à_charge))
@@ -1068,7 +1069,7 @@ Majoration par personne à charge	                   -0,06%
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-10-01| et
   date_courante < |2021-10-01|:
-  définition taux_composition_familiale égal à
+  étiquette base définition taux_composition_familiale égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,83%
@@ -1240,7 +1241,8 @@ Majoration par personne à charge 12,24
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2021-10-01| et
     date_courante >= |2020-10-01| et colocation:
-  exception base définition montant_forfaitaire_charges_d823_16 égal à
+  étiquette colocation exception base
+  définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 26,99€
     -- Couple: 53,99€) +
