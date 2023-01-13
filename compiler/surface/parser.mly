@@ -303,7 +303,7 @@ let literal :=
     money_amount_cents = cents;
   }
 }
-| BAR ; d = DATE_LITERAL ; BAR ; {
+| d = DATE_LITERAL ; {
   let (y,m,d) = d in
   LDate {
     literal_date_year = y;
