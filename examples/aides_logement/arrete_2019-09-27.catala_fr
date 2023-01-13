@@ -4369,3 +4369,33 @@ NOTA :
 Conformément à l’article 3 de
 l’arrêté du 26 décembre 2022 (NOR : TREL2226772A), ces dispositions sont
 applicables pour les prestations dues à compter du 1er janvier 2023.
+
+```catala
+# TODO Justine:
+# 1) Copier-coller dans ce fichier (et les autres selon la provenance)
+# tous les articles relatifs au calcul des APL en outre-mer, les formater
+# au format Markdown et ne pas oublier les identifiants légifrance.
+# Pro tip: écrire genre "> Inclusion: LEGIARTI000046834756" et lancer
+# l'outil de connection à l'API Légifrance avec la commande spéciale.
+# 2) Faire le même travail de collecte juridique pour le calcul des droits
+# simples de l'impôt sur le revenu (IR). Il s'agit de partir de https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006179577/#LEGISCTA000006179577
+# et de déterminer le sous-ensemble des articles qui feraient un bon prototype
+# de calcul des droits simples de l'IR, en s'arrêtant pour demander des entrées
+# qui potentiellement sont définies par d'autres articles mais pour lesquels
+# on ne les code pas pour l'instant. Idéalement on vise un ensemble de textes
+# qui représenteraient 1000 à 2000 lignes de code (pas trop longue).
+# 3) Lire les éléments de calcul des APL et les articles de loi sur lesquels
+# ils se basent et écrire quelques tests de calcul pour aider à valider le
+# logiciel Catala. Se baser sur les tests 'exemples' déjà écrits dans
+# https://www.ecologie.gouv.fr/sites/default/files/aides_personnelles_au_logement_elements_de_calcul_edition_2022.pdf.
+# Écrire les fichiers de test dans le sous-dossier "tests/" et les exécuter
+# avec le genre de commande suivantes :
+# dune exec catala --display=quiet -- Interpret examples/aides_logement/tests/tests_calcul_al_locatif.catala_fr  --scope Exemple1
+# 4) Liste de lecture:
+# - https://hal.inria.fr/hal-03712130
+# - https://hal.inria.fr/hal-03541637/
+# - https://link.springer.com/article/10.1007/s10506-022-09329-4
+# - https://www.researchgate.net/publication/221539372_Some_Arguments_About_Legal_Arguments
+# - https://law.mit.edu/pub/interpretingtherulesofcode
+# - préprint à télécharger ici : https://popl23.sigplan.org/details/prolala-2023-papers/6/The-Structure-and-Legal-Interpretation-of-Computer-Programs
+```
