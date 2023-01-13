@@ -18,6 +18,7 @@ champ d'application Exemple1 :
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone2
   définition calcul.logement_est_chambre égal à faux
+  définition calcul.résidence égal à Métropole
   définition calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     égal à faux
   définition calcul.type_aide égal à
@@ -49,6 +50,7 @@ champ d'application Exemple2 :
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone2
+  définition calcul.résidence égal à Métropole
   définition calcul.logement_est_chambre égal à faux
   définition calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     égal à faux
