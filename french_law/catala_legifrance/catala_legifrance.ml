@@ -165,25 +165,14 @@ let compare_to_versions
 let include_legislative_text
     (id : string * Pos.t)
     (access_token : Api.access_token) : string =
-  let excerpt = Api.retrieve_law_excerpt access_token (fst id) in
-  let title = "#" ^ Api.get_law_excerpt_title excerpt in
-  let excerpts = Api.get_law_excerpt_articles excerpt in
-  let text_to_return =
-    String.concat "\n\n"
-      (List.map (fun article -> article.Api.content) excerpts)
-  in
-  let articles =
-    List.map
-      (fun article ->
-        Printf.sprintf "## Article %s|%s@\n%s" article.Api.num article.Api.id
-          article.Api.content)
-      excerpts
-  in
-  let to_insert = title ^ "\n\n" ^ String.concat "\n\n" articles in
   let pos = snd id in
+  let id = Api.parse_id (fst id) in
+  let article = Api.retrieve_article access_token id in
+  let text_to_return = Api.get_article_text article in
+  let to_insert = text_to_return in
   Cli.debug_format "Position: %s" (Pos.to_string_short pos);
   let file = Pos.get_file pos in
-  let include_line = Pos.get_end_line pos in
+  let include_line = Pos.get_start_line pos in
   let ic = open_in file in
   let new_file = file ^ ".new" in
   Cli.warning_print "LégiFrance inclusion detected, writing new contents to %s"

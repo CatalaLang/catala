@@ -65,7 +65,6 @@ function run_computation_AL(log) {
             "logementEstChambre": false,
             "colocation": false,
             "ageesOuHandicapAdultesHebergeesOnereuxParticuliers": false,
-            "reductionLoyerSolidarite": 0,
             "logementMeubleD8422": false,
             "changementLogementD8424": {
               "kind": "PasDeChangement",
@@ -131,7 +130,7 @@ function run_computation_AL(log) {
         "payload": null
       },
       "conditionRattacheFoyerFiscalParentIfi": false,
-      "nombreEnfantsANaitreApresTroisiemeMoisGrossesse": 0,
+      "enfantANaitreApresQuatriemeMoisGrossesse": false,
     },
     "demandeurIn": {
       "nationalite": {

@@ -372,7 +372,9 @@ module EventParser = struct
     | VariableDefinition (name, value) ->
       Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
         (yojson_of_runtime_value value |> Yojson.Safe.to_string)
-    | DecisionTaken _ -> Printf.sprintf "DecisionTaken(_)"
+    | DecisionTaken pos ->
+      Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
+        pos.start_column pos.end_line pos.end_column
 
   let parse_raw_events raw_events =
     let nb_raw_events = List.length raw_events
@@ -386,7 +388,6 @@ module EventParser = struct
     and is_subscope_input_var_def name =
       2 = List.length name && String.contains (List.nth name 1) '.'
     in
-
     let rec parse_events (ctx : context) : context =
       match ctx.rest with
       | [] -> { ctx with events = ctx.events |> List.rev }

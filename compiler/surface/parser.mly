@@ -662,7 +662,7 @@ let source_file_item :=
   END_DIRECTIVE ; {
   let filename = String.trim (String.concat "" args) in
   let pos = Pos.from_lpos $sloc in
-  let jorftext = Re.Pcre.regexp "JORFTEXT\\d{12}" in
+  let jorftext = Re.Pcre.regexp "(JORFARTI\\d{12}|LEGIARTI\\d{12}|CETATEXT\\d{12})" in
   if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
     LawInclude (Ast.LegislativeText (filename, pos))
   else if Filename.extension filename = ".pdf" || page <> None then

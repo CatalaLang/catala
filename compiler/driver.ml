@@ -202,8 +202,21 @@ let driver source_file (options : Cli.options) : int =
           end
           else prgm
         in
+        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
+           (Print.typ prgm.decl_ctx) typ); *)
         match backend with
         | `Typecheck ->
+          Cli.debug_print "Typechecking again...";
+          let _ =
+            try Shared_ast.Typing.program prgm
+            with Errors.StructuredError (msg, details) ->
+              let msg =
+                "Typing error occured during re-typing on the 'default \
+                 calculus'. This is a bug in the Catala compiler.\n"
+                ^ msg
+              in
+              raise (Errors.StructuredError (msg, details))
+          in
           (* That's it! *)
           Cli.result_print "Typechecking successful!"
         | `Dcalc ->
@@ -229,7 +242,7 @@ let driver source_file (options : Cli.options) : int =
               Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
-              (Shared_ast.Expr.format prgm.decl_ctx)
+              (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
               prgrm_dcalc_expr
         | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
           as backend -> (
@@ -244,8 +257,6 @@ let driver source_file (options : Cli.options) : int =
               in
               raise (Errors.StructuredError (msg, details))
           in
-          (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
-             (Print.typ prgm.decl_ctx) typ); *)
           match backend with
           | `Proof ->
             let vcs =
@@ -315,7 +326,7 @@ let driver source_file (options : Cli.options) : int =
                     (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Expr.format prgm.decl_ctx)
+                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with

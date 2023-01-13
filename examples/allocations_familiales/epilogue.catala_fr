@@ -10,7 +10,8 @@ la fonction du bloc de code ci-dessous.
 ```catala-metadata
 champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé égal à
-    potentiel_plus_âgé parmi enfants tel que potentiel_plus_âgé.date_de_naissance est minimum
+    potentiel_plus_âgé parmi enfants tel que
+      potentiel_plus_âgé.date_de_naissance est minimum
     ou si collection vide alors Enfant {
       -- identifiant: -1
       -- obligation_scolaire: Pendant
