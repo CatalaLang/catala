@@ -23,6 +23,8 @@ declaration scope Transferred_property_83:
   input transfer content PropertyTransfer
   internal is_restricted content boolean
   output amount_to_include_in_gross_income content TransferredReturn
+    state computing
+    state final
 
 declaration enumeration TransferredReturn:
   -- DoesNotApply
@@ -53,22 +55,23 @@ transferable or not subject to a substantial risk of forfeiture.
 
 ```catala
 scope Transferred_property_83:
-  label section_83_default
-  definition amount_to_include_in_gross_income
-    equals NotThisYear
-  # Default case
 
-  exception section_83b
-  # todo info: any better way to define a global exclusion case ?
-  definition amount_to_include_in_gross_income
-    under condition not transfer.taxpayer_performed_the_service
-    consequence equals DoesNotApply
+  # the "final" amount is guarded by the applicability of the article
+  definition amount_to_include_in_gross_income state final equals
+    if transfer.taxpayer_performed_the_service then amount_to_include_in_gross_income
+    else DoesNotApply
+
+  label section_83_default
+  definition amount_to_include_in_gross_income state computing
+    equals NotThisYear
+  # Default case is not being applicable this year, additional exceptions explicit the cases
+  # where it becomes applicable
 
   label section_83a
   exception section_83_default
-  definition amount_to_include_in_gross_income
-    under condition (not is_restricted) and
-                    (not transfer.was_disposed_of_before_unrestricted)
+  definition amount_to_include_in_gross_income state computing
+    under condition not is_restricted and
+                    not transfer.was_disposed_of_before_unrestricted
     consequence equals
       if transfer.fair_market_value_unrestricted >$ transfer.amount_paid
       then IncludeInGrossIncome content
@@ -92,9 +95,8 @@ deduction shall be allowed in respect of such forfeiture.
 
 ```catala
 scope Transferred_property_83:
-  label section_83b
   exception section_83a
-  definition amount_to_include_in_gross_income
+  definition amount_to_include_in_gross_income state computing
     under condition transfer.elects_to_include_in_year_of_transfer
     # todo legal: can this still apply if was_disposed_of_before_unrestricted ?
     consequence equals
@@ -153,8 +155,7 @@ This section shall not apply to—
 
 ```catala
 scope Transferred_property_83:
-  exception section_83b
-  definition amount_to_include_in_gross_income
+  exception definition amount_to_include_in_gross_income state final
     under condition
       transfer.section_421_applies or
       transfer.transfer_401a_or_404a2 or
