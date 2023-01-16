@@ -341,8 +341,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
              -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
              -- PasDeGardeAlternée: 0,0
      ))
-     pour personne_à_charge parmi (
-       personne_à_charge parmi personnes_à_charge_prises_en_compte
+     pour personne_à_charge parmi personnes_à_charge_prises_en_compte
        tel que
          (selon personne_à_charge sous forme
           -- AutrePersonneÀCharge: faux
@@ -350,7 +349,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
                selon enfant.situation_garde_alternée sous forme
                -- GardeAlternéeCoefficientPriseEnCharge: vrai
                -- PasDeGardeAlternée: faux
-    ))))
+    )))
 ```
 
 ### Éligibilité à l'aide personnalisée au logement

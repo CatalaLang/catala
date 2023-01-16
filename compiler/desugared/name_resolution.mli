@@ -129,8 +129,8 @@ val add_def_local_var : context -> IdentName.t -> context * Ast.expr Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :
-  Surface.Ast.qident ->
-  Surface.Ast.ident Marked.pos option ->
+  Surface.Ast.scope_var ->
+  Surface.Ast.lident Marked.pos option ->
   ScopeName.t ->
   context ->
   Pos.t ->

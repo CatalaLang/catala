@@ -109,7 +109,7 @@ let rec format_typ
   match Marked.unmark naked_typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
   | TTuple ts ->
-    Format.fprintf fmt "@[<hov 2>(%a)]"
+    Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ t))

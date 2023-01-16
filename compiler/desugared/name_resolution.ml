@@ -297,7 +297,7 @@ let rec process_base_typ
     | Surface.Ast.Date -> TLit TDate, typ_pos
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
-    | Surface.Ast.Named ident -> (
+    | Surface.Ast.Named ([], (ident, _pos)) -> (
       match IdentName.Map.find_opt ident ctxt.typedefs with
       | Some (TStruct s_uid) -> TStruct s_uid, typ_pos
       | Some (TEnum e_uid) -> TEnum e_uid, typ_pos
@@ -307,7 +307,10 @@ let rec process_base_typ
         Errors.raise_spanned_error typ_pos
           "Unknown type \"%a\", not a struct or enum previously declared"
           (Cli.format_with_style [ANSITerminal.yellow])
-          ident))
+          ident)
+    | Surface.Ast.Named (_path, (_ident, _pos)) ->
+      Errors.raise_spanned_error typ_pos "Qualified paths are not supported yet"
+    )
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
@@ -671,8 +674,8 @@ let rec process_law_structure
 (** {1 Scope uses pass} *)
 
 let get_def_key
-    (name : Surface.Ast.qident)
-    (state : Surface.Ast.ident Marked.pos option)
+    (name : Surface.Ast.scope_var)
+    (state : Surface.Ast.lident Marked.pos option)
     (scope_uid : ScopeName.t)
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
