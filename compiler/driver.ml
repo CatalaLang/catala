@@ -73,7 +73,15 @@ let driver source_file (options : Cli.options) : int =
         try `Plugin (Plugin.find s)
         with Not_found ->
           Errors.raise_error
-            "The selected backend (%s) is not supported by Catala" backend)
+            "The selected backend (%s) is not supported by Catala, nor was a \
+             plugin by this name found under %a"
+            backend
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or @ ")
+               (fun ppf dir ->
+                 Format.pp_print_string ppf
+                   (try Unix.readlink dir with _ -> dir)))
+            options.plugins_dirs)
     in
     let prgm =
       Surface.Parser_driver.parse_top_level_file source_file language
