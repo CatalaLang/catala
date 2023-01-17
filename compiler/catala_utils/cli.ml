@@ -172,7 +172,7 @@ let plugins_dirs =
   let default =
     let ( / ) = Filename.concat in
     [
-      Sys.executable_name
+      Filename.dirname Sys.executable_name
       / Filename.parent_dir_name
       / "lib"
       / "catala"

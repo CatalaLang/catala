@@ -1,18 +1,22 @@
-(executable
+(library
  (name python)
- (modes plugin)
+ (public_name catala.plugins.python)
+ (synopsis
+  "Demonstration Catala plugin that reproduces the behaviour of the built-in python backend")
  (modules python)
  (libraries catala.driver))
 
-(executable
+(library
  (name api_web)
- (modes plugin)
+ (public_name catala.plugins.api_web)
+ (synopsis "Catala plugin for interaction with a web interface")
  (modules api_web)
  (libraries catala.driver))
 
-(executable
+(library
  (name json_schema)
- (modes plugin)
+ (public_name catala.plugins.json_schema)
+ (synopsis "Catala plugin generating JSON schemas useful to build web-forms")
  (modules json_schema)
  (libraries catala.driver))
 
