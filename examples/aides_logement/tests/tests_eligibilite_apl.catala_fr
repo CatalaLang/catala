@@ -12,6 +12,7 @@ champ d'application Exemple1 :
   assertion éligible
   définition éligibilité.date_courante égal à |2020-03-10|
   définition éligibilité.ménage égal à Ménage {
+    -- résidence: Métropole
     -- prestations_reçues: [
       PrestationReçue.AllocationSoutienEnfantHandicapé;
       PrestationReçue.ComplémentFamilial;
@@ -90,6 +91,7 @@ champ d'application Exemple2 :
   assertion éligible = TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
   définition éligibilité.date_courante égal à |2022-05-01|
   définition éligibilité.ménage égal à Ménage {
+    -- résidence: Métropole
     -- prestations_reçues: [
       PrestationReçue.AllocationsFamiliales
     ]
