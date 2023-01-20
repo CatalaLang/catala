@@ -22,17 +22,30 @@ Finally, start a shell inside a new container created from the newly built image
 The repository provides nix files to build or develop the catala compiler.
 
 Once [nix is installed](https://nixos.org/manual/nix/stable/#ch-installing-binary),
-it is possible to enter a development shell:
+with flakes enabled it is possible to enter a development shell:
 
-    nix-shell
+    nix develop
 
 or to build the Catala compiler, documentation and runtime library:
 
-    nix-build release.nix
+    nix build
 
-Dependencies not yet in nixpkgs (`bindlib` and `unionFind` at the moment of writing)
-are hardcoded inside the `.nix` directory. The `default.nix` should be compatible with
+Dependencies not yet in nixpkgs (`ubase` and `unionFind` at the moment of writing)
+are hardcoded inside the `.nix` directory. The `.nix/catala.nix` should be compatible with
 nixpkgs, if it finds a maintainer.
+
+To develop catala's compiler using vscode using ocaml's [lsp](https://microsoft.github.io/language-server-protocol/), you can use the [ocaml-platform extension](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform) with the following settings (inside the file `.vscode/settings.json`).
+
+```json
+{
+  "ocaml.sandbox": {
+    "kind": "custom",
+    "template": "nix develop --command $prog $args"
+  },
+}
+```
+
+The nix build is updated weekly by an automatic github action.
 
 ### With opam
 

@@ -122,11 +122,11 @@ let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
 
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
-    (constructor : (string Marked.pos option * string Marked.pos) list)
+    (constructor : (S.path * S.uident Marked.pos) Marked.pos list)
     (pos : Pos.t) : EnumName.t * EnumConstructor.t =
-  let enum, constructor =
+  let path, constructor =
     match constructor with
-    | [c] -> c
+    | [c] -> Marked.unmark c
     | _ ->
       Errors.raise_spanned_error pos
         "The deep pattern matching syntactic sugar is not yet supported"
@@ -139,8 +139,8 @@ let disambiguate_constructor
         "The name of this constructor has not been defined before, maybe it is \
          a typo?"
   in
-  match enum with
-  | None ->
+  match path with
+  | [] ->
     if EnumName.Map.cardinal possible_c_uids > 1 then
       Errors.raise_spanned_error
         (Marked.get_mark constructor)
@@ -152,7 +152,7 @@ let disambiguate_constructor
              Format.fprintf fmt "%a" EnumName.format_t s_name))
         (EnumName.Map.bindings possible_c_uids);
     EnumName.Map.choose possible_c_uids
-  | Some enum -> (
+  | [enum] -> (
     try
       (* The path is fully qualified *)
       let e_uid = Name_resolution.get_enum ctxt enum in
@@ -166,6 +166,7 @@ let disambiguate_constructor
     with Not_found ->
       Errors.raise_spanned_error (Marked.get_mark enum)
         "Enum %s has not been defined before" (Marked.unmark enum))
+  | _ -> Errors.raise_spanned_error pos "Qualified paths are not supported yet"
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
@@ -296,7 +297,7 @@ let rec translate_expr
                 correct calendar day")
     in
     Expr.elit lit emark
-  | Ident x -> (
+  | Ident ([], (x, pos)) -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables *)
     match IdentName.Map.find_opt x ctxt.local_var_idmap with
@@ -348,9 +349,12 @@ let rec translate_expr
     | Some uid ->
       Expr.make_var uid emark
       (* the whole box thing is to accomodate for this case *))
-  | Dotted (e, c, x) -> (
-    match Marked.unmark e with
-    | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
+  | Ident (_path, _x) ->
+    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+  | Dotted (e, ((path, x), _ppos)) -> (
+    match path, Marked.unmark e with
+    | [], Ident ([], (y, _)) when Name_resolution.is_subscope_uid scope ctxt y
+      ->
       (* In this case, y.x is a subscope variable *)
       let subscope_uid, subscope_real_uid =
         match IdentName.Map.find y scope_ctxt.var_idmap with
@@ -368,17 +372,19 @@ let rec translate_expr
       (* In this case e.x is the struct field x access of expression e *)
       let e = translate_expr scope inside_definition_of ctxt e in
       let str =
-        Option.map
-          (fun c ->
-            try Name_resolution.get_struct ctxt c
-            with Not_found ->
-              Errors.raise_spanned_error (Marked.get_mark c)
-                "Structure %s was not declared" (Marked.unmark c))
-          c
+        match path with
+        | [] -> None
+        | [c] -> (
+          try Some (Name_resolution.get_struct ctxt c)
+          with Not_found ->
+            Errors.raise_spanned_error (Marked.get_mark c)
+              "Structure %s was not declared" (Marked.unmark c))
+        | _ ->
+          Errors.raise_spanned_error pos "Qualified paths are not supported yet"
       in
       Expr.edstructaccess e (Marked.unmark x) str emark)
   | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
-  | ScopeCall (sc_name, fields) ->
+  | ScopeCall ((([], sc_name), _), fields) ->
     let called_scope = Name_resolution.get_scope ctxt sc_name in
     let scope_def = ScopeName.Map.find called_scope ctxt.scopes in
     let in_struct =
@@ -412,6 +418,8 @@ let rec translate_expr
         ScopeVar.Map.empty fields
     in
     Expr.escopecall called_scope in_struct emark
+  | ScopeCall (((_, _sc_name), _), _fields) ->
+    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
     let tau = TAny, Marked.get_mark x in
@@ -422,7 +430,7 @@ let rec translate_expr
         [tau] pos
     in
     Expr.eapp fn [rec_helper e1] emark
-  | StructLit (s_name, fields) ->
+  | StructLit ((([], s_name), _), fields) ->
     let s_uid =
       match IdentName.Map.find_opt (Marked.unmark s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
@@ -463,7 +471,9 @@ let rec translate_expr
       expected_s_fields;
 
     Expr.estruct s_uid s_fields emark
-  | EnumInject (enum, (constructor, pos_constructor), payload) -> (
+  | StructLit (((_, _s_name), _), _fields) ->
+    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+  | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let possible_c_uids =
       try IdentName.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
@@ -473,8 +483,8 @@ let rec translate_expr
     in
     let mark_constructor = Untyped { pos = pos_constructor } in
 
-    match enum with
-    | None ->
+    match path with
+    | [] ->
       if
         (* No constructor name was specified *)
         EnumName.Map.cardinal possible_c_uids > 1
@@ -497,7 +507,7 @@ let rec translate_expr
           | Some e' -> e'
           | None -> Expr.elit LUnit mark_constructor)
           c_uid e_uid emark
-    | Some enum -> (
+    | [enum] -> (
       try
         (* The path has been fully qualified *)
         let e_uid = Name_resolution.get_enum ctxt enum in
@@ -516,7 +526,9 @@ let rec translate_expr
             (Marked.unmark enum) constructor
       with Not_found ->
         Errors.raise_spanned_error (Marked.get_mark enum)
-          "Enum %s has not been defined before" (Marked.unmark enum)))
+          "Enum %s has not been defined before" (Marked.unmark enum))
+    | _ ->
+      Errors.raise_spanned_error pos "Qualified paths are not supported yet")
   | MatchWith (e1, (cases, _cases_pos)) ->
     let e1 = translate_expr scope inside_definition_of ctxt e1 in
     let cases_d, e_uid =

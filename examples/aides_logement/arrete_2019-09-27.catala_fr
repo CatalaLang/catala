@@ -806,6 +806,15 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   sous condition
     date_courante >= |2023-01-01| et
     date_signature_prêt >= |1992-06-30| et
+    date_signature_prêt <= |1994-11-27| et
+    # La borne supérieure de la date de signature du prêt est implicite dans
+    # la rédaction actuelle mais confirmée par un mail de DGALN/DHUP/FE4 le
+    # 19/01/2023: "sur l'article 18, la nouvelle rédaction reprend l'ancienne :
+    # dans l'ancienne, nous avions un 1° qui prévoyait, à partir du 30/06/1992,
+    # un a), un b) et un c). Le 2° prévoyait à partir du 27/11/1994 un a) et
+    # un b). Le c) n'était plus mentionné, ce qui est également le cas à
+    # présent". Les anciennes et nouvelles version font référence aux
+    # changements introduits par l’arrêté du 26 décembre 2022.
     (selon ancienneté_logement sous forme
      -- Ancien de amélioré_par_occupant:
         amélioré_par_occupant sous forme AmélioréParOccupant.Oui

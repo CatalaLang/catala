@@ -14,15 +14,22 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Ast
 
 let format_primitive_typ (fmt : Format.formatter) (t : primitive_typ) : unit =
   match t with
-  | Integer -> Format.fprintf fmt "integer"
-  | Decimal -> Format.fprintf fmt "decimal"
-  | Boolean -> Format.fprintf fmt "boolean"
-  | Money -> Format.fprintf fmt "money"
-  | Duration -> Format.fprintf fmt "duration"
-  | Text -> Format.fprintf fmt "text"
-  | Date -> Format.fprintf fmt "date"
-  | Named constructor -> Format.fprintf fmt "%s" constructor
+  | Integer -> Format.pp_print_string fmt "integer"
+  | Decimal -> Format.pp_print_string fmt "decimal"
+  | Boolean -> Format.pp_print_string fmt "boolean"
+  | Money -> Format.pp_print_string fmt "money"
+  | Duration -> Format.pp_print_string fmt "duration"
+  | Text -> Format.pp_print_string fmt "text"
+  | Date -> Format.pp_print_string fmt "date"
+  | Named (path, constructor) ->
+    Format.fprintf fmt "%a.%s"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
+         (fun fmt (uid, _pos) -> Format.pp_print_string fmt uid))
+      path
+      (Marked.unmark constructor)
