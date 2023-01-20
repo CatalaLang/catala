@@ -55,8 +55,7 @@ Couple marié   17 905,06 €    1 492,08 €
 # aux APL
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition plafond_individuel_l815_9_sécu sous condition
-    date_courante >= |2023-01-01| et
-    date_courante < |2024-01-01|
+    date_courante >= |2023-01-01|
   conséquence égal à 11 533,02 €
 ```
 
