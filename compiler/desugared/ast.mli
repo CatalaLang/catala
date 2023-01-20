@@ -76,6 +76,7 @@ val always_false_rule :
 type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
+type catala_option = DateRounding of variation_typ
 
 type meta_assertion =
   | FixedBy of reference_typ Marked.pos
@@ -119,6 +120,7 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
+  scope_options : catala_option list;
   scope_meta_assertions : meta_assertion list;
 }
 

@@ -144,6 +144,20 @@ let embed_allocations_familiales (x: AllocationsFamiliales.t) : runtime_value =
   [("montant_versé", embed_money x.AllocationsFamiliales.montant_verse)])
 
 
+module CalculAgeInfEq = struct
+  type t = {r: bool}
+end
+let embed_calcul_age_inf_eq (x: CalculAgeInfEq.t) : runtime_value =
+  Struct(["CalculAgeInfEq"], [("r", embed_bool x.CalculAgeInfEq.r)])
+
+
+module CalculAgeSupStrict = struct
+  type t = {r: bool}
+end
+let embed_calcul_age_sup_strict (x: CalculAgeSupStrict.t) : runtime_value =
+  Struct(["CalculAgeSupStrict"], [("r", embed_bool x.CalculAgeSupStrict.r)])
+
+
 module Smic = struct
   type t = {brut_horaire: money}
 end
@@ -310,6 +324,38 @@ let embed_allocations_familiales_in (x: AllocationsFamilialesIn.t) : runtime_val
     x.AllocationsFamilialesIn.avait_enfant_a_charge_avant_1er_janvier_2012_in)])
 
 
+module CalculAgeInfEqIn = struct
+  type t = {
+    date_naissance_in: date;
+    date_courante_in: date;
+    annees_in: duration
+  }
+end
+let embed_calcul_age_inf_eq_in (x: CalculAgeInfEqIn.t) : runtime_value =
+  Struct(["CalculAgeInfEq_in"],
+  [("date_naissance_in", embed_date
+    x.CalculAgeInfEqIn.date_naissance_in);
+    ("date_courante_in", embed_date
+    x.CalculAgeInfEqIn.date_courante_in);
+    ("années_in", embed_duration x.CalculAgeInfEqIn.annees_in)])
+
+
+module CalculAgeSupStrictIn = struct
+  type t = {
+    date_naissance_in: date;
+    date_courante_in: date;
+    annees_in: duration
+  }
+end
+let embed_calcul_age_sup_strict_in (x: CalculAgeSupStrictIn.t) : runtime_value =
+  Struct(["CalculAgeSupStrict_in"],
+  [("date_naissance_in", embed_date
+    x.CalculAgeSupStrictIn.date_naissance_in);
+    ("date_courante_in", embed_date
+    x.CalculAgeSupStrictIn.date_courante_in);
+    ("années_in", embed_duration x.CalculAgeSupStrictIn.annees_in)])
+
+
 module SmicIn = struct
   type t = {date_courante_in: date; residence_in: Collectivite.t}
 end
@@ -436,6 +482,64 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
   {EnfantLePlusAge.le_plus_age = le_plus_age_}
+
+let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfEq.t =
+  let date_naissance_: date = calcul_age_inf_eq_in.CalculAgeInfEqIn.date_naissance_in in
+  let date_courante_: date = calcul_age_inf_eq_in.CalculAgeInfEqIn.date_courante_in in
+  let annees_: duration = calcul_age_inf_eq_in.CalculAgeInfEqIn.annees_in in
+  let r_: bool = (log_variable_definition ["CalculAgeInfEq"; "r"]
+    (embed_bool) (
+    try
+      (handle_default
+         {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+           start_line=17; start_column=12; end_line=17; end_column=13;
+           law_headings=["Prologue";
+                          "Montant du salaire minimum de croissance"]} (
+         [||])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+              start_line=20; start_column=14; end_line=20; end_column=15;
+              law_headings=["Prologue";
+                             "Montant du salaire minimum de croissance"]}
+            true))
+         (fun (_: unit) ->
+            o_lte_dat_dat (o_add_dat_dur(u) date_naissance_ annees_)
+              date_courante_))
+    with
+    EmptyError -> (raise (NoValueProvided
+      {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+        start_line=17; start_column=12; end_line=17; end_column=13;
+        law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
+  {CalculAgeInfEq.r = r_}
+
+let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : CalculAgeSupStrict.t =
+  let date_naissance_: date = calcul_age_sup_strict_in.CalculAgeSupStrictIn.date_naissance_in in
+  let date_courante_: date = calcul_age_sup_strict_in.CalculAgeSupStrictIn.date_courante_in in
+  let annees_: duration = calcul_age_sup_strict_in.CalculAgeSupStrictIn.annees_in in
+  let r_: bool = (log_variable_definition ["CalculAgeSupStrict"; "r"]
+    (embed_bool) (
+    try
+      (handle_default
+         {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+           start_line=27; start_column=12; end_line=27; end_column=13;
+           law_headings=["Prologue";
+                          "Montant du salaire minimum de croissance"]} (
+         [||])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+              start_line=30; start_column=14; end_line=30; end_column=15;
+              law_headings=["Prologue";
+                             "Montant du salaire minimum de croissance"]}
+            true))
+         (fun (_: unit) ->
+            o_gt_dat_dat (o_add_dat_dur(u) date_naissance_ annees_)
+              date_courante_))
+    with
+    EmptyError -> (raise (NoValueProvided
+      {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+        start_line=27; start_column=12; end_line=27; end_column=13;
+        law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
+  {CalculAgeSupStrict.r = r_}
 
 let smic (smic_in: SmicIn.t) : Smic.t =
   let date_courante_: date = smic_in.SmicIn.date_courante_in in
@@ -1357,7 +1461,7 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                                        (enfant_.Enfant.remuneration_mensuelle)
                                                        plafond_l512_3_2_)
                                                     (o_gt_dat_dat
-                                                       (o_add_dat_dur
+                                                       (o_add_dat_dur(a)
                                                           (enfant_.Enfant.date_de_naissance)
                                                           age_l512_3_2_)
                                                        date_courante_)))))
@@ -2008,7 +2112,8 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Partie réglementaire - Décrets en Conseil d'Etat";
                                           "Code de la sécurité sociale"]}
                          (o_lte_dat_dat
-                            (o_add_dat_dur (enfant_.Enfant.date_de_naissance)
+                            (o_add_dat_dur(a)
+                               (enfant_.Enfant.date_de_naissance)
                                (duration_of_numbers (11) (0) (0)))
                             (date_of_numbers (2008) (4) (30)))))
                       (fun (_: unit) ->
@@ -2503,7 +2608,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                             (o_and
                                (o_lt_dur_dur
                                   (o_sub_dat_dat
-                                     (o_add_dat_dur
+                                     (o_add_dat_dur(a)
                                         (enfant_.Enfant.date_de_naissance)
                                         prestations_familiales_dot_age_l512_3_2_)
                                      date_courante_)
@@ -3604,7 +3709,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           enfants_a_charge_droit_ouvert_prestation_familiale_)
                                        nombre_enfants_alinea_2_l521_3_)
                                     (o_lte_dat_dat
-                                       (o_add_dat_dur
+                                       (o_add_dat_dur(a)
                                           (enfant_.Enfant.date_de_naissance)
                                           ((log_end_call
                                           ["AllocationsFamiliales";
@@ -3649,7 +3754,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  "est_enfant_le_plus_âgé"; "input0"]
                                (embed_enfant) enfant_))))))))
                             (o_lte_dat_dat
-                               (o_add_dat_dur
+                               (o_add_dat_dur(a)
                                   (enfant_.Enfant.date_de_naissance)
                                   ((log_end_call
                                   ["AllocationsFamiliales";
@@ -4844,12 +4949,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              (integer_of_string "1"))
                                           (o_and
                                              (o_lte_dat_dat
-                                                (o_add_dat_dur
+                                                (o_add_dat_dur(a)
                                                    (enfant_.Enfant.date_de_naissance)
                                                    (duration_of_numbers (11) (0) (0)))
                                                 date_courante_)
                                              (o_gt_dat_dat
-                                                (o_add_dat_dur
+                                                (o_add_dat_dur(a)
                                                    (enfant_.Enfant.date_de_naissance)
                                                    (duration_of_numbers (16) (0) (0)))
                                                 date_courante_)))))))
@@ -4896,7 +5001,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
                                              (integer_of_string "1"))
                                           (o_lte_dat_dat
-                                             (o_add_dat_dur
+                                             (o_add_dat_dur(a)
                                                 (enfant_.Enfant.date_de_naissance)
                                                 (duration_of_numbers (16) (0) (0)))
                                              date_courante_))))))
@@ -5339,14 +5444,14 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
                     Enfant.obligation_scolaire =
                       ( if
                          (o_gte_dat_dat
-                            (o_add_dat_dur
+                            (o_add_dat_dur(a)
                                (enfant_.EnfantEntree.d_date_de_naissance)
                                (duration_of_numbers (3) (0) (0)))
                             i_date_courante_) then
                          (SituationObligationScolaire.Avant ()) else
                          ( if
                             (o_gte_dat_dat
-                               (o_add_dat_dur
+                               (o_add_dat_dur(a)
                                   (enfant_.EnfantEntree.d_date_de_naissance)
                                   (duration_of_numbers (16) (0) (0)))
                                i_date_courante_) then

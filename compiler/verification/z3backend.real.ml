@@ -124,7 +124,8 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
   Runtime.date_to_string
-    (Runtime.Oper.o_add_dat_dur base_day (Runtime.duration_of_numbers 0 0 nb))
+    (Runtime.Oper.o_add_dat_dur AbortOnRound base_day
+       (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
@@ -541,7 +542,8 @@ let rec translate_op :
   | And, _ -> app Boolean.mk_and
   | Or, _ -> app Boolean.mk_or
   | Xor, _ -> app2 Boolean.mk_xor
-  | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur), _ ->
+  | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur), _
+    ->
     app Arithmetic.mk_add
   | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
       | Sub_dur_dur ),

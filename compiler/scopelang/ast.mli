@@ -41,6 +41,7 @@ type 'm scope_decl = {
   scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
+  scope_options : Desugared.Ast.catala_option list;
 }
 
 type 'm program = {

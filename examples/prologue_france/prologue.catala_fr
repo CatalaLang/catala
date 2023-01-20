@@ -9,4 +9,24 @@ déclaration énumération Collectivité :
   -- Métropole
   -- SaintPierreEtMiquelon
   -- Mayotte
+
+déclaration champ d'application CalculAgeInfEq:
+  entrée date_naissance contenu date
+  entrée date_courante contenu date
+  entrée années contenu durée
+  résultat r contenu booléen
+
+champ d'application CalculAgeInfEq:
+  définition r égal à date_naissance + années <= date_courante
+  date arrondi croissant
+
+déclaration champ d'application CalculAgeSupStrict:
+  entrée date_naissance contenu date
+  entrée date_courante contenu date
+  entrée années contenu durée
+  résultat r contenu booléen
+
+champ d'application CalculAgeSupStrict:
+  définition r égal à date_naissance + années > date_courante
+  date arrondi croissant
 ```

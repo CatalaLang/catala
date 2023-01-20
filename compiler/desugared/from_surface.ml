@@ -1142,6 +1142,21 @@ let process_scope_use_item
   | Surface.Ast.Rule rule -> process_rule precond scope ctxt prgm rule
   | Surface.Ast.Definition def -> process_def precond scope ctxt prgm def
   | Surface.Ast.Assertion ass -> process_assert precond scope ctxt prgm ass
+  | Surface.Ast.DateRounding (r, _) ->
+    let scope_uid = scope in
+    let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
+    let r =
+      match r with
+      | Surface.Ast.Increasing -> Ast.Increasing
+      | Surface.Ast.Decreasing -> Ast.Decreasing
+    in
+    let new_scope =
+      { scope with scope_options = Ast.DateRounding r :: scope.scope_options }
+    in
+    {
+      prgm with
+      program_scopes = ScopeName.Map.add scope_uid new_scope prgm.program_scopes;
+    }
   | _ -> prgm
 
 (** {1 Translating top-level items} *)
@@ -1381,6 +1396,7 @@ let translate_program
             scope_defs = init_scope_defs ctxt s_context.var_idmap;
             scope_assertions = [];
             scope_meta_assertions = [];
+            scope_options = [];
             scope_uid = s_uid;
           })
         ctxt.Name_resolution.scopes

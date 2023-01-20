@@ -586,6 +586,7 @@ type scope_use_item =
   | Definition of definition
   | Assertion of assertion
   | MetaAssertion of meta_assertion
+  | DateRounding of variation_typ Marked.pos
 [@@deriving
   visitors
     {

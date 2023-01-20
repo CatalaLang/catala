@@ -51,6 +51,7 @@ val kind_dispatch :
 (** Calls one of the supplied functions depending on the kind of the operator *)
 
 val translate :
+  date_rounding option ->
   ([< scopelang | dcalc | lcalc ], 'k) t ->
   ([< scopelang | dcalc | lcalc ], 'k) t
 (** An identity function that allows translating an operator between different

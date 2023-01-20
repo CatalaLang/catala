@@ -81,6 +81,7 @@ and naked_typ =
 (** {2 Constants and operators} *)
 
 type date = Runtime.date
+type date_rounding = Runtime.date_rounding
 type duration = Runtime.duration
 
 type log_entry =
@@ -162,7 +163,9 @@ module Op = struct
     | Add_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
     | Add_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
     | Add_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
-    | Add_dat_dur : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Add_dat_dur :
+        date_rounding
+        -> ([< scopelang | dcalc | lcalc ], resolved) t
     | Add_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
     | Sub : (desugared, overloaded) t
     | Sub_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
