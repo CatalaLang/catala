@@ -38,7 +38,18 @@ let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
   match exprs with
   | [] -> ELit (LBool true), mark
   | hd :: tl ->
-    EApp ((EOp (Binop And), mark), [hd; conjunction_exprs tl mark]), mark
+    ( EApp
+        {
+          f =
+            ( EOp
+                {
+                  op = And;
+                  tys = [TLit TBool, Expr.pos hd; TLit TBool, Expr.pos hd];
+                },
+              mark );
+          args = [hd; conjunction_exprs tl mark];
+        },
+      mark )
 
 let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
